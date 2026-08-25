@@ -1,0 +1,1095 @@
+{
+  "ARCH-037": {
+    "name": "Database Final Schema Design v1.0",
+    "objective": "Finalize the production-grade, tenant-safe, auditable database schema from approved Database DNA.",
+    "subtasks": [
+      [
+        "T01",
+        "Inventory canonical entities and bounded contexts",
+        "CRITICAL"
+      ],
+      [
+        "T02",
+        "Define final tables and source-of-truth ownership",
+        "CRITICAL"
+      ],
+      [
+        "T03",
+        "Define keys relationships and referential rules",
+        "CRITICAL"
+      ],
+      [
+        "T04",
+        "Define tenant isolation and authorization fields",
+        "CRITICAL"
+      ],
+      [
+        "T05",
+        "Define indexes uniqueness and critical constraints",
+        "HIGH"
+      ],
+      [
+        "T06",
+        "Define event and audit persistence model",
+        "HIGH"
+      ],
+      [
+        "T07",
+        "Define retention archival and recovery rules",
+        "HIGH"
+      ],
+      [
+        "T08",
+        "Define schema migration and versioning strategy",
+        "HIGH"
+      ],
+      [
+        "T09",
+        "Run normalization and duplication review",
+        "CRITICAL"
+      ],
+      [
+        "T10",
+        "Run security privacy and performance review",
+        "CRITICAL"
+      ],
+      [
+        "T11",
+        "Final schema freeze approval",
+        "CRITICAL"
+      ]
+    ],
+    "criteria": [
+      "Every canonical business entity has one authoritative source of truth.",
+      "Lead, deal, inventory, trust, fraud, governance and commission relationships are traceable.",
+      "Tenant isolation is enforceable at database level.",
+      "Critical uniqueness and referential constraints are explicit.",
+      "Event and audit history preserves historical truth.",
+      "Migration and versioning supports safe production evolution.",
+      "Critical access paths have intentional indexes.",
+      "Sensitive data boundaries are explicitly defined.",
+      "Schema supports all approved operating modes.",
+      "No duplicate responsibility exists across services.",
+      "Security, performance and consistency review passes."
+    ]
+  },
+  "ARCH-038": {
+    "name": "Technology Stack Lock v1.0",
+    "objective": "Freeze the implementation technology stack with explicit reasons and no unnecessary complexity.",
+    "subtasks": [
+      [
+        "T01",
+        "Define frontend and runtime stack",
+        "CRITICAL"
+      ],
+      [
+        "T02",
+        "Define backend and service runtime stack",
+        "CRITICAL"
+      ],
+      [
+        "T03",
+        "Define database and data infrastructure",
+        "CRITICAL"
+      ],
+      [
+        "T04",
+        "Define event bus cache and background jobs",
+        "HIGH"
+      ],
+      [
+        "T05",
+        "Define search vector and AI infrastructure",
+        "HIGH"
+      ],
+      [
+        "T06",
+        "Define cloud deployment and container strategy",
+        "HIGH"
+      ],
+      [
+        "T07",
+        "Define observability and security tooling",
+        "HIGH"
+      ],
+      [
+        "T08",
+        "Run cost scalability and vendor-lock review",
+        "CRITICAL"
+      ],
+      [
+        "T09",
+        "Freeze technology decision record",
+        "CRITICAL"
+      ]
+    ],
+    "criteria": [
+      "Every production component has a defined purpose and owner.",
+      "Stack supports multi-tenancy and event-driven services.",
+      "Stack supports search and AI infrastructure.",
+      "Security, observability, backup and recovery requirements are covered.",
+      "Development, staging and production environments are supported.",
+      "Alternatives and reasons are recorded.",
+      "Cost and scale assumptions are recorded.",
+      "No unnecessary technology is introduced.",
+      "Technology stack is explicitly approved and frozen."
+    ]
+  },
+  "ARCH-039": {
+    "name": "Master Blueprint v1.0",
+    "objective": "Assemble all approved architecture into one machine-readable implementation contract.",
+    "subtasks": [
+      [
+        "T01",
+        "Assemble business architecture registry",
+        "CRITICAL"
+      ],
+      [
+        "T02",
+        "Assemble technical architecture registry",
+        "CRITICAL"
+      ],
+      [
+        "T03",
+        "Assemble database event and API contracts",
+        "CRITICAL"
+      ],
+      [
+        "T04",
+        "Assemble security governance and approval rules",
+        "CRITICAL"
+      ],
+      [
+        "T05",
+        "Assemble implementation dependency graph",
+        "CRITICAL"
+      ],
+      [
+        "T06",
+        "Run architecture consistency and duplicate review",
+        "CRITICAL"
+      ],
+      [
+        "T07",
+        "Generate repository implementation map",
+        "CRITICAL"
+      ],
+      [
+        "T08",
+        "Freeze Master Blueprint",
+        "CRITICAL"
+      ]
+    ],
+    "criteria": [
+      "All approved architecture gates are represented.",
+      "No unresolved architecture conflicts remain.",
+      "Dependencies and execution order are machine-readable.",
+      "Security and governance controls are preserved.",
+      "Coding tasks derive from the blueprint.",
+      "Master Blueprint is versioned and frozen."
+    ]
+  },
+  "REPO-001": {
+    "name": "Repository Architecture & HOMIO Foundation",
+    "objective": "Create the canonical repository foundation from the frozen Master Blueprint.",
+    "subtasks": [
+      [
+        "T01",
+        "Create canonical repository structure",
+        "CRITICAL"
+      ],
+      [
+        "T02",
+        "Create application and service boundaries",
+        "CRITICAL"
+      ],
+      [
+        "T03",
+        "Create platform and shared package boundaries",
+        "CRITICAL"
+      ],
+      [
+        "T04",
+        "Create database contracts and migration structure",
+        "CRITICAL"
+      ],
+      [
+        "T05",
+        "Create API and event contract structure",
+        "HIGH"
+      ],
+      [
+        "T06",
+        "Create infrastructure and deployment structure",
+        "HIGH"
+      ],
+      [
+        "T07",
+        "Create testing and quality structure",
+        "HIGH"
+      ],
+      [
+        "T08",
+        "Create repository manifest and ownership registry",
+        "CRITICAL"
+      ],
+      [
+        "T09",
+        "Run repository dependency and duplication review",
+        "CRITICAL"
+      ],
+      [
+        "T10",
+        "Freeze repository foundation",
+        "CRITICAL"
+      ]
+    ],
+    "criteria": [
+      "Repository structure matches the frozen Master Blueprint.",
+      "Application, service and platform boundaries are explicit.",
+      "Database, API and event contract locations are defined.",
+      "Infrastructure and deployment boundaries are defined.",
+      "Testing and quality boundaries are defined.",
+      "Repository ownership and dependency metadata are machine-readable.",
+      "No duplicate or conflicting repository responsibility exists.",
+      "Repository foundation is ready for engineering implementation."
+    ]
+  },
+  "ENG-001": {
+    "name": "Engineering Foundation",
+    "objective": "Establish the common engineering runtime, standards and development foundations.",
+    "subtasks": [
+      [
+        "T01",
+        "Lock coding standards and project conventions",
+        "CRITICAL"
+      ],
+      [
+        "T02",
+        "Create TypeScript/Node workspace foundation",
+        "CRITICAL"
+      ],
+      [
+        "T03",
+        "Create configuration and environment system",
+        "CRITICAL"
+      ],
+      [
+        "T04",
+        "Create database access and migration foundation",
+        "CRITICAL"
+      ],
+      [
+        "T05",
+        "Create API and contract validation foundation",
+        "HIGH"
+      ],
+      [
+        "T06",
+        "Create logging tracing and error foundation",
+        "HIGH"
+      ],
+      [
+        "T07",
+        "Create test and quality automation foundation",
+        "HIGH"
+      ],
+      [
+        "T08",
+        "Create local development and CI foundation",
+        "HIGH"
+      ],
+      [
+        "T09",
+        "Run engineering dependency and security review",
+        "CRITICAL"
+      ],
+      [
+        "T10",
+        "Freeze engineering foundation",
+        "CRITICAL"
+      ]
+    ],
+    "criteria": [
+      "Engineering conventions are machine-readable.",
+      "Runtime and workspace foundation is reproducible.",
+      "Configuration and secrets boundaries are defined.",
+      "Database and migration foundation is operationally defined.",
+      "API, logging, tracing and errors have common contracts.",
+      "Testing and CI foundations are defined.",
+      "Local development is reproducible.",
+      "No engineering foundation conflicts with frozen architecture."
+    ]
+  },
+  "CORE-001": {
+    "name": "Identity & Tenant Foundation",
+    "objective": "Implement the authoritative identity, tenant and authorization foundation.",
+    "subtasks": [
+      [
+        "T01",
+        "Define identity model",
+        "CRITICAL"
+      ],
+      [
+        "T02",
+        "Define tenant model and lifecycle",
+        "CRITICAL"
+      ],
+      [
+        "T03",
+        "Implement role and permission model",
+        "CRITICAL"
+      ],
+      [
+        "T04",
+        "Implement tenant isolation enforcement",
+        "CRITICAL"
+      ],
+      [
+        "T05",
+        "Implement session and authentication boundaries",
+        "HIGH"
+      ],
+      [
+        "T06",
+        "Implement authorization context propagation",
+        "HIGH"
+      ],
+      [
+        "T07",
+        "Implement audit hooks for identity and tenant actions",
+        "HIGH"
+      ],
+      [
+        "T08",
+        "Run tenant-isolation security tests",
+        "CRITICAL"
+      ],
+      [
+        "T09",
+        "Run identity dependency and performance review",
+        "HIGH"
+      ],
+      [
+        "T10",
+        "Freeze identity and tenant foundation",
+        "CRITICAL"
+      ]
+    ],
+    "criteria": [
+      "Identity has one authoritative source of truth.",
+      "Tenant isolation is enforceable.",
+      "Roles and permissions are explicit.",
+      "Authorization context propagates safely.",
+      "Identity and tenant lifecycle changes are auditable.",
+      "Security and cross-tenant tests pass.",
+      "Foundation supports all approved operating modes."
+    ]
+  },
+  "CORE-002": {
+    "name": "Event Bus & Platform Events",
+    "objective": "Implement the canonical event transport, contracts and reliable asynchronous event foundation.",
+    "subtasks": [
+      [
+        "T01",
+        "Implement event envelope and schema registry",
+        "CRITICAL"
+      ],
+      [
+        "T02",
+        "Implement Kafka integration",
+        "CRITICAL"
+      ],
+      [
+        "T03",
+        "Implement transactional outbox integration",
+        "CRITICAL"
+      ],
+      [
+        "T04",
+        "Implement consumer groups and handlers",
+        "HIGH"
+      ],
+      [
+        "T05",
+        "Implement idempotency and deduplication",
+        "CRITICAL"
+      ],
+      [
+        "T06",
+        "Implement retry and dead-letter handling",
+        "HIGH"
+      ],
+      [
+        "T07",
+        "Implement event tracing and observability",
+        "HIGH"
+      ],
+      [
+        "T08",
+        "Run event ordering and failure tests",
+        "CRITICAL"
+      ],
+      [
+        "T09",
+        "Run tenant-isolation and replay review",
+        "CRITICAL"
+      ],
+      [
+        "T10",
+        "Freeze event platform foundation",
+        "CRITICAL"
+      ]
+    ],
+    "criteria": [
+      "Event contracts are versioned.",
+      "Reliable publication and consumption are defined.",
+      "Idempotency prevents duplicate business effects.",
+      "Retry and dead-letter handling works.",
+      "Event tracing and audit are available.",
+      "Tenant and operating-mode context are preserved.",
+      "Replay and failure behavior is validated."
+    ]
+  },
+  "CORE-003": {
+    "name": "Lead & Ownership Core",
+    "objective": "Implement lead lifecycle, attribution and protected ownership.",
+    "subtasks": [
+      [
+        "T01",
+        "Implement customer and lead domain",
+        "CRITICAL"
+      ],
+      [
+        "T02",
+        "Implement lead lifecycle state machine",
+        "CRITICAL"
+      ],
+      [
+        "T03",
+        "Implement lead source attribution",
+        "HIGH"
+      ],
+      [
+        "T04",
+        "Implement lead ownership engine",
+        "CRITICAL"
+      ],
+      [
+        "T05",
+        "Implement ownership history and transfer rules",
+        "CRITICAL"
+      ],
+      [
+        "T06",
+        "Implement communication evidence hooks",
+        "HIGH"
+      ],
+      [
+        "T07",
+        "Implement duplicate and fraud handoff boundaries",
+        "HIGH"
+      ],
+      [
+        "T08",
+        "Run lead ownership security tests",
+        "CRITICAL"
+      ],
+      [
+        "T09",
+        "Run load and lifecycle consistency tests",
+        "HIGH"
+      ],
+      [
+        "T10",
+        "Freeze lead and ownership core",
+        "CRITICAL"
+      ]
+    ],
+    "criteria": [
+      "Lead source of truth is authoritative.",
+      "Ownership is protected and historically traceable.",
+      "Transfer rules are deterministic and auditable.",
+      "Duplicate/fraud boundaries are preserved.",
+      "Tenant isolation is enforced.",
+      "Critical lead workflows are tested."
+    ]
+  },
+  "CORE-004": {
+    "name": "Inventory Core",
+    "objective": "Implement verified project and inventory truth.",
+    "subtasks": [
+      [
+        "T01",
+        "Implement project domain",
+        "CRITICAL"
+      ],
+      [
+        "T02",
+        "Implement inventory domain",
+        "CRITICAL"
+      ],
+      [
+        "T03",
+        "Implement inventory lifecycle",
+        "CRITICAL"
+      ],
+      [
+        "T04",
+        "Implement availability and status rules",
+        "CRITICAL"
+      ],
+      [
+        "T05",
+        "Implement inventory verification workflow",
+        "HIGH"
+      ],
+      [
+        "T06",
+        "Implement inventory history and evidence",
+        "HIGH"
+      ],
+      [
+        "T07",
+        "Implement inventory indexing hooks",
+        "HIGH"
+      ],
+      [
+        "T08",
+        "Run inventory consistency and tenant tests",
+        "CRITICAL"
+      ],
+      [
+        "T09",
+        "Run performance and concurrency review",
+        "HIGH"
+      ],
+      [
+        "T10",
+        "Freeze inventory core",
+        "CRITICAL"
+      ]
+    ],
+    "criteria": [
+      "Inventory has one authoritative source.",
+      "Project to inventory relationships are enforced.",
+      "Availability state is consistent.",
+      "Verification and evidence are auditable.",
+      "Search indexing is derived from canonical inventory.",
+      "Concurrency and tenant tests pass."
+    ]
+  },
+  "CORE-005": {
+    "name": "Search & Matching Core",
+    "objective": "Implement structured, hybrid semantic and matching search.",
+    "subtasks": [
+      [
+        "T01",
+        "Implement structured search filters",
+        "CRITICAL"
+      ],
+      [
+        "T02",
+        "Implement PostGIS/location search where required",
+        "HIGH"
+      ],
+      [
+        "T03",
+        "Implement Qdrant indexing pipeline",
+        "CRITICAL"
+      ],
+      [
+        "T04",
+        "Implement hybrid lexical/vector retrieval",
+        "CRITICAL"
+      ],
+      [
+        "T05",
+        "Implement ranking and reranking",
+        "HIGH"
+      ],
+      [
+        "T06",
+        "Implement tenant and visibility filters",
+        "CRITICAL"
+      ],
+      [
+        "T07",
+        "Implement matching and recommendation foundation",
+        "HIGH"
+      ],
+      [
+        "T08",
+        "Implement search rebuild and recovery",
+        "HIGH"
+      ],
+      [
+        "T09",
+        "Run relevance security and performance tests",
+        "CRITICAL"
+      ],
+      [
+        "T10",
+        "Freeze search and matching core",
+        "CRITICAL"
+      ]
+    ],
+    "criteria": [
+      "Structured and semantic search operate together.",
+      "Tenant visibility is enforced before result exposure.",
+      "Search indexes are rebuildable from source truth.",
+      "Ranking is deterministic and observable.",
+      "Search performance meets defined targets.",
+      "No search component becomes business source of truth."
+    ]
+  },
+  "CORE-006": {
+    "name": "Deal & Transaction Core",
+    "objective": "Implement protected deal lifecycle and transaction state.",
+    "subtasks": [
+      [
+        "T01",
+        "Implement deal domain and lifecycle",
+        "CRITICAL"
+      ],
+      [
+        "T02",
+        "Implement deal party relationships",
+        "CRITICAL"
+      ],
+      [
+        "T03",
+        "Implement offer and negotiation state",
+        "HIGH"
+      ],
+      [
+        "T04",
+        "Implement booking and transaction milestones",
+        "CRITICAL"
+      ],
+      [
+        "T05",
+        "Implement deal ownership integration",
+        "CRITICAL"
+      ],
+      [
+        "T06",
+        "Implement evidence and audit integration",
+        "HIGH"
+      ],
+      [
+        "T07",
+        "Implement transaction event workflows",
+        "HIGH"
+      ],
+      [
+        "T08",
+        "Run consistency and concurrency tests",
+        "CRITICAL"
+      ],
+      [
+        "T09",
+        "Run security and authorization review",
+        "CRITICAL"
+      ],
+      [
+        "T10",
+        "Freeze deal and transaction core",
+        "CRITICAL"
+      ]
+    ],
+    "criteria": [
+      "Deal state has one authoritative owner.",
+      "Lead, inventory and ownership relationships are traceable.",
+      "Critical transaction transitions are auditable.",
+      "Concurrent updates are safe.",
+      "Evidence and events preserve historical truth.",
+      "Authorization and tenant isolation pass."
+    ]
+  },
+  "CORE-007": {
+    "name": "Trust, Fraud & Governance Core",
+    "objective": "Implement platform trust, fraud and business governance controls.",
+    "subtasks": [
+      [
+        "T01",
+        "Implement trust score foundation",
+        "CRITICAL"
+      ],
+      [
+        "T02",
+        "Implement fraud detection integration",
+        "CRITICAL"
+      ],
+      [
+        "T03",
+        "Implement risk rule evaluation",
+        "CRITICAL"
+      ],
+      [
+        "T04",
+        "Implement governance policy engine",
+        "CRITICAL"
+      ],
+      [
+        "T05",
+        "Implement approval and exception workflows",
+        "CRITICAL"
+      ],
+      [
+        "T06",
+        "Implement security and evidence integration",
+        "HIGH"
+      ],
+      [
+        "T07",
+        "Implement dispute and escalation hooks",
+        "HIGH"
+      ],
+      [
+        "T08",
+        "Run adversarial and false-positive review",
+        "CRITICAL"
+      ],
+      [
+        "T09",
+        "Run policy conflict and tenant isolation tests",
+        "CRITICAL"
+      ],
+      [
+        "T10",
+        "Freeze trust fraud and governance core",
+        "CRITICAL"
+      ]
+    ],
+    "criteria": [
+      "Trust and fraud responsibilities are distinct.",
+      "Governance policies are versioned and auditable.",
+      "High-risk actions require appropriate approval.",
+      "Exceptions are controlled and expire.",
+      "Cross-tenant and privilege boundaries are enforced.",
+      "False-positive and conflict cases are tested."
+    ]
+  },
+  "CORE-008": {
+    "name": "Commission & Financial Core",
+    "objective": "Implement protected commission, financial and settlement lifecycle.",
+    "subtasks": [
+      [
+        "T01",
+        "Implement commission domain",
+        "CRITICAL"
+      ],
+      [
+        "T02",
+        "Implement commission attribution and rules",
+        "CRITICAL"
+      ],
+      [
+        "T03",
+        "Implement split and participant logic",
+        "CRITICAL"
+      ],
+      [
+        "T04",
+        "Implement settlement and reconciliation lifecycle",
+        "CRITICAL"
+      ],
+      [
+        "T05",
+        "Implement dispute and reversal rules",
+        "HIGH"
+      ],
+      [
+        "T06",
+        "Implement financial audit and evidence",
+        "CRITICAL"
+      ],
+      [
+        "T07",
+        "Implement financial reporting hooks",
+        "HIGH"
+      ],
+      [
+        "T08",
+        "Run precision and concurrency tests",
+        "CRITICAL"
+      ],
+      [
+        "T09",
+        "Run financial security and approval review",
+        "CRITICAL"
+      ],
+      [
+        "T10",
+        "Freeze commission and financial core",
+        "CRITICAL"
+      ]
+    ],
+    "criteria": [
+      "Commission source of truth is authoritative.",
+      "Deal and ownership attribution is traceable.",
+      "Financial amounts use safe fixed-precision semantics.",
+      "Settlement and reversal are auditable.",
+      "Critical financial actions require appropriate approval.",
+      "Security and concurrency tests pass."
+    ]
+  },
+  "AI-001": {
+    "name": "AI Platform & Agents",
+    "objective": "Implement the governed AI gateway, retrieval, agents and tool execution layer.",
+    "subtasks": [
+      [
+        "T01",
+        "Implement AI Gateway",
+        "CRITICAL"
+      ],
+      [
+        "T02",
+        "Implement provider and model registry",
+        "CRITICAL"
+      ],
+      [
+        "T03",
+        "Implement embeddings and retrieval integration",
+        "HIGH"
+      ],
+      [
+        "T04",
+        "Implement RAG pipeline",
+        "HIGH"
+      ],
+      [
+        "T05",
+        "Implement agent runtime and tools",
+        "CRITICAL"
+      ],
+      [
+        "T06",
+        "Implement AI authorization and tenant isolation",
+        "CRITICAL"
+      ],
+      [
+        "T07",
+        "Implement cost controls and usage tracking",
+        "HIGH"
+      ],
+      [
+        "T08",
+        "Implement AI observability and fallback",
+        "HIGH"
+      ],
+      [
+        "T09",
+        "Run AI safety security and reliability tests",
+        "CRITICAL"
+      ],
+      [
+        "T10",
+        "Freeze AI platform and agents",
+        "CRITICAL"
+      ]
+    ],
+    "criteria": [
+      "AI providers are abstracted behind the gateway.",
+      "AI cannot bypass domain authorization.",
+      "Retrieval is tenant-scoped and rebuildable.",
+      "Model selection and cost controls are configurable.",
+      "Agent actions use authorized business tools.",
+      "Fallback and observability are operational."
+    ]
+  },
+  "APP-001": {
+    "name": "Buyer / Broker / Builder Applications",
+    "objective": "Build user-facing applications from frozen domain and platform contracts.",
+    "subtasks": [
+      [
+        "T01",
+        "Implement application shell and design system",
+        "CRITICAL"
+      ],
+      [
+        "T02",
+        "Implement authentication and tenant UX",
+        "CRITICAL"
+      ],
+      [
+        "T03",
+        "Implement buyer workflows",
+        "HIGH"
+      ],
+      [
+        "T04",
+        "Implement broker workflows",
+        "HIGH"
+      ],
+      [
+        "T05",
+        "Implement builder workflows",
+        "HIGH"
+      ],
+      [
+        "T06",
+        "Implement admin and governance workflows",
+        "HIGH"
+      ],
+      [
+        "T07",
+        "Integrate search, lead, inventory and deal APIs",
+        "CRITICAL"
+      ],
+      [
+        "T08",
+        "Integrate AI capabilities with policy controls",
+        "HIGH"
+      ],
+      [
+        "T09",
+        "Run accessibility, security and E2E tests",
+        "CRITICAL"
+      ],
+      [
+        "T10",
+        "Freeze application release candidate",
+        "CRITICAL"
+      ]
+    ],
+    "criteria": [
+      "Applications derive from frozen contracts.",
+      "Buyer, broker and builder access is correctly isolated.",
+      "Critical workflows are end-to-end functional.",
+      "AI actions respect authorization.",
+      "Accessibility, security and E2E tests pass.",
+      "No business logic is duplicated in the frontend."
+    ]
+  },
+  "REL-001": {
+    "name": "Testing, Security & Release Gates",
+    "objective": "Establish the final quality, security and production release gate.",
+    "subtasks": [
+      [
+        "T01",
+        "Run unit and integration suites",
+        "CRITICAL"
+      ],
+      [
+        "T02",
+        "Run API and event contract tests",
+        "CRITICAL"
+      ],
+      [
+        "T03",
+        "Run tenant isolation and security testing",
+        "CRITICAL"
+      ],
+      [
+        "T04",
+        "Run performance and load testing",
+        "CRITICAL"
+      ],
+      [
+        "T05",
+        "Run disaster recovery and restore tests",
+        "HIGH"
+      ],
+      [
+        "T06",
+        "Run migration and rollback tests",
+        "CRITICAL"
+      ],
+      [
+        "T07",
+        "Run production observability verification",
+        "HIGH"
+      ],
+      [
+        "T08",
+        "Run release candidate review",
+        "CRITICAL"
+      ],
+      [
+        "T09",
+        "Run final security and governance approval",
+        "CRITICAL"
+      ],
+      [
+        "T10",
+        "Freeze production release",
+        "CRITICAL"
+      ]
+    ],
+    "criteria": [
+      "Core automated tests pass.",
+      "Contracts are compatible.",
+      "Tenant isolation and security tests pass.",
+      "Performance targets are acceptable.",
+      "Recovery and rollback are verified.",
+      "Observability is production-ready.",
+      "Release receives explicit approval."
+    ]
+  },
+  "SCALE-001": {
+    "name": "Production Scale & International Rollout",
+    "objective": "Scale HOMIO safely across tenants, workloads and international regions.",
+    "subtasks": [
+      [
+        "T01",
+        "Establish production scaling baselines",
+        "CRITICAL"
+      ],
+      [
+        "T02",
+        "Implement workload-specific autoscaling",
+        "HIGH"
+      ],
+      [
+        "T03",
+        "Implement FinOps and cost controls",
+        "HIGH"
+      ],
+      [
+        "T04",
+        "Implement regional deployment model",
+        "CRITICAL"
+      ],
+      [
+        "T05",
+        "Implement data residency and localization controls",
+        "CRITICAL"
+      ],
+      [
+        "T06",
+        "Implement international security and compliance controls",
+        "CRITICAL"
+      ],
+      [
+        "T07",
+        "Implement multi-region resilience where required",
+        "HIGH"
+      ],
+      [
+        "T08",
+        "Run scale and disaster simulations",
+        "CRITICAL"
+      ],
+      [
+        "T09",
+        "Run international rollout readiness review",
+        "CRITICAL"
+      ],
+      [
+        "T10",
+        "Freeze production scale and rollout plan",
+        "CRITICAL"
+      ]
+    ],
+    "criteria": [
+      "Scaling is measurable and workload-specific.",
+      "Costs remain observable and controllable.",
+      "Regional deployment supports international growth.",
+      "Data residency and localization are governed.",
+      "Security and recovery remain intact at scale.",
+      "International rollout readiness is explicitly approved."
+    ]
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "REOS Agent Action Proposal",
+  "type": "object",
+  "required": [
+    "action_id",
+    "action_type",
+    "status",
+    "evidence"
+  ],
+  "properties": {
+    "action_id": {
+      "type": "string"
+    },
+    "action_type": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "PROPOSED",
+        "READY",
+        "BLOCKED",
+        "EXECUTED",
+        "VERIFIED"
+      ]
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "reason": {
+      "type": "string"
+    },
+    "requires_human_approval": {
+      "type": "boolean"
+    }
+  }
+}

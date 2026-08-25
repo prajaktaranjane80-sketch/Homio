@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "REOS Evidence Record",
+  "type": "object",
+  "required": [
+    "evidence_id",
+    "type",
+    "status",
+    "source",
+    "observed_at"
+  ],
+  "properties": {
+    "evidence_id": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "PROVEN",
+        "VERIFIED",
+        "SUPPORTED",
+        "LIKELY",
+        "UNVERIFIED",
+        "UNKNOWN",
+        "CONTRADICTED"
+      ]
+    },
+    "source": {
+      "type": "string"
+    },
+    "observed_at": {
+      "type": "string"
+    },
+    "claim": {
+      "type": "string"
+    },
+    "value": {},
+    "semantic_owner": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "command": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "hash": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}
