@@ -1,4 +1,4 @@
-"""
+﻿"""
 Production execution boundary for AUTONOMY_ENGINE R3.
 
 This module defines the final local executor binding boundary used by the
@@ -85,7 +85,7 @@ class ProductionExecutorBlockReason(str, Enum):
     INVALID_PROPOSAL = "INVALID_PROPOSAL"
     IDENTITY_INVALID = "IDENTITY_INVALID"
     CAPABILITY_DENIED = "CAPABILITY_DENIED"
-    EXECUTOR_UNBOUND = "EXECUTOR_UNBOUND"
+    EXECUTOR_MISSING = "EXECUTOR_MISSING"`r`n    EXECUTOR_UNBOUND = "EXECUTOR_UNBOUND"
     EXECUTOR_INVALID = "EXECUTOR_INVALID"
     TIMEOUT_INVALID = "TIMEOUT_INVALID"
     ALREADY_ATTEMPTED = "ALREADY_ATTEMPTED"
@@ -386,7 +386,7 @@ class ProductionExecutor:
                 action_id=action_id,
                 protocol=protocol,
                 reason="No production executor has been explicitly bound.",
-                block_reason=ProductionExecutorBlockReason.EXECUTOR_UNBOUND,
+                block_reason=ProductionExecutorBlockReason.EXECUTOR_MISSING,
                 evidence={
                     "execution_attempted": False,
                     "preflight_passed": False,
@@ -479,7 +479,7 @@ class ProductionExecutor:
                 action_id=action_id,
                 protocol=preflight.protocol,
                 reason="Production executor became unbound before execution.",
-                block_reason=ProductionExecutorBlockReason.EXECUTOR_UNBOUND,
+                block_reason=ProductionExecutorBlockReason.EXECUTOR_MISSING,
                 evidence={
                     **dict(preflight.evidence),
                     "execution_attempted": False,
