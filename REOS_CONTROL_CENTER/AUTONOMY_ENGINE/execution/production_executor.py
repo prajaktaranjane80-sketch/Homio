@@ -56,6 +56,7 @@ Design guarantees
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import math
 from enum import Enum
 from typing import Any, Callable, Mapping
 from uuid import uuid4
@@ -85,7 +86,8 @@ class ProductionExecutorBlockReason(str, Enum):
     INVALID_PROPOSAL = "INVALID_PROPOSAL"
     IDENTITY_INVALID = "IDENTITY_INVALID"
     CAPABILITY_DENIED = "CAPABILITY_DENIED"
-    EXECUTOR_MISSING = "EXECUTOR_MISSING"`r`n    EXECUTOR_UNBOUND = "EXECUTOR_UNBOUND"
+    EXECUTOR_MISSING = "EXECUTOR_MISSING"
+    EXECUTOR_UNBOUND = "EXECUTOR_UNBOUND"
     EXECUTOR_INVALID = "EXECUTOR_INVALID"
     TIMEOUT_INVALID = "TIMEOUT_INVALID"
     ALREADY_ATTEMPTED = "ALREADY_ATTEMPTED"
@@ -93,7 +95,7 @@ class ProductionExecutorBlockReason(str, Enum):
 
 
 @dataclass(frozen=True)
-class ProductionExecutorFailure:
+class ProductionExecutorFailure(Exception):
     """Structured representation of an executor failure."""
 
     error_type: str
@@ -185,21 +187,37 @@ class ExecutorCapability:
 class ExecutionEnvelope:
     """
     Immutable envelope describing the production execution boundary.
+
+    The proposal is descriptive execution data. It does not grant authority.
     """
 
-    executor: ExecutorIdentity
-    capability: ExecutorCapability
+    executor: ExecutorIdentity | None = None
+    capability: ExecutorCapability | None = None
     timeout_seconds: float | None = None
     evidence: Mapping[str, Any] = field(default_factory=dict)
+    proposal: ActionProposal | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Return a JSON-compatible envelope representation."""
 
         return {
-            "executor": self.executor.to_dict(),
-            "capability": self.capability.to_dict(),
+            "executor": (
+                self.executor.to_dict()
+                if self.executor is not None
+                else None
+            ),
+            "capability": (
+                self.capability.to_dict()
+                if self.capability is not None
+                else None
+            ),
             "timeout_seconds": self.timeout_seconds,
             "evidence": dict(self.evidence),
+            "proposal": (
+                self.proposal.to_dict()
+                if self.proposal is not None
+                else None
+            ),
         }
 
 
@@ -217,6 +235,12 @@ class ProductionExecutionResult:
     failure: ProductionExecutorFailure | None = None
     evidence: Mapping[str, Any] = field(default_factory=dict)
     block_reason: ProductionExecutorBlockReason | None = None
+
+    @property
+    def error(self) -> ProductionExecutorFailure | None:
+        """Compatibility accessor for machine-readable execution failure."""
+
+        return self.failure
 
     @property
     def executed(self) -> bool:
@@ -369,18 +393,6 @@ class ProductionExecutor:
                 },
             )
 
-        if not self._capability.enabled:
-            return self._blocked(
-                action_id=action_id,
-                protocol=protocol,
-                reason="Production execution capability is not enabled.",
-                block_reason=ProductionExecutorBlockReason.CAPABILITY_DENIED,
-                evidence={
-                    "execution_attempted": False,
-                    "preflight_passed": False,
-                },
-            )
-
         if self._executor is None:
             return self._blocked(
                 action_id=action_id,
@@ -406,9 +418,9 @@ class ProductionExecutor:
                 },
             )
 
-        timeout_valid = self._validate_timeout(self._timeout_seconds)
-
-        if not timeout_valid:
+        try:
+            self._validate_timeout(self._timeout_seconds)
+        except (TypeError, ValueError):
             return self._blocked(
                 action_id=action_id,
                 protocol=protocol,
@@ -443,6 +455,7 @@ class ProductionExecutor:
                 executor=self._identity,
                 capability=self._capability,
                 timeout_seconds=self._timeout_seconds,
+                proposal=proposal,
             ),
             evidence={
                 "execution_attempted": False,
@@ -583,25 +596,39 @@ class ProductionExecutor:
     @staticmethod
     def _validate_timeout(
         timeout_seconds: float | None,
-    ) -> bool:
+    ) -> float | None:
         """
         Validate optional timeout configuration.
 
-        None means no local timeout is imposed by this boundary. Actual
-        timeout enforcement, when required, belongs to the authoritative
-        execution infrastructure rather than being simulated here.
+        None means explicitly unset. Invalid values fail closed by raising.
         """
 
         if timeout_seconds is None:
-            return True
+            return None
 
         if isinstance(timeout_seconds, bool):
-            return False
+            raise TypeError(
+                "timeout_seconds must be a finite positive number or None"
+            )
 
         if not isinstance(timeout_seconds, (int, float)):
-            return False
+            raise TypeError(
+                "timeout_seconds must be a finite positive number or None"
+            )
 
-        return timeout_seconds > 0
+        value = float(timeout_seconds)
+
+        if not math.isfinite(value):
+            raise ValueError(
+                "timeout_seconds must be finite"
+            )
+
+        if value <= 0:
+            raise ValueError(
+                "timeout_seconds must be greater than zero"
+            )
+
+        return timeout_seconds
 
     def _blocked(
         self,
@@ -667,3 +694,5 @@ __all__ = [
     "ProductionExecutionResult",
     "ProductionExecutor",
 ]
+
+
