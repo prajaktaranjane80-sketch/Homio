@@ -1,0 +1,41 @@
+CORE-004-T01 — PROJECT DOMAIN IMPLEMENTATION PACKET
+=========================================================
+
+Scope
+-----
+Implement the authoritative project domain without changing the frozen REOS
+architecture or the existing AUTONOMY_ENGINE structure.
+
+Implemented
+-----------
+- Tenant-scoped project identity: tenant_id + project_code.
+- Stable project_id used as the inventory relationship target.
+- Developer ownership reference.
+- Approved operating modes from ARCH-036.
+- Deterministic project lifecycle state machine.
+- Optimistic version increment on lifecycle transitions.
+- Tenant-boundary enforcement.
+- Persistence-neutral project lifecycle domain event.
+- Canonical serialization.
+- Strict input validation and fail-closed invalid transitions.
+- Explicit source_of_truth marker; project remains authoritative.
+
+Files
+-----
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/domains/__init__.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/domains/project.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_project_domain.py
+
+Important boundary
+------------------
+This module does NOT persist projects, inventory, events, search documents,
+or audit records. Those responsibilities remain in their future canonical
+persistence/index/evidence layers. Inventory must reference project_id rather
+than recreate project ownership as a second source of truth.
+
+Validation
+----------
+Run:
+python -m pytest REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_project_domain.py -q
+
+Expected: 13 passed

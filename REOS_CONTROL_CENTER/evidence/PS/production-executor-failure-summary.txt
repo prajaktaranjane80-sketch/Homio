@@ -1,0 +1,95 @@
+﻿
+E       AssertionError: assert <ProductionExecutorBlockReason.CAPABILITY_DENIED: 'CAPABILITY_DENIED'> is <ProductionExecutorBlockReason.EXECUTOR_MISSING: 
+'EXECUTOR_MISSING'>
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:112: AssertionError
+E       AssertionError: assert <ProductionExecutorBlockReason.CAPABILITY_DENIED: 'CAPABILITY_DENIED'> is <ProductionExecutorBlockReason.EXECUTOR_MISSING: 
+'EXECUTOR_MISSING'>
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:187: AssertionError
+E       AssertionError: assert False is True
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:198: AssertionError
+E       AssertionError: assert False is True
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:216: AssertionError
+E       AssertionError: assert <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> is <ProductionExecutorStatus.EXECUTED: 'EXECUTED'>
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:238: AssertionError
+            raise RuntimeError("controller unavailable")
+>       assert first.status is ProductionExecutorStatus.FAILED
+E       AssertionError: assert <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> is <ProductionExecutorStatus.FAILED: 'FAILED'>
+E        +  and   <ProductionExecutorStatus.FAILED: 'FAILED'> = ProductionExecutorStatus.FAILED
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:265: AssertionError
+            raise PermissionError("mutation denied")
+>       assert result.status is ProductionExecutorStatus.FAILED
+E       AssertionError: assert <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> is <ProductionExecutorStatus.FAILED: 'FAILED'>
+E        +  and   <ProductionExecutorStatus.FAILED: 'FAILED'> = ProductionExecutorStatus.FAILED
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:287: AssertionError
+>           with pytest.raises((TypeError, ValueError)):
+E           Failed: DID NOT RAISE any of (TypeError, ValueError)
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:356: Failed
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:366: AssertionError
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:374: AssertionError
+E       AssertionError: assert <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> is <ProductionExecutorStatus.EXECUTED: 'EXECUTED'>
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:388: AssertionError
+E       AssertionError: assert <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> is <ProductionExecutorStatus.EXECUTED: 'EXECUTED'>
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:402: AssertionError
+E       AssertionError: assert (None is True or None is True or None is True)
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:431: AssertionError
+            raise RuntimeError("controlled failure")
+>       assert result.status is ProductionExecutorStatus.FAILED
+E       AssertionError: assert <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> is <ProductionExecutorStatus.FAILED: 'FAILED'>
+E        +  and   <ProductionExecutorStatus.FAILED: 'FAILED'> = ProductionExecutorStatus.FAILED
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:450: AssertionError
+E       AssertionError: assert <ProductionExecutorBlockReason.CAPABILITY_DENIED: 'CAPABILITY_DENIED'> is <ProductionExecutorBlockReason.EXECUTOR_MISSING: 
+'EXECUTOR_MISSING'>
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:471: AssertionError
+E       AssertionError: assert <ProductionExecutorBlockReason.CAPABILITY_DENIED: 'CAPABILITY_DENIED'> is <ProductionExecutorBlockReason.EXECUTOR_MISSING: 
+'EXECUTOR_MISSING'>
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:487: AssertionError
+E       AssertionError: assert False is True
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:510: AssertionError
+E       AssertionError: assert <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> is <ProductionExecutorStatus.EXECUTED: 'EXECUTED'>
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:531: AssertionError
+E       AssertionError: assert <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> is <ProductionExecutorStatus.EXECUTED: 'EXECUTED'>
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:565: AssertionError
+E       AssertionError: assert 'BLOCKED' == 'EXECUTED'
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:582: AssertionError
+            raise RuntimeError("failure")
+>       assert payload["status"] == ProductionExecutorStatus.FAILED.value
+E       AssertionError: assert 'BLOCKED' == 'FAILED'
+E         - FAILED
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:601: AssertionError
+E       AssertionError: assert <ProductionExecutorBlockReason.CAPABILITY_DENIED: 'CAPABILITY_DENIED'> is <ProductionExecutorBlockReason.EXECUTOR_MISSING: 
+'EXECUTOR_MISSING'>
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:621: AssertionError
+E       TypeError: ExecutionEnvelope.__init__() got an unexpected keyword argument 'proposal'
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:632: TypeError
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:642: AssertionError
+E       AssertionError: assert False is True
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:698: AssertionError
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_unbound_executor_is_default_deny
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_explicit_binding_is_required
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_explicit_binding_enables_preflight
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_successful_execution_calls_executor_exactly_once
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_replay_is_blocked_after_success
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_executor_failure_is_terminal_for_action
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_executor_exception_is_not_reported_as_success
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_invalid_timeout_is_rejected
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_valid_timeout_is_accepted
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_none_timeout_remains_unset
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_attempted_uses_action_id_as_replay_boundary
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_reset_only_clears_local_attempt_memory
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_success_result_contains_execution_evidence
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_failure_result_contains_failure_evidence
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_identity_is_descriptive_not_authoritative
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_capability_is_descriptive_not_authoritative
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_preflight_does_not_mark_action_as_attempted
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_multiple_action_ids_are_independently_executable
+FAILED 
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_same_action_id_with_different_payload_is_still_replay_blocked
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_production_result_is_serializable
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_failure_result_is_serializable
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_production_executor_never_invents_controller_commands
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_execution_envelope_is_data_only
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_failure_types_are_machine_distinguishable
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_bound_executor_is_the_only_execution_path
+25 failed, 11 passed in 0.37s
+
+

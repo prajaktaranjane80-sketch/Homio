@@ -1,0 +1,114 @@
+﻿.....FFFFF.......FF.FF...FFFFF.....F                                     [100%]
+================================== FAILURES ===================================
+___________________ test_explicit_binding_enables_preflight ___________________
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:198: in test_explicit_binding_enables_preflight
+    assert result.allowed is True
+E   AssertionError: assert False is True
+E    +  where False = ProductionExecutionResult(status=<ProductionExecutorStatus.BLOCKED: 'BLOCKED'>, action_id='action-001', allowed=False,...d': False, 'preflight_passed': False}, block_reason=<ProductionExecutorBlockReason.TIMEOUT_INVALID: 'TIMEOUT_INVALID'>).allowed
+____________ test_successful_execution_calls_executor_exactly_once ____________
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:216: in test_successful_execution_calls_executor_exactly_once
+    assert result.allowed is True
+E   AssertionError: assert False is True
+E    +  where False = ProductionExecutionResult(status=<ProductionExecutorStatus.BLOCKED: 'BLOCKED'>, action_id='action-001', allowed=False,...d': False, 'preflight_passed': False}, block_reason=<ProductionExecutorBlockReason.TIMEOUT_INVALID: 'TIMEOUT_INVALID'>).allowed
+____________________ test_replay_is_blocked_after_success _____________________
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:238: in test_replay_is_blocked_after_success
+    assert first.status is ProductionExecutorStatus.EXECUTED
+E   AssertionError: assert <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> is <ProductionExecutorStatus.EXECUTED: 'EXECUTED'>
+E    +  where <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> = ProductionExecutionResult(status=<ProductionExecutorStatus.BLOCKED: 'BLOCKED'>, action_id='action-001', allowed=False,...d': False, 'preflight_passed': False}, block_reason=<ProductionExecutorBlockReason.TIMEOUT_INVALID: 'TIMEOUT_INVALID'>).status
+E    +  and   <ProductionExecutorStatus.EXECUTED: 'EXECUTED'> = ProductionExecutorStatus.EXECUTED
+________________ test_executor_failure_is_terminal_for_action _________________
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:265: in test_executor_failure_is_terminal_for_action
+    assert first.status is ProductionExecutorStatus.FAILED
+E   AssertionError: assert <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> is <ProductionExecutorStatus.FAILED: 'FAILED'>
+E    +  where <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> = ProductionExecutionResult(status=<ProductionExecutorStatus.BLOCKED: 'BLOCKED'>, action_id='action-001', allowed=False,...d': False, 'preflight_passed': False}, block_reason=<ProductionExecutorBlockReason.TIMEOUT_INVALID: 'TIMEOUT_INVALID'>).status
+E    +  and   <ProductionExecutorStatus.FAILED: 'FAILED'> = ProductionExecutorStatus.FAILED
+_____________ test_executor_exception_is_not_reported_as_success ______________
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:287: in test_executor_exception_is_not_reported_as_success
+    assert result.status is ProductionExecutorStatus.FAILED
+E   AssertionError: assert <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> is <ProductionExecutorStatus.FAILED: 'FAILED'>
+E    +  where <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> = ProductionExecutionResult(status=<ProductionExecutorStatus.BLOCKED: 'BLOCKED'>, action_id='action-001', allowed=False,...d': False, 'preflight_passed': False}, block_reason=<ProductionExecutorBlockReason.TIMEOUT_INVALID: 'TIMEOUT_INVALID'>).status
+E    +  and   <ProductionExecutorStatus.FAILED: 'FAILED'> = ProductionExecutorStatus.FAILED
+______________ test_attempted_uses_action_id_as_replay_boundary _______________
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:388: in test_attempted_uses_action_id_as_replay_boundary
+    assert result.status is ProductionExecutorStatus.EXECUTED
+E   AssertionError: assert <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> is <ProductionExecutorStatus.EXECUTED: 'EXECUTED'>
+E    +  where <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> = ProductionExecutionResult(status=<ProductionExecutorStatus.BLOCKED: 'BLOCKED'>, action_id='tracked-action', allowed=Fa...d': False, 'preflight_passed': False}, block_reason=<ProductionExecutorBlockReason.TIMEOUT_INVALID: 'TIMEOUT_INVALID'>).status
+E    +  and   <ProductionExecutorStatus.EXECUTED: 'EXECUTED'> = ProductionExecutorStatus.EXECUTED
+_________________ test_reset_only_clears_local_attempt_memory _________________
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:402: in test_reset_only_clears_local_attempt_memory
+    assert result.status is ProductionExecutorStatus.EXECUTED
+E   AssertionError: assert <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> is <ProductionExecutorStatus.EXECUTED: 'EXECUTED'>
+E    +  where <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> = ProductionExecutionResult(status=<ProductionExecutorStatus.BLOCKED: 'BLOCKED'>, action_id='reset-action', allowed=Fals...d': False, 'preflight_passed': False}, block_reason=<ProductionExecutorBlockReason.TIMEOUT_INVALID: 'TIMEOUT_INVALID'>).status
+E    +  and   <ProductionExecutorStatus.EXECUTED: 'EXECUTED'> = ProductionExecutorStatus.EXECUTED
+_______________ test_success_result_contains_execution_evidence _______________
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:431: in test_success_result_contains_execution_evidence
+    assert (
+E   AssertionError: assert (None is True or None is True or None is True)
+E    +  where None = <built-in method get of dict object at 0x000001D67A349C40>('production_execution_completed')
+E    +    where <built-in method get of dict object at 0x000001D67A349C40> = {'execution_attempted': False, 'preflight_passed': False}.get
+E    +      where {'execution_attempted': False, 'preflight_passed': False} = ProductionExecutionResult(status=<ProductionExecutorStatus.BLOCKED: 'BLOCKED'>, action_id='action-001', allowed=False,...d': False, 'preflight_passed': False}, block_reason=<ProductionExecutorBlockReason.TIMEOUT_INVALID: 'TIMEOUT_INVALID'>).evidence
+E    +  and   None = <built-in method get of dict object at 0x000001D67A349C40>('execution_succeeded')
+E    +    where <built-in method get of dict object at 0x000001D67A349C40> = {'execution_attempted': False, 'preflight_passed': False}.get
+E    +      where {'execution_attempted': False, 'preflight_passed': False} = ProductionExecutionResult(status=<ProductionExecutorStatus.BLOCKED: 'BLOCKED'>, action_id='action-001', allowed=False,...d': False, 'preflight_passed': False}, block_reason=<ProductionExecutorBlockReason.TIMEOUT_INVALID: 'TIMEOUT_INVALID'>).evidence
+E    +  and   None = <built-in method get of dict object at 0x000001D67A349C40>('mutation_succeeded')
+E    +    where <built-in method get of dict object at 0x000001D67A349C40> = {'execution_attempted': False, 'preflight_passed': False}.get
+E    +      where {'execution_attempted': False, 'preflight_passed': False} = ProductionExecutionResult(status=<ProductionExecutorStatus.BLOCKED: 'BLOCKED'>, action_id='action-001', allowed=False,...d': False, 'preflight_passed': False}, block_reason=<ProductionExecutorBlockReason.TIMEOUT_INVALID: 'TIMEOUT_INVALID'>).evidence
+________________ test_failure_result_contains_failure_evidence ________________
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:450: in test_failure_result_contains_failure_evidence
+    assert result.status is ProductionExecutorStatus.FAILED
+E   AssertionError: assert <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> is <ProductionExecutorStatus.FAILED: 'FAILED'>
+E    +  where <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> = ProductionExecutionResult(status=<ProductionExecutorStatus.BLOCKED: 'BLOCKED'>, action_id='action-001', allowed=False,...d': False, 'preflight_passed': False}, block_reason=<ProductionExecutorBlockReason.TIMEOUT_INVALID: 'TIMEOUT_INVALID'>).status
+E    +  and   <ProductionExecutorStatus.FAILED: 'FAILED'> = ProductionExecutorStatus.FAILED
+______________ test_preflight_does_not_mark_action_as_attempted _______________
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:510: in test_preflight_does_not_mark_action_as_attempted
+    assert result.allowed is True
+E   AssertionError: assert False is True
+E    +  where False = ProductionExecutionResult(status=<ProductionExecutorStatus.BLOCKED: 'BLOCKED'>, action_id='action-001', allowed=False,...d': False, 'preflight_passed': False}, block_reason=<ProductionExecutorBlockReason.TIMEOUT_INVALID: 'TIMEOUT_INVALID'>).allowed
+____________ test_multiple_action_ids_are_independently_executable ____________
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:531: in test_multiple_action_ids_are_independently_executable
+    assert first.status is ProductionExecutorStatus.EXECUTED
+E   AssertionError: assert <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> is <ProductionExecutorStatus.EXECUTED: 'EXECUTED'>
+E    +  where <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> = ProductionExecutionResult(status=<ProductionExecutorStatus.BLOCKED: 'BLOCKED'>, action_id='action-A', allowed=False, r...d': False, 'preflight_passed': False}, block_reason=<ProductionExecutorBlockReason.TIMEOUT_INVALID: 'TIMEOUT_INVALID'>).status
+E    +  and   <ProductionExecutorStatus.EXECUTED: 'EXECUTED'> = ProductionExecutorStatus.EXECUTED
+_____ test_same_action_id_with_different_payload_is_still_replay_blocked ______
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:565: in test_same_action_id_with_different_payload_is_still_replay_blocked
+    assert first.status is ProductionExecutorStatus.EXECUTED
+E   AssertionError: assert <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> is <ProductionExecutorStatus.EXECUTED: 'EXECUTED'>
+E    +  where <ProductionExecutorStatus.BLOCKED: 'BLOCKED'> = ProductionExecutionResult(status=<ProductionExecutorStatus.BLOCKED: 'BLOCKED'>, action_id='same-id', allowed=False, re...d': False, 'preflight_passed': False}, block_reason=<ProductionExecutorBlockReason.TIMEOUT_INVALID: 'TIMEOUT_INVALID'>).status
+E    +  and   <ProductionExecutorStatus.EXECUTED: 'EXECUTED'> = ProductionExecutorStatus.EXECUTED
+___________________ test_production_result_is_serializable ____________________
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:582: in test_production_result_is_serializable
+    assert payload["status"] == ProductionExecutorStatus.EXECUTED.value
+E   AssertionError: assert 'BLOCKED' == 'EXECUTED'
+E     
+E     - EXECUTED
+E     + BLOCKED
+_____________________ test_failure_result_is_serializable _____________________
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:601: in test_failure_result_is_serializable
+    assert payload["status"] == ProductionExecutorStatus.FAILED.value
+E   AssertionError: assert 'BLOCKED' == 'FAILED'
+E     
+E     - FAILED
+E     + BLOCKED
+_______________ test_bound_executor_is_the_only_execution_path ________________
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:698: in test_bound_executor_is_the_only_execution_path
+    assert result_after_binding.allowed is True
+E   AssertionError: assert False is True
+E    +  where False = ProductionExecutionResult(status=<ProductionExecutorStatus.BLOCKED: 'BLOCKED'>, action_id='after-bind', allowed=False,...d': False, 'preflight_passed': False}, block_reason=<ProductionExecutorBlockReason.TIMEOUT_INVALID: 'TIMEOUT_INVALID'>).allowed
+=========================== short test summary info ===========================
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_explicit_binding_enables_preflight
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_successful_execution_calls_executor_exactly_once
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_replay_is_blocked_after_success
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_executor_failure_is_terminal_for_action
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_executor_exception_is_not_reported_as_success
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_attempted_uses_action_id_as_replay_boundary
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_reset_only_clears_local_attempt_memory
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_success_result_contains_execution_evidence
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_failure_result_contains_failure_evidence
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_preflight_does_not_mark_action_as_attempted
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_multiple_action_ids_are_independently_executable
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_same_action_id_with_different_payload_is_still_replay_blocked
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_production_result_is_serializable
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_failure_result_is_serializable
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py::test_bound_executor_is_the_only_execution_path
+15 failed, 21 passed in 0.21s

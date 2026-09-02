@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-08-31T19:55:52+05:30",
+    "updated_at": "2026-08-31T19:55:51+05:30",
     "control_center_version": "6.0"
   },
   "constitution": {
@@ -1827,32 +1827,15 @@
       "payload": {
         "gate": "CORE-004"
       }
-    },
-    {
-      "id": "48688a5e-8239-4189-b98d-b59952e441e2",
-      "time": "2026-08-31T19:55:52+05:30",
-      "type": "GATE_AUTO_MATERIALIZED",
-      "payload": {
-        "gate": "CORE-005"
-      }
-    },
-    {
-      "id": "b58e13ba-818f-4dfb-8482-f8a3bda1b543",
-      "time": "2026-08-31T19:55:52+05:30",
-      "type": "GATE_APPROVED_AND_FROZEN",
-      "payload": {
-        "gate": "CORE-004",
-        "next_gate": "CORE-005"
-      }
     }
   ],
   "integrity": {
-    "sha256": "64dc7527bc8014166756ffad9ab8b716f9943a2d5064da4e9d5998059e1e56f4"
+    "sha256": "c9e39accc88b74af4132ad5e4ee3fb516689605fe7228cb204d6033530538f54"
   },
   "execution": {
-    "current_gate": "CORE-005",
-    "current_task": "CORE-005-T01: Implement structured search filters.",
-    "status": "CONTROL_CENTER_DRIVEN",
+    "current_gate": "CORE-004",
+    "current_task": "CORE-004: Approval required.",
+    "status": "READY_FOR_APPROVAL",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
       "Define Our Owned International Brokerage Mode.",
@@ -1868,7 +1851,7 @@
       "Define mode activation, suspension and transition rules.",
       "No overlap or duplicate responsibility with existing engines."
     ],
-    "current_subtask": "CORE-005-T01"
+    "current_subtask": "CORE-004-T10"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -1934,13 +1917,13 @@
         "id": "PLAN-010",
         "gate": "CORE-004",
         "name": "Inventory Core",
-        "status": "COMPLETE"
+        "status": "CURRENT"
       },
       {
         "id": "PLAN-011",
         "gate": "CORE-005",
         "name": "Search & Matching Core",
-        "status": "CURRENT"
+        "status": "FUTURE"
       },
       {
         "id": "PLAN-012",
@@ -3251,7 +3234,7 @@
       "id": "CORE-004",
       "name": "Inventory Core",
       "objective": "Implement verified project and inventory truth.",
-      "status": "APPROVED",
+      "status": "VALIDATED",
       "current_subtask": "CORE-004-T10",
       "subtasks": [
         {
@@ -3330,8 +3313,7 @@
           "id": "CORE-004-T10",
           "title": "Freeze inventory core",
           "priority": "CRITICAL",
-          "status": "DONE",
-          "completed_at": "2026-08-31T19:55:52+05:30"
+          "status": "READY_FOR_APPROVAL"
         }
       ],
       "acceptance_criteria": [
@@ -3388,129 +3370,6 @@
       ],
       "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
       "created_at": "2026-08-17T14:51:30+05:30"
-    },
-    "CORE-005": {
-      "id": "CORE-005",
-      "name": "Search & Matching Core",
-      "objective": "Implement structured, hybrid semantic and matching search.",
-      "status": "CURRENT",
-      "current_subtask": "CORE-005-T01",
-      "subtasks": [
-        {
-          "id": "CORE-005-T01",
-          "title": "Implement structured search filters",
-          "priority": "CRITICAL",
-          "status": "CURRENT"
-        },
-        {
-          "id": "CORE-005-T02",
-          "title": "Implement PostGIS/location search where required",
-          "priority": "HIGH",
-          "status": "PENDING"
-        },
-        {
-          "id": "CORE-005-T03",
-          "title": "Implement Qdrant indexing pipeline",
-          "priority": "CRITICAL",
-          "status": "PENDING"
-        },
-        {
-          "id": "CORE-005-T04",
-          "title": "Implement hybrid lexical/vector retrieval",
-          "priority": "CRITICAL",
-          "status": "PENDING"
-        },
-        {
-          "id": "CORE-005-T05",
-          "title": "Implement ranking and reranking",
-          "priority": "HIGH",
-          "status": "PENDING"
-        },
-        {
-          "id": "CORE-005-T06",
-          "title": "Implement tenant and visibility filters",
-          "priority": "CRITICAL",
-          "status": "PENDING"
-        },
-        {
-          "id": "CORE-005-T07",
-          "title": "Implement matching and recommendation foundation",
-          "priority": "HIGH",
-          "status": "PENDING"
-        },
-        {
-          "id": "CORE-005-T08",
-          "title": "Implement search rebuild and recovery",
-          "priority": "HIGH",
-          "status": "PENDING"
-        },
-        {
-          "id": "CORE-005-T09",
-          "title": "Run relevance security and performance tests",
-          "priority": "CRITICAL",
-          "status": "PENDING"
-        },
-        {
-          "id": "CORE-005-T10",
-          "title": "Freeze search and matching core",
-          "priority": "CRITICAL",
-          "status": "PENDING"
-        }
-      ],
-      "acceptance_criteria": [
-        "Structured and semantic search operate together.",
-        "Tenant visibility is enforced before result exposure.",
-        "Search indexes are rebuildable from source truth.",
-        "Ranking is deterministic and observable.",
-        "Search performance meets defined targets.",
-        "No search component becomes business source of truth."
-      ],
-      "criteria_state": [
-        {
-          "id": "CORE-005-AC01",
-          "criterion": "Structured and semantic search operate together.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
-        },
-        {
-          "id": "CORE-005-AC02",
-          "criterion": "Tenant visibility is enforced before result exposure.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
-        },
-        {
-          "id": "CORE-005-AC03",
-          "criterion": "Search indexes are rebuildable from source truth.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
-        },
-        {
-          "id": "CORE-005-AC04",
-          "criterion": "Ranking is deterministic and observable.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
-        },
-        {
-          "id": "CORE-005-AC05",
-          "criterion": "Search performance meets defined targets.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
-        },
-        {
-          "id": "CORE-005-AC06",
-          "criterion": "No search component becomes business source of truth.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
-        }
-      ],
-      "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
-      "created_at": "2026-08-31T19:55:52+05:30"
     }
   },
   "autonomous_engine": {
