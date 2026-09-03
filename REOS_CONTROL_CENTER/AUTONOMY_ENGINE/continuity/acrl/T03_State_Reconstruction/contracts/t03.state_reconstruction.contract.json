@@ -1,0 +1,49 @@
+﻿{
+  "schema_version": "1.0",
+  "layer": "T03",
+  "name": "State Reconstruction",
+  "purpose": "Deterministically reconstruct the current execution state from authoritative controller state.",
+  "authority": {
+    "canonical_source": "data/state.json"
+  },
+  "inputs": {
+    "authoritative_state": "REOS_CONTROL_CENTER/data/state.json"
+  },
+  "outputs": {
+    "execution_state_snapshot": "immutable",
+    "source_sha256": "sha256",
+    "semantic_identity": "sha256",
+    "validation_report": "VALID|INVALID"
+  },
+  "permissions": {
+    "read_state": true,
+    "write_state": false,
+    "modify_state": false,
+    "advance_gate": false,
+    "complete_subtask": false,
+    "approve_gate": false,
+    "authorize_execution": false,
+    "repair_code": false
+  },
+  "safety": {
+    "fail_closed_on_source_failure": true,
+    "detect_concurrent_state_change": true,
+    "deterministic_identity": true,
+    "replay_safe": true,
+    "idempotent": true
+  },
+  "dependencies": {
+    "upstream": [
+      "T01_Project_DNA",
+      "T02_Architecture_Lock"
+    ],
+    "downstream": [
+      "T04_Gate_Subtask_Continuity",
+      "T06_Checkpoint_Engine",
+      "T07_New_Chat_Bootstrap",
+      "T09_State_Fingerprint",
+      "T12_Resume_Safety_Validation",
+      "T13_Controller_Integration"
+    ]
+  }
+}

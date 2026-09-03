@@ -1,4 +1,4 @@
-"""ACRL T03 — Execution State Reconstruction.
+﻿"""ACRL T03 â€” Execution State Reconstruction.
 
 Read-only reconstruction of the current REOS execution state.
 
@@ -126,7 +126,7 @@ class ExecutionStateReconstructor:
         control_center_root: Path | str | None = None,
     ) -> None:
         if control_center_root is None:
-            self.root = Path(__file__).resolve().parents[3]
+            self.root = Path(__file__).resolve().parents[4]
         else:
             self.root = Path(control_center_root)
 
