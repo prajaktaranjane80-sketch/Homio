@@ -1,0 +1,48 @@
+{
+  "schema_version": "2.0",
+  "layer": "T02",
+  "name": "Architecture Lock",
+  "purpose": "Provide deterministic read-only verification of the frozen authoritative architecture.",
+  "authority": {
+    "canonical_source": "data/state.json",
+    "architecture_status_required": "FROZEN"
+  },
+  "inputs": {
+    "authoritative_state": "REOS_CONTROL_CENTER/data/state.json",
+    "expected_architecture_fingerprint": "optional_for_drift_verification"
+  },
+  "outputs": {
+    "architecture_id": "string",
+    "architecture_version": "string",
+    "architecture_status": "string",
+    "architecture_phase": "string",
+    "architecture_fingerprint": "sha256",
+    "source_state_sha256": "sha256",
+    "drift_status": "UNCHANGED|DRIFTED|UNAVAILABLE"
+  },
+  "permissions": {
+    "read_state": true,
+    "write_state": false,
+    "modify_architecture": false,
+    "approve_changes": false,
+    "authorize_execution": false,
+    "repair_code": false
+  },
+  "safety": {
+    "fail_closed_on_invalid_authority": true,
+    "deterministic_fingerprints": true,
+    "replay_safe": true,
+    "idempotent": true
+  },
+  "dependencies": {
+    "upstream": [
+      "T01_Project_DNA"
+    ],
+    "downstream": [
+      "T03_State_Reconstruction",
+      "T05_Dependency_Authority_Map",
+      "T10_Drift_Detection",
+      "T13_Controller_Integration"
+    ]
+  }
+}
