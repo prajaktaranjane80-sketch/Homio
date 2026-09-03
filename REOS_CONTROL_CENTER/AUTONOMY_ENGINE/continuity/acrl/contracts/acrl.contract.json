@@ -1,0 +1,43 @@
+{
+  "contract_version": "1.0",
+  "system_id": "REOS-ACRL",
+  "system_name": "Autonomous Continuity & Recovery Layer",
+  "system_path": "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl",
+  "status": "ACTIVE",
+  "owner": "REOS_CONTROL_CENTER",
+  "architecture_authority": "REOS_ARCHITECTURE",
+  "execution_authority": "REOS_CONTROL_CENTER",
+  "state_authority": "REOS_STATE",
+  "module_contract_pattern": "*.contract.json",
+  "module_link_resolver": "contract_graph.py",
+  "authority_map": "dependency_authority_map.py",
+  "capability_registry": "../../orchestration/capability_registry.py",
+  "modules": {
+    "identity_rule": "Each ACRL micro-module must have a unique machine-readable module_id.",
+    "lineage_rule": "New modules must declare derived_from and supersedes relationships when applicable.",
+    "dependency_rule": "New modules must declare direct module dependencies.",
+    "capability_rule": "Capabilities belong to capability_registry.py and are referenced by ID rather than duplicated here.",
+    "authority_rule": "Authority relationships belong to dependency_authority_map.py and must not be duplicated here.",
+    "execution_rule": "ACRL modules do not independently advance gates or mutate controller state.",
+    "immutability_rule": "Frozen modules are not modified merely to add unrelated capabilities; new capabilities should prefer new micro-modules."
+  },
+  "authority_boundary": {
+    "may_modify_state_json": false,
+    "may_modify_architecture": false,
+    "may_advance_gate": false,
+    "may_approve_gate": false,
+    "may_freeze_gate": false,
+    "may_execute_controller_transition": false
+  },
+  "required_module_link_fields": [
+    "module_id",
+    "module_path",
+    "status",
+    "owner",
+    "layer",
+    "derived_from",
+    "depends_on",
+    "consumes",
+    "produces"
+  ]
+}

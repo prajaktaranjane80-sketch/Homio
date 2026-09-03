@@ -1,39 +1,22 @@
-
-from __future__ import annotations
+﻿from __future__ import annotations
 
 """
-ACRL T16 — Repository Intelligence & File Discovery
+ACRL T16 — Repository Intelligence & File Discovery.
 
-Purpose
--------
-Provides deterministic, read-only repository intelligence for the ACRL
-autonomous developer.
-
-Design rules
-------------
-1. This module MUST NOT modify repository files.
-2. This module MUST NOT become a business source of truth.
-3. Repository truth is observed, classified, fingerprinted and reported.
-4. Unsafe filesystem traversal fails closed.
-5. Results are deterministic for the same repository state.
-6. Generated/cache/vendor directories are excluded from the authoritative
-   source map unless explicitly requested.
-7. T17 consumes this layer's snapshot to perform change-impact analysis.
+Read-only repository observation layer for deterministic file discovery,
+classification, Python topology, search, and repository fingerprinting.
 """
 
-from dataclasses import dataclass
-from enum import Enum
-from pathlib import Path
-from typing import Iterable, Mapping
 import ast
+import fnmatch
 import hashlib
 import json
 import os
+from dataclasses import dataclass
+from enum import Enum
+from pathlib import Path
+from typing import Iterable
 
-
-# ---------------------------------------------------------------------------
-# Exceptions
-# ---------------------------------------------------------------------------
 
 class RepositoryIntelligenceError(Exception):
     """Base error for T16."""
@@ -48,7 +31,7 @@ class RepositoryIntegrityError(RepositoryIntelligenceError):
 
 
 class RepositoryFingerprintError(RepositoryIntegrityError):
-    """Raised when repository fingerprint integrity is invalid."""
+    """Repository fingerprint integrity is invalid."""
 
 
 class RepositoryPathSecurityError(RepositoryIntelligenceError):
@@ -61,10 +44,6 @@ class RepositoryDiscoveryError(RepositoryIntelligenceError):
 
 class RepositoryClassificationError(RepositoryIntelligenceError):
     """Repository source classification failed."""
-
-# ---------------------------------------------------------------------------
-# Enums
-# ---------------------------------------------------------------------------
 
 
 class SourceKind(str, Enum):
@@ -95,9 +74,10 @@ class FileRisk(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-# ---------------------------------------------------------------------------
-# Immutable records
-# ---------------------------------------------------------------------------
+class SearchMatchMode(str, Enum):
+    CONTAINS = "CONTAINS"
+    EXACT = "EXACT"
+    GLOB = "GLOB"
 
 
 @dataclass(frozen=True)
@@ -124,6 +104,12 @@ class ModuleRecord:
     module_name: str
     imports: tuple[str, ...]
     parse_valid: bool
+
+
+@dataclass(frozen=True)
+class RepositoryScanResult:
+    files: tuple[RepositoryFile, ...]
+    excluded_paths: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -157,16 +143,12 @@ class RepositorySnapshot:
         return tuple(
             item
             for item in self.files
-            if item.source_kind in {
+            if item.source_kind
+            in {
                 SourceKind.PYTHON,
                 SourceKind.TEST,
             }
         )
-
-
-# ---------------------------------------------------------------------------
-# Policy
-# ---------------------------------------------------------------------------
 
 
 DEFAULT_EXCLUDED_DIRECTORIES = frozenset(
@@ -230,43 +212,60 @@ DEFAULT_SENSITIVE_SUFFIXES = frozenset(
 )
 
 
-# ---------------------------------------------------------------------------
-# Path security
-# ---------------------------------------------------------------------------
+def normalize_repository_path(
+    value: str | Path,
+) -> str:
+    """
+    Normalize repository-relative paths and search patterns.
+
+    Filesystem access is not performed.
+    """
+
+    normalized = str(value).replace("\\", "/").strip()
+
+    while "//" in normalized:
+        normalized = normalized.replace("//", "/")
+
+    if normalized.startswith("./"):
+        normalized = normalized[2:]
+
+    return normalized.lower()
 
 
 class RepositoryPathGuard:
-    """
-    Enforces the repository root boundary.
+    """Enforces repository-root path boundaries."""
 
-    This guard is deliberately independent of any write operation.
-    T16 is observation-only.
-    """
-
-    def __init__(self, repository_root: Path) -> None:
+    def __init__(
+        self,
+        repository_root: Path,
+    ) -> None:
         self.repository_root = repository_root.resolve()
 
-    def resolve(self, candidate: Path | str) -> Path:
+    def resolve(
+        self,
+        candidate: Path | str,
+    ) -> Path:
         candidate_path = Path(candidate)
 
         if not candidate_path.is_absolute():
-            candidate_path = self.repository_root / candidate_path
+            candidate_path = (
+                self.repository_root
+                / candidate_path
+            )
 
         resolved = candidate_path.resolve()
 
         try:
-            resolved.relative_to(self.repository_root)
+            resolved.relative_to(
+                self.repository_root
+            )
         except ValueError as exc:
             raise RepositoryPathSecurityError(
-                f"Path escapes repository root: {candidate}"
+                "Path escapes repository root: "
+                f"{candidate}"
             ) from exc
 
         return resolved
-
-
-# ---------------------------------------------------------------------------
-# Classifier
-# ---------------------------------------------------------------------------
 
 
 class SourceClassifier:
@@ -325,33 +324,58 @@ class SourceClassifier:
 
     def __init__(
         self,
-        excluded_directories: Iterable[str] = DEFAULT_EXCLUDED_DIRECTORIES,
-        generated_names: Iterable[str] = DEFAULT_GENERATED_NAMES,
-        protected_names: Iterable[str] = DEFAULT_PROTECTED_NAMES,
-        sensitive_suffixes: Iterable[str] = DEFAULT_SENSITIVE_SUFFIXES,
+        excluded_directories: Iterable[str] = (
+            DEFAULT_EXCLUDED_DIRECTORIES
+        ),
+        generated_names: Iterable[str] = (
+            DEFAULT_GENERATED_NAMES
+        ),
+        protected_names: Iterable[str] = (
+            DEFAULT_PROTECTED_NAMES
+        ),
+        sensitive_suffixes: Iterable[str] = (
+            DEFAULT_SENSITIVE_SUFFIXES
+        ),
     ) -> None:
-        self.excluded_directories = frozenset(excluded_directories)
-        self.generated_names = frozenset(generated_names)
-        self.protected_names = frozenset(protected_names)
-        self.sensitive_suffixes = frozenset(sensitive_suffixes)
+        self.excluded_directories = frozenset(
+            str(item).lower()
+            for item in excluded_directories
+        )
+
+        self.generated_names = frozenset(
+            str(item).lower()
+            for item in generated_names
+        )
+
+        self.protected_names = frozenset(
+            str(item).lower()
+            for item in protected_names
+        )
+
+        self.sensitive_suffixes = frozenset(
+            str(item).lower()
+            for item in sensitive_suffixes
+        )
 
     def classify(
         self,
         relative_path: str,
         is_symlink: bool = False,
-    ) -> tuple[SourceKind, FileAuthority, FileRisk]:
+    ) -> tuple[
+        SourceKind,
+        FileAuthority,
+        FileRisk,
+    ]:
         path = Path(relative_path)
+
         name = path.name
+        normalized_name = name.lower()
         suffix = path.suffix.lower()
 
-        parts = set(path.parts)
-
-        if parts & self.excluded_directories:
-            return (
-                SourceKind.CACHE,
-                FileAuthority.EXCLUDED,
-                FileRisk.NORMAL,
-            )
+        parts = {
+            part.lower()
+            for part in path.parts
+        }
 
         if is_symlink:
             return (
@@ -360,7 +384,27 @@ class SourceClassifier:
                 FileRisk.UNKNOWN,
             )
 
-        if name in self.protected_names:
+        if any(
+            fnmatch.fnmatch(
+                normalized_name,
+                pattern,
+            )
+            for pattern in self.generated_names
+        ):
+            return (
+                SourceKind.GENERATED,
+                FileAuthority.GENERATED,
+                FileRisk.NORMAL,
+            )
+
+        if parts & self.excluded_directories:
+            return (
+                SourceKind.CACHE,
+                FileAuthority.EXCLUDED,
+                FileRisk.NORMAL,
+            )
+
+        if normalized_name in self.protected_names:
             return (
                 SourceKind.CONFIGURATION,
                 FileAuthority.AUTHORITATIVE,
@@ -374,8 +418,14 @@ class SourceClassifier:
                 FileRisk.SENSITIVE,
             )
 
-        if suffix in {".py", ".pyw"}:
-            if name.startswith("test_") or name.endswith("_test.py"):
+        if suffix in {
+            ".py",
+            ".pyw",
+        }:
+            if (
+                normalized_name.startswith("test_")
+                or normalized_name.endswith("_test.py")
+            ):
                 return (
                     SourceKind.TEST,
                     FileAuthority.DERIVED,
@@ -416,13 +466,6 @@ class SourceClassifier:
                 FileRisk.NORMAL,
             )
 
-        if suffix == ".pyc":
-            return (
-                SourceKind.GENERATED,
-                FileAuthority.GENERATED,
-                FileRisk.NORMAL,
-            )
-
         return (
             SourceKind.UNKNOWN,
             FileAuthority.UNKNOWN,
@@ -430,38 +473,58 @@ class SourceClassifier:
         )
 
 
-# ---------------------------------------------------------------------------
-# Module topology
-# ---------------------------------------------------------------------------
-
-
 class PackageTopologyResolver:
-    """Builds deterministic Python module topology without importing code."""
+    """
+    Builds deterministic Python module topology without
+    importing application code.
+    """
 
-    def __init__(self, repository_root: Path) -> None:
+    def __init__(
+        self,
+        repository_root: Path,
+    ) -> None:
         self.repository_root = repository_root
 
-    def module_name(self, relative_path: str) -> str:
+    def module_name(
+        self,
+        relative_path: str,
+    ) -> str:
         path = Path(relative_path)
 
         if path.suffix != ".py":
             return ""
 
-        parts = list(path.with_suffix("").parts)
+        parts = list(
+            path.with_suffix("").parts
+        )
 
-        if parts and parts[-1] == "__init__":
+        if (
+            parts
+            and parts[-1] == "__init__"
+        ):
             parts = parts[:-1]
 
         return ".".join(parts)
 
-    def parse_imports(self, absolute_path: Path) -> tuple[str, ...]:
+    def parse_imports(
+        self,
+        absolute_path: Path,
+    ) -> tuple[str, ...]:
         try:
             source = absolute_path.read_text(
                 encoding="utf-8",
                 errors="strict",
             )
-            tree = ast.parse(source, filename=str(absolute_path))
-        except (OSError, UnicodeError, SyntaxError):
+
+            tree = ast.parse(
+                source,
+                filename=str(absolute_path),
+            )
+        except (
+            OSError,
+            UnicodeError,
+            SyntaxError,
+        ):
             return ()
 
         imports: set[str] = set()
@@ -471,13 +534,21 @@ class PackageTopologyResolver:
                 for alias in node.names:
                     imports.add(alias.name)
 
-            elif isinstance(node, ast.ImportFrom):
+            elif isinstance(
+                node,
+                ast.ImportFrom,
+            ):
                 if node.module:
                     imports.add(node.module)
 
-        return tuple(sorted(imports))
+        return tuple(
+            sorted(imports)
+        )
 
-    def resolve(self, files: Iterable[RepositoryFile]) -> tuple[ModuleRecord, ...]:
+    def resolve(
+        self,
+        files: Iterable[RepositoryFile],
+    ) -> tuple[ModuleRecord, ...]:
         records: list[ModuleRecord] = []
 
         for item in files:
@@ -487,63 +558,103 @@ class PackageTopologyResolver:
             }:
                 continue
 
-            absolute = Path(item.absolute_path)
-            imports = self.parse_imports(absolute)
+            if item.is_symlink:
+                continue
+
+            absolute = Path(
+                item.absolute_path
+            )
 
             records.append(
                 ModuleRecord(
                     relative_path=item.relative_path,
-                    module_name=self.module_name(item.relative_path),
-                    imports=imports,
-                    parse_valid=self._parse_valid(absolute),
+                    module_name=self.module_name(
+                        item.relative_path
+                    ),
+                    imports=self.parse_imports(
+                        absolute
+                    ),
+                    parse_valid=self._parse_valid(
+                        absolute
+                    ),
                 )
             )
 
-        records.sort(key=lambda record: record.relative_path)
+        records.sort(
+            key=lambda record:
+            record.relative_path.lower()
+        )
 
         return tuple(records)
 
-    def _parse_valid(self, path: Path) -> bool:
+    @staticmethod
+    def _parse_valid(
+        path: Path,
+    ) -> bool:
         try:
             source = path.read_text(
                 encoding="utf-8",
                 errors="strict",
             )
-            ast.parse(source, filename=str(path))
+
+            ast.parse(
+                source,
+                filename=str(path),
+            )
+
             return True
-        except (OSError, UnicodeError, SyntaxError):
+
+        except (
+            OSError,
+            UnicodeError,
+            SyntaxError,
+        ):
             return False
 
 
-# ---------------------------------------------------------------------------
-# Repository scanner
-# ---------------------------------------------------------------------------
-
-
 class RepositoryScanner:
-    """Read-only deterministic filesystem scanner."""
+    """Read-only deterministic repository scanner."""
 
     def __init__(
         self,
         repository_root: Path | str,
         classifier: SourceClassifier | None = None,
     ) -> None:
-        self.guard = RepositoryPathGuard(Path(repository_root))
-        self.repository_root = self.guard.repository_root
-        self.classifier = classifier or SourceClassifier()
+        self.guard = RepositoryPathGuard(
+            Path(repository_root)
+        )
+
+        self.repository_root = (
+            self.guard.repository_root
+        )
+
+        self.classifier = (
+            classifier
+            or SourceClassifier()
+        )
 
         if not self.repository_root.exists():
             raise RepositorySourceError(
-                f"Repository does not exist: {self.repository_root}"
+                "Repository does not exist: "
+                f"{self.repository_root}"
             )
 
         if not self.repository_root.is_dir():
             raise RepositorySourceError(
-                f"Repository root is not a directory: {self.repository_root}"
+                "Repository root is not a directory: "
+                f"{self.repository_root}"
             )
 
-    def scan(self) -> tuple[RepositoryFile, ...]:
+    def scan(
+        self,
+    ) -> tuple[RepositoryFile, ...]:
+        return self.scan_detailed().files
+
+    def scan_detailed(
+        self,
+    ) -> RepositoryScanResult:
         discovered: list[RepositoryFile] = []
+        excluded_paths: list[str] = []
 
         for root, directories, filenames in os.walk(
             self.repository_root,
@@ -552,57 +663,164 @@ class RepositoryScanner:
         ):
             root_path = Path(root)
 
-            directories[:] = sorted(
-                directory
-                for directory in directories
-                if directory not in self.classifier.excluded_directories
-            )
+            kept_directories: list[str] = []
 
-            for filename in sorted(filenames):
-                candidate = root_path / filename
+            for directory in sorted(
+                directories,
+                key=str.lower,
+            ):
+                directory_lower = directory.lower()
+
+                if (
+                    directory_lower
+                    in self.classifier.excluded_directories
+                ):
+                    directory_path = (
+                        root_path / directory
+                    )
+
+                    try:
+                        relative_directory = (
+                            directory_path
+                            .relative_to(
+                                self.repository_root
+                            )
+                            .as_posix()
+                        )
+                    except ValueError as exc:
+                        raise RepositoryPathSecurityError(
+                            "Excluded directory escaped "
+                            "repository root: "
+                            f"{directory_path}"
+                        ) from exc
+
+                    excluded_paths.append(
+                        relative_directory
+                    )
+                    continue
+
+                kept_directories.append(
+                    directory
+                )
+
+            directories[:] = kept_directories
+
+            for filename in sorted(
+                filenames,
+                key=str.lower,
+            ):
+                candidate = (
+                    root_path / filename
+                )
 
                 try:
-                    relative = candidate.relative_to(
-                        self.repository_root
-                    ).as_posix()
+                    relative = (
+                        candidate
+                        .relative_to(
+                            self.repository_root
+                        )
+                        .as_posix()
+                    )
 
-                    resolved = self.guard.resolve(candidate)
+                    is_symlink = (
+                        candidate.is_symlink()
+                    )
 
-                    is_symlink = candidate.is_symlink()
-
+                    # IMPORTANT:
+                    # A symlink must be observed as a repository
+                    # entry without resolving its target.
+                    #
+                    # Resolving it here could legitimately point
+                    # outside the repository and incorrectly trigger
+                    # RepositoryPathSecurityError.
                     if is_symlink:
-                        source_kind, authority, risk = (
+                        (
+                            source_kind,
+                            authority,
+                            risk,
+                        ) = (
                             SourceKind.UNKNOWN,
                             FileAuthority.UNKNOWN,
                             FileRisk.UNKNOWN,
                         )
-                        digest = self._symlink_digest(candidate)
-                        size = 0
-                    else:
-                        source_kind, authority, risk = (
-                            self.classifier.classify(
-                                relative,
-                                is_symlink=False,
+
+                        digest = (
+                            self._symlink_digest(
+                                candidate
                             )
                         )
 
-                        if authority == FileAuthority.EXCLUDED:
-                            continue
+                        size = 0
 
-                        size = candidate.stat().st_size
-                        digest = self._file_sha256(candidate)
+                        repository_file = (
+                            RepositoryFile(
+                                relative_path=relative,
+                                absolute_path=str(
+                                    candidate.absolute()
+                                ),
+                                size_bytes=size,
+                                sha256=digest,
+                                source_kind=source_kind,
+                                authority=authority,
+                                risk=risk,
+                                is_symlink=True,
+                            )
+                        )
 
-                    discovered.append(
+                        discovered.append(
+                            repository_file
+                        )
+                        continue
+
+                    # Normal files are still strictly checked
+                    # against the repository boundary.
+                    resolved = self.guard.resolve(
+                        candidate
+                    )
+
+                    (
+                        source_kind,
+                        authority,
+                        risk,
+                    ) = self.classifier.classify(
+                        relative,
+                        is_symlink=False,
+                    )
+
+                    size = candidate.stat().st_size
+
+                    digest = (
+                        self._file_sha256(
+                            candidate
+                        )
+                    )
+
+                    repository_file = (
                         RepositoryFile(
                             relative_path=relative,
-                            absolute_path=str(resolved),
+                            absolute_path=str(
+                                resolved
+                            ),
                             size_bytes=size,
                             sha256=digest,
                             source_kind=source_kind,
                             authority=authority,
                             risk=risk,
-                            is_symlink=is_symlink,
+                            is_symlink=False,
                         )
+                    )
+
+                    if (
+                        authority
+                        == FileAuthority.EXCLUDED
+                    ):
+                        excluded_paths.append(
+                            relative
+                        )
+                        continue
+
+                    discovered.append(
+                        repository_file
                     )
 
                 except RepositoryPathSecurityError:
@@ -610,77 +828,126 @@ class RepositoryScanner:
 
                 except OSError as exc:
                     raise RepositoryDiscoveryError(
-                        f"Unable to inspect repository file: {candidate}"
+                        "Unable to inspect repository "
+                        f"file: {candidate}"
                     ) from exc
 
-        discovered.sort(key=lambda item: item.relative_path)
+        discovered.sort(
+            key=lambda item:
+            item.relative_path.lower()
+        )
 
-        return tuple(discovered)
+        excluded_paths = sorted(
+            set(excluded_paths),
+            key=str.lower,
+        )
+
+        return RepositoryScanResult(
+            files=tuple(discovered),
+            excluded_paths=tuple(
+                excluded_paths
+            ),
+        )
 
     @staticmethod
-    def _file_sha256(path: Path) -> str:
+    def _file_sha256(
+        path: Path,
+    ) -> str:
         digest = hashlib.sha256()
 
         try:
             with path.open("rb") as handle:
-                for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                for chunk in iter(
+                    lambda:
+                    handle.read(
+                        1024 * 1024
+                    ),
+                    b"",
+                ):
                     digest.update(chunk)
+
         except OSError as exc:
             raise RepositoryDiscoveryError(
-                f"Unable to fingerprint file: {path}"
+                "Unable to fingerprint file: "
+                f"{path}"
             ) from exc
 
         return digest.hexdigest()
 
     @staticmethod
-    def _symlink_digest(path: Path) -> str:
-        target = os.readlink(path)
+    def _symlink_digest(
+        path: Path,
+    ) -> str:
+        try:
+            target = os.readlink(path)
+        except OSError as exc:
+            raise RepositoryDiscoveryError(
+                "Unable to inspect symlink: "
+                f"{path}"
+            ) from exc
+
         return hashlib.sha256(
-            f"SYMLINK:{target}".encode("utf-8")
+            f"SYMLINK:{target}".encode(
+                "utf-8"
+            )
         ).hexdigest()
 
 
-# ---------------------------------------------------------------------------
-# Repository intelligence engine
-# ---------------------------------------------------------------------------
-
-
 class RepositoryIntelligenceEngine:
-    """
-    Main T16 orchestration engine.
+    """Main T16 repository-intelligence engine."""
 
-    T16 observes the repository and produces a deterministic snapshot.
-    It intentionally has no mutation API.
-    """
-
-    SCHEMA_VERSION = "1.0"
+    SCHEMA_VERSION = "1.1"
 
     def __init__(
         self,
         repository_root: Path | str,
         *,
         protected_paths: Iterable[str] = (),
+        classifier: SourceClassifier | None = None,
     ) -> None:
-        self.repository_root = Path(repository_root).resolve()
-        self.scanner = RepositoryScanner(self.repository_root)
-        self.topology = PackageTopologyResolver(self.repository_root)
+        self.repository_root = (
+            Path(repository_root).resolve()
+        )
+
+        self.scanner = RepositoryScanner(
+            self.repository_root,
+            classifier=classifier,
+        )
+
+        self.topology = (
+            PackageTopologyResolver(
+                self.repository_root
+            )
+        )
+
         self.protected_paths = tuple(
             sorted(
-                Path(path).as_posix()
+                normalize_repository_path(
+                    path
+                )
                 for path in protected_paths
             )
         )
 
-    def discover(self) -> RepositorySnapshot:
-        files = self.scanner.scan()
+    def discover(
+        self,
+    ) -> RepositorySnapshot:
+        scan_result = (
+            self.scanner.scan_detailed()
+        )
 
-        modules = self.topology.resolve(files)
+        files = scan_result.files
+
+        modules = self.topology.resolve(
+            files
+        )
 
         excluded_paths = tuple(
             sorted(
-                item.relative_path
-                for item in files
-                if item.authority == FileAuthority.EXCLUDED
+                set(
+                    scan_result.excluded_paths
+                ),
+                key=str.lower,
             )
         )
 
@@ -688,11 +955,14 @@ class RepositoryIntelligenceEngine:
             files=files,
             modules=modules,
             protected_paths=self.protected_paths,
+            excluded_paths=excluded_paths,
         )
 
         snapshot = RepositorySnapshot(
             schema_version=self.SCHEMA_VERSION,
-            repository_root=str(self.repository_root),
+            repository_root=str(
+                self.repository_root
+            ),
             files=files,
             modules=modules,
             protected_paths=self.protected_paths,
@@ -700,7 +970,9 @@ class RepositoryIntelligenceEngine:
             fingerprint=fingerprint,
         )
 
-        self._validate_snapshot(snapshot)
+        self._validate_snapshot(
+            snapshot
+        )
 
         return snapshot
 
@@ -708,26 +980,120 @@ class RepositoryIntelligenceEngine:
         self,
         pattern: str,
         *,
+        match_mode: SearchMatchMode = SearchMatchMode.EXACT,
         source_kind: SourceKind | None = None,
         authority: FileAuthority | None = None,
     ) -> tuple[RepositoryFile, ...]:
         snapshot = self.discover()
 
-        normalized_pattern = pattern.replace("\\", "/").lower()
+        if not isinstance(
+            match_mode,
+            SearchMatchMode,
+        ):
+            try:
+                match_mode = SearchMatchMode(
+                    match_mode
+                )
+            except ValueError as exc:
+                raise RepositoryClassificationError(
+                    "Unsupported search match mode: "
+                    f"{match_mode}"
+                ) from exc
 
-        results = []
+        normalized_pattern = (
+            normalize_repository_path(
+                pattern
+            )
+        )
+
+        has_path_separator = "/" in (
+            normalized_pattern
+        )
+
+        results: list[RepositoryFile] = []
 
         for item in snapshot.files:
-            if normalized_pattern not in item.relative_path.lower():
+            if item.source_kind in {
+                SourceKind.GENERATED,
+                SourceKind.VENDOR,
+                SourceKind.CACHE,
+            }:
                 continue
 
-            if source_kind is not None and item.source_kind != source_kind:
+            normalized_path = (
+                normalize_repository_path(
+                    item.relative_path
+                )
+            )
+
+            normalized_name = (
+                Path(
+                    normalized_path
+                ).name.lower()
+            )
+
+            if (
+                match_mode
+                == SearchMatchMode.CONTAINS
+            ):
+                matched = (
+                    normalized_pattern
+                    in normalized_path
+                )
+
+            elif (
+                match_mode
+                == SearchMatchMode.EXACT
+            ):
+                if has_path_separator:
+                    matched = (
+                        normalized_pattern
+                        == normalized_path
+                    )
+                else:
+                    matched = (
+                        normalized_pattern
+                        == normalized_name
+                    )
+
+            elif (
+                match_mode
+                == SearchMatchMode.GLOB
+            ):
+                matched = fnmatch.fnmatch(
+                    normalized_path,
+                    normalized_pattern,
+                )
+
+            else:
+                raise RepositoryClassificationError(
+                    "Unsupported search match mode: "
+                    f"{match_mode}"
+                )
+
+            if not matched:
                 continue
 
-            if authority is not None and item.authority != authority:
+            if (
+                source_kind is not None
+                and item.source_kind
+                != source_kind
+            ):
+                continue
+
+            if (
+                authority is not None
+                and item.authority
+                != authority
+            ):
                 continue
 
             results.append(item)
+
+        results.sort(
+            key=lambda item:
+            item.relative_path.lower()
+        )
 
         return tuple(results)
 
@@ -749,15 +1115,21 @@ class RepositoryIntelligenceEngine:
         files: Iterable[RepositoryFile],
         modules: Iterable[ModuleRecord],
         protected_paths: Iterable[str],
+        excluded_paths: Iterable[str],
     ) -> str:
         payload = {
+            "schema_version": "1.1",
             "files": [
                 {
                     "relative_path": item.relative_path,
                     "size_bytes": item.size_bytes,
                     "sha256": item.sha256,
-                    "source_kind": item.source_kind.value,
-                    "authority": item.authority.value,
+                    "source_kind": (
+                        item.source_kind.value
+                    ),
+                    "authority": (
+                        item.authority.value
+                    ),
                     "risk": item.risk.value,
                     "is_symlink": item.is_symlink,
                 }
@@ -767,12 +1139,23 @@ class RepositoryIntelligenceEngine:
                 {
                     "relative_path": item.relative_path,
                     "module_name": item.module_name,
-                    "imports": list(item.imports),
-                    "parse_valid": item.parse_valid,
+                    "imports": list(
+                        item.imports
+                    ),
+                    "parse_valid": (
+                        item.parse_valid
+                    ),
                 }
                 for item in modules
             ],
-            "protected_paths": sorted(protected_paths),
+            "protected_paths": sorted(
+                protected_paths,
+                key=str.lower,
+            ),
+            "excluded_paths": sorted(
+                excluded_paths,
+                key=str.lower,
+            ),
         }
 
         canonical = json.dumps(
@@ -804,9 +1187,13 @@ class RepositoryIntelligenceEngine:
             for item in snapshot.files
         ]
 
-        if paths != sorted(paths):
+        if paths != sorted(
+            paths,
+            key=str.lower,
+        ):
             raise RepositoryIntegrityError(
-                "Repository file ordering is not deterministic."
+                "Repository file ordering "
+                "is not deterministic."
             )
 
         module_paths = [
@@ -814,15 +1201,27 @@ class RepositoryIntelligenceEngine:
             for item in snapshot.modules
         ]
 
-        if module_paths != sorted(module_paths):
+        if module_paths != sorted(
+            module_paths,
+            key=str.lower,
+        ):
             raise RepositoryIntegrityError(
-                "Repository module ordering is not deterministic."
+                "Repository module ordering "
+                "is not deterministic."
             )
 
+        excluded = list(
+            snapshot.excluded_paths
+        )
 
-# ---------------------------------------------------------------------------
-# Public functional API
-# ---------------------------------------------------------------------------
+        if excluded != sorted(
+            excluded,
+            key=str.lower,
+        ):
+            raise RepositoryIntegrityError(
+                "Repository excluded-path ordering "
+                "is not deterministic."
+            )
 
 
 def discover_repository(
@@ -830,11 +1229,8 @@ def discover_repository(
     *,
     protected_paths: Iterable[str] = (),
 ) -> RepositorySnapshot:
-    """
-    Discover and fingerprint a repository.
+    """Discover and fingerprint a repository."""
 
-    This is the primary functional entry point for T16.
-    """
     engine = RepositoryIntelligenceEngine(
         repository_root,
         protected_paths=protected_paths,
@@ -847,14 +1243,19 @@ def find_repository_files(
     repository_root: Path | str,
     pattern: str,
     *,
+    match_mode: SearchMatchMode = SearchMatchMode.EXACT,
     source_kind: SourceKind | None = None,
     authority: FileAuthority | None = None,
 ) -> tuple[RepositoryFile, ...]:
     """Search the deterministic repository snapshot."""
-    engine = RepositoryIntelligenceEngine(repository_root)
+
+    engine = RepositoryIntelligenceEngine(
+        repository_root
+    )
 
     return engine.find(
         pattern,
+        match_mode=match_mode,
         source_kind=source_kind,
         authority=authority,
     )
@@ -864,7 +1265,10 @@ def repository_fingerprint(
     repository_root: Path | str,
 ) -> str:
     """Return the deterministic repository fingerprint."""
-    return discover_repository(repository_root).fingerprint
+
+    return discover_repository(
+        repository_root
+    ).fingerprint
 
 
 __all__ = [
@@ -886,13 +1290,15 @@ __all__ = [
     "RepositoryIntelligenceError",
     "RepositoryPathGuard",
     "RepositoryPathSecurityError",
+    "RepositoryScanResult",
     "RepositoryScanner",
     "RepositorySnapshot",
     "RepositorySourceError",
+    "SearchMatchMode",
     "SourceClassifier",
     "SourceKind",
     "discover_repository",
     "find_repository_files",
+    "normalize_repository_path",
     "repository_fingerprint",
 ]
-
