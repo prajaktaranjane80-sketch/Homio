@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "layer": "T05",
+  "name": "Dependency & Authority Map",
+  "purpose": "Provide a deterministic read-only model of source authority and dependency relationships.",
+  "authority": {
+    "primary_execution_authority": "REOS_STATE",
+    "canonical_execution_source": "data/state.json"
+  },
+  "capabilities": {
+    "authority_classification": true,
+    "dependency_mapping": true,
+    "conflict_detection": true,
+    "deterministic_identity": true,
+    "canonical_normalization": true,
+    "validation_reporting": true
+  },
+  "permissions": {
+    "read_sources": true,
+    "write_sources": false,
+    "modify_authority": false,
+    "modify_dependencies": false,
+    "approve_changes": false,
+    "authorize_execution": false,
+    "repair_code": false
+  },
+  "safety": {
+    "fail_closed_on_invalid_graph": true,
+    "duplicate_dependency_detection": true,
+    "self_dependency_detection": true,
+    "replay_safe": true,
+    "idempotent": true
+  },
+  "dependencies": {
+    "upstream": [
+      "T01_Project_DNA",
+      "T02_Architecture_Lock",
+      "T03_State_Reconstruction",
+      "T04_Gate_Subtask_Continuity"
+    ],
+    "downstream": [
+      "T06_Checkpoint_Engine",
+      "T13_Controller_Integration",
+      "T17_Change_Impact_Dependency_Analysis"
+    ]
+  }
+}
