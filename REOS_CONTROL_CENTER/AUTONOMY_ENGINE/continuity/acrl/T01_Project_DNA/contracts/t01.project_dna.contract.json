@@ -1,0 +1,52 @@
+{
+  "contract_id": "ACRL-T01-PROJECT-DNA",
+  "contract_version": "1.0",
+  "capability": "PROJECT_IDENTITY_AND_BOOTSTRAP",
+  "mode": "READ_ONLY",
+  "authority": {
+    "canonical_source": "REOS_CONTROL_CENTER/data/state.json",
+    "execution_authorized": false,
+    "write_authorized": false,
+    "approval_authorized": false,
+    "chat_history_authoritative": false
+  },
+  "inputs": [
+    "authoritative controller state"
+  ],
+  "outputs": [
+    "ProjectDNA",
+    "ProjectIdentity",
+    "ProjectFingerprints",
+    "FreshnessResult",
+    "ProjectBootstrap"
+  ],
+  "guarantees": [
+    "deterministic identity derivation",
+    "fail_closed source validation",
+    "no authoritative state mutation",
+    "no execution authorization",
+    "no write authorization",
+    "machine-readable bootstrap payload"
+  ],
+  "failure_policy": {
+    "missing_source": "FAIL_CLOSED",
+    "invalid_source": "FAIL_CLOSED",
+    "unknown_freshness": "BLOCK_RESUME",
+    "future_state": "BLOCK_RESUME",
+    "stale_state": "BLOCK_RESUME"
+  },
+  "dependencies": {
+    "upstream": [
+      "T01_Project_DNA/project_dna.py"
+    ],
+    "downstream": [
+      "T03_State_Reconstruction",
+      "T07_New_Chat_Bootstrap",
+      "T09_State_Fingerprint",
+      "T11_Recovery_Fail_Closed",
+      "T12_Resume_Safety_Validation",
+      "T15_AI_Operator_Autonomy",
+      "T24_Cross_Chat_Continuity_Recovery_Engine"
+    ]
+  }
+}
