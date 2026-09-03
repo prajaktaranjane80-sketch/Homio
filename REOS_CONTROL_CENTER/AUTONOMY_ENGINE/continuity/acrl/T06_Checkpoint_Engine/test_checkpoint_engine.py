@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from AUTONOMY_ENGINE.continuity.acrl.checkpoint_engine import (
+from .checkpoint_engine import (
     CheckpointEngine,
     CheckpointIntegrityError,
     CheckpointSourceError,

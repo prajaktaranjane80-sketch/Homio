@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0",
+  "layer": "T06",
+  "name": "Checkpoint Engine",
+  "purpose": "Create, identify, validate and verify immutable recovery checkpoints derived from authoritative REOS state.",
+  "authority": {
+    "primary_execution_authority": "REOS_STATE",
+    "canonical_state_path": "data/state.json"
+  },
+  "capabilities": {
+    "checkpoint_creation": true,
+    "checkpoint_identity": true,
+    "checkpoint_validation": true,
+    "checkpoint_registry": true,
+    "checkpoint_lifecycle": true,
+    "checkpoint_provenance": true,
+    "integrity_verification": true,
+    "state_projection": true,
+    "state_comparison": true
+  },
+  "permissions": {
+    "read_state": true,
+    "create_checkpoint": true,
+    "rewrite_checkpoint": false,
+    "mutate_reos_state": false,
+    "advance_gate": false,
+    "authorize_execution": false,
+    "approve_changes": false,
+    "repair_code": false,
+    "modify_architecture": false
+  },
+  "upstream": [
+    "T03_State_Reconstruction",
+    "T04_Gate_Subtask_Continuity",
+    "T05_Dependency_Authority_Map"
+  ],
+  "downstream": [
+    "T07_New_Chat_Bootstrap",
+    "T08_Context_Compression",
+    "T12_Resume_Safety_Validation",
+    "T22_Commit_Execution_Checkpoint_Coordination",
+    "T24_Cross_Chat_Continuity_Recovery_Engine"
+  ],
+  "guarantees": {
+    "immutable_checkpoint": true,
+    "deterministic_identity": true,
+    "tamper_detection": true,
+    "authority_preservation": true,
+    "replay_conflict_detection": true
+  }
+}
