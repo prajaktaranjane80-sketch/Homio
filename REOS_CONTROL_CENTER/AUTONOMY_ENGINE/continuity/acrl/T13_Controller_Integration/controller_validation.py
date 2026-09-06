@@ -1,468 +1,622 @@
-"""ACRL T13 — Controller Integration Validation.
+"""ACRL T13 — Controller Integration.
 
-Structural and defensive validation for T13 integration evidence.
+Read-only integration boundary between the REOS Control Center
+and ACRL continuity.
 
-T13 validation is intentionally separate from T13 semantic
-integration decisions.
+T13 may:
 
-Validation answers:
-    "Is this evidence structurally valid?"
+- inspect controller and ACRL continuity evidence
+- validate integration inputs
+- reconcile continuity
+- detect conflicts
+- authorize safe continuity/resume
+- produce deterministic evidence
 
-ControllerIntegrationEngine answers:
-    "What should T13 decide about this evidence?"
+T13 must never:
+
+- mutate state.json
+- mutate the controller
+- mutate checkpoints
+- mutate architecture
+- execute tasks
+- approve business execution
+- perform recovery
+- replace the controller
+- promote authority
+- invent the next task
 """
 
-from collections.abc import Mapping
-from typing import Any
+from __future__ import annotations
 
-from .controller_integration import (
-    ACRLContinuityView,
-    ControllerIntegrationReport,
-    ControllerIntegrationRequest,
-    ControllerStateView,
-)
+import hashlib
+import json
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Mapping
 
 
-class ControllerValidationError(ValueError):
-    """Raised when T13 integration evidence is structurally invalid."""
+SCHEMA_VERSION = "1.0"
+AUTHORITY = "REOS_CONTROL_CENTER"
+HASH_ALGORITHM = "sha256"
 
 
-class ControllerValidationEngine:
-    """Defensive structural validator for T13 integration evidence."""
+class ControllerIntegrationError(ValueError):
+    """Base T13 exception."""
 
-    MAX_METADATA_FIELDS = 64
-    MAX_KEY_LENGTH = 128
-    MAX_STRING_LENGTH = 4096
 
-    REQUIRED_CONTROLLER_FIELDS = frozenset(
+class ControllerIntegrationValidationError(
+    ControllerIntegrationError
+):
+    """Raised for structurally invalid integration input."""
+
+
+class ControllerIntegrationAuthorityError(
+    ControllerIntegrationValidationError
+):
+    """Raised for invalid authority."""
+
+
+class ControllerIntegrationConflictError(
+    ControllerIntegrationError
+):
+    """Raised by integrate_or_raise for unsafe integration."""
+
+
+class IntegrationDecision(str, Enum):
+    """Canonical T13 integration decisions."""
+
+    INTEGRATED = "INTEGRATED"
+    BLOCKED = "BLOCKED"
+    FAIL_CLOSED = "FAIL_CLOSED"
+
+
+class IntegrationReason(str, Enum):
+    """Canonical T13 integration reasons."""
+
+    VALID = "VALID"
+
+    CONTROLLER_UNAVAILABLE = "CONTROLLER_UNAVAILABLE"
+    CONTROLLER_STATE_INVALID = "CONTROLLER_STATE_INVALID"
+
+    ARCHITECTURE_CONFLICT = "ARCHITECTURE_CONFLICT"
+    GATE_CONFLICT = "GATE_CONFLICT"
+    SUBTASK_CONFLICT = "SUBTASK_CONFLICT"
+    CHECKPOINT_CONFLICT = "CHECKPOINT_CONFLICT"
+    INTEGRITY_CONFLICT = "INTEGRITY_CONFLICT"
+    AUTHORITY_CONFLICT = "AUTHORITY_CONFLICT"
+    RESUME_NOT_SAFE = "RESUME_NOT_SAFE"
+
+
+def _canonicalize(value: Any) -> Any:
+    """Convert supported values into deterministic JSON data."""
+
+    if isinstance(value, Enum):
+        return value.value
+
+    if isinstance(value, Mapping):
+        return {
+            str(key): _canonicalize(item)
+            for key, item in sorted(
+                value.items(),
+                key=lambda pair: str(pair[0]),
+            )
+        }
+
+    if isinstance(value, (list, tuple)):
+        return [
+            _canonicalize(item)
+            for item in value
+        ]
+
+    if isinstance(
+        value,
+        (str, int, float, bool),
+    ) or value is None:
+        return value
+
+    raise TypeError(
+        "Unsupported value for canonicalization: "
+        f"{type(value).__name__}"
+    )
+
+
+@dataclass(frozen=True)
+class ControllerStateView:
+    """Immutable controller evidence."""
+
+    current_gate: str
+    current_subtask: str | None
+    current_task: str
+    status: str
+    state_hash: str | None
+    architecture_locked: bool
+    authoritative: bool
+    checkpoint_id: str | None
+    metadata: Mapping[str, Any] | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "current_gate": self.current_gate,
+            "current_subtask": self.current_subtask,
+            "current_task": self.current_task,
+            "status": self.status,
+            "state_hash": self.state_hash,
+            "architecture_locked": self.architecture_locked,
+            "authoritative": self.authoritative,
+            "checkpoint_id": self.checkpoint_id,
+            "metadata": _canonicalize(self.metadata),
+        }
+
+
+@dataclass(frozen=True)
+class ACRLContinuityView:
+    """Immutable ACRL continuity evidence."""
+
+    current_gate: str
+    current_subtask: str | None
+    current_task: str | None
+    checkpoint_id: str | None
+    architecture_locked: bool
+    authority_valid: bool
+    integrity_valid: bool
+    resume_safe: bool
+    fingerprint: str | None
+    metadata: Mapping[str, Any] | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "current_gate": self.current_gate,
+            "current_subtask": self.current_subtask,
+            "current_task": self.current_task,
+            "checkpoint_id": self.checkpoint_id,
+            "architecture_locked": self.architecture_locked,
+            "authority_valid": self.authority_valid,
+            "integrity_valid": self.integrity_valid,
+            "resume_safe": self.resume_safe,
+            "fingerprint": self.fingerprint,
+            "metadata": _canonicalize(self.metadata),
+        }
+
+
+@dataclass(frozen=True)
+class ControllerIntegrationRequest:
+    """Immutable T13 integration request."""
+
+    controller: ControllerStateView
+    acrl: ACRLContinuityView
+    expected_authority: str = AUTHORITY
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "controller": self.controller.to_dict(),
+            "acrl": self.acrl.to_dict(),
+            "expected_authority": self.expected_authority,
+        }
+
+
+@dataclass(frozen=True)
+class ControllerIntegrationReport:
+    """Immutable deterministic T13 integration result."""
+
+    schema_version: str
+    authority: str
+    decision: IntegrationDecision
+    reason: IntegrationReason
+    request_fingerprint: str
+    validated: bool
+    fail_closed: bool
+    controller_gate: str
+    acrl_gate: str
+    controller_subtask: str | None
+    acrl_subtask: str | None
+    resume_authorized: bool
+    execution_authorized: bool
+    explanation: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "schema_version": self.schema_version,
+            "authority": self.authority,
+            "decision": self.decision.value,
+            "reason": self.reason.value,
+            "request_fingerprint": self.request_fingerprint,
+            "validated": self.validated,
+            "fail_closed": self.fail_closed,
+            "controller_gate": self.controller_gate,
+            "acrl_gate": self.acrl_gate,
+            "controller_subtask": self.controller_subtask,
+            "acrl_subtask": self.acrl_subtask,
+            "resume_authorized": self.resume_authorized,
+            "execution_authorized": self.execution_authorized,
+            "explanation": self.explanation,
+        }
+
+
+class ControllerIntegrationEngine:
+    """Deterministic, read-only T13 integration engine."""
+
+    SCHEMA_VERSION = SCHEMA_VERSION
+    AUTHORITY = AUTHORITY
+    HASH_ALGORITHM = HASH_ALGORITHM
+
+    SAFE_CONTROLLER_STATUSES = frozenset(
         {
-            "current_gate",
-            "current_subtask",
-            "current_task",
-            "status",
-            "state_hash",
-            "architecture_locked",
-            "authoritative",
-            "checkpoint_id",
+            "CONTROL_CENTER_DRIVEN",
+            "READY_FOR_APPROVAL",
+            "CURRENT",
         }
     )
 
-    REQUIRED_ACRL_FIELDS = frozenset(
-        {
-            "current_gate",
-            "current_subtask",
-            "current_task",
-            "checkpoint_id",
-            "architecture_locked",
-            "authority_valid",
-            "integrity_valid",
-            "resume_safe",
-            "fingerprint",
-        }
-    )
+    @classmethod
+    def fingerprint(cls, value: Any) -> str:
+        """Create deterministic SHA-256 fingerprint."""
+
+        canonical = _canonicalize(value)
+
+        payload = json.dumps(
+            canonical,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+
+        return hashlib.sha256(payload).hexdigest()
 
     @classmethod
-    def validate_metadata(
-        cls,
-        metadata: Mapping[str, Any] | None,
-    ) -> bool:
-        """Validate bounded flat metadata."""
-
-        if metadata is None:
-            return True
-
-        if not isinstance(metadata, Mapping):
-            raise ControllerValidationError(
-                "metadata must be a mapping."
-            )
-
-        if len(metadata) > cls.MAX_METADATA_FIELDS:
-            raise ControllerValidationError(
-                "metadata exceeds maximum field count."
-            )
-
-        for key, value in metadata.items():
-            if not isinstance(key, str):
-                raise ControllerValidationError(
-                    "metadata keys must be strings."
-                )
-
-            if len(key) > cls.MAX_KEY_LENGTH:
-                raise ControllerValidationError(
-                    "metadata key exceeds maximum length."
-                )
-
-            if isinstance(value, str):
-                if len(value) > cls.MAX_STRING_LENGTH:
-                    raise ControllerValidationError(
-                        "metadata string value exceeds maximum length."
-                    )
-
-            if isinstance(
-                value,
-                (Mapping, list, tuple, set),
-            ):
-                raise ControllerValidationError(
-                    "nested metadata structures are not permitted."
-                )
-
-            if not isinstance(
-                value,
-                (str, int, float, bool, type(None)),
-            ):
-                raise ControllerValidationError(
-                    "metadata values must be scalar."
-                )
-
-        return True
-
-    @classmethod
-    def validate_controller(
-        cls,
-        controller: ControllerStateView,
-    ) -> bool:
-        """Validate controller evidence structurally."""
-
-        if not isinstance(
-            controller,
-            ControllerStateView,
-        ):
-            raise ControllerValidationError(
-                "Invalid ControllerStateView."
-            )
-
-        for field_name in cls.REQUIRED_CONTROLLER_FIELDS:
-            if not hasattr(controller, field_name):
-                raise ControllerValidationError(
-                    f"Missing controller field: {field_name}"
-                )
-
-        cls.validate_metadata(controller.metadata)
-
-        if not isinstance(
-            controller.current_gate,
-            str,
-        ):
-            raise ControllerValidationError(
-                "Controller gate must be a string."
-            )
-
-        if (
-            controller.current_subtask is not None
-            and not isinstance(
-                controller.current_subtask,
-                str,
-            )
-        ):
-            raise ControllerValidationError(
-                "Controller subtask must be a string or None."
-            )
-
-        if not isinstance(
-            controller.current_task,
-            str,
-        ):
-            raise ControllerValidationError(
-                "Controller task must be a string."
-            )
-
-        if not isinstance(
-            controller.status,
-            str,
-        ):
-            raise ControllerValidationError(
-                "Controller status must be a string."
-            )
-
-        if (
-            controller.state_hash is not None
-            and not isinstance(
-                controller.state_hash,
-                str,
-            )
-        ):
-            raise ControllerValidationError(
-                "Controller state_hash must be a string or None."
-            )
-
-        if not isinstance(
-            controller.architecture_locked,
-            bool,
-        ):
-            raise ControllerValidationError(
-                "Controller architecture_locked must be boolean."
-            )
-
-        if not isinstance(
-            controller.authoritative,
-            bool,
-        ):
-            raise ControllerValidationError(
-                "Controller authoritative must be boolean."
-            )
-
-        if not controller.authoritative:
-            raise ControllerValidationError(
-                "Controller authority is invalid."
-            )
-
-        if (
-            controller.checkpoint_id is not None
-            and not isinstance(
-                controller.checkpoint_id,
-                str,
-            )
-        ):
-            raise ControllerValidationError(
-                "Controller checkpoint_id must be a string or None."
-            )
-
-        return True
-
-    @classmethod
-    def validate_acrl(
-        cls,
-        acrl: ACRLContinuityView,
-    ) -> bool:
-        """Validate ACRL continuity evidence structurally."""
-
-        if not isinstance(
-            acrl,
-            ACRLContinuityView,
-        ):
-            raise ControllerValidationError(
-                "Invalid ACRLContinuityView."
-            )
-
-        for field_name in cls.REQUIRED_ACRL_FIELDS:
-            if not hasattr(acrl, field_name):
-                raise ControllerValidationError(
-                    f"Missing ACRL field: {field_name}"
-                )
-
-        cls.validate_metadata(acrl.metadata)
-
-        if not isinstance(
-            acrl.current_gate,
-            str,
-        ):
-            raise ControllerValidationError(
-                "ACRL gate must be a string."
-            )
-
-        if (
-            acrl.current_subtask is not None
-            and not isinstance(
-                acrl.current_subtask,
-                str,
-            )
-        ):
-            raise ControllerValidationError(
-                "ACRL subtask must be a string or None."
-            )
-
-        if (
-            acrl.current_task is not None
-            and not isinstance(
-                acrl.current_task,
-                str,
-            )
-        ):
-            raise ControllerValidationError(
-                "ACRL task must be a string or None."
-            )
-
-        if (
-            acrl.checkpoint_id is not None
-            and not isinstance(
-                acrl.checkpoint_id,
-                str,
-            )
-        ):
-            raise ControllerValidationError(
-                "ACRL checkpoint_id must be a string or None."
-            )
-
-        if not isinstance(
-            acrl.architecture_locked,
-            bool,
-        ):
-            raise ControllerValidationError(
-                "ACRL architecture_locked must be boolean."
-            )
-
-        if not isinstance(
-            acrl.authority_valid,
-            bool,
-        ):
-            raise ControllerValidationError(
-                "ACRL authority_valid must be boolean."
-            )
-
-        if not acrl.authority_valid:
-            raise ControllerValidationError(
-                "ACRL authority is invalid."
-            )
-
-        if not isinstance(
-            acrl.integrity_valid,
-            bool,
-        ):
-            raise ControllerValidationError(
-                "ACRL integrity_valid must be boolean."
-            )
-
-        if not isinstance(
-            acrl.resume_safe,
-            bool,
-        ):
-            raise ControllerValidationError(
-                "ACRL resume_safe must be boolean."
-            )
-
-        if (
-            acrl.fingerprint is not None
-            and not isinstance(
-                acrl.fingerprint,
-                str,
-            )
-        ):
-            raise ControllerValidationError(
-                "ACRL fingerprint must be a string or None."
-            )
-
-        return True
-
-    @classmethod
-    def validate_request(
+    def _validate_request(
         cls,
         request: ControllerIntegrationRequest,
-    ) -> bool:
-        """Validate a complete T13 request structurally."""
+    ) -> None:
+        """Validate basic request structure and authority."""
 
         if not isinstance(
             request,
             ControllerIntegrationRequest,
         ):
-            raise ControllerValidationError(
+            raise ControllerIntegrationValidationError(
                 "Invalid ControllerIntegrationRequest."
             )
 
-        cls.validate_controller(
-            request.controller
-        )
-
-        cls.validate_acrl(
-            request.acrl
-        )
-
-        if not isinstance(
-            request.expected_authority,
-            str,
-        ):
-            raise ControllerValidationError(
-                "expected_authority must be a string."
+        if request.expected_authority != cls.AUTHORITY:
+            raise ControllerIntegrationAuthorityError(
+                "Invalid expected authority."
             )
 
-        return True
+        if not isinstance(
+            request.controller,
+            ControllerStateView,
+        ):
+            raise ControllerIntegrationValidationError(
+                "Invalid ControllerStateView."
+            )
+
+        if not isinstance(
+            request.acrl,
+            ACRLContinuityView,
+        ):
+            raise ControllerIntegrationValidationError(
+                "Invalid ACRLContinuityView."
+            )
 
     @classmethod
-    def validate_report(
+    def _validate_with_t13_validator(
         cls,
-        report: ControllerIntegrationReport,
-    ) -> bool:
-        """Validate the immutable T13 integration report."""
+        request: ControllerIntegrationRequest,
+    ) -> None:
+        """Execute structural T13 validation."""
 
-        if not isinstance(
-            report,
-            ControllerIntegrationReport,
-        ):
-            raise ControllerValidationError(
-                "Invalid ControllerIntegrationReport."
-            )
-
-        required_fields = (
-            "schema_version",
-            "authority",
-            "decision",
-            "reason",
-            "request_fingerprint",
-            "validated",
-            "fail_closed",
-            "controller_gate",
-            "acrl_gate",
-            "controller_subtask",
-            "acrl_subtask",
-            "resume_authorized",
-            "execution_authorized",
-            "explanation",
+        from .controller_validation import (
+            ControllerValidationEngine,
         )
 
-        for field_name in required_fields:
-            if not hasattr(report, field_name):
-                raise ControllerValidationError(
-                    f"Missing report field: {field_name}"
-                )
+        try:
+            ControllerValidationEngine.validate_request(
+                request
+            )
+        except ValueError as exc:
+            message = str(exc).lower()
 
-        if report.authority != "REOS_CONTROL_CENTER":
-            raise ControllerValidationError(
-                "Invalid report authority."
+            if "authority" in message:
+                raise ControllerIntegrationAuthorityError(
+                    str(exc)
+                ) from exc
+
+            raise ControllerIntegrationValidationError(
+                str(exc)
+            ) from exc
+
+    @classmethod
+    def _build_report(
+        cls,
+        request: ControllerIntegrationRequest,
+        fingerprint: str,
+        decision: IntegrationDecision,
+        reason: IntegrationReason,
+        *,
+        validated: bool,
+        fail_closed: bool,
+        resume_authorized: bool,
+        explanation: str,
+    ) -> ControllerIntegrationReport:
+        return ControllerIntegrationReport(
+            schema_version=cls.SCHEMA_VERSION,
+            authority=cls.AUTHORITY,
+            decision=decision,
+            reason=reason,
+            request_fingerprint=fingerprint,
+            validated=validated,
+            fail_closed=fail_closed,
+            controller_gate=request.controller.current_gate,
+            acrl_gate=request.acrl.current_gate,
+            controller_subtask=request.controller.current_subtask,
+            acrl_subtask=request.acrl.current_subtask,
+            resume_authorized=resume_authorized,
+            execution_authorized=False,
+            explanation=explanation,
+        )
+
+    @classmethod
+    def integrate(
+        cls,
+        request: ControllerIntegrationRequest,
+    ) -> ControllerIntegrationReport:
+        """Perform read-only T13 controller/ACRL integration."""
+
+        cls._validate_request(request)
+
+        cls._validate_with_t13_validator(request)
+
+        controller = request.controller
+        acrl = request.acrl
+
+        fingerprint = cls.fingerprint(
+            request.to_dict()
+        )
+
+        if not controller.authoritative:
+            raise ControllerIntegrationAuthorityError(
+                "Controller authority is invalid."
             )
 
-        if not isinstance(
-            report.request_fingerprint,
-            str,
+        if not acrl.authority_valid:
+            raise ControllerIntegrationAuthorityError(
+                "ACRL authority is invalid."
+            )
+
+        if not controller.current_gate:
+            return cls._build_report(
+                request,
+                fingerprint,
+                IntegrationDecision.FAIL_CLOSED,
+                IntegrationReason.CONTROLLER_UNAVAILABLE,
+                validated=True,
+                fail_closed=True,
+                resume_authorized=False,
+                explanation=(
+                    "Controller current gate is unavailable."
+                ),
+            )
+
+        if not controller.current_task:
+            return cls._build_report(
+                request,
+                fingerprint,
+                IntegrationDecision.FAIL_CLOSED,
+                IntegrationReason.CONTROLLER_STATE_INVALID,
+                validated=True,
+                fail_closed=True,
+                resume_authorized=False,
+                explanation=(
+                    "Controller current task is unavailable."
+                ),
+            )
+
+        if (
+            controller.architecture_locked
+            != acrl.architecture_locked
         ):
-            raise ControllerValidationError(
-                "Invalid report fingerprint."
+            return cls._build_report(
+                request,
+                fingerprint,
+                IntegrationDecision.FAIL_CLOSED,
+                IntegrationReason.ARCHITECTURE_CONFLICT,
+                validated=True,
+                fail_closed=True,
+                resume_authorized=False,
+                explanation=(
+                    "Controller and ACRL architecture lock "
+                    "states conflict."
+                ),
             )
 
-        if len(report.request_fingerprint) != 64:
-            raise ControllerValidationError(
-                "Invalid report fingerprint."
+        if not controller.architecture_locked:
+            return cls._build_report(
+                request,
+                fingerprint,
+                IntegrationDecision.BLOCKED,
+                IntegrationReason.ARCHITECTURE_CONFLICT,
+                validated=True,
+                fail_closed=False,
+                resume_authorized=False,
+                explanation=(
+                    "Architecture is not locked."
+                ),
             )
 
-        if not isinstance(
-            report.validated,
-            bool,
+        if controller.current_gate != acrl.current_gate:
+            return cls._build_report(
+                request,
+                fingerprint,
+                IntegrationDecision.FAIL_CLOSED,
+                IntegrationReason.GATE_CONFLICT,
+                validated=True,
+                fail_closed=True,
+                resume_authorized=False,
+                explanation=(
+                    "Controller and ACRL current gates conflict."
+                ),
+            )
+
+        if (
+            controller.current_subtask
+            != acrl.current_subtask
         ):
-            raise ControllerValidationError(
-                "Invalid report validated flag."
+            return cls._build_report(
+                request,
+                fingerprint,
+                IntegrationDecision.FAIL_CLOSED,
+                IntegrationReason.SUBTASK_CONFLICT,
+                validated=True,
+                fail_closed=True,
+                resume_authorized=False,
+                explanation=(
+                    "Controller and ACRL current subtasks "
+                    "conflict."
+                ),
             )
 
-        if not isinstance(
-            report.fail_closed,
-            bool,
+        if (
+            controller.checkpoint_id
+            != acrl.checkpoint_id
         ):
-            raise ControllerValidationError(
-                "Invalid report fail_closed flag."
+            return cls._build_report(
+                request,
+                fingerprint,
+                IntegrationDecision.BLOCKED,
+                IntegrationReason.CHECKPOINT_CONFLICT,
+                validated=True,
+                fail_closed=False,
+                resume_authorized=False,
+                explanation=(
+                    "Controller and ACRL checkpoint identities "
+                    "conflict."
+                ),
             )
 
-        if not isinstance(
-            report.resume_authorized,
-            bool,
+        if not acrl.integrity_valid:
+            return cls._build_report(
+                request,
+                fingerprint,
+                IntegrationDecision.FAIL_CLOSED,
+                IntegrationReason.INTEGRITY_CONFLICT,
+                validated=True,
+                fail_closed=True,
+                resume_authorized=False,
+                explanation=(
+                    "ACRL integrity evidence is invalid."
+                ),
+            )
+
+        if not acrl.resume_safe:
+            return cls._build_report(
+                request,
+                fingerprint,
+                IntegrationDecision.BLOCKED,
+                IntegrationReason.RESUME_NOT_SAFE,
+                validated=True,
+                fail_closed=False,
+                resume_authorized=False,
+                explanation=(
+                    "ACRL resume safety did not authorize "
+                    "resume."
+                ),
+            )
+
+        if (
+            controller.status
+            not in cls.SAFE_CONTROLLER_STATUSES
         ):
-            raise ControllerValidationError(
-                "Invalid report resume_authorized flag."
+            return cls._build_report(
+                request,
+                fingerprint,
+                IntegrationDecision.BLOCKED,
+                IntegrationReason.CONTROLLER_STATE_INVALID,
+                validated=True,
+                fail_closed=False,
+                resume_authorized=False,
+                explanation=(
+                    "Controller status is not an accepted "
+                    "safe integration state."
+                ),
             )
 
-        if not isinstance(
-            report.execution_authorized,
-            bool,
-        ):
-            raise ControllerValidationError(
-                "Invalid report execution_authorized flag."
+        return cls._build_report(
+            request,
+            fingerprint,
+            IntegrationDecision.INTEGRATED,
+            IntegrationReason.VALID,
+            validated=True,
+            fail_closed=False,
+            resume_authorized=True,
+            explanation=(
+                "Controller and ACRL continuity are "
+                "consistent and safe to resume."
+            ),
+        )
+
+    @classmethod
+    def integrate_or_raise(
+        cls,
+        request: ControllerIntegrationRequest,
+    ) -> ControllerIntegrationReport:
+        """Integrate and raise for BLOCKED/FAIL_CLOSED results."""
+
+        report = cls.integrate(request)
+
+        if report.decision != IntegrationDecision.INTEGRATED:
+            raise ControllerIntegrationConflictError(
+                f"T13 integration blocked: "
+                f"{report.reason.value}"
             )
 
-        if report.execution_authorized:
-            raise ControllerValidationError(
-                "T13 can never authorize execution."
-            )
+        return report
 
-        return True
+
+def integrate_controller(
+    request: ControllerIntegrationRequest,
+) -> ControllerIntegrationReport:
+    """Public T13 integration helper."""
+
+    return ControllerIntegrationEngine.integrate(
+        request
+    )
+
+
+def controller_resume_authorized(
+    report: ControllerIntegrationReport,
+) -> bool:
+    """Return whether T13 authorized safe continuity resume."""
+
+    if not isinstance(
+        report,
+        ControllerIntegrationReport,
+    ):
+        return False
+
+    return (
+        report.decision
+        is IntegrationDecision.INTEGRATED
+        and report.resume_authorized is True
+        and report.execution_authorized is False
+        and report.fail_closed is False
+    )
 
 
 __all__ = [
-    "ControllerValidationEngine",
-    "ControllerValidationError",
+    "SCHEMA_VERSION",
+    "AUTHORITY",
+    "HASH_ALGORITHM",
+    "ControllerIntegrationError",
+    "ControllerIntegrationValidationError",
+    "ControllerIntegrationAuthorityError",
+    "ControllerIntegrationConflictError",
+    "IntegrationDecision",
+    "IntegrationReason",
+    "ControllerStateView",
+    "ACRLContinuityView",
+    "ControllerIntegrationRequest",
+    "ControllerIntegrationReport",
+    "ControllerIntegrationEngine",
+    "integrate_controller",
+    "controller_resume_authorized",
 ]
