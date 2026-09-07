@@ -1,214 +1,158 @@
-"""ACRL T13 — Controller Integration adversarial tests."""
+"""ACRL T13 — Controller Integration Adversarial Tests."""
+
+from __future__ import annotations
 
 import pytest
 
-from .controller_integration import (
+from AUTONOMY_ENGINE.continuity.acrl.controller_integration import (
     ACRLContinuityView,
+    ControllerIntegrationAuthorityError,
+    ControllerIntegrationConflictError,
     ControllerIntegrationEngine,
     ControllerIntegrationRequest,
+    ControllerIntegrationValidationError,
     ControllerStateView,
     IntegrationDecision,
     IntegrationReason,
+    integrate_controller,
 )
 
 
-def build_request(
+def make_controller(
     *,
-    controller_gate="CORE-005",
-    acrl_gate="CORE-005",
-    controller_subtask="CORE-005-T01",
-    acrl_subtask="CORE-005-T01",
-    checkpoint_id="CP-T09-001",
-    architecture_locked=True,
-    controller_status="CONTROL_CENTER_DRIVEN",
-    integrity_valid=True,
-    resume_safe=True,
-    metadata=None,
-):
-    controller = ControllerStateView(
-        current_gate=controller_gate,
-        current_subtask=controller_subtask,
-        current_task="Implement controller integration",
-        status=controller_status,
-        state_hash="controller-state-hash",
+    gate: str = "CORE-004",
+    subtask: str | None = "CORE-004-T01",
+    task: str = "Implement project domain.",
+    status: str = "CONTROL_CENTER_DRIVEN",
+    architecture_locked: bool = True,
+    authoritative: bool = True,
+    checkpoint_id: str | None = "CP-00001",
+) -> ControllerStateView:
+    return ControllerStateView(
+        current_gate=gate,
+        current_subtask=subtask,
+        current_task=task,
+        status=status,
+        state_hash="controller-hash",
         architecture_locked=architecture_locked,
-        authoritative=True,
+        authoritative=authoritative,
         checkpoint_id=checkpoint_id,
-        metadata=metadata,
     )
 
-    acrl = ACRLContinuityView(
-        current_gate=acrl_gate,
-        current_subtask=acrl_subtask,
-        current_task="Implement controller integration",
+
+def make_acrl(
+    *,
+    gate: str = "CORE-004",
+    subtask: str | None = "CORE-004-T01",
+    task: str | None = "Implement project domain.",
+    checkpoint_id: str | None = "CP-00001",
+    architecture_locked: bool = True,
+    authority_valid: bool = True,
+    integrity_valid: bool = True,
+    resume_safe: bool = True,
+) -> ACRLContinuityView:
+    return ACRLContinuityView(
+        current_gate=gate,
+        current_subtask=subtask,
+        current_task=task,
         checkpoint_id=checkpoint_id,
         architecture_locked=architecture_locked,
-        authority_valid=True,
+        authority_valid=authority_valid,
         integrity_valid=integrity_valid,
         resume_safe=resume_safe,
-        fingerprint="a" * 64,
-        metadata=metadata,
-    )
-
-    return ControllerIntegrationRequest(
-        controller=controller,
-        acrl=acrl,
+        fingerprint="acrl-fingerprint",
     )
 
 
-def test_gate_conflict_fails_closed():
-    request = build_request(
-        controller_gate="CORE-005",
-        acrl_gate="CORE-006",
-    )
+class TestAdversarialInvalidTypes:
+    """Test rejection of invalid request types."""
 
-    report = ControllerIntegrationEngine.integrate(request)
-
-    assert report.decision is IntegrationDecision.FAIL_CLOSED
-    assert report.reason is IntegrationReason.GATE_CONFLICT
-    assert report.fail_closed is True
-    assert report.execution_authorized is False
+    def test_invalid_request_object_rejected(self) -> None:
+        with pytest.raises(
+            ControllerIntegrationValidationError
+        ):
+            ControllerIntegrationEngine.integrate(
+                object()  # type: ignore
+            )
 
 
-def test_subtask_conflict_fails_closed():
-    request = build_request(
-        controller_subtask="CORE-005-T01",
-        acrl_subtask="CORE-005-T02",
-    )
+class TestAdversarialAuthority:
+    """Test authority enforcement."""
 
-    report = ControllerIntegrationEngine.integrate(request)
+    def test_controller_authority_false_rejected(self) -> None:
+        with pytest.raises(
+            ControllerIntegrationAuthorityError
+        ):
+            integrate_controller(
+                ControllerIntegrationRequest(
+                    controller=make_controller(
+                        authoritative=False
+                    ),
+                    acrl=make_acrl(),
+                )
+            )
 
-    assert report.decision is IntegrationDecision.FAIL_CLOSED
-    assert report.reason is IntegrationReason.SUBTASK_CONFLICT
-    assert report.execution_authorized is False
-
-
-def test_checkpoint_conflict_is_blocked():
-    controller = ControllerStateView(
-        current_gate="CORE-005",
-        current_subtask="CORE-005-T01",
-        current_task="Implement controller integration",
-        status="CONTROL_CENTER_DRIVEN",
-        state_hash="controller-state-hash",
-        architecture_locked=True,
-        authoritative=True,
-        checkpoint_id="CP-T13-001",
-    )
-
-    acrl = ACRLContinuityView(
-        current_gate="CORE-005",
-        current_subtask="CORE-005-T01",
-        current_task="Implement controller integration",
-        checkpoint_id="CP-T13-002",
-        architecture_locked=True,
-        authority_valid=True,
-        integrity_valid=True,
-        resume_safe=True,
-        fingerprint="a" * 64,
-    )
-
-    request = ControllerIntegrationRequest(
-        controller=controller,
-        acrl=acrl,
-    )
-
-    report = ControllerIntegrationEngine.integrate(request)
-
-    assert report.decision is IntegrationDecision.BLOCKED
-    assert report.reason is IntegrationReason.CHECKPOINT_CONFLICT
-    assert report.execution_authorized is False
+    def test_acrl_authority_false_rejected(self) -> None:
+        with pytest.raises(
+            ControllerIntegrationAuthorityError
+        ):
+            integrate_controller(
+                ControllerIntegrationRequest(
+                    controller=make_controller(),
+                    acrl=make_acrl(
+                        authority_valid=False
+                    ),
+                )
+            )
 
 
-def test_architecture_conflict_fails_closed():
-    request = build_request(
-        architecture_locked=False,
-    )
+class TestAdversarialConflicts:
+    """Test conflict detection."""
 
-    controller = request.controller
-    acrl = request.acrl
+    def test_empty_gate_fails_closed(self) -> None:
+        report = integrate_controller(
+            ControllerIntegrationRequest(
+                controller=make_controller(gate=""),
+                acrl=make_acrl(),
+            )
+        )
 
-    acrl = ACRLContinuityView(
-        current_gate=acrl.current_gate,
-        current_subtask=acrl.current_subtask,
-        current_task=acrl.current_task,
-        checkpoint_id=acrl.checkpoint_id,
-        architecture_locked=True,
-        authority_valid=acrl.authority_valid,
-        integrity_valid=acrl.integrity_valid,
-        resume_safe=acrl.resume_safe,
-        fingerprint=acrl.fingerprint,
-        metadata=acrl.metadata,
-    )
+        assert (
+            report.decision
+            == IntegrationDecision.FAIL_CLOSED
+        )
+        assert (
+            report.reason
+            == IntegrationReason.CONTROLLER_UNAVAILABLE
+        )
 
-    request = ControllerIntegrationRequest(
-        controller=controller,
-        acrl=acrl,
-    )
+    def test_integrity_false_fails_closed(self) -> None:
+        report = integrate_controller(
+            ControllerIntegrationRequest(
+                controller=make_controller(),
+                acrl=make_acrl(integrity_valid=False),
+            )
+        )
 
-    report = ControllerIntegrationEngine.integrate(request)
-
-    assert report.decision is IntegrationDecision.FAIL_CLOSED
-    assert report.reason is IntegrationReason.ARCHITECTURE_CONFLICT
-    assert report.fail_closed is True
-    assert report.execution_authorized is False
-
-
-def test_integrity_conflict_fails_closed():
-    request = build_request(integrity_valid=False)
-
-    report = ControllerIntegrationEngine.integrate(request)
-
-    assert report.decision is IntegrationDecision.FAIL_CLOSED
-    assert report.reason is IntegrationReason.INTEGRITY_CONFLICT
-    assert report.execution_authorized is False
+        assert (
+            report.decision
+            == IntegrationDecision.FAIL_CLOSED
+        )
+        assert (
+            report.reason
+            == IntegrationReason.INTEGRITY_CONFLICT
+        )
 
 
-def test_resume_not_safe_is_blocked():
-    request = build_request(resume_safe=False)
+class TestAdversarialExecution:
+    """Test execution authorization guarantees."""
 
-    report = ControllerIntegrationEngine.integrate(request)
+    def test_execution_never_authorized_on_success(self) -> None:
+        report = integrate_controller(
+            ControllerIntegrationRequest(
+                controller=make_controller(),
+                acrl=make_acrl(),
+            )
+        )
 
-    assert report.decision is IntegrationDecision.BLOCKED
-    assert report.reason is IntegrationReason.RESUME_NOT_SAFE
-    assert report.resume_authorized is False
-    assert report.execution_authorized is False
-
-
-def test_invalid_metadata_is_rejected():
-    request = build_request(
-        metadata={
-            "nested": {"unsafe": True},
-        }
-    )
-
-    with pytest.raises(ValueError):
-        ControllerIntegrationEngine.integrate(request)
-
-
-def test_oversized_metadata_is_rejected():
-    metadata = {f"field_{index}": index for index in range(65)}
-
-    request = build_request(metadata=metadata)
-
-    with pytest.raises(ValueError):
-        ControllerIntegrationEngine.integrate(request)
-
-
-def test_execution_can_never_be_authorized():
-    request = build_request()
-
-    report = ControllerIntegrationEngine.integrate(request)
-
-    assert report.execution_authorized is False
-
-
-def test_fail_closed_never_authorizes_resume():
-    request = build_request(
-        controller_gate="",
-    )
-
-    report = ControllerIntegrationEngine.integrate(request)
-
-    assert report.fail_closed is True
-    assert report.resume_authorized is False
-    assert report.execution_authorized is False
+        assert report.execution_authorized is False

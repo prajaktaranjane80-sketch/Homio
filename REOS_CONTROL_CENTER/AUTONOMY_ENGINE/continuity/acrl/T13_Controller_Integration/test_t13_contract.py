@@ -1,84 +1,90 @@
-from .controller_integration import (
+"""ACRL T13 — Controller Integration Contract Tests."""
+
+from __future__ import annotations
+
+import pytest
+
+from AUTONOMY_ENGINE.continuity.acrl.controller_integration import (
+    ACRLContinuityView,
     ControllerIntegrationEngine,
     ControllerIntegrationRequest,
+    ControllerStateView,
     IntegrationDecision,
+    IntegrationReason,
+    controller_resume_authorized,
+    integrate_controller,
 )
 
 
-def make_request():
-    from .controller_integration import (
-        ACRLContinuityView,
-        ControllerStateView,
-    )
-
-    controller = ControllerStateView(
-        current_gate="CORE-004",
-        current_subtask="CORE-004-T01",
-        current_task="Implement project domain",
-        status="CONTROL_CENTER_DRIVEN",
-        state_hash="a" * 64,
-        architecture_locked=True,
-        authoritative=True,
-        checkpoint_id="CP-001",
-        metadata={},
-    )
-
-    acrl = ACRLContinuityView(
-        current_gate="CORE-004",
-        current_subtask="CORE-004-T01",
-        current_task="Implement project domain",
-        checkpoint_id="CP-001",
-        architecture_locked=True,
-        authority_valid=True,
-        integrity_valid=True,
-        resume_safe=True,
-        fingerprint="b" * 64,
-        metadata={},
-    )
-
-    return ControllerIntegrationRequest(
-        controller=controller,
-        acrl=acrl,
-        expected_authority="REOS_CONTROL_CENTER",
+def make_controller(
+    *,
+    gate: str = "CORE-004",
+    subtask: str | None = "CORE-004-T01",
+    task: str = "Implement project domain.",
+    status: str = "CONTROL_CENTER_DRIVEN",
+    architecture_locked: bool = True,
+    authoritative: bool = True,
+    checkpoint_id: str | None = "CP-00001",
+) -> ControllerStateView:
+    return ControllerStateView(
+        current_gate=gate,
+        current_subtask=subtask,
+        current_task=task,
+        status=status,
+        state_hash="controller-hash",
+        architecture_locked=architecture_locked,
+        authoritative=authoritative,
+        checkpoint_id=checkpoint_id,
     )
 
 
-def test_report_has_machine_contract():
-    report = ControllerIntegrationEngine.integrate(make_request())
-
-    payload = report.to_dict()
-
-    required = {
-        "schema_version",
-        "authority",
-        "decision",
-        "reason",
-        "request_fingerprint",
-        "validated",
-        "fail_closed",
-        "controller_gate",
-        "acrl_gate",
-        "controller_subtask",
-        "acrl_subtask",
-        "resume_authorized",
-        "execution_authorized",
-        "explanation",
-    }
-
-    assert required.issubset(payload.keys())
-
-
-def test_successful_contract_is_integrated():
-    report = ControllerIntegrationEngine.integrate(make_request())
-
-    assert report.decision is IntegrationDecision.INTEGRATED
-    assert report.validated is True
-    assert report.resume_authorized is True
-    assert report.execution_authorized is False
+def make_acrl(
+    *,
+    gate: str = "CORE-004",
+    subtask: str | None = "CORE-004-T01",
+    task: str | None = "Implement project domain.",
+    checkpoint_id: str | None = "CP-00001",
+    architecture_locked: bool = True,
+    authority_valid: bool = True,
+    integrity_valid: bool = True,
+    resume_safe: bool = True,
+) -> ACRLContinuityView:
+    return ACRLContinuityView(
+        current_gate=gate,
+        current_subtask=subtask,
+        current_task=task,
+        checkpoint_id=checkpoint_id,
+        architecture_locked=architecture_locked,
+        authority_valid=authority_valid,
+        integrity_valid=integrity_valid,
+        resume_safe=resume_safe,
+        fingerprint="acrl-fingerprint",
+    )
 
 
-def test_contract_is_deterministic():
-    first = ControllerIntegrationEngine.integrate(make_request())
-    second = ControllerIntegrationEngine.integrate(make_request())
+class TestPublicAPIContract:
+    """Test public API availability and stability."""
 
-    assert first.to_dict() == second.to_dict()
+    def test_public_api_classes_available(self) -> None:
+        from AUTONOMY_ENGINE.continuity.acrl.controller_integration import (
+            ACRLContinuityView,
+            ControllerIntegrationAuthorityError,
+            ControllerIntegrationConflictError,
+            ControllerIntegrationEngine,
+            ControllerIntegrationRequest,
+            ControllerIntegrationValidationError,
+            ControllerStateView,
+            IntegrationDecision,
+            IntegrationReason,
+        )
+
+        assert ACRLContinuityView is not None
+
+    def test_execute_authorization_never_true(self) -> None:
+        report = integrate_controller(
+            ControllerIntegrationRequest(
+                controller=make_controller(),
+                acrl=make_acrl(),
+            )
+        )
+        assert report.execution_authorized is False

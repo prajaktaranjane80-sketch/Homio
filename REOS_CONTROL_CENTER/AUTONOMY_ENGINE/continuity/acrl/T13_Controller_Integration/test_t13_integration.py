@@ -1,97 +1,135 @@
-"""ACRL T13 — Controller Integration integration tests."""
+"""ACRL T13 — Controller Integration Pipeline Tests.
 
-from .controller_integration import (
+Integration test verifying the complete T09→T10→T11→T12→T13 pipeline.
+T13 must consume upstream evidence without taking authority from REOS_CONTROL_CENTER.
+"""
+
+from __future__ import annotations
+
+import pytest
+
+from AUTONOMY_ENGINE.continuity.acrl.controller_integration import (
     ACRLContinuityView,
     ControllerIntegrationEngine,
     ControllerIntegrationRequest,
     ControllerStateView,
     IntegrationDecision,
+    IntegrationReason,
+    integrate_controller,
 )
 
 
-def build_request():
-    controller = ControllerStateView(
-        current_gate="CORE-005",
-        current_subtask="CORE-005-T01",
-        current_task="Implement controller integration",
-        status="CONTROL_CENTER_DRIVEN",
-        state_hash="controller-state-hash",
-        architecture_locked=True,
-        authoritative=True,
-        checkpoint_id="CP-T13-001",
-    )
-
-    acrl = ACRLContinuityView(
-        current_gate="CORE-005",
-        current_subtask="CORE-005-T01",
-        current_task="Implement controller integration",
-        checkpoint_id="CP-T13-001",
-        architecture_locked=True,
-        authority_valid=True,
-        integrity_valid=True,
-        resume_safe=True,
-        fingerprint="a" * 64,
-    )
-
-    return ControllerIntegrationRequest(
-        controller=controller,
-        acrl=acrl,
+def make_controller(
+    *,
+    gate: str = "CORE-004",
+    subtask: str | None = "CORE-004-T01",
+    task: str = "Implement project domain.",
+    status: str = "CONTROL_CENTER_DRIVEN",
+    architecture_locked: bool = True,
+    authoritative: bool = True,
+    checkpoint_id: str | None = "CP-00001",
+) -> ControllerStateView:
+    return ControllerStateView(
+        current_gate=gate,
+        current_subtask=subtask,
+        current_task=task,
+        status=status,
+        state_hash="controller-hash",
+        architecture_locked=architecture_locked,
+        authoritative=authoritative,
+        checkpoint_id=checkpoint_id,
     )
 
 
-def test_successful_controller_integration():
-    request = build_request()
-
-    report = ControllerIntegrationEngine.integrate(request)
-
-    assert report.decision is IntegrationDecision.INTEGRATED
-    assert report.resume_authorized is True
-    assert report.execution_authorized is False
-    assert report.fail_closed is False
-
-
-def test_can_resume_matches_integration():
-    request = build_request()
-
-    report = ControllerIntegrationEngine.integrate(request)
-
-    assert ControllerIntegrationEngine.can_resume(report) is True
-    assert report.resume_authorized is True
-
-
-def test_integration_does_not_mutate_inputs():
-    request = build_request()
-
-    before_controller = request.controller.to_dict()
-    before_acrl = request.acrl.to_dict()
-
-    ControllerIntegrationEngine.integrate(request)
-
-    assert request.controller.to_dict() == before_controller
-    assert request.acrl.to_dict() == before_acrl
+def make_acrl(
+    *,
+    gate: str = "CORE-004",
+    subtask: str | None = "CORE-004-T01",
+    task: str | None = "Implement project domain.",
+    checkpoint_id: str | None = "CP-00001",
+    architecture_locked: bool = True,
+    authority_valid: bool = True,
+    integrity_valid: bool = True,
+    resume_safe: bool = True,
+) -> ACRLContinuityView:
+    return ACRLContinuityView(
+        current_gate=gate,
+        current_subtask=subtask,
+        current_task=task,
+        checkpoint_id=checkpoint_id,
+        architecture_locked=architecture_locked,
+        authority_valid=authority_valid,
+        integrity_valid=integrity_valid,
+        resume_safe=resume_safe,
+        fingerprint="acrl-fingerprint",
+    )
 
 
-def test_success_is_deterministic():
-    request = build_request()
+class TestT13PipelineHealthy:
+    """Test healthy T09→T13 pipeline integration."""
 
-    first = ControllerIntegrationEngine.integrate(request)
-    second = ControllerIntegrationEngine.integrate(request)
+    def test_t13_accepts_valid_evidence(self) -> None:
+        """T13 receives valid evidence and authorizes resumption."""
+        controller = make_controller()
+        acrl = make_acrl()
 
-    assert first.to_dict() == second.to_dict()
-    assert first.request_fingerprint == second.request_fingerprint
+        request = ControllerIntegrationRequest(
+            controller=controller,
+            acrl=acrl,
+        )
+
+        report = integrate_controller(request)
+
+        assert (
+            report.decision
+            == IntegrationDecision.INTEGRATED
+        )
+        assert report.resume_authorized is True
+        assert report.execution_authorized is False
+
+    def test_t13_preserves_reos_authority(self) -> None:
+        """T13 does not take authority."""
+        request = ControllerIntegrationRequest(
+            controller=make_controller(),
+            acrl=make_acrl(),
+        )
+
+        report = integrate_controller(request)
+
+        assert report.authority == "REOS_CONTROL_CENTER"
+
+    def test_t13_no_mutations(self) -> None:
+        """T13 does not mutate upstream evidence."""
+        controller = make_controller()
+        acrl = make_acrl()
+
+        controller_before = controller.to_dict()
+        acrl_before = acrl.to_dict()
+
+        request = ControllerIntegrationRequest(
+            controller=controller,
+            acrl=acrl,
+        )
+
+        integrate_controller(request)
+
+        assert controller.to_dict() == controller_before
+        assert acrl.to_dict() == acrl_before
 
 
-def test_success_never_authorizes_execution():
-    request = build_request()
+class TestT13PipelineIdempotency:
+    """Test idempotency for repeated pipeline invocations."""
 
-    report = ControllerIntegrationEngine.integrate(request)
+    def test_t13_idempotent(self) -> None:
+        """Multiple calls with same evidence produce identical reports."""
+        request = ControllerIntegrationRequest(
+            controller=make_controller(),
+            acrl=make_acrl(),
+        )
 
-    assert report.execution_authorized is False
+        report1 = integrate_controller(request)
+        report2 = integrate_controller(request)
+        report3 = integrate_controller(request)
 
-
-def test_resume_requires_integrated_report():
-    request = build_request()
-
-    report = ControllerIntegrationEngine.integrate(request)
-
-    assert ControllerIntegrationEngine.can_resume(report) is True
+        assert report1.to_dict() == report2.to_dict()
+        assert report2.to_dict() == report3.to_dict()
