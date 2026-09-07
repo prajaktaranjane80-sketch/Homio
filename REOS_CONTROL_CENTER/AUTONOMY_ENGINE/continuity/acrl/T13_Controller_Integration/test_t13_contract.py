@@ -79,12 +79,105 @@ class TestPublicAPIContract:
         )
 
         assert ACRLContinuityView is not None
+        assert ControllerIntegrationAuthorityError is not None
+        assert ControllerIntegrationConflictError is not None
+        assert ControllerIntegrationEngine is not None
+        assert ControllerIntegrationRequest is not None
+        assert ControllerIntegrationValidationError is not None
+        assert ControllerStateView is not None
+        assert IntegrationDecision is not None
+        assert IntegrationReason is not None
 
-    def test_execute_authorization_never_true(self) -> None:
+    def test_public_api_functions_available(self) -> None:
+        from AUTONOMY_ENGINE.continuity.acrl.controller_integration import (
+            controller_resume_authorized,
+            integrate_controller,
+        )
+
+        assert callable(controller_resume_authorized)
+        assert callable(integrate_controller)
+
+
+class TestSerializationContract:
+    """Test serialization method contracts."""
+
+    def test_request_to_dict_serializes(self) -> None:
+        request = ControllerIntegrationRequest(
+            controller=make_controller(),
+            acrl=make_acrl(),
+        )
+
+        data = request.to_dict()
+
+        assert isinstance(data, dict)
+        assert "controller" in data
+        assert "acrl" in data
+        assert "expected_authority" in data
+
+    def test_report_to_dict_serializes(self) -> None:
         report = integrate_controller(
             ControllerIntegrationRequest(
                 controller=make_controller(),
                 acrl=make_acrl(),
             )
         )
-        assert report.execution_authorized is False
+
+        data = report.to_dict()
+
+        assert isinstance(data, dict)
+        assert "schema_version" in data
+        assert "authority" in data
+        assert "decision" in data
+        assert "reason" in data
+
+    def test_enum_values_serialize_as_strings(self) -> None:
+        report = integrate_controller(
+            ControllerIntegrationRequest(
+                controller=make_controller(),
+                acrl=make_acrl(),
+            )
+        )
+
+        data = report.to_dict()
+
+        assert isinstance(data["decision"], str)
+        assert isinstance(data["reason"], str)
+
+
+class TestAuthorityContract:
+    """Test authority enforcement contract."""
+
+    def test_authority_always_reos_control_center(self) -> None:
+        report = integrate_controller(
+            ControllerIntegrationRequest(
+                controller=make_controller(),
+                acrl=make_acrl(),
+            )
+        )
+
+        assert report.authority == "REOS_CONTROL_CENTER"
+
+    def test_schema_version_stable(self) -> None:
+        report = integrate_controller(
+            ControllerIntegrationRequest(
+                controller=make_controller(),
+                acrl=make_acrl(),
+            )
+        )
+
+        assert report.schema_version == "1.0"
+
+
+class TestIdempotencyContract:
+    """Test idempotency guarantees."""
+
+    def test_identical_requests_produce_identical_reports(self) -> None:
+        request = ControllerIntegrationRequest(
+            controller=make_controller(),
+            acrl=make_acrl(),
+        )
+
+        report1 = integrate_controller(request)
+        report2 = integrate_controller(request)
+
+        assert report1.to_dict() == report2.to_dict()

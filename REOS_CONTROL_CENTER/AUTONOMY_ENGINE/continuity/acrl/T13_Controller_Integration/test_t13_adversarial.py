@@ -144,6 +144,25 @@ class TestAdversarialConflicts:
         )
 
 
+class TestAdversarialFingerprint:
+    """Test fingerprint determinism."""
+
+    def test_fingerprint_is_deterministic(self) -> None:
+        request = ControllerIntegrationRequest(
+            controller=make_controller(),
+            acrl=make_acrl(),
+        )
+
+        fp1 = ControllerIntegrationEngine.fingerprint(
+            request.to_dict()
+        )
+        fp2 = ControllerIntegrationEngine.fingerprint(
+            request.to_dict()
+        )
+
+        assert fp1 == fp2
+
+
 class TestAdversarialExecution:
     """Test execution authorization guarantees."""
 

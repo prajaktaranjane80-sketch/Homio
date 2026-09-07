@@ -68,7 +68,7 @@ def make_acrl(
 class TestT13PipelineHealthy:
     """Test healthy T09→T13 pipeline integration."""
 
-    def test_t13_accepts_valid_evidence(self) -> None:
+    def test_t13_accepts_valid_controller_and_acrl_evidence(self) -> None:
         """T13 receives valid evidence and authorizes resumption."""
         controller = make_controller()
         acrl = make_acrl()
@@ -84,11 +84,15 @@ class TestT13PipelineHealthy:
             report.decision
             == IntegrationDecision.INTEGRATED
         )
+        assert (
+            report.reason
+            == IntegrationReason.VALID
+        )
         assert report.resume_authorized is True
         assert report.execution_authorized is False
 
-    def test_t13_preserves_reos_authority(self) -> None:
-        """T13 does not take authority."""
+    def test_t13_preserves_reos_control_center_authority(self) -> None:
+        """T13 does not take authority; REOS_CONTROL_CENTER remains sole authority."""
         request = ControllerIntegrationRequest(
             controller=make_controller(),
             acrl=make_acrl(),
@@ -98,8 +102,8 @@ class TestT13PipelineHealthy:
 
         assert report.authority == "REOS_CONTROL_CENTER"
 
-    def test_t13_no_mutations(self) -> None:
-        """T13 does not mutate upstream evidence."""
+    def test_t13_does_not_mutate_upstream_evidence(self) -> None:
+        """T13 observes but does not modify controller and ACRL evidence."""
         controller = make_controller()
         acrl = make_acrl()
 
@@ -117,10 +121,100 @@ class TestT13PipelineHealthy:
         assert acrl.to_dict() == acrl_before
 
 
+class TestT13PipelineFailSafe:
+    """Test fail-safe behavior in degraded pipeline."""
+
+    def test_t13_fails_closed_on_controller_unavailable(self) -> None:
+        """T13 fails closed when controller gate is unavailable."""
+        report = integrate_controller(
+            ControllerIntegrationRequest(
+                controller=make_controller(gate=""),
+                acrl=make_acrl(),
+            )
+        )
+
+        assert (
+            report.decision
+            == IntegrationDecision.FAIL_CLOSED
+        )
+        assert (
+            report.reason
+            == IntegrationReason.CONTROLLER_UNAVAILABLE
+        )
+        assert report.resume_authorized is False
+
+    def test_t13_fails_closed_on_upstream_integrity_invalid(self) -> None:
+        """T13 fails closed when ACRL integrity is invalid."""
+        report = integrate_controller(
+            ControllerIntegrationRequest(
+                controller=make_controller(),
+                acrl=make_acrl(integrity_valid=False),
+            )
+        )
+
+        assert (
+            report.decision
+            == IntegrationDecision.FAIL_CLOSED
+        )
+        assert (
+            report.reason
+            == IntegrationReason.INTEGRITY_CONFLICT
+        )
+        assert report.resume_authorized is False
+
+    def test_t13_blocks_on_resume_unsafe(self) -> None:
+        """T13 blocks resume when T12 safety check failed."""
+        report = integrate_controller(
+            ControllerIntegrationRequest(
+                controller=make_controller(),
+                acrl=make_acrl(resume_safe=False),
+            )
+        )
+
+        assert (
+            report.decision
+            == IntegrationDecision.BLOCKED
+        )
+        assert (
+            report.reason
+            == IntegrationReason.RESUME_NOT_SAFE
+        )
+        assert report.resume_authorized is False
+
+
+class TestT13PipelineNonexecution:
+    """Test that T13 never executes tasks or modifies state."""
+
+    def test_t13_never_authorizes_execution(self) -> None:
+        """Even on INTEGRATED, execution remains forbidden."""
+        report = integrate_controller(
+            ControllerIntegrationRequest(
+                controller=make_controller(),
+                acrl=make_acrl(),
+            )
+        )
+
+        assert report.execution_authorized is False
+        assert report.resume_authorized is True
+
+    def test_t13_never_modifies_state_json(self) -> None:
+        """T13 is observational only; no mutations."""
+        request = ControllerIntegrationRequest(
+            controller=make_controller(),
+            acrl=make_acrl(),
+        )
+
+        report = integrate_controller(request)
+
+        # Report is immutable (frozen dataclass)
+        with pytest.raises(AttributeError):
+            report.execution_authorized = True  # type: ignore
+
+
 class TestT13PipelineIdempotency:
     """Test idempotency for repeated pipeline invocations."""
 
-    def test_t13_idempotent(self) -> None:
+    def test_t13_idempotent_on_valid_evidence(self) -> None:
         """Multiple calls with same evidence produce identical reports."""
         request = ControllerIntegrationRequest(
             controller=make_controller(),
