@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Iterable
 
 from .controller_integration import (
-    ControllerIntegrationReason,
+    IntegrationReason,
     ControllerIntegrationReport,
 )
 
@@ -87,25 +87,25 @@ class ControllerMetricsEngine:
             if decision == "FAIL_CLOSED":
                 counters["fail_closed"] += 1
 
-            if reason == ControllerIntegrationReason.GATE_CONFLICT.value:
+            if reason == IntegrationReason.GATE_CONFLICT.value:
                 counters["gate_conflicts"] += 1
 
-            if reason == ControllerIntegrationReason.SUBTASK_CONFLICT.value:
+            if reason == IntegrationReason.SUBTASK_CONFLICT.value:
                 counters["subtask_conflicts"] += 1
 
-            if reason == ControllerIntegrationReason.CHECKPOINT_CONFLICT.value:
+            if reason == IntegrationReason.CHECKPOINT_CONFLICT.value:
                 counters["checkpoint_conflicts"] += 1
 
-            if reason == ControllerIntegrationReason.INTEGRITY_CONFLICT.value:
+            if reason == IntegrationReason.INTEGRITY_CONFLICT.value:
                 counters["integrity_conflicts"] += 1
 
-            if reason == ControllerIntegrationReason.ARCHITECTURE_CONFLICT.value:
+            if reason == IntegrationReason.ARCHITECTURE_CONFLICT.value:
                 counters["architecture_conflicts"] += 1
 
-            if reason == ControllerIntegrationReason.RESUME_NOT_SAFE.value:
+            if reason == IntegrationReason.RESUME_NOT_SAFE.value:
                 counters["resume_not_safe"] += 1
 
-            if reason == ControllerIntegrationReason.AUTHORITY_CONFLICT.value:
+            if reason == IntegrationReason.AUTHORITY_CONFLICT.value:
                 counters["authority_conflicts"] += 1
 
         return ControllerMetrics(
