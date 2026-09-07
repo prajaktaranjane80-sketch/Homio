@@ -7,7 +7,7 @@ This module preserves the historical root import path without
 duplicating implementation.
 """
 
-from .T13_Controller_Integration.controller_integration import (
+from .controller_integration import (
     ACRLContinuityView,
     AUTHORITY,
     HASH_ALGORITHM,
