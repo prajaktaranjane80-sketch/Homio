@@ -1,62 +1,41 @@
 """ACRL T14 — Complete Test & Regression Layer.
 
-Final ACRL verification layer.
-
-Design:
-    - Additive only.
-    - Does not modify previous ACRL modules.
-    - Does not modify ACRL __init__.py.
-    - Does not execute project operations.
-    - Does not mutate controller state.
-    - Does not replace pytest.
-    - Produces a deterministic regression plan.
-    - Detects missing/duplicate/broken ACRL layers.
-    - Fails closed when the ACRL layer graph is inconsistent.
+Read-only final regression capability for the canonical numbered ACRL tree.
+It validates topology, source presence, source/test syntax, and produces a
+stable fail-closed report. It does not execute tests or mutate project state.
 """
-
 from __future__ import annotations
 
+import ast
 from dataclasses import dataclass
 from enum import Enum
-import hashlib
-import importlib
-import json
+from pathlib import Path
 from typing import Any, Iterable, Mapping
+
+from .regression_compatibility import CompatibilityStatus, compare_schema
+from .regression_identity import fingerprint, fingerprint_manifest
+from .regression_metrics import summarize
+from .regression_policy import RegressionPolicy
+from .regression_provenance import RegressionProvenance
+from .regression_registry import CanonicalLayerSpec, RegressionRegistry
+from .regression_validation import validate_layer_spec_fields
 
 
 class RegressionLayerError(RuntimeError):
-    """Base T14 error."""
-
-
-class RegressionLayerValidationError(
-    RegressionLayerError
-):
-    """Invalid regression input."""
-
-
-class RegressionLayerIntegrityError(
-    RegressionLayerError
-):
-    """Regression graph integrity failure."""
-
-
-class RegressionLayerConflictError(
-    RegressionLayerError
-):
-    """Regression layer conflict."""
-
+    pass
+class RegressionLayerValidationError(RegressionLayerError):
+    pass
+class RegressionLayerIntegrityError(RegressionLayerError):
+    pass
+class RegressionLayerConflictError(RegressionLayerError):
+    pass
 
 class RegressionDecision(str, Enum):
-    """Canonical T14 decisions."""
-
     READY = "READY"
     BLOCKED = "BLOCKED"
     FAIL_CLOSED = "FAIL_CLOSED"
 
-
 class RegressionReason(str, Enum):
-    """Canonical T14 reasons."""
-
     VALID = "VALID"
     MISSING_LAYER = "MISSING_LAYER"
     MISSING_TEST = "MISSING_TEST"
@@ -65,62 +44,51 @@ class RegressionReason(str, Enum):
     INVALID_LAYER_NUMBER = "INVALID_LAYER_NUMBER"
     GRAPH_CONFLICT = "GRAPH_CONFLICT"
     MANIFEST_CONFLICT = "MANIFEST_CONFLICT"
-
+    SYNTAX_FAILURE = "SYNTAX_FAILURE"
+    POLICY_CONFLICT = "POLICY_CONFLICT"
 
 @dataclass(frozen=True)
 class RegressionLayerSpec:
-    """Immutable specification of one ACRL layer."""
-
     layer_number: int
     name: str
     module_name: str
     test_module_name: str
+    directory: str | None = None
+    core_file: str | None = None
+    test_glob: str = "test_*.py"
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "layer_number": self.layer_number,
-            "name": self.name,
-            "module_name": self.module_name,
-            "test_module_name": self.test_module_name,
+            "layer_number": self.layer_number, "name": self.name,
+            "module_name": self.module_name, "test_module_name": self.test_module_name,
+            "directory": self.directory, "core_file": self.core_file,
+            "test_glob": self.test_glob,
         }
-
 
 @dataclass(frozen=True)
 class RegressionLayerResult:
-    """Result of validating one ACRL layer."""
-
     spec: RegressionLayerSpec
     module_available: bool
     test_module_available: bool
     import_valid: bool
     error: str | None = None
+    source_path: str | None = None
+    test_files: tuple[str, ...] = tuple()
+    syntax_error: bool = False
 
     @property
     def passed(self) -> bool:
-        return (
-            self.module_available
-            and self.test_module_available
-            and self.import_valid
-            and self.error is None
-        )
+        return (self.module_available and self.test_module_available and
+                self.import_valid and not self.syntax_error and self.error is None)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            "spec": self.spec.to_dict(),
-            "module_available": self.module_available,
-            "test_module_available": (
-                self.test_module_available
-            ),
-            "import_valid": self.import_valid,
-            "passed": self.passed,
-            "error": self.error,
-        }
-
+        return {"spec": self.spec.to_dict(), "module_available": self.module_available,
+                "test_module_available": self.test_module_available, "import_valid": self.import_valid,
+                "passed": self.passed, "error": self.error, "source_path": self.source_path,
+                "test_files": list(self.test_files), "syntax_error": self.syntax_error}
 
 @dataclass(frozen=True)
 class RegressionReport:
-    """Immutable T14 regression readiness report."""
-
     schema_version: str
     decision: RegressionDecision
     reason: RegressionReason
@@ -130,404 +98,155 @@ class RegressionReport:
     results: tuple[RegressionLayerResult, ...]
     fingerprint: str
     fail_closed: bool
+    metrics: Mapping[str, int]
+    policy_schema: str
+    provenance_fingerprint: str
+    compatibility: CompatibilityStatus
 
     @property
     def ready(self) -> bool:
-        return (
-            self.decision == RegressionDecision.READY
-            and self.failed_layers == 0
-            and not self.fail_closed
-        )
+        return (self.decision == RegressionDecision.READY and self.failed_layers == 0
+                and not self.fail_closed and self.compatibility == CompatibilityStatus.SUPPORTED)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            "schema_version": self.schema_version,
-            "decision": self.decision.value,
-            "reason": self.reason.value,
-            "total_layers": self.total_layers,
-            "passed_layers": self.passed_layers,
-            "failed_layers": self.failed_layers,
-            "results": [
-                result.to_dict()
-                for result in self.results
-            ],
-            "fingerprint": self.fingerprint,
-            "fail_closed": self.fail_closed,
-            "ready": self.ready,
-        }
+        return {"schema_version": self.schema_version, "decision": self.decision.value,
+                "reason": self.reason.value, "total_layers": self.total_layers,
+                "passed_layers": self.passed_layers, "failed_layers": self.failed_layers,
+                "results": [x.to_dict() for x in self.results], "fingerprint": self.fingerprint,
+                "fail_closed": self.fail_closed, "ready": self.ready,
+                "metrics": dict(self.metrics), "policy_schema": self.policy_schema,
+                "provenance_fingerprint": self.provenance_fingerprint,
+                "compatibility": self.compatibility.value}
+
+
+def _canonical_specs() -> tuple[RegressionLayerSpec, ...]:
+    return tuple(
+        RegressionLayerSpec(
+            spec.layer_number,
+            spec.name,
+            spec.core_module_name,
+            f"{spec.package_name}.tests",
+            spec.directory,
+            spec.core_file,
+            spec.test_glob,
+        ) for spec in RegressionRegistry.SPECS
+    )
 
 
 class RegressionLayerEngine:
-    """Deterministic ACRL T14 regression engine."""
-
     SCHEMA_VERSION = "1.0"
-
-    PACKAGE = (
-        "AUTONOMY_ENGINE.continuity.acrl"
-    )
-
-    LAYER_SPECS: tuple[RegressionLayerSpec, ...] = (
-        RegressionLayerSpec(
-            1,
-            "Project DNA",
-            f"{PACKAGE}.project_dna",
-            f"{PACKAGE}.test_project_dna",
-        ),
-        RegressionLayerSpec(
-            2,
-            "Architecture Lock",
-            f"{PACKAGE}.architecture_lock",
-            f"{PACKAGE}.test_architecture_lock",
-        ),
-        RegressionLayerSpec(
-            3,
-            "State Reconstruction",
-            f"{PACKAGE}.state_reconstruction",
-            f"{PACKAGE}.test_state_reconstruction",
-        ),
-        RegressionLayerSpec(
-            4,
-            "Gate/Subtask Continuity",
-            f"{PACKAGE}.gate_subtask_continuity",
-            f"{PACKAGE}.test_gate_subtask_continuity",
-        ),
-        RegressionLayerSpec(
-            5,
-            "Dependency & Authority Map",
-            f"{PACKAGE}.dependency_authority_map",
-            f"{PACKAGE}.test_dependency_authority_map",
-        ),
-        RegressionLayerSpec(
-            6,
-            "Checkpoint Engine",
-            f"{PACKAGE}.checkpoint_engine",
-            f"{PACKAGE}.test_checkpoint_engine",
-        ),
-        RegressionLayerSpec(
-            7,
-            "New-Chat Bootstrap / Handoff",
-            f"{PACKAGE}.new_chat_bootstrap",
-            f"{PACKAGE}.test_new_chat_bootstrap",
-        ),
-        RegressionLayerSpec(
-            8,
-            "Context Compression",
-            f"{PACKAGE}.context_compression",
-            f"{PACKAGE}.test_context_compression",
-        ),
-        RegressionLayerSpec(
-            9,
-            "State Integrity / Fingerprint",
-            f"{PACKAGE}.state_integrity",
-            f"{PACKAGE}.test_state_integrity",
-        ),
-        RegressionLayerSpec(
-            10,
-            "Drift Detection",
-            f"{PACKAGE}.drift_detection",
-            f"{PACKAGE}.test_drift_detection",
-        ),
-        RegressionLayerSpec(
-            11,
-            "Recovery / Fail-Closed Guard",
-            f"{PACKAGE}.recovery_guard",
-            f"{PACKAGE}.test_recovery_guard",
-        ),
-        RegressionLayerSpec(
-            12,
-            "Resume-Safety Validation",
-            f"{PACKAGE}.resume_safety_validation",
-            f"{PACKAGE}.test_resume_safety_validation",
-        ),
-        RegressionLayerSpec(
-            13,
-            "Controller Integration",
-            f"{PACKAGE}.controller_integration",
-            f"{PACKAGE}.test_controller_integration",
-        ),
-        RegressionLayerSpec(
-            14,
-            "Complete Test & Regression Layer",
-            f"{PACKAGE}.regression_layer",
-            f"{PACKAGE}.test_regression_layer",
-        ),
-    )
+    PACKAGE = "AUTONOMY_ENGINE.continuity.acrl"
+    LAYER_SPECS = _canonical_specs()
 
     @classmethod
-    def canonicalize(
-        cls,
-        value: Any,
-    ) -> str:
+    def canonicalize(cls, value: Any) -> str:
+        from .regression_identity import canonicalize
+        return canonicalize(value)
+
+    @classmethod
+    def fingerprint(cls, value: Any) -> str:
+        return fingerprint(value)
+
+    @classmethod
+    def validate_manifest(cls) -> None:
         try:
-            return json.dumps(
-                value,
-                sort_keys=True,
-                separators=(",", ":"),
-                ensure_ascii=False,
-            )
-        except (TypeError, ValueError) as exc:
-            raise RegressionLayerValidationError(
-                "Regression data cannot be canonicalized."
-            ) from exc
+            RegressionRegistry.validate()
+            for spec in cls.LAYER_SPECS:
+                validate_layer_spec_fields(spec.layer_number, spec.name,
+                                           spec.directory or "", spec.core_file or "", spec.test_glob)
+        except ValueError as exc:
+            raise RegressionLayerIntegrityError(str(exc)) from exc
 
     @classmethod
-    def fingerprint(
-        cls,
-        value: Any,
-    ) -> str:
-        return hashlib.sha256(
-            cls.canonicalize(value).encode("utf-8")
-        ).hexdigest()
+    def _acrl_root(cls) -> Path:
+        return Path(__file__).resolve().parent.parent
 
     @classmethod
-    def validate_manifest(
-        cls,
-    ) -> None:
-        specs = cls.LAYER_SPECS
-
-        if not specs:
-            raise RegressionLayerIntegrityError(
-                "ACRL regression manifest is empty."
-            )
-
-        numbers = [
-            spec.layer_number
-            for spec in specs
-        ]
-
-        expected = list(
-            range(1, len(specs) + 1)
-        )
-
-        if numbers != expected:
-            raise RegressionLayerIntegrityError(
-                "ACRL layer numbering is not contiguous."
-            )
-
-        module_names = [
-            spec.module_name
-            for spec in specs
-        ]
-
-        if len(module_names) != len(
-            set(module_names)
-        ):
-            raise RegressionLayerIntegrityError(
-                "Duplicate ACRL module detected."
-            )
-
-        test_names = [
-            spec.test_module_name
-            for spec in specs
-        ]
-
-        if len(test_names) != len(
-            set(test_names)
-        ):
-            raise RegressionLayerIntegrityError(
-                "Duplicate ACRL test module detected."
-            )
-
-    @classmethod
-    def validate_layer(
-        cls,
-        spec: RegressionLayerSpec,
-    ) -> RegressionLayerResult:
-        if not isinstance(
-            spec,
-            RegressionLayerSpec,
-        ):
-            raise RegressionLayerValidationError(
-                "Invalid regression layer specification."
-            )
-
-        module_available = True
-        test_module_available = True
-        import_valid = True
-        error: str | None = None
-
+    def _parse_file(cls, path: Path) -> str | None:
         try:
-            importlib.import_module(
-                spec.module_name
-            )
-        except Exception as exc:
-            module_available = False
-            import_valid = False
-            error = (
-                f"Layer import failed: "
-                f"{type(exc).__name__}: {exc}"
-            )
-
-        try:
-            importlib.import_module(
-                spec.test_module_name
-            )
-        except Exception as exc:
-            test_module_available = False
-            import_valid = False
-
-            if error is None:
-                error = (
-                    f"Test import failed: "
-                    f"{type(exc).__name__}: {exc}"
-                )
-            else:
-                error += (
-                    f" | Test import failed: "
-                    f"{type(exc).__name__}: {exc}"
-                )
-
-        return RegressionLayerResult(
-            spec=spec,
-            module_available=module_available,
-            test_module_available=test_module_available,
-            import_valid=import_valid,
-            error=error,
-        )
+            ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        except (OSError, UnicodeError, SyntaxError) as exc:
+            return f"{type(exc).__name__}: {exc}"
+        return None
 
     @classmethod
-    def build_report(
-        cls,
-        results: Iterable[
-            RegressionLayerResult
-        ],
-    ) -> RegressionReport:
+    def validate_layer(cls, spec: RegressionLayerSpec, acrl_root: Path | None = None) -> RegressionLayerResult:
+        if not isinstance(spec, RegressionLayerSpec):
+            raise RegressionLayerValidationError("Invalid regression layer specification.")
+        if spec.directory and spec.core_file:
+            base = (acrl_root or cls._acrl_root()) / spec.directory
+            core = base / spec.core_file
+            tests = tuple(sorted(base.glob(spec.test_glob))) if base.is_dir() else tuple()
+            if not base.is_dir():
+                return RegressionLayerResult(spec, False, False, False, "Layer directory missing.", str(core), tuple())
+            if not core.is_file():
+                return RegressionLayerResult(spec, False, bool(tests), False, "Layer core file missing.", str(core), tuple(map(str, tests)))
+            if not tests:
+                return RegressionLayerResult(spec, True, False, False, "No T14 regression test files discovered.", str(core), tuple())
+            errors = []
+            core_error = cls._parse_file(core)
+            if core_error:
+                errors.append(f"Core syntax: {core_error}")
+            for test in tests:
+                err = cls._parse_file(test)
+                if err:
+                    errors.append(f"Test syntax ({test.name}): {err}")
+            return RegressionLayerResult(spec, True, True, not errors, " | ".join(errors) or None,
+                                         str(core), tuple(map(str, tests)), bool(errors))
+        raise RegressionLayerValidationError("Canonical layer metadata is required.")
+
+    @classmethod
+    def build_report(cls, results: Iterable[RegressionLayerResult]) -> RegressionReport:
         normalized = tuple(results)
-
-        failed = tuple(
-            result
-            for result in normalized
-            if not result.passed
-        )
-
-        data = {
-            "schema_version": cls.SCHEMA_VERSION,
-            "results": [
-                result.to_dict()
-                for result in normalized
-            ],
-        }
-
-        fingerprint = cls.fingerprint(data)
-
-        if failed:
-            reason = RegressionReason.IMPORT_FAILURE
-
-            return RegressionReport(
-                schema_version=cls.SCHEMA_VERSION,
-                decision=(
-                    RegressionDecision.FAIL_CLOSED
-                ),
-                reason=reason,
-                total_layers=len(normalized),
-                passed_layers=(
-                    len(normalized) - len(failed)
-                ),
-                failed_layers=len(failed),
-                results=normalized,
-                fingerprint=fingerprint,
-                fail_closed=True,
-            )
-
-        return RegressionReport(
-            schema_version=cls.SCHEMA_VERSION,
-            decision=RegressionDecision.READY,
-            reason=RegressionReason.VALID,
-            total_layers=len(normalized),
-            passed_layers=len(normalized),
-            failed_layers=0,
-            results=normalized,
-            fingerprint=fingerprint,
-            fail_closed=False,
-        )
+        policy = RegressionPolicy()
+        provenance = RegressionProvenance()
+        try:
+            policy.validate(); provenance.validate()
+        except ValueError as exc:
+            raise RegressionLayerIntegrityError(str(exc)) from exc
+        failed = tuple(x for x in normalized if not x.passed)
+        metrics_obj = summarize(normalized)
+        data = {"schema_version": cls.SCHEMA_VERSION, "results": [x.to_dict() for x in normalized]}
+        report_fp = fingerprint_manifest(data)
+        provenance_fp = fingerprint(provenance.__dict__)
+        compatibility = compare_schema(cls.SCHEMA_VERSION, policy.schema_version)
+        reason = RegressionReason.SYNTAX_FAILURE if any(x.syntax_error for x in failed) else (RegressionReason.MISSING_LAYER if failed else RegressionReason.VALID)
+        decision = RegressionDecision.FAIL_CLOSED if failed else RegressionDecision.READY
+        return RegressionReport(cls.SCHEMA_VERSION, decision, reason, len(normalized), len(normalized)-len(failed),
+                                len(failed), normalized, report_fp, bool(failed),
+                                {"total_layers": metrics_obj.total_layers, "passed_layers": metrics_obj.passed_layers,
+                                 "failed_layers": metrics_obj.failed_layers, "total_test_files": metrics_obj.total_test_files,
+                                 "syntax_failures": metrics_obj.syntax_failures},
+                                policy.schema_version, provenance_fp, compatibility)
 
     @classmethod
-    def validate_all_layers(
-        cls,
-    ) -> RegressionReport:
+    def validate_all_layers(cls, acrl_root: Path | None = None) -> RegressionReport:
         cls.validate_manifest()
-
-        results = tuple(
-            cls.validate_layer(spec)
-            for spec in cls.LAYER_SPECS
-        )
-
+        results = tuple(cls.validate_layer(spec, acrl_root=acrl_root) for spec in cls.LAYER_SPECS)
         return cls.build_report(results)
 
     @classmethod
-    def assert_ready(
-        cls,
-        report: RegressionReport,
-    ) -> RegressionReport:
-        if not isinstance(
-            report,
-            RegressionReport,
-        ):
-            raise RegressionLayerValidationError(
-                "Invalid regression report."
-            )
-
+    def assert_ready(cls, report: RegressionReport) -> RegressionReport:
+        if not isinstance(report, RegressionReport):
+            raise RegressionLayerValidationError("Invalid regression report.")
         if not report.ready:
-            raise RegressionLayerIntegrityError(
-                "ACRL regression layer is not ready."
-            )
-
+            raise RegressionLayerIntegrityError("ACRL regression layer is not ready.")
         return report
 
     @classmethod
-    def build_pytest_targets(
-        cls,
-    ) -> tuple[str, ...]:
-        """Return deterministic pytest targets.
-
-        T14 describes the full suite; it does not recursively invoke
-        pytest from inside pytest.
-        """
-
+    def build_pytest_targets(cls) -> tuple[str, ...]:
         cls.validate_manifest()
-
-        return tuple(
-            spec.test_module_name.replace(
-                ".", "/"
-            )
-            + ".py"
-            for spec in cls.LAYER_SPECS
-        )
+        return tuple(f"{spec.directory}" for spec in RegressionRegistry.SPECS)
 
 
 def validate_acrl_regression() -> RegressionReport:
-    """Public T14 validation API."""
-
     return RegressionLayerEngine.validate_all_layers()
 
 
-def acrl_regression_ready(
-    report: RegressionReport,
-) -> bool:
-    """Return True only when T14 is fully ready."""
-
-    if not isinstance(
-        report,
-        RegressionReport,
-    ):
-        raise RegressionLayerValidationError(
-            "Invalid regression report."
-        )
-
+def acrl_regression_ready(report: RegressionReport) -> bool:
+    if not isinstance(report, RegressionReport):
+        raise RegressionLayerValidationError("Invalid regression report.")
     return report.ready
 
 
-__all__ = [
-    "RegressionDecision",
-    "RegressionLayerConflictError",
-    "RegressionLayerEngine",
-    "RegressionLayerError",
-    "RegressionLayerIntegrityError",
-    "RegressionLayerResult",
-    "RegressionLayerSpec",
-    "RegressionLayerValidationError",
-    "RegressionReason",
-    "RegressionReport",
-    "acrl_regression_ready",
-    "validate_acrl_regression",
-]
+__all__ = [x for x in globals() if not x.startswith("_")]
