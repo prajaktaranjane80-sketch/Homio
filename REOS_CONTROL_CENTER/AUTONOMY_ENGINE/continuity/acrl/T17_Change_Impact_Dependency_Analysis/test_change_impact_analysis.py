@@ -1,162 +1,69 @@
-﻿"""ACRL T17-T01 — Change Impact Analysis tests.
-
-The T17 test surface owns its own repository fixture.
-
-Design rules:
-- no dependency on global conftest.py
-- no dependency on another test module's fixture
-- deterministic temporary repository
-- read-only analyzer verification
-- unknown paths fail closed
-- Windows/POSIX path normalization is exercised
-"""
-
-from __future__ import annotations
-
 from pathlib import Path
+import pytest
+from .change_impact_analysis import ChangeImpactAnalyzer, ChangeImpactSecurityError, ChangeImpactValidationError, ImpactLevel, T17Decision
 
-from AUTONOMY_ENGINE.continuity.acrl.change_impact_analysis import (
-    ChangeImpactAnalyzer,
-    ImpactLevel,
-)
-
-
-def build_repository(root: Path) -> Path:
-    """Build the minimal deterministic repository required by T17."""
-
-    root.mkdir(
-        parents=False,
-        exist_ok=False,
-    )
-
-    (root / "core").mkdir(
-        parents=False,
-        exist_ok=False,
-    )
-
-    (root / "tests").mkdir(
-        parents=False,
-        exist_ok=False,
-    )
-
-    (root / "main.py").write_text(
-        "from core.domain import Domain\n\n"
-        "VALUE = Domain\n",
-        encoding="utf-8",
-    )
-
-    (root / "core" / "__init__.py").write_text(
-        "",
-        encoding="utf-8",
-    )
-
-    (root / "core" / "domain.py").write_text(
-        "class Domain:\n"
-        "    pass\n",
-        encoding="utf-8",
-    )
-
-    (root / "tests" / "test_domain.py").write_text(
-        "from core.domain import Domain\n\n"
-        "\n"
-        "def test_domain():\n"
-        "    assert Domain is not None\n",
-        encoding="utf-8",
-    )
-
+def build_repo(root: Path):
+    (root / "app").mkdir(parents=True)
+    (root / "app" / "__init__.py").write_text("")
+    (root / "app" / "base.py").write_text("VALUE = 1\n")
+    (root / "app" / "service.py").write_text("from app.base import VALUE\nRESULT = VALUE\n")
+    (root / "app" / "api.py").write_text("from app.service import RESULT\nPUBLIC = RESULT\n")
+    (root / "state.json").write_text("{}\n")
     return root
 
+def engine(tmp_path):
+    return ChangeImpactAnalyzer(build_repo(tmp_path / "repo"))
 
-def test_unknown_change_has_unknown_impact(
-    tmp_path: Path,
-) -> None:
-    repository = build_repository(tmp_path / "repo")
+def test_direct_and_transitive_impact(tmp_path):
+    report = engine(tmp_path).analyze(("app/base.py",))
+    assert report.decision == T17Decision.ANALYZE
+    assert any(x.impacted_path == "app/service.py" for x in report.dependency_impacts)
+    assert any(x.impacted_path == "app/api.py" for x in report.dependency_impacts)
 
-    analyzer = ChangeImpactAnalyzer(repository)
+def test_distance(tmp_path):
+    report = engine(tmp_path).analyze(("app/base.py",))
+    distances = {x.impacted_path: x.distance for x in report.dependency_impacts}
+    assert distances["app/service.py"] == 1
+    assert distances["app/api.py"] == 2
 
-    report = analyzer.analyze(
-        ("does/not/exist.py",)
-    )
+def test_unknown_blocks(tmp_path):
+    report = engine(tmp_path).analyze(("missing.py",))
+    assert report.decision == T17Decision.BLOCKED
+    assert report.unknown_paths == ("missing.py",)
 
-    assert report.changed_paths == (
-        "does/not/exist.py",
-    )
+def test_protected_detected(tmp_path):
+    report = engine(tmp_path).analyze(("state.json",))
+    assert report.impacts[0].impact_level == ImpactLevel.PROTECTED
 
-    assert len(report.impacts) == 1
-    assert report.impacts[0].impact_level == ImpactLevel.UNKNOWN
+def test_path_normalization(tmp_path):
+    report = engine(tmp_path).analyze((r".\app\base.py",))
+    assert report.changed_paths == ("app/base.py",)
 
+def test_idempotent_duplicate_paths(tmp_path):
+    report = engine(tmp_path).analyze(("app/base.py", "app/base.py"))
+    assert report.changed_paths == ("app/base.py",)
 
-def test_repository_file_is_classified(
-    tmp_path: Path,
-) -> None:
-    repository = build_repository(tmp_path / "repo")
+def test_empty_rejected(tmp_path):
+    with pytest.raises(ChangeImpactValidationError):
+        engine(tmp_path).analyze(())
 
-    analyzer = ChangeImpactAnalyzer(repository)
+def test_traversal_rejected(tmp_path):
+    with pytest.raises(ChangeImpactSecurityError):
+        engine(tmp_path).analyze(("../outside.py",))
 
-    report = analyzer.analyze(
-        ("main.py",)
-    )
+def test_report_fingerprint_and_validation(tmp_path):
+    e = engine(tmp_path)
+    r = e.analyze(("app/base.py",))
+    assert len(r.fingerprint) == 64
+    e.validate_report(r)
 
-    assert report.changed_paths == (
-        "main.py",
-    )
+def test_state_not_mutated(tmp_path):
+    root = build_repo(tmp_path / "repo")
+    before = (root / "state.json").read_bytes()
+    ChangeImpactAnalyzer(root).analyze(("app/base.py",))
+    assert (root / "state.json").read_bytes() == before
 
-    assert len(report.impacts) == 1
-    assert report.impacts[0].relative_path == "main.py"
-
-
-def test_analysis_is_deterministic(
-    tmp_path: Path,
-) -> None:
-    repository = build_repository(tmp_path / "repo")
-
-    analyzer = ChangeImpactAnalyzer(repository)
-
-    first = analyzer.analyze(
-        ("main.py",)
-    )
-
-    second = analyzer.analyze(
-        ("main.py",)
-    )
-
-    assert first == second
-
-
-def test_multiple_paths_are_normalized(
-    tmp_path: Path,
-) -> None:
-    repository = build_repository(tmp_path / "repo")
-
-    analyzer = ChangeImpactAnalyzer(repository)
-
-    report = analyzer.analyze(
-        (
-            r".\main.py",
-            r".\core\domain.py",
-        )
-    )
-
-    assert set(report.changed_paths) == {
-    "main.py",
-    "core/domain.py",
-    }
-
-
-def test_report_has_fingerprint(
-    tmp_path: Path,
-) -> None:
-    repository = build_repository(tmp_path / "repo")
-
-    analyzer = ChangeImpactAnalyzer(repository)
-
-    report = analyzer.analyze(
-        ("main.py",)
-    )
-
-    assert len(report.fingerprint) == 64
-
-    assert all(
-        character in "0123456789abcdef"
-        for character in report.fingerprint
-    )
+def test_read_only_flags(tmp_path):
+    r = engine(tmp_path).analyze(("app/base.py",))
+    assert r.state_mutated is False
+    assert r.execution_authorized is False
