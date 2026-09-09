@@ -531,9 +531,7 @@ def analyze(
 
                 visited.add(dependent)
 
-                next_distance = (
-                    distance + 1
-                )
+                next_distance = distance + 1
 
                 dependencies.append(
                     DependencyImpact(
@@ -595,7 +593,9 @@ def analyze(
         )
 
         if prior is None:
-            best[impact.relative_path] = impact
+            best[
+                impact.relative_path
+            ] = impact
             continue
 
         if rank[
