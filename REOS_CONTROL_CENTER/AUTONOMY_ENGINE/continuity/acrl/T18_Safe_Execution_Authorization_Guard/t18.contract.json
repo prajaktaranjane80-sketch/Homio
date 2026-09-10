@@ -1,0 +1,33 @@
+{
+  "layer": "T18",
+  "name": "Safe Execution Authorization Guard",
+  "schema_version": "1.0",
+  "mode": "authorization-only",
+  "upstream": [
+    "T15_AI_Operator_Autonomy",
+    "T17_Change_Impact_Dependency_Analysis"
+  ],
+  "downstream": [
+    "future_execution_layer"
+  ],
+  "forbidden": [
+    "state.json mutation",
+    "repository mutation",
+    "business operation execution",
+    "authority promotion",
+    "architecture mutation",
+    "self approval",
+    "unbounded authorization"
+  ],
+  "required_inputs": [
+    "validated T15 operator proposal",
+    "validated T17 change-impact report",
+    "explicit approval evidence for executable change",
+    "unique authorization nonce"
+  ],
+  "decisions": [
+    "AUTHORIZE",
+    "BLOCK",
+    "FAIL_CLOSED"
+  ]
+}
