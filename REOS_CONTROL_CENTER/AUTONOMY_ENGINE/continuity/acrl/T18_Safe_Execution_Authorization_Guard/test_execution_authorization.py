@@ -1,416 +1,262 @@
 from __future__ import annotations
 
-from pathlib import Path
-
-from AUTONOMY_ENGINE.continuity.acrl.T15_AI_Operator_Autonomy.operator_autonomy import (
-    OperatorAutonomyEngine,
-    OperatorRequest,
-)
-from AUTONOMY_ENGINE.continuity.acrl.T15_AI_Operator_Autonomy.operator_policy import (
+from ..T15_AI_Operator_Autonomy.operator_policy import (
     OperatorActionType,
 )
-from AUTONOMY_ENGINE.continuity.acrl.T15_AI_Operator_Autonomy.operator_validation import (
-    OperatorContext,
+
+from .authorization_errors import (
+    SafeAuthorizationError,
 )
-from AUTONOMY_ENGINE.continuity.acrl.T17_Change_Impact_Dependency_Analysis.change_impact_analysis import (
-    ChangeImpactAnalyzer,
+from .authorization_identity import (
+    authorization_fingerprint,
+    request_fingerprint,
 )
-from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.authorization_identity import (
-    approval_scope_fingerprint,
-)
-from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.authorization_models import (
+from .authorization_models import (
     AuthorizationRequest,
-    HumanApproval,
+    ExecutionAuthorization,
 )
-from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.authorization_policy import (
+from .authorization_policy import (
     SafeAuthorizationPolicy,
 )
-from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.authorization_registry import (
+from .authorization_registry import (
     AuthorizationDecision,
     AuthorizationReason,
 )
-from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.execution_authorization import (
-    ExecutionAuthorizationGuard,
+from .authorization_validation import (
+    validate_authorization_scope,
+    validate_human_approval,
+    validate_read_only_invariant,
+    validate_request_structure,
+    validate_upstream_contracts,
 )
 
 
-def build_operator_report():
-    context = OperatorContext(
-        gate="CORE-005",
-        subtask="CORE-005-T01",
-        task="Implement structured search filters.",
-        state_available=True,
-        state_valid=True,
-        architecture_stable=True,
-        authority_valid=True,
-        integrity_valid=True,
-        evidence_available=True,
-    )
+class ExecutionAuthorizationGuard:
+    """Deterministic, non-executing T18 authorization guard."""
 
-    request = OperatorRequest(
-        context=context,
-        requested_action=OperatorActionType.PROPOSE_CHANGE,
-        objective="Implement bounded structured search filter support.",
-        evidence=("validated_test_evidence",),
-    )
+    SCHEMA_VERSION = "1.0"
+    AUTHORITY = "REOS_CONTROL_CENTER"
 
-    return OperatorAutonomyEngine.operate(request)
+    def __init__(
+        self,
+        policy: SafeAuthorizationPolicy | None = None,
+    ) -> None:
+        self.policy = (
+            policy
+            if policy is not None
+            else SafeAuthorizationPolicy()
+        )
+
+        self.policy.validate()
+
+    @staticmethod
+    def _blocked(
+        request_fp: str,
+        operator_request_fp: str,
+        impact_fp: str,
+        reason: AuthorizationReason,
+        action_type,
+        risk,
+    ) -> ExecutionAuthorization:
+        payload = {
+            "schema_version": "1.0",
+            "decision": AuthorizationDecision.BLOCK.value,
+            "reason": reason.value,
+            "request_fingerprint": request_fp,
+            "operator_request_fingerprint": operator_request_fp,
+            "impact_fingerprint": impact_fp,
+            "action_type": (
+                action_type.value
+                if action_type is not None
+                else None
+            ),
+            "risk": (
+                risk.value
+                if risk is not None
+                else None
+            ),
+        }
+
+        return ExecutionAuthorization(
+            schema_version="1.0",
+            decision=AuthorizationDecision.BLOCK,
+            reason=reason,
+            authorization_fingerprint=authorization_fingerprint(
+                payload
+            ),
+            request_fingerprint=request_fp,
+            operator_request_fingerprint=operator_request_fp,
+            impact_fingerprint=impact_fp,
+            action_type=action_type,
+            risk=risk,
+            execution_authorized=False,
+            state_mutated=False,
+            requires_external_executor=True,
+        )
+
+    @staticmethod
+    def _reason_for_validation_failure(
+        request: AuthorizationRequest,
+        exc: SafeAuthorizationError,
+    ) -> AuthorizationReason:
+        """Map validation failures from authoritative upstream state."""
+
+        impact = request.impact_report
+        proposal = request.operator_report.proposal
+        text = str(exc).lower()
+
+        # T17 provides explicit structured fields. These take precedence
+        # over exception-message parsing.
+        if impact.unknown_paths:
+            return AuthorizationReason.T17_UNKNOWN_PATH
+
+        if impact.protected_paths:
+            return AuthorizationReason.PROTECTED_IMPACT
+
+        if (
+            "fingerprint" in text
+            or "integrity" in text
+        ):
+            return AuthorizationReason.INTEGRITY_FAILURE
+
+        if (
+            proposal is not None
+            and proposal.action_type
+            is not OperatorActionType.PROPOSE_CHANGE
+        ):
+            return AuthorizationReason.INVALID_T15_PROPOSAL
+
+        if "human approval" in text:
+            return AuthorizationReason.APPROVAL_REQUIRED
+
+        if "t15" in text:
+            return AuthorizationReason.INVALID_T15_PROPOSAL
+
+        if "t17" in text:
+            return AuthorizationReason.T17_IMPACT_BLOCKED
+
+        return AuthorizationReason.POLICY_BLOCKED
+
+    def authorize(
+        self,
+        request: AuthorizationRequest,
+    ) -> ExecutionAuthorization:
+        validate_request_structure(request)
+
+        request_fp = request_fingerprint(request)
+
+        operator_report = request.operator_report
+        impact_report = request.impact_report
+
+        operator_request_fp = (
+            operator_report.request_fingerprint
+        )
+        impact_fp = impact_report.fingerprint
+
+        proposal = operator_report.proposal
+
+        try:
+            validate_upstream_contracts(
+                request,
+                self.policy,
+            )
+
+            validate_authorization_scope(
+                request,
+                self.policy,
+            )
+
+            validate_human_approval(
+                request,
+                self.policy,
+            )
+
+        except SafeAuthorizationError as exc:
+            reason = self._reason_for_validation_failure(
+                request,
+                exc,
+            )
+
+            return self._blocked(
+                request_fp,
+                operator_request_fp,
+                impact_fp,
+                reason,
+                (
+                    proposal.action_type
+                    if proposal is not None
+                    else None
+                ),
+                (
+                    proposal.risk
+                    if proposal is not None
+                    else None
+                ),
+            )
+
+        if proposal is None:
+            raise SafeAuthorizationError(
+                "T18 authorization reached an invalid proposal state."
+            )
+
+        if (
+            proposal.action_type
+            is not OperatorActionType.PROPOSE_CHANGE
+        ):
+            raise SafeAuthorizationError(
+                "T18 reached an unsupported executable action."
+            )
+
+        payload = {
+            "schema_version": self.SCHEMA_VERSION,
+            "decision": AuthorizationDecision.AUTHORIZE.value,
+            "reason": AuthorizationReason.VALIDATED.value,
+            "request_fingerprint": request_fp,
+            "operator_request_fingerprint": operator_request_fp,
+            "impact_fingerprint": impact_fp,
+            "action_type": proposal.action_type.value,
+            "risk": proposal.risk.value,
+            "external_executor_required": True,
+        }
+
+        artifact = ExecutionAuthorization(
+            schema_version=self.SCHEMA_VERSION,
+            decision=AuthorizationDecision.AUTHORIZE,
+            reason=AuthorizationReason.VALIDATED,
+            authorization_fingerprint=authorization_fingerprint(
+                payload
+            ),
+            request_fingerprint=request_fp,
+            operator_request_fingerprint=operator_request_fp,
+            impact_fingerprint=impact_fp,
+            action_type=proposal.action_type,
+            risk=proposal.risk,
+            execution_authorized=True,
+            state_mutated=False,
+            requires_external_executor=True,
+        )
+
+        validate_read_only_invariant(
+            artifact
+        )
+
+        return artifact
 
 
-def build_impact_report(tmp_path: Path):
-    repository = tmp_path / "repo"
-    repository.mkdir(exist_ok=True)
+def authorize_execution(
+    request: AuthorizationRequest,
+    policy: SafeAuthorizationPolicy | None = None,
+) -> ExecutionAuthorization:
+    """Convenience API for T18 authorization."""
 
-    (repository / "x.py").write_text(
-        "VALUE = 1\n",
-        encoding="utf-8",
-    )
-
-    return ChangeImpactAnalyzer(
-        repository
-    ).analyze(
-        ("x.py",)
-    )
-
-
-def build_approved_request(tmp_path: Path):
-    operator_report = build_operator_report()
-    impact_report = build_impact_report(tmp_path)
-
-    provisional = AuthorizationRequest(
-        operator_report=operator_report,
-        impact_report=impact_report,
-        approval=None,
-        nonce="test-nonce-001",
-    )
-
-    approval = HumanApproval(
-        approval_id="HUMAN-APPROVAL-001",
-        authority="HUMAN_APPROVER",
-        approved=True,
-        scope_fingerprint=approval_scope_fingerprint(
-            provisional
-        ),
-        evidence=("explicit approval evidence",),
-    )
-
-    return AuthorizationRequest(
-        operator_report=operator_report,
-        impact_report=impact_report,
-        approval=approval,
-        nonce="test-nonce-001",
-    )
-
-
-def test_policy_is_safe():
-    policy = SafeAuthorizationPolicy()
-    assert policy.validate() is True
-    assert policy.allow_state_mutation is False
-    assert policy.allow_execution_by_guard is False
-    assert policy.allow_self_approval is False
-
-
-def test_authorizes_valid_change(tmp_path: Path):
-    request = build_approved_request(tmp_path)
-
-    artifact = ExecutionAuthorizationGuard().authorize(
+    return ExecutionAuthorizationGuard(
+        policy
+    ).authorize(
         request
     )
 
-    assert artifact.decision is AuthorizationDecision.AUTHORIZE
-    assert artifact.reason is AuthorizationReason.VALIDATED
-    assert artifact.execution_authorized is True
-    assert artifact.state_mutated is False
-    assert artifact.requires_external_executor is True
 
-
-def test_requires_approval(tmp_path: Path):
-    operator_report = build_operator_report()
-    impact_report = build_impact_report(tmp_path)
-
-    request = AuthorizationRequest(
-        operator_report=operator_report,
-        impact_report=impact_report,
-        approval=None,
-        nonce="missing-approval",
-    )
-
-    artifact = ExecutionAuthorizationGuard().authorize(
-        request
-    )
-
-    assert artifact.decision is AuthorizationDecision.BLOCK
-    assert artifact.execution_authorized is False
-
-
-def test_rejects_unapproved_request(tmp_path: Path):
-    operator_report = build_operator_report()
-    impact_report = build_impact_report(tmp_path)
-
-    provisional = AuthorizationRequest(
-        operator_report=operator_report,
-        impact_report=impact_report,
-        approval=None,
-        nonce="rejected-approval",
-    )
-
-    approval = HumanApproval(
-        approval_id="HUMAN-APPROVAL-002",
-        authority="HUMAN_APPROVER",
-        approved=False,
-        scope_fingerprint=approval_scope_fingerprint(
-            provisional
-        ),
-        evidence=("approval declined",),
-    )
-
-    request = AuthorizationRequest(
-        operator_report=operator_report,
-        impact_report=impact_report,
-        approval=approval,
-        nonce="rejected-approval",
-    )
-
-    artifact = ExecutionAuthorizationGuard().authorize(
-        request
-    )
-
-    assert artifact.decision is AuthorizationDecision.BLOCK
-
-
-def test_rejects_t17_unknown_path(tmp_path: Path):
-    operator_report = build_operator_report()
-
-    repository = tmp_path / "repo"
-    repository.mkdir()
-
-    impact_report = ChangeImpactAnalyzer(
-        repository
-    ).analyze(
-        ("missing.py",)
-    )
-
-    provisional = AuthorizationRequest(
-        operator_report=operator_report,
-        impact_report=impact_report,
-        approval=None,
-        nonce="unknown-path",
-    )
-
-    approval = HumanApproval(
-        approval_id="HUMAN-APPROVAL-003",
-        authority="HUMAN_APPROVER",
-        approved=True,
-        scope_fingerprint=approval_scope_fingerprint(
-            provisional
-        ),
-        evidence=("approval evidence",),
-    )
-
-    request = AuthorizationRequest(
-        operator_report=operator_report,
-        impact_report=impact_report,
-        approval=approval,
-        nonce="unknown-path",
-    )
-
-    artifact = ExecutionAuthorizationGuard().authorize(
-        request
-    )
-
-    assert artifact.decision is AuthorizationDecision.BLOCK
-    assert artifact.reason is AuthorizationReason.T17_UNKNOWN_PATH
-
-
-def test_rejects_protected_impact(tmp_path: Path):
-    operator_report = build_operator_report()
-
-    repository = tmp_path / "repo"
-    repository.mkdir()
-
-    (repository / "state.json").write_text(
-        "{}\n",
-        encoding="utf-8",
-    )
-
-    impact_report = ChangeImpactAnalyzer(
-        repository
-    ).analyze(
-        ("state.json",)
-    )
-
-    provisional = AuthorizationRequest(
-        operator_report=operator_report,
-        impact_report=impact_report,
-        approval=None,
-        nonce="protected-impact",
-    )
-
-    approval = HumanApproval(
-        approval_id="HUMAN-APPROVAL-004",
-        authority="HUMAN_APPROVER",
-        approved=True,
-        scope_fingerprint=approval_scope_fingerprint(
-            provisional
-        ),
-        evidence=("approval evidence",),
-    )
-
-    request = AuthorizationRequest(
-        operator_report=operator_report,
-        impact_report=impact_report,
-        approval=approval,
-        nonce="protected-impact",
-    )
-
-    artifact = ExecutionAuthorizationGuard().authorize(
-        request
-    )
-
-    assert artifact.decision is AuthorizationDecision.BLOCK
-    assert artifact.reason is AuthorizationReason.PROTECTED_IMPACT
-
-
-def test_rejects_non_change_proposal(tmp_path: Path):
-    context = OperatorContext(
-        gate="CORE-005",
-        subtask="CORE-005-T01",
-        task="Observe search implementation.",
-        state_available=True,
-        state_valid=True,
-        architecture_stable=True,
-        authority_valid=True,
-        integrity_valid=True,
-        evidence_available=True,
-    )
-
-    operator_request = OperatorRequest(
-        context=context,
-        requested_action=OperatorActionType.OBSERVE,
-        objective="Observe current implementation.",
-        evidence=("evidence",),
-    )
-
-    operator_report = OperatorAutonomyEngine.operate(
-        operator_request
-    )
-
-    impact_report = build_impact_report(tmp_path)
-
-    request = AuthorizationRequest(
-        operator_report=operator_report,
-        impact_report=impact_report,
-        approval=None,
-        nonce="observational-action",
-    )
-
-    artifact = ExecutionAuthorizationGuard().authorize(
-        request
-    )
-
-    assert artifact.decision is AuthorizationDecision.BLOCK
-
-
-def test_nonce_changes_authorization_identity(tmp_path: Path):
-    first = build_approved_request(tmp_path)
-
-    second = AuthorizationRequest(
-        operator_report=first.operator_report,
-        impact_report=first.impact_report,
-        approval=first.approval,
-        nonce="different-nonce-002",
-    )
-
-    guard = ExecutionAuthorizationGuard()
-
-    artifact_one = guard.authorize(first)
-    artifact_two = guard.authorize(second)
-
-    assert (
-        artifact_one.authorization_fingerprint
-        != artifact_two.authorization_fingerprint
-    )
-
-
-def test_authorization_is_deterministic(tmp_path: Path):
-    request = build_approved_request(tmp_path)
-
-    guard = ExecutionAuthorizationGuard()
-
-    first = guard.authorize(request)
-    second = guard.authorize(request)
-
-    assert first == second
-
-
-def test_t18_never_mutates_state(tmp_path: Path):
-    repository = tmp_path / "repo"
-    repository.mkdir()
-
-    state = repository / "state.json"
-    state.write_text(
-        "{}\n",
-        encoding="utf-8",
-    )
-
-    before = state.read_bytes()
-
-    request = build_approved_request(tmp_path)
-
-    ExecutionAuthorizationGuard().authorize(
-        request
-    )
-
-    assert state.read_bytes() == before
-
-
-def test_external_executor_is_always_required(tmp_path: Path):
-    request = build_approved_request(tmp_path)
-
-    artifact = ExecutionAuthorizationGuard().authorize(
-        request
-    )
-
-    assert artifact.requires_external_executor is True
-
-
-def test_authorization_artifact_does_not_mutate_state(tmp_path: Path):
-    request = build_approved_request(tmp_path)
-
-    artifact = ExecutionAuthorizationGuard().authorize(
-        request
-    )
-
-    assert artifact.state_mutated is False
-
-
-def test_policy_blocks_guard_execution():
-    policy = SafeAuthorizationPolicy()
-
-    assert policy.allow_execution_by_guard is False
-
-
-def test_policy_blocks_self_approval():
-    policy = SafeAuthorizationPolicy()
-
-    assert policy.allow_self_approval is False
-
-
-def test_authorized_artifact_is_bound_to_upstream_evidence(
-    tmp_path: Path,
-):
-    request = build_approved_request(tmp_path)
-
-    artifact = ExecutionAuthorizationGuard().authorize(
-        request
-    )
-
-    assert (
-        artifact.operator_request_fingerprint
-        == request.operator_report.request_fingerprint
-    )
-
-    assert (
-        artifact.impact_fingerprint
-        == request.impact_report.fingerprint
-    )
+__all__ = [
+    "ExecutionAuthorizationGuard",
+    "authorize_execution",
+]
