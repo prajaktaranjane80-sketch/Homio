@@ -1,4 +1,3 @@
-```python
 from __future__ import annotations
 
 from pathlib import Path
@@ -415,4 +414,3 @@ def test_authorized_artifact_is_bound_to_upstream_evidence(
         artifact.impact_fingerprint
         == request.impact_report.fingerprint
     )
-```
