@@ -9,17 +9,25 @@ from ..T16_Repository_Intelligence_File_Discovery.repository_intelligence import
     normalize_repository_path,
 )
 
-
-class ChangeImpactSecurityError(RuntimeError):
-    """Raised when a T17 path violates the repository boundary."""
+from .impact_errors import (
+    ChangeImpactSecurityError,
+)
 
 
 class T17PathSecurity:
-    """T17 path-security boundary backed by T16 repository intelligence."""
+    """T17 path boundary backed by the T16 repository guard."""
 
-    def __init__(self, repository_root: Path | str) -> None:
-        self.repository_root = Path(repository_root).resolve()
-        self._guard = RepositoryPathGuard(self.repository_root)
+    def __init__(
+        self,
+        repository_root: Path | str,
+    ) -> None:
+        self.repository_root = Path(
+            repository_root
+        ).resolve()
+
+        self._guard = RepositoryPathGuard(
+            self.repository_root
+        )
 
     def normalize_changed_paths(
         self,
@@ -34,15 +42,19 @@ class T17PathSecurity:
                 )
 
             try:
-                candidate = Path(raw)
-                resolved = self._guard.resolve(candidate)
+                resolved = self._guard.resolve(
+                    Path(raw)
+                )
+
                 relative = resolved.relative_to(
                     self.repository_root
                 )
+
             except RepositoryPathSecurityError as exc:
                 raise ChangeImpactSecurityError(
                     "Changed path escapes repository boundary."
                 ) from exc
+
             except (OSError, ValueError) as exc:
                 raise ChangeImpactSecurityError(
                     "Changed path cannot be resolved safely."
@@ -52,9 +64,20 @@ class T17PathSecurity:
                 relative.as_posix()
             )
 
+            if (
+                normalized == ".."
+                or normalized.startswith("../")
+                or "/../" in normalized
+            ):
+                raise ChangeImpactSecurityError(
+                    "Changed path escapes repository boundary."
+                )
+
             values.append(normalized)
 
-        return tuple(sorted(set(values)))
+        return tuple(
+            sorted(set(values))
+        )
 
 
 def validate_read_only(report) -> None:
