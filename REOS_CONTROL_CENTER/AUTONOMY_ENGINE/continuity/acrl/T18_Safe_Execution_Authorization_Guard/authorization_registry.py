@@ -1,0 +1,30 @@
+from __future__ import annotations
+
+from enum import Enum
+
+
+class AuthorizationDecision(str, Enum):
+    AUTHORIZE = "AUTHORIZE"
+    BLOCK = "BLOCK"
+    FAIL_CLOSED = "FAIL_CLOSED"
+
+
+class AuthorizationReason(str, Enum):
+    VALIDATED = "VALIDATED"
+    INVALID_T15_PROPOSAL = "INVALID_T15_PROPOSAL"
+    INVALID_T17_REPORT = "INVALID_T17_REPORT"
+    T17_IMPACT_BLOCKED = "T17_IMPACT_BLOCKED"
+    T17_UNKNOWN_PATH = "T17_UNKNOWN_PATH"
+    PROTECTED_IMPACT = "PROTECTED_IMPACT"
+    APPROVAL_REQUIRED = "APPROVAL_REQUIRED"
+    APPROVAL_INVALID = "APPROVAL_INVALID"
+    NONCE_REQUIRED = "NONCE_REQUIRED"
+    POLICY_BLOCKED = "POLICY_BLOCKED"
+    INTEGRITY_FAILURE = "INTEGRITY_FAILURE"
+    SECURITY_BOUNDARY = "SECURITY_BOUNDARY"
+
+
+__all__ = [
+    "AuthorizationDecision",
+    "AuthorizationReason",
+]
