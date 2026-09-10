@@ -1,823 +1,452 @@
-from **future** import annotations
+from __future__ import annotations
 
-import hashlib
-import json
-from dataclasses import dataclass
-from enum import Enum
+from dataclasses import replace
 from pathlib import Path
 from typing import Iterable
 
 from ..T16_Repository_Intelligence_File_Discovery.repository_intelligence import (
-FileAuthority,
-FileRisk,
-RepositoryFile,
-RepositoryPathGuard,
-RepositoryPathSecurityError,
-RepositoryScanner,
-normalize_repository_path,
+    FileAuthority,
+    FileRisk,
+    RepositoryFile,
+    RepositoryScanner,
+    normalize_repository_path,
 )
+
 from ..T16_Repository_Intelligence_File_Discovery.source_intelligence.dependency_graph import (
-DependencyGraph,
-build_dependency_graph,
+    DependencyGraph,
+    build_dependency_graph,
 )
 
-class ChangeImpactError(RuntimeError):
-pass
+from .impact_dependency import (
+    build_reverse_dependencies,
+    collect_dependency_impacts,
+)
 
-class ChangeImpactValidationError(ChangeImpactError):
-pass
+from .impact_errors import (
+    ChangeImpactCompatibilityError,
+    ChangeImpactError,
+    ChangeImpactIntegrityError,
+    ChangeImpactSecurityError,
+    ChangeImpactValidationError,
+)
 
-class ChangeImpactSecurityError(ChangeImpactError):
-pass
+from .impact_identity import fingerprint_report
 
-class ChangeImpactIntegrityError(ChangeImpactError):
-pass
+from .impact_integration import build_handoff
 
-class ChangeImpactCompatibilityError(ChangeImpactError):
-pass
+from .impact_metrics import metrics
 
-class ImpactLevel(str, Enum):
-DIRECT = "DIRECT"
-INDIRECT = "INDIRECT"
-PROTECTED = "PROTECTED"
-UNKNOWN = "UNKNOWN"
+from .impact_models import (
+    ChangeImpact,
+    ChangeImpactReport,
+    DependencyImpact,
+    ImpactIntegrationHandoff,
+    T17Metrics,
+)
 
-class T17Decision(str, Enum):
-ANALYZE = "ANALYZE"
-BLOCKED = "BLOCKED"
-FAIL_CLOSED = "FAIL_CLOSED"
+from .impact_policy import ImpactPolicy
 
-class ImpactReason(str, Enum):
-DIRECT_MATCH = "DIRECT_MATCH"
-DEPENDENCY_OF_CHANGED_MODULE = "DEPENDENCY_OF_CHANGED_MODULE"
-PROTECTED_FILE = "PROTECTED_FILE"
-UNKNOWN_PATH = "UNKNOWN_PATH"
-SECURITY_BOUNDARY = "SECURITY_BOUNDARY"
-GRAPH_UNAVAILABLE = "GRAPH_UNAVAILABLE"
+from .impact_provenance import T17Provenance
 
-@dataclass(frozen=True, slots=True)
-class ImpactPolicy:
-schema_version: str = "1.0"
-allow_state_mutation: bool = False
-allow_execution: bool = False
-allow_authority_change: bool = False
-allow_architecture_change: bool = False
-allow_self_approval: bool = False
-allow_unbounded_analysis: bool = False
+from .impact_registry import (
+    ImpactLevel,
+    ImpactReason,
+    T17Decision,
+)
 
-```
-def validate(self) -> None:
-    if self.schema_version != "1.0":
-        raise ChangeImpactCompatibilityError(self.schema_version)
+from .impact_security import (
+    T17PathSecurity,
+)
 
-    if any(
-        (
-            self.allow_state_mutation,
-            self.allow_execution,
-            self.allow_authority_change,
-            self.allow_architecture_change,
-            self.allow_self_approval,
-            self.allow_unbounded_analysis,
-        )
-    ):
-        raise ChangeImpactValidationError(
-            "T17 is read-only, non-executing, bounded, and non-authoritative."
-        )
-```
+from .impact_validation import (
+    validate_report_contract,
+)
 
-@dataclass(frozen=True, slots=True)
-class T17Provenance:
-source: str = "T16_REPOSITORY_INTELLIGENCE"
-authority: str = "REOS_CONTROL_CENTER"
-read_only: bool = True
-
-```
-def validate(self) -> None:
-    if self.source != "T16_REPOSITORY_INTELLIGENCE":
-        raise ChangeImpactValidationError("Invalid provenance source.")
-
-    if self.authority != "REOS_CONTROL_CENTER":
-        raise ChangeImpactValidationError("Invalid authority.")
-
-    if self.read_only is not True:
-        raise ChangeImpactValidationError("T17 must remain read-only.")
-```
-
-@dataclass(frozen=True, slots=True)
-class ChangeImpact:
-relative_path: str
-impact_level: ImpactLevel
-reason_code: ImpactReason
-authority: FileAuthority | None
-source_kind: str | None
-dependency_distance: int | None
-
-@dataclass(frozen=True, slots=True)
-class DependencyImpact:
-changed_path: str
-impacted_path: str
-distance: int
-relationship: str
-
-@dataclass(frozen=True, slots=True)
-class ChangeImpactReport:
-schema_version: str
-decision: T17Decision
-changed_paths: tuple[str, ...]
-impacts: tuple[ChangeImpact, ...]
-dependency_impacts: tuple[DependencyImpact, ...]
-protected_paths: tuple[str, ...]
-unknown_paths: tuple[str, ...]
-graph_nodes: int
-graph_edges: int
-fingerprint: str
-policy_schema: str
-provenance_source: str
-state_mutated: bool = False
-execution_authorized: bool = False
-
-```
-@property
-def impacted_paths(self) -> tuple[str, ...]:
-    return tuple(
-        item.impacted_path
-        for item in self.dependency_impacts
-    )
-
-@property
-def ready_for_handoff(self) -> bool:
-    return (
-        self.decision == T17Decision.ANALYZE
-        and not self.unknown_paths
-        and not self.state_mutated
-        and not self.execution_authorized
-    )
-
-def to_dict(self) -> dict[str, object]:
-    return {
-        "schema_version": self.schema_version,
-        "decision": self.decision.value,
-        "changed_paths": list(self.changed_paths),
-        "impacts": [
-            {
-                "relative_path": item.relative_path,
-                "impact_level": item.impact_level.value,
-                "reason_code": item.reason_code.value,
-                "authority": (
-                    item.authority.value
-                    if item.authority
-                    else None
-                ),
-                "source_kind": item.source_kind,
-                "dependency_distance": item.dependency_distance,
-            }
-            for item in self.impacts
-        ],
-        "dependency_impacts": [
-            {
-                "changed_path": item.changed_path,
-                "impacted_path": item.impacted_path,
-                "distance": item.distance,
-                "relationship": item.relationship,
-            }
-            for item in self.dependency_impacts
-        ],
-        "protected_paths": list(self.protected_paths),
-        "unknown_paths": list(self.unknown_paths),
-        "graph_nodes": self.graph_nodes,
-        "graph_edges": self.graph_edges,
-        "fingerprint": self.fingerprint,
-        "policy_schema": self.policy_schema,
-        "provenance_source": self.provenance_source,
-        "state_mutated": self.state_mutated,
-        "execution_authorized": self.execution_authorized,
-    }
-```
-
-@dataclass(frozen=True, slots=True)
-class T17Metrics:
-total_changed_paths: int
-direct_impacts: int
-indirect_impacts: int
-protected_impacts: int
-unknown_paths: int
-graph_nodes: int
-graph_edges: int
-
-```
-@classmethod
-def from_report(
-    cls,
-    report: ChangeImpactReport,
-) -> "T17Metrics":
-    return cls(
-        total_changed_paths=len(report.changed_paths),
-        direct_impacts=sum(
-            item.impact_level == ImpactLevel.DIRECT
-            for item in report.impacts
-        ),
-        indirect_impacts=sum(
-            item.impact_level == ImpactLevel.INDIRECT
-            for item in report.impacts
-        ),
-        protected_impacts=sum(
-            item.impact_level == ImpactLevel.PROTECTED
-            for item in report.impacts
-        ),
-        unknown_paths=len(report.unknown_paths),
-        graph_nodes=report.graph_nodes,
-        graph_edges=report.graph_edges,
-    )
-```
-
-@dataclass(frozen=True, slots=True)
-class ImpactIntegrationHandoff:
-report_fingerprint: str
-decision: str
-changed_paths: tuple[str, ...]
-impacted_paths: tuple[str, ...]
-ready_for_handoff: bool
 
 class T17RepositoryIntelligenceAdapter:
-def **init**(self, repository_root: Path) -> None:
-self.repository_root = repository_root.resolve()
-
-```
-def files(self) -> tuple[RepositoryFile, ...]:
-    return RepositoryScanner(
-        self.repository_root
-    ).scan()
-
-def dependency_graph(self) -> DependencyGraph:
-    return build_dependency_graph(
-        self.repository_root
-    )
-```
-
-def _module_name(relative_path: str) -> str:
-path = Path(relative_path)
-
-```
-if path.suffix.lower() not in {".py", ".pyi"}:
-    return ""
-
-parts = list(
-    path.with_suffix("").parts
-)
-
-if parts and parts[-1] == "__init__":
-    parts.pop()
-
-return ".".join(parts)
-```
-
-def _resolve_import(
-source_path: str,
-imported_name: str,
-modules: dict[str, str],
-) -> str | None:
-source = _module_name(source_path)
-
-```
-if not source or not imported_name:
-    return None
-
-raw = imported_name.strip()
-
-if raw.startswith("."):
-    level = len(
-        raw
-    ) - len(
-        raw.lstrip(".")
-    )
-
-    tail = raw[level:].strip(".")
-    source_parts = source.split(".")
-
-    base = (
-        source_parts[:-level]
-        if level <= len(source_parts)
-        else []
-    )
-
-    candidate = ".".join(
-        base + ([tail] if tail else [])
-    )
-else:
-    candidate = raw
-
-if candidate in modules:
-    return modules[candidate]
-
-children = sorted(
-    value
-    for key, value in modules.items()
-    if key.startswith(candidate + ".")
-)
-
-return children[0] if children else None
-```
-
-def _reverse_dependencies(
-graph: DependencyGraph,
-) -> dict[str, tuple[str, ...]]:
-modules = {
-_module_name(node): node
-for node in graph.nodes
-if _module_name(node)
-}
-
-```
-reverse: dict[str, set[str]] = {}
-
-for edge in graph.edges:
-    target = _resolve_import(
-        edge.source_path,
-        edge.imported_name,
-        modules,
-    )
-
-    if target:
-        reverse.setdefault(
-            target,
-            set(),
-        ).add(
-            edge.source_path
+    def __init__(
+        self,
+        repository_root: Path,
+    ) -> None:
+        self.repository_root = (
+            repository_root.resolve()
         )
 
-return {
-    key: tuple(
-        sorted(
-            values,
-            key=normalize_repository_path,
+    def files(
+        self,
+    ) -> tuple[RepositoryFile, ...]:
+        return RepositoryScanner(
+            self.repository_root
+        ).scan()
+
+    def dependency_graph(
+        self,
+    ) -> DependencyGraph:
+        return build_dependency_graph(
+            self.repository_root
         )
-    )
-    for key, values in reverse.items()
-}
-```
+
 
 class ChangeImpactAnalyzer:
-SCHEMA_VERSION = "1.0"
+    SCHEMA_VERSION = "1.0"
 
-```
-def __init__(
-    self,
-    repository_root: Path | str,
-    *,
-    policy: ImpactPolicy | None = None,
-    provenance: T17Provenance | None = None,
-) -> None:
-    self.repository_root = Path(
-        repository_root
-    ).resolve()
+    def __init__(
+        self,
+        repository_root: Path | str,
+        *,
+        policy: ImpactPolicy | None = None,
+        provenance: T17Provenance | None = None,
+    ) -> None:
+        self.repository_root = Path(
+            repository_root
+        ).resolve()
 
-    if not self.repository_root.is_dir():
-        raise ChangeImpactError(
-            "Repository root is not a directory: "
-            f"{self.repository_root}"
+        if not self.repository_root.is_dir():
+            raise ChangeImpactError(
+                "Repository root is not a directory: "
+                f"{self.repository_root}"
+            )
+
+        self.policy = (
+            policy
+            or ImpactPolicy()
         )
 
-    self.policy = policy or ImpactPolicy()
-    self.provenance = provenance or T17Provenance()
+        self.provenance = (
+            provenance
+            or T17Provenance()
+        )
 
-    self.policy.validate()
-    self.provenance.validate()
+        self.policy.validate()
+        self.provenance.validate()
 
-    self._path_guard = RepositoryPathGuard(
-        self.repository_root
-    )
+        self._security = T17PathSecurity(
+            self.repository_root
+        )
 
-def _normalize(
-    self,
-    paths: Iterable[str],
-) -> tuple[str, ...]:
-    values: list[str] = []
-
-    for raw in paths:
-        if not isinstance(raw, str) or not raw.strip():
-            raise ChangeImpactValidationError(
-                "Changed paths must be non-empty strings."
-            )
-
+    def _normalize(
+        self,
+        paths: Iterable[str],
+    ) -> tuple[str, ...]:
         try:
-            candidate = Path(raw)
-
-            resolved = self._path_guard.resolve(
-                candidate
+            return self._security.normalize_changed_paths(
+                paths
             )
 
-            relative = resolved.relative_to(
+        except ChangeImpactSecurityError:
+            raise
+
+        except ValueError as exc:
+            raise ChangeImpactValidationError(
+                str(exc)
+            ) from exc
+
+    def analyze(
+        self,
+        changed_paths: Iterable[str],
+    ) -> ChangeImpactReport:
+        changed = self._normalize(
+            changed_paths
+        )
+
+        if not changed:
+            raise ChangeImpactValidationError(
+                "At least one changed path is required."
+            )
+
+        adapter = (
+            T17RepositoryIntelligenceAdapter(
                 self.repository_root
             )
-
-        except RepositoryPathSecurityError as exc:
-            raise ChangeImpactSecurityError(
-                "Changed path escapes repository boundary."
-            ) from exc
-
-        except (OSError, ValueError) as exc:
-            raise ChangeImpactSecurityError(
-                "Changed path cannot be resolved safely."
-            ) from exc
-
-        normalized = normalize_repository_path(
-            relative.as_posix()
         )
 
-        if (
-            normalized == ".."
-            or normalized.startswith("../")
-            or "/../" in normalized
-        ):
-            raise ChangeImpactSecurityError(
-                "Changed path escapes repository boundary."
+        file_map = {
+            normalize_repository_path(
+                item.relative_path
+            ): item
+            for item in adapter.files()
+        }
+
+        graph = adapter.dependency_graph()
+
+        reverse = build_reverse_dependencies(
+            graph
+        )
+
+        impacts: list[ChangeImpact] = []
+        dependencies: list[DependencyImpact] = []
+
+        protected: set[str] = set()
+        unknown: set[str] = set()
+
+        for path in changed:
+            item = file_map.get(
+                path
             )
 
-        values.append(normalized)
+            if item is None:
+                unknown.add(path)
 
-    return tuple(
-        sorted(set(values))
-    )
+                impacts.append(
+                    ChangeImpact(
+                        relative_path=path,
+                        impact_level=ImpactLevel.UNKNOWN,
+                        reason_code=ImpactReason.UNKNOWN_PATH,
+                        authority=None,
+                        source_kind=None,
+                        dependency_distance=None,
+                    )
+                )
 
-def analyze(
-    self,
-    changed_paths: Iterable[str],
-) -> ChangeImpactReport:
-    changed = self._normalize(
-        changed_paths
-    )
+                continue
 
-    if not changed:
-        raise ChangeImpactValidationError(
-            "At least one changed path is required."
-        )
+            if item.risk == FileRisk.PROTECTED:
+                level = (
+                    ImpactLevel.PROTECTED
+                )
 
-    adapter = T17RepositoryIntelligenceAdapter(
-        self.repository_root
-    )
+                reason = (
+                    ImpactReason.PROTECTED_FILE
+                )
 
-    file_map = {
-        normalize_repository_path(
-            item.relative_path
-        ): item
-        for item in adapter.files()
-    }
+                protected.add(path)
 
-    graph = adapter.dependency_graph()
-    reverse = _reverse_dependencies(graph)
+            else:
+                level = (
+                    ImpactLevel.DIRECT
+                )
 
-    impacts: list[ChangeImpact] = []
-    dependencies: list[DependencyImpact] = []
-    protected: set[str] = set()
-    unknown: set[str] = set()
-
-    for path in changed:
-        item = file_map.get(path)
-
-        if item is None:
-            unknown.add(path)
+                reason = (
+                    ImpactReason.DIRECT_MATCH
+                )
 
             impacts.append(
                 ChangeImpact(
-                    path,
-                    ImpactLevel.UNKNOWN,
-                    ImpactReason.UNKNOWN_PATH,
-                    None,
-                    None,
-                    None,
+                    relative_path=path,
+                    impact_level=level,
+                    reason_code=reason,
+                    authority=item.authority,
+                    source_kind=item.source_kind.value,
+                    dependency_distance=0,
                 )
             )
 
-            continue
-
-        level = (
-            ImpactLevel.PROTECTED
-            if item.risk == FileRisk.PROTECTED
-            else ImpactLevel.DIRECT
-        )
-
-        reason = (
-            ImpactReason.PROTECTED_FILE
-            if level == ImpactLevel.PROTECTED
-            else ImpactReason.DIRECT_MATCH
-        )
-
-        if level == ImpactLevel.PROTECTED:
-            protected.add(path)
-
-        impacts.append(
-            ChangeImpact(
-                path,
-                level,
-                reason,
-                item.authority,
-                item.source_kind.value,
-                0,
+            dependency_impacts = (
+                collect_dependency_impacts(
+                    path,
+                    reverse,
+                )
             )
-        )
 
-        queue = [(path, 0)]
-        visited = {path}
+            dependencies.extend(
+                dependency_impacts
+            )
 
-        while queue:
-            current, distance = queue.pop(0)
+            for dependency in dependency_impacts:
+                dep_file = file_map.get(
+                    dependency.impacted_path
+                )
 
-            for dependent in reverse.get(
-                current,
-                (),
-            ):
-                if dependent in visited:
+                if dep_file is None:
                     continue
 
-                visited.add(dependent)
+                if (
+                    dep_file.risk
+                    == FileRisk.PROTECTED
+                ):
+                    dep_level = (
+                        ImpactLevel.PROTECTED
+                    )
 
-                next_distance = distance + 1
+                    dep_reason = (
+                        ImpactReason.PROTECTED_FILE
+                    )
 
-                dependencies.append(
-                    DependencyImpact(
-                        path,
-                        dependent,
-                        next_distance,
-                        "REVERSE_DEPENDENCY",
+                else:
+                    dep_level = (
+                        ImpactLevel.INDIRECT
+                    )
+
+                    dep_reason = (
+                        ImpactReason.DEPENDENCY_OF_CHANGED_MODULE
+                    )
+
+                impacts.append(
+                    ChangeImpact(
+                        relative_path=dependency.impacted_path,
+                        impact_level=dep_level,
+                        reason_code=dep_reason,
+                        authority=dep_file.authority,
+                        source_kind=dep_file.source_kind.value,
+                        dependency_distance=dependency.distance,
                     )
                 )
 
-                dep_file = file_map.get(
-                    dependent
-                )
+        severity = {
+            ImpactLevel.PROTECTED: 4,
+            ImpactLevel.DIRECT: 3,
+            ImpactLevel.INDIRECT: 2,
+            ImpactLevel.UNKNOWN: 1,
+        }
 
-                if dep_file:
-                    impacts.append(
-                        ChangeImpact(
-                            dependent,
-                            (
-                                ImpactLevel.PROTECTED
-                                if dep_file.risk
-                                == FileRisk.PROTECTED
-                                else ImpactLevel.INDIRECT
-                            ),
-                            (
-                                ImpactReason.PROTECTED_FILE
-                                if dep_file.risk
-                                == FileRisk.PROTECTED
-                                else ImpactReason.DEPENDENCY_OF_CHANGED_MODULE
-                            ),
-                            dep_file.authority,
-                            dep_file.source_kind.value,
-                            next_distance,
-                        )
-                    )
+        best: dict[
+            str,
+            ChangeImpact,
+        ] = {}
 
-                queue.append(
-                    (
-                        dependent,
-                        next_distance,
-                    )
-                )
-
-    rank = {
-        ImpactLevel.PROTECTED: 4,
-        ImpactLevel.DIRECT: 3,
-        ImpactLevel.INDIRECT: 2,
-        ImpactLevel.UNKNOWN: 1,
-    }
-
-    best: dict[
-        str,
-        ChangeImpact,
-    ] = {}
-
-    for impact in impacts:
-        prior = best.get(
-            impact.relative_path
-        )
-
-        if prior is None:
-            best[
+        for impact in impacts:
+            previous = best.get(
                 impact.relative_path
-            ] = impact
-            continue
+            )
 
-        if rank[
-            impact.impact_level
-        ] > rank[
-            prior.impact_level
-        ]:
-            best[
-                impact.relative_path
-            ] = impact
-            continue
+            if previous is None:
+                best[
+                    impact.relative_path
+                ] = impact
+                continue
 
-        if (
-            rank[
+            if severity[
                 impact.impact_level
-            ]
-            == rank[
-                prior.impact_level
-            ]
-            and (
-                impact.dependency_distance
-                or 999
-            )
-            < (
-                prior.dependency_distance
-                or 999
-            )
-        ):
-            best[
-                impact.relative_path
-            ] = impact
+            ] > severity[
+                previous.impact_level
+            ]:
+                best[
+                    impact.relative_path
+                ] = impact
+                continue
 
-    impact_tuple = tuple(
-        sorted(
-            best.values(),
-            key=lambda item:
-            normalize_repository_path(
-                item.relative_path
-            ),
-        )
-    )
-
-    dependency_tuple = tuple(
-        sorted(
-            set(dependencies),
-            key=lambda item: (
-                normalize_repository_path(
-                    item.changed_path
-                ),
-                item.distance,
-                normalize_repository_path(
-                    item.impacted_path
-                ),
-            ),
-        )
-    )
-
-    decision = (
-        T17Decision.FAIL_CLOSED
-        if protected and unknown
-        else (
-            T17Decision.BLOCKED
-            if unknown
-            else T17Decision.ANALYZE
-        )
-    )
-
-    fingerprint = self._fingerprint(
-        changed,
-        impact_tuple,
-        dependency_tuple,
-        tuple(sorted(protected)),
-        tuple(sorted(unknown)),
-        len(graph.nodes),
-        len(graph.edges),
-    )
-
-    return ChangeImpactReport(
-        self.SCHEMA_VERSION,
-        decision,
-        changed,
-        impact_tuple,
-        dependency_tuple,
-        tuple(sorted(protected)),
-        tuple(sorted(unknown)),
-        len(graph.nodes),
-        len(graph.edges),
-        fingerprint,
-        self.policy.schema_version,
-        self.provenance.source,
-        False,
-        False,
-    )
-
-def validate_report(
-    self,
-    report: ChangeImpactReport,
-) -> None:
-    if not isinstance(
-        report,
-        ChangeImpactReport,
-    ):
-        raise ChangeImpactValidationError(
-            "Invalid T17 report."
-        )
-
-    if report.schema_version != (
-        self.SCHEMA_VERSION
-    ):
-        raise ChangeImpactCompatibilityError(
-            "Unsupported T17 schema."
-        )
-
-    if (
-        report.state_mutated
-        or report.execution_authorized
-    ):
-        raise ChangeImpactSecurityError(
-            "T17 report violates read-only boundary."
-        )
-
-    expected = self._fingerprint(
-        report.changed_paths,
-        report.impacts,
-        report.dependency_impacts,
-        report.protected_paths,
-        report.unknown_paths,
-        report.graph_nodes,
-        report.graph_edges,
-    )
-
-    if expected != report.fingerprint:
-        raise ChangeImpactIntegrityError(
-            "T17 fingerprint mismatch."
-        )
-
-@staticmethod
-def metrics(
-    report: ChangeImpactReport,
-) -> T17Metrics:
-    return T17Metrics.from_report(
-        report
-    )
-
-@staticmethod
-def build_handoff(
-    report: ChangeImpactReport,
-) -> ImpactIntegrationHandoff:
-    return ImpactIntegrationHandoff(
-        report.fingerprint,
-        report.decision.value,
-        report.changed_paths,
-        report.impacted_paths,
-        report.ready_for_handoff,
-    )
-
-@staticmethod
-def _fingerprint(
-    changed,
-    impacts,
-    dependencies,
-    protected,
-    unknown,
-    nodes,
-    edges,
-) -> str:
-    payload = {
-        "schema_version": "1.0",
-        "changed_paths": list(changed),
-        "impacts": [
-            (
-                item.__dict__
-                if hasattr(
-                    item,
-                    "__dict__",
+            if (
+                severity[
+                    impact.impact_level
+                ]
+                == severity[
+                    previous.impact_level
+                ]
+                and (
+                    impact.dependency_distance
+                    if impact.dependency_distance is not None
+                    else 999
                 )
-                else {
-                    "relative_path": item.relative_path,
-                    "impact_level": item.impact_level.value,
-                    "reason_code": item.reason_code.value,
-                    "authority": (
-                        item.authority.value
-                        if item.authority
-                        else None
-                    ),
-                    "source_kind": item.source_kind,
-                    "dependency_distance": (
-                        item.dependency_distance
-                    ),
-                }
+                < (
+                    previous.dependency_distance
+                    if previous.dependency_distance is not None
+                    else 999
+                )
+            ):
+                best[
+                    impact.relative_path
+                ] = impact
+
+        impact_tuple = tuple(
+            sorted(
+                best.values(),
+                key=lambda item:
+                normalize_repository_path(
+                    item.relative_path
+                ),
             )
-            for item in impacts
-        ],
-        "dependencies": [
-            {
-                "changed_path": item.changed_path,
-                "impacted_path": item.impacted_path,
-                "distance": item.distance,
-                "relationship": item.relationship,
-            }
-            for item in dependencies
-        ],
-        "protected": list(protected),
-        "unknown": list(unknown),
-        "graph_nodes": nodes,
-        "graph_edges": edges,
-    }
+        )
 
-    canonical = json.dumps(
-        payload,
-        sort_keys=True,
-        separators=(",", ":"),
-        default=str,
-    )
+        dependency_tuple = tuple(
+            sorted(
+                set(dependencies),
+                key=lambda item: (
+                    normalize_repository_path(
+                        item.changed_path
+                    ),
+                    item.distance,
+                    normalize_repository_path(
+                        item.impacted_path
+                    ),
+                ),
+            )
+        )
 
-    return hashlib.sha256(
-        canonical.encode()
-    ).hexdigest()
-```
+        decision = (
+            T17Decision.FAIL_CLOSED
+            if protected and unknown
+            else (
+                T17Decision.BLOCKED
+                if unknown
+                else T17Decision.ANALYZE
+            )
+        )
 
-**all** = [
-name
-for name in globals()
-if not name.startswith("_")
+        provisional = ChangeImpactReport(
+            schema_version=self.SCHEMA_VERSION,
+            decision=decision,
+            changed_paths=changed,
+            impacts=impact_tuple,
+            dependency_impacts=dependency_tuple,
+            protected_paths=tuple(
+                sorted(protected)
+            ),
+            unknown_paths=tuple(
+                sorted(unknown)
+            ),
+            graph_nodes=len(
+                graph.nodes
+            ),
+            graph_edges=len(
+                graph.edges
+            ),
+            fingerprint="",
+            policy_schema=self.policy.schema_version,
+            provenance_source=self.provenance.source,
+            state_mutated=False,
+            execution_authorized=False,
+        )
+
+        finalized = replace(
+            provisional,
+            fingerprint=fingerprint_report(
+                provisional
+            ),
+        )
+
+        return finalized
+
+    def validate_report(
+        self,
+        report: ChangeImpactReport,
+    ) -> None:
+        validate_report_contract(
+            self,
+            report,
+        )
+
+    @staticmethod
+    def metrics(
+        report: ChangeImpactReport,
+    ) -> T17Metrics:
+        return metrics(
+            report
+        )
+
+    @staticmethod
+    def build_handoff(
+        report: ChangeImpactReport,
+    ) -> ImpactIntegrationHandoff:
+        return build_handoff(
+            report
+        )
+
+
+__all__ = [
+    "ChangeImpactAnalyzer",
+    "ChangeImpactError",
+    "ChangeImpactValidationError",
+    "ChangeImpactSecurityError",
+    "ChangeImpactIntegrityError",
+    "ChangeImpactCompatibilityError",
+    "ChangeImpact",
+    "DependencyImpact",
+    "ChangeImpactReport",
+    "T17Metrics",
+    "ImpactIntegrationHandoff",
+    "ImpactPolicy",
+    "T17Provenance",
+    "ImpactLevel",
+    "T17Decision",
+    "ImpactReason",
 ]
