@@ -59,7 +59,7 @@ def build_operator_report():
 
 def build_impact_report(tmp_path: Path):
     repository = tmp_path / "repo"
-    repository.mkdir()
+    repository.mkdir(exist_ok=True)
 
     (repository / "x.py").write_text(
         "VALUE = 1\n",
