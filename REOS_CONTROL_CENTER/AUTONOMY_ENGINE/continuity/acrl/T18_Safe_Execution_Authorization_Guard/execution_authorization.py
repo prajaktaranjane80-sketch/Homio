@@ -129,22 +129,40 @@ class ExecutionAuthorizationGuard:
             )
 
         except SafeAuthorizationError as exc:
-            reason = AuthorizationReason.POLICY_BLOCKED
+    impact = request.impact_report
+    proposal = request.operator_report.proposal
+    text = str(exc).lower()
 
-            text = str(exc).lower()
+    if impact.unknown_paths:
+        reason = AuthorizationReason.T17_UNKNOWN_PATH
 
-            if "human approval" in text:
-                reason = AuthorizationReason.APPROVAL_REQUIRED
-            elif "protected" in text:
-                reason = AuthorizationReason.PROTECTED_IMPACT
-            elif "unknown" in text:
-                reason = AuthorizationReason.T17_UNKNOWN_PATH
-            elif "t17" in text:
-                reason = AuthorizationReason.T17_IMPACT_BLOCKED
-            elif "fingerprint" in text:
-                reason = AuthorizationReason.INTEGRITY_FAILURE
-            elif "t15" in text:
-                reason = AuthorizationReason.INVALID_T15_PROPOSAL
+    elif impact.protected_paths:
+        reason = AuthorizationReason.PROTECTED_IMPACT
+
+    elif (
+        "fingerprint" in text
+        or "integrity" in text
+    ):
+        reason = AuthorizationReason.INTEGRITY_FAILURE
+
+    elif (
+        proposal is not None
+        and proposal.action_type
+        is not OperatorActionType.PROPOSE_CHANGE
+    ):
+        reason = AuthorizationReason.INVALID_T15_PROPOSAL
+
+    elif "human approval" in text:
+        reason = AuthorizationReason.APPROVAL_REQUIRED
+
+    elif "t15" in text:
+        reason = AuthorizationReason.INVALID_T15_PROPOSAL
+
+    elif "t17" in text:
+        reason = AuthorizationReason.T17_IMPACT_BLOCKED
+
+    else:
+        reason = AuthorizationReason.POLICY_BLOCKED
 
             return self._blocked(
                 request_fp,
