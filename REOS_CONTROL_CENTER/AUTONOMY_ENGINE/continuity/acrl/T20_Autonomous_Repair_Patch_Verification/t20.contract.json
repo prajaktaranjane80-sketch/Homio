@@ -1,0 +1,90 @@
+{
+  "layer": "T20",
+  "name": "Autonomous Repair & Patch Verification",
+  "schema_version": "1.0",
+  "mode": "bounded-repair-and-verification",
+  "purpose": "Perform an explicitly authorized repair inside an isolated workspace and produce a verified patch artifact.",
+  "upstream": [
+    "T03_State_Reconstruction",
+    "T12_Resume_Safety_Validation",
+    "T14_Full_Regression",
+    "T17_Change_Impact_Dependency_Analysis",
+    "T18_Safe_Execution_Authorization_Guard",
+    "T19_Intelligent_Test_Selection_Failure_Diagnosis"
+  ],
+  "downstream": [
+    "future_patch_publication_layer",
+    "future_commit_or_pr_layer",
+    "future_deployment_layer",
+    "human_review"
+  ],
+  "required_inputs": [
+    "T18 ExecutionAuthorization",
+    "T17 ChangeImpactReport",
+    "T19 FailureDiagnosis",
+    "T19 TestSelectionPlan",
+    "repository baseline",
+    "bounded repair candidate"
+  ],
+  "decisions": [
+    "REPAIR_PROPOSED",
+    "REPAIR_APPLIED",
+    "VERIFIED",
+    "REJECTED",
+    "ROLLED_BACK",
+    "BLOCKED",
+    "FAIL_CLOSED"
+  ],
+  "allowed": [
+    "read repository source",
+    "create isolated repair workspace",
+    "apply bounded patch inside authorized scope",
+    "generate patch fingerprint",
+    "perform deterministic patch validation",
+    "consume external verification evidence",
+    "discard failed isolated workspace",
+    "produce repair evidence"
+  ],
+  "forbidden": [
+    "state.json mutation",
+    "controller state mutation",
+    "architecture mutation",
+    "authority promotion",
+    "self approval",
+    "scope expansion",
+    "main repository mutation",
+    "GitHub publication",
+    "production deployment",
+    "credential modification",
+    "unbounded retry",
+    "self declared verification"
+  ],
+  "deep_audit": {
+    "01_purpose": "Bounded authorized repair and patch verification.",
+    "02_capability_completeness": "Repair, scope, patch, workspace, verification and evidence controls.",
+    "03_inputs": "T03, T17, T18, T19 and repository baseline evidence.",
+    "04_outputs": "Immutable repair result and verification evidence.",
+    "05_state_dependency": "Read-only T03 execution state.",
+    "06_evidence_dependency": "T17 impact, T19 diagnosis and test plan.",
+    "07_upstream_dependencies": "T03, T12, T14, T17, T18, T19.",
+    "08_downstream_consumers": "Future publication, commit, deployment and review layers.",
+    "09_failure_modes": "Authorization, scope, baseline, patch, syntax, verification and rollback failures.",
+    "10_security_boundary": "AI output is untrusted candidate data.",
+    "11_determinism": "Scope, identity and final verdict are deterministic.",
+    "12_concurrency": "Overlapping repair scopes are rejected.",
+    "13_recovery": "Failed repairs are discarded from isolated workspace.",
+    "14_gpt_limitation_coverage": "Hallucination, stale context, over-broad edits and fake success are controlled.",
+    "15_new_agent_usability": "Machine-readable repair request and evidence.",
+    "16_cross_chat_continuity": "Repair fingerprints and receipts preserve continuity.",
+    "17_read_capability": "Repository and evidence inspection.",
+    "18_write_capability": "Only isolated bounded workspace and evidence artifacts.",
+    "19_testability": "Deterministic unit and contract tests.",
+    "20_observability": "Repair, authorization, scope and verification fingerprints.",
+    "21_integration_contract": "T18 authorizes, T20 repairs and verifies.",
+    "22_missing_layers": "Publication, commit, deployment and learning remain separate.",
+    "23_authority_permission_boundary": "T20 cannot authorize itself.",
+    "24_idempotency_replay_safety": "Repair identity includes authorization and baseline fingerprints.",
+    "25_versioning_migration_compatibility": "Schema and policy versions are explicit.",
+    "26_adversarial_red_team_coverage": "Scope escape, malicious patch and policy bypass are blocked."
+  }
+}
