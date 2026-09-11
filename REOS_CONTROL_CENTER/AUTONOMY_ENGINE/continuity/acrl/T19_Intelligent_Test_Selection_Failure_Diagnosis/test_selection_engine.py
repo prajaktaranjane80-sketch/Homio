@@ -92,11 +92,24 @@ def build_impact(changed):
         execution_authorized=False,
     )
 
+    payload = provisional.to_dict()
+    payload["fingerprint"] = _impact_fingerprint(provisional)
+
     return ChangeImpactReport(
-        **{
-            **provisional.__dict__,
-            "fingerprint": _impact_fingerprint(provisional),
-        }
+        schema_version=payload["schema_version"],
+        decision=T17Decision(payload["decision"]),
+        changed_paths=tuple(payload["changed_paths"]),
+        impacts=(),
+        dependency_impacts=(),
+        protected_paths=tuple(payload["protected_paths"]),
+        unknown_paths=tuple(payload["unknown_paths"]),
+        graph_nodes=payload["graph_nodes"],
+        graph_edges=payload["graph_edges"],
+        fingerprint=payload["fingerprint"],
+        policy_schema=payload["policy_schema"],
+        provenance_source=payload["provenance_source"],
+        state_mutated=payload["state_mutated"],
+        execution_authorized=payload["execution_authorized"],
     )
 
 
