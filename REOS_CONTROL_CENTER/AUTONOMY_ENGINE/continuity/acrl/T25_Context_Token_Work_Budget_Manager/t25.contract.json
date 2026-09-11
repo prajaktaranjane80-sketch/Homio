@@ -1,0 +1,94 @@
+{
+  "layer": "T25",
+  "name": "Context / Token / Work-Budget Manager",
+  "schema_version": "1.0",
+  "mode": "deterministic-budget-governance",
+  "purpose": "Manage context, token and bounded work budgets for autonomous REOS continuity without exceeding declared limits or relying on model memory.",
+  "upstream": [
+    "T23_Reference_Evidence_Resolution_Engine",
+    "T24_Cross_Chat_Continuity_Recovery_Engine"
+  ],
+  "upstream_supporting_layers": [
+    "T03_State_Reconstruction",
+    "T08_Context_Compression",
+    "T09_State_Fingerprint",
+    "T12_Resume_Safety",
+    "T22_Commit_Execution_Checkpoint_Coordination"
+  ],
+  "downstream": [
+    "T26_Dependency_Aware_Work_Scheduler",
+    "T27_Conflict_Resolution_Reconciliation_Engine",
+    "T28_Execution_Orchestration_Controlled_Execution"
+  ],
+  "required_inputs": [
+    "T24 continuity recovery",
+    "resolved evidence identity",
+    "declared context capacity",
+    "declared token budget",
+    "declared work budget",
+    "budget request identity"
+  ],
+  "decisions": [
+    "ALLOCATED",
+    "READ_ONLY",
+    "BLOCKED",
+    "EXHAUSTED",
+    "INVALID",
+    "REPLAY_DETECTED",
+    "FAIL_CLOSED"
+  ],
+  "allowed": [
+    "calculate usable context budget",
+    "calculate safe token budget",
+    "calculate bounded work budget",
+    "reserve budget",
+    "release unused reservation",
+    "consume reserved budget",
+    "detect exhaustion",
+    "produce deterministic budget snapshot",
+    "produce handoff recommendation"
+  ],
+  "forbidden": [
+    "execute work",
+    "modify state.json",
+    "modify controller state",
+    "advance gates",
+    "approve execution",
+    "authorize itself",
+    "increase limits implicitly",
+    "assume unavailable tokens",
+    "ignore budget exhaustion",
+    "use chat history as budget authority",
+    "use GPT memory as budget authority",
+    "rewrite upstream evidence",
+    "bypass T24 continuity validation"
+  ],
+  "deep_audit": {
+    "01_purpose": "Provide deterministic resource limits for autonomous reasoning and work execution.",
+    "02_capability_completeness": "Context, token and work budget calculation, reservation, consumption, release and exhaustion detection.",
+    "03_inputs": "T24 continuity plus explicit resource limits and budget request.",
+    "04_outputs": "Budget snapshot, reservation and deterministic allocation result.",
+    "05_state_dependency": "State is consumed only through authoritative continuity evidence.",
+    "06_evidence_dependency": "T23 resolved evidence and T24 recovered continuity are prerequisites.",
+    "07_upstream_dependencies": "T23 and T24 with supporting T03, T08, T09, T12 and T22 evidence.",
+    "08_downstream_consumers": "T26 scheduler, T27 reconciliation and T28 orchestration.",
+    "09_failure_modes": "Invalid limits, negative capacity, over-allocation, exhausted budget, replay and concurrent reservation.",
+    "10_security_boundary": "T25 controls budgets only; it cannot authorize or execute actions.",
+    "11_determinism": "Identical inputs and policy produce identical budget allocation.",
+    "12_concurrency": "Reservation store prevents incompatible simultaneous reservations.",
+    "13_recovery": "Unused reservations may be released; exhausted budgets fail closed.",
+    "14_gpt_limitation_coverage": "Controls context-window, token and work-budget pressure instead of relying on model judgment.",
+    "15_new_agent_usability": "Budget snapshot is self-contained and machine-readable.",
+    "16_cross_chat_continuity": "Recovered T24 context becomes bounded by explicit T25 resource limits.",
+    "17_read_capability": "Reads continuity and declared budget inputs.",
+    "18_write_capability": "Only internal budget reservation state may change; canonical project state cannot change.",
+    "19_testability": "Pure numeric and deterministic reservation operations are isolated and testable.",
+    "20_observability": "Totals, reservations, consumption, remaining capacity and exhaustion state are visible.",
+    "21_integration_contract": "T24 recovered continuity becomes a bounded work resource envelope.",
+    "22_missing_layers": "Scheduling, reconciliation and execution remain downstream.",
+    "23_authority_permission_boundary": "T25 has resource authority only, never execution authority.",
+    "24_idempotency_replay_safety": "Budget request identity prevents duplicate incompatible allocation.",
+    "25_versioning_migration_compatibility": "Schema and policy versions are explicit.",
+    "26_adversarial_red_team_coverage": "Negative limits, integer overflow, over-allocation, replay, double consumption, budget bypass and implicit limit escalation are blocked."
+  }
+}
