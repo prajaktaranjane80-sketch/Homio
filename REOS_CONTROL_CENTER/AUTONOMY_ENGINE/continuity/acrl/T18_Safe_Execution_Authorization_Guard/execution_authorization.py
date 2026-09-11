@@ -94,6 +94,47 @@ class ExecutionAuthorizationGuard:
             requires_external_executor=True,
         )
 
+    @staticmethod
+    def _reason_for_validation_failure(
+        request: AuthorizationRequest,
+        exc: SafeAuthorizationError,
+    ) -> AuthorizationReason:
+        """Map validation failures using structured upstream evidence first."""
+
+        impact = request.impact_report
+        proposal = request.operator_report.proposal
+        text = str(exc).lower()
+
+        if impact.unknown_paths:
+            return AuthorizationReason.T17_UNKNOWN_PATH
+
+        if impact.protected_paths:
+            return AuthorizationReason.PROTECTED_IMPACT
+
+        if (
+            "fingerprint" in text
+            or "integrity" in text
+        ):
+            return AuthorizationReason.INTEGRITY_FAILURE
+
+        if (
+            proposal is not None
+            and proposal.action_type
+            is not OperatorActionType.PROPOSE_CHANGE
+        ):
+            return AuthorizationReason.INVALID_T15_PROPOSAL
+
+        if "human approval" in text:
+            return AuthorizationReason.APPROVAL_REQUIRED
+
+        if "t15" in text:
+            return AuthorizationReason.INVALID_T15_PROPOSAL
+
+        if "t17" in text:
+            return AuthorizationReason.T17_IMPACT_BLOCKED
+
+        return AuthorizationReason.POLICY_BLOCKED
+
     def authorize(
         self,
         request: AuthorizationRequest,
@@ -129,40 +170,10 @@ class ExecutionAuthorizationGuard:
             )
 
         except SafeAuthorizationError as exc:
-    impact = request.impact_report
-    proposal = request.operator_report.proposal
-    text = str(exc).lower()
-
-    if impact.unknown_paths:
-        reason = AuthorizationReason.T17_UNKNOWN_PATH
-
-    elif impact.protected_paths:
-        reason = AuthorizationReason.PROTECTED_IMPACT
-
-    elif (
-        "fingerprint" in text
-        or "integrity" in text
-    ):
-        reason = AuthorizationReason.INTEGRITY_FAILURE
-
-    elif (
-        proposal is not None
-        and proposal.action_type
-        is not OperatorActionType.PROPOSE_CHANGE
-    ):
-        reason = AuthorizationReason.INVALID_T15_PROPOSAL
-
-    elif "human approval" in text:
-        reason = AuthorizationReason.APPROVAL_REQUIRED
-
-    elif "t15" in text:
-        reason = AuthorizationReason.INVALID_T15_PROPOSAL
-
-    elif "t17" in text:
-        reason = AuthorizationReason.T17_IMPACT_BLOCKED
-
-    else:
-        reason = AuthorizationReason.POLICY_BLOCKED
+            reason = self._reason_for_validation_failure(
+                request,
+                exc,
+            )
 
             return self._blocked(
                 request_fp,
