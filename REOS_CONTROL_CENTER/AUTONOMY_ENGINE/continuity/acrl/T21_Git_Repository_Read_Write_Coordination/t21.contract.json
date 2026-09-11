@@ -1,0 +1,89 @@
+{
+  "layer": "T21",
+  "name": "Git Repository Read/Write Coordination",
+  "schema_version": "1.0",
+  "mode": "authorized-git-transaction",
+  "purpose": "Coordinate deterministic, authorized Git repository reads and bounded writes for verified repairs.",
+  "upstream": [
+    "T03_State_Reconstruction",
+    "T14_Full_Regression",
+    "T16_Repository_Intelligence_File_Discovery",
+    "T17_Change_Impact_Dependency_Analysis",
+    "T18_Safe_Execution_Authorization_Guard",
+    "T19_Intelligent_Test_Selection_Failure_Diagnosis",
+    "T20_Autonomous_Repair_Patch_Verification"
+  ],
+  "downstream": [
+    "future_pull_request_layer",
+    "future_deployment_layer",
+    "future_release_layer",
+    "future_audit_layer"
+  ],
+  "required_inputs": [
+    "repository root",
+    "T18 execution authorization for writes",
+    "T20 VERIFIED repair result for repair commits",
+    "expected branch",
+    "expected HEAD or baseline",
+    "explicit changed paths"
+  ],
+  "decisions": [
+    "READ_ONLY",
+    "READY_TO_WRITE",
+    "COMMITTED",
+    "PUSHED",
+    "BLOCKED",
+    "REJECTED",
+    "FAIL_CLOSED"
+  ],
+  "allowed": [
+    "read Git repository state",
+    "verify branch and HEAD",
+    "create bounded transaction branch",
+    "stage explicit authorized paths",
+    "create verified commit",
+    "push explicitly authorized branch",
+    "produce deterministic transaction evidence"
+  ],
+  "forbidden": [
+    "force push",
+    "history rewrite",
+    "reset --hard",
+    "clean -fd",
+    "state.json mutation",
+    "architecture mutation",
+    "unbounded staging",
+    "git add .",
+    "self authorization",
+    "self approval",
+    "production deployment"
+  ],
+  "deep_audit": {
+    "01_purpose": "Authorized Git coordination.",
+    "02_capability_completeness": "Read, baseline verification, scoped staging, commit and optional push.",
+    "03_inputs": "Repository state, authorization, verified repair and bounded paths.",
+    "04_outputs": "Git transaction result and immutable transaction fingerprint.",
+    "05_state_dependency": "T03 state is read-only evidence only.",
+    "06_evidence_dependency": "T18 authorization and T20 verified repair are required for repair writes.",
+    "07_upstream_dependencies": "T03, T14, T16, T17, T18, T19 and T20.",
+    "08_downstream_consumers": "Future PR, deployment, release and audit layers.",
+    "09_failure_modes": "Dirty tree, branch drift, HEAD drift, scope mismatch, commit failure and push failure.",
+    "10_security_boundary": "No unrestricted shell Git execution.",
+    "11_determinism": "Repository fingerprints and transaction inputs are canonicalized.",
+    "12_concurrency": "One active write transaction per repository.",
+    "13_recovery": "Pre-commit failures are safely aborted; committed history is never destructively rewritten.",
+    "14_gpt_limitation_coverage": "Prevents stale context, wrong branch, wrong files and false Git success claims.",
+    "15_new_agent_usability": "Machine-readable Git transaction request and receipt.",
+    "16_cross_chat_continuity": "Transaction fingerprints preserve Git continuity.",
+    "17_read_capability": "Git status, HEAD, branch, diff, log, remote and refs.",
+    "18_write_capability": "Only explicit scoped branch, stage, commit and authorized push.",
+    "19_testability": "Temporary Git repositories provide deterministic isolated tests.",
+    "20_observability": "Before/after repository identities and commit evidence.",
+    "21_integration_contract": "T20 VERIFIED repair becomes a T21 Git transaction.",
+    "22_missing_layers": "PR, release and deployment remain downstream.",
+    "23_authority_permission_boundary": "T21 cannot authorize itself.",
+    "24_idempotency_replay_safety": "Repair and transaction fingerprints prevent duplicate commits.",
+    "25_versioning_migration_compatibility": "Explicit schema and policy versions.",
+    "26_adversarial_red_team_coverage": "Force push, path escape, staging bypass and branch drift are blocked."
+  }
+}
