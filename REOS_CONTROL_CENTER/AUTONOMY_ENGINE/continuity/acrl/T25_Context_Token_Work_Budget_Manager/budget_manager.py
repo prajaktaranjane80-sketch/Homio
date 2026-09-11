@@ -1,18 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from threading import Lock
+from threading import RLock
 
+from .budget_identity import fingerprint
 from .budget_models import (
     BudgetReservation,
     BudgetSnapshot,
 )
-from .budget_policy import (
-    BudgetPolicy,
-)
-from .budget_identity import (
-    fingerprint,
-)
+from .budget_policy import BudgetPolicy
 
 
 class BudgetExhaustedError(RuntimeError):
@@ -28,6 +24,7 @@ class BudgetManager:
     context_capacity: int
     token_capacity: int
     work_capacity: int
+
     policy: BudgetPolicy = field(
         default_factory=BudgetPolicy
     )
@@ -36,14 +33,16 @@ class BudgetManager:
         str,
         BudgetReservation,
     ] = field(
-        default_factory=dict,
+        default_factory=dict
     )
 
-    _lock: Lock = field(
-        default_factory=Lock
+    _lock: RLock = field(
+        default_factory=RLock
     )
 
-    def _totals(self) -> tuple[int, int, int]:
+    def _totals(
+        self,
+    ) -> tuple[int, int, int]:
         context = sum(
             item.context_reserved
             for item in self._reservations.values()
@@ -68,146 +67,153 @@ class BudgetManager:
             work,
         )
 
+    def _snapshot_unlocked(
+        self,
+    ) -> BudgetSnapshot:
+        (
+            reserved_context,
+            reserved_token,
+            reserved_work,
+        ) = self._totals()
+
+        context_consumed = sum(
+            item.context_consumed
+            for item in self._reservations.values()
+            if not item.released
+        )
+
+        token_consumed = sum(
+            item.token_consumed
+            for item in self._reservations.values()
+            if not item.released
+        )
+
+        work_consumed = sum(
+            item.work_consumed
+            for item in self._reservations.values()
+            if not item.released
+        )
+
+        context_remaining = max(
+            0,
+            self.context_capacity
+            - reserved_context,
+        )
+
+        token_remaining = max(
+            0,
+            self.token_capacity
+            - reserved_token,
+        )
+
+        work_remaining = max(
+            0,
+            self.work_capacity
+            - reserved_work,
+        )
+
+        exhausted = (
+            context_remaining <= 0
+            or token_remaining <= 0
+            or work_remaining <= 0
+        )
+
+        payload = {
+            "schema_version": "1.0",
+            "policy_version": (
+                self.policy.policy_version
+            ),
+            "context_capacity": (
+                self.context_capacity
+            ),
+            "context_reserved": (
+                reserved_context
+            ),
+            "context_consumed": (
+                context_consumed
+            ),
+            "token_capacity": (
+                self.token_capacity
+            ),
+            "token_reserved": (
+                reserved_token
+            ),
+            "token_consumed": (
+                token_consumed
+            ),
+            "work_capacity": (
+                self.work_capacity
+            ),
+            "work_reserved": (
+                reserved_work
+            ),
+            "work_consumed": (
+                work_consumed
+            ),
+            "context_remaining": (
+                context_remaining
+            ),
+            "token_remaining": (
+                token_remaining
+            ),
+            "work_remaining": (
+                work_remaining
+            ),
+            "exhausted": exhausted,
+        }
+
+        return BudgetSnapshot(
+            schema_version="1.0",
+            policy_version=(
+                self.policy.policy_version
+            ),
+            context_capacity=(
+                self.context_capacity
+            ),
+            context_reserved=(
+                reserved_context
+            ),
+            context_consumed=(
+                context_consumed
+            ),
+            token_capacity=(
+                self.token_capacity
+            ),
+            token_reserved=(
+                reserved_token
+            ),
+            token_consumed=(
+                token_consumed
+            ),
+            work_capacity=(
+                self.work_capacity
+            ),
+            work_reserved=(
+                reserved_work
+            ),
+            work_consumed=(
+                work_consumed
+            ),
+            context_remaining=(
+                context_remaining
+            ),
+            token_remaining=(
+                token_remaining
+            ),
+            work_remaining=(
+                work_remaining
+            ),
+            exhausted=exhausted,
+            snapshot_fingerprint=fingerprint(
+                payload
+            ),
+        )
+
     def snapshot(
         self,
     ) -> BudgetSnapshot:
         with self._lock:
-            reserved_context, reserved_token, reserved_work = (
-                self._totals()
-            )
-
-            context_consumed = sum(
-                item.context_consumed
-                for item in self._reservations.values()
-                if not item.released
-            )
-
-            token_consumed = sum(
-                item.token_consumed
-                for item in self._reservations.values()
-                if not item.released
-            )
-
-            work_consumed = sum(
-                item.work_consumed
-                for item in self._reservations.values()
-                if not item.released
-            )
-
-            context_remaining = max(
-                0,
-                self.context_capacity
-                - reserved_context,
-            )
-
-            token_remaining = max(
-                0,
-                self.token_capacity
-                - reserved_token,
-            )
-
-            work_remaining = max(
-                0,
-                self.work_capacity
-                - reserved_work,
-            )
-
-            exhausted = (
-                context_remaining <= 0
-                or token_remaining <= 0
-                or work_remaining <= 0
-            )
-
-            payload = {
-                "schema_version": "1.0",
-                "policy_version": (
-                    self.policy.policy_version
-                ),
-                "context_capacity": (
-                    self.context_capacity
-                ),
-                "context_reserved": (
-                    reserved_context
-                ),
-                "context_consumed": (
-                    context_consumed
-                ),
-                "token_capacity": (
-                    self.token_capacity
-                ),
-                "token_reserved": (
-                    reserved_token
-                ),
-                "token_consumed": (
-                    token_consumed
-                ),
-                "work_capacity": (
-                    self.work_capacity
-                ),
-                "work_reserved": (
-                    reserved_work
-                ),
-                "work_consumed": (
-                    work_consumed
-                ),
-                "context_remaining": (
-                    context_remaining
-                ),
-                "token_remaining": (
-                    token_remaining
-                ),
-                "work_remaining": (
-                    work_remaining
-                ),
-                "exhausted": exhausted,
-            }
-
-            return BudgetSnapshot(
-                schema_version="1.0",
-                policy_version=(
-                    self.policy.policy_version
-                ),
-                context_capacity=(
-                    self.context_capacity
-                ),
-                context_reserved=(
-                    reserved_context
-                ),
-                context_consumed=(
-                    context_consumed
-                ),
-                token_capacity=(
-                    self.token_capacity
-                ),
-                token_reserved=(
-                    reserved_token
-                ),
-                token_consumed=(
-                    token_consumed
-                ),
-                work_capacity=(
-                    self.work_capacity
-                ),
-                work_reserved=(
-                    reserved_work
-                ),
-                work_consumed=(
-                    work_consumed
-                ),
-                context_remaining=(
-                    context_remaining
-                ),
-                token_remaining=(
-                    token_remaining
-                ),
-                work_remaining=(
-                    work_remaining
-                ),
-                exhausted=exhausted,
-                snapshot_fingerprint=fingerprint(
-                    payload
-                ),
-            )
+            return self._snapshot_unlocked()
 
     def reserve(
         self,
@@ -228,7 +234,7 @@ class BudgetManager:
                     "Reservation identity collision."
                 )
 
-            snapshot = self.snapshot()
+            snapshot = self._snapshot_unlocked()
 
             remaining = (
                 snapshot.context_remaining,
@@ -244,8 +250,7 @@ class BudgetManager:
 
             if any(
                 want > capacity
-                for want, capacity
-                in zip(
+                for want, capacity in zip(
                     requested,
                     remaining,
                 )
