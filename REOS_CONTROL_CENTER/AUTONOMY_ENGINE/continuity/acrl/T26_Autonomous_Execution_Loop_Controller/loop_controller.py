@@ -298,15 +298,41 @@ def start_execution_loop(
         request
     )
 
-    existing = store.get(
+        existing = store.get(
         request.loop_id
     )
 
     if existing is not None:
-        if (
-            existing.loop_fingerprint
-            == loop.loop_fingerprint
-        ):
+        same_identity = (
+            existing.execution_intent
+            == request.execution_intent
+            and existing.checkpoint_id
+            == request.checkpoint_id
+            and existing.checkpoint_fingerprint
+            == request.checkpoint_fingerprint
+            and existing.continuity_recovery_id
+            == request.continuity_recovery_id
+            and existing.continuity_fingerprint
+            == request.continuity_fingerprint
+            and existing.evidence_resolution_id
+            == request.evidence_resolution_id
+            and existing.evidence_fingerprint
+            == request.evidence_fingerprint
+            and existing.max_iterations
+            == request.max_iterations
+            and existing.max_retries_per_iteration
+            == request.max_retries_per_iteration
+            and existing.no_progress_limit
+            == request.no_progress_limit
+            and existing.total_work_budget
+            == request.total_work_budget
+            and existing.total_token_budget
+            == request.total_token_budget
+            and existing.total_context_budget
+            == request.total_context_budget
+        )
+
+        if same_identity:
             return _result(
                 decision=LoopDecision.REPLAY_DETECTED,
                 reason="LOOP_ALREADY_EXISTS",
@@ -314,7 +340,8 @@ def start_execution_loop(
                 request=request,
                 next_layer=None,
                 explanation=(
-                    "Identical execution loop already exists."
+                    "Identical autonomous execution loop "
+                    "already exists."
                 ),
             )
 
@@ -325,7 +352,8 @@ def start_execution_loop(
             request=request,
             next_layer=None,
             explanation=(
-                "Loop identity already exists with different content."
+                "Loop identity already exists with "
+                "different immutable execution inputs."
             ),
         )
 
