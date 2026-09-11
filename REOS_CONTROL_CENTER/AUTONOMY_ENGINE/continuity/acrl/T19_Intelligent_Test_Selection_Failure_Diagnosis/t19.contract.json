@@ -1,0 +1,96 @@
+{
+  "layer": "T19",
+  "name": "Intelligent Test Selection & Failure Diagnosis",
+  "schema_version": "1.0",
+  "mode": "read-only-analysis",
+  "purpose": [
+    "select the smallest deterministic relevant test set",
+    "diagnose test failures from structured evidence",
+    "correlate failures with T17 change impact",
+    "produce safe next diagnostic recommendations"
+  ],
+  "upstream": [
+    "T03_State_Reconstruction",
+    "T12_Resume_Safety_Validation",
+    "T17_Change_Impact_Dependency_Analysis",
+    "T18_Safe_Execution_Authorization_Guard"
+  ],
+  "downstream": [
+    "external_test_executor",
+    "failure_recovery_consumer",
+    "human_operator",
+    "future_ai_operator"
+  ],
+  "required_inputs": [
+    "T03 immutable execution state snapshot",
+    "T12 validated resume-safety report",
+    "T17 validated change-impact report",
+    "repository read access",
+    "optional structured failure evidence"
+  ],
+  "decisions": [
+    "SELECT",
+    "FALLBACK",
+    "BLOCK",
+    "FAIL_CLOSED"
+  ],
+  "capabilities": {
+    "test_discovery": true,
+    "impact_based_selection": true,
+    "import_based_selection": true,
+    "name_based_selection": true,
+    "failure_classification": true,
+    "failure_correlation": true,
+    "root_cause_candidates": true,
+    "deterministic_fingerprints": true,
+    "execution": false,
+    "repository_mutation": false,
+    "state_mutation": false,
+    "code_repair": false,
+    "architecture_change": false,
+    "authority_promotion": false,
+    "self_approval": false
+  },
+  "deep_audit": {
+    "01_purpose": "deterministic intelligent test selection and failure diagnosis",
+    "02_capability_completeness": true,
+    "03_inputs": true,
+    "04_outputs": true,
+    "05_state_dependency": "T03",
+    "06_evidence_dependency": "T17 and optional failure evidence",
+    "07_upstream_dependencies": [
+      "T03",
+      "T12",
+      "T17",
+      "T18"
+    ],
+    "08_downstream_consumers": [
+      "external_test_executor",
+      "failure_recovery_consumer"
+    ],
+    "09_failure_modes": [
+      "invalid state",
+      "unsafe resume",
+      "invalid impact report",
+      "malformed failure evidence",
+      "unparseable test file"
+    ],
+    "10_security_boundary": "read-only analysis",
+    "11_determinism": true,
+    "12_concurrency": "stateless per-request analysis",
+    "13_recovery": "fail closed on authority or integrity ambiguity",
+    "14_gpt_limitation_coverage": true,
+    "15_new_agent_usability": true,
+    "16_cross_chat_continuity": true,
+    "17_read_capability": true,
+    "18_write_capability": false,
+    "19_testability": true,
+    "20_observability": true,
+    "21_integration_contract": true,
+    "22_missing_layers": [],
+    "23_authority_permission_boundary": "REOS_CONTROL_CENTER",
+    "24_idempotency_replay_safety": true,
+    "25_versioning_migration_compatibility": true,
+    "26_adversarial_red_team_coverage": true
+  }
+}
