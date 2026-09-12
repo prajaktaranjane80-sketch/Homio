@@ -1,4 +1,4 @@
-from .reconciliation_models import ConflictRecord
+from reconciliation_models import ConflictRecord
 
 
 def required_evidence(conflict: ConflictRecord) -> bool:
