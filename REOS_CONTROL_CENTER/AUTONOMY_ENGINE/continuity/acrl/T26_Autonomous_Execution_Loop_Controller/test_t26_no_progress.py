@@ -4,6 +4,7 @@ from .loop_controller import (
 from .loop_models import (
     ExecutionLoop,
     LoopDecision,
+    LoopIteration,
     LoopStatus,
 )
 from .loop_store import (
@@ -12,6 +13,21 @@ from .loop_store import (
 
 
 def make_loop():
+    previous_iteration = LoopIteration(
+        iteration=1,
+        iteration_fingerprint="i" * 64,
+        progress_fingerprint="same",
+        checkpoint_fingerprint="a" * 64,
+        continuity_fingerprint="b" * 64,
+        work_consumed=1,
+        token_consumed=10,
+        context_consumed=10,
+        retry_count=0,
+        completed=False,
+        blocked=False,
+        explanation="previous iteration",
+    )
+
     return ExecutionLoop(
         schema_version="1.0",
         loop_version="1.0",
@@ -35,15 +51,7 @@ def make_loop():
         context_consumed=10,
         no_progress_limit=1,
         no_progress_count=0,
-        iterations=(
-            type(
-                "Iteration",
-                (),
-                {
-                    "progress_fingerprint": "same",
-                },
-            )(),
-        ),
+        iterations=(previous_iteration,),
         terminal_reason=None,
         loop_fingerprint="d" * 64,
     )
@@ -67,4 +75,9 @@ def test_no_progress_stops_loop():
     assert (
         result.decision
         is LoopDecision.NO_PROGRESS
+    )
+
+    assert (
+        result.loop.status
+        is LoopStatus.FAILED
     )
