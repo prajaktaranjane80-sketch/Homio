@@ -1,0 +1,58 @@
+{
+  "layer": "T29",
+  "name": "Human Decision Boundary Controller",
+  "schema_version": "1.0",
+  "mode": "bounded-human-decision-control",
+  "purpose": "Determine when autonomous execution must stop and a human decision is required, then safely record and validate that decision without executing it.",
+  "upstream_layers": [
+    "T22",
+    "T23",
+    "T24",
+    "T25",
+    "T26",
+    "T27",
+    "T28"
+  ],
+  "downstream_layers": [
+    "T30"
+  ],
+  "required_inputs": [
+    "reconciliation_result",
+    "continuity_fingerprint",
+    "evidence_fingerprint",
+    "decision_identity",
+    "decision_policy"
+  ],
+  "decisions": [
+    "AUTONOMY_ALLOWED",
+    "HUMAN_REQUIRED",
+    "WAITING_FOR_HUMAN",
+    "HUMAN_APPROVED",
+    "HUMAN_REJECTED",
+    "HUMAN_EXPIRED",
+    "INVALID_DECISION",
+    "REPLAY_DETECTED",
+    "FAIL_CLOSED"
+  ],
+  "allowed_operations": [
+    "classify_boundary",
+    "build_human_request",
+    "validate_evidence",
+    "validate_human_decision",
+    "record_decision",
+    "generate_fingerprint",
+    "produce_handoff"
+  ],
+  "forbidden_operations": [
+    "execute_shell",
+    "execute_git",
+    "deploy",
+    "merge",
+    "mutate_state_json",
+    "self_authorize",
+    "invent_human_approval",
+    "bypass_reconciliation",
+    "continue_after_human_rejection"
+  ],
+  "audit_depth": 26
+}
