@@ -6,7 +6,7 @@ from .acrl_runtime import ACRLRuntime
 
 
 PROJECT_ROOT = (
-    Path(__file__).resolve().parents[5]
+    Path(__file__).resolve().parents[4]
 )
 
 
