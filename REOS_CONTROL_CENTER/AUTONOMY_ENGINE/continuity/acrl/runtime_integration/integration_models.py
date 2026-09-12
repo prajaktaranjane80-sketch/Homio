@@ -16,7 +16,7 @@ class ACRLTaskDescriptor:
 
     @property
     def healthy(self) -> bool:
-        return self.exists and self.has_init and bool(self.contract_files)
+        return self.exists and bool(self.test_files)
 
 
 @dataclass(frozen=True)
@@ -65,3 +65,4 @@ class ACRLIntegrationSnapshot:
             and len(self.tasks) == 30
             and all(task.healthy for task in self.tasks)
         )
+
