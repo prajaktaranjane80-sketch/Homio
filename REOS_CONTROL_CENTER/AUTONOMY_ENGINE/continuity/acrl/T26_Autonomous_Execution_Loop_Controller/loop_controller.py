@@ -294,13 +294,13 @@ def start_execution_loop(
             explanation=str(exc),
         )
 
-    loop = _build_initial_loop(
-    request
-)
+        loop = _build_initial_loop(
+        request
+    )
 
-existing = store.get(
-    request.loop_id
-)
+    existing = store.get(
+        request.loop_id
+    )
 
     if existing is not None:
         same_identity = (
