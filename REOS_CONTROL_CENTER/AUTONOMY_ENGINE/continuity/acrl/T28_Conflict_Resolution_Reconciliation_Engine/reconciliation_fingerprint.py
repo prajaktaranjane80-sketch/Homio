@@ -1,4 +1,4 @@
-from .reconciliation_identity import fingerprint
+from reconciliation_identity import fingerprint
 
 
 def resolution_fingerprint(resolutions) -> str:
