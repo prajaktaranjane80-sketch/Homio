@@ -1,10 +1,10 @@
-from .reconciliation_models import (
+from reconciliation_models import (
     ReconciliationDecision,
     ReconciliationPolicy,
     Resolution,
     ResolutionKind,
 )
-from .resolution_engine import resolve_conflict
+from resolution_engine import resolve_conflict
 
 
 def reconcile_conflicts(
