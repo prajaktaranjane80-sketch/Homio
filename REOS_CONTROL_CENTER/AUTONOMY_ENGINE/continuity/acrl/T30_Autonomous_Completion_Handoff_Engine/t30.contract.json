@@ -1,0 +1,15 @@
+{
+  "layer": "T30",
+  "name": "Autonomous Completion / Handoff Engine",
+  "schema_version": "1.0",
+  "mode": "autonomous-mission-closure-and-handoff",
+  "purpose": "Determine whether an autonomous mission is truly complete, prove closure across required evidence dimensions, detect residual work, preserve recovery continuity, and hand off to the next valid execution boundary without inventing completion.",
+  "upstream_layers": ["T21", "T22", "T23", "T24", "T25", "T26", "T27", "T28", "T29"],
+  "downstream_layers": ["NEXT_EXECUTION_BOUNDARY"],
+  "required_inputs": ["mission_graph", "execution_evidence", "dependency_state", "decision_state", "checkpoint_state"],
+  "terminal_states": ["COMPLETED", "HANDOFF_READY", "BLOCKED", "FAILED", "INCOMPLETE", "RECOVERY_REQUIRED", "INVALID_FINALIZATION"],
+  "allowed_operations": ["evaluate_completion", "validate_proof_quorum", "detect_residual_work", "validate_dependency_closure", "classify_recovery", "build_handoff", "resolve_next_mission", "record_completion", "generate_fingerprint"],
+  "forbidden_operations": ["invent_completion", "bypass_proof_quorum", "continue_after_human_rejection", "execute_shell", "execute_git", "deploy", "merge", "mutate_state_json", "erase_unresolved_work", "self_authorize_handoff"],
+  "proof_dimensions": ["CODE", "TEST", "CONTRACT", "DEPENDENCY", "STATE", "EVIDENCE", "SECURITY", "HANDOFF"],
+  "audit_depth": 34
+}
