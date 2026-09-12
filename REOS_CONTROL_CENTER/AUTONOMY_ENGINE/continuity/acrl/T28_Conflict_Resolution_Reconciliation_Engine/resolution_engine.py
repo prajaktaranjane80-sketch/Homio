@@ -1,6 +1,6 @@
-from .conflict_evidence import evidence_satisfies
-from .precedence_engine import precedence
-from .reconciliation_models import (
+from conflict_evidence import evidence_satisfies
+from precedence_engine import precedence
+from reconciliation_models import (
     ConflictKind,
     ConflictRecord,
     Resolution,
