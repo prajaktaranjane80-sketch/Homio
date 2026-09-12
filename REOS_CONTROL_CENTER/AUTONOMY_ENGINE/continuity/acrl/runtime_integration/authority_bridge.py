@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from REOS_CONTROL_CENTER.AUTONOMY_ENGINE.continuity.canonical_truth.STAGE0_Canonical_Truth_Sync_Engine.authority_registry import (
+from AUTONOMY_ENGINE.continuity.canonical_truth.STAGE0_Canonical_Truth_Sync_Engine.authority_registry import (
     AuthorityRegistry,
 )
 
