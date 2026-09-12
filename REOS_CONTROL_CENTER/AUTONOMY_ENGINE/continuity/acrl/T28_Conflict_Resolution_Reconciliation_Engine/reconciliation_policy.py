@@ -1,4 +1,4 @@
-from .reconciliation_models import ReconciliationPolicy
+from reconciliation_models import ReconciliationPolicy
 
 
 def validate_policy(policy: ReconciliationPolicy) -> None:
