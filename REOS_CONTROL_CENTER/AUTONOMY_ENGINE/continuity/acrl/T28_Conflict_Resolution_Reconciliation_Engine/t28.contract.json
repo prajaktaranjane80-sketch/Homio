@@ -1,0 +1,58 @@
+{
+  "layer": "T28",
+  "name": "Conflict Resolution & Reconciliation Engine",
+  "schema_version": "1.0",
+  "mode": "deterministic-conflict-resolution-reconciliation",
+  "purpose": "Resolve and reconcile conflicting scheduler states and produce a deterministic reconciled outcome without executing work.",
+  "upstream_layers": [
+    "T22",
+    "T23",
+    "T24",
+    "T25",
+    "T26",
+    "T27"
+  ],
+  "downstream_layers": [
+    "T29",
+    "T30"
+  ],
+  "required_inputs": [
+    "scheduler_result",
+    "resolved_evidence",
+    "continuity_state",
+    "reconciliation_identity",
+    "reconciliation_policy"
+  ],
+  "decisions": [
+    "RECONCILED",
+    "WAITING_FOR_EVIDENCE",
+    "BLOCKED",
+    "CONFLICT_UNRESOLVED",
+    "HUMAN_DECISION_REQUIRED",
+    "REPLAY_DETECTED",
+    "NO_SAFE_RESOLUTION",
+    "FAIL_CLOSED"
+  ],
+  "allowed_operations": [
+    "classify_conflict",
+    "collect_evidence",
+    "apply_precedence",
+    "resolve_conflict",
+    "reconcile_state",
+    "generate_fingerprint",
+    "persist_reconciliation",
+    "produce_handoff"
+  ],
+  "forbidden_operations": [
+    "execute_shell",
+    "execute_git",
+    "deploy",
+    "merge",
+    "mutate_state_json",
+    "authorize_self",
+    "bypass_upstream_validation",
+    "invent_evidence",
+    "silently_override_human_boundary"
+  ],
+  "audit_depth": 26
+}
