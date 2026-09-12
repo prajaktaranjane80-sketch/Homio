@@ -1,1 +1,35 @@
 
+{
+  "schema_version": "1.0",
+  "integration_id": "INT-02",
+  "name": "ACRL Runtime Binding and Orchestration",
+  "stage": "STAGE_1_ACRL_FINAL_INTEGRATION",
+  "depends_on": [
+    "STAGE0_CANONICAL_TRUTH_SYNC",
+    "INT-01_UNIFIED_RUNTIME_CONTEXT",
+    "T01-T30"
+  ],
+  "purpose": "Bind existing ACRL runtime components into one deterministic orchestration boundary without creating new ACRL task generations.",
+  "runtime_bindings": [
+    "T21",
+    "T22",
+    "T23",
+    "T24",
+    "T25",
+    "T26",
+    "T27",
+    "T28",
+    "T29",
+    "T30"
+  ],
+  "rules": {
+    "architecture_authority": "FROZEN_APPROVED_ARCHITECTURE",
+    "execution_state_authority": "REOS_CONTROL_CENTER/data/state.json",
+    "chat_authority": "NONE",
+    "allow_state_mutation": false,
+    "allow_shell_execution": false,
+    "allow_new_acrl_tasks": false,
+    "require_complete_t01_t30": true
+  },
+  "success_condition": "INT-02 resolves every registered T21-T30 runtime export and produces a healthy deterministic integration snapshot."
+}
