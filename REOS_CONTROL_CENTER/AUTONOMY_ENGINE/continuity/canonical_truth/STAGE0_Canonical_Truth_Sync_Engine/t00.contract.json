@@ -1,0 +1,47 @@
+{
+  "layer": "STAGE-0",
+  "name": "Canonical Truth Sync Engine",
+  "schema_version": "1.0",
+  "mode": "canonical-authority-and-derived-state-synchronization",
+  "purpose": "Establish one authoritative machine truth, detect semantic drift across continuity artifacts, and safely synchronize only derived artifacts from the canonical execution state.",
+  "authority": "REOS_CONTROL_CENTER/data/state.json",
+  "authority_chain": [
+    "FROZEN_APPROVED_ARCHITECTURE",
+    "REOS_CONTROL_CENTER/data/state.json",
+    "GIT_REPOSITORY",
+    "DERIVED_CONTINUITY_ARTIFACTS"
+  ],
+  "derived_artifacts": [
+    "REOS_NEXT_CHAT.txt",
+    "PROJECT_CONTINUITY/continuity_state.json",
+    "artifacts/truth_sync/truth_manifest.json",
+    "artifacts/truth_sync/sync_receipt.json"
+  ],
+  "allowed_operations": [
+    "inspect_truth",
+    "detect_conflicts",
+    "build_manifest",
+    "build_reconciliation_plan",
+    "synchronize_derived_artifacts",
+    "emit_health_report"
+  ],
+  "forbidden_operations": [
+    "mutate_canonical_state_without_authorized_controller",
+    "invent_current_state",
+    "promote_derived_artifact_to_authority",
+    "overwrite_authoritative_state",
+    "execute_git_mutation",
+    "deploy",
+    "merge",
+    "bypass_human_boundary",
+    "continue_from_critical_conflict"
+  ],
+  "fail_closed_on": [
+    "critical_state_conflict",
+    "missing_canonical_state",
+    "invalid_canonical_state",
+    "authority_mismatch",
+    "branch_mismatch",
+    "manifest_digest_mismatch"
+  ]
+}
