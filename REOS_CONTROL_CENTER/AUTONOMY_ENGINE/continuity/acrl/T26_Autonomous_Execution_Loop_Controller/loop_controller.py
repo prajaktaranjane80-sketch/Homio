@@ -294,7 +294,7 @@ def start_execution_loop(
             explanation=str(exc),
         )
 
-        loop = _build_initial_loop(
+    loop = _build_initial_loop(
         request
     )
 
