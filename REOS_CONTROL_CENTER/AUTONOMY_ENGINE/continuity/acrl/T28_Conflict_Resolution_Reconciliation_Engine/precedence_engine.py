@@ -1,4 +1,4 @@
-from .reconciliation_models import ConflictKind
+from reconciliation_models import ConflictKind
 
 
 _PRECEDENCE = {
