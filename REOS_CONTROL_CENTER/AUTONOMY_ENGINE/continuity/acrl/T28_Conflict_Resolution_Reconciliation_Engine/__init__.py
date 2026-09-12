@@ -1,5 +1,5 @@
-from .reconciliation_controller import reconcile
-from .reconciliation_models import (
+from reconciliation_controller import reconcile
+from reconciliation_models import (
     ConflictKind,
     ConflictSeverity,
     ReconciliationDecision,
