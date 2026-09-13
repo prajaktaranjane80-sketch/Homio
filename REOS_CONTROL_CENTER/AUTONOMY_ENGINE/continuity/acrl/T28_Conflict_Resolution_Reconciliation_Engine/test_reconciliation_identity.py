@@ -1,4 +1,4 @@
-from reconciliation_identity import fingerprint, reconciliation_identity
+from .reconciliation_identity import fingerprint, reconciliation_identity
 
 
 def test_fingerprint_is_deterministic():
