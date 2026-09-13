@@ -1,5 +1,5 @@
-from conflict_classifier import classify
-from reconciliation_models import ConflictKind
+from .conflict_classifier import classify
+from .reconciliation_models import ConflictKind
 
 
 def test_classifies_dependency_conflict():
