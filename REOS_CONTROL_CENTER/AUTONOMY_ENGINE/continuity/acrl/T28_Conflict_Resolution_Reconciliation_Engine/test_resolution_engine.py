@@ -1,10 +1,10 @@
-from reconciliation_models import (
+from .reconciliation_models import (
     ConflictKind,
     ConflictRecord,
     ConflictSeverity,
     ResolutionKind,
 )
-from resolution_engine import resolve_conflict
+from .resolution_engine import resolve_conflict
 
 
 def test_equal_values_resolve():
