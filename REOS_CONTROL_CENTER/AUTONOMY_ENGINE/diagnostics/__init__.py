@@ -2,30 +2,31 @@
 REOS Diagnostics
 ================
 
-Read-only diagnostic surface for the HOMIO/REOS autonomous system.
+Read-only health and observability surface for HOMIO/REOS.
 
-This package does NOT:
-- own canonical state
-- modify state.json
-- execute mutations
-- replace REOS_CONTROL_CENTER
-- replace ACRL
-- replace AUTONOMY_ENGINE runtime
-- create a parallel roadmap
+Authority:
+    REOS_CONTROL_CENTER remains the canonical execution/state authority.
 
-It only verifies the health/integrity of existing authoritative layers.
+Diagnostics:
+    - never mutate canonical state
+    - never bypass Control Center
+    - never replace ACRL
+    - never replace Runtime
+    - never become a second roadmap/state authority
 """
 
-from .reos_health import (
-    HealthCheck,
-    HealthReport,
-    REOSHealth,
-    run_health_check,
+from .diagnostic_models import (
+    DiagnosticCheck,
+    DiagnosticEvidence,
+    DiagnosticPosition,
+    DiagnosticReport,
 )
+from .reos_health import REOSHealth
 
 __all__ = [
-    "HealthCheck",
-    "HealthReport",
+    "DiagnosticCheck",
+    "DiagnosticEvidence",
+    "DiagnosticPosition",
+    "DiagnosticReport",
     "REOSHealth",
-    "run_health_check",
 ]
