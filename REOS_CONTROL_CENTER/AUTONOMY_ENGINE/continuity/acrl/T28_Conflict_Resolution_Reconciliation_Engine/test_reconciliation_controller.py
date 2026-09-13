@@ -1,12 +1,12 @@
-from reconciliation_controller import reconcile
-from reconciliation_models import (
+from .reconciliation_controller import reconcile
+from .reconciliation_models import (
     ConflictKind,
     ConflictRecord,
     ConflictSeverity,
     ReconciliationPolicy,
     ReconciliationRequest,
 )
-from reconciliation_store import ReconciliationStore
+from .reconciliation_store import ReconciliationStore
 
 
 def test_controller_reconciles():
