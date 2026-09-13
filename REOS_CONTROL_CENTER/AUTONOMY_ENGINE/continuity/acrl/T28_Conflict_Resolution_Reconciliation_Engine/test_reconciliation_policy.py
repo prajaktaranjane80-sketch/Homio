@@ -1,7 +1,7 @@
 import pytest
 
-from reconciliation_models import ReconciliationPolicy
-from reconciliation_policy import validate_policy
+from .reconciliation_models import ReconciliationPolicy
+from .reconciliation_policy import validate_policy
 
 
 def test_policy_valid():
