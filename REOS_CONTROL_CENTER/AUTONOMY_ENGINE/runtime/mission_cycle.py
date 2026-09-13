@@ -1,71 +1,13 @@
 from __future__ import annotations
 
-"""
-HOMIO Autonomous Work Cycle.
+from dataclasses import dataclass, asdict
+from typing import Any
 
-Purpose
--------
-Turn the authoritative HOMIO mission position into a deterministic,
-targeted, agent-ready work cycle.
-
-This module does NOT:
-- become a second controller,
-- change Control Center state,
-- invent roadmap tasks,
-- execute repository mutations,
-- bypass ACRL,
-- bypass AUTONOMY_ENGINE safety boundaries.
-
-It prepares the smallest useful work package for the existing
-AUTONOMY_ENGINE/ACRL stack.
-
-Flow
-----
-HOMIO_AUTONOMOUS_MASTER_PLAN.json
-        +
-REOS_CONTROL_CENTER/data/state.json
-        |
-        v
-AutonomousMissionRuntime
-        |
-        v
-MissionCycle
-        |
-        +--> targeted evidence targets
-        +--> dependency inspection targets
-        +--> test discovery targets
-        +--> architecture checks
-        +--> risk / approval boundary
-        +--> agent execution context
-"""
-
-from dataclasses import asdict, dataclass
-from typing import Any, Literal
-from uuid import uuid4
-
-from orchestration.agent_runtime import AgentRuntime, AgentRuntimeContext
-
-from .autonomous_mission_runtime import (
-    AutonomousMissionRuntime,
-    MissionDecision,
-)
-
-
-CycleStatus = Literal[
-    "READY",
-    "BLOCKED",
-]
+from autonomous_mission_runtime import AutonomousMissionRuntime
 
 
 @dataclass(frozen=True, slots=True)
 class EvidenceTarget:
-    """
-    One targeted information request.
-
-    A target describes WHAT must be inspected.
-    It does not perform the inspection.
-    """
-
     target_id: str
     category: str
     purpose: str
@@ -76,12 +18,8 @@ class EvidenceTarget:
 
 @dataclass(frozen=True, slots=True)
 class MissionCycle:
-    """
-    Deterministic work package for one HOMIO autonomous cycle.
-    """
-
     cycle_id: str
-    status: CycleStatus
+    status: str
     mode: str
     gate: str | None
     task: str | None
@@ -106,8 +44,7 @@ class MissionCycle:
             "mutation_allowed": self.mutation_allowed,
             "approval_required": self.approval_required,
             "evidence_targets": [
-                asdict(item)
-                for item in self.evidence_targets
+                asdict(item) for item in self.evidence_targets
             ],
             "blockers": list(self.blockers),
             "warnings": list(self.warnings),
@@ -116,256 +53,132 @@ class MissionCycle:
 
 
 class MissionCycleEngine:
-    """
-    Convert one authoritative mission decision into an execution-ready
-    inspection cycle.
-    """
+    """Build one bounded autonomous HOMIO work cycle."""
 
-    def __init__(
-        self,
-        runtime: AutonomousMissionRuntime | None = None,
-    ) -> None:
+    def __init__(self, runtime: AutonomousMissionRuntime | None = None) -> None:
         self.runtime = runtime or AutonomousMissionRuntime()
 
     @staticmethod
-    def _evidence_targets(
-        decision: MissionDecision,
-    ) -> tuple[EvidenceTarget, ...]:
-        position = decision.position
-
-        if not position.current_subtask:
-            return ()
-
+    def _targets() -> tuple[EvidenceTarget, ...]:
         return (
             EvidenceTarget(
-                target_id="canonical-state",
-                category="STATE",
-                purpose=(
-                    "Verify canonical execution position, state integrity "
-                    "and current authority before any work."
-                ),
-                priority=100,
-                required=True,
-                max_items=1,
+                "canonical-state",
+                "STATE",
+                "Verify canonical project state and integrity.",
+                100,
+                True,
+                1,
             ),
             EvidenceTarget(
-                target_id="current-gate",
-                category="GATE",
-                purpose=(
-                    "Inspect current gate definition, subtasks and "
-                    "acceptance criteria."
-                ),
-                priority=95,
-                required=True,
-                max_items=1,
+                "current-gate",
+                "GATE",
+                "Inspect authoritative gate and acceptance criteria.",
+                95,
+                True,
+                1,
             ),
             EvidenceTarget(
-                target_id="current-subtask",
-                category="IMPLEMENTATION",
-                purpose=(
-                    "Locate the smallest relevant implementation surface "
-                    "for the authoritative current subtask."
-                ),
-                priority=90,
-                required=True,
-                max_items=12,
+                "current-subtask",
+                "IMPLEMENTATION",
+                "Locate the smallest relevant implementation surface.",
+                90,
+                True,
+                12,
             ),
             EvidenceTarget(
-                target_id="dependency-impact",
-                category="DEPENDENCY",
-                purpose=(
-                    "Resolve direct dependencies, owners and downstream "
-                    "impact before changing code."
-                ),
-                priority=85,
-                required=True,
-                max_items=20,
+                "dependencies",
+                "DEPENDENCY",
+                "Resolve direct dependencies and ownership.",
+                85,
+                True,
+                20,
             ),
             EvidenceTarget(
-                target_id="architecture-contract",
-                category="ARCHITECTURE",
-                purpose=(
-                    "Confirm frozen HOMIO architecture, contracts and "
-                    "source-of-truth boundaries relevant to the subtask."
-                ),
-                priority=80,
-                required=True,
-                max_items=10,
+                "architecture",
+                "ARCHITECTURE",
+                "Confirm frozen architecture and contracts.",
+                80,
+                True,
+                10,
             ),
             EvidenceTarget(
-                target_id="test-surface",
-                category="TEST",
-                purpose=(
-                    "Identify the smallest targeted tests plus required "
-                    "regression surface for the change."
-                ),
-                priority=75,
-                required=True,
-                max_items=20,
+                "tests",
+                "TEST",
+                "Select targeted tests and regression surface.",
+                75,
+                True,
+                20,
             ),
             EvidenceTarget(
-                target_id="risk-boundary",
-                category="GOVERNANCE",
-                purpose=(
-                    "Determine whether the proposed work crosses security, "
-                    "financial, legal, privacy, destructive or approval boundaries."
-                ),
-                priority=70,
-                required=True,
-                max_items=10,
+                "risk",
+                "GOVERNANCE",
+                "Determine risk and approval boundary.",
+                70,
+                True,
+                10,
             ),
             EvidenceTarget(
-                target_id="change-impact",
-                category="IMPACT",
-                purpose=(
-                    "Estimate affected modules and detect duplicate or "
-                    "overlapping responsibility before implementation."
-                ),
-                priority=65,
-                required=True,
-                max_items=20,
+                "impact",
+                "IMPACT",
+                "Detect blast-radius and duplicate responsibility.",
+                65,
+                True,
+                20,
             ),
         )
 
-    @staticmethod
-    def _agent_context(
-        decision: MissionDecision,
-        cycle_id: str,
-    ) -> dict[str, Any]:
-        position = decision.position
+    def prepare(self, mode: str = "HOMIO_BUILDER") -> MissionCycle:
+        from uuid import uuid4
 
-        return {
+        decision = self.runtime.decide(mode=mode)
+        cycle_id = f"HOMIO-CYCLE-{uuid4()}"
+
+        if decision.status == "BLOCKED":
+            return MissionCycle(
+                cycle_id,
+                "BLOCKED",
+                mode,
+                decision.position.current_gate,
+                decision.position.current_task,
+                decision.position.current_subtask,
+                "UNKNOWN",
+                False,
+                True,
+                (),
+                decision.blockers,
+                decision.warnings,
+                {"cycle_id": cycle_id},
+            )
+
+        context = {
             "cycle_id": cycle_id,
-            "mode": position.mode,
-            "current_gate": position.current_gate,
-            "current_task": position.current_task,
-            "current_subtask": position.current_subtask,
-            "next_gate": position.next_gate,
-            "criteria_total": position.criteria_total,
-            "criteria_verified": position.criteria_verified,
-            "criteria_pending": position.criteria_pending,
-            "operating_rules": [
+            "gate": decision.position.current_gate,
+            "task": decision.position.current_task,
+            "subtask": decision.position.current_subtask,
+            "next_gate": decision.position.next_gate,
+            "rules": [
                 "discover_before_modify",
                 "verify_before_assume",
                 "diagnose_before_repair",
                 "never_bypass_control_center",
                 "never_modify_state_json_directly",
-                "never_dump_full_files_unnecessarily",
+                "never_dump_full_files",
                 "record_machine_verifiable_evidence",
-                "stop_on_ambiguous_authority",
             ],
-            "execution_budget": {
-                "max_repository_targets": 20,
-                "max_file_previews": 12,
-                "max_context_chars": 24000,
-                "never_dump_full_file": True,
-            },
         }
 
-    def prepare(
-        self,
-        mode: str = "HOMIO_BUILDER",
-    ) -> MissionCycle:
-        decision = self.runtime.decide(mode=mode)  # type: ignore[arg-type]
-        cycle_id = f"HOMIO-CYCLE-{uuid4()}"
-
-        if decision.status == "BLOCKED":
-            return MissionCycle(
-                cycle_id=cycle_id,
-                status="BLOCKED",
-                mode=mode,
-                gate=decision.position.current_gate,
-                task=decision.position.current_task,
-                subtask=decision.position.current_subtask,
-                risk="UNKNOWN",
-                mutation_allowed=False,
-                approval_required=True,
-                evidence_targets=(),
-                blockers=decision.blockers,
-                warnings=decision.warnings,
-                agent_context={
-                    "cycle_id": cycle_id,
-                    "reason": "MISSION_RUNTIME_BLOCKED",
-                },
-            )
-
-        evidence_targets = self._evidence_targets(decision)
-
         return MissionCycle(
-            cycle_id=cycle_id,
-            status="READY",
-            mode=mode,
-            gate=decision.position.current_gate,
-            task=decision.position.current_task,
-            subtask=decision.position.current_subtask,
-            risk="LOW",
-            mutation_allowed=False,
-            approval_required=False,
-            evidence_targets=evidence_targets,
-            blockers=decision.blockers,
-            warnings=decision.warnings,
-            agent_context=self._agent_context(
-                decision,
-                cycle_id,
-            ),
+            cycle_id,
+            "READY",
+            mode,
+            decision.position.current_gate,
+            decision.position.current_task,
+            decision.position.current_subtask,
+            "LOW",
+            False,
+            False,
+            self._targets(),
+            (),
+            decision.warnings,
+            context,
         )
-
-    def create_agent_runtime(
-        self,
-        cycle: MissionCycle,
-        *,
-        agent_id: str = "homio-autonomous-engineer",
-    ) -> AgentRuntime:
-        """
-        Create an existing AgentRuntime around the prepared mission cycle.
-
-        This does not execute the agent.
-        """
-
-        if cycle.status != "READY":
-            raise RuntimeError(
-                "Cannot create an agent runtime for a blocked mission cycle."
-            )
-
-        if not cycle.subtask:
-            raise RuntimeError(
-                "Cannot create an agent runtime without a current subtask."
-            )
-
-        context = AgentRuntimeContext(
-            run_id=cycle.cycle_id,
-            agent_id=agent_id,
-            task_id=cycle.subtask,
-            metadata=cycle.agent_context,
-        )
-
-        return AgentRuntime(context)
-
-    def build_cycle(
-        self,
-        mode: str = "HOMIO_BUILDER",
-        *,
-        agent_id: str = "homio-autonomous-engineer",
-    ) -> dict[str, Any]:
-        """
-        Build a complete machine-readable autonomous work cycle.
-        """
-
-        cycle = self.prepare(mode=mode)
-
-        result = cycle.to_dict()
-
-        if cycle.status == "READY":
-            agent = self.create_agent_runtime(
-                cycle,
-                agent_id=agent_id,
-            )
-
-            result["agent_runtime"] = {
-                "status": agent.status,
-                "run_id": agent.context.run_id,
-                "agent_id": agent.context.agent_id,
-                "task_id": agent.context.task_id,
-            }
-
-        return result
