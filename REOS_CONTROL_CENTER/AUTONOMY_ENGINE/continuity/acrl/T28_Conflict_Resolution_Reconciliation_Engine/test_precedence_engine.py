@@ -1,5 +1,5 @@
-from precedence_engine import precedence
-from reconciliation_models import ConflictKind
+from .precedence_engine import precedence
+from .reconciliation_models import ConflictKind
 
 
 def test_identity_has_highest_precedence():
