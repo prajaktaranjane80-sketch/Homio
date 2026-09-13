@@ -3,6 +3,7 @@ import pytest
 from .decision_models import (
     DecisionPolicy,
     DecisionRequest,
+    DecisionType,
     HumanDecision,
 )
 from .decision_validation import (
@@ -43,10 +44,7 @@ def test_request_requires_id():
 def test_human_decision_validation():
     decision = HumanDecision(
         decision_id="D1",
-        decision_type=__import__(
-            "REOS_CONTROL_CENTER.AUTONOMY_ENGINE.continuity.acrl.T29_Human_Decision_Boundary_Controller.decision_models",
-            fromlist=["DecisionType"],
-        ).DecisionType.APPROVE,
+        decision_type=DecisionType.APPROVE,
         decided_by="human-1",
         decision_timestamp=100,
         rationale="Approved",
