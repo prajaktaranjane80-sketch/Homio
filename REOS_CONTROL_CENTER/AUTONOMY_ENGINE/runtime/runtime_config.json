@@ -1,10 +1,22 @@
 {
+  "schema_version": "2.0",
   "mode": "READ_ONLY_UNTIL_ADAPTER_APPROVED",
   "control_center_root": "..",
+  "master_plan": "../HOMIO_AUTONOMOUS_MASTER_PLAN.json",
+  "canonical_state": "../data/state.json",
   "context_file": "runtime/context.json",
   "evidence_ledger": "runtime/evidence.jsonl",
   "audit_log": "runtime/autonomy_audit.jsonl",
   "max_context_chars": 24000,
   "max_file_preview_chars": 6000,
-  "never_dump_full_file": true
+  "max_repository_targets": 20,
+  "max_dependency_targets": 20,
+  "max_test_targets": 20,
+  "never_dump_full_file": true,
+  "allow_direct_state_mutation": false,
+  "allow_direct_repository_mutation": false,
+  "require_evidence_before_execution": true,
+  "require_postflight_verification": true,
+  "require_checkpoint_after_successful_mutation": true,
+  "fail_closed_on_ambiguity": true
 }
