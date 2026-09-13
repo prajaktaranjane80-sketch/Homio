@@ -1,15 +1,15 @@
-from reconciliation_identity import fingerprint
+from .reconciliation_models import ReconciliationPolicy
 
 
-def resolution_fingerprint(resolutions) -> str:
-    payload = [
-        {
-            "conflict_id": r.conflict_id,
-            "kind": r.kind.value,
-            "selected_value": r.selected_value,
-            "rationale": r.rationale,
-            "evidence_ids": list(r.evidence_ids),
-        }
-        for r in resolutions
-    ]
-    return fingerprint(payload)
+def validate_policy(policy: ReconciliationPolicy) -> None:
+    if not policy.policy_version.strip():
+        raise ValueError("policy_version required")
+
+    if not isinstance(policy.require_evidence_for_high_conflict, bool):
+        raise ValueError("require_evidence_for_high_conflict must be bool")
+
+    if not isinstance(policy.allow_precedence_resolution, bool):
+        raise ValueError("allow_precedence_resolution must be bool")
+
+    if not isinstance(policy.allow_human_boundary, bool):
+        raise ValueError("allow_human_boundary must be bool")
