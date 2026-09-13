@@ -1,7 +1,7 @@
 import pytest
 
-from reconciliation_models import ReconciliationRequest
-from reconciliation_validation import validate_request
+from .reconciliation_models import ReconciliationPolicy, ReconciliationRequest
+from .reconciliation_validation import validate_request
 
 
 def test_request_requires_identity():
@@ -10,9 +10,7 @@ def test_request_requires_identity():
         scheduler_fingerprint="S",
         continuity_fingerprint="C",
         evidence_fingerprint="E",
-        policy=__import__(
-            "reconciliation_models"
-        ).ReconciliationPolicy(),
+        policy=ReconciliationPolicy(),
     )
 
     with pytest.raises(ValueError):
