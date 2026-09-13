@@ -1,5 +1,5 @@
-from conflict_evidence import evidence_satisfies
-from reconciliation_models import (
+from .conflict_evidence import evidence_satisfies
+from .reconciliation_models import (
     ConflictKind,
     ConflictRecord,
     ConflictSeverity,
