@@ -25,6 +25,16 @@ from .architecture_lock import (
     read_architecture_lock,
 )
 
+from .architecture_authority import (
+    ARCHITECTURE_AUTHORITY_SCHEMA_VERSION,
+    ArchitectureAuthority,
+    ArchitectureAuthorityError,
+    ArchitectureAuthorityIntegrityError,
+    ArchitectureAuthorityReader,
+    ArchitectureAuthoritySourceError,
+    read_architecture_authority,
+)
+
 __all__ = [
     "ARCHITECTURE_LOCK_SCHEMA_VERSION",
     "ArchitectureDriftError",
@@ -42,4 +52,12 @@ __all__ = [
     "detect_architecture_drift",
     "read_architecture_lock",
     "validate_architecture_lock_contract",
+    "ARCHITECTURE_AUTHORITY_SCHEMA_VERSION",
+    "ArchitectureAuthority",
+    "ArchitectureAuthorityError",
+    "ArchitectureAuthorityIntegrityError",
+    "ArchitectureAuthorityReader",
+    "ArchitectureAuthoritySourceError",
+    "read_architecture_authority",
 ]
+
