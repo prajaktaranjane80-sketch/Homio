@@ -66,7 +66,6 @@ def test_tampered_state_is_blocked():
     state = load_canonical_state()
 
     tampered = copy.deepcopy(state)
-
     tampered["execution"]["current_gate"] = (
         "UNAUTHORIZED-GATE"
     )
