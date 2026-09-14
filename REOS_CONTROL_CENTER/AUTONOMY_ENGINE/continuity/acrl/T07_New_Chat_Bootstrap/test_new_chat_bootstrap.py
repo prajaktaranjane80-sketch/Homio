@@ -344,3 +344,83 @@ def test_bootstrap_fingerprint_is_deterministic() -> None:
         first.fingerprint
         == second.fingerprint
     )
+
+
+
+def test_restart_payload_contains_full_execution_context() -> None:
+    context = make_engine().build(
+        bootstrap_id="BOOT-016",
+        checkpoint=make_checkpoint(),
+    )
+
+    payload = context.restart_payload_dict()
+
+    assert payload["authority"] == "REOS_CONTROL_CENTER"
+    assert payload["project_identity"] == "HOMIO / REOS"
+    assert payload["current_gate"] == "CORE-005"
+    assert payload["current_task"] == "CORE-005-T01"
+    assert payload["current_subtask"] == "CORE-005-T01"
+    assert payload["current_subtask_status"] == "CONTROL_CENTER_DRIVEN"
+    assert (
+        payload["first_valid_work_unit"]
+        == "CORE-005:CORE-005-T01"
+    )
+    assert payload["checkpoint_id"] == "CP-T07-001"
+
+
+def test_resume_summary_is_compact_restart_payload() -> None:
+    context = make_engine().build(
+        bootstrap_id="BOOT-017",
+        checkpoint=make_checkpoint(),
+    )
+
+    summary = NewChatBootstrapEngine.resume_summary(
+        context
+    )
+
+    assert summary["authority"] == "REOS_CONTROL_CENTER"
+    assert summary["project_identity"] == "HOMIO / REOS"
+    assert summary["current_gate"] == "CORE-005"
+    assert summary["current_task"] == "CORE-005-T01"
+    assert summary["current_subtask"] == "CORE-005-T01"
+    assert (
+        summary["first_valid_work_unit"]
+        == "CORE-005:CORE-005-T01"
+    )
+    assert summary["checkpoint_id"] == "CP-T07-001"
+
+
+def test_missing_project_identity_blocks_resume() -> None:
+    engine = make_engine()
+
+    engine.project_dna = Projection(
+        {
+            "authority": "REOS_CONTROL_CENTER",
+        }
+    )
+
+    context = engine.build(
+        bootstrap_id="BOOT-018",
+        checkpoint=make_checkpoint(),
+    )
+
+    with pytest.raises(BootstrapAuthorityError):
+        NewChatBootstrapEngine.validate_for_resume(
+            context
+        )
+
+
+def test_missing_dependency_context_blocks_resume() -> None:
+    engine = make_engine()
+
+    engine.dependency_map = Projection({})
+
+    context = engine.build(
+        bootstrap_id="BOOT-019",
+        checkpoint=make_checkpoint(),
+    )
+
+    with pytest.raises(BootstrapAuthorityError):
+        NewChatBootstrapEngine.validate_for_resume(
+            context
+        )
