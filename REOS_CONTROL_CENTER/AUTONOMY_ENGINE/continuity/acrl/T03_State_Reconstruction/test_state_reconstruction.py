@@ -1,4 +1,4 @@
-"""ACRL T03 — Execution State Reconstruction tests."""
+"""ACRL T03 - Execution State Reconstruction tests."""
 
 from __future__ import annotations
 
@@ -26,36 +26,73 @@ def _write_state(
     state = {
         "meta": {
             "schema_version": 3,
-            "control_center_version": "7.0",
+            "control_center_version": "6.0",
+        },
+        "constitution": {
+            "canonical_source": "data/state.json",
         },
         "phases": {
             "current": "PRE-CODING ARCHITECTURE",
         },
-        "current_gate": {
-            "id": "CORE-005",
-            "name": "Search & Matching Core",
-            "status": "CURRENT",
-            "completed_subtasks": [],
-            "pending_subtasks": [
-                "CORE-005-T01",
-                "CORE-005-T02",
-                "CORE-005-T03",
-            ],
+        "execution": {
+            "current_gate": "CORE-005",
+            "current_task": "Implement search foundation",
+            "status": "CONTROL_CENTER_DRIVEN",
         },
-        "current_task": {
-            "name": "Implement search foundation",
+        "gate_plans": {
+            "CORE-005": {
+                "id": "CORE-005",
+                "name": "Search & Matching Core",
+                "status": "CURRENT",
+                "current_subtask": current_subtask,
+                "subtasks": [
+                    {
+                        "id": "CORE-005-T01",
+                        "title": "Implement search foundation",
+                        "priority": "CRITICAL",
+                        "status": current_status,
+                    },
+                    {
+                        "id": "CORE-005-T02",
+                        "title": "Define search contracts",
+                        "priority": "HIGH",
+                        "status": "PENDING",
+                    },
+                    {
+                        "id": "CORE-005-T03",
+                        "title": "Validate search behavior",
+                        "priority": "HIGH",
+                        "status": "PENDING",
+                    },
+                ],
+            },
         },
-        "current_subtask": {
-            "id": current_subtask,
-        },
-        "subtask_status": {
-            "status": current_status,
-        },
-        "roadmap": {
-            "future_gates": [
-                "CORE-006",
-                "CORE-007",
-                "CORE-008",
+        "execution_plan": {
+            "authoritative_sequence": [
+                {
+                    "id": "CORE-005",
+                    "gate": "CORE-005",
+                    "name": "Search & Matching Core",
+                    "status": "CURRENT",
+                },
+                {
+                    "id": "CORE-006",
+                    "gate": "CORE-006",
+                    "name": "Deal & Transaction Core",
+                    "status": "PENDING",
+                },
+                {
+                    "id": "CORE-007",
+                    "gate": "CORE-007",
+                    "name": "Trust, Fraud & Governance",
+                    "status": "PENDING",
+                },
+                {
+                    "id": "CORE-008",
+                    "gate": "CORE-008",
+                    "name": "Commission & Financial Core",
+                    "status": "PENDING",
+                },
             ],
         },
     }
@@ -76,6 +113,7 @@ def test_reconstructs_current_execution_state(
     assert snapshot.phase == "PRE-CODING ARCHITECTURE"
     assert snapshot.gate_id == "CORE-005"
     assert snapshot.gate_name == "Search & Matching Core"
+    assert snapshot.current_task == "Implement search foundation"
     assert snapshot.current_subtask == "CORE-005-T01"
     assert snapshot.current_subtask_status == "CURRENT"
 
@@ -86,11 +124,32 @@ def test_completed_and_pending_subtasks_are_reconstructed(
     _write_state(tmp_path)
 
     state_path = tmp_path / "data" / "state.json"
-    state = json.loads(state_path.read_text(encoding="utf-8"))
+    state = json.loads(
+        state_path.read_text(encoding="utf-8")
+    )
 
-    state["current_gate"]["completed_subtasks"] = [
-        "CORE-005-T00",
-    ]
+    state["gate_plans"]["CORE-005"]["subtasks"][0]["status"] = "DONE"
+
+    state_path.write_text(
+        json.dumps(state),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(StateReconstructionIntegrityError):
+        ExecutionStateReconstructor(tmp_path).reconstruct()
+
+
+def test_completed_subtasks_are_reconstructed(
+    tmp_path: Path,
+) -> None:
+    _write_state(tmp_path)
+
+    state_path = tmp_path / "data" / "state.json"
+    state = json.loads(
+        state_path.read_text(encoding="utf-8")
+    )
+
+    state["gate_plans"]["CORE-005"]["subtasks"][1]["status"] = "DONE"
 
     state_path.write_text(
         json.dumps(state),
@@ -99,7 +158,9 @@ def test_completed_and_pending_subtasks_are_reconstructed(
 
     snapshot = ExecutionStateReconstructor(tmp_path).reconstruct()
 
-    assert snapshot.completed_subtasks == ("CORE-005-T00",)
+    assert snapshot.completed_subtasks == (
+        "CORE-005-T02",
+    )
     assert "CORE-005-T01" in snapshot.pending_subtasks
 
 
@@ -130,7 +191,10 @@ def test_projection_is_serializable(
 
     assert payload["schema_version"] == "1.0"
     assert payload["gate"]["id"] == "CORE-005"
-    assert payload["execution"]["current_subtask"] == "CORE-005-T01"
+    assert (
+        payload["execution"]["current_subtask"]
+        == "CORE-005-T01"
+    )
     assert len(payload["source_state_sha256"]) == 64
 
 
@@ -146,6 +210,7 @@ def test_resume_context_is_compact(
     )
 
     assert "GATE=CORE-005" in context
+    assert "CURRENT_TASK=Implement search foundation" in context
     assert "CURRENT_SUBTASK=CORE-005-T01" in context
     assert "AUTHORITY=data/state.json" in context
     assert "STATE_SHA256=" in context
@@ -157,11 +222,11 @@ def test_current_subtask_cannot_be_completed(
     _write_state(tmp_path)
 
     state_path = tmp_path / "data" / "state.json"
-    state = json.loads(state_path.read_text(encoding="utf-8"))
+    state = json.loads(
+        state_path.read_text(encoding="utf-8")
+    )
 
-    state["current_gate"]["completed_subtasks"] = [
-        "CORE-005-T01",
-    ]
+    state["gate_plans"]["CORE-005"]["subtasks"][0]["status"] = "DONE"
 
     state_path.write_text(
         json.dumps(state),
@@ -192,6 +257,29 @@ def test_missing_state_fails_closed(
         ExecutionStateReconstructor(tmp_path).reconstruct()
 
 
+def test_invalid_canonical_source_fails_closed(
+    tmp_path: Path,
+) -> None:
+    _write_state(tmp_path)
+
+    state_path = tmp_path / "data" / "state.json"
+    state = json.loads(
+        state_path.read_text(encoding="utf-8")
+    )
+
+    state["constitution"]["canonical_source"] = (
+        "another_state.json"
+    )
+
+    state_path.write_text(
+        json.dumps(state),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(StateReconstructionIntegrityError):
+        ExecutionStateReconstructor(tmp_path).reconstruct()
+
+
 def test_state_fingerprint_changes_after_state_change(
     tmp_path: Path,
 ) -> None:
@@ -202,8 +290,11 @@ def test_state_fingerprint_changes_after_state_change(
     first = reader.reconstruct().source_state_sha256
 
     state_path = tmp_path / "data" / "state.json"
-    state = json.loads(state_path.read_text(encoding="utf-8"))
-    state["current_gate"]["status"] = "VALIDATED"
+    state = json.loads(
+        state_path.read_text(encoding="utf-8")
+    )
+
+    state["gate_plans"]["CORE-005"]["status"] = "VALIDATED"
 
     state_path.write_text(
         json.dumps(state),
@@ -220,10 +311,11 @@ def test_done_subtask_is_allowed_outside_pending(
 ) -> None:
     _write_state(
         tmp_path,
-        current_subtask="CORE-005-T01",
+        current_subtask="CORE-005-T02",
         current_status="DONE",
     )
 
     snapshot = ExecutionStateReconstructor(tmp_path).reconstruct()
 
+    assert snapshot.current_subtask == "CORE-005-T02"
     assert snapshot.current_subtask_status == "DONE"
