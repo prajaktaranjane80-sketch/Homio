@@ -1,22 +1,18 @@
 """ACRL T04 — Gate / Subtask Continuity.
 
-Provides a deterministic, read-only continuity projection for the
-current REOS gate and subtask.
+Read-only continuity projection built on the canonical T03 execution-state
+reconstruction. The authoritative source remains:
 
-The authoritative execution state remains:
     REOS_CONTROL_CENTER/data/state.json
 
-This module does not:
-    - modify state.json
-    - complete subtasks
-    - advance gates
-    - approve gates
-    - freeze gates
-    - create a second execution state
-    - replace REOS_CONTROL_CENTER
+T04 answers one narrow continuity question:
 
-It determines whether the current execution position is structurally
-safe to resume.
+    Within the authoritative current gate, what work is complete,
+    what is current, and what is the first incomplete unit that
+    may be resumed?
+
+This module never mutates state, advances gates, completes subtasks,
+or creates a second execution-state authority.
 """
 
 from __future__ import annotations
@@ -28,21 +24,26 @@ import json
 from pathlib import Path
 from typing import Any, Mapping
 
+from AUTONOMY_ENGINE.continuity.acrl.T03_State_Reconstruction.state_reconstruction import (
+    ExecutionStateReconstructor,
+    StateReconstructionError,
+)
+
 
 class GateContinuityError(RuntimeError):
     """Base error for gate/subtask continuity failures."""
 
 
 class GateContinuitySourceError(GateContinuityError):
-    """Raised when authoritative state cannot be loaded."""
+    """Raised when authoritative execution state cannot be reconstructed."""
 
 
 class GateContinuityIntegrityError(GateContinuityError):
-    """Raised when continuity data is structurally invalid."""
+    """Raised when authoritative gate/subtask data is structurally invalid."""
 
 
 class GateContinuityConflictError(GateContinuityError):
-    """Raised when gate/subtask state contains a conflict."""
+    """Raised when current work disagrees with the authoritative order."""
 
 
 class ResumeDecision(str, Enum):
@@ -58,6 +59,7 @@ class GateSubtaskContinuity:
     gate_name: str
     gate_status: str
 
+    current_task: str
     current_subtask: str
     current_subtask_status: str
 
@@ -65,31 +67,38 @@ class GateSubtaskContinuity:
     total_subtasks: int
 
     completed_subtasks: tuple[str, ...]
-    remaining_subtasks: tuple[str, ...]
+    pending_subtasks: tuple[str, ...]
+    first_incomplete_authoritative_unit: str
 
     resume_decision: ResumeDecision
     continuity_fingerprint: str
     source_state_sha256: str
 
     def to_dict(self) -> dict[str, Any]:
-        """Return the canonical serializable projection."""
+        """Return the canonical serializable continuity projection."""
 
         return {
-            "schema_version": "1.0",
+            "schema_version": "2.0",
             "gate": {
                 "id": self.gate_id,
                 "name": self.gate_name,
                 "status": self.gate_status,
             },
+            "execution": {
+                "current_task": self.current_task,
+                "current_subtask": self.current_subtask,
+                "current_subtask_status": self.current_subtask_status,
+            },
             "subtask": {
-                "current": self.current_subtask,
-                "status": self.current_subtask_status,
                 "index": self.subtask_index,
                 "total": self.total_subtasks,
+                "first_incomplete_authoritative_unit": (
+                    self.first_incomplete_authoritative_unit
+                ),
             },
             "continuity": {
                 "completed_subtasks": list(self.completed_subtasks),
-                "remaining_subtasks": list(self.remaining_subtasks),
+                "pending_subtasks": list(self.pending_subtasks),
                 "resume_decision": self.resume_decision.value,
                 "fingerprint": self.continuity_fingerprint,
             },
@@ -102,28 +111,33 @@ class GateSubtaskContinuity:
     def can_resume(self) -> bool:
         """Return whether execution may safely continue."""
 
-        return self.resume_decision == ResumeDecision.RESUME
+        return self.resume_decision is ResumeDecision.RESUME
 
 
 class GateSubtaskContinuityReader:
-    """Read-only gate/subtask continuity evaluator."""
+    """Reconstruct T04 continuity from the authoritative T03 projection."""
 
     def __init__(
         self,
         control_center_root: Path | str | None = None,
     ) -> None:
         if control_center_root is None:
-            self.root = Path(__file__).resolve().parents[3]
+            self.root = Path(__file__).resolve().parents[4]
         else:
             self.root = Path(control_center_root)
 
         self.state_path = self.root / "data" / "state.json"
 
     @staticmethod
-    def _read_state(path: Path) -> dict[str, Any]:
+    def _load_state(path: Path) -> dict[str, Any]:
         if not path.exists():
             raise GateContinuitySourceError(
                 f"Authoritative state not found: {path}"
+            )
+
+        if not path.is_file():
+            raise GateContinuitySourceError(
+                f"Authoritative state is not a file: {path}"
             )
 
         try:
@@ -142,61 +156,36 @@ class GateSubtaskContinuityReader:
         return state
 
     @staticmethod
-    def _required_string(
-        mapping: Mapping[str, Any],
-        key: str,
-        section: str,
-    ) -> str:
-        value = mapping.get(key)
-
+    def _string(value: Any, field_name: str) -> str:
         if not isinstance(value, str) or not value.strip():
             raise GateContinuityIntegrityError(
-                f"{section}.{key} must be a non-empty string."
+                f"{field_name} must be a non-empty string."
             )
 
         return value.strip()
 
     @staticmethod
-    def _string_list(
-        value: Any,
-        field_name: str,
-    ) -> tuple[str, ...]:
-        if value is None:
-            return ()
-
-        if not isinstance(value, list):
-            raise GateContinuityIntegrityError(
-                f"{field_name} must be a list."
-            )
-
-        result: list[str] = []
-
-        for item in value:
-            if not isinstance(item, str) or not item.strip():
-                raise GateContinuityIntegrityError(
-                    f"{field_name} contains an invalid entry."
-                )
-
-            result.append(item.strip())
-
-        return tuple(result)
-
-    @staticmethod
-    def _fingerprint(
+    def _continuity_fingerprint(
         gate_id: str,
         gate_status: str,
+        current_task: str,
         current_subtask: str,
         current_subtask_status: str,
-        completed: tuple[str, ...],
-        remaining: tuple[str, ...],
+        ordered_subtasks: tuple[str, ...],
+        completed_subtasks: tuple[str, ...],
+        pending_subtasks: tuple[str, ...],
+        first_incomplete: str,
     ) -> str:
         payload = {
             "gate_id": gate_id,
             "gate_status": gate_status,
+            "current_task": current_task,
             "current_subtask": current_subtask,
             "current_subtask_status": current_subtask_status,
-            "completed": completed,
-            "remaining": remaining,
+            "ordered_subtasks": ordered_subtasks,
+            "completed_subtasks": completed_subtasks,
+            "pending_subtasks": pending_subtasks,
+            "first_incomplete": first_incomplete,
         }
 
         canonical = json.dumps(
@@ -209,173 +198,165 @@ class GateSubtaskContinuityReader:
             canonical.encode("utf-8")
         ).hexdigest()
 
-    @staticmethod
-    def _state_sha256(path: Path) -> str:
-        try:
-            return hashlib.sha256(path.read_bytes()).hexdigest()
-        except OSError as exc:
-            raise GateContinuitySourceError(
-                f"Unable to fingerprint state: {path}"
-            ) from exc
-
     def reconstruct(self) -> GateSubtaskContinuity:
-        """Evaluate gate/subtask continuity from authoritative state."""
-
-        state = self._read_state(self.state_path)
-
-        current_gate = state.get("current_gate")
-        current_subtask = state.get("current_subtask")
-        subtask_status = state.get("subtask_status")
-
-        if not isinstance(current_gate, Mapping):
-            raise GateContinuityIntegrityError(
-                "state.current_gate must be an object."
-            )
-
-        if not isinstance(current_subtask, Mapping):
-            raise GateContinuityIntegrityError(
-                "state.current_subtask must be an object."
-            )
-
-        if not isinstance(subtask_status, Mapping):
-            raise GateContinuityIntegrityError(
-                "state.subtask_status must be an object."
-            )
-
-        gate_id = self._required_string(
-            current_gate,
-            "id",
-            "current_gate",
-        )
-
-        gate_name = self._required_string(
-            current_gate,
-            "name",
-            "current_gate",
-        )
-
-        gate_status = self._required_string(
-            current_gate,
-            "status",
-            "current_gate",
-        )
-
-        subtask_id = self._required_string(
-            current_subtask,
-            "id",
-            "current_subtask",
-        )
-
-        status = self._required_string(
-            subtask_status,
-            "status",
-            "subtask_status",
-        )
-
-        all_subtasks = self._string_list(
-            current_gate.get("subtasks"),
-            "current_gate.subtasks",
-        )
-
-        completed = self._string_list(
-            current_gate.get("completed_subtasks"),
-            "current_gate.completed_subtasks",
-        )
-
-        pending = self._string_list(
-            current_gate.get("pending_subtasks"),
-            "current_gate.pending_subtasks",
-        )
-
-        # If the authoritative state does not expose an explicit
-        # subtasks list, derive the ordered set from completed + pending.
-        if not all_subtasks:
-            ordered: list[str] = []
-
-            for item in (*completed, *pending):
-                if item not in ordered:
-                    ordered.append(item)
-
-            all_subtasks = tuple(ordered)
-
-        if not all_subtasks:
-            raise GateContinuityIntegrityError(
-                "No gate subtasks are available for continuity."
-            )
-
-        if subtask_id in completed:
-            raise GateContinuityConflictError(
-                "Current subtask is already marked completed."
-            )
-
-        if subtask_id not in all_subtasks:
-            raise GateContinuityConflictError(
-                "Current subtask does not belong to the current gate."
-            )
-
-        if pending and subtask_id not in pending and status != "DONE":
-            raise GateContinuityConflictError(
-                "Current subtask is neither pending nor completed."
-            )
-
-        duplicate_completed = len(completed) != len(set(completed))
-
-        if duplicate_completed:
-            raise GateContinuityIntegrityError(
-                "Completed subtasks contain duplicates."
-            )
-
-        duplicate_pending = len(pending) != len(set(pending))
-
-        if duplicate_pending:
-            raise GateContinuityIntegrityError(
-                "Pending subtasks contain duplicates."
-            )
-
-        overlap = set(completed).intersection(pending)
-
-        if overlap:
-            raise GateContinuityConflictError(
-                "A subtask cannot be both completed and pending."
-            )
+        """Reconstruct authoritative gate/subtask continuity."""
 
         try:
-            subtask_index = all_subtasks.index(subtask_id) + 1
-        except ValueError as exc:
-            raise GateContinuityConflictError(
-                "Current subtask position cannot be reconstructed."
+            execution_snapshot = ExecutionStateReconstructor(
+                self.root
+            ).reconstruct()
+        except StateReconstructionError as exc:
+            raise GateContinuitySourceError(
+                "T04 requires a valid T03 execution-state reconstruction."
             ) from exc
 
-        remaining = tuple(
-            item
-            for item in all_subtasks
-            if item not in completed
+        state = self._load_state(self.state_path)
+
+        gate_plans = state.get("gate_plans")
+
+        if not isinstance(gate_plans, Mapping):
+            raise GateContinuityIntegrityError(
+                "state.gate_plans must be an object."
+            )
+
+        gate = gate_plans.get(execution_snapshot.gate_id)
+
+        if not isinstance(gate, Mapping):
+            raise GateContinuityIntegrityError(
+                "Current gate is missing from gate_plans: "
+                f"{execution_snapshot.gate_id}"
+            )
+
+        gate_name = self._string(
+            gate.get("name"),
+            f"gate_plans[{execution_snapshot.gate_id}].name",
         )
 
-        fingerprint = self._fingerprint(
-            gate_id,
+        gate_status = self._string(
+            gate.get("status"),
+            f"gate_plans[{execution_snapshot.gate_id}].status",
+        ).upper()
+
+        subtasks_raw = gate.get("subtasks")
+
+        if not isinstance(subtasks_raw, list) or not subtasks_raw:
+            raise GateContinuityIntegrityError(
+                f"gate_plans[{execution_snapshot.gate_id}].subtasks "
+                "must be a non-empty list."
+            )
+
+        ordered: list[str] = []
+        statuses: dict[str, str] = {}
+
+        for item in subtasks_raw:
+            if not isinstance(item, Mapping):
+                raise GateContinuityIntegrityError(
+                    f"gate_plans[{execution_snapshot.gate_id}].subtasks "
+                    "contains an invalid entry."
+                )
+
+            subtask_id = self._string(
+                item.get("id"),
+                "subtask.id",
+            )
+
+            status = self._string(
+                item.get("status"),
+                f"subtask[{subtask_id}].status",
+            ).upper()
+
+            if subtask_id in statuses:
+                raise GateContinuityIntegrityError(
+                    f"Duplicate subtask id: {subtask_id}"
+                )
+
+            if status not in {"PENDING", "CURRENT", "DONE"}:
+                raise GateContinuityIntegrityError(
+                    f"Invalid status for {subtask_id}: {status}"
+                )
+
+            ordered.append(subtask_id)
+            statuses[subtask_id] = status
+
+        completed = tuple(
+            subtask_id
+            for subtask_id in ordered
+            if statuses[subtask_id] == "DONE"
+        )
+
+        pending = tuple(
+            subtask_id
+            for subtask_id in ordered
+            if statuses[subtask_id] != "DONE"
+        )
+
+        if not pending:
+            raise GateContinuityConflictError(
+                "Current gate contains no incomplete authoritative subtask."
+            )
+
+        first_incomplete = pending[0]
+        current_subtask = execution_snapshot.current_subtask
+        current_status = statuses.get(current_subtask)
+
+        if current_status is None:
+            raise GateContinuityConflictError(
+                "Current subtask is not present in the current gate plan: "
+                f"{current_subtask}"
+            )
+
+        if current_status == "DONE":
+            raise GateContinuityConflictError(
+                "Current subtask is already completed; "
+                "authoritative position is stale."
+            )
+
+        if current_subtask != first_incomplete:
+            raise GateContinuityConflictError(
+                "Current subtask is stale: the first incomplete "
+                f"authoritative unit is {first_incomplete}, "
+                f"not {current_subtask}."
+            )
+
+        if execution_snapshot.current_subtask_status != current_status:
+            raise GateContinuityConflictError(
+                "T03 and gate plan disagree on current subtask status."
+            )
+
+        if gate_status in {"COMPLETE", "COMPLETED", "DONE"}:
+            raise GateContinuityConflictError(
+                "Current gate is completed but still has an incomplete subtask."
+            )
+
+        ordered_tuple = tuple(ordered)
+
+        fingerprint = self._continuity_fingerprint(
+            execution_snapshot.gate_id,
             gate_status,
-            subtask_id,
-            status,
+            execution_snapshot.current_task,
+            current_subtask,
+            current_status,
+            ordered_tuple,
             completed,
-            remaining,
+            pending,
+            first_incomplete,
         )
 
         return GateSubtaskContinuity(
-            gate_id=gate_id,
+            gate_id=execution_snapshot.gate_id,
             gate_name=gate_name,
             gate_status=gate_status,
-            current_subtask=subtask_id,
-            current_subtask_status=status,
-            subtask_index=subtask_index,
-            total_subtasks=len(all_subtasks),
+            current_task=execution_snapshot.current_task,
+            current_subtask=current_subtask,
+            current_subtask_status=current_status,
+            subtask_index=ordered.index(current_subtask) + 1,
+            total_subtasks=len(ordered),
             completed_subtasks=completed,
-            remaining_subtasks=remaining,
+            pending_subtasks=pending,
+            first_incomplete_authoritative_unit=first_incomplete,
             resume_decision=ResumeDecision.RESUME,
             continuity_fingerprint=fingerprint,
-            source_state_sha256=self._state_sha256(
-                self.state_path
-            ),
+            source_state_sha256=execution_snapshot.source_state_sha256,
         )
 
 
