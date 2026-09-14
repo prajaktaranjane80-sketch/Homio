@@ -31,6 +31,18 @@ from .dependency_authority_map import (
     build_dependency_authority_map,
 )
 
+from .task_dependency_reconstruction import (
+    DependencyBlocker,
+    DependencyResolutionStatus,
+    TaskDependencyConflictError,
+    TaskDependencyError,
+    TaskDependencyIntegrityError,
+    TaskDependencyReconstructor,
+    TaskDependencyResolution,
+    TaskDependencySourceError,
+    reconstruct_task_dependencies,
+)
+
 __all__ = [
     "AuthorityConflictError",
     "AuthorityDependency",
@@ -52,4 +64,13 @@ __all__ = [
     "normalize_sources",
     "validate_authority_contract",
     "validate_authority_map",
+    "DependencyBlocker",
+    "DependencyResolutionStatus",
+    "TaskDependencyConflictError",
+    "TaskDependencyError",
+    "TaskDependencyIntegrityError",
+    "TaskDependencyReconstructor",
+    "TaskDependencyResolution",
+    "TaskDependencySourceError",
+    "reconstruct_task_dependencies",
 ]
