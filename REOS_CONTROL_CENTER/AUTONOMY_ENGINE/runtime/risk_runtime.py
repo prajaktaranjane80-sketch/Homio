@@ -65,7 +65,7 @@ class RiskRuntime:
             if term in text
         )
 
-        if critical:
+                if critical:
             return RiskDecision(
                 "CRITICAL",
                 False,
@@ -87,6 +87,10 @@ class RiskRuntime:
         return RiskDecision(
             "LOW",
             False,
+            False,
+            (),
+            ("READ_ONLY_INSPECTION",),
+        )
             False,
             (),
             ("READ_ONLY_INSPECTION",),
