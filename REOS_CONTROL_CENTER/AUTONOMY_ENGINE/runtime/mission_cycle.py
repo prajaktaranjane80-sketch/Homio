@@ -4,6 +4,7 @@ from dataclasses import dataclass, asdict
 from typing import Any
 
 from autonomous_mission_runtime import AutonomousMissionRuntime
+from orchestration.agent_runtime import AgentRuntime, AgentRuntimeContext
 
 
 @dataclass(frozen=True, slots=True)
@@ -182,3 +183,77 @@ class MissionCycleEngine:
             decision.warnings,
             context,
         )
+
+
+
+    def create_agent_runtime(
+        self,
+        cycle: MissionCycle,
+        *,
+        agent_id: str,
+    ) -> AgentRuntime:
+        if cycle.status != "READY":
+            raise RuntimeError(
+                "cannot create agent runtime from non-ready cycle"
+            )
+
+        context = AgentRuntimeContext(
+            run_id=cycle.cycle_id,
+            agent_id=agent_id,
+            task_id=cycle.subtask or cycle.task or "",
+            metadata={
+                "mode": cycle.mode,
+                "gate": cycle.gate,
+                "task": cycle.task,
+                "subtask": cycle.subtask,
+                "execution_budget": {
+                    "never_dump_full_file": True,
+                    "discover_before_modify": True,
+                    "verify_before_assume": True,
+                },
+            },
+        )
+
+        return AgentRuntime(context)
+
+    def build_cycle(
+        self,
+        *,
+        agent_id: str,
+        mode: str = "HOMIO_BUILDER",
+    ) -> dict[str, Any]:
+        cycle = self.prepare(mode=mode)
+
+        if cycle.status != "READY":
+            return cycle.to_dict()
+
+        agent = self.create_agent_runtime(
+            cycle,
+            agent_id=agent_id,
+        )
+
+        execution_budget = dict(
+            agent.context.metadata.get(
+                "execution_budget",
+                {},
+            )
+        )
+
+        payload = cycle.to_dict()
+
+        payload["agent_runtime"] = {
+            "status": agent.status,
+            "agent_id": agent.context.agent_id,
+            "task_id": agent.context.task_id,
+            "run_id": agent.context.run_id,
+        }
+
+        payload["agent_context"] = {
+            **dict(cycle.agent_context),
+            "agent_id": agent.context.agent_id,
+            "task_id": agent.context.task_id,
+            "run_id": agent.context.run_id,
+            "execution_budget": execution_budget,
+        }
+
+        return payload
