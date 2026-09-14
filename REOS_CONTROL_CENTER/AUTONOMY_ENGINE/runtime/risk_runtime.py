@@ -65,7 +65,7 @@ class RiskRuntime:
             if term in text
         )
 
-                if critical:
+        if critical:
             return RiskDecision(
                 "CRITICAL",
                 False,
@@ -80,16 +80,13 @@ class RiskRuntime:
                 False,
                 False,
                 (),
-                tuple(medium) or ("MUTATION_REQUIRES_GUARDED_EXECUTION",),
+                tuple(medium)
+                or ("MUTATION_REQUIRES_GUARDED_EXECUTION",),
             )
 
         return RiskDecision(
             "LOW",
             False,
-            False,
-            (),
-            ("READ_ONLY_INSPECTION",),
-        )
             False,
             (),
             ("READ_ONLY_INSPECTION",),
