@@ -211,18 +211,40 @@ def test_completed_subtask_is_reconstructed(
 ) -> None:
     _write_state(
         tmp_path,
-        current_subtask="CORE-005-T02",
-        current_status="DONE",
+        current_subtask="CORE-005-T01",
+        current_status="CURRENT",
+    )
+
+    state_path = tmp_path / "data" / "state.json"
+    state = json.loads(
+        state_path.read_text(
+            encoding="utf-8"
+        )
+    )
+
+    state["gate_plans"]["CORE-005"]["subtasks"][1]["status"] = "DONE"
+
+    state_path.write_text(
+        json.dumps(
+            state,
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
     )
 
     snapshot = ExecutionStateReconstructor(
         tmp_path
     ).reconstruct()
 
-    assert snapshot.current_subtask == "CORE-005-T02"
-    assert snapshot.current_subtask_status == "DONE"
+    assert snapshot.current_subtask == "CORE-005-T01"
+    assert snapshot.current_subtask_status == "CURRENT"
     assert snapshot.completed_subtasks == (
         "CORE-005-T02",
+    )
+    assert snapshot.pending_subtasks == (
+        "CORE-005-T01",
+        "CORE-005-T03",
     )
 
 
