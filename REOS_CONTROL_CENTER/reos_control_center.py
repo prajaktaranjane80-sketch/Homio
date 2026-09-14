@@ -135,9 +135,9 @@ def load_state() -> dict[str, Any]:
             f"CANONICAL STATE READ FAILURE: {exc}"
         ) from exc
     except json.JSONDecodeError as exc:
-        raise SystemExit(
-            f"CANONICAL STATE PARSE FAILURE: {exc}"
-        ) from exc
+    raise SystemExit(
+        f"Invalid state.json: {exc}"
+    ) from exc
 
     if not isinstance(state, dict):
         raise SystemExit(
