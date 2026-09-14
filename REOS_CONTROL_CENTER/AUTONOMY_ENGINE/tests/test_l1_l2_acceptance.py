@@ -41,8 +41,8 @@ import pytest
 # ---------------------------------------------------------------------------
 
 TEST_FILE = Path(__file__).resolve()
-CONTROL_CENTER_ROOT = TEST_FILE.parents[1]
-AUTONOMY_ENGINE_ROOT = CONTROL_CENTER_ROOT / "AUTONOMY_ENGINE"
+AUTONOMY_ENGINE_ROOT = TEST_FILE.parents[1]
+CONTROL_CENTER_ROOT = TEST_FILE.parents[2]
 
 if str(AUTONOMY_ENGINE_ROOT) not in sys.path:
     sys.path.insert(0, str(AUTONOMY_ENGINE_ROOT))
@@ -219,6 +219,11 @@ def test_l1_execution_bridge_success_path() -> None:
         proposal,
         _execution_context(),
         executor=authoritative_executor,
+        postflight={
+            "evidence_complete": True,
+            "provenance_valid": True,
+            "state_consistent": True,
+        },
     )
 
     assert result.runtime_status == "COMPLETED"
