@@ -1,4 +1,4 @@
-﻿"""ACRL T03 â€” Execution State Reconstruction.
+"""ACRL T03 - Execution State Reconstruction.
 
 Read-only reconstruction of the current REOS execution state.
 
@@ -75,9 +75,7 @@ class ExecutionStateSnapshot:
             "execution": {
                 "current_task": self.current_task,
                 "current_subtask": self.current_subtask,
-                "current_subtask_status": (
-                    self.current_subtask_status
-                ),
+                "current_subtask_status": self.current_subtask_status,
                 "completed_subtasks": list(self.completed_subtasks),
                 "pending_subtasks": list(self.pending_subtasks),
             },
@@ -104,13 +102,11 @@ class ExecutionStateSnapshot:
                 f"CURRENT_TASK={self.current_task}",
                 f"CURRENT_SUBTASK={self.current_subtask}",
                 f"SUBTASK_STATUS={self.current_subtask_status}",
-                (
-                    "COMPLETED_SUBTASKS="
-                    + ",".join(self.completed_subtasks)
+                "COMPLETED_SUBTASKS=" + ",".join(
+                    self.completed_subtasks
                 ),
-                (
-                    "PENDING_SUBTASKS="
-                    + ",".join(self.pending_subtasks)
+                "PENDING_SUBTASKS=" + ",".join(
+                    self.pending_subtasks
                 ),
                 "AUTHORITY=data/state.json",
                 f"STATE_SHA256={self.source_state_sha256}",
@@ -119,7 +115,7 @@ class ExecutionStateSnapshot:
 
 
 class ExecutionStateReconstructor:
-    """Reconstruct current execution state from controller state."""
+    """Reconstruct current execution state from canonical controller state."""
 
     def __init__(
         self,
@@ -139,10 +135,19 @@ class ExecutionStateReconstructor:
                 f"Authoritative state not found: {path}"
             )
 
+        if not path.is_file():
+            raise StateReconstructionSourceError(
+                f"Authoritative state is not a file: {path}"
+            )
+
         try:
             raw = path.read_text(encoding="utf-8-sig")
             state = json.loads(raw)
-        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        except (
+            OSError,
+            UnicodeError,
+            json.JSONDecodeError,
+        ) as exc:
             raise StateReconstructionSourceError(
                 f"Unable to read authoritative state: {path}"
             ) from exc
@@ -185,31 +190,6 @@ class ExecutionStateReconstructor:
         return value
 
     @staticmethod
-    def _string_tuple(
-        value: Any,
-        field_name: str,
-    ) -> tuple[str, ...]:
-        if value is None:
-            return ()
-
-        if not isinstance(value, list):
-            raise StateReconstructionIntegrityError(
-                f"{field_name} must be a list."
-            )
-
-        result: list[str] = []
-
-        for item in value:
-            if not isinstance(item, str) or not item.strip():
-                raise StateReconstructionIntegrityError(
-                    f"{field_name} contains an invalid entry."
-                )
-
-            result.append(item.strip())
-
-        return tuple(result)
-
-    @staticmethod
     def _sha256(path: Path) -> str:
         try:
             return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -218,18 +198,76 @@ class ExecutionStateReconstructor:
                 f"Unable to fingerprint state: {path}"
             ) from exc
 
+    @staticmethod
+    def _future_gates(
+        execution_plan: Mapping[str, Any],
+        current_gate_id: str,
+    ) -> tuple[str, ...]:
+        sequence = execution_plan.get(
+            "authoritative_sequence",
+            [],
+        )
+
+        if sequence is None:
+            return ()
+
+        if not isinstance(sequence, list):
+            raise StateReconstructionIntegrityError(
+                "execution_plan.authoritative_sequence "
+                "must be a list."
+            )
+
+        current_index: int | None = None
+
+        for index, item in enumerate(sequence):
+            if not isinstance(item, Mapping):
+                raise StateReconstructionIntegrityError(
+                    "execution_plan.authoritative_sequence "
+                    "contains an invalid entry."
+                )
+
+            gate = item.get("gate")
+
+            if (
+                isinstance(gate, str)
+                and gate.strip() == current_gate_id
+            ):
+                current_index = index
+                break
+
+        if current_index is None:
+            return ()
+
+        future: list[str] = []
+
+        for item in sequence[current_index + 1 :]:
+            gate = item.get("gate")
+            status = item.get("status")
+
+            if not isinstance(gate, str) or not gate.strip():
+                continue
+
+            if (
+                isinstance(status, str)
+                and status.strip().upper() == "COMPLETE"
+            ):
+                continue
+
+            future.append(gate.strip())
+
+        return tuple(future)
+
     def reconstruct(self) -> ExecutionStateSnapshot:
-        """Build an immutable snapshot of the current execution state."""
+        """Build an immutable snapshot from canonical state.json only."""
 
         state = self._read_state(self.state_path)
 
         meta = state.get("meta")
         phases = state.get("phases")
-        roadmap = state.get("roadmap")
-        current_gate = state.get("current_gate")
-        current_task = state.get("current_task")
-        current_subtask = state.get("current_subtask")
-        subtask_status = state.get("subtask_status")
+        execution = state.get("execution")
+        gate_plans = state.get("gate_plans")
+        execution_plan = state.get("execution_plan", {})
+        constitution = state.get("constitution")
 
         if not isinstance(meta, Mapping):
             raise StateReconstructionIntegrityError(
@@ -241,85 +279,145 @@ class ExecutionStateReconstructor:
                 "state.phases must be an object."
             )
 
-        if not isinstance(roadmap, Mapping):
+        if not isinstance(execution, Mapping):
             raise StateReconstructionIntegrityError(
-                "state.roadmap must be an object."
+                "state.execution must be an object."
             )
 
-        phase = self._string(phases, "current", "phases")
+        if not isinstance(gate_plans, Mapping):
+            raise StateReconstructionIntegrityError(
+                "state.gate_plans must be an object."
+            )
 
-        gate_id = self._string(
-            current_gate,
-            "id",
-            "current_gate",
+        if not isinstance(execution_plan, Mapping):
+            raise StateReconstructionIntegrityError(
+                "state.execution_plan must be an object."
+            )
+
+        phase = self._string(
+            phases,
+            "current",
+            "phases",
         )
 
-        gate_name = self._string(
-            current_gate,
-            "name",
+        gate_id = self._string(
+            execution,
             "current_gate",
+            "execution",
+        )
+
+        current_task = self._string(
+            execution,
+            "current_task",
+            "execution",
+        )
+
+        gate = gate_plans.get(gate_id)
+
+        if not isinstance(gate, Mapping):
+            raise StateReconstructionIntegrityError(
+                f"gate_plans is missing current gate: {gate_id}"
+            )
+
+        gate_name = self._string(
+            gate,
+            "name",
+            f"gate_plans[{gate_id}]",
         )
 
         gate_status = self._string(
-            current_gate,
+            gate,
             "status",
-            "current_gate",
+            f"gate_plans[{gate_id}]",
         )
 
-        task = self._string(
-            current_task,
-            "name",
-            "current_task",
-        )
-
-        subtask = self._string(
-            current_subtask,
-            "id",
+        current_subtask = self._string(
+            gate,
             "current_subtask",
+            f"gate_plans[{gate_id}]",
         )
 
-        status = self._string(
-            subtask_status,
-            "status",
-            "subtask_status",
-        )
+        subtasks = gate.get("subtasks")
 
-        completed = self._string_tuple(
-            current_gate.get("completed_subtasks"),
-            "current_gate.completed_subtasks",
-        )
+        if not isinstance(subtasks, list):
+            raise StateReconstructionIntegrityError(
+                f"gate_plans[{gate_id}].subtasks must be a list."
+            )
 
-        pending = self._string_tuple(
-            current_gate.get("pending_subtasks"),
-            "current_gate.pending_subtasks",
-        )
+        completed: list[str] = []
+        pending: list[str] = []
+        current_subtask_status: str | None = None
 
-        future = self._string_tuple(
-            roadmap.get("future_gates"),
-            "roadmap.future_gates",
-        )
+        for item in subtasks:
+            if not isinstance(item, Mapping):
+                raise StateReconstructionIntegrityError(
+                    f"gate_plans[{gate_id}].subtasks "
+                    "contains an invalid entry."
+                )
 
-        if subtask in completed:
+            subtask_id = self._string(
+                item,
+                "id",
+                f"gate_plans[{gate_id}].subtasks",
+            )
+
+            status = self._string(
+                item,
+                "status",
+                f"gate_plans[{gate_id}].subtasks[{subtask_id}]",
+            ).upper()
+
+            if subtask_id == current_subtask:
+                current_subtask_status = status
+
+            if status == "DONE":
+                completed.append(subtask_id)
+            else:
+                pending.append(subtask_id)
+
+        if current_subtask_status is None:
+            raise StateReconstructionIntegrityError(
+                "Current subtask is not present in gate plan: "
+                f"{current_subtask}"
+            )
+
+        if current_subtask in completed:
             raise StateReconstructionIntegrityError(
                 "Current subtask cannot also be completed."
             )
 
-        if subtask not in pending and status != "DONE":
+        if (
+            current_subtask_status != "DONE"
+            and current_subtask not in pending
+        ):
             raise StateReconstructionIntegrityError(
                 "Current subtask must be pending unless marked DONE."
             )
+
+        canonical_source = "data/state.json"
+
+        if isinstance(constitution, Mapping):
+            declared = constitution.get("canonical_source")
+
+            if declared != canonical_source:
+                raise StateReconstructionIntegrityError(
+                    "Canonical source is not data/state.json."
+                )
 
         return ExecutionStateSnapshot(
             phase=phase,
             gate_id=gate_id,
             gate_name=gate_name,
             gate_status=gate_status,
-            current_task=task,
-            current_subtask=subtask,
-            current_subtask_status=status,
-            completed_subtasks=completed,
-            pending_subtasks=pending,
-            future_gates=future,
+            current_task=current_task,
+            current_subtask=current_subtask,
+            current_subtask_status=current_subtask_status,
+            completed_subtasks=tuple(completed),
+            pending_subtasks=tuple(pending),
+            future_gates=self._future_gates(
+                execution_plan,
+                gate_id,
+            ),
             state_schema_version=self._int(
                 meta,
                 "schema_version",
@@ -330,8 +428,10 @@ class ExecutionStateReconstructor:
                 "control_center_version",
                 "meta",
             ),
-            canonical_source="data/state.json",
-            source_state_sha256=self._sha256(self.state_path),
+            canonical_source=canonical_source,
+            source_state_sha256=self._sha256(
+                self.state_path
+            ),
         )
 
 
@@ -340,7 +440,9 @@ def reconstruct_execution_state(
 ) -> ExecutionStateSnapshot:
     """Convenience API for execution-state reconstruction."""
 
-    return ExecutionStateReconstructor(control_center_root).reconstruct()
+    return ExecutionStateReconstructor(
+        control_center_root
+    ).reconstruct()
 
 
 __all__ = [
