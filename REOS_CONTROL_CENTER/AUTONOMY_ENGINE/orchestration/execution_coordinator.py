@@ -273,7 +273,11 @@ class ExecutionCoordinator:
                 status=status,
                 action_id=action_id,
                 allowed=False,
-                reason="Controlled mutation boundary did not complete execution.",
+                reason=(
+                    mutation.error
+                    if mutation.error
+                    else "Controlled mutation boundary did not complete execution."
+                ),
                 protocol=protocol,
                 enforcement=enforcement,
                 mutation=mutation,
