@@ -64,7 +64,11 @@ class WorkContext:
 
         for item in ordered:
             candidate = asdict(item)
-            candidate["value"] = self.redact(item.value)
+            candidate["value"] = (
+                "[REDACTED]"
+                if str(item.key).lower() in self.SECRET_KEYS
+                else self.redact(item.value)
+            )
 
             current_size = len(str(result + [candidate]))
             if current_size > self.max_chars:
