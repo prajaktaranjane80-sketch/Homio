@@ -321,7 +321,7 @@ def test_bootstrap_payload_is_machine_readable() -> None:
 
     payload = context.to_dict()
 
-    assert payload["schema_version"] == "1.0"
+    assert payload["schema_version"] == "2.0"
     assert payload["authority"] == "REOS_CONTROL_CENTER"
     assert isinstance(
         payload["checkpoint"],
