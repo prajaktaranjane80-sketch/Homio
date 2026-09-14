@@ -56,7 +56,10 @@ class MissionCycle:
 class MissionCycleEngine:
     """Build one bounded autonomous HOMIO work cycle."""
 
-    def __init__(self, runtime: AutonomousMissionRuntime | None = None) -> None:
+    def __init__(
+        self,
+        runtime: AutonomousMissionRuntime | None = None,
+    ) -> None:
         self.runtime = runtime or AutonomousMissionRuntime()
 
     @staticmethod
@@ -87,7 +90,7 @@ class MissionCycleEngine:
                 12,
             ),
             EvidenceTarget(
-                "dependencies",
+                "dependency-impact",
                 "DEPENDENCY",
                 "Resolve direct dependencies and ownership.",
                 85,
@@ -95,7 +98,7 @@ class MissionCycleEngine:
                 20,
             ),
             EvidenceTarget(
-                "architecture",
+                "architecture-contract",
                 "ARCHITECTURE",
                 "Confirm frozen architecture and contracts.",
                 80,
@@ -103,7 +106,7 @@ class MissionCycleEngine:
                 10,
             ),
             EvidenceTarget(
-                "tests",
+                "test-surface",
                 "TEST",
                 "Select targeted tests and regression surface.",
                 75,
@@ -111,7 +114,7 @@ class MissionCycleEngine:
                 20,
             ),
             EvidenceTarget(
-                "risk",
+                "risk-boundary",
                 "GOVERNANCE",
                 "Determine risk and approval boundary.",
                 70,
@@ -119,7 +122,7 @@ class MissionCycleEngine:
                 10,
             ),
             EvidenceTarget(
-                "impact",
+                "change-impact",
                 "IMPACT",
                 "Detect blast-radius and duplicate responsibility.",
                 65,
@@ -128,7 +131,10 @@ class MissionCycleEngine:
             ),
         )
 
-    def prepare(self, mode: str = "HOMIO_BUILDER") -> MissionCycle:
+    def prepare(
+        self,
+        mode: str = "HOMIO_BUILDER",
+    ) -> MissionCycle:
         from uuid import uuid4
 
         decision = self.runtime.decide(mode=mode)
@@ -183,8 +189,6 @@ class MissionCycleEngine:
             decision.warnings,
             context,
         )
-
-
 
     def create_agent_runtime(
         self,
