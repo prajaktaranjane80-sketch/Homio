@@ -1,22 +1,13 @@
 """L3 canonical authority verification.
 
-This module is intentionally NOT a second control plane.
+This module is NOT a second control plane.
 
 Authority remains:
     REOS_CONTROL_CENTER
         -> data/state.json
 
-This module only verifies that the existing authoritative Control Center
-and canonical state are present, internally consistent, and usable.
-
-It does not:
-- own project state
-- create or mutate state
-- create a roadmap
-- create a checkpoint engine
-- execute mutations
-- replace reos_control_center.py
-- create an alternative authority
+This module only verifies the existing authoritative Control Center
+and canonical state. It does not own, create, mutate, or replace state.
 """
 
 from __future__ import annotations
@@ -51,12 +42,15 @@ class CanonicalAuthorityVerifier:
         self._state = state
 
     def verify_state_path(self) -> bool:
-        """Verify that the canonical state is exactly data/state.json."""
+        """Canonical state must be exactly data/state.json."""
         expected = (
             self.control_center_root / "data" / "state.json"
         ).resolve()
 
-        return self.state_path == expected and self.state_path.is_file()
+        return (
+            self.state_path == expected
+            and self.state_path.is_file()
+        )
 
     def verify_state_integrity(self) -> bool:
         """Reuse the existing Control Center hash implementation."""
@@ -68,23 +62,27 @@ class CanonicalAuthorityVerifier:
         except ImportError:
             return False
 
-        stored = (
-            self._state
-            .get("integrity", {})
-            .get("sha256")
-        )
+        integrity = self._state.get("integrity")
 
-        if not stored:
+        if not isinstance(integrity, dict):
+            return False
+
+        stored = integrity.get("sha256")
+
+        if not isinstance(stored, str) or not stored.strip():
             return False
 
         return stored == calculate_hash(self._state)
 
     def verify_authority_declaration(self) -> bool:
-        """Verify state.json declares itself as the canonical source."""
+        """Verify the canonical authority declaration."""
         if self._state is None:
             return False
 
-        constitution = self._state.get("constitution", {})
+        constitution = self._state.get("constitution")
+
+        if not isinstance(constitution, dict):
+            return False
 
         return (
             constitution.get("canonical_source")
@@ -95,52 +93,49 @@ class CanonicalAuthorityVerifier:
     def _resolve_execution_position(
         self,
     ) -> tuple[str | None, str | None, str | None]:
-        """Resolve the authoritative execution position from state.json.
+        """Resolve the current position from the canonical state schema.
 
-        The Control Center state schema is authoritative.  L3 must not
-        invent a parallel current-position schema.
+        The existing Control Center schema is authoritative:
 
-        The preferred source is state["current"] when present.  If the
-        canonical state stores the position through the authoritative
-        gate/task structure instead, resolve it from that existing
-        structure without mutating state.
+            state["execution"]["current_gate"]
+            state["execution"]["current_task"]
+
+        The current subtask is resolved from the authoritative gate plan.
+        No parallel ``current`` state structure is created.
         """
         if self._state is None:
             return None, None, None
 
-        current = self._state.get("current")
+        execution = self._state.get("execution")
 
-        if isinstance(current, dict):
-            gate = current.get("gate")
-            task = current.get("task")
-            subtask = current.get("subtask")
+        if not isinstance(execution, dict):
+            return None, None, None
 
-            if gate and task and subtask:
-                return str(gate), str(task), str(subtask)
+        gate = execution.get("current_gate")
+        task = execution.get("current_task")
+
+        if not gate or not task:
+            return None, None, None
 
         gate_plans = self._state.get("gate_plans")
 
-        if isinstance(gate_plans, dict):
-            current_gate = self._state.get("current_gate")
+        if not isinstance(gate_plans, dict):
+            return None, None, None
 
-            if current_gate and current_gate in gate_plans:
-                gate_data = gate_plans[current_gate]
+        gate_data = gate_plans.get(gate)
 
-                if isinstance(gate_data, dict):
-                    task = gate_data.get("current_task")
-                    subtask = gate_data.get("current_subtask")
+        if not isinstance(gate_data, dict):
+            return None, None, None
 
-                    if task and subtask:
-                        return (
-                            str(current_gate),
-                            str(task),
-                            str(subtask),
-                        )
+        subtask = gate_data.get("current_subtask")
 
-        return None, None, None
+        if not subtask:
+            return None, None, None
+
+        return str(gate), str(task), str(subtask)
 
     def verify_execution_position(self) -> bool:
-        """Verify that the authoritative current execution position exists."""
+        """Verify the authoritative execution position."""
         gate, task, subtask = self._resolve_execution_position()
 
         return bool(gate and task and subtask)
@@ -199,7 +194,7 @@ def verify_canonical_authority(
     control_center_root: Path,
     state: dict[str, Any],
 ) -> CanonicalAuthorityResult:
-    """Convenience wrapper around the read-only verifier."""
+    """Convenience wrapper for read-only L3 verification."""
     verifier = CanonicalAuthorityVerifier(
         control_center_root=control_center_root,
         state=state,
