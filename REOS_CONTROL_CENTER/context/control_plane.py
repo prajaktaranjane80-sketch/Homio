@@ -92,19 +92,56 @@ class CanonicalAuthorityVerifier:
             and constitution.get("single_source_of_truth") is True
         )
 
-    def verify_execution_position(self) -> bool:
-        """Verify the authoritative current execution position exists."""
+    def _resolve_execution_position(
+        self,
+    ) -> tuple[str | None, str | None, str | None]:
+        """Resolve the authoritative execution position from state.json.
+
+        The Control Center state schema is authoritative.  L3 must not
+        invent a parallel current-position schema.
+
+        The preferred source is state["current"] when present.  If the
+        canonical state stores the position through the authoritative
+        gate/task structure instead, resolve it from that existing
+        structure without mutating state.
+        """
         if self._state is None:
-            return False
+            return None, None, None
 
-        current = self._state.get("current", {})
+        current = self._state.get("current")
 
-        if not isinstance(current, dict):
-            return False
+        if isinstance(current, dict):
+            gate = current.get("gate")
+            task = current.get("task")
+            subtask = current.get("subtask")
 
-        gate = current.get("gate")
-        task = current.get("task")
-        subtask = current.get("subtask")
+            if gate and task and subtask:
+                return str(gate), str(task), str(subtask)
+
+        gate_plans = self._state.get("gate_plans")
+
+        if isinstance(gate_plans, dict):
+            current_gate = self._state.get("current_gate")
+
+            if current_gate and current_gate in gate_plans:
+                gate_data = gate_plans[current_gate]
+
+                if isinstance(gate_data, dict):
+                    task = gate_data.get("current_task")
+                    subtask = gate_data.get("current_subtask")
+
+                    if task and subtask:
+                        return (
+                            str(current_gate),
+                            str(task),
+                            str(subtask),
+                        )
+
+        return None, None, None
+
+    def verify_execution_position(self) -> bool:
+        """Verify that the authoritative current execution position exists."""
+        gate, task, subtask = self._resolve_execution_position()
 
         return bool(gate and task and subtask)
 
@@ -139,22 +176,22 @@ class CanonicalAuthorityVerifier:
                 state_path=self.state_path,
             )
 
-        if not self.verify_execution_position():
+        gate, task, subtask = self._resolve_execution_position()
+
+        if not (gate and task and subtask):
             return CanonicalAuthorityResult(
                 allowed=False,
                 reason="AUTHORITATIVE_EXECUTION_POSITION_INVALID",
                 state_path=self.state_path,
             )
 
-        current = self._state["current"]
-
         return CanonicalAuthorityResult(
             allowed=True,
             reason="CANONICAL_AUTHORITY_VERIFIED",
             state_path=self.state_path,
-            current_gate=current.get("gate"),
-            current_task=current.get("task"),
-            current_subtask=current.get("subtask"),
+            current_gate=gate,
+            current_task=task,
+            current_subtask=subtask,
         )
 
 
