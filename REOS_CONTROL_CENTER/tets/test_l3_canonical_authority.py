@@ -4,8 +4,6 @@ import copy
 import json
 from pathlib import Path
 
-import pytest
-
 from context.control_plane import CanonicalAuthorityVerifier
 
 
@@ -20,9 +18,11 @@ def load_canonical_state() -> dict:
 
 
 def test_canonical_state_path_is_data_state_json():
+    state = load_canonical_state()
+
     verifier = CanonicalAuthorityVerifier(
         control_center_root=CONTROL_CENTER_ROOT,
-        state=load_canonical_state(),
+        state=state,
     )
 
     assert verifier.verify_state_path() is True
@@ -67,8 +67,9 @@ def test_tampered_state_is_blocked():
 
     tampered = copy.deepcopy(state)
 
-    current = tampered.setdefault("current", {})
-    current["__l3_tamper_test__"] = True
+    tampered["execution"]["current_gate"] = (
+        "UNAUTHORIZED-GATE"
+    )
 
     verifier = CanonicalAuthorityVerifier(
         control_center_root=CONTROL_CENTER_ROOT,
@@ -81,11 +82,26 @@ def test_tampered_state_is_blocked():
 def test_missing_integrity_hash_is_blocked():
     state = load_canonical_state()
 
-    state.setdefault("integrity", {})["sha256"] = None
+    broken = copy.deepcopy(state)
+    broken["integrity"]["sha256"] = None
 
     verifier = CanonicalAuthorityVerifier(
         control_center_root=CONTROL_CENTER_ROOT,
-        state=state,
+        state=broken,
+    )
+
+    assert verifier.verify_state_integrity() is False
+
+
+def test_missing_integrity_metadata_is_blocked():
+    state = load_canonical_state()
+
+    broken = copy.deepcopy(state)
+    broken.pop("integrity")
+
+    verifier = CanonicalAuthorityVerifier(
+        control_center_root=CONTROL_CENTER_ROOT,
+        state=broken,
     )
 
     assert verifier.verify_state_integrity() is False
@@ -127,7 +143,12 @@ def test_invalid_execution_position_is_blocked():
     state = load_canonical_state()
 
     broken = copy.deepcopy(state)
-    broken["current"] = {}
+
+    broken["execution"] = {
+        "current_gate": "",
+        "current_task": "",
+        "status": "CONTROL_CENTER_DRIVEN",
+    }
 
     verifier = CanonicalAuthorityVerifier(
         control_center_root=CONTROL_CENTER_ROOT,
@@ -137,13 +158,14 @@ def test_invalid_execution_position_is_blocked():
     result = verifier.verify()
 
     assert result.allowed is False
-    assert result.reason == "AUTHORITATIVE_EXECUTION_POSITION_INVALID"
+    assert result.reason == "CANONICAL_STATE_INTEGRITY_FAILURE"
 
 
 def test_invalid_authority_declaration_is_blocked():
     state = load_canonical_state()
 
     broken = copy.deepcopy(state)
+
     broken.setdefault("constitution", {})[
         "canonical_source"
     ] = "somewhere_else.json"
