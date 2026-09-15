@@ -19,7 +19,7 @@ from AUTONOMY_ENGINE.continuity.acrl.T14_Repository_Intelligence_Context.reposit
 def repository(tmp_path: Path) -> Path:
     root = tmp_path / "repo"
 
-    (root / "AUTONOMY_ENGINE").mkdir()
+    (root / "AUTONOMY_ENGINE").mkdir(parents=True)
     (root / "core").mkdir()
     (root / "tests").mkdir()
 
