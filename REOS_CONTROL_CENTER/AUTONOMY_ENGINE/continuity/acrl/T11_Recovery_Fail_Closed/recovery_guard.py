@@ -138,7 +138,7 @@ class RecoveryGuard:
         }
     )
 
-    UNSAFE_FAILURES = frozenset(
+        UNSAFE_FAILURES = frozenset(
         {
             "architecture",
             "architecture_drift",
@@ -148,9 +148,21 @@ class RecoveryGuard:
             "tamper",
             "destructive",
             "unknown",
+            "state_unavailable",
+            "state_missing",
+            "integrity_mismatch",
+            "reconstruction_incomplete",
+            "reconstruction_mismatch",
+            "dependency_conflict",
+            "dependency_mismatch",
+            "invalid_continuity",
+            "continuity_invalid",
+            "continuity_mismatch",
+            "stale_context",
+            "drift",
+            "reconstruction_invalid",
         }
     )
-
     @classmethod
     def canonicalize(cls, value: Any) -> str:
         try:
@@ -336,7 +348,7 @@ class RecoveryGuard:
 
         # Any failure explicitly classified as unsafe
         # is never allowed to reach generic recovery logic.
-        if failure in cls.UNSAFE_FAILURES:
+                if failure in cls.UNSAFE_FAILURES:
             return cls._fail_closed(
                 reason=RecoveryReason.UNKNOWN_FAILURE,
                 fingerprint=fingerprint,
