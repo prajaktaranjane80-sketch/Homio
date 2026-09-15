@@ -14,21 +14,37 @@ from dataclasses import FrozenInstanceError
 
 import pytest
 
-from .resume_safety_validation import (
+from AUTONOMY_ENGINE.continuity.acrl.T12_Resume_Safety_Validation.resume_safety_validation import (
     ResumeDecision,
     ResumeSafetyReason,
     ResumeSafetyRequest,
     ResumeSafetyValidator,
 )
-from .resume_policy import ResumePolicyEngine
-from .resume_identity import ResumeIdentityEngine
-from .resume_provenance import ResumeProvenanceEngine
-from .resume_validation import ResumeValidationEngine
-from .resume_compatibility import (
+
+from AUTONOMY_ENGINE.continuity.acrl.T12_Resume_Safety_Validation.resume_policy import (
+    ResumePolicyEngine,
+)
+
+from AUTONOMY_ENGINE.continuity.acrl.T12_Resume_Safety_Validation.resume_identity import (
+    ResumeIdentityEngine,
+)
+
+from AUTONOMY_ENGINE.continuity.acrl.T12_Resume_Safety_Validation.resume_provenance import (
+    ResumeProvenanceEngine,
+)
+
+from AUTONOMY_ENGINE.continuity.acrl.T12_Resume_Safety_Validation.resume_validation import (
+    ResumeValidationEngine,
+)
+
+from AUTONOMY_ENGINE.continuity.acrl.T12_Resume_Safety_Validation.resume_compatibility import (
     ResumeCompatibilityEngine,
     ResumeCompatibilityStatus,
 )
-from .resume_metrics import ResumeMetricsEngine
+
+from AUTONOMY_ENGINE.continuity.acrl.T12_Resume_Safety_Validation.resume_metrics import (
+    ResumeMetricsEngine,
+)
 
 
 def _safe_request(**overrides):
