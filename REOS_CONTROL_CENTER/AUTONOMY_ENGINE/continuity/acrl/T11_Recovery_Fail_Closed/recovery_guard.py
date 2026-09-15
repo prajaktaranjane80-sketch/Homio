@@ -138,7 +138,7 @@ class RecoveryGuard:
         }
     )
 
-        UNSAFE_FAILURES = frozenset(
+    UNSAFE_FAILURES = frozenset(
         {
             "architecture",
             "architecture_drift",
@@ -163,8 +163,12 @@ class RecoveryGuard:
             "reconstruction_invalid",
         }
     )
+
     @classmethod
-    def canonicalize(cls, value: Any) -> str:
+    def canonicalize(
+        cls,
+        value: Any,
+    ) -> str:
         try:
             return json.dumps(
                 value,
@@ -178,7 +182,10 @@ class RecoveryGuard:
             ) from exc
 
     @classmethod
-    def fingerprint(cls, value: Any) -> str:
+    def fingerprint(
+        cls,
+        value: Any,
+    ) -> str:
         return hashlib.sha256(
             cls.canonicalize(value).encode("utf-8")
         ).hexdigest()
@@ -188,7 +195,10 @@ class RecoveryGuard:
         cls,
         request: RecoveryRequest,
     ) -> None:
-        if not isinstance(request, RecoveryRequest):
+        if not isinstance(
+            request,
+            RecoveryRequest,
+        ):
             raise RecoveryValidationError(
                 "Invalid recovery request."
             )
@@ -276,11 +286,6 @@ class RecoveryGuard:
             request.failure_type
         )
 
-        # ---------------------------------------------------------
-        # SECURITY / AUTHORITY PRECEDENCE
-        # These conditions ALWAYS override recoverable=True.
-        # ---------------------------------------------------------
-
         if request.destructive:
             return cls._fail_closed(
                 reason=RecoveryReason.DESTRUCTIVE_ACTION,
@@ -330,7 +335,6 @@ class RecoveryGuard:
                 ),
             )
 
-        # UNKNOWN is explicitly fail-closed.
         if failure in {
             "unknown",
             "unknown_failure",
@@ -346,9 +350,7 @@ class RecoveryGuard:
                 ),
             )
 
-        # Any failure explicitly classified as unsafe
-        # is never allowed to reach generic recovery logic.
-                if failure in cls.UNSAFE_FAILURES:
+        if failure in cls.UNSAFE_FAILURES:
             return cls._fail_closed(
                 reason=RecoveryReason.UNKNOWN_FAILURE,
                 fingerprint=fingerprint,
@@ -357,10 +359,6 @@ class RecoveryGuard:
                     "recovery classification."
                 ),
             )
-
-        # ---------------------------------------------------------
-        # SAFE AUTOMATIC RECOVERY
-        # ---------------------------------------------------------
 
         if (
             request.recoverable
@@ -384,7 +382,6 @@ class RecoveryGuard:
                 ),
             )
 
-        # Explicitly recoverable custom execution failures.
         if request.recoverable:
             action = cls._build_action(request)
 
@@ -405,10 +402,6 @@ class RecoveryGuard:
                     "recoverable and integrity is verified."
                 ),
             )
-
-        # ---------------------------------------------------------
-        # DEFAULT = FAIL CLOSED
-        # ---------------------------------------------------------
 
         return cls._fail_closed(
             reason=RecoveryReason.UNKNOWN_FAILURE,
