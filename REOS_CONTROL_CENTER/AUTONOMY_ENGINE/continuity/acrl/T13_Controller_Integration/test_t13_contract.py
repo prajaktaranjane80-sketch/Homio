@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from AUTONOMY_ENGINE.continuity.acrl.controller_integration import (
+from AUTONOMY_ENGINE.continuity.acrl.T13_Controller_Integration.controller_integration import (
     ACRLContinuityView,
     ControllerIntegrationEngine,
     ControllerIntegrationRequest,
