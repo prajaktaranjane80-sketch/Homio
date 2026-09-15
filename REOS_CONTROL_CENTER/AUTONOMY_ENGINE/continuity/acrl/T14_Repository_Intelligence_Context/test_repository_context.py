@@ -18,8 +18,9 @@ from AUTONOMY_ENGINE.continuity.acrl.T14_Repository_Intelligence_Context.reposit
 @pytest.fixture()
 def repository(tmp_path: Path) -> Path:
     root = tmp_path / "repo"
+    root.mkdir()
 
-    (root / "AUTONOMY_ENGINE").mkdir(parents=True)
+    (root / "AUTONOMY_ENGINE").mkdir()
     (root / "core").mkdir()
     (root / "tests").mkdir()
 
@@ -143,6 +144,9 @@ def test_no_relevant_files_blocks(
     report = resolve_repository_context(
         make_request(
             repository,
+            current_gate=None,
+            current_task=None,
+            current_subtask=None,
             candidate_paths=("missing/file.py",),
             search_terms=("does-not-exist",),
         )
