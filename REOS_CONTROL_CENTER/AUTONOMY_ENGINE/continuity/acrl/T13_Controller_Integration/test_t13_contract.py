@@ -66,7 +66,7 @@ class TestPublicAPIContract:
     """Test public API availability and stability."""
 
     def test_public_api_classes_available(self) -> None:
-        from AUTONOMY_ENGINE.continuity.acrl.controller_integration import (
+        from AUTONOMY_ENGINE.continuity.acrl.T13_Controller_Integration.controller_integration import (
             ACRLContinuityView,
             ControllerIntegrationAuthorityError,
             ControllerIntegrationConflictError,
@@ -89,7 +89,7 @@ class TestPublicAPIContract:
         assert IntegrationReason is not None
 
     def test_public_api_functions_available(self) -> None:
-        from AUTONOMY_ENGINE.continuity.acrl.controller_integration import (
+        from AUTONOMY_ENGINE.continuity.acrl.T13_Controller_Integration.controller_integration import (
             controller_resume_authorized,
             integrate_controller,
         )
