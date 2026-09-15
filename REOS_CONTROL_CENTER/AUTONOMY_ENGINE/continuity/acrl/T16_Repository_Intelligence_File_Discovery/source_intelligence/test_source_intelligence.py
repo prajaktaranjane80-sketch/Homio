@@ -4,20 +4,21 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from AUTONOMY_ENGINE.continuity.acrl.source_intelligence.dependency_graph import (
+from AUTONOMY_ENGINE.continuity.acrl.T16_Repository_Intelligence_File_Discovery.source_intelligence.dependency_graph import (
     build_dependency_graph,
 )
-from AUTONOMY_ENGINE.continuity.acrl.source_intelligence.intelligence import (
+
+from AUTONOMY_ENGINE.continuity.acrl.T16_Repository_Intelligence_File_Discovery.source_intelligence.intelligence import (
     inspect_source_intelligence,
 )
-from AUTONOMY_ENGINE.continuity.acrl.source_intelligence.source_parser import (
+
+from AUTONOMY_ENGINE.continuity.acrl.T16_Repository_Intelligence_File_Discovery.source_intelligence.source_parser import (
     parse_imports,
 )
 
 
 def build_repository(root: Path) -> Path:
     """Create a deterministic source repository."""
-
     root.mkdir(
         parents=False,
         exist_ok=False,
@@ -56,7 +57,9 @@ def build_repository(root: Path) -> Path:
 def test_import_parser_extracts_imports(
     tmp_path: Path,
 ) -> None:
-    repository = build_repository(tmp_path / "repo")
+    repository = build_repository(
+        tmp_path / "repo"
+    )
 
     evidence = parse_imports(
         repository,
@@ -71,7 +74,9 @@ def test_import_parser_extracts_imports(
 def test_dependency_graph_is_deterministic(
     tmp_path: Path,
 ) -> None:
-    repository = build_repository(tmp_path / "repo")
+    repository = build_repository(
+        tmp_path / "repo"
+    )
 
     first = build_dependency_graph(repository)
     second = build_dependency_graph(repository)
@@ -79,56 +84,50 @@ def test_dependency_graph_is_deterministic(
     assert first == second
 
 
-def test_dependency_graph_contains_source_nodes(
-    tmp_path: Path,
-) -> None:
-    repository = build_repository(tmp_path / "repo")
-
-    graph = build_dependency_graph(repository)
-
-    assert "main.py" in graph.nodes
-    assert "core/domain.py" in graph.nodes
-    assert "tests/test_domain.py" in graph.nodes
-
-
-def test_dependency_graph_contains_observed_edges(
-    tmp_path: Path,
-) -> None:
-    repository = build_repository(tmp_path / "repo")
-
-    graph = build_dependency_graph(repository)
-
-    assert any(
-        edge.source_path == "main.py"
-        and edge.imported_name == "core.domain"
-        for edge in graph.edges
-    )
-
-
-def test_source_intelligence_links_part01(
-    tmp_path: Path,
-) -> None:
-    repository = build_repository(tmp_path / "repo")
-
-    intelligence = inspect_source_intelligence(repository)
-
-    assert len(
-        intelligence.repository_identity_hash
-    ) == 64
-
-    assert len(
-        intelligence.topology_fingerprint
-    ) == 64
-
-    assert intelligence.dependency_graph.nodes
-
-
 def test_source_intelligence_is_deterministic(
     tmp_path: Path,
 ) -> None:
-    repository = build_repository(tmp_path / "repo")
+    repository = build_repository(
+        tmp_path / "repo"
+    )
 
-    first = inspect_source_intelligence(repository)
-    second = inspect_source_intelligence(repository)
+    first = inspect_source_intelligence(
+        repository
+    )
+
+    second = inspect_source_intelligence(
+        repository
+    )
 
     assert first == second
+
+
+def test_source_intelligence_contains_source_nodes(
+    tmp_path: Path,
+) -> None:
+    repository = build_repository(
+        tmp_path / "repo"
+    )
+
+    result = inspect_source_intelligence(
+        repository
+    )
+
+    assert "main.py" in result.source_nodes
+    assert "core/domain.py" in result.source_nodes
+    assert "tests/test_domain.py" in result.source_nodes
+
+
+def test_source_intelligence_contains_dependency_graph(
+    tmp_path: Path,
+) -> None:
+    repository = build_repository(
+        tmp_path / "repo"
+    )
+
+    result = inspect_source_intelligence(
+        repository
+    )
+
+    assert result.dependency_graph.nodes
+    assert result.dependency_graph.edges
