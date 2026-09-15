@@ -5,10 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from ...repository_discovery.classification import (
+from ..repository_discovery.classification import (
     SourceClassification,
 )
-from ...repository_discovery.topology import (
+from ..repository_discovery.topology import (
     RepositoryTopologyScanner,
 )
 
@@ -41,15 +41,22 @@ class DependencyGraph:
     edges: tuple[DependencyEdge, ...]
 
 
-def _module_name_from_path(relative_path: str) -> str | None:
+def _module_name_from_path(
+    relative_path: str,
+) -> str | None:
     """Convert a Python repository path into its module name."""
 
     path = Path(relative_path)
 
-    if path.suffix.lower() not in {".py", ".pyi"}:
+    if path.suffix.lower() not in {
+        ".py",
+        ".pyi",
+    }:
         return None
 
-    parts = list(path.with_suffix("").parts)
+    parts = list(
+        path.with_suffix("").parts
+    )
 
     if not parts:
         return None
@@ -69,7 +76,9 @@ def build_dependency_graph(
     """Build deterministic static dependency evidence."""
 
     try:
-        topology = RepositoryTopologyScanner(root).scan()
+        topology = RepositoryTopologyScanner(
+            root
+        ).scan()
 
         nodes = sorted(
             entry.relative_path
@@ -79,13 +88,18 @@ def build_dependency_graph(
                 SourceClassification.SOURCE,
                 SourceClassification.TEST,
             }
-            and entry.relative_path.endswith((".py", ".pyi"))
+            and entry.relative_path.endswith(
+                (".py", ".pyi")
+            )
         )
 
         edges: list[DependencyEdge] = []
 
         for source_path in nodes:
-            evidence: tuple[ImportEvidence, ...]
+            evidence: tuple[
+                ImportEvidence,
+                ...,
+            ]
 
             try:
                 evidence = parse_imports(
