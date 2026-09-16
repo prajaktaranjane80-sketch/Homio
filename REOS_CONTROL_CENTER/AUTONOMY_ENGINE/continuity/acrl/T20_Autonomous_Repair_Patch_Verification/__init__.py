@@ -8,11 +8,24 @@ from .repair_models import (
     VerificationEvidence,
 )
 
+from .repair_continuity import (
+    RepairContinuityDecision,
+    RepairContinuityError,
+    RepairContinuityValidationError,
+    RepairContinuitySignal,
+    build_repair_continuity_signal,
+)
+
 __all__ = [
     "RepairDecision",
     "RepairRequest",
     "RepairResult",
     "VerificationEvidence",
+    "RepairContinuityDecision",
+    "RepairContinuityError",
+    "RepairContinuityValidationError",
+    "RepairContinuitySignal",
+    "build_repair_continuity_signal",
     "apply_patch",
     "execute_repair_transaction",
     "validate_patch",
