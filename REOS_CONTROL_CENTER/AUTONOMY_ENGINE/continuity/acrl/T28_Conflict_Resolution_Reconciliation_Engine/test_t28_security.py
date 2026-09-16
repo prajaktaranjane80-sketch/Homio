@@ -1,7 +1,6 @@
 import pytest
 
-from reconciliation_guard import validate_authority
-
+from .reconciliation_guard import validate_authority
 
 def test_missing_continuity_is_rejected():
     with pytest.raises(PermissionError):
