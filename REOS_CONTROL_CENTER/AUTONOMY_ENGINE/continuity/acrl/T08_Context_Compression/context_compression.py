@@ -14,13 +14,7 @@ Rules:
     - Never change architecture.
     - Fail closed on invalid or tampered bootstrap data.
 """
-"""ACRL compatibility bridge.
 
-Canonical implementation:
-AUTONOMY_ENGINE.continuity.acrl.T08_Context_Compression.context_compression
-"""
-
-from AUTONOMY_ENGINE.continuity.acrl.T08_Context_Compression.context_compression import *
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -266,10 +260,6 @@ class ContextCompressionEngine:
     ) -> CompressedContext:
         """Compress a validated T07 bootstrap context."""
 
-        # IMPORTANT:
-        # Validate the public input type before delegating to T07.
-        # This keeps T08 validation errors deterministic and prevents
-        # unrelated T07 errors from masking an invalid T08 input.
         if not isinstance(
             context,
             BootstrapContext,
