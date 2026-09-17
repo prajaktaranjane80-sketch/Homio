@@ -14,7 +14,13 @@ Rules:
     - Never change architecture.
     - Fail closed on invalid or tampered bootstrap data.
 """
+"""ACRL compatibility bridge.
 
+Canonical implementation:
+AUTONOMY_ENGINE.continuity.acrl.T08_Context_Compression.context_compression
+"""
+
+from AUTONOMY_ENGINE.continuity.acrl.T08_Context_Compression.context_compression import *
 from __future__ import annotations
 
 from dataclasses import dataclass
