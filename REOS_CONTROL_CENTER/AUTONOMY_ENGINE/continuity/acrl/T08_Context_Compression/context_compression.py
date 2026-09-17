@@ -205,11 +205,12 @@ class ContextCompressionEngine:
 
         return dict(value)
 
-       @classmethod
+    @classmethod
     def _extract_authoritative_payload(
         cls,
         context: BootstrapContext,
     ) -> dict[str, Any]:
+
         def _current_only(
             name: str,
             value: Any,
