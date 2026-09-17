@@ -205,33 +205,48 @@ class ContextCompressionEngine:
 
         return dict(value)
 
-    @classmethod
+        @classmethod
     def _extract_authoritative_payload(
         cls,
         context: BootstrapContext,
     ) -> dict[str, Any]:
+        def _current_only(
+            name: str,
+            value: Any,
+        ) -> dict[str, Any]:
+            mapping = cls._require_mapping(
+                name,
+                value,
+            )
+
+            return {
+                key: item
+                for key, item in mapping.items()
+                if not str(key).startswith("historical_")
+            }
+
         return {
-            "project_identity": cls._require_mapping(
+            "project_identity": _current_only(
                 "project_identity",
                 context.project_dna,
             ),
-            "architecture": cls._require_mapping(
+            "architecture": _current_only(
                 "architecture",
                 context.architecture_lock,
             ),
-            "execution": cls._require_mapping(
+            "execution": _current_only(
                 "execution",
                 context.execution_state,
             ),
-            "gate_continuity": cls._require_mapping(
+            "gate_continuity": _current_only(
                 "gate_continuity",
                 context.gate_continuity,
             ),
-            "dependency_authority": cls._require_mapping(
+            "dependency_authority": _current_only(
                 "dependency_authority",
                 context.dependency_authority,
             ),
-            "checkpoint": cls._require_mapping(
+            "checkpoint": _current_only(
                 "checkpoint",
                 context.checkpoint,
             ),
