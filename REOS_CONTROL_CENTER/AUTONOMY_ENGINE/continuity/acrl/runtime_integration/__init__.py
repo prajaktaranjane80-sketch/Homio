@@ -16,6 +16,12 @@ from .runtime_orchestrator import (
 from .task_registry import ACRLTaskRegistry
 from .unified_runtime_context import UnifiedRuntimeContext
 
+from .continuity_controller import (
+    ContinuityControlDecision,
+    ContinuityControlResult,
+    control_continuity,
+)
+
 
 __all__ = [
     "ACRLRuntime",
@@ -29,4 +35,7 @@ __all__ = [
     "UnifiedRuntimeContext",
     "ACRLRuntimeOrchestrator",
     "RuntimeIntegrationSnapshot",
+    "ContinuityControlDecision",
+    "ContinuityControlResult",
+    "control_continuity",
 ]
