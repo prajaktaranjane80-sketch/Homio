@@ -12,8 +12,15 @@ class RuntimeBinding:
     export_name: str
 
     def resolve(self) -> Any:
-        module = import_module(self.module_path)
-        component = getattr(module, self.export_name, None)
+        module = import_module(
+            self.module_path
+        )
+
+        component = getattr(
+            module,
+            self.export_name,
+            None,
+        )
 
         if component is None:
             raise AttributeError(
@@ -24,7 +31,10 @@ class RuntimeBinding:
         return component
 
 
-T21_TO_T30_BINDINGS: tuple[RuntimeBinding, ...] = (
+T21_TO_T30_BINDINGS: tuple[
+    RuntimeBinding,
+    ...,
+] = (
     RuntimeBinding(
         "T21",
         "AUTONOMY_ENGINE.continuity.acrl.T21_Git_Repository_Read_Write_Coordination",
@@ -82,6 +92,8 @@ def resolve_all_bindings() -> dict[str, Any]:
     resolved: dict[str, Any] = {}
 
     for binding in T21_TO_T30_BINDINGS:
-        resolved[binding.task_id] = binding.resolve()
+        resolved[binding.task_id] = (
+            binding.resolve()
+        )
 
     return resolved
