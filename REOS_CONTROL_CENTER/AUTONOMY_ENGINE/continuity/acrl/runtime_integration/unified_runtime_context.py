@@ -47,10 +47,14 @@ class UnifiedRuntimeContext:
         objective = objective.strip()
 
         if not mission_id:
-            raise ValueError("mission_id is required")
+            raise ValueError(
+                "mission_id is required"
+            )
 
         if not objective:
-            raise ValueError("objective is required")
+            raise ValueError(
+                "objective is required"
+            )
 
         authority = AuthorityBridge(root)
         authority.validate()
@@ -63,12 +67,18 @@ class UnifiedRuntimeContext:
             / "acrl"
         )
 
-        tasks = ACRLTaskRegistry(acrl_root).validate()
+        tasks = ACRLTaskRegistry(
+            acrl_root
+        ).validate()
+
         task_ids = tuple(
-            task.task_id for task in tasks
+            task.task_id
+            for task in tasks
         )
 
-        git_snapshot = GitReader(root).snapshot()
+        git_snapshot = GitReader(
+            root
+        ).snapshot()
 
         payload = {
             "schema_version": "1.0",
@@ -82,7 +92,9 @@ class UnifiedRuntimeContext:
                 "working_tree_clean": (
                     git_snapshot.working_tree_clean
                 ),
-                "fingerprint": git_snapshot.fingerprint,
+                "fingerprint": (
+                    git_snapshot.fingerprint
+                ),
             },
             "acrl_task_ids": task_ids,
         }
@@ -101,10 +113,14 @@ class UnifiedRuntimeContext:
             objective=objective,
             control_center_root=str(root),
             architecture_authority=(
-                authority_data["architecture_authority"]
+                authority_data[
+                    "architecture_authority"
+                ]
             ),
             roadmap_authority=(
-                authority_data["roadmap_authority"]
+                authority_data[
+                    "roadmap_authority"
+                ]
             ),
             execution_state_authority=(
                 authority_data[
@@ -112,7 +128,9 @@ class UnifiedRuntimeContext:
                 ]
             ),
             code_authority=(
-                authority_data["code_authority"]
+                authority_data[
+                    "code_authority"
+                ]
             ),
             continuity_authority=(
                 authority_data[
@@ -120,7 +138,9 @@ class UnifiedRuntimeContext:
                 ]
             ),
             chat_authority=(
-                authority_data["chat_authority"]
+                authority_data[
+                    "chat_authority"
+                ]
             ),
             git_branch=git_snapshot.branch,
             git_head_sha=git_snapshot.head_sha,
@@ -136,7 +156,9 @@ class UnifiedRuntimeContext:
             ),
         )
 
-    def to_dict(self) -> dict[str, object]:
+    def to_dict(
+        self,
+    ) -> dict[str, object]:
         return {
             "schema_version": self.schema_version,
             "mission_id": self.mission_id,
