@@ -257,18 +257,34 @@ class NewChatBootstrapEngine:
                 "Checkpoint integrity verification failed."
             )
 
-        data = (
-            checkpoint.to_dict()
-            if hasattr(checkpoint, "to_dict")
-            else dict(checkpoint)
-        )
+        if hasattr(checkpoint, "to_dict"):
+            data = checkpoint.to_dict()
+        else:
+            try:
+                data = dict(checkpoint)
+            except (TypeError, ValueError) as exc:
+                raise BootstrapIntegrityError(
+                    "Checkpoint payload is not machine-readable."
+                ) from exc
 
         if not isinstance(data, Mapping):
             raise BootstrapIntegrityError(
                 "Checkpoint payload is not machine-readable."
             )
 
-        return dict(data)
+        checkpoint_data = dict(data)
+
+        checkpoint_id = (
+            checkpoint_data.get("checkpoint_id")
+            or checkpoint_data.get("id")
+        )
+
+        NewChatBootstrapEngine._required_string(
+            checkpoint_id,
+            "checkpoint_id",
+        )
+
+        return checkpoint_data
 
     def _validate_architecture(
         self,
@@ -345,12 +361,15 @@ class NewChatBootstrapEngine:
         )
 
         if not first_valid_work_unit:
-            current_gate = execution["current_gate"]
-            current_subtask = execution["current_subtask"]
-
             first_valid_work_unit = (
-                f"{current_gate}:{current_subtask}"
+                f"{execution['current_gate']}:"
+                f"{execution['current_subtask']}"
             )
+
+        first_valid_work_unit = self._required_string(
+            first_valid_work_unit,
+            "first_valid_work_unit",
+        )
 
         checkpoint_id = (
             checkpoint.get("checkpoint_id")
@@ -371,9 +390,7 @@ class NewChatBootstrapEngine:
             current_subtask_status=(
                 execution["current_subtask_status"]
             ),
-            first_valid_work_unit=(
-                str(first_valid_work_unit)
-            ),
+            first_valid_work_unit=first_valid_work_unit,
             checkpoint_id=checkpoint_id,
             resume_mode=self.RESUME_MODE,
         )
@@ -436,9 +453,7 @@ class NewChatBootstrapEngine:
                 project_dna=project_dna,
                 execution=execution,
                 gate_continuity=gate_continuity,
-                dependency_authority=(
-                    dependency_authority
-                ),
+                dependency_authority=dependency_authority,
                 checkpoint=checkpoint_data,
             )
         )
@@ -451,9 +466,7 @@ class NewChatBootstrapEngine:
             "architecture_lock": architecture_lock,
             "execution_state": execution_state,
             "gate_continuity": gate_continuity,
-            "dependency_authority": (
-                dependency_authority
-            ),
+            "dependency_authority": dependency_authority,
             "checkpoint": checkpoint_data,
             "restart_payload": (
                 restart_payload.to_dict()
@@ -473,9 +486,7 @@ class NewChatBootstrapEngine:
             architecture_lock=architecture_lock,
             execution_state=execution_state,
             gate_continuity=gate_continuity,
-            dependency_authority=(
-                dependency_authority
-            ),
+            dependency_authority=dependency_authority,
             checkpoint=checkpoint_data,
             restart_payload=(
                 restart_payload.to_dict()
@@ -522,6 +533,20 @@ class NewChatBootstrapEngine:
                 "Execution context is missing."
             )
 
+        execution = dict(context.execution_state)
+
+        for field in cls.REQUIRED_EXECUTION_FIELDS:
+            value = execution.get(field)
+
+            if (
+                not isinstance(value, str)
+                or not value.strip()
+            ):
+                raise BootstrapAuthorityError(
+                    "Execution context is incomplete: "
+                    f"{field}"
+                )
+
         if not context.gate_continuity:
             raise BootstrapAuthorityError(
                 "Gate continuity context is missing."
@@ -564,6 +589,16 @@ class NewChatBootstrapEngine:
                     "Restart payload is incomplete: "
                     f"{field}"
                 )
+
+        if restart["authority"] != cls.AUTHORITY:
+            raise BootstrapAuthorityError(
+                "Restart payload authority mismatch."
+            )
+
+        if restart["resume_mode"] != cls.RESUME_MODE:
+            raise BootstrapValidationError(
+                "Restart payload has an unsafe resume mode."
+            )
 
     @classmethod
     def resume_summary(
