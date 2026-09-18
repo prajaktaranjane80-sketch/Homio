@@ -8,14 +8,16 @@ from .integration_models import ACRLTaskDescriptor
 
 TASK_PATTERN = re.compile(r"^T(\d{2})_(.+)$")
 
-# Explicit canonical directory overrides where historical compatibility
-# directories share the same numeric prefix.
+
+# Canonical runtime directory for a task when historical/compatibility
+# directories share the same numeric task prefix.
 CANONICAL_DIRECTORY_OVERRIDES: dict[int, str] = {
     14: "T14_Repository_Intelligence_Context",
 }
 
-# Known preserved compatibility/support directories that must not be
-# treated as the canonical runtime task.
+
+# Existing compatibility/support directories that must remain in the
+# repository but must not be selected as the canonical runtime task.
 COMPATIBILITY_DIRECTORIES: dict[int, frozenset[str]] = {
     14: frozenset(
         {
@@ -26,7 +28,7 @@ COMPATIBILITY_DIRECTORIES: dict[int, frozenset[str]] = {
 
 
 class ACRLTaskRegistry:
-    """Discovers and validates the existing T01–T30 ACRL spine."""
+    """Discovers and validates the existing T01-T30 ACRL spine."""
 
     def __init__(self, acrl_root: Path) -> None:
         self.acrl_root = Path(acrl_root)
@@ -37,6 +39,8 @@ class ACRLTaskRegistry:
         number: int,
         matches: list[Path],
     ) -> Path | None:
+        """Resolve one canonical runtime directory for a task."""
+
         prefix = f"T{number:02d}_"
 
         if not matches:
@@ -47,41 +51,42 @@ class ACRLTaskRegistry:
         )
 
         if canonical_name is not None:
-            canonical = [
+            canonical_matches = [
                 path
                 for path in matches
                 if path.name == canonical_name
             ]
 
-            if len(canonical) != 1:
-                raise ValueError(
-                    f"Canonical ACRL directory missing or ambiguous "
-                    f"for {prefix}: {canonical_name!r}; "
-                    f"found {[item.name for item in matches]}"
-                )
-
-            allowed_compatibility = (
-                COMPATIBILITY_DIRECTORIES.get(
-                    number,
-                    frozenset(),
-                )
-            )
-
-            unexpected = [
+            unexpected_duplicates = [
                 path.name
                 for path in matches
                 if path.name != canonical_name
-                and path.name not in allowed_compatibility
+                and path.name
+                not in COMPATIBILITY_DIRECTORIES.get(
+                    number,
+                    frozenset(),
+                )
             ]
 
-            if unexpected:
+            if unexpected_duplicates:
                 raise ValueError(
-                    f"Unexpected duplicate ACRL directories for "
-                    f"{prefix}: {unexpected}"
+                    f"Unexpected duplicate ACRL directories "
+                    f"for {prefix}: "
+                    f"{unexpected_duplicates}"
                 )
 
-            return canonical[0]
+            if len(canonical_matches) != 1:
+                raise ValueError(
+                    f"Canonical ACRL directory missing or "
+                    f"ambiguous for {prefix}: "
+                    f"{canonical_name}; "
+                    f"found {[item.name for item in matches]}"
+                )
 
+            return canonical_matches[0]
+
+        # For all normal T01-T30 tasks, multiple matching
+        # directories remain a fail-closed condition.
         if len(matches) > 1:
             raise ValueError(
                 f"Multiple ACRL directories found for {prefix}: "
@@ -90,7 +95,11 @@ class ACRLTaskRegistry:
 
         return matches[0]
 
-    def discover(self) -> tuple[ACRLTaskDescriptor, ...]:
+    def discover(
+        self,
+    ) -> tuple[ACRLTaskDescriptor, ...]:
+        """Discover the canonical T01-T30 runtime spine."""
+
         descriptors: list[ACRLTaskDescriptor] = []
 
         for number in range(1, 31):
@@ -179,6 +188,8 @@ class ACRLTaskRegistry:
     def validate(
         self,
     ) -> tuple[ACRLTaskDescriptor, ...]:
+        """Validate that the canonical T01-T30 spine is healthy."""
+
         tasks = self.discover()
 
         missing = [
