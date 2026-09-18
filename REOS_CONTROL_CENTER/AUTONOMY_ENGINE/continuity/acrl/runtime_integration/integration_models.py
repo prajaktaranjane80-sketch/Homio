@@ -55,14 +55,18 @@ class ACRLIntegrationSnapshot:
     @property
     def healthy(self) -> bool:
         return (
-            self.architecture_authority == "FROZEN_APPROVED_ARCHITECTURE"
-            and self.roadmap_authority == "REOS_CONTROL_CENTER"
+            self.architecture_authority
+            == "FROZEN_APPROVED_ARCHITECTURE"
+            and self.roadmap_authority
+            == "REOS_CONTROL_CENTER"
             and self.execution_state_authority
             == "REOS_CONTROL_CENTER/data/state.json"
-            and self.code_authority == "GIT_REPOSITORY"
-            and self.continuity_authority == "DERIVED_FROM_EXECUTION_STATE"
-            and self.chat_authority == "NONE"
+            and self.code_authority
+            == "GIT_REPOSITORY"
+            and self.continuity_authority
+            == "DERIVED_FROM_EXECUTION_STATE"
+            and self.chat_authority
+            == "NONE"
             and len(self.tasks) == 30
             and all(task.healthy for task in self.tasks)
         )
-
