@@ -11,8 +11,6 @@ These tests verify that the coordinator:
 - requires complete postflight evidence;
 - delegates mutation only through the controlled mutation boundary;
 - does not mutate REOS_CONTROL_CENTER state directly.
-
-These tests are additive and must not modify existing controller files.
 """
 
 from __future__ import annotations
@@ -61,7 +59,7 @@ def fully_authorized_context() -> ExecutionContext:
         guard_allowed=True,
         idempotency_clear=True,
         tripwires_clear=True,
-        architecture_locked=False,
+        architecture_locked=True,
         evidence={
             "test": True,
             "source": "test_execution_coordinator_adversarial",
@@ -146,8 +144,8 @@ def test_each_required_safety_condition_defaults_to_block(
     assert calls == []
 
 
-def test_architecture_lock_blocks_execution() -> None:
-    """Frozen architecture must prevent mutation."""
+def test_missing_architecture_lock_blocks_execution() -> None:
+    """Mutation must be blocked when architecture lock is not proven."""
 
     coordinator = ExecutionCoordinator()
     calls: list[str] = []
@@ -162,7 +160,7 @@ def test_architecture_lock_blocks_execution() -> None:
         guard_allowed=base.guard_allowed,
         idempotency_clear=base.idempotency_clear,
         tripwires_clear=base.tripwires_clear,
-        architecture_locked=True,
+        architecture_locked=False,
         evidence=base.evidence,
     )
 
