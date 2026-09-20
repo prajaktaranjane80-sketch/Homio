@@ -76,6 +76,7 @@ class MutationDecision:
 
     def to_dict(self) -> dict[str, Any]:
         """Return a JSON-compatible representation."""
+
         return {
             "status": self.status.value,
             "action_id": self.action_id,
@@ -101,6 +102,7 @@ class MutationResult:
 
     def to_dict(self) -> dict[str, Any]:
         """Return a JSON-compatible representation."""
+
         return {
             "decision": self.decision.to_dict(),
             "executed": self.executed,
@@ -165,6 +167,7 @@ class ControlledMutationAdapter:
         9. architecture lock
         10. executor availability
         """
+
         proposal = request.proposal
 
         protocol: ProtocolDecision = validate_proposal(proposal)
@@ -232,11 +235,14 @@ class ControlledMutationAdapter:
                 "One or more security tripwires are blocking execution.",
             )
 
-        if request.architecture_locked:
+        # Architecture lock is a POSITIVE safety condition.
+        # True  -> architecture lock proven -> continue.
+        # False -> architecture lock not proven -> block.
+        if not request.architecture_locked:
             return self._blocked(
                 proposal.action_id,
                 MutationBlockReason.ARCHITECTURE_LOCKED,
-                "Frozen architecture cannot be mutated through this adapter.",
+                "Architecture lock was not proven for this mutation.",
             )
 
         if request.executor is None:
@@ -275,6 +281,7 @@ class ControlledMutationAdapter:
         as a failed result. They are never converted into a successful
         mutation.
         """
+
         decision = self.preflight(request)
 
         if not decision.allowed:
@@ -337,6 +344,7 @@ class ControlledMutationAdapter:
 
     def attempted(self, action_id: str) -> bool:
         """Return whether this adapter already attempted an action."""
+
         return action_id in self._attempted_action_ids
 
     def reset(self) -> None:
@@ -347,6 +355,7 @@ class ControlledMutationAdapter:
         records. Persistent replay protection must remain authoritative outside
         this adapter.
         """
+
         self._attempted_action_ids.clear()
 
     @staticmethod
@@ -356,6 +365,7 @@ class ControlledMutationAdapter:
         message: str,
     ) -> MutationDecision:
         """Construct a deterministic blocked decision."""
+
         return MutationDecision(
             status=MutationStatus.BLOCKED,
             action_id=action_id,
