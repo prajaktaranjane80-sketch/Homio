@@ -1,21 +1,699 @@
-........F.......                                                                                                                                     [100%]
+PS D:\Homio\REOS_CONTROL_CENTER> python -m pytest .\AUTONOMY_ENGINE\tests\test_search_rebuild.py -q
+FFFFFFFFF.FFFF                                                                                                                                       [100%]
 ======================================================================== FAILURES =========================================================================
-___________________________________________________________ test_amenities_are_partially_scored ___________________________________________________________
+___________________________________________________________ test_source_order_is_deterministic ____________________________________________________________
 
-    def test_amenities_are_partially_scored():
-        engine = MatchingEngine()
-
-        result = engine.match(
-            candidate(amenities=["pool"]),
-            preferences(amenities=["pool", "gym"]),
+    def test_source_order_is_deterministic():
+        coordinator = SearchRebuildCoordinator(
+            pipeline(),
+            batch_size=2,
         )
 
-        assert result.eligible is True
->       assert result.score == 1.0
-E       AssertionError: assert 0.5 == 1.0
-E        +  where 0.5 = MatchResult(candidate=RetrievalCandidate(item_id='i1', tenant_id='tenant-1', lexical_score=None, vector_score=None, so...['pool']}), score=0.5, matched_dimensions=('amenities',), reasons=('1/2 preferred amenities matched.',), eligible=True).score
+>       ordered = coordinator._ordered(source())
+                                       ^^^^^^^^
 
-AUTONOMY_ENGINE\tests\test_matching.py:152: AssertionError
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:67:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:34: in source
+    (inventory("i3"), (0.3, 0.4)),
+     ^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:21: in inventory
+    return Inventory.create(
+AUTONOMY_ENGINE\core\inventory.py:250: in create
+    return cls(
+<string>:16: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='i3', tenant_id='tenant-1', project_id='project-1', inventory_code='UNIT-i3', inventory_type=<I...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "inventory_id",
+            "tenant_id",
+            "project_id",
+            "inventory_code",
+            "name",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise InventoryDomainError(f"{field_name} is required.")
+
+        if not _INVENTORY_CODE.fullmatch(self.inventory_code):
+>           raise InventoryDomainError(
+                "inventory_code must be 2-64 characters using uppercase "
+                "letters, digits, '_' or '-'."
+            )
+E           core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+
+AUTONOMY_ENGINE\core\inventory.py:206: InventoryDomainError
+_________________________________________________________ test_rebuild_batches_are_deterministic __________________________________________________________
+
+    def test_rebuild_batches_are_deterministic():
+        client = FakeClient()
+        checkpoints = []
+
+        result = SearchRebuildCoordinator(
+            pipeline(),
+            batch_size=2,
+        ).rebuild(
+            client,
+>           source(),
+            ^^^^^^^^
+            run_id="run-1",
+            on_checkpoint=checkpoints.append,
+        )
+
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:85:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:34: in source
+    (inventory("i3"), (0.3, 0.4)),
+     ^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:21: in inventory
+    return Inventory.create(
+AUTONOMY_ENGINE\core\inventory.py:250: in create
+    return cls(
+<string>:16: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='i3', tenant_id='tenant-1', project_id='project-1', inventory_code='UNIT-i3', inventory_type=<I...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "inventory_id",
+            "tenant_id",
+            "project_id",
+            "inventory_code",
+            "name",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise InventoryDomainError(f"{field_name} is required.")
+
+        if not _INVENTORY_CODE.fullmatch(self.inventory_code):
+>           raise InventoryDomainError(
+                "inventory_code must be 2-64 characters using uppercase "
+                "letters, digits, '_' or '-'."
+            )
+E           core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+
+AUTONOMY_ENGINE\core\inventory.py:206: InventoryDomainError
+_______________________________________________________ test_rebuild_is_idempotent_with_checkpoint ________________________________________________________
+
+    def test_rebuild_is_idempotent_with_checkpoint():
+        coordinator = SearchRebuildCoordinator(
+            pipeline(),
+            batch_size=2,
+        )
+
+        checkpoint = RebuildCheckpoint(
+            run_id="run-1",
+            processed_inventory_ids=("i1", "i2"),
+            last_inventory_id="i2",
+            completed_batches=1,
+        )
+
+        client = FakeClient()
+
+        result = coordinator.rebuild(
+            client,
+>           source(),
+            ^^^^^^^^
+            run_id="run-1",
+            checkpoint=checkpoint,
+        )
+
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:113:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:34: in source
+    (inventory("i3"), (0.3, 0.4)),
+     ^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:21: in inventory
+    return Inventory.create(
+AUTONOMY_ENGINE\core\inventory.py:250: in create
+    return cls(
+<string>:16: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='i3', tenant_id='tenant-1', project_id='project-1', inventory_code='UNIT-i3', inventory_type=<I...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "inventory_id",
+            "tenant_id",
+            "project_id",
+            "inventory_code",
+            "name",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise InventoryDomainError(f"{field_name} is required.")
+
+        if not _INVENTORY_CODE.fullmatch(self.inventory_code):
+>           raise InventoryDomainError(
+                "inventory_code must be 2-64 characters using uppercase "
+                "letters, digits, '_' or '-'."
+            )
+E           core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+
+AUTONOMY_ENGINE\core\inventory.py:206: InventoryDomainError
+________________________________________________________ test_resume_never_replays_processed_items ________________________________________________________
+
+    def test_resume_never_replays_processed_items():
+        coordinator = SearchRebuildCoordinator(
+            pipeline(),
+            batch_size=2,
+        )
+
+        checkpoint = RebuildCheckpoint(
+            run_id="run-1",
+            processed_inventory_ids=("i1",),
+            last_inventory_id="i1",
+            completed_batches=0,
+        )
+
+        client = FakeClient()
+
+        coordinator.rebuild(
+            client,
+>           source(),
+            ^^^^^^^^
+            run_id="run-1",
+            checkpoint=checkpoint,
+        )
+
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:140:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:34: in source
+    (inventory("i3"), (0.3, 0.4)),
+     ^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:21: in inventory
+    return Inventory.create(
+AUTONOMY_ENGINE\core\inventory.py:250: in create
+    return cls(
+<string>:16: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='i3', tenant_id='tenant-1', project_id='project-1', inventory_code='UNIT-i3', inventory_type=<I...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "inventory_id",
+            "tenant_id",
+            "project_id",
+            "inventory_code",
+            "name",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise InventoryDomainError(f"{field_name} is required.")
+
+        if not _INVENTORY_CODE.fullmatch(self.inventory_code):
+>           raise InventoryDomainError(
+                "inventory_code must be 2-64 characters using uppercase "
+                "letters, digits, '_' or '-'."
+            )
+E           core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+
+AUTONOMY_ENGINE\core\inventory.py:206: InventoryDomainError
+________________________________________________________ test_failed_batch_emits_failed_checkpoint ________________________________________________________
+
+    def test_failed_batch_emits_failed_checkpoint():
+        coordinator = SearchRebuildCoordinator(
+            pipeline(),
+            batch_size=2,
+        )
+
+        checkpoints = []
+
+        with pytest.raises(SearchRebuildError):
+            coordinator.rebuild(
+                FakeClient(fail_on_call=1),
+>               source(),
+                ^^^^^^^^
+                run_id="run-1",
+                on_checkpoint=checkpoints.append,
+            )
+
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:165:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:34: in source
+    (inventory("i3"), (0.3, 0.4)),
+     ^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:21: in inventory
+    return Inventory.create(
+AUTONOMY_ENGINE\core\inventory.py:250: in create
+    return cls(
+<string>:16: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='i3', tenant_id='tenant-1', project_id='project-1', inventory_code='UNIT-i3', inventory_type=<I...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "inventory_id",
+            "tenant_id",
+            "project_id",
+            "inventory_code",
+            "name",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise InventoryDomainError(f"{field_name} is required.")
+
+        if not _INVENTORY_CODE.fullmatch(self.inventory_code):
+>           raise InventoryDomainError(
+                "inventory_code must be 2-64 characters using uppercase "
+                "letters, digits, '_' or '-'."
+            )
+E           core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+
+AUTONOMY_ENGINE\core\inventory.py:206: InventoryDomainError
+________________________________________________________ test_resume_after_first_successful_batch _________________________________________________________
+
+    def test_resume_after_first_successful_batch():
+        coordinator = SearchRebuildCoordinator(
+            pipeline(),
+            batch_size=2,
+        )
+
+        first_client = FakeClient(fail_on_call=2)
+        checkpoint_box = []
+
+        with pytest.raises(SearchRebuildError):
+            coordinator.rebuild(
+                first_client,
+>               source(),
+                ^^^^^^^^
+                run_id="run-1",
+                on_checkpoint=checkpoint_box.append,
+            )
+
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:187:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:34: in source
+    (inventory("i3"), (0.3, 0.4)),
+     ^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:21: in inventory
+    return Inventory.create(
+AUTONOMY_ENGINE\core\inventory.py:250: in create
+    return cls(
+<string>:16: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='i3', tenant_id='tenant-1', project_id='project-1', inventory_code='UNIT-i3', inventory_type=<I...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "inventory_id",
+            "tenant_id",
+            "project_id",
+            "inventory_code",
+            "name",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise InventoryDomainError(f"{field_name} is required.")
+
+        if not _INVENTORY_CODE.fullmatch(self.inventory_code):
+>           raise InventoryDomainError(
+                "inventory_code must be 2-64 characters using uppercase "
+                "letters, digits, '_' or '-'."
+            )
+E           core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+
+AUTONOMY_ENGINE\core\inventory.py:206: InventoryDomainError
+______________________________________________________________ test_wrong_run_id_is_rejected ______________________________________________________________
+
+    def test_wrong_run_id_is_rejected():
+        coordinator = SearchRebuildCoordinator(pipeline())
+
+        checkpoint = RebuildCheckpoint(
+            run_id="run-a",
+        )
+
+        with pytest.raises(SearchRecoveryError):
+            coordinator.rebuild(
+                FakeClient(),
+>               source(),
+                ^^^^^^^^
+                run_id="run-b",
+                checkpoint=checkpoint,
+            )
+
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:220:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:34: in source
+    (inventory("i3"), (0.3, 0.4)),
+     ^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:21: in inventory
+    return Inventory.create(
+AUTONOMY_ENGINE\core\inventory.py:250: in create
+    return cls(
+<string>:16: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='i3', tenant_id='tenant-1', project_id='project-1', inventory_code='UNIT-i3', inventory_type=<I...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "inventory_id",
+            "tenant_id",
+            "project_id",
+            "inventory_code",
+            "name",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise InventoryDomainError(f"{field_name} is required.")
+
+        if not _INVENTORY_CODE.fullmatch(self.inventory_code):
+>           raise InventoryDomainError(
+                "inventory_code must be 2-64 characters using uppercase "
+                "letters, digits, '_' or '-'."
+            )
+E           core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+
+AUTONOMY_ENGINE\core\inventory.py:206: InventoryDomainError
+________________________________________________________ test_invalid_checkpoint_ids_are_rejected _________________________________________________________
+
+    def test_invalid_checkpoint_ids_are_rejected():
+        coordinator = SearchRebuildCoordinator(pipeline())
+
+        checkpoint = RebuildCheckpoint(
+            run_id="run-1",
+            processed_inventory_ids=("i2", "i1"),
+        )
+
+        with pytest.raises(SearchRecoveryError):
+            coordinator.rebuild(
+                FakeClient(),
+>               source(),
+                ^^^^^^^^
+                run_id="run-1",
+                checkpoint=checkpoint,
+            )
+
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:237:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:34: in source
+    (inventory("i3"), (0.3, 0.4)),
+     ^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:21: in inventory
+    return Inventory.create(
+AUTONOMY_ENGINE\core\inventory.py:250: in create
+    return cls(
+<string>:16: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='i3', tenant_id='tenant-1', project_id='project-1', inventory_code='UNIT-i3', inventory_type=<I...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "inventory_id",
+            "tenant_id",
+            "project_id",
+            "inventory_code",
+            "name",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise InventoryDomainError(f"{field_name} is required.")
+
+        if not _INVENTORY_CODE.fullmatch(self.inventory_code):
+>           raise InventoryDomainError(
+                "inventory_code must be 2-64 characters using uppercase "
+                "letters, digits, '_' or '-'."
+            )
+E           core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+
+AUTONOMY_ENGINE\core\inventory.py:206: InventoryDomainError
+________________________________________________________ test_checkpoint_last_id_must_be_processed ________________________________________________________
+
+    def test_checkpoint_last_id_must_be_processed():
+        coordinator = SearchRebuildCoordinator(pipeline())
+
+        checkpoint = RebuildCheckpoint(
+            run_id="run-1",
+            processed_inventory_ids=("i1",),
+            last_inventory_id="i2",
+        )
+
+        with pytest.raises(SearchRecoveryError):
+            coordinator.rebuild(
+                FakeClient(),
+>               source(),
+                ^^^^^^^^
+                run_id="run-1",
+                checkpoint=checkpoint,
+            )
+
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:255:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:34: in source
+    (inventory("i3"), (0.3, 0.4)),
+     ^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:21: in inventory
+    return Inventory.create(
+AUTONOMY_ENGINE\core\inventory.py:250: in create
+    return cls(
+<string>:16: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='i3', tenant_id='tenant-1', project_id='project-1', inventory_code='UNIT-i3', inventory_type=<I...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "inventory_id",
+            "tenant_id",
+            "project_id",
+            "inventory_code",
+            "name",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise InventoryDomainError(f"{field_name} is required.")
+
+        if not _INVENTORY_CODE.fullmatch(self.inventory_code):
+>           raise InventoryDomainError(
+                "inventory_code must be 2-64 characters using uppercase "
+                "letters, digits, '_' or '-'."
+            )
+E           core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+
+AUTONOMY_ENGINE\core\inventory.py:206: InventoryDomainError
+__________________________________________________________ test_source_inventory_is_not_mutated ___________________________________________________________
+
+    def test_source_inventory_is_not_mutated():
+>       items = source()
+                ^^^^^^^^
+
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:278:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:34: in source
+    (inventory("i3"), (0.3, 0.4)),
+     ^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:21: in inventory
+    return Inventory.create(
+AUTONOMY_ENGINE\core\inventory.py:250: in create
+    return cls(
+<string>:16: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='i3', tenant_id='tenant-1', project_id='project-1', inventory_code='UNIT-i3', inventory_type=<I...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "inventory_id",
+            "tenant_id",
+            "project_id",
+            "inventory_code",
+            "name",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise InventoryDomainError(f"{field_name} is required.")
+
+        if not _INVENTORY_CODE.fullmatch(self.inventory_code):
+>           raise InventoryDomainError(
+                "inventory_code must be 2-64 characters using uppercase "
+                "letters, digits, '_' or '-'."
+            )
+E           core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+
+AUTONOMY_ENGINE\core\inventory.py:206: InventoryDomainError
+__________________________________________________________ test_final_checkpoint_is_recoverable ___________________________________________________________
+
+    def test_final_checkpoint_is_recoverable():
+        result = SearchRebuildCoordinator(
+            pipeline()
+        ).rebuild(
+            FakeClient(),
+>           source(),
+            ^^^^^^^^
+            run_id="run-final",
+        )
+
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:299:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:34: in source
+    (inventory("i3"), (0.3, 0.4)),
+     ^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:21: in inventory
+    return Inventory.create(
+AUTONOMY_ENGINE\core\inventory.py:250: in create
+    return cls(
+<string>:16: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='i3', tenant_id='tenant-1', project_id='project-1', inventory_code='UNIT-i3', inventory_type=<I...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "inventory_id",
+            "tenant_id",
+            "project_id",
+            "inventory_code",
+            "name",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise InventoryDomainError(f"{field_name} is required.")
+
+        if not _INVENTORY_CODE.fullmatch(self.inventory_code):
+>           raise InventoryDomainError(
+                "inventory_code must be 2-64 characters using uppercase "
+                "letters, digits, '_' or '-'."
+            )
+E           core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+
+AUTONOMY_ENGINE\core\inventory.py:206: InventoryDomainError
+_____________________________________________________ test_recovery_with_completed_checkpoint_is_noop _____________________________________________________
+
+    def test_recovery_with_completed_checkpoint_is_noop():
+        coordinator = SearchRebuildCoordinator(pipeline())
+
+        checkpoint = RebuildCheckpoint(
+            run_id="run-complete",
+            processed_inventory_ids=("i1", "i2", "i3"),
+            last_inventory_id="i3",
+            completed_batches=2,
+        )
+
+        client = FakeClient()
+
+        result = coordinator.rebuild(
+            client,
+>           source(),
+            ^^^^^^^^
+            run_id="run-complete",
+            checkpoint=checkpoint,
+        )
+
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:324:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:34: in source
+    (inventory("i3"), (0.3, 0.4)),
+     ^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:21: in inventory
+    return Inventory.create(
+AUTONOMY_ENGINE\core\inventory.py:250: in create
+    return cls(
+<string>:16: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='i3', tenant_id='tenant-1', project_id='project-1', inventory_code='UNIT-i3', inventory_type=<I...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "inventory_id",
+            "tenant_id",
+            "project_id",
+            "inventory_code",
+            "name",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise InventoryDomainError(f"{field_name} is required.")
+
+        if not _INVENTORY_CODE.fullmatch(self.inventory_code):
+>           raise InventoryDomainError(
+                "inventory_code must be 2-64 characters using uppercase "
+                "letters, digits, '_' or '-'."
+            )
+E           core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+
+AUTONOMY_ENGINE\core\inventory.py:206: InventoryDomainError
+___________________________________________________________ test_rebuild_result_is_serializable ___________________________________________________________
+
+    def test_rebuild_result_is_serializable():
+        result = SearchRebuildCoordinator(
+            pipeline()
+        ).rebuild(
+            FakeClient(),
+>           source(),
+            ^^^^^^^^
+            run_id="serializable",
+        )
+
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:339:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:34: in source
+    (inventory("i3"), (0.3, 0.4)),
+     ^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\tests\test_search_rebuild.py:21: in inventory
+    return Inventory.create(
+AUTONOMY_ENGINE\core\inventory.py:250: in create
+    return cls(
+<string>:16: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='i3', tenant_id='tenant-1', project_id='project-1', inventory_code='UNIT-i3', inventory_type=<I...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "inventory_id",
+            "tenant_id",
+            "project_id",
+            "inventory_code",
+            "name",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise InventoryDomainError(f"{field_name} is required.")
+
+        if not _INVENTORY_CODE.fullmatch(self.inventory_code):
+>           raise InventoryDomainError(
+                "inventory_code must be 2-64 characters using uppercase "
+                "letters, digits, '_' or '-'."
+            )
+E           core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+
+AUTONOMY_ENGINE\core\inventory.py:206: InventoryDomainError
 ================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/tests/test_matching.py::test_amenities_are_partially_scored - AssertionError: assert 0.5 == 1.0
-1 failed, 15 passed in 0.24s
+FAILED AUTONOMY_ENGINE/tests/test_search_rebuild.py::test_source_order_is_deterministic - core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+FAILED AUTONOMY_ENGINE/tests/test_search_rebuild.py::test_rebuild_batches_are_deterministic - core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+FAILED AUTONOMY_ENGINE/tests/test_search_rebuild.py::test_rebuild_is_idempotent_with_checkpoint - core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+FAILED AUTONOMY_ENGINE/tests/test_search_rebuild.py::test_resume_never_replays_processed_items - core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+FAILED AUTONOMY_ENGINE/tests/test_search_rebuild.py::test_failed_batch_emits_failed_checkpoint - core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+FAILED AUTONOMY_ENGINE/tests/test_search_rebuild.py::test_resume_after_first_successful_batch - core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+FAILED AUTONOMY_ENGINE/tests/test_search_rebuild.py::test_wrong_run_id_is_rejected - core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+FAILED AUTONOMY_ENGINE/tests/test_search_rebuild.py::test_invalid_checkpoint_ids_are_rejected - core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+FAILED AUTONOMY_ENGINE/tests/test_search_rebuild.py::test_checkpoint_last_id_must_be_processed - core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+FAILED AUTONOMY_ENGINE/tests/test_search_rebuild.py::test_source_inventory_is_not_mutated - core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+FAILED AUTONOMY_ENGINE/tests/test_search_rebuild.py::test_final_checkpoint_is_recoverable - core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+FAILED AUTONOMY_ENGINE/tests/test_search_rebuild.py::test_recovery_with_completed_checkpoint_is_noop - core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+FAILED AUTONOMY_ENGINE/tests/test_search_rebuild.py::test_rebuild_result_is_serializable - core.inventory.InventoryDomainError: inventory_code must be 2-64 characters using uppercase letters, digits, '_' or '-'.
+13 failed, 1 passed in 0.57s
