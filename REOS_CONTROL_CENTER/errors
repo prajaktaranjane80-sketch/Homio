@@ -1,0 +1,364 @@
+
+========================================================================= ERRORS ==========================================================================
+_____________________________________________________ ERROR collecting tests/test_l1_l2_acceptance.py _____________________________________________________
+ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_l1_l2_acceptance.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_l1_l2_acceptance.py:64: in <module>
+    from runtime.mission_cycle import MissionCycleEngine
+runtime\mission_cycle.py:6: in <module>
+    from autonomous_mission_runtime import AutonomousMissionRuntime
+E   ModuleNotFoundError: No module named 'autonomous_mission_runtime'
+================================================================= short test summary info =================================================================
+ERROR tests/test_l1_l2_acceptance.py
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 error in 0.20s
+PS D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE> $rc = $LASTEXITCODE
+PS D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE> Pop-Location
+PS D:\Homio\REOS_CONTROL_CENTER> "LEGACY TEST RC: $rc"
+LEGACY TEST RC: 2
+PS D:\Homio\REOS_CONTROL_CENTER> $files = Get-ChildItem .\AUTONOMY_ENGINE\tests -Recurse -Filter "test_*adversarial.py" | Where-Object { $_.Name -match "mutation_adapter|execution_coordinator|execution_pipeline|controller_executor|production_executor" } | ForEach-Object FullName
+PS D:\Homio\REOS_CONTROL_CENTER> python -m pytest $files -q -rf
+........FFFFFFFFFFF.F..............................................................................                                                  [100%]
+======================================================================== FAILURES =========================================================================
+_____________________________________________________ test_missing_architecture_lock_blocks_execution _____________________________________________________
+
+    def test_missing_architecture_lock_blocks_execution() -> None:
+        """Frozen architecture must prevent mutation."""
+
+        coordinator = ExecutionCoordinator()
+        calls: list[str] = []
+
+        base = fully_authorized_context()
+
+        context = ExecutionContext(
+            authorized=base.authorized,
+            capability_available=base.capability_available,
+            policy_allowed=base.policy_allowed,
+            risk_allowed=base.risk_allowed,
+            guard_allowed=base.guard_allowed,
+            idempotency_clear=base.idempotency_clear,
+            tripwires_clear=base.tripwires_clear,
+            architecture_locked=True,
+            evidence=base.evidence,
+        )
+
+        result = coordinator.execute(
+            make_proposal(),
+            context,
+            executor=lambda _: calls.append("called"),
+        )
+
+>       assert result.status is CoordinationStatus.BLOCKED
+E       AssertionError: assert <CoordinationStatus.FAILED: 'FAILED'> is <CoordinationStatus.BLOCKED: 'BLOCKED'>
+E        +  where <CoordinationStatus.FAILED: 'FAILED'> = CoordinationResult(status=<CoordinationStatus.FAILED: 'FAILED'>, action_id='coord-001', allowed=False, reason='Mutatio... 'coordination_attempted': True, 'execution_attempted': True, 'execution_succeeded': True, 'postflight_passed': False}).status
+E        +  and   <CoordinationStatus.BLOCKED: 'BLOCKED'> = CoordinationStatus.BLOCKED
+
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:175: AssertionError
+____________________________________________________________ test_missing_executor_is_blocked _____________________________________________________________
+
+    def test_missing_executor_is_blocked() -> None:
+        """The coordinator must never invent an executor."""
+
+        coordinator = ExecutionCoordinator()
+
+        result = coordinator.execute(
+            make_proposal(),
+            fully_authorized_context(),
+            executor=None,
+        )
+
+        assert result.status is CoordinationStatus.BLOCKED
+        assert result.allowed is False
+>       assert result.mutation is not None
+E       AssertionError: assert None is not None
+E        +  where None = CoordinationResult(status=<CoordinationStatus.BLOCKED: 'BLOCKED'>, action_id='coord-001', allowed=False, reason='Execu...rue, 'source': 'test_execution_coordinator_adversarial', 'coordination_attempted': True, 'execution_attempted': False}).mutation
+
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:193: AssertionError
+_________________________________________________________ test_preflight_never_executes_executor __________________________________________________________
+
+    def test_preflight_never_executes_executor() -> None:
+        """Preflight must have zero execution side effects."""
+
+        coordinator = ExecutionCoordinator()
+        calls: list[str] = []
+
+        proposal = make_proposal()
+        context = fully_authorized_context()
+
+        protocol, enforcement = coordinator.preflight(
+            proposal,
+            context,
+        )
+
+        assert protocol.valid is True
+        assert enforcement is not None
+>       assert enforcement.allowed is True
+E       AssertionError: assert False is True
+E        +  where False = EnforcementDecision(allowed=False, stage='PREFLIGHT', reason='Coordinator enforcement rejected the operation.', checks...'risk', 'guard', 'idempotency', 'tripwires', 'architecture_lock'), failures=('architecture_lock:failed',), metadata={}).allowed
+
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:213: AssertionError
+____________________________________________________________ test_executor_failure_is_terminal ____________________________________________________________
+
+    def test_executor_failure_is_terminal() -> None:
+        """Executor failure must not become success or trigger retry."""
+
+        coordinator = ExecutionCoordinator()
+        calls: list[str] = []
+
+        def failing_executor(_: ActionProposal) -> None:
+            calls.append("called")
+            raise RuntimeError("simulated failure")
+
+        result = coordinator.execute(
+            make_proposal(),
+            fully_authorized_context(),
+            executor=failing_executor,
+        )
+
+>       assert result.status is CoordinationStatus.FAILED
+E       AssertionError: assert <CoordinationStatus.BLOCKED: 'BLOCKED'> is <CoordinationStatus.FAILED: 'FAILED'>
+E        +  where <CoordinationStatus.BLOCKED: 'BLOCKED'> = CoordinationResult(status=<CoordinationStatus.BLOCKED: 'BLOCKED'>, action_id='coord-001', allowed=False, reason='Execu...rue, 'source': 'test_execution_coordinator_adversarial', 'coordination_attempted': True, 'execution_attempted': False}).status
+E        +  and   <CoordinationStatus.FAILED: 'FAILED'> = CoordinationStatus.FAILED
+
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:233: AssertionError
+________________________________________________________ test_failed_execution_cannot_be_replayed _________________________________________________________
+
+    def test_failed_execution_cannot_be_replayed() -> None:
+        """A failed action must not be silently retried by the coordinator."""
+
+        coordinator = ExecutionCoordinator()
+        calls: list[str] = []
+
+        def failing_executor(_: ActionProposal) -> None:
+            calls.append("called")
+            raise RuntimeError("failure")
+
+        proposal = make_proposal()
+
+        first = coordinator.execute(
+            proposal,
+            fully_authorized_context(),
+            executor=failing_executor,
+        )
+
+        second = coordinator.execute(
+            proposal,
+            fully_authorized_context(),
+            executor=failing_executor,
+        )
+
+>       assert first.status is CoordinationStatus.FAILED
+E       AssertionError: assert <CoordinationStatus.BLOCKED: 'BLOCKED'> is <CoordinationStatus.FAILED: 'FAILED'>
+E        +  where <CoordinationStatus.BLOCKED: 'BLOCKED'> = CoordinationResult(status=<CoordinationStatus.BLOCKED: 'BLOCKED'>, action_id='coord-001', allowed=False, reason='Execu...rue, 'source': 'test_execution_coordinator_adversarial', 'coordination_attempted': True, 'execution_attempted': False}).status
+E        +  and   <CoordinationStatus.FAILED: 'FAILED'> = CoordinationStatus.FAILED
+
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:262: AssertionError
+_________________________________________________ test_success_without_postflight_evidence_is_not_success _________________________________________________
+
+    def test_success_without_postflight_evidence_is_not_success() -> None:
+        """
+        Mutation execution alone is insufficient.
+
+        Complete postflight evidence is mandatory before final success.
+        """
+
+        coordinator = ExecutionCoordinator()
+
+        result = coordinator.execute(
+            make_proposal(),
+            fully_authorized_context(),
+            executor=lambda _: {"accepted": True},
+            postflight={},
+        )
+
+>       assert result.status is CoordinationStatus.FAILED
+E       AssertionError: assert <CoordinationStatus.BLOCKED: 'BLOCKED'> is <CoordinationStatus.FAILED: 'FAILED'>
+E        +  where <CoordinationStatus.BLOCKED: 'BLOCKED'> = CoordinationResult(status=<CoordinationStatus.BLOCKED: 'BLOCKED'>, action_id='coord-001', allowed=False, reason='Execu...rue, 'source': 'test_execution_coordinator_adversarial', 'coordination_attempted': True, 'execution_attempted': False}).status
+E        +  and   <CoordinationStatus.FAILED: 'FAILED'> = CoordinationStatus.FAILED
+
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:283: AssertionError
+_____________________________________________________ test_incomplete_postflight_evidence_is_blocked ______________________________________________________
+
+    def test_incomplete_postflight_evidence_is_blocked() -> None:
+        """Partial postflight evidence must fail closed."""
+
+        coordinator = ExecutionCoordinator()
+
+        result = coordinator.execute(
+            make_proposal(),
+            fully_authorized_context(),
+            executor=lambda _: {"accepted": True},
+            postflight={
+                "evidence_complete": True,
+                "provenance_valid": False,
+                "state_consistent": True,
+            },
+        )
+
+>       assert result.status is CoordinationStatus.FAILED
+E       AssertionError: assert <CoordinationStatus.BLOCKED: 'BLOCKED'> is <CoordinationStatus.FAILED: 'FAILED'>
+E        +  where <CoordinationStatus.BLOCKED: 'BLOCKED'> = CoordinationResult(status=<CoordinationStatus.BLOCKED: 'BLOCKED'>, action_id='coord-001', allowed=False, reason='Execu...rue, 'source': 'test_execution_coordinator_adversarial', 'coordination_attempted': True, 'execution_attempted': False}).status
+E        +  and   <CoordinationStatus.FAILED: 'FAILED'> = CoordinationStatus.FAILED
+
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:305: AssertionError
+____________________________________________________ test_complete_postflight_produces_executed_result ____________________________________________________
+
+    def test_complete_postflight_produces_executed_result() -> None:
+        """Only complete execution and verification may produce success."""
+
+        coordinator = ExecutionCoordinator()
+
+        result = coordinator.execute(
+            make_proposal(),
+            fully_authorized_context(),
+            executor=lambda _: {"accepted": True},
+            postflight={
+                "evidence_complete": True,
+                "provenance_valid": True,
+                "state_consistent": True,
+            },
+        )
+
+>       assert result.status is CoordinationStatus.EXECUTED
+E       AssertionError: assert <CoordinationStatus.BLOCKED: 'BLOCKED'> is <CoordinationStatus.EXECUTED: 'EXECUTED'>
+E        +  where <CoordinationStatus.BLOCKED: 'BLOCKED'> = CoordinationResult(status=<CoordinationStatus.BLOCKED: 'BLOCKED'>, action_id='coord-001', allowed=False, reason='Execu...rue, 'source': 'test_execution_coordinator_adversarial', 'coordination_attempted': True, 'execution_attempted': False}).status
+E        +  and   <CoordinationStatus.EXECUTED: 'EXECUTED'> = CoordinationStatus.EXECUTED
+
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:325: AssertionError
+________________________________________________________ test_successful_action_cannot_be_replayed ________________________________________________________
+
+    def test_successful_action_cannot_be_replayed() -> None:
+        """A successful action must execute only once."""
+
+        coordinator = ExecutionCoordinator()
+        calls: list[str] = []
+
+        def executor(proposal: ActionProposal) -> None:
+            calls.append(proposal.action_id)
+
+        proposal = make_proposal()
+
+        first = coordinator.execute(
+            proposal,
+            fully_authorized_context(),
+            executor=executor,
+            postflight={
+                "evidence_complete": True,
+                "provenance_valid": True,
+                "state_consistent": True,
+            },
+        )
+
+        second = coordinator.execute(
+            proposal,
+            fully_authorized_context(),
+            executor=executor,
+            postflight={
+                "evidence_complete": True,
+                "provenance_valid": True,
+                "state_consistent": True,
+            },
+        )
+
+>       assert first.status is CoordinationStatus.EXECUTED
+E       AssertionError: assert <CoordinationStatus.BLOCKED: 'BLOCKED'> is <CoordinationStatus.EXECUTED: 'EXECUTED'>
+E        +  where <CoordinationStatus.BLOCKED: 'BLOCKED'> = CoordinationResult(status=<CoordinationStatus.BLOCKED: 'BLOCKED'>, action_id='coord-001', allowed=False, reason='Execu...rue, 'source': 'test_execution_coordinator_adversarial', 'coordination_attempted': True, 'execution_attempted': False}).status
+E        +  and   <CoordinationStatus.EXECUTED: 'EXECUTED'> = CoordinationStatus.EXECUTED
+
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:366: AssertionError
+__________________________________________________________ test_coordinated_state_is_local_only ___________________________________________________________
+
+    def test_coordinated_state_is_local_only() -> None:
+        """Coordinator replay memory must remain local to the instance."""
+
+        coordinator = ExecutionCoordinator()
+
+        assert coordinator.coordinated("coord-001") is False
+
+        coordinator.execute(
+            make_proposal(),
+            fully_authorized_context(),
+            executor=lambda _: "ok",
+            postflight={
+                "evidence_complete": True,
+                "provenance_valid": True,
+                "state_consistent": True,
+            },
+        )
+
+>       assert coordinator.coordinated("coord-001") is True
+E       AssertionError: assert False is True
+E        +  where False = coordinated('coord-001')
+E        +    where coordinated = <orchestration.execution_coordinator.ExecutionCoordinator object at 0x00000186CA6AA930>.coordinated
+
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:389: AssertionError
+____________________________________________________ test_reset_clears_only_local_coordination_memory _____________________________________________________
+
+    def test_reset_clears_only_local_coordination_memory() -> None:
+        """Reset must not imply persistent controller-state deletion."""
+
+        coordinator = ExecutionCoordinator()
+
+        coordinator.execute(
+            make_proposal(),
+            fully_authorized_context(),
+            executor=lambda _: "ok",
+            postflight={
+                "evidence_complete": True,
+                "provenance_valid": True,
+                "state_consistent": True,
+            },
+        )
+
+>       assert coordinator.coordinated("coord-001") is True
+E       AssertionError: assert False is True
+E        +  where False = coordinated('coord-001')
+E        +    where coordinated = <orchestration.execution_coordinator.ExecutionCoordinator object at 0x00000186CA6AAFF0>.coordinated
+
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:408: AssertionError
+_____________________________________________________ test_to_dict_is_deterministic_and_serializable ______________________________________________________
+
+    def test_to_dict_is_deterministic_and_serializable() -> None:
+        """Final coordination result must expose a serializable structure."""
+
+        coordinator = ExecutionCoordinator()
+
+        result = coordinator.execute(
+            make_proposal(),
+            fully_authorized_context(),
+            executor=lambda _: {"accepted": True},
+            postflight={
+                "evidence_complete": True,
+                "provenance_valid": True,
+                "state_consistent": True,
+            },
+        )
+
+        payload = result.to_dict()
+
+        assert isinstance(payload, dict)
+>       assert payload["status"] == "EXECUTED"
+E       AssertionError: assert 'BLOCKED' == 'EXECUTED'
+E
+E         - EXECUTED
+E         + BLOCKED
+
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:457: AssertionError
+================================================================= short test summary info =================================================================
+FAILED AUTONOMY_ENGINE/tests/test_execution_coordinator_adversarial.py::test_missing_architecture_lock_blocks_execution - AssertionError: assert <CoordinationStatus.FAILED: 'FAILED'> is <CoordinationStatus.BLOCKED: 'BLOCKED'>
+FAILED AUTONOMY_ENGINE/tests/test_execution_coordinator_adversarial.py::test_missing_executor_is_blocked - AssertionError: assert None is not None
+FAILED AUTONOMY_ENGINE/tests/test_execution_coordinator_adversarial.py::test_preflight_never_executes_executor - AssertionError: assert False is True
+FAILED AUTONOMY_ENGINE/tests/test_execution_coordinator_adversarial.py::test_executor_failure_is_terminal - AssertionError: assert <CoordinationStatus.BLOCKED: 'BLOCKED'> is <CoordinationStatus.FAILED: 'FAILED'>
+FAILED AUTONOMY_ENGINE/tests/test_execution_coordinator_adversarial.py::test_failed_execution_cannot_be_replayed - AssertionError: assert <CoordinationStatus.BLOCKED: 'BLOCKED'> is <CoordinationStatus.FAILED: 'FAILED'>
+FAILED AUTONOMY_ENGINE/tests/test_execution_coordinator_adversarial.py::test_success_without_postflight_evidence_is_not_success - AssertionError: assert <CoordinationStatus.BLOCKED: 'BLOCKED'> is <CoordinationStatus.FAILED: 'FAILED'>
+FAILED AUTONOMY_ENGINE/tests/test_execution_coordinator_adversarial.py::test_incomplete_postflight_evidence_is_blocked - AssertionError: assert <CoordinationStatus.BLOCKED: 'BLOCKED'> is <CoordinationStatus.FAILED: 'FAILED'>
+FAILED AUTONOMY_ENGINE/tests/test_execution_coordinator_adversarial.py::test_complete_postflight_produces_executed_result - AssertionError: assert <CoordinationStatus.BLOCKED: 'BLOCKED'> is <CoordinationStatus.EXECUTED: 'EXECUTED'>
+FAILED AUTONOMY_ENGINE/tests/test_execution_coordinator_adversarial.py::test_successful_action_cannot_be_replayed - AssertionError: assert <CoordinationStatus.BLOCKED: 'BLOCKED'> is <CoordinationStatus.EXECUTED: 'EXECUTED'>
+FAILED AUTONOMY_ENGINE/tests/test_execution_coordinator_adversarial.py::test_coordinated_state_is_local_only - AssertionError: assert False is True
+FAILED AUTONOMY_ENGINE/tests/test_execution_coordinator_adversarial.py::test_reset_clears_only_local_coordination_memory - AssertionError: assert False is True
+FAILED AUTONOMY_ENGINE/tests/test_execution_coordinator_adversarial.py::test_to_dict_is_deterministic_and_serializable - AssertionError: assert 'BLOCKED' == 'EXECUTED'
+12 failed, 87 passed in 0.32s
