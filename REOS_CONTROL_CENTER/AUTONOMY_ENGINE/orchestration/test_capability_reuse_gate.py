@@ -42,7 +42,6 @@ def test_duplicate_create_is_blocked_at_gate():
     assert outcome.required is True
     assert outcome.allowed is False
     assert outcome.result is not None
-
     assert (
         outcome.result.selected_capability_id
         == "CAP-OWNERSHIP"
@@ -91,7 +90,6 @@ def test_missing_gate_metadata_blocks():
     )
 
     assert outcome.allowed is False
-
     assert (
         "invalid_capability_reuse_request"
         in outcome.blockers
@@ -130,7 +128,4 @@ def test_catalog_change_revalidation_blocks_create():
 
     assert revalidated.allowed is False
     assert revalidated.result is not None
-    assert (
-        revalidated.decision.value
-        == "BLOCK"
-    )
+    assert revalidated.decision.value == "BLOCK"
