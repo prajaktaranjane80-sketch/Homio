@@ -1,4 +1,50 @@
-.........FFFF                                                                                                                                        [100%]
+PS D:\HOMIO\REOS_CONTROL_CENTER> @property
+At line:1 char:1
++ @property
++ ~~~~~~~~~
+The splatting operator '@' cannot be used to reference variables in an expression. '@property' can be used only as an argument to a command. To reference
+variables in an expression use '$property'.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : SplattingNotPermitted
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> def pure_responsibility_tokens(self) -> frozenset[str]:
+self : The term 'self' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path
+was included, verify that the path is correct and try again.
+At line:1 char:32
++ def pure_responsibility_tokens(self) -> frozenset[str]:
++                                ~~~~
+    + CategoryInfo          : ObjectNotFound: (self:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>     """
+>>     Tokens derived only from the declared responsibility.
+>>
+>>     Name and description are intentionally excluded so that two capabilities
+>>     with different labels/descriptions but the same responsibility are
+>>     treated as the same responsibility.
+>>     """
+"
+    Tokens derived only from the declared responsibility.
+
+    Name and description are intentionally excluded so that two capabilities
+    with different labels/descriptions but the same responsibility are
+    treated as the same responsibility.
+    "
+PS D:\HOMIO\REOS_CONTROL_CENTER>     return _tokens(self.responsibility)
+self.responsibility : The term 'self.responsibility' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the
+spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:20
++     return _tokens(self.responsibility)
++                    ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (self.responsibility:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> cd D:\HOMIO\REOS_CONTROL_CENTER
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest -q `
+>> .\AUTONOMY_ENGINE\orchestration\test_capability_reuse_guard.py `
+>> .\AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py
+.........F.F.                                                                                                                                        [100%]
 ======================================================================== FAILURES =========================================================================
 __________________________________________________ test_duplicate_capability_is_blocked_before_mutation ___________________________________________________
 
@@ -18,27 +64,33 @@ __________________________________________________ test_duplicate_capability_is_
             calls.append("EXECUTED")
             return "MUTATED"
 
->       coordinator = ExecutionCoordinator(
+        coordinator = ExecutionCoordinator(
             capability_catalog_provider=lambda: (existing,),
         )
-E       TypeError: ExecutionCoordinator.__init__() got an unexpected keyword argument 'capability_catalog_provider'
 
-AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:79: TypeError
-____________________________________________________ test_unique_capability_reaches_mutation_boundary _____________________________________________________
-
-    def test_unique_capability_reaches_mutation_boundary():
-        calls = []
-
-        def executor(_proposal):
-            calls.append("EXECUTED")
-            return "MUTATED"
-
->       coordinator = ExecutionCoordinator(
-            capability_catalog_provider=lambda: (),
+        proposal = _proposal(
+            capability_id="CAP-NEW",
+            name="Transaction Ownership",
+            responsibility="Protect immutable ownership of a deal",
         )
-E       TypeError: ExecutionCoordinator.__init__() got an unexpected keyword argument 'capability_catalog_provider'
 
-AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:119: TypeError
+        result = coordinator.execute(
+            proposal,
+            _context(),
+            executor=executor,
+            postflight={
+                "evidence_complete": True,
+                "provenance_valid": True,
+                "state_consistent": True,
+            },
+        )
+
+>       assert result.status is CoordinationStatus.BLOCKED
+E       AssertionError: assert <CoordinationStatus.EXECUTED: 'EXECUTED'> is <CoordinationStatus.BLOCKED: 'BLOCKED'>
+E        +  where <CoordinationStatus.EXECUTED: 'EXECUTED'> = CoordinationResult(status=<CoordinationStatus.EXECUTED: 'EXECUTED'>, action_id='68dcf478-bb7d-4df0-b014-3f707b8c778c',..., 'coordination_attempted': True, 'execution_attempted': True, 'execution_succeeded': True, 'postflight_passed': True}).status
+E        +  and   <CoordinationStatus.BLOCKED: 'BLOCKED'> = CoordinationStatus.BLOCKED
+
+AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:100: AssertionError
 ___________________________________________________ test_catalog_change_between_checks_blocks_mutation ____________________________________________________
 
     def test_catalog_change_between_checks_blocks_mutation():
@@ -67,59 +119,44 @@ ___________________________________________________ test_catalog_change_between_
             executions.append("EXECUTED")
             return "MUTATED"
 
->       coordinator = ExecutionCoordinator(
+        coordinator = ExecutionCoordinator(
             capability_catalog_provider=catalog_provider,
         )
-E       TypeError: ExecutionCoordinator.__init__() got an unexpected keyword argument 'capability_catalog_provider'
 
-AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:171: TypeError
-____________________________________________________ test_normal_non_capability_execution_is_unchanged ____________________________________________________
-
-    def test_normal_non_capability_execution_is_unchanged():
-        calls = []
-
-        def executor(_proposal):
-            calls.append("EXECUTED")
-            return "OK"
-
->       coordinator = ExecutionCoordinator(
-            capability_catalog_provider=lambda: (),
+        proposal = _proposal(
+            capability_id="CAP-NEW",
+            name="Late Duplicate Candidate",
+            responsibility="Protect immutable ownership of a deal",
         )
-E       TypeError: ExecutionCoordinator.__init__() got an unexpected keyword argument 'capability_catalog_provider'
 
-AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:211: TypeError
+        result = coordinator.execute(
+            proposal,
+            _context(),
+            executor=executor,
+            postflight={
+                "evidence_complete": True,
+                "provenance_valid": True,
+                "state_consistent": True,
+            },
+        )
+
+>       assert result.status is CoordinationStatus.BLOCKED
+E       AssertionError: assert <CoordinationStatus.EXECUTED: 'EXECUTED'> is <CoordinationStatus.BLOCKED: 'BLOCKED'>
+E        +  where <CoordinationStatus.EXECUTED: 'EXECUTED'> = CoordinationResult(status=<CoordinationStatus.EXECUTED: 'EXECUTED'>, action_id='0bd472ff-53e0-4302-87b2-11490c41c18b',..., 'coordination_attempted': True, 'execution_attempted': True, 'execution_succeeded': True, 'postflight_passed': True}).status
+E        +  and   <CoordinationStatus.BLOCKED: 'BLOCKED'> = CoordinationStatus.BLOCKED
+
+AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:192: AssertionError
 ================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/tests/test_capability_reuse_execution_integration.py::test_duplicate_capability_is_blocked_before_mutation - TypeError: ExecutionCoordinator.__init__() got an unexpected keyword argument 'capability_catalog_provider'
-FAILED AUTONOMY_ENGINE/tests/test_capability_reuse_execution_integration.py::test_unique_capability_reaches_mutation_boundary - TypeError: ExecutionCoordinator.__init__() got an unexpected keyword argument 'capability_catalog_provider'
-FAILED AUTONOMY_ENGINE/tests/test_capability_reuse_execution_integration.py::test_catalog_change_between_checks_blocks_mutation - TypeError: ExecutionCoordinator.__init__() got an unexpected keyword argument 'capability_catalog_provider'
-FAILED AUTONOMY_ENGINE/tests/test_capability_reuse_execution_integration.py::test_normal_non_capability_execution_is_unchanged - TypeError: ExecutionCoordinator.__init__() got an unexpected keyword argument 'capability_catalog_provider'
-4 failed, 9 passed in 0.30s
-PS D:\HOMIO\REOS_CONTROL_CENTER> cd D:\HOMIO\REOS_CONTROL_CENTER
-PS D:\HOMIO\REOS_CONTROL_CENTER>
+FAILED AUTONOMY_ENGINE/tests/test_capability_reuse_execution_integration.py::test_duplicate_capability_is_blocked_before_mutation - AssertionError: assert <CoordinationStatus.EXECUTED: 'EXECUTED'> is <CoordinationStatus.BLOCKED: 'BLOCKED'>
+FAILED AUTONOMY_ENGINE/tests/test_capability_reuse_execution_integration.py::test_catalog_change_between_checks_blocks_mutation - AssertionError: assert <CoordinationStatus.EXECUTED: 'EXECUTED'> is <CoordinationStatus.BLOCKED: 'BLOCKED'>
+2 failed, 11 passed in 0.33s
 PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest -q `
->> .\AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py `
->> --tb=short
-FFFF                                                                                                                                                 [100%]
-======================================================================== FAILURES =========================================================================
-__________________________________________________ test_duplicate_capability_is_blocked_before_mutation ___________________________________________________
-AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:79: in test_duplicate_capability_is_blocked_before_mutation
-    coordinator = ExecutionCoordinator(
-E   TypeError: ExecutionCoordinator.__init__() got an unexpected keyword argument 'capability_catalog_provider'
-____________________________________________________ test_unique_capability_reaches_mutation_boundary _____________________________________________________
-AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:119: in test_unique_capability_reaches_mutation_boundary
-    coordinator = ExecutionCoordinator(
-E   TypeError: ExecutionCoordinator.__init__() got an unexpected keyword argument 'capability_catalog_provider'
-___________________________________________________ test_catalog_change_between_checks_blocks_mutation ____________________________________________________
-AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:171: in test_catalog_change_between_checks_blocks_mutation
-    coordinator = ExecutionCoordinator(
-E   TypeError: ExecutionCoordinator.__init__() got an unexpected keyword argument 'capability_catalog_provider'
-____________________________________________________ test_normal_non_capability_execution_is_unchanged ____________________________________________________
-AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:211: in test_normal_non_capability_execution_is_unchanged
-    coordinator = ExecutionCoordinator(
-E   TypeError: ExecutionCoordinator.__init__() got an unexpected keyword argument 'capability_catalog_provider'
-================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/tests/test_capability_reuse_execution_integration.py::test_duplicate_capability_is_blocked_before_mutation - TypeError: ExecutionCoordinator.__init__() got an unexpected keyword argument 'capability_catalog_provider'
-FAILED AUTONOMY_ENGINE/tests/test_capability_reuse_execution_integration.py::test_unique_capability_reaches_mutation_boundary - TypeError: ExecutionCoordinator.__init__() got an unexpected keyword argument 'capability_catalog_provider'
-FAILED AUTONOMY_ENGINE/tests/test_capability_reuse_execution_integration.py::test_catalog_change_between_checks_blocks_mutation - TypeError: ExecutionCoordinator.__init__() got an unexpected keyword argument 'capability_catalog_provider'
-FAILED AUTONOMY_ENGINE/tests/test_capability_reuse_execution_integration.py::test_normal_non_capability_execution_is_unchanged - TypeError: ExecutionCoordinator.__init__() got an unexpected keyword argument 'capability_catalog_provider'
-4 failed in 0.16s
+>> .\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py `
+>> .\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py `
+>> .\AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py `
+>> .\AUTONOMY_ENGINE\tests\test_controller_adapter_adversarial.py `
+>> .\AUTONOMY_ENGINE\tests\test_production_execution_contract_adversarial.py `
+>> .\AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py
+.................................................................................................................................................... [ 82%]
+...............................                                                                                                                      [100%]
+179 passed in 0.97s
