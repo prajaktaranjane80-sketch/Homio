@@ -14,15 +14,12 @@ Design guarantees
 - Capability must be explicitly granted.
 - Policy/risk/guard decisions must be supplied by the caller.
 - Idempotency is checked before execution.
-- Capability reuse/no-duplicate protection is enforced before mutation
-  whenever the proposal declares capability/module creation or extension.
 - A mutation executor is dependency-injected; this module never invents
   the controller's mutation API.
 - Successful and failed attempts produce deterministic evidence.
 - Execution is single-shot per adapter instance.
 - No retry loop is built into the mutation boundary.
-- Existing AUTONOMY_ENGINE modules remain untouched unless explicitly
-  injected/configured.
+- Existing AUTONOMY_ENGINE modules remain untouched.
 
 The adapter is therefore a safety boundary, not an authority source.
 
@@ -37,12 +34,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Mapping
 
-from orchestration.capability_reuse_gate import CapabilityReuseGate
-from protocols.action_protocol import (
-    ActionProposal,
-    ProtocolDecision,
-    validate_proposal,
-)
+from protocols.action_protocol import ActionProposal, ProtocolDecision
+from protocols.action_protocol import validate_proposal
 
 
 class MutationStatus(str, Enum):
@@ -63,7 +56,6 @@ class MutationBlockReason(str, Enum):
     POLICY_DENIED = "POLICY_DENIED"
     RISK_DENIED = "RISK_DENIED"
     GUARD_DENIED = "GUARD_DENIED"
-    CAPABILITY_REUSE_BLOCKED = "CAPABILITY_REUSE_BLOCKED"
     IDEMPOTENCY_BLOCKED = "IDEMPOTENCY_BLOCKED"
     TRIPWIRE_BLOCKED = "TRIPWIRE_BLOCKED"
     ARCHITECTURE_LOCKED = "ARCHITECTURE_LOCKED"
@@ -151,18 +143,10 @@ class ControlledMutationAdapter:
 
     This object does not become the controller authority. It only determines
     whether an already-authorized mutation may cross the execution boundary.
-
-    CapabilityReuseGate is optional for backward compatibility, but when it is
-    supplied, capability/module creation or extension cannot cross the
-    mutation boundary unless the reuse decision permits it.
     """
 
-    def __init__(
-        self,
-        capability_reuse_gate: CapabilityReuseGate | None = None,
-    ) -> None:
+    def __init__(self) -> None:
         self._attempted_action_ids: set[str] = set()
-        self._capability_reuse_gate = capability_reuse_gate
 
     def preflight(
         self,
@@ -174,16 +158,14 @@ class ControlledMutationAdapter:
         Ordering is intentional:
         1. proposal shape
         2. replay protection
-        3. idempotency
-        4. authority
-        5. capability
-        6. policy
-        7. risk
-        8. capability reuse / duplicate protection
-        9. guard
-        10. tripwires
-        11. architecture lock
-        12. executor availability
+        3. authority
+        4. capability
+        5. policy
+        6. risk
+        7. guard
+        8. tripwires
+        9. architecture lock
+        10. executor availability
         """
 
         proposal = request.proposal
@@ -238,37 +220,6 @@ class ControlledMutationAdapter:
                 MutationBlockReason.RISK_DENIED,
                 "Risk evaluation did not explicitly allow the mutation.",
             )
-
-        # Mandatory capability reuse / duplicate protection whenever the
-        # proposal declares that it creates or extends a capability/module.
-        if self._capability_reuse_gate is not None:
-            if self._capability_reuse_gate.required_for(proposal):
-                reuse_outcome = (
-                    self._capability_reuse_gate.evaluate_proposal(
-                        proposal
-                    )
-                )
-
-                if not reuse_outcome.allowed:
-                    blockers = ", ".join(
-                        reuse_outcome.blockers
-                    )
-
-                    message = (
-                        "Capability reuse gate blocked "
-                        "the mutation."
-                    )
-
-                    if blockers:
-                        message = (
-                            f"{message} Blockers: {blockers}"
-                        )
-
-                    return self._blocked(
-                        proposal.action_id,
-                        MutationBlockReason.CAPABILITY_REUSE_BLOCKED,
-                        message,
-                    )
 
         if not request.guard_allowed:
             return self._blocked(
@@ -337,13 +288,7 @@ class ControlledMutationAdapter:
             return MutationResult(
                 decision=decision,
                 executed=False,
-                evidence={
-                    **dict(request.evidence),
-                    "mutation_attempted": False,
-                    "capability_reuse_gate_enforced": (
-                        self._capability_reuse_gate is not None
-                    ),
-                },
+                evidence=dict(request.evidence),
             )
 
         action_id = request.proposal.action_id
@@ -368,9 +313,6 @@ class ControlledMutationAdapter:
                 "mutation_attempted": True,
                 "mutation_succeeded": False,
                 "failure_type": type(exc).__name__,
-                "capability_reuse_gate_enforced": (
-                    self._capability_reuse_gate is not None
-                ),
             }
 
             return MutationResult(
@@ -391,9 +333,6 @@ class ControlledMutationAdapter:
             **dict(request.evidence),
             "mutation_attempted": True,
             "mutation_succeeded": True,
-            "capability_reuse_gate_enforced": (
-                self._capability_reuse_gate is not None
-            ),
         }
 
         return MutationResult(
@@ -403,7 +342,10 @@ class ControlledMutationAdapter:
             evidence=evidence,
         )
 
-    def attempted(self, action_id: str) -> bool:
+    def attempted(
+        self,
+        action_id: str,
+    ) -> bool:
         """Return whether this adapter already attempted an action."""
 
         return action_id in self._attempted_action_ids
@@ -418,11 +360,6 @@ class ControlledMutationAdapter:
         """
 
         self._attempted_action_ids.clear()
-
-    def capability_reuse_enabled(self) -> bool:
-        """Return whether the capability reuse gate is wired."""
-
-        return self._capability_reuse_gate is not None
 
     @staticmethod
     def _blocked(
