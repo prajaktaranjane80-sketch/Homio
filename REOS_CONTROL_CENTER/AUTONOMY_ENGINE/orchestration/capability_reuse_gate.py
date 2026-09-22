@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Iterable, Mapping
 
-from capability_reuse_guard import (
+from orchestration.capability_reuse_guard import (
     CapabilityRecord,
     CapabilityRequest,
     CapabilityReuseGuard,
@@ -11,17 +11,25 @@ from capability_reuse_guard import (
     ReuseDecisionResult,
 )
 
-CatalogProvider = Callable[[], Iterable[CapabilityRecord]]
+
+CatalogProvider = Callable[
+    [],
+    Iterable[CapabilityRecord],
+]
 
 
 @dataclass(frozen=True, slots=True)
 class CapabilityReuseOutcome:
+    """Machine-readable result of the capability reuse gate."""
+
     required: bool
     allowed: bool
     decision: ReuseDecision | None
     result: ReuseDecisionResult | None = None
     blockers: tuple[str, ...] = ()
-    evidence: Mapping[str, Any] = field(default_factory=dict)
+    evidence: Mapping[str, Any] = field(
+        default_factory=dict
+    )
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -44,11 +52,14 @@ class CapabilityReuseOutcome:
 
 class CapabilityReuseGate:
     """
-    Execution-boundary adapter for the existing deterministic
-    CapabilityReuseGuard.
+    Execution-boundary adapter for the existing
+    deterministic CapabilityReuseGuard.
 
-    It does not own canonical state, architecture authority,
-    Git, or mutation execution.
+    This module does not own:
+    - canonical project state
+    - architecture authority
+    - Git authority
+    - mutation execution
     """
 
     CREATE_OPERATIONS = frozenset(
@@ -74,10 +85,16 @@ class CapabilityReuseGate:
         guard: CapabilityReuseGuard | None = None,
     ) -> None:
         if not callable(catalog_provider):
-            raise TypeError("catalog_provider must be callable")
+            raise TypeError(
+                "catalog_provider must be callable"
+            )
 
         self._catalog_provider = catalog_provider
-        self._guard = guard or CapabilityReuseGuard()
+        self._guard = (
+            guard
+            if guard is not None
+            else CapabilityReuseGuard()
+        )
 
     @classmethod
     def from_registry(
@@ -85,12 +102,18 @@ class CapabilityReuseGate:
         registry: Any,
     ) -> "CapabilityReuseGate":
         """
-        Adapt the existing CapabilityRegistry without replacing it.
+        Adapt the existing CapabilityRegistry.
+
+        CapabilityRegistry remains the existing registry.
+        This gate derives records from it; it does not
+        replace the registry.
         """
 
         def provider() -> tuple[CapabilityRecord, ...]:
             return tuple(
-                CapabilityRecord.from_capability(item)
+                CapabilityRecord.from_capability(
+                    item
+                )
                 for item in registry.all()
             )
 
@@ -101,16 +124,23 @@ class CapabilityReuseGate:
         cls,
         proposal: Any,
     ) -> bool:
+        """Return True when capability reuse protection is required."""
+
         parameters = getattr(
             proposal,
             "parameters",
             {},
         )
 
-        if not isinstance(parameters, Mapping):
+        if not isinstance(
+            parameters,
+            Mapping,
+        ):
             return False
 
-        if parameters.get("creates_capability") is True:
+        if parameters.get(
+            "creates_capability"
+        ) is True:
             return True
 
         operation = str(
@@ -129,6 +159,8 @@ class CapabilityReuseGate:
         self,
         proposal: Any,
     ) -> CapabilityRequest:
+        """Convert proposal reuse metadata into a guard request."""
+
         parameters = getattr(
             proposal,
             "parameters",
@@ -136,12 +168,20 @@ class CapabilityReuseGate:
         )
 
         payload = (
-            parameters.get("capability_reuse")
-            if isinstance(parameters, Mapping)
+            parameters.get(
+                "capability_reuse"
+            )
+            if isinstance(
+                parameters,
+                Mapping,
+            )
             else None
         )
 
-        if not isinstance(payload, Mapping):
+        if not isinstance(
+            payload,
+            Mapping,
+        ):
             raise ValueError(
                 "capability_reuse metadata is required"
             )
@@ -151,16 +191,24 @@ class CapabilityReuseGate:
             *,
             required: bool = True,
         ) -> str:
-            value = payload.get(name, "")
+            value = payload.get(
+                name,
+                "",
+            )
 
             if (
-                not isinstance(value, str)
+                not isinstance(
+                    value,
+                    str,
+                )
                 or not value.strip()
             ):
                 if required:
                     raise ValueError(
-                        f"capability_reuse.{name} is required"
+                        f"capability_reuse.{name} "
+                        "is required"
                     )
+
                 return ""
 
             return value.strip()
@@ -168,9 +216,15 @@ class CapabilityReuseGate:
         def many(
             name: str,
         ) -> tuple[str, ...]:
-            value = payload.get(name, ())
+            value = payload.get(
+                name,
+                (),
+            )
 
-            if isinstance(value, str):
+            if isinstance(
+                value,
+                str,
+            ):
                 return (value,)
 
             if not isinstance(
@@ -189,13 +243,19 @@ class CapabilityReuseGate:
             )
 
         return CapabilityRequest(
-            capability_id=text("capability_id"),
-            name=text("name"),
+            capability_id=text(
+                "capability_id"
+            ),
+            name=text(
+                "name"
+            ),
             description=text(
                 "description",
                 required=False,
             ),
-            responsibility=text("responsibility"),
+            responsibility=text(
+                "responsibility"
+            ),
             architecture_ids=many(
                 "architecture_ids"
             ),
@@ -203,8 +263,12 @@ class CapabilityReuseGate:
                 "source_of_truth",
                 required=False,
             ),
-            inputs=many("inputs"),
-            outputs=many("outputs"),
+            inputs=many(
+                "inputs"
+            ),
+            outputs=many(
+                "outputs"
+            ),
             owner=text(
                 "owner",
                 required=False,
@@ -222,7 +286,11 @@ class CapabilityReuseGate:
         self,
         proposal: Any,
     ) -> CapabilityReuseOutcome:
-        if not self.required_for(proposal):
+        """Evaluate one proposal before it can mutate the repository."""
+
+        if not self.required_for(
+            proposal
+        ):
             return CapabilityReuseOutcome(
                 required=False,
                 allowed=True,
@@ -249,20 +317,35 @@ class CapabilityReuseGate:
                 {},
             )
 
-            payload = parameters.get(
-                "capability_reuse"
+            payload = (
+                parameters.get(
+                    "capability_reuse"
+                )
+                if isinstance(
+                    parameters,
+                    Mapping,
+                )
+                else None
             )
 
-            if isinstance(payload, Mapping):
+            if isinstance(
+                payload,
+                Mapping,
+            ):
                 supplied = payload.get(
                     "catalog_fingerprint"
                 )
 
                 if (
-                    isinstance(supplied, str)
+                    isinstance(
+                        supplied,
+                        str,
+                    )
                     and supplied.strip()
                 ):
-                    expected_fingerprint = supplied
+                    expected_fingerprint = (
+                        supplied
+                    )
 
             result = self._guard.evaluate(
                 request,
@@ -279,7 +362,9 @@ class CapabilityReuseGate:
                 )
             ).strip().upper()
 
-            if operation in self.CREATE_OPERATIONS:
+            if operation in (
+                self.CREATE_OPERATIONS
+            ):
                 allowed = (
                     result.decision
                     == ReuseDecision.CREATE_NEW
@@ -293,7 +378,9 @@ class CapabilityReuseGate:
                     )
                 )
 
-            elif operation in self.EXTEND_OPERATIONS:
+            elif operation in (
+                self.EXTEND_OPERATIONS
+            ):
                 allowed = result.decision in {
                     ReuseDecision.REUSE,
                     ReuseDecision.EXTEND,
@@ -312,6 +399,7 @@ class CapabilityReuseGate:
                     result.decision
                     != ReuseDecision.BLOCK
                 )
+
                 blockers = result.blockers
 
             return CapabilityReuseOutcome(
@@ -344,7 +432,9 @@ class CapabilityReuseGate:
                 ),
                 evidence={
                     "reuse_gate": "BLOCKED",
-                    "error_type": type(exc).__name__,
+                    "error_type": (
+                        type(exc).__name__
+                    ),
                     "error": str(exc),
                 },
             )
@@ -357,6 +447,14 @@ class CapabilityReuseGate:
             Iterable[CapabilityRecord] | None
         ) = None,
     ) -> CapabilityReuseOutcome:
+        """
+        Revalidate a previous decision against the
+        latest capability catalog.
+
+        This provides the required TOCTOU protection
+        before the actual mutation/commit boundary.
+        """
+
         if (
             not outcome.required
             or outcome.result is None
