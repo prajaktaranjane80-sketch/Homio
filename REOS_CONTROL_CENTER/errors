@@ -1,583 +1,515 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> cd D:\HOMIO\REOS_CONTROL_CENTER
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
- D AUTONOMY_ENGINE/__pycache__/bridge_cli.cpython-313.pyc
- M AUTONOMY_ENGINE/adapter/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/adapter/__pycache__/__init__.cpython-313.pyc
- M AUTONOMY_ENGINE/adapter/__pycache__/controller_adapter.cpython-312.pyc
- D AUTONOMY_ENGINE/adapter/__pycache__/controller_adapter.cpython-313.pyc
- M AUTONOMY_ENGINE/adapter/__pycache__/targeted_state.cpython-312.pyc
- D AUTONOMY_ENGINE/adapter/__pycache__/targeted_state.cpython-313.pyc
- M AUTONOMY_ENGINE/bridge/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/bridge/__pycache__/__init__.cpython-313.pyc
- M AUTONOMY_ENGINE/bridge/__pycache__/readonly_controller_bridge.cpython-312.pyc
- D AUTONOMY_ENGINE/bridge/__pycache__/readonly_controller_bridge.cpython-313.pyc
- M AUTONOMY_ENGINE/budgets/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/budgets/__pycache__/context_budget.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/__pycache__/provenance.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/__pycache__/recovery_journal.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/bootstrap.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/compatibility.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/fingerprint.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/freshness.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/health.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/linking.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/observation.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/project_dna.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/provenance.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_adversarial_project_dna.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_adversarial_project_dna.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_bootstrap.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_bootstrap.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_fingerprint.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_fingerprint.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_freshness.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_freshness.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_identity.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_project_dna.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_project_dna.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_t01_final.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_t01_final.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_t01_hardening.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_t01_hardening.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/architecture_contract.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/architecture_drift.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/architecture_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/architecture_lock.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/test_architecture_drift.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/test_architecture_lock.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/test_architecture_lock.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/test_t02_hardening.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/reconstruction_validation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_observation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_reconstruction.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_reconstruction_validation.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_identity.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_observation.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/gate_subtask_continuity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/test_gate_subtask_continuity.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/gate_subtask_continuity.py
- D AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/authority_contract.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/authority_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/authority_normalization.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/authority_validation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/dependency_authority_map.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/test_authority_contract.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/test_authority_identity.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/test_authority_normalization.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/test_authority_validation.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/test_dependency_authority_map.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/task_dependency_reconstruction.py
- D AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/checkpoint_contract.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/checkpoint_engine.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/checkpoint_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/checkpoint_lifecycle.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/checkpoint_provenance.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/checkpoint_registry.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/checkpoint_validation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_contract.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_engine.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_engine.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_identity.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_lifecycle.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_provenance.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_registry.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_validation.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/test_checkpoint_continuity.py
- D AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/architecture_lock.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/checkpoint_engine.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/dependency_authority_map.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/gate_subtask_continuity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/new_chat_bootstrap.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/project_dna.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/state_reconstruction.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/test_new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/new_chat_bootstrap.py
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/test_new_chat_bootstrap.py
- D AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/context_compression.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/new_chat_bootstrap.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/test_context_compression.cpython-312-pytest-9.1.1.pyc
-M  AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/context_compression.py
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/fingerprint_compatibility.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/fingerprint_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/fingerprint_metrics.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/fingerprint_provenance.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/fingerprint_registry.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/fingerprint_validation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/state_integrity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_fingerprint_compatibility.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_fingerprint_identity.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_fingerprint_metrics.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_fingerprint_provenance.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_fingerprint_registry.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_fingerprint_validation.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_state_integrity.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_t09_adversarial.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_t09_contract.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_t09_integration.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T10_Drift_Detection/__pycache__/drift_detection.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T10_Drift_Detection/__pycache__/test_drift_detection.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_compatibility.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_guard.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_metrics.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_policy.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_provenance.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_validation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_recovery_compatibility.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_recovery_guard.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_recovery_identity.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_recovery_metrics.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_recovery_policy.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_recovery_provenance.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_recovery_validation.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_t11_adversarial.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_t11_contract.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/resume_safety_validation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_resume_safety_validation.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_t12_integration.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/controller_compatibility.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/controller_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/controller_integration.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/controller_policy.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/controller_provenance.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/controller_validation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_compatibility.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_identity.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_metrics.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_policy.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_provenance.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_validation.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_adversarial.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_contract.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_integration.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_compatibility.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_integration.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_layer.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_metrics.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_policy.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_provenance.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_registry.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_validation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_compatibility.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_identity.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_integration.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_layer.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_metrics.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_policy.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_provenance.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_registry.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_validation.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_t14_adversarial.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_t14_contract.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_t14_integration.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_autonomy.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_compatibility.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_decision_boundary.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_integration.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_metrics.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_policy.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_registry.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_validation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/test_operator_autonomy.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/test_t15_adversarial.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/test_t15_contract.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/test_t15_integration.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/__pycache__/contract_graph.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/__pycache__/repository_intelligence.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/__pycache__/test_contract_graph.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/__pycache__/test_repository_intelligence.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/__pycache__/test_symlink_plugin.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/repository_discovery/__pycache__/boundary.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/repository_discovery/__pycache__/classification.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/repository_discovery/__pycache__/fingerprint.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/repository_discovery/__pycache__/identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/repository_discovery/__pycache__/test_repository_discovery.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/repository_discovery/__pycache__/topology.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/dependency_graph.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/intelligence.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/source_parser.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/symbol_intelligence/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/symbol_intelligence/__pycache__/lineage.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/symbol_intelligence/__pycache__/snapshot.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/symbol_intelligence/__pycache__/symbols.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/symbol_intelligence/__pycache__/test_symbol_intelligence.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/change_impact_analysis.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_dependency.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_errors.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_integration.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_metrics.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_models.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_policy.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_provenance.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_registry.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_security.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_validation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/test_change_impact_analysis.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/test_t17_adversarial.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/test_t17_contract.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/test_t17_integration.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/authorization_errors.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/authorization_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/authorization_models.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/authorization_policy.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/authorization_registry.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/authorization_validation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/execution_authorization.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/test_execution_authorization.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/test_execution_authorization.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/test_t18_contract.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/test_t18_contract.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/failure_diagnosis.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/selection_engine.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/t19_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/t19_models.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/t19_validation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/test_failure_diagnosis.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/test_selection_engine.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/test_t19_contract.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/patch_engine.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/patch_verification.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_authorization.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_models.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_policy.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_provenance.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_scope.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_transaction.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_validation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_workspace.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/test_patch_engine.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/test_patch_verification.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/test_repair_contract.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/test_repair_determinism.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/test_repair_scope.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/test_repair_security.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/test_repair_transaction.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_authorization.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_commit.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_lock.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_models.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_policy.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_provenance.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_read.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_registry.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_repository.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_scope.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_stage.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_transaction.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_validation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/test_git_commit.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/test_git_concurrency.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/test_git_read.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/test_git_scope.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/test_git_security.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/test_git_stage.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/test_git_transaction.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/test_t21_contract.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_authorization.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_builder.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_coordinator.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_models.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_policy.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_provenance.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_registry.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_store.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_validation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_checkpoint_authorization.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_checkpoint_builder.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_checkpoint_coordinator.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_checkpoint_identity.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_checkpoint_models.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_checkpoint_policy.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_checkpoint_store.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_checkpoint_validation.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_t22_concurrency.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_t22_contract.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_t22_determinism.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_t22_replay.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_t22_security.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/evidence_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/evidence_models.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/evidence_policy.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/evidence_provenance.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/evidence_ranker.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/evidence_registry.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/evidence_resolver.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/evidence_validation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/resolution_coordinator.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/resolution_store.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_evidence_identity.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_evidence_models.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_evidence_policy.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_evidence_ranker.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_evidence_resolver.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_evidence_validation.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_resolution_coordinator.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_resolution_store.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_t23_conflict.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_t23_contract.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_t23_determinism.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_t23_security.cpython-312-pytest-9.1.1.pyc
-M  AUTONOMY_ENGINE/continuity/acrl/T28_Conflict_Resolution_Reconciliation_Engine/reconciliation_fingerprint.py
- M AUTONOMY_ENGINE/continuity/acrl/T28_Conflict_Resolution_Reconciliation_Engine/test_t28_conflicts.py
- M AUTONOMY_ENGINE/continuity/acrl/T28_Conflict_Resolution_Reconciliation_Engine/test_t28_determinism.py
- M AUTONOMY_ENGINE/continuity/acrl/T28_Conflict_Resolution_Reconciliation_Engine/test_t28_integration.py
- M AUTONOMY_ENGINE/continuity/acrl/T28_Conflict_Resolution_Reconciliation_Engine/test_t28_replay.py
- M AUTONOMY_ENGINE/continuity/acrl/T28_Conflict_Resolution_Reconciliation_Engine/test_t28_security.py
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/blocker_detector.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/completion_controller.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/completion_models.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/completion_record.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/completion_store.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/completion_validation.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/dependency_closure.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/handoff_builder.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/handoff_fingerprint.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/handoff_models.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/mission_identity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/mission_models.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/next_mission_resolver.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/proof_engine.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/recovery_classifier.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/residual_work_detector.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_completion_controller.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_completion_store.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_dependency_closure.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_mission_identity.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_proof_engine.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_recovery_classifier.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_residual_work_detector.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_t30_contract.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_t30_futuristic_boundaries.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_t30_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/__pycache__/architecture_lock.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/__pycache__/checkpoint_engine.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/__pycache__/context_compression.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/__pycache__/contract_graph.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/__pycache__/dependency_authority_map.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/__pycache__/drift_detection.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/__pycache__/gate_subtask_continuity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/__pycache__/new_chat_bootstrap.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/__pycache__/recovery_guard.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/__pycache__/repository_intelligence.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/__pycache__/state_integrity.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/__pycache__/state_reconstruction.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/repository_discovery/__pycache__/__init__.cpython-312.pyc
-M  AUTONOMY_ENGINE/continuity/acrl/runtime_integration/__init__.py
-M  AUTONOMY_ENGINE/continuity/acrl/runtime_integration/acrl_runtime.py
-M  AUTONOMY_ENGINE/continuity/acrl/runtime_integration/authority_bridge.py
-A  AUTONOMY_ENGINE/continuity/acrl/runtime_integration/continuity_controller.py
-M  AUTONOMY_ENGINE/continuity/acrl/runtime_integration/integration_models.py
-M  AUTONOMY_ENGINE/continuity/acrl/runtime_integration/runtime_bindings.py
-M  AUTONOMY_ENGINE/continuity/acrl/runtime_integration/runtime_orchestrator.py
-M  AUTONOMY_ENGINE/continuity/acrl/runtime_integration/task_registry.py
-A  AUTONOMY_ENGINE/continuity/acrl/runtime_integration/test_continuity_controller.py
-M  AUTONOMY_ENGINE/continuity/acrl/runtime_integration/unified_runtime_context.py
- D AUTONOMY_ENGINE/continuity/acrl/source_intelligence/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/continuity/acrl/symbol_intelligence/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/contracts/__pycache__/__init__.cpython-313.pyc
- M AUTONOMY_ENGINE/core/__init__.py
- M AUTONOMY_ENGINE/core/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/core/__pycache__/action_planner.cpython-312.pyc
- M AUTONOMY_ENGINE/core/__pycache__/context_compiler.cpython-312.pyc
- M AUTONOMY_ENGINE/core/__pycache__/idempotency.cpython-312.pyc
- D AUTONOMY_ENGINE/core/__pycache__/inventory_concurrency.cpython-312.pyc
- D AUTONOMY_ENGINE/core/__pycache__/inventory_consistency.cpython-312.pyc
- D AUTONOMY_ENGINE/core/__pycache__/inventory_core_freeze.cpython-312.pyc
- D AUTONOMY_ENGINE/core/__pycache__/inventory_evidence.cpython-312.pyc
- D AUTONOMY_ENGINE/core/__pycache__/inventory_history.cpython-312.pyc
- D AUTONOMY_ENGINE/core/__pycache__/inventory_history_evidence.cpython-312.pyc
- D AUTONOMY_ENGINE/core/__pycache__/inventory_indexing.cpython-312.pyc
- D AUTONOMY_ENGINE/core/__pycache__/inventory_verification.cpython-312.pyc
- M AUTONOMY_ENGINE/core/__pycache__/risk_engine.cpython-312.pyc
- M AUTONOMY_ENGINE/core/__pycache__/semantic_consistency.cpython-312.pyc
- D AUTONOMY_ENGINE/core/__pycache__/test_inventory_availability.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/core/__pycache__/test_inventory_concurrency.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/core/__pycache__/test_inventory_consistency.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/core/__pycache__/test_inventory_core_freeze.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/core/__pycache__/test_inventory_domain.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/core/__pycache__/test_inventory_evidence.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/core/__pycache__/test_inventory_history.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/core/__pycache__/test_inventory_history_evidence.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/core/__pycache__/test_inventory_indexing.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/core/__pycache__/test_inventory_lifecycle.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/core/__pycache__/test_inventory_verification.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/core/__pycache__/test_project_domain.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/core/__pycache__/workspace_guard.cpython-312.pyc
- M AUTONOMY_ENGINE/execution/__pycache__/mutation_adapter.cpython-312.pyc
- M AUTONOMY_ENGINE/execution/__pycache__/production_executor.cpython-312.pyc
- M AUTONOMY_ENGINE/execution/mutation_adapter.py
- M AUTONOMY_ENGINE/execution/production_executor.py
- M AUTONOMY_ENGINE/governance/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/governance/__pycache__/policy_engine.cpython-312.pyc
- M AUTONOMY_ENGINE/integration/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/integration/__pycache__/__init__.cpython-313.pyc
- M AUTONOMY_ENGINE/integration/__pycache__/integration_lock.cpython-312.pyc
- M AUTONOMY_ENGINE/integration/__pycache__/preflight.cpython-312.pyc
- D AUTONOMY_ENGINE/integration/__pycache__/preflight.cpython-313.pyc
- D AUTONOMY_ENGINE/integration/__pycache__/safe_execution.cpython-312.pyc
- M AUTONOMY_ENGINE/integration/__pycache__/safe_next.cpython-312.pyc
- D AUTONOMY_ENGINE/integration/__pycache__/safe_next.cpython-313.pyc
- D AUTONOMY_ENGINE/memory/__pycache__/context_store.cpython-313.pyc
- D AUTONOMY_ENGINE/memory/__pycache__/evidence_ledger.cpython-313.pyc
- M AUTONOMY_ENGINE/orchestration/__pycache__/execution_coordinator.cpython-312.pyc
- M AUTONOMY_ENGINE/orchestration/execution_coordinator.py
- M AUTONOMY_ENGINE/protocols/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/protocols/__pycache__/action_protocol.cpython-312.pyc
- D AUTONOMY_ENGINE/research/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/research/__pycache__/research_policy.cpython-313.pyc
- D AUTONOMY_ENGINE/research/__pycache__/test_bridge_v5.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/runtime/homio_runtime.py
- M AUTONOMY_ENGINE/security/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/security/__pycache__/tripwires.cpython-312.pyc
- M AUTONOMY_ENGINE/security/__pycache__/workspace_manifest.cpython-312.pyc
- D AUTONOMY_ENGINE/telemetry/__pycache__/__init__.cpython-312.pyc
- D AUTONOMY_ENGINE/telemetry/__pycache__/run_trace.cpython-312.pyc
- D AUTONOMY_ENGINE/tests/__pycache__/__init__.cpython-313.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_adapter.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/tests/__pycache__/test_adapter.cpython-313-pytest-9.0.2.pyc
- D AUTONOMY_ENGINE/tests/__pycache__/test_adapter.cpython-313.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_autonomy_components.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_controller_adapter_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_controller_autonomy_integration_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_enforcement_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_execution_coordinator_adversarial.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/tests/__pycache__/test_execution_coordinator_adversarial.cpython-312.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_execution_pipeline_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_execution_receipt_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_integration_lock_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_mutation_adapter_adversarial.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/tests/__pycache__/test_mutation_adapter_adversarial.cpython-312.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_policy_contracts.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_pre_execution_firewall_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_production_execution_contract_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_production_executor_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_readonly_controller_bridge.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/tests/__pycache__/test_readonly_controller_bridge.cpython-312.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_semantic_consistency.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_v6_additions.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_v6_adversarial.cpython-312-pytest-9.1.1.pyc
- D AUTONOMY_ENGINE/tests/__pycache__/test_v6_adversarial.cpython-312.pyc
- M AUTONOMY_ENGINE/tests/test_execution_coordinator_adversarial.py
- M AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py
- M AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py
- M AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py
- M REOS_NEXT_CHAT.txt
- D __pycache__/cli.cpython-313.pyc
- M data/state.json
- M packets/NEW_CHAT_PACKET.txt
-?? AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/gate_subtask_continuity.py.bak_20260918_202525
-?? AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/task_dependency_reconstruction.py.bak_20260918_202525
-?? AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/test_checkpoint_continuity.py.bak_20260918_202525
-?? AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/test_new_chat_bootstrap.py.bak_20260918_202525
-?? AUTONOMY_ENGINE/continuity/acrl/T14_Repository_Intelligence_Context/__pycache__/
-?? AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/__pycache__/__init__.cpython-312.pyc
-?? AUTONOMY_ENGINE/continuity/acrl/__pycache__/repository_context.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/hybrid_retrieval.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/location_search.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/matching.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/qdrant_indexing.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/ranking.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/search_filters.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/search_rebuild.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/tenant_visibility.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_search_filters.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/core/hybrid_retrieval.py
-?? AUTONOMY_ENGINE/core/location_search.py
-?? AUTONOMY_ENGINE/core/matching.py
-?? AUTONOMY_ENGINE/core/qdrant_indexing.py
-?? AUTONOMY_ENGINE/core/ranking.py
-?? AUTONOMY_ENGINE/core/search_filters.py
-?? AUTONOMY_ENGINE/core/search_rebuild.py
-?? AUTONOMY_ENGINE/core/tenant_visibility.py
-?? AUTONOMY_ENGINE/core/test_search_filters.py
-?? AUTONOMY_ENGINE/diagnostics/__pycache__/
-?? AUTONOMY_ENGINE/execution/__pycache__/controller_executor.cpython-312.pyc
-?? AUTONOMY_ENGINE/orchestration/__pycache__/agent_runtime.cpython-312.pyc
-?? AUTONOMY_ENGINE/orchestration/__pycache__/agent_runtime_execution_bridge.cpython-312.pyc
-?? AUTONOMY_ENGINE/orchestration/__pycache__/capability_reuse_guard.cpython-312.pyc
-?? AUTONOMY_ENGINE/orchestration/__pycache__/test_capability_reuse_guard.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/orchestration/capability_reuse_guard.py
-?? AUTONOMY_ENGINE/orchestration/test_capability_reuse_guard.py
-?? AUTONOMY_ENGINE/runtime/__pycache__/
-?? AUTONOMY_ENGINE/runtime/self_maintenance_cycle.py
-?? AUTONOMY_ENGINE/runtime/self_maintenance_runtime.py
-?? AUTONOMY_ENGINE/runtime/tests/test_self_maintenance_cycle.py
-?? AUTONOMY_ENGINE/runtime/tests/test_self_maintenance_runtime.py
-?? AUTONOMY_ENGINE/tests/__pycache__/test_capability_reuse_execution_integration.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/tests/__pycache__/test_hybrid_retrieval.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/tests/__pycache__/test_l1_l2_acceptance.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/tests/__pycache__/test_l3_canonical_state_integrity.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/tests/__pycache__/test_location_search.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/tests/__pycache__/test_matching.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/tests/__pycache__/test_qdrant_indexing.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/tests/__pycache__/test_ranking.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/tests/__pycache__/test_search_acceptance.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/tests/__pycache__/test_search_rebuild.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/tests/__pycache__/test_tenant_visibility.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/tests/test_capability_reuse_execution_integration.py
-?? AUTONOMY_ENGINE/tests/test_hybrid_retrieval.py
-?? AUTONOMY_ENGINE/tests/test_location_search.py
-?? AUTONOMY_ENGINE/tests/test_matching.py
-?? AUTONOMY_ENGINE/tests/test_qdrant_indexing.py
-?? AUTONOMY_ENGINE/tests/test_ranking.py
-?? AUTONOMY_ENGINE/tests/test_search_acceptance.py
-?? AUTONOMY_ENGINE/tests/test_search_rebuild.py
-?? AUTONOMY_ENGINE/tests/test_tenant_visibility.py
-?? __pycache__/reos_control_center.cpython-312.pyc
-?? error_regression.txt
-?? execution_regression_check.txt
-?? reos_25_failures.txt
-?? reos_first_failure.txt
-?? snapshots/state_20260920_194404_459217.json
-?? snapshots/state_20260921_201619_125068.json
-?? snapshots/state_20260921_203709_993626.json
-?? snapshots/state_20260921_204000_655881.json
-?? snapshots/state_20260921_204448_827665.json
-?? snapshots/state_20260921_204931_866676.json
-?? snapshots/state_20260921_205205_376210.json
-?? snapshots/state_20260921_205328_680858.json
-?? snapshots/state_20260921_211007_122201.json
-?? snapshots/state_20260921_211048_999715.json
-?? snapshots/state_20260921_211146_218006.json
-?? snapshots/state_20260921_211147_535252.json
-?? snapshots/state_20260921_211200_433232.json
-?? snapshots/state_20260921_211200_446117.json
-?? t16_error.txt
+>> }
+BLOCKED: staged file set is not exactly the expected 4 files
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/context_compression.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T28_Conflict_Resolution_Reconciliation_Engine/reconciliation_fingerprint.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/runtime_integration/__init__.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/runtime_integration/acrl_runtime.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/runtime_integration/authority_bridge.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/runtime_integration/continuity_controller.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/runtime_integration/integration_models.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/runtime_integration/runtime_bindings.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/runtime_integration/runtime_orchestrator.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/runtime_integration/task_registry.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/runtime_integration/test_continuity_controller.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/runtime_integration/unified_runtime_context.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/orchestration/capability_reuse_guard.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/orchestration/execution_coordinator.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/orchestration/test_capability_reuse_guard.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_capability_reuse_execution_integration.py
+Unstaged changes after reset:
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/__pycache__/bridge_cli.cpython-313.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/adapter/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/adapter/__pycache__/__init__.cpython-313.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/adapter/__pycache__/controller_adapter.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/adapter/__pycache__/controller_adapter.cpython-313.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/adapter/__pycache__/targeted_state.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/adapter/__pycache__/targeted_state.cpython-313.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/bridge/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/bridge/__pycache__/__init__.cpython-313.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/bridge/__pycache__/readonly_controller_bridge.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/bridge/__pycache__/readonly_controller_bridge.cpython-313.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/budgets/__pycache__/__init__.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/budgets/__pycache__/context_budget.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/__pycache__/__init__.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/__pycache__/provenance.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/__pycache__/recovery_journal.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/__init__.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/bootstrap.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/compatibility.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/fingerprint.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/freshness.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/health.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/linking.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/observation.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/project_dna.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/provenance.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_adversarial_project_dna.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_adversarial_project_dna.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_bootstrap.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_bootstrap.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_fingerprint.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_fingerprint.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_freshness.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_freshness.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_identity.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_project_dna.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_project_dna.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_t01_final.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_t01_final.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_t01_hardening.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/test_t01_hardening.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/architecture_contract.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/architecture_drift.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/architecture_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/architecture_lock.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/test_architecture_drift.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/test_architecture_lock.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/test_architecture_lock.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/test_t02_hardening.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/reconstruction_validation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_observation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_reconstruction.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_reconstruction_validation.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_identity.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_observation.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/gate_subtask_continuity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/test_gate_subtask_continuity.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/gate_subtask_continuity.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/authority_contract.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/authority_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/authority_normalization.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/authority_validation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/dependency_authority_map.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/test_authority_contract.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/test_authority_identity.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/test_authority_normalization.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/test_authority_validation.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/test_dependency_authority_map.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/task_dependency_reconstruction.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/checkpoint_contract.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/checkpoint_engine.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/checkpoint_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/checkpoint_lifecycle.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/checkpoint_provenance.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/checkpoint_registry.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/checkpoint_validation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_contract.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_engine.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_engine.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_identity.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_lifecycle.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_provenance.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_registry.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_validation.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/test_checkpoint_continuity.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/architecture_lock.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/checkpoint_engine.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/dependency_authority_map.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/gate_subtask_continuity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/new_chat_bootstrap.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/project_dna.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/state_reconstruction.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/test_new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/new_chat_bootstrap.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/test_new_chat_bootstrap.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/context_compression.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/new_chat_bootstrap.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/test_context_compression.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/fingerprint_compatibility.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/fingerprint_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/fingerprint_metrics.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/fingerprint_provenance.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/fingerprint_registry.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/fingerprint_validation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/state_integrity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_fingerprint_compatibility.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_fingerprint_identity.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_fingerprint_metrics.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_fingerprint_provenance.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_fingerprint_registry.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_fingerprint_validation.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_state_integrity.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_t09_adversarial.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_t09_contract.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T09_State_Fingerprint/__pycache__/test_t09_integration.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T10_Drift_Detection/__pycache__/drift_detection.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T10_Drift_Detection/__pycache__/test_drift_detection.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_compatibility.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_guard.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_metrics.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_policy.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_provenance.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_validation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_recovery_compatibility.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_recovery_guard.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_recovery_identity.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_recovery_metrics.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_recovery_policy.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_recovery_provenance.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_recovery_validation.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_t11_adversarial.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/test_t11_contract.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/resume_safety_validation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_resume_safety_validation.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_t12_integration.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/controller_compatibility.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/controller_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/controller_integration.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/controller_policy.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/controller_provenance.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/controller_validation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_compatibility.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_identity.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_metrics.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_policy.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_provenance.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_validation.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_adversarial.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_contract.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_integration.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_compatibility.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_integration.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_layer.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_metrics.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_policy.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_provenance.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_registry.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/regression_validation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_compatibility.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_identity.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_integration.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_layer.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_metrics.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_policy.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_provenance.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_registry.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_regression_validation.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_t14_adversarial.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_t14_contract.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Full_Regression/__pycache__/test_t14_integration.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_autonomy.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_compatibility.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_decision_boundary.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_integration.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_metrics.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_policy.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_registry.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/operator_validation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/test_operator_autonomy.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/test_t15_adversarial.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/test_t15_contract.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T15_AI_Operator_Autonomy/__pycache__/test_t15_integration.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/__pycache__/contract_graph.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/__pycache__/repository_intelligence.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/__pycache__/test_contract_graph.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/__pycache__/test_repository_intelligence.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/__pycache__/test_symlink_plugin.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/repository_discovery/__pycache__/boundary.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/repository_discovery/__pycache__/classification.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/repository_discovery/__pycache__/fingerprint.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/repository_discovery/__pycache__/identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/repository_discovery/__pycache__/test_repository_discovery.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/repository_discovery/__pycache__/topology.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/dependency_graph.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/intelligence.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/source_parser.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/symbol_intelligence/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/symbol_intelligence/__pycache__/lineage.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/symbol_intelligence/__pycache__/snapshot.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/symbol_intelligence/__pycache__/symbols.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/symbol_intelligence/__pycache__/test_symbol_intelligence.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/change_impact_analysis.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_dependency.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_errors.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_integration.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_metrics.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_models.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_policy.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_provenance.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_registry.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_security.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/impact_validation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/test_change_impact_analysis.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/test_t17_adversarial.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/test_t17_contract.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/__pycache__/test_t17_integration.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/authorization_errors.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/authorization_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/authorization_models.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/authorization_policy.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/authorization_registry.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/authorization_validation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/execution_authorization.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/test_execution_authorization.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/test_execution_authorization.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/test_t18_contract.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__pycache__/test_t18_contract.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/failure_diagnosis.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/selection_engine.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/t19_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/t19_models.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/t19_validation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/test_failure_diagnosis.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/test_selection_engine.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis/__pycache__/test_t19_contract.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/patch_engine.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/patch_verification.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_authorization.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_models.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_policy.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_provenance.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_scope.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_transaction.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_validation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/repair_workspace.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/test_patch_engine.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/test_patch_verification.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/test_repair_contract.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/test_repair_determinism.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/test_repair_scope.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/test_repair_security.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/test_repair_transaction.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_authorization.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_commit.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_lock.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_models.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_policy.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_provenance.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_read.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_registry.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_repository.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_scope.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_stage.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_transaction.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/git_validation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/test_git_commit.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/test_git_concurrency.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/test_git_read.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/test_git_scope.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/test_git_security.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/test_git_stage.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/test_git_transaction.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__pycache__/test_t21_contract.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_authorization.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_builder.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_coordinator.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_models.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_policy.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_provenance.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_registry.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_store.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/checkpoint_validation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_checkpoint_authorization.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_checkpoint_builder.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_checkpoint_coordinator.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_checkpoint_identity.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_checkpoint_models.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_checkpoint_policy.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_checkpoint_store.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_checkpoint_validation.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_t22_concurrency.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_t22_contract.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_t22_determinism.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_t22_replay.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__pycache__/test_t22_security.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/evidence_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/evidence_models.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/evidence_policy.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/evidence_provenance.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/evidence_ranker.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/evidence_registry.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/evidence_resolver.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/evidence_validation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/resolution_coordinator.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/resolution_store.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_evidence_identity.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_evidence_models.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_evidence_policy.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_evidence_ranker.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_evidence_resolver.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_evidence_validation.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_resolution_coordinator.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_resolution_store.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_t23_conflict.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_t23_contract.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_t23_determinism.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__pycache__/test_t23_security.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T28_Conflict_Resolution_Reconciliation_Engine/test_t28_conflicts.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T28_Conflict_Resolution_Reconciliation_Engine/test_t28_determinism.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T28_Conflict_Resolution_Reconciliation_Engine/test_t28_integration.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T28_Conflict_Resolution_Reconciliation_Engine/test_t28_replay.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T28_Conflict_Resolution_Reconciliation_Engine/test_t28_security.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/blocker_detector.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/completion_controller.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/completion_models.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/completion_record.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/completion_store.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/completion_validation.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/dependency_closure.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/handoff_builder.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/handoff_fingerprint.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/handoff_models.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/mission_identity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/mission_models.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/next_mission_resolver.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/proof_engine.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/recovery_classifier.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/residual_work_detector.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_completion_controller.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_completion_store.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_dependency_closure.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_mission_identity.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_proof_engine.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_recovery_classifier.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_residual_work_detector.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_t30_contract.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_t30_futuristic_boundaries.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/__pycache__/test_t30_integration.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/__pycache__/architecture_lock.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/__pycache__/checkpoint_engine.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/__pycache__/context_compression.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/__pycache__/contract_graph.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/__pycache__/dependency_authority_map.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/__pycache__/drift_detection.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/__pycache__/gate_subtask_continuity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/__pycache__/new_chat_bootstrap.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/__pycache__/recovery_guard.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/__pycache__/repository_intelligence.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/__pycache__/state_integrity.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/__pycache__/state_reconstruction.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/repository_discovery/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/source_intelligence/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/symbol_intelligence/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/contracts/__pycache__/__init__.cpython-313.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__init__.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/__init__.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/action_planner.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/context_compiler.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/idempotency.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_concurrency.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_consistency.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_core_freeze.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_evidence.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_history.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_history_evidence.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_indexing.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_verification.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/risk_engine.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/semantic_consistency.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_availability.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_concurrency.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_consistency.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_core_freeze.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_domain.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_evidence.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_history.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_history_evidence.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_indexing.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_lifecycle.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_verification.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_project_domain.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/workspace_guard.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/execution/__pycache__/mutation_adapter.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/execution/__pycache__/production_executor.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/execution/mutation_adapter.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/execution/production_executor.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/governance/__pycache__/__init__.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/governance/__pycache__/policy_engine.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/integration/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/integration/__pycache__/__init__.cpython-313.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/integration/__pycache__/integration_lock.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/integration/__pycache__/preflight.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/integration/__pycache__/preflight.cpython-313.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/integration/__pycache__/safe_execution.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/integration/__pycache__/safe_next.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/integration/__pycache__/safe_next.cpython-313.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/memory/__pycache__/context_store.cpython-313.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/memory/__pycache__/evidence_ledger.cpython-313.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/orchestration/__pycache__/execution_coordinator.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/orchestration/execution_coordinator.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/protocols/__pycache__/__init__.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/protocols/__pycache__/action_protocol.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/research/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/research/__pycache__/research_policy.cpython-313.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/research/__pycache__/test_bridge_v5.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/runtime/homio_runtime.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/__pycache__/tripwires.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/__pycache__/workspace_manifest.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/telemetry/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/telemetry/__pycache__/run_trace.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/__init__.cpython-313.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_adapter.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_adapter.cpython-313-pytest-9.0.2.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_adapter.cpython-313.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_autonomy_components.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_controller_adapter_adversarial.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_controller_autonomy_integration_adversarial.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_enforcement_adversarial.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_execution_coordinator_adversarial.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_execution_coordinator_adversarial.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_execution_pipeline_adversarial.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_execution_receipt_adversarial.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_integration_lock_adversarial.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_mutation_adapter_adversarial.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_mutation_adapter_adversarial.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_policy_contracts.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_pre_execution_firewall_adversarial.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_production_execution_contract_adversarial.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_production_executor_adversarial.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_readonly_controller_bridge.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_readonly_controller_bridge.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_semantic_consistency.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_v6_additions.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_v6_adversarial.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_v6_adversarial.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_execution_coordinator_adversarial.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_production_executor_adversarial.py
+M       REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt
+D       REOS_CONTROL_CENTER/__pycache__/cli.cpython-313.pyc
+M       REOS_CONTROL_CENTER/data/state.json
+M       REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt
+
+[process exited with code 1 (0x00000001)]
+You can now close this terminal with Ctrl+D, or press Enter to restart.
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
