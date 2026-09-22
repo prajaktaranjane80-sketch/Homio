@@ -11,7 +11,6 @@ from capability_reuse_guard import (
     ReuseDecisionResult,
 )
 
-
 CatalogProvider = Callable[[], Iterable[CapabilityRecord]]
 
 
@@ -48,7 +47,7 @@ class CapabilityReuseGate:
     Execution-boundary adapter for the existing deterministic
     CapabilityReuseGuard.
 
-    This module does not own project state, architecture authority,
+    It does not own canonical state, architecture authority,
     Git, or mutation execution.
     """
 
@@ -86,10 +85,7 @@ class CapabilityReuseGate:
         registry: Any,
     ) -> "CapabilityReuseGate":
         """
-        Adapt the existing CapabilityRegistry.
-
-        CapabilityRegistry remains the existing registry.
-        This gate only derives CapabilityRecord objects from it.
+        Adapt the existing CapabilityRegistry without replacing it.
         """
 
         def provider() -> tuple[CapabilityRecord, ...]:
@@ -101,7 +97,10 @@ class CapabilityReuseGate:
         return cls(provider)
 
     @classmethod
-    def required_for(cls, proposal: Any) -> bool:
+    def required_for(
+        cls,
+        proposal: Any,
+    ) -> bool:
         parameters = getattr(
             proposal,
             "parameters",
@@ -162,7 +161,6 @@ class CapabilityReuseGate:
                     raise ValueError(
                         f"capability_reuse.{name} is required"
                     )
-
                 return ""
 
             return value.strip()
@@ -191,17 +189,13 @@ class CapabilityReuseGate:
             )
 
         return CapabilityRequest(
-            capability_id=text(
-                "capability_id"
-            ),
+            capability_id=text("capability_id"),
             name=text("name"),
             description=text(
                 "description",
                 required=False,
             ),
-            responsibility=text(
-                "responsibility"
-            ),
+            responsibility=text("responsibility"),
             architecture_ids=many(
                 "architecture_ids"
             ),
@@ -228,15 +222,6 @@ class CapabilityReuseGate:
         self,
         proposal: Any,
     ) -> CapabilityReuseOutcome:
-        """
-        Evaluate one action before mutation.
-
-        For CREATE operations:
-            only CREATE_NEW may cross the mutation boundary.
-
-        REUSE / EXTEND / BLOCK therefore stop creation.
-        """
-
         if not self.required_for(proposal):
             return CapabilityReuseOutcome(
                 required=False,
@@ -268,10 +253,7 @@ class CapabilityReuseGate:
                 "capability_reuse"
             )
 
-            if isinstance(
-                payload,
-                Mapping,
-            ):
+            if isinstance(payload, Mapping):
                 supplied = payload.get(
                     "catalog_fingerprint"
                 )
@@ -330,7 +312,6 @@ class CapabilityReuseGate:
                     result.decision
                     != ReuseDecision.BLOCK
                 )
-
                 blockers = result.blockers
 
             return CapabilityReuseOutcome(
@@ -376,14 +357,6 @@ class CapabilityReuseGate:
             Iterable[CapabilityRecord] | None
         ) = None,
     ) -> CapabilityReuseOutcome:
-        """
-        Revalidate the original decision against the
-        latest catalog.
-
-        This provides the TOCTOU protection needed before
-        the write/commit boundary.
-        """
-
         if (
             not outcome.required
             or outcome.result is None
