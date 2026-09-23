@@ -1,119 +1,669 @@
+PS D:\HOMIO\REOS_CONTROL_CENTER> pytest -q AUTONOMY_ENGINE/core/test_search_filters.py
+.EEEEEEEEEEE                                                                                                                                         [100%]
+========================================================================= ERRORS ==========================================================================
+_______________________________________________ ERROR at setup of test_tenant_isolation_is_always_enforced ________________________________________________
 
-E   AssertionError: assert True is False
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:165: AssertionError: assert True is False
-E   AssertionError: assert <MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'> is <MutationBlockReason.EXECUTOR_MISSING: 'EXECUTOR_MISSING'>
-     +    where MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed=False, reason='Architec...lock was not
-proven for this mutation.', block_reason=<MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'>) =
-MutationResult(decision=MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed...CKED'>), executed=False,
-result=None, error='', evidence={'test': True, 'source': 'test_mutation_adapter_adversarial'}).decision
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:184: AssertionError: assert
-<MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'> is <MutationBlockReason.EXECUTOR_MISSING: 'EXECUTOR_MISSING'>
-E   AssertionError: assert <MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'> is <MutationBlockReason.EXECUTOR_INVALID: 'EXECUTOR_INVALID'>
-     +    where MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed=False, reason='Architec...lock was not
-proven for this mutation.', block_reason=<MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'>) =
-MutationResult(decision=MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed...CKED'>), executed=False,
-result=None, error='', evidence={'test': True, 'source': 'test_mutation_adapter_adversarial'}).decision
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:202: AssertionError: assert
-<MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'> is <MutationBlockReason.EXECUTOR_INVALID: 'EXECUTOR_INVALID'>
-E   AssertionError: assert <MutationStatus.BLOCKED: 'BLOCKED'> is <MutationStatus.FAILED: 'FAILED'>
-     +    where MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed=False, reason='Architec...lock was not
-proven for this mutation.', block_reason=<MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'>) =
-MutationResult(decision=MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed...CKED'>), executed=False,
-result=None, error='', evidence={'test': True, 'source': 'test_mutation_adapter_adversarial'}).decision
-     +  and   <MutationStatus.FAILED: 'FAILED'> = MutationStatus.FAILED
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:220: AssertionError: assert <MutationStatus.BLOCKED: 'BLOCKED'> is
-<MutationStatus.FAILED: 'FAILED'>
-E   AssertionError: assert False is True
-     +  where False = MutationResult(decision=MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed...CKED'>),
-executed=False, result=None, error='', evidence={'test': True, 'source': 'test_mutation_adapter_adversarial'}).executed
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:241: AssertionError: assert False is True
-E   AssertionError: assert False is True
-     +  where False = MutationResult(decision=MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed...CKED'>),
-executed=False, result=None, error='', evidence={'test': True, 'source': 'test_mutation_adapter_adversarial'}).executed
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:262: AssertionError: assert False is True
-E   AssertionError: assert <MutationStatus.BLOCKED: 'BLOCKED'> is <MutationStatus.FAILED: 'FAILED'>
-     +    where MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed=False, reason='Architec...lock was not
-proven for this mutation.', block_reason=<MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'>) =
-MutationResult(decision=MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed...CKED'>), executed=False,
-result=None, error='', evidence={'test': True, 'source': 'test_mutation_adapter_adversarial'}).decision
-     +  and   <MutationStatus.FAILED: 'FAILED'> = MutationStatus.FAILED
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:292: AssertionError: assert <MutationStatus.BLOCKED: 'BLOCKED'> is
-<MutationStatus.FAILED: 'FAILED'>
-E   KeyError: 'mutation_attempted'
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:319: KeyError: 'mutation_attempted'
-E   AssertionError: assert False is True
-     +  where False = MutationResult(decision=MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001',
-allowed...=<MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'>), executed=False, result=None, error='', evidence={}).executed
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:371: AssertionError: assert False is True
-E   AssertionError: assert False is True
-     +  where False = MutationResult(decision=MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed...CKED'>),
-executed=False, result=None, error='', evidence={'test': True, 'source': 'test_mutation_adapter_adversarial'}).executed
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:390: AssertionError: assert False is True
-E   AssertionError: assert False is True
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:409: AssertionError: assert False is True
-E   AssertionError: assert <PipelineStatus.EXECUTED: 'EXECUTED'> is <PipelineStatus.BLOCKED: 'BLOCKED'>
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:182: AssertionError: assert <PipelineStatus.EXECUTED:
-'EXECUTED'> is <PipelineStatus.BLOCKED: 'BLOCKED'>
-E   AssertionError: assert None is not None
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:202: AssertionError: assert None is not None
-E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.FAILED: 'FAILED'>
-     +  and   <PipelineStatus.FAILED: 'FAILED'> = PipelineStatus.FAILED
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:246: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
-is <PipelineStatus.FAILED: 'FAILED'>
-E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.EXECUTED: 'EXECUTED'>
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:272: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
-is <PipelineStatus.EXECUTED: 'EXECUTED'>
-E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.EXECUTED: 'EXECUTED'>
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:303: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
-is <PipelineStatus.EXECUTED: 'EXECUTED'>
-E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.FAILED: 'FAILED'>
-     +  and   <PipelineStatus.FAILED: 'FAILED'> = PipelineStatus.FAILED
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:333: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
-is <PipelineStatus.FAILED: 'FAILED'>
-E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.FAILED: 'FAILED'>
-     +  and   <PipelineStatus.FAILED: 'FAILED'> = PipelineStatus.FAILED
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:333: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
-is <PipelineStatus.FAILED: 'FAILED'>
-E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.FAILED: 'FAILED'>
-     +  and   <PipelineStatus.FAILED: 'FAILED'> = PipelineStatus.FAILED
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:333: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
-is <PipelineStatus.FAILED: 'FAILED'>
-E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.FAILED: 'FAILED'>
-     +  and   <PipelineStatus.FAILED: 'FAILED'> = PipelineStatus.FAILED
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:333: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
-is <PipelineStatus.FAILED: 'FAILED'>
-E   AssertionError: assert False is True
-     +  where False = EnforcementDecision(allowed=False, stage='PREFLIGHT', reason='Coordinator enforcement rejected the operation.', checks...'risk',
-'guard', 'idempotency', 'tripwires', 'architecture_lock'), failures=('architecture_lock:failed',), metadata={}).allowed
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:372: AssertionError: assert False is True
-E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.EXECUTED: 'EXECUTED'>
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:389: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
-is <PipelineStatus.EXECUTED: 'EXECUTED'>
-E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.EXECUTED: 'EXECUTED'>
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:420: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
-is <PipelineStatus.EXECUTED: 'EXECUTED'>
-FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_frozen_architecture_is_blocked
-FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_missing_executor_is_fail_closed
-FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_non_callable_executor_is_blocked
-FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_executor_failure_is_not_reported_as_success
-FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_successful_mutation_executes_once
-FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_replay_of_same_action_id_is_blocked
-FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_failed_mutation_is_not_automatically_retried
-FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_evidence_is_preserved
-FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_adapter_does_not_execute_without_all_positive_conditions
-FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_reset_only_clears_local_attempt_memory
-FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_preflight_has_no_execution_side_effect
-FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_frozen_architecture_blocks_pipeline
-FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_missing_executor_is_blocked
-FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_executor_failure_is_terminal
-FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_successful_execution_completes_once
-FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_replay_is_blocked
-FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_incomplete_postflight_is_not_success[postflight0]
-FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_incomplete_postflight_is_not_success[postflight1]
-FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_incomplete_postflight_is_not_success[postflight2]
-FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_incomplete_postflight_is_not_success[postflight3]
-FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_evidence_is_preserved
-FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_preflight_has_no_execution_side_effect
-FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_reset_clears_only_local_pipeline_memory
-FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_different_action_ids_are_independent
-24 failed, 154 passed in 0.75s
+    @pytest.fixture
+    def documents():
+        return (
+>           make_document(
+                tenant_id="tenant-001",
+                project_id="project-001",
+                inventory_code="UNIT-002",
+                name="Premium Two Bedroom",
+            ),
+            make_document(
+                tenant_id="tenant-001",
+                project_id="project-002",
+                inventory_code="UNIT-001",
+                name="Compact Office",
+                inventory_type=InventoryType.OFFICE,
+            ),
+            make_document(
+                tenant_id="tenant-002",
+                project_id="project-003",
+                inventory_code="UNIT-003",
+                name="Other Tenant Unit",
+            ),
+        )
+
+AUTONOMY_ENGINE\core\test_search_filters.py:61:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
+    inventory, _ = inventory.transition(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='ee80f6c7-69ab-48bb-9749-237e0abab9a9', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
+
+    def transition(
+        self,
+        target: InventoryLifecycle,
+        *,
+        tenant_id: str,
+        project_id: str,
+        at: str | None = None,
+    ) -> tuple["Inventory", InventoryEvent]:
+        """Apply one deterministic lifecycle transition."""
+
+        self.assert_tenant(tenant_id)
+        self.assert_project(project_id)
+
+        target = InventoryLifecycle(target)
+
+        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
+>           raise InventoryTransitionError(
+                "Invalid inventory lifecycle transition: "
+                f"{self.lifecycle.value} -> {target.value}."
+            )
+E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+
+AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
+__________________________________________________________ ERROR at setup of test_project_filter __________________________________________________________
+
+    @pytest.fixture
+    def documents():
+        return (
+>           make_document(
+                tenant_id="tenant-001",
+                project_id="project-001",
+                inventory_code="UNIT-002",
+                name="Premium Two Bedroom",
+            ),
+            make_document(
+                tenant_id="tenant-001",
+                project_id="project-002",
+                inventory_code="UNIT-001",
+                name="Compact Office",
+                inventory_type=InventoryType.OFFICE,
+            ),
+            make_document(
+                tenant_id="tenant-002",
+                project_id="project-003",
+                inventory_code="UNIT-003",
+                name="Other Tenant Unit",
+            ),
+        )
+
+AUTONOMY_ENGINE\core\test_search_filters.py:61:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
+    inventory, _ = inventory.transition(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='0e9570dd-c5a4-47df-bf36-f9a996f744a3', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
+
+    def transition(
+        self,
+        target: InventoryLifecycle,
+        *,
+        tenant_id: str,
+        project_id: str,
+        at: str | None = None,
+    ) -> tuple["Inventory", InventoryEvent]:
+        """Apply one deterministic lifecycle transition."""
+
+        self.assert_tenant(tenant_id)
+        self.assert_project(project_id)
+
+        target = InventoryLifecycle(target)
+
+        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
+>           raise InventoryTransitionError(
+                "Invalid inventory lifecycle transition: "
+                f"{self.lifecycle.value} -> {target.value}."
+            )
+E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+
+AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
+______________________________________________________ ERROR at setup of test_inventory_type_filter _______________________________________________________
+
+    @pytest.fixture
+    def documents():
+        return (
+>           make_document(
+                tenant_id="tenant-001",
+                project_id="project-001",
+                inventory_code="UNIT-002",
+                name="Premium Two Bedroom",
+            ),
+            make_document(
+                tenant_id="tenant-001",
+                project_id="project-002",
+                inventory_code="UNIT-001",
+                name="Compact Office",
+                inventory_type=InventoryType.OFFICE,
+            ),
+            make_document(
+                tenant_id="tenant-002",
+                project_id="project-003",
+                inventory_code="UNIT-003",
+                name="Other Tenant Unit",
+            ),
+        )
+
+AUTONOMY_ENGINE\core\test_search_filters.py:61:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
+    inventory, _ = inventory.transition(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='2e4bdf77-e69b-4786-9b45-4af95386f67f', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
+
+    def transition(
+        self,
+        target: InventoryLifecycle,
+        *,
+        tenant_id: str,
+        project_id: str,
+        at: str | None = None,
+    ) -> tuple["Inventory", InventoryEvent]:
+        """Apply one deterministic lifecycle transition."""
+
+        self.assert_tenant(tenant_id)
+        self.assert_project(project_id)
+
+        target = InventoryLifecycle(target)
+
+        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
+>           raise InventoryTransitionError(
+                "Invalid inventory lifecycle transition: "
+                f"{self.lifecycle.value} -> {target.value}."
+            )
+E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+
+AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
+_______________________________________________________ ERROR at setup of test_availability_filter ________________________________________________________
+
+    @pytest.fixture
+    def documents():
+        return (
+>           make_document(
+                tenant_id="tenant-001",
+                project_id="project-001",
+                inventory_code="UNIT-002",
+                name="Premium Two Bedroom",
+            ),
+            make_document(
+                tenant_id="tenant-001",
+                project_id="project-002",
+                inventory_code="UNIT-001",
+                name="Compact Office",
+                inventory_type=InventoryType.OFFICE,
+            ),
+            make_document(
+                tenant_id="tenant-002",
+                project_id="project-003",
+                inventory_code="UNIT-003",
+                name="Other Tenant Unit",
+            ),
+        )
+
+AUTONOMY_ENGINE\core\test_search_filters.py:61:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
+    inventory, _ = inventory.transition(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='d2fac1da-75e2-49d3-a970-e62a530f9191', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
+
+    def transition(
+        self,
+        target: InventoryLifecycle,
+        *,
+        tenant_id: str,
+        project_id: str,
+        at: str | None = None,
+    ) -> tuple["Inventory", InventoryEvent]:
+        """Apply one deterministic lifecycle transition."""
+
+        self.assert_tenant(tenant_id)
+        self.assert_project(project_id)
+
+        target = InventoryLifecycle(target)
+
+        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
+>           raise InventoryTransitionError(
+                "Invalid inventory lifecycle transition: "
+                f"{self.lifecycle.value} -> {target.value}."
+            )
+E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+
+AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
+_________________________________________________________ ERROR at setup of test_lifecycle_filter _________________________________________________________
+
+    @pytest.fixture
+    def documents():
+        return (
+>           make_document(
+                tenant_id="tenant-001",
+                project_id="project-001",
+                inventory_code="UNIT-002",
+                name="Premium Two Bedroom",
+            ),
+            make_document(
+                tenant_id="tenant-001",
+                project_id="project-002",
+                inventory_code="UNIT-001",
+                name="Compact Office",
+                inventory_type=InventoryType.OFFICE,
+            ),
+            make_document(
+                tenant_id="tenant-002",
+                project_id="project-003",
+                inventory_code="UNIT-003",
+                name="Other Tenant Unit",
+            ),
+        )
+
+AUTONOMY_ENGINE\core\test_search_filters.py:61:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
+    inventory, _ = inventory.transition(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='fe84331b-d282-4e97-8b7a-d3e24645e1fe', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
+
+    def transition(
+        self,
+        target: InventoryLifecycle,
+        *,
+        tenant_id: str,
+        project_id: str,
+        at: str | None = None,
+    ) -> tuple["Inventory", InventoryEvent]:
+        """Apply one deterministic lifecycle transition."""
+
+        self.assert_tenant(tenant_id)
+        self.assert_project(project_id)
+
+        target = InventoryLifecycle(target)
+
+        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
+>           raise InventoryTransitionError(
+                "Invalid inventory lifecycle transition: "
+                f"{self.lifecycle.value} -> {target.value}."
+            )
+E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+
+AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
+______________________________________________________ ERROR at setup of test_inventory_code_filter _______________________________________________________
+
+    @pytest.fixture
+    def documents():
+        return (
+>           make_document(
+                tenant_id="tenant-001",
+                project_id="project-001",
+                inventory_code="UNIT-002",
+                name="Premium Two Bedroom",
+            ),
+            make_document(
+                tenant_id="tenant-001",
+                project_id="project-002",
+                inventory_code="UNIT-001",
+                name="Compact Office",
+                inventory_type=InventoryType.OFFICE,
+            ),
+            make_document(
+                tenant_id="tenant-002",
+                project_id="project-003",
+                inventory_code="UNIT-003",
+                name="Other Tenant Unit",
+            ),
+        )
+
+AUTONOMY_ENGINE\core\test_search_filters.py:61:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
+    inventory, _ = inventory.transition(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='4a05fe16-6967-47b9-91f4-508cd62b97c0', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
+
+    def transition(
+        self,
+        target: InventoryLifecycle,
+        *,
+        tenant_id: str,
+        project_id: str,
+        at: str | None = None,
+    ) -> tuple["Inventory", InventoryEvent]:
+        """Apply one deterministic lifecycle transition."""
+
+        self.assert_tenant(tenant_id)
+        self.assert_project(project_id)
+
+        target = InventoryLifecycle(target)
+
+        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
+>           raise InventoryTransitionError(
+                "Invalid inventory lifecycle transition: "
+                f"{self.lifecycle.value} -> {target.value}."
+            )
+E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+
+AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
+________________________________________________ ERROR at setup of test_name_contains_is_case_insensitive _________________________________________________
+
+    @pytest.fixture
+    def documents():
+        return (
+>           make_document(
+                tenant_id="tenant-001",
+                project_id="project-001",
+                inventory_code="UNIT-002",
+                name="Premium Two Bedroom",
+            ),
+            make_document(
+                tenant_id="tenant-001",
+                project_id="project-002",
+                inventory_code="UNIT-001",
+                name="Compact Office",
+                inventory_type=InventoryType.OFFICE,
+            ),
+            make_document(
+                tenant_id="tenant-002",
+                project_id="project-003",
+                inventory_code="UNIT-003",
+                name="Other Tenant Unit",
+            ),
+        )
+
+AUTONOMY_ENGINE\core\test_search_filters.py:61:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
+    inventory, _ = inventory.transition(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='993298b0-bc2b-4f36-a715-15ce21a0abe9', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
+
+    def transition(
+        self,
+        target: InventoryLifecycle,
+        *,
+        tenant_id: str,
+        project_id: str,
+        at: str | None = None,
+    ) -> tuple["Inventory", InventoryEvent]:
+        """Apply one deterministic lifecycle transition."""
+
+        self.assert_tenant(tenant_id)
+        self.assert_project(project_id)
+
+        target = InventoryLifecycle(target)
+
+        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
+>           raise InventoryTransitionError(
+                "Invalid inventory lifecycle transition: "
+                f"{self.lifecycle.value} -> {target.value}."
+            )
+E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+
+AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
+__________________________________________________ ERROR at setup of test_multiple_filters_are_combined ___________________________________________________
+
+    @pytest.fixture
+    def documents():
+        return (
+>           make_document(
+                tenant_id="tenant-001",
+                project_id="project-001",
+                inventory_code="UNIT-002",
+                name="Premium Two Bedroom",
+            ),
+            make_document(
+                tenant_id="tenant-001",
+                project_id="project-002",
+                inventory_code="UNIT-001",
+                name="Compact Office",
+                inventory_type=InventoryType.OFFICE,
+            ),
+            make_document(
+                tenant_id="tenant-002",
+                project_id="project-003",
+                inventory_code="UNIT-003",
+                name="Other Tenant Unit",
+            ),
+        )
+
+AUTONOMY_ENGINE\core\test_search_filters.py:61:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
+    inventory, _ = inventory.transition(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='61212f9c-474c-468a-8ca8-6578a90985f2', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
+
+    def transition(
+        self,
+        target: InventoryLifecycle,
+        *,
+        tenant_id: str,
+        project_id: str,
+        at: str | None = None,
+    ) -> tuple["Inventory", InventoryEvent]:
+        """Apply one deterministic lifecycle transition."""
+
+        self.assert_tenant(tenant_id)
+        self.assert_project(project_id)
+
+        target = InventoryLifecycle(target)
+
+        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
+>           raise InventoryTransitionError(
+                "Invalid inventory lifecycle transition: "
+                f"{self.lifecycle.value} -> {target.value}."
+            )
+E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+
+AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
+_____________________________________________ ERROR at setup of test_empty_filter_returns_only_tenant_records _____________________________________________
+
+    @pytest.fixture
+    def documents():
+        return (
+>           make_document(
+                tenant_id="tenant-001",
+                project_id="project-001",
+                inventory_code="UNIT-002",
+                name="Premium Two Bedroom",
+            ),
+            make_document(
+                tenant_id="tenant-001",
+                project_id="project-002",
+                inventory_code="UNIT-001",
+                name="Compact Office",
+                inventory_type=InventoryType.OFFICE,
+            ),
+            make_document(
+                tenant_id="tenant-002",
+                project_id="project-003",
+                inventory_code="UNIT-003",
+                name="Other Tenant Unit",
+            ),
+        )
+
+AUTONOMY_ENGINE\core\test_search_filters.py:61:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
+    inventory, _ = inventory.transition(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='deaf7bba-30d3-4107-985d-85c2432eee03', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
+
+    def transition(
+        self,
+        target: InventoryLifecycle,
+        *,
+        tenant_id: str,
+        project_id: str,
+        at: str | None = None,
+    ) -> tuple["Inventory", InventoryEvent]:
+        """Apply one deterministic lifecycle transition."""
+
+        self.assert_tenant(tenant_id)
+        self.assert_project(project_id)
+
+        target = InventoryLifecycle(target)
+
+        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
+>           raise InventoryTransitionError(
+                "Invalid inventory lifecycle transition: "
+                f"{self.lifecycle.value} -> {target.value}."
+            )
+E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+
+AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
+__________________________________________________ ERROR at setup of test_result_order_is_deterministic ___________________________________________________
+
+    @pytest.fixture
+    def documents():
+        return (
+>           make_document(
+                tenant_id="tenant-001",
+                project_id="project-001",
+                inventory_code="UNIT-002",
+                name="Premium Two Bedroom",
+            ),
+            make_document(
+                tenant_id="tenant-001",
+                project_id="project-002",
+                inventory_code="UNIT-001",
+                name="Compact Office",
+                inventory_type=InventoryType.OFFICE,
+            ),
+            make_document(
+                tenant_id="tenant-002",
+                project_id="project-003",
+                inventory_code="UNIT-003",
+                name="Other Tenant Unit",
+            ),
+        )
+
+AUTONOMY_ENGINE\core\test_search_filters.py:61:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
+    inventory, _ = inventory.transition(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='b22707ed-3633-4f11-b1c7-210b561ca8e8', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
+
+    def transition(
+        self,
+        target: InventoryLifecycle,
+        *,
+        tenant_id: str,
+        project_id: str,
+        at: str | None = None,
+    ) -> tuple["Inventory", InventoryEvent]:
+        """Apply one deterministic lifecycle transition."""
+
+        self.assert_tenant(tenant_id)
+        self.assert_project(project_id)
+
+        target = InventoryLifecycle(target)
+
+        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
+>           raise InventoryTransitionError(
+                "Invalid inventory lifecycle transition: "
+                f"{self.lifecycle.value} -> {target.value}."
+            )
+E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+
+AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
+_________________________________________________ ERROR at setup of test_filter_does_not_mutate_documents _________________________________________________
+
+    @pytest.fixture
+    def documents():
+        return (
+>           make_document(
+                tenant_id="tenant-001",
+                project_id="project-001",
+                inventory_code="UNIT-002",
+                name="Premium Two Bedroom",
+            ),
+            make_document(
+                tenant_id="tenant-001",
+                project_id="project-002",
+                inventory_code="UNIT-001",
+                name="Compact Office",
+                inventory_type=InventoryType.OFFICE,
+            ),
+            make_document(
+                tenant_id="tenant-002",
+                project_id="project-003",
+                inventory_code="UNIT-003",
+                name="Other Tenant Unit",
+            ),
+        )
+
+AUTONOMY_ENGINE\core\test_search_filters.py:61:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
+    inventory, _ = inventory.transition(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Inventory(inventory_id='1ffd9c6a-f418-464e-9042-deec1a7d0717', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
+
+    def transition(
+        self,
+        target: InventoryLifecycle,
+        *,
+        tenant_id: str,
+        project_id: str,
+        at: str | None = None,
+    ) -> tuple["Inventory", InventoryEvent]:
+        """Apply one deterministic lifecycle transition."""
+
+        self.assert_tenant(tenant_id)
+        self.assert_project(project_id)
+
+        target = InventoryLifecycle(target)
+
+        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
+>           raise InventoryTransitionError(
+                "Invalid inventory lifecycle transition: "
+                f"{self.lifecycle.value} -> {target.value}."
+            )
+E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+
+AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
+================================================================= short test summary info =================================================================
+ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_tenant_isolation_is_always_enforced - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_project_filter - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_inventory_type_filter - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_availability_filter - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_lifecycle_filter - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_inventory_code_filter - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_name_contains_is_case_insensitive - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_multiple_filters_are_combined - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_empty_filter_returns_only_tenant_records - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_result_order_is_deterministic - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_filter_does_not_mutate_documents - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+1 passed, 11 errors in 0.41s
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py complete-subtask CORE-005-T01 --note "Structured search filter contract implemented over canonical InventoryIndexDocument projection with mandatory tenant isolation, project/type/lifecycle/availability/code/name filters, deterministic ordering, immutable derived-data evaluation, and 11 passing focused tests."
+COMPLETED: CORE-005-T01
+NEXT: CORE-005-T02: Implement PostGIS/location search where required.
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py status
+HOMIO / REOS CONTROL CENTER v7.0
+========================================================================
+Phase: PRE-CODING ARCHITECTURE
+Gate: CORE-005
+Task: CORE-005-T02: Implement PostGIS/location search where required.
+Status: CONTROL_CENTER_DRIVEN
+Subtask: CORE-005-T02
+Gate Status: CURRENT
+Subtasks: 10 Criteria: 6
+Approved: 38 Pending: 1
+State: D:\Homio\REOS_CONTROL_CENTER\data\state.json
