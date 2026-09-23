@@ -65,13 +65,13 @@ from execution.mutation_adapter import (
     MutationResult,
 )
 
+from orchestration.capability_reuse_gate import (
+    CapabilityReuseGate,
+)
 from orchestration.capability_reuse_guard import (
     CapabilityRecord,
-    CapabilityRequest,
     CapabilityReuseGuard,
-    ReuseDecision,
 )
-
 from protocols.action_protocol import (
     ActionProposal,
     ProtocolDecision,
@@ -224,6 +224,10 @@ class ExecutionCoordinator:
             else self._build_repository_capability_catalog
         )
 
+        self._capability_reuse_gate = CapabilityReuseGate(
+            self._capability_catalog_provider,
+            guard=self._capability_reuse_guard,
+        )
     def preflight(
         self,
         proposal: ActionProposal,
@@ -524,127 +528,58 @@ class ExecutionCoordinator:
         str,
     ]:
         """
-        Evaluate capability/module reuse protection.
+        Delegate capability reuse protection to the existing gate.
 
-        Returns:
-            allowed,
-            machine-readable evidence,
-            deterministic reason.
+        The coordinator owns orchestration only; deterministic reuse
+        evaluation remains inside CapabilityReuseGate/Guard.
         """
 
-        if not self._reuse_required(
-            proposal
-        ):
-            return (
-                True,
-                {
-                    "required": False,
-                    "status": "NOT_REQUIRED",
-                },
-                "Capability reuse protection not required.",
-            )
-
         try:
-            request = (
-                self._capability_request_from_proposal(
-                    proposal
-                )
+            first = self._capability_reuse_gate.evaluate_proposal(
+                proposal
             )
 
-            first_catalog = tuple(
-                self._capability_catalog_provider()
-            )
-
-            first_result = (
-                self._capability_reuse_guard.evaluate(
-                    request,
-                    first_catalog,
+            if not first.required:
+                return (
+                    True,
+                    first.to_dict(),
+                    "Capability reuse protection not required.",
                 )
-            )
-
-            operation = str(
-                proposal.parameters.get(
-                    "capability_operation",
-                    "CREATE",
-                )
-            ).strip().upper()
-
-            first_allowed = (
-                self._reuse_decision_allowed(
-                    operation,
-                    first_result.decision,
-                )
-            )
 
             evidence: dict[str, Any] = {
                 "required": True,
-                "operation": operation,
-                "first_check": (
-                    first_result.to_dict()
-                ),
-                "catalog_fingerprint": (
-                    first_result.catalog_fingerprint
-                ),
-                "request_fingerprint": (
-                    first_result.request_fingerprint
-                ),
+                "first_check": (first.result.to_dict() if first.result is not None else first.to_dict()),
             }
 
-            if not first_allowed:
+            if not first.allowed:
+                return (
+                    False,
+                    evidence,
+                    "Capability reuse protection blocked the proposed mutation.",
+                )
+
+            # Fresh gate evaluation immediately before mutation.
+            # The gate obtains a fresh capability catalog on each evaluation.
+            second = self._capability_reuse_gate.evaluate_proposal(
+                proposal
+            )
+
+            evidence["second_check"] = (second.result.to_dict() if second.result is not None else second.to_dict())
+
+            if not second.allowed:
                 return (
                     False,
                     evidence,
                     (
-                        "Capability reuse protection "
-                        "blocked the proposed creation."
-                    ),
-                )
-
-            # Fresh repository/catalog evaluation immediately before mutation.
-            # This is the actual TOCTOU protection.
-            second_catalog = tuple(
-                self._capability_catalog_provider()
-            )
-
-            second_result = (
-                self._capability_reuse_guard.evaluate(
-                    request,
-                    second_catalog,
-                )
-            )
-
-            second_allowed = (
-                self._reuse_decision_allowed(
-                    operation,
-                    second_result.decision,
-                )
-            )
-
-            evidence["second_check"] = (
-                second_result.to_dict()
-            )
-            evidence["second_catalog_fingerprint"] = (
-                second_result.catalog_fingerprint
-            )
-
-            if not second_allowed:
-                return (
-                    False,
-                    evidence,
-                    (
-                        "Capability reuse protection "
-                        "blocked the mutation after "
-                        "fresh catalog revalidation."
+                        "Capability reuse protection blocked the mutation "
+                        "after fresh catalog revalidation."
                     ),
                 )
 
             return (
                 True,
                 evidence,
-                (
-                    "Capability reuse protection "
-                    "passed."
-                ),
+                "Capability reuse protection passed.",
             )
 
         except (
@@ -663,163 +598,11 @@ class ExecutionCoordinator:
                     "error": str(exc),
                 },
                 (
-                    "Capability reuse protection "
-                    "failed closed because its catalog "
-                    "or request could not be validated."
+                    "Capability reuse protection failed closed because "
+                    "its gate/catalog/request could not be validated."
                 ),
             )
 
-    @classmethod
-    def _reuse_decision_allowed(
-        cls,
-        operation: str,
-        decision: ReuseDecision,
-    ) -> bool:
-        """Map reuse decisions to the requested capability operation."""
-
-        if operation in cls.CREATE_OPERATIONS:
-            return (
-                decision
-                is ReuseDecision.CREATE_NEW
-            )
-
-        if operation in cls.EXTEND_OPERATIONS:
-            return decision in {
-                ReuseDecision.REUSE,
-                ReuseDecision.EXTEND,
-            }
-
-        return decision is not ReuseDecision.BLOCK
-
-    @staticmethod
-    def _capability_request_from_proposal(
-        proposal: ActionProposal,
-    ) -> CapabilityRequest:
-        """Convert proposal metadata into a deterministic guard request."""
-
-        parameters = getattr(
-            proposal,
-            "parameters",
-            {},
-        )
-
-        if not isinstance(
-            parameters,
-            Mapping,
-        ):
-            raise ValueError(
-                "ActionProposal parameters must be a mapping."
-            )
-
-        payload = parameters.get(
-            "capability_reuse"
-        )
-
-        if not isinstance(
-            payload,
-            Mapping,
-        ):
-            raise ValueError(
-                "capability_reuse metadata is required."
-            )
-
-        def text(
-            name: str,
-            *,
-            required: bool = True,
-        ) -> str:
-            value = payload.get(
-                name,
-                "",
-            )
-
-            if (
-                not isinstance(
-                    value,
-                    str,
-                )
-                or not value.strip()
-            ):
-                if required:
-                    raise ValueError(
-                        f"capability_reuse.{name} "
-                        "is required."
-                    )
-
-                return ""
-
-            return value.strip()
-
-        def many(
-            name: str,
-        ) -> tuple[str, ...]:
-            value = payload.get(
-                name,
-                (),
-            )
-
-            if isinstance(
-                value,
-                str,
-            ):
-                return (
-                    value.strip(),
-                ) if value.strip() else ()
-
-            if not isinstance(
-                value,
-                (list, tuple),
-            ):
-                raise ValueError(
-                    f"capability_reuse.{name} "
-                    "must be a list or tuple."
-                )
-
-            return tuple(
-                str(item).strip()
-                for item in value
-                if str(item).strip()
-            )
-
-        return CapabilityRequest(
-            capability_id=text(
-                "capability_id"
-            ),
-            name=text(
-                "name"
-            ),
-            description=text(
-                "description",
-                required=False,
-            ),
-            responsibility=text(
-                "responsibility"
-            ),
-            architecture_ids=many(
-                "architecture_ids"
-            ),
-            source_of_truth=text(
-                "source_of_truth",
-                required=False,
-            ),
-            inputs=many(
-                "inputs"
-            ),
-            outputs=many(
-                "outputs"
-            ),
-            owner=text(
-                "owner",
-                required=False,
-            ),
-            allow_create_new=(
-                payload.get(
-                    "allow_create_new",
-                    True,
-                )
-                is True
-            ),
-        )
 
     def _build_repository_capability_catalog(
         self,

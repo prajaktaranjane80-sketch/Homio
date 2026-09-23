@@ -49,7 +49,7 @@ def fully_authorized_request(
     proposal: ActionProposal | None = None,
     *,
     executor=None,
-    architecture_locked: bool = False,
+    architecture_locked: bool = True,
 ) -> MutationRequest:
     """Build an explicitly authorized request."""
     return MutationRequest(
@@ -150,14 +150,14 @@ def test_each_safety_gate_defaults_to_deny(
     assert executor_calls == []
 
 
-def test_frozen_architecture_is_blocked() -> None:
+def test_missing_architecture_lock_is_blocked() -> None:
     """Frozen architecture must remain immutable through this adapter."""
     adapter = ControlledMutationAdapter()
     executor_calls: list[str] = []
 
     request = fully_authorized_request(
         executor=lambda _: executor_calls.append("called"),
-        architecture_locked=True,
+        architecture_locked=False,
     )
 
     result = adapter.execute(request)
@@ -362,7 +362,7 @@ def test_adapter_does_not_execute_without_all_positive_conditions() -> None:
         guard_allowed=True,
         idempotency_clear=True,
         tripwires_clear=True,
-        architecture_locked=False,
+        architecture_locked=True,
         executor=lambda proposal: calls.append(proposal.action_id),
     )
 

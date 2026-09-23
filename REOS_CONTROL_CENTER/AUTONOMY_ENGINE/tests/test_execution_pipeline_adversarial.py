@@ -62,7 +62,7 @@ def fully_authorized_context() -> ExecutionContext:
         guard_allowed=True,
         idempotency_clear=True,
         tripwires_clear=True,
-        architecture_locked=False,
+        architecture_locked=True,
         evidence={
             "test": True,
             "source": "test_execution_pipeline_adversarial",
@@ -152,7 +152,7 @@ def test_each_safety_condition_blocks_pipeline(field: str) -> None:
     assert calls == []
 
 
-def test_frozen_architecture_blocks_pipeline() -> None:
+def test_missing_architecture_lock_blocks_pipeline() -> None:
     """Frozen architecture must remain immutable."""
 
     pipeline = ExecutionPipeline()
@@ -168,7 +168,7 @@ def test_frozen_architecture_blocks_pipeline() -> None:
         guard_allowed=base.guard_allowed,
         idempotency_clear=base.idempotency_clear,
         tripwires_clear=base.tripwires_clear,
-        architecture_locked=True,
+        architecture_locked=False,
         evidence=base.evidence,
     )
 
