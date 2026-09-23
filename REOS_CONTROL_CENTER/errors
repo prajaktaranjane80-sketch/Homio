@@ -1,148 +1,54 @@
-...................................F..F......                                                                                                       [100%]
+..............F.                                                                                                                                     [100%]
 ======================================================================== FAILURES =========================================================================
-________________________________________________________ test_builder_can_be_bound_as_a_new_party _________________________________________________________
+_________________________________________________ test_serialization_contains_offer_and_negotiation_state _________________________________________________
 
-deal = Deal(deal_id='a9d75629-2128-4d35-801a-3a20491629d3', tenant_id='tenant-001', customer_id='customer-001', broker_id='br...=datetime.datetime(2026, 9, 23, 10, 0, tzinfo=datetime.timezone.utc), reason='DEAL_CREATED'),), source_of_truth='deal')
+visited_deal = Deal(deal_id='be574300-4770-474f-a2fd-9e889de39b74', tenant_id='tenant-001', customer_id='customer-001', broker_id='br...(2026, 9, 23, 10, 0, tzinfo=datetime.timezone.utc), reason=None)), source_of_truth='deal', offers=(), negotiation=None)
 
-    def test_builder_can_be_bound_as_a_new_party(deal: Deal):
->       updated = deal.bind_party(
-            DealPartyRole.BUILDER,
-            "builder-001",
+    def test_serialization_contains_offer_and_negotiation_state(visited_deal: Deal):
+        current = visited_deal.create_offer(
+            "offer-001",
             tenant_id="tenant-001",
-            expected_version=deal.version,
+            expected_version=5,
+            at=AT,
+        ).submit_offer(
+            "offer-001",
+            tenant_id="tenant-001",
+            expected_version=6,
+            at=AT,
+        ).start_negotiation(
+            "neg-001",
+            tenant_id="tenant-001",
+            expected_version=7,
             at=AT,
         )
 
-AUTONOMY_ENGINE\core\test_deal_parties.py:66:
+>       payload = current.to_dict()
+                  ^^^^^^^^^^^^^^^^^
+
+AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py:429:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\deal.py:978: in to_dict
+    entry.to_dict()
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = Deal(deal_id='a9d75629-2128-4d35-801a-3a20491629d3', tenant_id='tenant-001', customer_id='customer-001', broker_id='br...=datetime.datetime(2026, 9, 23, 10, 0, tzinfo=datetime.timezone.utc), reason='DEAL_CREATED'),), source_of_truth='deal')
-role = <DealPartyRole.BUILDER: 'BUILDER'>, party_id = 'builder-001', tenant_id = 'tenant-001', expected_version = 1, at = '2026-09-23T10:00:00+00:00'
+self = DealHistoryEntry(history_id='ae94ebed-234d-42b1-8e59-903a87760d6a', from_status='VISITED', to_status='OFFERED', version=7, changed_at=datetime.datetime(2026, 9, 23, 10, 0, tzinfo=datetime.timezone.utc), reason='OFFER_SUBMITTED')
 
-    def bind_party(
-        self,
-        role: DealPartyRole,
-        party_id: str,
-        *,
-        tenant_id: str,
-        expected_version: int,
-        at: str | None = None,
-    ) -> "Deal":
-        """Bind one canonical party relationship without silent substitution."""
-        self._assert_tenant(tenant_id)
-        self._assert_version(expected_version)
-
-        role = DealPartyRole(role)
-
-        if not isinstance(party_id, str) or not party_id.strip():
-            raise DealValidationError("party_id is required.")
-
-        if self.is_terminal:
-            raise DealReferenceConflictError(
-                "Terminal deals cannot change party relationships."
-            )
-
-        current_party_id = self.party_for(role)
-
-        if current_party_id == party_id:
-            return self
-
-        if current_party_id is not None:
-            raise DealReferenceConflictError(
-                f"Cannot silently replace existing {role.value} party."
-            )
-
-        timestamp = at or _utc_now()
-
-        updates: dict[str, Any] = {
-            "updated_at": timestamp,
-            "version": self.version + 1,
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "history_id": self.history_id,
+            "from_status": (
+>               self.from_status.value
+                if self.from_status is not None
+                else None
+            ),
+            "to_status": self.to_status.value,
+            "version": self.version,
+            "changed_at": self.changed_at.isoformat(),
+            "reason": self.reason,
         }
+E       AttributeError: 'str' object has no attribute 'value'
 
-        if role is DealPartyRole.CUSTOMER:
-            updates["customer_id"] = party_id
-        elif role is DealPartyRole.BROKER:
-            updates["broker_id"] = party_id
-        elif role is DealPartyRole.BUILDER:
-            updates["builder_id"] = party_id
-
->       return replace(self, **updates)
-               ^^^^^^^
-E       NameError: name 'replace' is not defined
-
-AUTONOMY_ENGINE\core\deal.py:481: NameError
-________________________________________________________ test_builder_cannot_be_silently_replaced _________________________________________________________
-
-deal = Deal(deal_id='835956c1-aa94-4063-a915-1e877ee40e56', tenant_id='tenant-001', customer_id='customer-001', broker_id='br...=datetime.datetime(2026, 9, 23, 10, 0, tzinfo=datetime.timezone.utc), reason='DEAL_CREATED'),), source_of_truth='deal')
-
-    def test_builder_cannot_be_silently_replaced(deal: Deal):
->       updated = deal.bind_party(
-            DealPartyRole.BUILDER,
-            "builder-001",
-            tenant_id="tenant-001",
-            expected_version=deal.version,
-            at=AT,
-        )
-
-AUTONOMY_ENGINE\core\test_deal_parties.py:104:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = Deal(deal_id='835956c1-aa94-4063-a915-1e877ee40e56', tenant_id='tenant-001', customer_id='customer-001', broker_id='br...=datetime.datetime(2026, 9, 23, 10, 0, tzinfo=datetime.timezone.utc), reason='DEAL_CREATED'),), source_of_truth='deal')
-role = <DealPartyRole.BUILDER: 'BUILDER'>, party_id = 'builder-001', tenant_id = 'tenant-001', expected_version = 1, at = '2026-09-23T10:00:00+00:00'
-
-    def bind_party(
-        self,
-        role: DealPartyRole,
-        party_id: str,
-        *,
-        tenant_id: str,
-        expected_version: int,
-        at: str | None = None,
-    ) -> "Deal":
-        """Bind one canonical party relationship without silent substitution."""
-        self._assert_tenant(tenant_id)
-        self._assert_version(expected_version)
-
-        role = DealPartyRole(role)
-
-        if not isinstance(party_id, str) or not party_id.strip():
-            raise DealValidationError("party_id is required.")
-
-        if self.is_terminal:
-            raise DealReferenceConflictError(
-                "Terminal deals cannot change party relationships."
-            )
-
-        current_party_id = self.party_for(role)
-
-        if current_party_id == party_id:
-            return self
-
-        if current_party_id is not None:
-            raise DealReferenceConflictError(
-                f"Cannot silently replace existing {role.value} party."
-            )
-
-        timestamp = at or _utc_now()
-
-        updates: dict[str, Any] = {
-            "updated_at": timestamp,
-            "version": self.version + 1,
-        }
-
-        if role is DealPartyRole.CUSTOMER:
-            updates["customer_id"] = party_id
-        elif role is DealPartyRole.BROKER:
-            updates["broker_id"] = party_id
-        elif role is DealPartyRole.BUILDER:
-            updates["builder_id"] = party_id
-
->       return replace(self, **updates)
-               ^^^^^^^
-E       NameError: name 'replace' is not defined
-
-AUTONOMY_ENGINE\core\deal.py:481: NameError
+AUTONOMY_ENGINE\core\deal.py:113: AttributeError
 ================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/test_deal_parties.py::test_builder_can_be_bound_as_a_new_party - NameError: name 'replace' is not defined
-FAILED AUTONOMY_ENGINE/core/test_deal_parties.py::test_builder_cannot_be_silently_replaced - NameError: name 'replace' is not defined
-2 failed, 44 passed in 0.50s
+FAILED AUTONOMY_ENGINE/core/test_deal_offer_negotiation.py::test_serialization_contains_offer_and_negotiation_state - AttributeError: 'str' object has no attribute 'value'
+1 failed, 15 passed in 0.26s
