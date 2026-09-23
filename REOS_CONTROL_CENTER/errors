@@ -1,5 +1,5 @@
 PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE/core/test_search_core_t09.py -q
-F...FF..F...F..F                                                                                                                                     [100%]
+F.......F...F..F                                                                                                                                     [100%]
 ======================================================================== FAILURES =========================================================================
 _______________________________________________ test_hybrid_retrieval_does_not_expose_cross_tenant_results ________________________________________________
 
@@ -45,7 +45,7 @@ AUTONOMY_ENGINE\core\inventory_indexing.py:176: in build_upsert
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 self = InventoryIndexingHook(index_name='reos_inventory')
-inventory = Inventory(inventory_id='d9b7828b-39bf-491b-8d1b-da7ae94e9116', tenant_id='tenant-001', project_id='project-001', inven...:00', version=3, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+inventory = Inventory(inventory_id='3ba85632-3583-47aa-866c-de03dffd4707', tenant_id='tenant-001', project_id='project-001', inven...:00', version=3, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
 expected_version = 1
 
     def _assert_version(
@@ -69,94 +69,6 @@ expected_version = 1
 E           AUTONOMY_ENGINE.core.inventory_indexing.InventoryIndexStaleVersionError: Inventory indexing request targets a stale inventory version.
 
 AUTONOMY_ENGINE\core\inventory_indexing.py:157: InventoryIndexStaleVersionError
-______________________________________________________________ test_ranking_is_deterministic ______________________________________________________________
-
-    def test_ranking_is_deterministic():
-        candidates = tuple(
-            to_ranked(
-                make_hybrid_result(
-                    index_key=f"idx-{index:03d}",
-                    tenant_id="tenant-001",
-                    rank=index,
-                    name="Premium",
-                    rrf_score=1.0 / index,
-                ),
-                rank=index,
-            )
-            for index in range(1, 101)
-        )
-
-        pipeline = SearchRankingPipeline()
-
->       first = pipeline.rank(candidates)
-                ^^^^^^^^^^^^^^^^^^^^^^^^^
-
-AUTONOMY_ENGINE\core\test_search_core_t09.py:278:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\search_ranking.py:156: in rank
-    ranking_score=self._base_score(result),
-                  ^^^^^^^^^^^^^^^^^^^^^^^^
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = <AUTONOMY_ENGINE.core.search_ranking.SearchRankingPipeline object at 0x0000028D6E4C1190>
-result = RankedSearchResult(result=HybridSearchResult(document=namespace(index_key='idx-001', tenant_id='tenant-001', project_i... availability='AVAILABLE'), rrf_score=1.0, lexical_rank=1, vector_rank=1), ranking_score=1.0, rerank_score=1.0, rank=1)
-
-    def _base_score(self, result: HybridSearchResult) -> float:
->       lexical_signal = _reciprocal_rank(result.lexical_rank)
-                                          ^^^^^^^^^^^^^^^^^^^
-E       AttributeError: 'RankedSearchResult' object has no attribute 'lexical_rank'
-
-AUTONOMY_ENGINE\core\search_ranking.py:136: AttributeError
-________________________________________________________ test_reranking_preserves_relevance_signal ________________________________________________________
-
-    def test_reranking_preserves_relevance_signal():
-        candidates = tuple(
-            to_ranked(
-                make_hybrid_result(
-                    index_key=index_key,
-                    tenant_id="tenant-001",
-                    rank=rank,
-                    name=name,
-                    inventory_code=code,
-                ),
-                rank=rank,
-            )
-            for index_key, rank, name, code in (
-                (
-                    "idx-standard",
-                    1,
-                    "Standard Apartment",
-                    "UNIT-001",
-                ),
-                (
-                    "idx-premium",
-                    2,
-                    "Premium Two Bedroom",
-                    "UNIT-002",
-                ),
-            )
-        )
-
-        pipeline = SearchRankingPipeline()
->       ranked = pipeline.rank(candidates)
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^
-
-AUTONOMY_ENGINE\core\test_search_core_t09.py:327:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\search_ranking.py:156: in rank
-    ranking_score=self._base_score(result),
-                  ^^^^^^^^^^^^^^^^^^^^^^^^
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = <AUTONOMY_ENGINE.core.search_ranking.SearchRankingPipeline object at 0x0000028D7FD5C6B0>
-result = RankedSearchResult(result=HybridSearchResult(document=namespace(index_key='idx-standard', tenant_id='tenant-001', proj... availability='AVAILABLE'), rrf_score=0.5, lexical_rank=1, vector_rank=1), ranking_score=0.5, rerank_score=0.5, rank=1)
-
-    def _base_score(self, result: HybridSearchResult) -> float:
->       lexical_signal = _reciprocal_rank(result.lexical_rank)
-                                          ^^^^^^^^^^^^^^^^^^^
-E       AttributeError: 'RankedSearchResult' object has no attribute 'lexical_rank'
-
-AUTONOMY_ENGINE\core\search_ranking.py:136: AttributeError
 ________________________________________________________ test_performance_ranking_2000_candidates _________________________________________________________
 
     def test_performance_ranking_2000_candidates():
@@ -188,7 +100,7 @@ AUTONOMY_ENGINE\core\search_ranking.py:156: in rank
                   ^^^^^^^^^^^^^^^^^^^^^^^^
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.core.search_ranking.SearchRankingPipeline object at 0x0000028D7FEB7FE0>
+self = <AUTONOMY_ENGINE.core.search_ranking.SearchRankingPipeline object at 0x000001C2C802C0E0>
 result = RankedSearchResult(result=HybridSearchResult(document=namespace(index_key='idx-00000', tenant_id='tenant-001', project... availability='AVAILABLE'), rrf_score=1.0, lexical_rank=1, vector_rank=1), ranking_score=1.0, rerank_score=1.0, rank=1)
 
     def _base_score(self, result: HybridSearchResult) -> float:
@@ -224,7 +136,7 @@ AUTONOMY_ENGINE\core\search_ranking.py:156: in rank
                   ^^^^^^^^^^^^^^^^^^^^^^^^
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.core.search_ranking.SearchRankingPipeline object at 0x0000028D7FD7F710>
+self = <AUTONOMY_ENGINE.core.search_ranking.SearchRankingPipeline object at 0x000001C2AF657DD0>
 result = RankedSearchResult(result=HybridSearchResult(document=namespace(index_key='idx-1', tenant_id='tenant-001', project_id=... availability='AVAILABLE'), rrf_score=0.5, lexical_rank=1, vector_rank=1), ranking_score=0.5, rerank_score=0.5, rank=1)
 
     def _base_score(self, result: HybridSearchResult) -> float:
@@ -259,7 +171,7 @@ AUTONOMY_ENGINE\core\inventory_indexing.py:176: in build_upsert
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 self = InventoryIndexingHook(index_name='reos_inventory')
-inventory = Inventory(inventory_id='7be33ad3-0678-4a46-b5bc-494cfbe7b75f', tenant_id='tenant-001', project_id='project-001', inven...:00', version=3, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+inventory = Inventory(inventory_id='26b79478-9395-4b50-b205-07ada6aad49d', tenant_id='tenant-001', project_id='project-001', inven...:00', version=3, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
 expected_version = 1
 
     def _assert_version(
@@ -285,9 +197,7 @@ E           AUTONOMY_ENGINE.core.inventory_indexing.InventoryIndexStaleVersionEr
 AUTONOMY_ENGINE\core\inventory_indexing.py:157: InventoryIndexStaleVersionError
 ================================================================= short test summary info =================================================================
 FAILED AUTONOMY_ENGINE/core/test_search_core_t09.py::test_hybrid_retrieval_does_not_expose_cross_tenant_results - AUTONOMY_ENGINE.core.inventory_indexing.InventoryIndexStaleVersionError: Inventory indexing request targets a stale inventory version.
-FAILED AUTONOMY_ENGINE/core/test_search_core_t09.py::test_ranking_is_deterministic - AttributeError: 'RankedSearchResult' object has no attribute 'lexical_rank'
-FAILED AUTONOMY_ENGINE/core/test_search_core_t09.py::test_reranking_preserves_relevance_signal - AttributeError: 'RankedSearchResult' object has no attribute 'lexical_rank'
 FAILED AUTONOMY_ENGINE/core/test_search_core_t09.py::test_performance_ranking_2000_candidates - AttributeError: 'RankedSearchResult' object has no attribute 'lexical_rank'
 FAILED AUTONOMY_ENGINE/core/test_search_core_t09.py::test_ranking_does_not_mutate_candidates - AttributeError: 'RankedSearchResult' object has no attribute 'lexical_rank'
 FAILED AUTONOMY_ENGINE/core/test_search_core_t09.py::test_indexing_projection_preserves_source_truth - AUTONOMY_ENGINE.core.inventory_indexing.InventoryIndexStaleVersionError: Inventory indexing request targets a stale inventory version.
-6 failed, 10 passed in 2.07s
+4 failed, 12 passed in 2.08s
