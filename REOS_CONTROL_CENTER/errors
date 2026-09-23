@@ -1,54 +1,160 @@
-..............F.                                                                                                                                     [100%]
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE/core/test_deal_transaction_milestones.py -q
+F..F...FF...                                                                                                                                         [100%]
 ======================================================================== FAILURES =========================================================================
-_________________________________________________ test_serialization_contains_offer_and_negotiation_state _________________________________________________
+_________________________________________________________ test_booking_pending_creates_milestone __________________________________________________________
 
-visited_deal = Deal(deal_id='be574300-4770-474f-a2fd-9e889de39b74', tenant_id='tenant-001', customer_id='customer-001', broker_id='br...(2026, 9, 23, 10, 0, tzinfo=datetime.timezone.utc), reason=None)), source_of_truth='deal', offers=(), negotiation=None)
+    def test_booking_pending_creates_milestone():
+        deal = base_deal()
 
-    def test_serialization_contains_offer_and_negotiation_state(visited_deal: Deal):
-        current = visited_deal.create_offer(
-            "offer-001",
+>       updated = deal.advance_transaction_milestone(
+            DealStatus.BOOKING_PENDING,
             tenant_id="tenant-001",
             expected_version=5,
-            at=AT,
-        ).submit_offer(
-            "offer-001",
-            tenant_id="tenant-001",
-            expected_version=6,
-            at=AT,
-        ).start_negotiation(
-            "neg-001",
-            tenant_id="tenant-001",
-            expected_version=7,
+            reference_id="booking-request-001",
             at=AT,
         )
 
->       payload = current.to_dict()
-                  ^^^^^^^^^^^^^^^^^
-
-AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py:429:
+AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py:53:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\deal.py:978: in to_dict
-    entry.to_dict()
+AUTONOMY_ENGINE\core\deal.py:780: in advance_transaction_milestone
+    self._assert_version(expected_version)
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = DealHistoryEntry(history_id='ae94ebed-234d-42b1-8e59-903a87760d6a', from_status='VISITED', to_status='OFFERED', version=7, changed_at=datetime.datetime(2026, 9, 23, 10, 0, tzinfo=datetime.timezone.utc), reason='OFFER_SUBMITTED')
+self = Deal(deal_id='1108bbae-6c1c-45a8-91bd-434bb762e217', tenant_id='tenant-001', customer_id='customer-001', broker_id='br...0, 0, tzinfo=datetime.timezone.utc), reason=None)), source_of_truth='deal', offers=(), negotiation=None, milestones=())
+expected_version = 5
 
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "history_id": self.history_id,
-            "from_status": (
->               self.from_status.value
-                if self.from_status is not None
-                else None
-            ),
-            "to_status": self.to_status.value,
-            "version": self.version,
-            "changed_at": self.changed_at.isoformat(),
-            "reason": self.reason,
-        }
-E       AttributeError: 'str' object has no attribute 'value'
+    def _assert_version(self, expected_version: int | None) -> None:
+        if expected_version is None:
+            return
 
-AUTONOMY_ENGINE\core\deal.py:113: AttributeError
+        if expected_version < 1:
+            raise DealConcurrencyError(
+                "expected_version must be >= 1."
+            )
+
+        if expected_version != self.version:
+>           raise DealConcurrencyError(
+                "Deal version is stale; refresh before mutating."
+            )
+E           AUTONOMY_ENGINE.core.deal.DealConcurrencyError: Deal version is stale; refresh before mutating.
+
+AUTONOMY_ENGINE\core\deal.py:441: DealConcurrencyError
+_________________________________________________________ test_non_transaction_status_is_rejected _________________________________________________________
+
+    def test_non_transaction_status_is_rejected():
+        deal = base_deal()
+
+        with pytest.raises(DealMilestoneTransitionError):
+>           deal.advance_transaction_milestone(
+                DealStatus.MATCHED,
+                tenant_id="tenant-001",
+                expected_version=5,
+                at=AT,
+            )
+
+AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py:133:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\deal.py:780: in advance_transaction_milestone
+    self._assert_version(expected_version)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Deal(deal_id='31453008-9647-41cd-84ea-26bec02c9766', tenant_id='tenant-001', customer_id='customer-001', broker_id='br...0, 0, tzinfo=datetime.timezone.utc), reason=None)), source_of_truth='deal', offers=(), negotiation=None, milestones=())
+expected_version = 5
+
+    def _assert_version(self, expected_version: int | None) -> None:
+        if expected_version is None:
+            return
+
+        if expected_version < 1:
+            raise DealConcurrencyError(
+                "expected_version must be >= 1."
+            )
+
+        if expected_version != self.version:
+>           raise DealConcurrencyError(
+                "Deal version is stale; refresh before mutating."
+            )
+E           AUTONOMY_ENGINE.core.deal.DealConcurrencyError: Deal version is stale; refresh before mutating.
+
+AUTONOMY_ENGINE\core\deal.py:441: DealConcurrencyError
+_______________________________________________________________ test_milestone_is_immutable _______________________________________________________________
+
+    def test_milestone_is_immutable():
+        deal = base_deal()
+
+>       updated = deal.advance_transaction_milestone(
+            DealStatus.BOOKING_PENDING,
+            tenant_id="tenant-001",
+            expected_version=5,
+            at=AT,
+        )
+
+AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py:180:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\deal.py:780: in advance_transaction_milestone
+    self._assert_version(expected_version)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Deal(deal_id='d19528fd-2ad0-4d6f-a17c-d7b536926899', tenant_id='tenant-001', customer_id='customer-001', broker_id='br...0, 0, tzinfo=datetime.timezone.utc), reason=None)), source_of_truth='deal', offers=(), negotiation=None, milestones=())
+expected_version = 5
+
+    def _assert_version(self, expected_version: int | None) -> None:
+        if expected_version is None:
+            return
+
+        if expected_version < 1:
+            raise DealConcurrencyError(
+                "expected_version must be >= 1."
+            )
+
+        if expected_version != self.version:
+>           raise DealConcurrencyError(
+                "Deal version is stale; refresh before mutating."
+            )
+E           AUTONOMY_ENGINE.core.deal.DealConcurrencyError: Deal version is stale; refresh before mutating.
+
+AUTONOMY_ENGINE\core\deal.py:441: DealConcurrencyError
+___________________________________________________ test_milestone_serialization_preserves_audit_fields ___________________________________________________
+
+    def test_milestone_serialization_preserves_audit_fields():
+        deal = base_deal()
+
+>       updated = deal.advance_transaction_milestone(
+            DealStatus.BOOKING_PENDING,
+            tenant_id="tenant-001",
+            expected_version=5,
+            reference_id="BOOK-001",
+            at=AT,
+        )
+
+AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py:196:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\deal.py:780: in advance_transaction_milestone
+    self._assert_version(expected_version)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Deal(deal_id='70650642-c41a-423f-bb34-420d771d9abc', tenant_id='tenant-001', customer_id='customer-001', broker_id='br...0, 0, tzinfo=datetime.timezone.utc), reason=None)), source_of_truth='deal', offers=(), negotiation=None, milestones=())
+expected_version = 5
+
+    def _assert_version(self, expected_version: int | None) -> None:
+        if expected_version is None:
+            return
+
+        if expected_version < 1:
+            raise DealConcurrencyError(
+                "expected_version must be >= 1."
+            )
+
+        if expected_version != self.version:
+>           raise DealConcurrencyError(
+                "Deal version is stale; refresh before mutating."
+            )
+E           AUTONOMY_ENGINE.core.deal.DealConcurrencyError: Deal version is stale; refresh before mutating.
+
+AUTONOMY_ENGINE\core\deal.py:441: DealConcurrencyError
 ================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/test_deal_offer_negotiation.py::test_serialization_contains_offer_and_negotiation_state - AttributeError: 'str' object has no attribute 'value'
-1 failed, 15 passed in 0.26s
+FAILED AUTONOMY_ENGINE/core/test_deal_transaction_milestones.py::test_booking_pending_creates_milestone - AUTONOMY_ENGINE.core.deal.DealConcurrencyError: Deal version is stale; refresh before mutating.
+FAILED AUTONOMY_ENGINE/core/test_deal_transaction_milestones.py::test_non_transaction_status_is_rejected - AUTONOMY_ENGINE.core.deal.DealConcurrencyError: Deal version is stale; refresh before mutating.
+FAILED AUTONOMY_ENGINE/core/test_deal_transaction_milestones.py::test_milestone_is_immutable - AUTONOMY_ENGINE.core.deal.DealConcurrencyError: Deal version is stale; refresh before mutating.
+FAILED AUTONOMY_ENGINE/core/test_deal_transaction_milestones.py::test_milestone_serialization_preserves_audit_fields - AUTONOMY_ENGINE.core.deal.DealConcurrencyError: Deal version is stale; refresh before mutating.
+4 failed, 8 passed in 0.35s
