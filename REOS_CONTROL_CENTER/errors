@@ -1,939 +1,119 @@
 
-PS C:\Users\Sandip RanjanePatil> Set-Location "D:\Homio\REOS_CONTROL_CENTER"
-PS D:\Homio\REOS_CONTROL_CENTER> cd D:\HOMIO\REOS_CONTROL_CENTER
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== REBASE CONFLICTS ==="
-=== REBASE CONFLICTS ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
-A  AUTONOMY_ENGINE/orchestration/capability_reuse_guard.py
-UU AUTONOMY_ENGINE/orchestration/execution_coordinator.py
-A  AUTONOMY_ENGINE/orchestration/test_capability_reuse_guard.py
-AA AUTONOMY_ENGINE/tests/test_capability_reuse_execution_integration.py
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== EXECUTION COORDINATOR CONFLICT ==="
-
-=== EXECUTION COORDINATOR CONFLICT ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Select-String `
->>     -Path ".\AUTONOMY_ENGINE\orchestration\execution_coordinator.py" `
->>     -Pattern "^(<<<<<<<|=======|>>>>>>>).*" `
->>     -Context 12,12
-
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1:"""
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:2:Deterministic execution coordinator for AUTONOMY_ENGINE.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:3:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:4:Existing authority boundaries are preserved.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:5:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:6:Execution flow
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:7:--------------
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:8:ActionProposal
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:9:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:10:    -> validation
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:11:    -> capability-reuse / duplicate protection
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:12:    -> approval/policy/risk/guard inputs
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:13:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:14:    -> protocol validation
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:15:    -> capability/module reuse protection
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:16:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:17:    -> enforcement preflight
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:18:    -> controlled mutation boundary
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:19:    -> authoritative executor
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:20:    -> postflight verification
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:21:
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:22:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:23:Safety principles
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:24:-----------------
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:25:- Fail closed.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:26:- Default deny.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:27:- No implicit authorization.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:28:- No implicit capability grant.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:29:- No implicit retry.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:30:- No executor discovery.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:31:- No controller command invention.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:32:- No state.json mutation.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:33:- No mutation before every required gate is positive.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:34:- Failed execution is terminal for the coordinator instance.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:35:- Evidence is preserved.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:36:- Capability/module creation is checked against a fresh repository-derived
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:37:  capability catalog before mutation.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:38:- Capability/module creation is checked again immediately before mutation
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:39:  to prevent TOCTOU duplicate creation.
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:40:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:41:Capability/module creation is protected by the existing
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:42:CapabilityReuseGuard. No second duplicate/autonomy engine is created.
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:43:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:44:"""
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:45:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:46:from __future__ import annotations
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:47:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:48:import ast
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:49:import re
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:50:from dataclasses import dataclass, field
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:51:from enum import Enum
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:52:from pathlib import Path
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:53:from typing import Any, Callable, Iterable, Mapping
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:54:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:55:from continuity.acrl.T16_Repository_Intelligence_File_Discovery.repository_intelligence import
-(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:148:                self.mutation.to_dict()
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:149:                if self.mutation is not None
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:150:                else None
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:151:            ),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:152:            "evidence": dict(self.evidence),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:153:        }
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:154:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:155:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:156:class ExecutionCoordinator:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:157:    """
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:158:    Existing execution coordinator with capability-reuse protection.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:159:
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:160:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:161:    The coordinator is orchestration only. It does not own controller
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:162:    authority and cannot create a mutation executor by itself.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:163:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:164:    Capability/module creation receives an additional machine-enforced
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:165:    duplicate/reuse check before mutation.
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:166:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:167:    The coordinator:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:168:    - does not become controller authority
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:169:    - does not discover executors
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:170:    - does not mutate state directly
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:171:    - does not replace T18
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:172:    - does not create a second duplicate system
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:173:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:174:    It only enforces the existing CapabilityReuseGuard before mutation.
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:175:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:176:    """
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:177:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:178:    CREATE_OPERATIONS = frozenset(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:179:        {
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:180:            "CREATE",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:181:            "CAPABILITY_CREATE",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:182:            "MODULE_CREATE",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:183:        }
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:184:    )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:185:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:186:    EXTEND_OPERATIONS = frozenset(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:187:        {
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:223:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:224:        self._capability_catalog_provider = (
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:225:            capability_catalog_provider
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:226:            if capability_catalog_provider is not None
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:227:            else self._build_repository_capability_catalog
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:228:        )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:229:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:230:    def preflight(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:231:        self,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:232:        proposal: ActionProposal,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:233:        context: ExecutionContext,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:234:    ) -> tuple[ProtocolDecision, EnforcementDecision | None]:
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:235:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:236:        """
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:237:        Perform protocol and enforcement validation without mutation.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:238:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:239:        Capability/module creation is also duplicate-checked here.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:240:        """
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:241:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:242:        """Run protocol + duplicate protection + enforcement checks."""
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:243:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:244:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:245:        protocol = validate_proposal(proposal)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:246:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:247:        if not protocol.valid:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:248:            return protocol, None
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:249:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:250:        reuse_allowed, reuse_evidence, reuse_reason = (
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:251:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:252:            self._capability_reuse_preflight(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:253:                proposal
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:254:            )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:255:        )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:256:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:257:        if not reuse_allowed:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:258:            return (
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:259:                protocol,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:260:                EnforcementDecision(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:261:                    allowed=False,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:262:                    stage="PREFLIGHT",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:263:                    reason=reuse_reason,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:264:                    checks=("capability_reuse",),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:265:                    failures=("capability_reuse:failed",),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:266:                    metadata=reuse_evidence,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:267:                ),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:268:            )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:269:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:270:        enforcement = self._build_enforcement_decision(context)
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:271:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:272:            self._capability_reuse_check(proposal)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:273:        )
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:274:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:275:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:276:        if not reuse_allowed:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:277:            return (
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:278:                protocol,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:279:                EnforcementDecision(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:280:                    allowed=False,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:281:                    stage="PREFLIGHT",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:282:                    reason=reuse_reason,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:283:                    checks=("capability_reuse",),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:284:                    failures=("capability_reuse:failed",),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:285:                    metadata=reuse_evidence,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:286:                ),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:290:            protocol,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:291:            self._build_enforcement_decision(context),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:292:        )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:293:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:294:    def execute(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:295:        self,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:296:        proposal: ActionProposal,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:297:        context: ExecutionContext,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:298:        *,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:299:        executor: Any = None,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:300:        postflight: Mapping[str, bool] | None = None,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:301:    ) -> CoordinationResult:
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:302:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:303:        """
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:304:        Coordinate exactly one execution attempt.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:305:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:306:        No executor is discovered or invented here.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:307:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:308:        Capability/module creation is checked:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:309:        1. before mutation,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:310:        2. again immediately before mutation.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:311:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:312:        The second check is a TOCTOU protection against another agent/chat
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:313:        creating the same capability between initial evaluation and mutation.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:314:        """
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:315:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:316:        """Coordinate exactly one execution attempt."""
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:317:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:318:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:319:        action_id = self._safe_action_id(proposal)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:320:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:321:        if action_id in self._coordinated_action_ids:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:322:            protocol = validate_proposal(proposal)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:323:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:324:            return CoordinationResult(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:325:                status=CoordinationStatus.BLOCKED,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:326:                action_id=action_id,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:327:                allowed=False,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:328:                reason=(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:329:                    "Action has already been coordinated "
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:365:                    "enforcement preflight."
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:366:                ),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:367:                protocol=protocol,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:368:                enforcement=enforcement,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:369:                evidence={
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:370:                    **dict(context.evidence),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:371:                    "coordination_attempted": True,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:372:                    "execution_attempted": False,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:373:                },
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:374:            )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:375:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:376:        reuse_allowed, reuse_evidence, reuse_reason = (
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:377:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:378:            self._capability_reuse_preflight(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:379:                proposal
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:380:            )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:381:        )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:382:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:383:        if not reuse_allowed:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:384:            self._coordinated_action_ids.add(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:385:                action_id
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:386:            )
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:387:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:388:            self._capability_reuse_check(proposal)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:389:        )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:390:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:391:        if not reuse_allowed:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:392:            self._coordinated_action_ids.add(action_id)
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:393:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:394:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:395:            return CoordinationResult(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:396:                status=CoordinationStatus.BLOCKED,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:397:                action_id=action_id,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:398:                allowed=False,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:399:                reason=reuse_reason,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:400:                protocol=protocol,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:401:                enforcement=enforcement,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:402:                evidence={
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:403:                    **dict(context.evidence),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:404:                    "capability_reuse": reuse_evidence,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:405:                    "coordination_attempted": True,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:500:                    "coordination_attempted": True,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:501:                    "execution_attempted": True,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:502:                    "execution_succeeded": True,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:503:                    "postflight_passed": False,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:504:                },
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:505:            )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:506:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:507:        return CoordinationResult(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:508:            status=CoordinationStatus.EXECUTED,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:509:            action_id=action_id,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:510:            allowed=True,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:511:            reason=(
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:512:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:513:                "Execution completed and postflight "
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:514:                "verification passed."
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:515:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:516:                "Execution completed and "
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:517:                "postflight verification passed."
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:518:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:519:            ),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:520:            protocol=protocol,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:521:            enforcement=postflight_decision,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:522:            mutation=mutation,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:523:            evidence={
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:524:                **dict(context.evidence),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:525:                **dict(mutation.evidence),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:526:                "capability_reuse": reuse_evidence,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:527:                "coordination_attempted": True,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:528:                "execution_attempted": True,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:529:                "execution_succeeded": True,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:530:                "postflight_passed": True,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:531:            },
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:532:        )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:533:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:534:    @classmethod
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:535:    def _reuse_required(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:536:        cls,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:537:        proposal: ActionProposal,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:538:    ) -> bool:
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:539:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:540:        """Return whether capability/module duplicate protection is required."""
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:541:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:542:        parameters = getattr(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:543:            proposal,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:544:            "parameters",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:545:            {},
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:546:        )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:547:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:548:        if not isinstance(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:549:            parameters,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:550:            Mapping,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:551:        ):
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1062:            sorted(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1063:                records,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1064:                key=lambda item:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1065:                item.capability_id,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1066:            )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1067:        )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1068:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1069:    @staticmethod
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1070:    def _safe_action_id(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1071:        proposal: ActionProposal,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1072:    ) -> str:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1073:        """Extract an action id without allowing malformed input to escape."""
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1074:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1075:        """Return True when capability/module protection is required."""
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1076:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1077:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1078:        parameters = getattr(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1079:            proposal,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1080:            "parameters",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1081:            {},
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1082:        )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1083:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1084:        if not isinstance(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1085:            parameters,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1086:            Mapping,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1087:        ):
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1088:            return False
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1563:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1564:    @staticmethod
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1565:    def _safe_action_id(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1566:        proposal: ActionProposal,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1567:    ) -> str:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1568:        try:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1569:            action_id = proposal.action_id
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1570:        except Exception:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1571:            return "<invalid-action-id>"
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1572:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1573:        return (
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1574:            action_id
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1575:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1576:            if isinstance(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1577:                action_id,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1578:                str,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1579:            )
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1580:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1581:            if isinstance(action_id, str)
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1582:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1583:            and action_id
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1584:            else "<invalid-action-id>"
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1585:        )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1586:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1587:    @staticmethod
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1588:    def _build_enforcement_decision(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1589:        context: ExecutionContext,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1590:    ) -> EnforcementDecision:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1591:        """Build the fail-closed enforcement decision."""
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1592:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1593:        failures: list[str] = []
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1594:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1595:        checks = (
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1596:            ("authorization", context.authorized),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1597:            ("capability", context.capability_available),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1598:            ("policy", context.policy_allowed),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1599:            ("risk", context.risk_allowed),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1600:            ("guard", context.guard_allowed),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1601:            ("idempotency", context.idempotency_clear),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1602:            ("tripwires", context.tripwires_clear),
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1603:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1604:            (
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1605:                "architecture_lock",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1606:                context.architecture_locked,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1607:            ),
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1608:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1609:            ("architecture_lock", context.architecture_locked),
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1610:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1611:        )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1612:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1613:        for name, allowed in checks:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1614:            if allowed is not True:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1615:                failures.append(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1616:                    f"{name}:failed"
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1617:                )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1618:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1619:        return EnforcementDecision(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1620:            allowed=not failures,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1621:            stage="PREFLIGHT",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1622:            reason=(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1623:                "All coordinator enforcement checks passed."
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1624:                if not failures
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1625:                else (
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1626:                    "Coordinator enforcement "
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1627:                    "rejected the operation."
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1628:                )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1629:            ),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1630:            checks=tuple(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1631:                name
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1632:                for name, _ in checks
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1633:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1634:            ),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1635:            failures=tuple(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1636:                failures
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1637:            ),
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1638:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1639:            ),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1640:            failures=tuple(failures),
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1641:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1642:        )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1643:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1644:    @staticmethod
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1645:    def _postflight_decision(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1646:        *,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1647:        mutation: MutationResult,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1648:        postflight: Mapping[str, bool],
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1649:    ) -> EnforcementDecision:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1650:        """Create deterministic postflight verification."""
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1651:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1652:        failures: list[str] = []
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1653:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1654:        if mutation.executed is not True:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1655:            failures.append(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1656:                "execution_failed"
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1657:            )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1658:
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1659:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1660:        if (
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1661:            postflight.get(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1662:                "evidence_complete"
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1663:            )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1664:            is not True
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1665:        ):
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1666:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1667:        if postflight.get(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1668:            "evidence_complete"
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1669:        ) is not True:
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1670:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1671:            failures.append(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1672:                "evidence_incomplete"
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1673:            )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1674:
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1675:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1676:        if (
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1677:            postflight.get(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1678:                "provenance_valid"
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1679:            )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1680:            is not True
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1681:        ):
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1682:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1683:        if postflight.get(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1684:            "provenance_valid"
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1685:        ) is not True:
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1686:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1687:            failures.append(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1688:                "provenance_invalid"
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1689:            )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1690:
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1691:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1692:        if (
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1693:            postflight.get(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1694:                "state_consistent"
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1695:            )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1696:            is not True
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1697:        ):
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1698:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1699:        if postflight.get(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1700:            "state_consistent"
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1701:        ) is not True:
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1702:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1703:            failures.append(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1704:                "state_inconsistent"
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1705:            )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1706:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1707:        return EnforcementDecision(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1708:            allowed=not failures,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1709:            stage="POSTFLIGHT",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1710:            reason=(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1711:                "Postflight verification passed."
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1712:                if not failures
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1713:                else (
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1714:                    "Postflight verification "
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1719:                "execution_result",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1720:                "evidence",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1721:                "provenance",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1722:                "state_consistency",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1723:            ),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1724:            failures=tuple(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1725:                failures
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1726:            ),
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1727:            metadata={
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1728:                "mutation_status": (
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1729:                    mutation.decision.status.value
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1730:                ),
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1731:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1732:                "mutation_executed": (
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1733:                    mutation.executed
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1734:                ),
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1735:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1736:                "mutation_executed": mutation.executed,
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1737:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1738:            },
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1739:        )
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1740:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1741:    def coordinated(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1742:        self,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1743:        action_id: str,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1744:    ) -> bool:
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1745:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1746:        """Return whether this coordinator already coordinated an action."""
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1747:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1748:        return (
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1749:            action_id
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1750:            in self._coordinated_action_ids
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1751:        )
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1752:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1753:        return action_id in self._coordinated_action_ids
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1754:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1755:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1756:    def reset(self) -> None:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1757:        self._coordinated_action_ids.clear()
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1758:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1759:    @staticmethod
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1760:<<<<<<< HEAD
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1761:    def mutation_block_reason() -> tuple[
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1762:        MutationBlockReason,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1763:        ...,
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1764:    ]:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1765:        """
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1766:        Expose known mutation refusal classes without owning their policy.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1767:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1768:        This is intentionally informational and performs no mutation.
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1769:        """
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1770:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1771:        return tuple(
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1772:            MutationBlockReason
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1773:        )
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1774:=======
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1775:    def mutation_block_reason() -> tuple[MutationBlockReason, ...]:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1776:        return tuple(MutationBlockReason)
-> AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1777:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1778:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1779:
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1780:__all__ = [
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1781:    "CoordinationBlockReason",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1782:    "CoordinationResult",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1783:    "CoordinationStatus",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1784:    "ExecutionContext",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1785:    "ExecutionCoordinator",
-  AUTONOMY_ENGINE\orchestration\execution_coordinator.py:1786:]
-
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== INTEGRATION TEST CONFLICT ==="
-
-=== INTEGRATION TEST CONFLICT ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Select-String `
->>     -Path ".\AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py" `
->>     -Pattern "^(<<<<<<<|=======|>>>>>>>).*" `
->>     -Context 12,12
-
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:1:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:2:from __future__ import annotations
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:3:=======
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:4:﻿from __future__ import annotations
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:5:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:6:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:7:import sys
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:8:from pathlib import Path
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:9:
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:10:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:11:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:12:AUTONOMY_ENGINE_ROOT = Path(__file__).resolve().parents[1]
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:13:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:14:if str(AUTONOMY_ENGINE_ROOT) not in sys.path:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:15:    sys.path.insert(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:16:        0,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:17:        str(AUTONOMY_ENGINE_ROOT),
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:18:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:19:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:20:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:21:from orchestration.capability_reuse_guard import (
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:22:    CapabilityRecord,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:23:)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:24:from orchestration.execution_coordinator import (
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:25:    ExecutionContext,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:26:    ExecutionCoordinator,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:27:    CoordinationStatus,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:28:)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:29:from protocols.action_protocol import (
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:30:    ActionProposal,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:31:)
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:32:=======
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:33:AUTONOMY_ENGINE_ROOT = Path(__file__).resolve().parents[1]
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:34:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:35:if str(AUTONOMY_ENGINE_ROOT) not in sys.path:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:36:    sys.path.insert(0, str(AUTONOMY_ENGINE_ROOT))
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:37:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:38:from orchestration.capability_reuse_guard import CapabilityRecord
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:39:from orchestration.execution_coordinator import (
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:40:    CoordinationStatus,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:41:    ExecutionContext,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:42:    ExecutionCoordinator,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:43:)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:44:from protocols.action_protocol import ActionProposal
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:45:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:46:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:47:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:48:def _context() -> ExecutionContext:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:49:    return ExecutionContext(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:50:        authorized=True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:51:        capability_available=True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:52:        policy_allowed=True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:53:        risk_allowed=True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:54:        guard_allowed=True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:55:        idempotency_clear=True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:56:        tripwires_clear=True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:57:        architecture_locked=True,
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:58:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:59:        evidence={
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:60:            "test": True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:61:        },
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:62:=======
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:63:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:64:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:65:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:66:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:67:def _proposal(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:68:    *,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:69:    capability_id: str,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:70:    name: str,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:71:    responsibility: str,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:72:) -> ActionProposal:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:73:    return ActionProposal.create(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:74:        action="create_module",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:75:        target="AUTONOMY_ENGINE/example.py",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:76:        parameters={
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:77:            "creates_capability": True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:78:            "capability_operation": "CREATE",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:79:            "capability_reuse": {
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:80:                "capability_id": capability_id,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:81:                "name": name,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:82:                "description": responsibility,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:83:                "responsibility": responsibility,
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:84:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:85:                "architecture_ids": [
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:86:                    "CORE-006",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:87:                ],
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:88:                "source_of_truth": (
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:89:                    "AUTONOMY_ENGINE/example.py"
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:90:                ),
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:91:=======
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:92:                "architecture_ids": ["CORE-006"],
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:93:                "source_of_truth": "AUTONOMY_ENGINE/example.py",
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:94:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:95:                "inputs": [],
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:96:                "outputs": [],
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:97:                "owner": "REOS_CONTROL_CENTER",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:98:                "allow_create_new": True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:99:            },
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:100:        },
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:101:        requester="TEST",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:102:        reason="capability reuse integration test",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:103:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:104:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:105:
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:106:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:107:def test_duplicate_capability_is_blocked_before_mutation() -> None:
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:108:=======
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:109:def test_duplicate_capability_is_blocked_before_mutation():
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:110:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:111:    existing = CapabilityRecord(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:112:        capability_id="CAP-DEAL-OWNERSHIP",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:113:        name="Deal Ownership",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:114:        description="Existing deal ownership protection.",
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:115:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:116:        responsibility=(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:117:            "Protect immutable ownership of a deal"
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:118:        ),
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:119:        architecture_ids=(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:120:            "CORE-006",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:121:        ),
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:122:        source_of_truth="AUTONOMY_ENGINE/core/deal.py",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:123:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:124:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:125:    calls: list[str] = []
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:126:=======
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:127:        responsibility="Protect immutable ownership of a deal",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:128:        architecture_ids=("CORE-006",),
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:129:        source_of_truth="AUTONOMY_ENGINE/core/deal.py",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:130:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:131:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:132:    calls = []
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:133:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:134:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:135:    def executor(_proposal):
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:136:        calls.append("EXECUTED")
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:137:        return "MUTATED"
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:138:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:139:    coordinator = ExecutionCoordinator(
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:140:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:141:        capability_catalog_provider=lambda: (
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:142:            existing,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:143:        ),
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:144:=======
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:145:        capability_catalog_provider=lambda: (existing,),
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:146:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:147:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:148:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:149:    proposal = _proposal(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:150:        capability_id="CAP-NEW",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:151:        name="Transaction Ownership",
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:152:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:153:        responsibility=(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:154:            "Protect immutable ownership of a deal"
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:155:        ),
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:156:=======
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:157:        responsibility="Protect immutable ownership of a deal",
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:158:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:159:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:160:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:161:    result = coordinator.execute(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:162:        proposal,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:163:        _context(),
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:164:        executor=executor,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:165:        postflight={
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:166:            "evidence_complete": True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:167:            "provenance_valid": True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:168:            "state_consistent": True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:169:        },
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:170:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:171:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:172:    assert result.status is CoordinationStatus.BLOCKED
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:173:    assert result.allowed is False
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:174:    assert calls == []
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:175:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:176:    reuse = result.evidence["capability_reuse"]
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:177:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:178:
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:179:=======
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:180:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:181:    assert reuse["required"] is True
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:182:    assert (
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:183:        reuse["first_check"]["selected_capability_id"]
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:184:        == "CAP-DEAL-OWNERSHIP"
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:185:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:186:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:187:
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:188:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:189:def test_unique_capability_reaches_mutation_boundary() -> None:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:190:    calls: list[str] = []
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:191:=======
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:192:def test_unique_capability_reaches_mutation_boundary():
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:193:    calls = []
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:194:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:195:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:196:    def executor(_proposal):
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:197:        calls.append("EXECUTED")
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:198:        return "MUTATED"
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:199:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:200:    coordinator = ExecutionCoordinator(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:201:        capability_catalog_provider=lambda: (),
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:202:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:203:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:204:    proposal = _proposal(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:205:        capability_id="CAP-GEO-SEARCH",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:206:        name="Geospatial Search",
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:207:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:208:        responsibility=(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:209:            "Search inventory using verified geographic radius"
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:210:        ),
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:211:=======
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:212:        responsibility="Search inventory using verified geographic radius",
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:213:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:214:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:215:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:216:    result = coordinator.execute(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:217:        proposal,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:218:        _context(),
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:219:        executor=executor,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:220:        postflight={
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:221:            "evidence_complete": True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:222:            "provenance_valid": True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:223:            "state_consistent": True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:224:        },
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:225:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:226:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:227:    assert result.status is CoordinationStatus.EXECUTED
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:228:    assert result.allowed is True
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:229:    assert calls == ["EXECUTED"]
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:230:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:231:
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:232:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:233:def test_catalog_change_between_checks_blocks_mutation() -> None:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:234:    existing = CapabilityRecord(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:235:        capability_id="CAP-LATE",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:236:        name="Late Duplicate",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:237:        description="Created by another agent between checks.",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:238:        responsibility=(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:239:            "Protect immutable ownership of a deal"
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:240:        ),
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:241:        architecture_ids=(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:242:            "CORE-006",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:243:        ),
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:244:=======
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:245:def test_catalog_change_between_checks_blocks_mutation():
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:246:    existing = CapabilityRecord(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:247:        capability_id="CAP-LATE",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:248:        name="Late Duplicate",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:249:        description="Created between duplicate checks.",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:250:        responsibility="Protect immutable ownership of a deal",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:251:        architecture_ids=("CORE-006",),
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:252:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:253:        source_of_truth="AUTONOMY_ENGINE/core/deal.py",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:254:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:255:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:256:    catalog_calls = 0
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:257:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:258:    executions: list[str] = []
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:259:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:260:    def catalog_provider():
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:261:        nonlocal catalog_calls
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:262:
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:263:=======
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:264:    executions = []
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:265:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:266:    def catalog_provider():
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:267:        nonlocal catalog_calls
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:268:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:269:        catalog_calls += 1
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:270:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:271:        if catalog_calls == 1:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:272:            return ()
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:273:
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:274:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:275:        return (
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:276:            existing,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:277:        )
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:278:=======
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:279:        return (existing,)
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:280:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:281:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:282:    def executor(_proposal):
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:283:        executions.append("EXECUTED")
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:284:        return "MUTATED"
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:285:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:286:    coordinator = ExecutionCoordinator(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:287:        capability_catalog_provider=catalog_provider,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:288:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:289:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:290:    proposal = _proposal(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:291:        capability_id="CAP-NEW",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:292:        name="Late Duplicate Candidate",
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:293:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:294:        responsibility=(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:295:            "Protect immutable ownership of a deal"
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:296:        ),
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:297:=======
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:298:        responsibility="Protect immutable ownership of a deal",
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:299:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:300:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:301:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:302:    result = coordinator.execute(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:303:        proposal,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:304:        _context(),
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:305:        executor=executor,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:306:        postflight={
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:307:            "evidence_complete": True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:308:            "provenance_valid": True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:309:            "state_consistent": True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:310:        },
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:311:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:312:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:313:    assert result.status is CoordinationStatus.BLOCKED
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:314:    assert result.allowed is False
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:315:    assert catalog_calls >= 2
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:316:    assert executions == []
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:317:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:318:    reuse = result.evidence["capability_reuse"]
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:319:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:320:
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:321:=======
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:322:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:323:    assert (
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:324:        reuse["second_check"]["selected_capability_id"]
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:325:        == "CAP-LATE"
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:326:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:327:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:328:
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:329:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:330:def test_normal_non_capability_execution_is_unchanged() -> None:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:331:    calls: list[str] = []
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:332:=======
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:333:def test_normal_non_capability_execution_is_unchanged():
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:334:    calls = []
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:335:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:336:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:337:    def executor(_proposal):
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:338:        calls.append("EXECUTED")
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:339:        return "OK"
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:340:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:341:    coordinator = ExecutionCoordinator(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:342:        capability_catalog_provider=lambda: (),
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:343:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:344:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:345:    proposal = ActionProposal.create(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:346:        action="checkpoint",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:347:        target="REOS_CONTROL_CENTER",
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:348:<<<<<<< HEAD
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:349:        parameters={
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:350:            "note": "normal checkpoint",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:351:        },
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:352:=======
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:353:        parameters={"note": "normal checkpoint"},
-> AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:354:>>>>>>> 6e1c2d0 (feat: integrate capability reuse guard)
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:355:        requester="TEST",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:356:        reason="non capability action",
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:357:    )
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:358:
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:359:    result = coordinator.execute(
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:360:        proposal,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:361:        _context(),
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:362:        executor=executor,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:363:        postflight={
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:364:            "evidence_complete": True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:365:            "provenance_valid": True,
-  AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:366:            "state_consistent": True,
-
+E   AssertionError: assert True is False
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:165: AssertionError: assert True is False
+E   AssertionError: assert <MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'> is <MutationBlockReason.EXECUTOR_MISSING: 'EXECUTOR_MISSING'>
+     +    where MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed=False, reason='Architec...lock was not
+proven for this mutation.', block_reason=<MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'>) =
+MutationResult(decision=MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed...CKED'>), executed=False,
+result=None, error='', evidence={'test': True, 'source': 'test_mutation_adapter_adversarial'}).decision
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:184: AssertionError: assert
+<MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'> is <MutationBlockReason.EXECUTOR_MISSING: 'EXECUTOR_MISSING'>
+E   AssertionError: assert <MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'> is <MutationBlockReason.EXECUTOR_INVALID: 'EXECUTOR_INVALID'>
+     +    where MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed=False, reason='Architec...lock was not
+proven for this mutation.', block_reason=<MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'>) =
+MutationResult(decision=MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed...CKED'>), executed=False,
+result=None, error='', evidence={'test': True, 'source': 'test_mutation_adapter_adversarial'}).decision
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:202: AssertionError: assert
+<MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'> is <MutationBlockReason.EXECUTOR_INVALID: 'EXECUTOR_INVALID'>
+E   AssertionError: assert <MutationStatus.BLOCKED: 'BLOCKED'> is <MutationStatus.FAILED: 'FAILED'>
+     +    where MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed=False, reason='Architec...lock was not
+proven for this mutation.', block_reason=<MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'>) =
+MutationResult(decision=MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed...CKED'>), executed=False,
+result=None, error='', evidence={'test': True, 'source': 'test_mutation_adapter_adversarial'}).decision
+     +  and   <MutationStatus.FAILED: 'FAILED'> = MutationStatus.FAILED
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:220: AssertionError: assert <MutationStatus.BLOCKED: 'BLOCKED'> is
+<MutationStatus.FAILED: 'FAILED'>
+E   AssertionError: assert False is True
+     +  where False = MutationResult(decision=MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed...CKED'>),
+executed=False, result=None, error='', evidence={'test': True, 'source': 'test_mutation_adapter_adversarial'}).executed
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:241: AssertionError: assert False is True
+E   AssertionError: assert False is True
+     +  where False = MutationResult(decision=MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed...CKED'>),
+executed=False, result=None, error='', evidence={'test': True, 'source': 'test_mutation_adapter_adversarial'}).executed
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:262: AssertionError: assert False is True
+E   AssertionError: assert <MutationStatus.BLOCKED: 'BLOCKED'> is <MutationStatus.FAILED: 'FAILED'>
+     +    where MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed=False, reason='Architec...lock was not
+proven for this mutation.', block_reason=<MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'>) =
+MutationResult(decision=MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed...CKED'>), executed=False,
+result=None, error='', evidence={'test': True, 'source': 'test_mutation_adapter_adversarial'}).decision
+     +  and   <MutationStatus.FAILED: 'FAILED'> = MutationStatus.FAILED
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:292: AssertionError: assert <MutationStatus.BLOCKED: 'BLOCKED'> is
+<MutationStatus.FAILED: 'FAILED'>
+E   KeyError: 'mutation_attempted'
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:319: KeyError: 'mutation_attempted'
+E   AssertionError: assert False is True
+     +  where False = MutationResult(decision=MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001',
+allowed...=<MutationBlockReason.ARCHITECTURE_LOCKED: 'ARCHITECTURE_LOCKED'>), executed=False, result=None, error='', evidence={}).executed
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:371: AssertionError: assert False is True
+E   AssertionError: assert False is True
+     +  where False = MutationResult(decision=MutationDecision(status=<MutationStatus.BLOCKED: 'BLOCKED'>, action_id='mutation-001', allowed...CKED'>),
+executed=False, result=None, error='', evidence={'test': True, 'source': 'test_mutation_adapter_adversarial'}).executed
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:390: AssertionError: assert False is True
+E   AssertionError: assert False is True
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:409: AssertionError: assert False is True
+E   AssertionError: assert <PipelineStatus.EXECUTED: 'EXECUTED'> is <PipelineStatus.BLOCKED: 'BLOCKED'>
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:182: AssertionError: assert <PipelineStatus.EXECUTED:
+'EXECUTED'> is <PipelineStatus.BLOCKED: 'BLOCKED'>
+E   AssertionError: assert None is not None
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:202: AssertionError: assert None is not None
+E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.FAILED: 'FAILED'>
+     +  and   <PipelineStatus.FAILED: 'FAILED'> = PipelineStatus.FAILED
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:246: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
+is <PipelineStatus.FAILED: 'FAILED'>
+E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.EXECUTED: 'EXECUTED'>
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:272: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
+is <PipelineStatus.EXECUTED: 'EXECUTED'>
+E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.EXECUTED: 'EXECUTED'>
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:303: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
+is <PipelineStatus.EXECUTED: 'EXECUTED'>
+E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.FAILED: 'FAILED'>
+     +  and   <PipelineStatus.FAILED: 'FAILED'> = PipelineStatus.FAILED
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:333: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
+is <PipelineStatus.FAILED: 'FAILED'>
+E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.FAILED: 'FAILED'>
+     +  and   <PipelineStatus.FAILED: 'FAILED'> = PipelineStatus.FAILED
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:333: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
+is <PipelineStatus.FAILED: 'FAILED'>
+E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.FAILED: 'FAILED'>
+     +  and   <PipelineStatus.FAILED: 'FAILED'> = PipelineStatus.FAILED
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:333: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
+is <PipelineStatus.FAILED: 'FAILED'>
+E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.FAILED: 'FAILED'>
+     +  and   <PipelineStatus.FAILED: 'FAILED'> = PipelineStatus.FAILED
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:333: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
+is <PipelineStatus.FAILED: 'FAILED'>
+E   AssertionError: assert False is True
+     +  where False = EnforcementDecision(allowed=False, stage='PREFLIGHT', reason='Coordinator enforcement rejected the operation.', checks...'risk',
+'guard', 'idempotency', 'tripwires', 'architecture_lock'), failures=('architecture_lock:failed',), metadata={}).allowed
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:372: AssertionError: assert False is True
+E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.EXECUTED: 'EXECUTED'>
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:389: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
+is <PipelineStatus.EXECUTED: 'EXECUTED'>
+E   AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'> is <PipelineStatus.EXECUTED: 'EXECUTED'>
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:420: AssertionError: assert <PipelineStatus.BLOCKED: 'BLOCKED'>
+is <PipelineStatus.EXECUTED: 'EXECUTED'>
+FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_frozen_architecture_is_blocked
+FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_missing_executor_is_fail_closed
+FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_non_callable_executor_is_blocked
+FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_executor_failure_is_not_reported_as_success
+FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_successful_mutation_executes_once
+FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_replay_of_same_action_id_is_blocked
+FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_failed_mutation_is_not_automatically_retried
+FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_evidence_is_preserved
+FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_adapter_does_not_execute_without_all_positive_conditions
+FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_reset_only_clears_local_attempt_memory
+FAILED AUTONOMY_ENGINE/tests/test_mutation_adapter_adversarial.py::test_preflight_has_no_execution_side_effect
+FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_frozen_architecture_blocks_pipeline
+FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_missing_executor_is_blocked
+FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_executor_failure_is_terminal
+FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_successful_execution_completes_once
+FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_replay_is_blocked
+FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_incomplete_postflight_is_not_success[postflight0]
+FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_incomplete_postflight_is_not_success[postflight1]
+FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_incomplete_postflight_is_not_success[postflight2]
+FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_incomplete_postflight_is_not_success[postflight3]
+FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_evidence_is_preserved
+FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_preflight_has_no_execution_side_effect
+FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_reset_clears_only_local_pipeline_memory
+FAILED AUTONOMY_ENGINE/tests/test_execution_pipeline_adversarial.py::test_different_action_ids_are_independent
+24 failed, 154 passed in 0.75s
