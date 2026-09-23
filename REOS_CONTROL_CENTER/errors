@@ -1,669 +1,293 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> pytest -q AUTONOMY_ENGINE/core/test_search_filters.py
-.EEEEEEEEEEE                                                                                                                                         [100%]
-========================================================================= ERRORS ==========================================================================
-_______________________________________________ ERROR at setup of test_tenant_isolation_is_always_enforced ________________________________________________
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE/core/test_search_core_t09.py -q
+F...FF..F...F..F                                                                                                                                     [100%]
+======================================================================== FAILURES =========================================================================
+_______________________________________________ test_hybrid_retrieval_does_not_expose_cross_tenant_results ________________________________________________
 
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.OFFICE,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-            ),
+    def test_hybrid_retrieval_does_not_expose_cross_tenant_results():
+        client = QdrantClient(":memory:")
+        config = QdrantIndexingConfig(
+            collection_name="t09_hybrid_security",
+            vector_size=4,
+        )
+        indexer = QdrantIndexingPipeline(
+            client=client,
+            config=config,
+        )
+        indexer.ensure_collection()
+
+        hook = InventoryIndexingHook()
+
+        tenant_1 = make_inventory(
+            tenant_id="tenant-001",
+            project_id="project-001",
+            inventory_code="UNIT-001",
+            name="Tenant One Premium",
         )
 
-AUTONOMY_ENGINE\core\test_search_filters.py:61:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
-    inventory, _ = inventory.transition(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = Inventory(inventory_id='ee80f6c7-69ab-48bb-9749-237e0abab9a9', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
-target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
-
-    def transition(
-        self,
-        target: InventoryLifecycle,
-        *,
-        tenant_id: str,
-        project_id: str,
-        at: str | None = None,
-    ) -> tuple["Inventory", InventoryEvent]:
-        """Apply one deterministic lifecycle transition."""
-
-        self.assert_tenant(tenant_id)
-        self.assert_project(project_id)
-
-        target = InventoryLifecycle(target)
-
-        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
->           raise InventoryTransitionError(
-                "Invalid inventory lifecycle transition: "
-                f"{self.lifecycle.value} -> {target.value}."
-            )
-E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-
-AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
-__________________________________________________________ ERROR at setup of test_project_filter __________________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.OFFICE,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-            ),
+        tenant_2 = make_inventory(
+            tenant_id="tenant-002",
+            project_id="project-001",
+            inventory_code="UNIT-002",
+            name="Tenant Two Premium",
         )
 
-AUTONOMY_ENGINE\core\test_search_filters.py:61:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
-    inventory, _ = inventory.transition(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = Inventory(inventory_id='0e9570dd-c5a4-47df-bf36-f9a996f744a3', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
-target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
-
-    def transition(
-        self,
-        target: InventoryLifecycle,
-        *,
-        tenant_id: str,
-        project_id: str,
-        at: str | None = None,
-    ) -> tuple["Inventory", InventoryEvent]:
-        """Apply one deterministic lifecycle transition."""
-
-        self.assert_tenant(tenant_id)
-        self.assert_project(project_id)
-
-        target = InventoryLifecycle(target)
-
-        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
->           raise InventoryTransitionError(
-                "Invalid inventory lifecycle transition: "
-                f"{self.lifecycle.value} -> {target.value}."
-            )
-E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-
-AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
-______________________________________________________ ERROR at setup of test_inventory_type_filter _______________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.OFFICE,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-            ),
+>       doc_1 = hook.build_upsert(
+            tenant_1,
+            tenant_id="tenant-001",
+            project_id="project-001",
+            expected_version=1,
         )
 
-AUTONOMY_ENGINE\core\test_search_filters.py:61:
+AUTONOMY_ENGINE\core\test_search_core_t09.py:158:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
-    inventory, _ = inventory.transition(
+AUTONOMY_ENGINE\core\inventory_indexing.py:176: in build_upsert
+    self._assert_version(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = Inventory(inventory_id='2e4bdf77-e69b-4786-9b45-4af95386f67f', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
-target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
+self = InventoryIndexingHook(index_name='reos_inventory')
+inventory = Inventory(inventory_id='d9b7828b-39bf-491b-8d1b-da7ae94e9116', tenant_id='tenant-001', project_id='project-001', inven...:00', version=3, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+expected_version = 1
 
-    def transition(
+    def _assert_version(
         self,
-        target: InventoryLifecycle,
+        inventory: Inventory,
         *,
-        tenant_id: str,
-        project_id: str,
-        at: str | None = None,
-    ) -> tuple["Inventory", InventoryEvent]:
-        """Apply one deterministic lifecycle transition."""
+        expected_version: int | None,
+    ) -> None:
+        if expected_version is None:
+            return
 
-        self.assert_tenant(tenant_id)
-        self.assert_project(project_id)
-
-        target = InventoryLifecycle(target)
-
-        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
->           raise InventoryTransitionError(
-                "Invalid inventory lifecycle transition: "
-                f"{self.lifecycle.value} -> {target.value}."
+        if expected_version < 1:
+            raise InventoryIndexStaleVersionError(
+                "expected_version must be >= 1."
             )
-E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
 
-AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
-_______________________________________________________ ERROR at setup of test_availability_filter ________________________________________________________
+        if expected_version != inventory.version:
+>           raise InventoryIndexStaleVersionError(
+                "Inventory indexing request targets a stale inventory version."
+            )
+E           AUTONOMY_ENGINE.core.inventory_indexing.InventoryIndexStaleVersionError: Inventory indexing request targets a stale inventory version.
 
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.OFFICE,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-            ),
+AUTONOMY_ENGINE\core\inventory_indexing.py:157: InventoryIndexStaleVersionError
+______________________________________________________________ test_ranking_is_deterministic ______________________________________________________________
+
+    def test_ranking_is_deterministic():
+        candidates = tuple(
+            to_ranked(
+                make_hybrid_result(
+                    index_key=f"idx-{index:03d}",
+                    tenant_id="tenant-001",
+                    rank=index,
+                    name="Premium",
+                    rrf_score=1.0 / index,
+                ),
+                rank=index,
+            )
+            for index in range(1, 101)
         )
 
-AUTONOMY_ENGINE\core\test_search_filters.py:61:
+        pipeline = SearchRankingPipeline()
+
+>       first = pipeline.rank(candidates)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+AUTONOMY_ENGINE\core\test_search_core_t09.py:278:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
-    inventory, _ = inventory.transition(
+AUTONOMY_ENGINE\core\search_ranking.py:156: in rank
+    ranking_score=self._base_score(result),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = Inventory(inventory_id='d2fac1da-75e2-49d3-a970-e62a530f9191', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
-target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
+self = <AUTONOMY_ENGINE.core.search_ranking.SearchRankingPipeline object at 0x0000028D6E4C1190>
+result = RankedSearchResult(result=HybridSearchResult(document=namespace(index_key='idx-001', tenant_id='tenant-001', project_i... availability='AVAILABLE'), rrf_score=1.0, lexical_rank=1, vector_rank=1), ranking_score=1.0, rerank_score=1.0, rank=1)
 
-    def transition(
-        self,
-        target: InventoryLifecycle,
-        *,
-        tenant_id: str,
-        project_id: str,
-        at: str | None = None,
-    ) -> tuple["Inventory", InventoryEvent]:
-        """Apply one deterministic lifecycle transition."""
+    def _base_score(self, result: HybridSearchResult) -> float:
+>       lexical_signal = _reciprocal_rank(result.lexical_rank)
+                                          ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'RankedSearchResult' object has no attribute 'lexical_rank'
 
-        self.assert_tenant(tenant_id)
-        self.assert_project(project_id)
+AUTONOMY_ENGINE\core\search_ranking.py:136: AttributeError
+________________________________________________________ test_reranking_preserves_relevance_signal ________________________________________________________
 
-        target = InventoryLifecycle(target)
-
-        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
->           raise InventoryTransitionError(
-                "Invalid inventory lifecycle transition: "
-                f"{self.lifecycle.value} -> {target.value}."
+    def test_reranking_preserves_relevance_signal():
+        candidates = tuple(
+            to_ranked(
+                make_hybrid_result(
+                    index_key=index_key,
+                    tenant_id="tenant-001",
+                    rank=rank,
+                    name=name,
+                    inventory_code=code,
+                ),
+                rank=rank,
             )
-E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-
-AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
-_________________________________________________________ ERROR at setup of test_lifecycle_filter _________________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.OFFICE,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-            ),
+            for index_key, rank, name, code in (
+                (
+                    "idx-standard",
+                    1,
+                    "Standard Apartment",
+                    "UNIT-001",
+                ),
+                (
+                    "idx-premium",
+                    2,
+                    "Premium Two Bedroom",
+                    "UNIT-002",
+                ),
+            )
         )
 
-AUTONOMY_ENGINE\core\test_search_filters.py:61:
+        pipeline = SearchRankingPipeline()
+>       ranked = pipeline.rank(candidates)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+AUTONOMY_ENGINE\core\test_search_core_t09.py:327:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
-    inventory, _ = inventory.transition(
+AUTONOMY_ENGINE\core\search_ranking.py:156: in rank
+    ranking_score=self._base_score(result),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = Inventory(inventory_id='fe84331b-d282-4e97-8b7a-d3e24645e1fe', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
-target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
+self = <AUTONOMY_ENGINE.core.search_ranking.SearchRankingPipeline object at 0x0000028D7FD5C6B0>
+result = RankedSearchResult(result=HybridSearchResult(document=namespace(index_key='idx-standard', tenant_id='tenant-001', proj... availability='AVAILABLE'), rrf_score=0.5, lexical_rank=1, vector_rank=1), ranking_score=0.5, rerank_score=0.5, rank=1)
 
-    def transition(
-        self,
-        target: InventoryLifecycle,
-        *,
-        tenant_id: str,
-        project_id: str,
-        at: str | None = None,
-    ) -> tuple["Inventory", InventoryEvent]:
-        """Apply one deterministic lifecycle transition."""
+    def _base_score(self, result: HybridSearchResult) -> float:
+>       lexical_signal = _reciprocal_rank(result.lexical_rank)
+                                          ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'RankedSearchResult' object has no attribute 'lexical_rank'
 
-        self.assert_tenant(tenant_id)
-        self.assert_project(project_id)
+AUTONOMY_ENGINE\core\search_ranking.py:136: AttributeError
+________________________________________________________ test_performance_ranking_2000_candidates _________________________________________________________
 
-        target = InventoryLifecycle(target)
-
-        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
->           raise InventoryTransitionError(
-                "Invalid inventory lifecycle transition: "
-                f"{self.lifecycle.value} -> {target.value}."
+    def test_performance_ranking_2000_candidates():
+        candidates = tuple(
+            to_ranked(
+                make_hybrid_result(
+                    index_key=f"idx-{index:05d}",
+                    tenant_id="tenant-001",
+                    rank=(index % 100) + 1,
+                    name="Premium Residential Unit",
+                    inventory_code=f"UNIT-{index:05d}",
+                    rrf_score=1.0 / ((index % 100) + 1),
+                ),
+                rank=(index % 100) + 1,
             )
-E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-
-AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
-______________________________________________________ ERROR at setup of test_inventory_code_filter _______________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.OFFICE,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-            ),
+            for index in range(2000)
         )
 
-AUTONOMY_ENGINE\core\test_search_filters.py:61:
+        pipeline = SearchRankingPipeline()
+
+        started = perf_counter()
+>       result = pipeline.rank(candidates, limit=100)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+AUTONOMY_ENGINE\core\test_search_core_t09.py:431:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
-    inventory, _ = inventory.transition(
+AUTONOMY_ENGINE\core\search_ranking.py:156: in rank
+    ranking_score=self._base_score(result),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = Inventory(inventory_id='4a05fe16-6967-47b9-91f4-508cd62b97c0', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
-target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
+self = <AUTONOMY_ENGINE.core.search_ranking.SearchRankingPipeline object at 0x0000028D7FEB7FE0>
+result = RankedSearchResult(result=HybridSearchResult(document=namespace(index_key='idx-00000', tenant_id='tenant-001', project... availability='AVAILABLE'), rrf_score=1.0, lexical_rank=1, vector_rank=1), ranking_score=1.0, rerank_score=1.0, rank=1)
 
-    def transition(
-        self,
-        target: InventoryLifecycle,
-        *,
-        tenant_id: str,
-        project_id: str,
-        at: str | None = None,
-    ) -> tuple["Inventory", InventoryEvent]:
-        """Apply one deterministic lifecycle transition."""
+    def _base_score(self, result: HybridSearchResult) -> float:
+>       lexical_signal = _reciprocal_rank(result.lexical_rank)
+                                          ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'RankedSearchResult' object has no attribute 'lexical_rank'
 
-        self.assert_tenant(tenant_id)
-        self.assert_project(project_id)
+AUTONOMY_ENGINE\core\search_ranking.py:136: AttributeError
+_________________________________________________________ test_ranking_does_not_mutate_candidates _________________________________________________________
 
-        target = InventoryLifecycle(target)
-
-        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
->           raise InventoryTransitionError(
-                "Invalid inventory lifecycle transition: "
-                f"{self.lifecycle.value} -> {target.value}."
+    def test_ranking_does_not_mutate_candidates():
+        candidates = tuple(
+            to_ranked(
+                make_hybrid_result(
+                    index_key=f"idx-{index}",
+                    tenant_id="tenant-001",
+                    rank=index,
+                    name="Property",
+                ),
+                rank=index,
             )
-E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-
-AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
-________________________________________________ ERROR at setup of test_name_contains_is_case_insensitive _________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.OFFICE,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-            ),
+            for index in range(1, 20)
         )
 
-AUTONOMY_ENGINE\core\test_search_filters.py:61:
+        original = candidates
+
+>       SearchRankingPipeline().rank(candidates)
+
+AUTONOMY_ENGINE\core\test_search_core_t09.py:541:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
-    inventory, _ = inventory.transition(
+AUTONOMY_ENGINE\core\search_ranking.py:156: in rank
+    ranking_score=self._base_score(result),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = Inventory(inventory_id='993298b0-bc2b-4f36-a715-15ce21a0abe9', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
-target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
+self = <AUTONOMY_ENGINE.core.search_ranking.SearchRankingPipeline object at 0x0000028D7FD7F710>
+result = RankedSearchResult(result=HybridSearchResult(document=namespace(index_key='idx-1', tenant_id='tenant-001', project_id=... availability='AVAILABLE'), rrf_score=0.5, lexical_rank=1, vector_rank=1), ranking_score=0.5, rerank_score=0.5, rank=1)
 
-    def transition(
-        self,
-        target: InventoryLifecycle,
-        *,
-        tenant_id: str,
-        project_id: str,
-        at: str | None = None,
-    ) -> tuple["Inventory", InventoryEvent]:
-        """Apply one deterministic lifecycle transition."""
+    def _base_score(self, result: HybridSearchResult) -> float:
+>       lexical_signal = _reciprocal_rank(result.lexical_rank)
+                                          ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'RankedSearchResult' object has no attribute 'lexical_rank'
 
-        self.assert_tenant(tenant_id)
-        self.assert_project(project_id)
+AUTONOMY_ENGINE\core\search_ranking.py:136: AttributeError
+_____________________________________________________ test_indexing_projection_preserves_source_truth _____________________________________________________
 
-        target = InventoryLifecycle(target)
-
-        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
->           raise InventoryTransitionError(
-                "Invalid inventory lifecycle transition: "
-                f"{self.lifecycle.value} -> {target.value}."
-            )
-E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-
-AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
-__________________________________________________ ERROR at setup of test_multiple_filters_are_combined ___________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.OFFICE,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-            ),
+    def test_indexing_projection_preserves_source_truth():
+        inventory = make_inventory(
+            tenant_id="tenant-001",
+            project_id="project-001",
+            inventory_code="UNIT-001",
+            name="Premium Two Bedroom",
         )
 
-AUTONOMY_ENGINE\core\test_search_filters.py:61:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
-    inventory, _ = inventory.transition(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+        before = inventory.to_dict()
 
-self = Inventory(inventory_id='61212f9c-474c-468a-8ca8-6578a90985f2', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
-target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
-
-    def transition(
-        self,
-        target: InventoryLifecycle,
-        *,
-        tenant_id: str,
-        project_id: str,
-        at: str | None = None,
-    ) -> tuple["Inventory", InventoryEvent]:
-        """Apply one deterministic lifecycle transition."""
-
-        self.assert_tenant(tenant_id)
-        self.assert_project(project_id)
-
-        target = InventoryLifecycle(target)
-
-        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
->           raise InventoryTransitionError(
-                "Invalid inventory lifecycle transition: "
-                f"{self.lifecycle.value} -> {target.value}."
-            )
-E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-
-AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
-_____________________________________________ ERROR at setup of test_empty_filter_returns_only_tenant_records _____________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.OFFICE,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-            ),
+>       document = InventoryIndexingHook().build_upsert(
+            inventory,
+            tenant_id="tenant-001",
+            project_id="project-001",
+            expected_version=1,
         )
 
-AUTONOMY_ENGINE\core\test_search_filters.py:61:
+AUTONOMY_ENGINE\core\test_search_core_t09.py:602:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
-    inventory, _ = inventory.transition(
+AUTONOMY_ENGINE\core\inventory_indexing.py:176: in build_upsert
+    self._assert_version(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = Inventory(inventory_id='deaf7bba-30d3-4107-985d-85c2432eee03', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
-target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
+self = InventoryIndexingHook(index_name='reos_inventory')
+inventory = Inventory(inventory_id='7be33ad3-0678-4a46-b5bc-494cfbe7b75f', tenant_id='tenant-001', project_id='project-001', inven...:00', version=3, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
+expected_version = 1
 
-    def transition(
+    def _assert_version(
         self,
-        target: InventoryLifecycle,
+        inventory: Inventory,
         *,
-        tenant_id: str,
-        project_id: str,
-        at: str | None = None,
-    ) -> tuple["Inventory", InventoryEvent]:
-        """Apply one deterministic lifecycle transition."""
+        expected_version: int | None,
+    ) -> None:
+        if expected_version is None:
+            return
 
-        self.assert_tenant(tenant_id)
-        self.assert_project(project_id)
-
-        target = InventoryLifecycle(target)
-
-        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
->           raise InventoryTransitionError(
-                "Invalid inventory lifecycle transition: "
-                f"{self.lifecycle.value} -> {target.value}."
+        if expected_version < 1:
+            raise InventoryIndexStaleVersionError(
+                "expected_version must be >= 1."
             )
-E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
 
-AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
-__________________________________________________ ERROR at setup of test_result_order_is_deterministic ___________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.OFFICE,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-            ),
-        )
-
-AUTONOMY_ENGINE\core\test_search_filters.py:61:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
-    inventory, _ = inventory.transition(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = Inventory(inventory_id='b22707ed-3633-4f11-b1c7-210b561ca8e8', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
-target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
-
-    def transition(
-        self,
-        target: InventoryLifecycle,
-        *,
-        tenant_id: str,
-        project_id: str,
-        at: str | None = None,
-    ) -> tuple["Inventory", InventoryEvent]:
-        """Apply one deterministic lifecycle transition."""
-
-        self.assert_tenant(tenant_id)
-        self.assert_project(project_id)
-
-        target = InventoryLifecycle(target)
-
-        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
->           raise InventoryTransitionError(
-                "Invalid inventory lifecycle transition: "
-                f"{self.lifecycle.value} -> {target.value}."
+        if expected_version != inventory.version:
+>           raise InventoryIndexStaleVersionError(
+                "Inventory indexing request targets a stale inventory version."
             )
-E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
+E           AUTONOMY_ENGINE.core.inventory_indexing.InventoryIndexStaleVersionError: Inventory indexing request targets a stale inventory version.
 
-AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
-_________________________________________________ ERROR at setup of test_filter_does_not_mutate_documents _________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.OFFICE,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-            ),
-        )
-
-AUTONOMY_ENGINE\core\test_search_filters.py:61:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\test_search_filters.py:38: in make_document
-    inventory, _ = inventory.transition(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = Inventory(inventory_id='1ffd9c6a-f418-464e-9042-deec1a7d0717', tenant_id='tenant-001', project_id='project-001', inven...:00', version=1, metadata={}, source_of_truth='inventory', availability=<InventoryAvailability.AVAILABLE: 'AVAILABLE'>)
-target = <InventoryLifecycle.ACTIVE: 'ACTIVE'>, tenant_id = 'tenant-001', project_id = 'project-001', at = None
-
-    def transition(
-        self,
-        target: InventoryLifecycle,
-        *,
-        tenant_id: str,
-        project_id: str,
-        at: str | None = None,
-    ) -> tuple["Inventory", InventoryEvent]:
-        """Apply one deterministic lifecycle transition."""
-
-        self.assert_tenant(tenant_id)
-        self.assert_project(project_id)
-
-        target = InventoryLifecycle(target)
-
-        if target not in _ALLOWED_LIFECYCLE_TRANSITIONS[self.lifecycle]:
->           raise InventoryTransitionError(
-                "Invalid inventory lifecycle transition: "
-                f"{self.lifecycle.value} -> {target.value}."
-            )
-E           AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-
-AUTONOMY_ENGINE\core\inventory.py:296: InventoryTransitionError
+AUTONOMY_ENGINE\core\inventory_indexing.py:157: InventoryIndexStaleVersionError
 ================================================================= short test summary info =================================================================
-ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_tenant_isolation_is_always_enforced - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_project_filter - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_inventory_type_filter - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_availability_filter - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_lifecycle_filter - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_inventory_code_filter - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_name_contains_is_case_insensitive - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_multiple_filters_are_combined - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_empty_filter_returns_only_tenant_records - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_result_order_is_deterministic - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-ERROR AUTONOMY_ENGINE/core/test_search_filters.py::test_filter_does_not_mutate_documents - AUTONOMY_ENGINE.core.inventory.InventoryTransitionError: Invalid inventory lifecycle transition: DRAFT -> ACTIVE.
-1 passed, 11 errors in 0.41s
-PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py complete-subtask CORE-005-T01 --note "Structured search filter contract implemented over canonical InventoryIndexDocument projection with mandatory tenant isolation, project/type/lifecycle/availability/code/name filters, deterministic ordering, immutable derived-data evaluation, and 11 passing focused tests."
-COMPLETED: CORE-005-T01
-NEXT: CORE-005-T02: Implement PostGIS/location search where required.
-PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py status
-HOMIO / REOS CONTROL CENTER v7.0
-========================================================================
-Phase: PRE-CODING ARCHITECTURE
-Gate: CORE-005
-Task: CORE-005-T02: Implement PostGIS/location search where required.
-Status: CONTROL_CENTER_DRIVEN
-Subtask: CORE-005-T02
-Gate Status: CURRENT
-Subtasks: 10 Criteria: 6
-Approved: 38 Pending: 1
-State: D:\Homio\REOS_CONTROL_CENTER\data\state.json
+FAILED AUTONOMY_ENGINE/core/test_search_core_t09.py::test_hybrid_retrieval_does_not_expose_cross_tenant_results - AUTONOMY_ENGINE.core.inventory_indexing.InventoryIndexStaleVersionError: Inventory indexing request targets a stale inventory version.
+FAILED AUTONOMY_ENGINE/core/test_search_core_t09.py::test_ranking_is_deterministic - AttributeError: 'RankedSearchResult' object has no attribute 'lexical_rank'
+FAILED AUTONOMY_ENGINE/core/test_search_core_t09.py::test_reranking_preserves_relevance_signal - AttributeError: 'RankedSearchResult' object has no attribute 'lexical_rank'
+FAILED AUTONOMY_ENGINE/core/test_search_core_t09.py::test_performance_ranking_2000_candidates - AttributeError: 'RankedSearchResult' object has no attribute 'lexical_rank'
+FAILED AUTONOMY_ENGINE/core/test_search_core_t09.py::test_ranking_does_not_mutate_candidates - AttributeError: 'RankedSearchResult' object has no attribute 'lexical_rank'
+FAILED AUTONOMY_ENGINE/core/test_search_core_t09.py::test_indexing_projection_preserves_source_truth - AUTONOMY_ENGINE.core.inventory_indexing.InventoryIndexStaleVersionError: Inventory indexing request targets a stale inventory version.
+6 failed, 10 passed in 2.07s
