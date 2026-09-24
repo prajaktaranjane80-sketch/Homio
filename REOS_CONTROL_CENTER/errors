@@ -1,124 +1,212 @@
-=== DEAL FILE METADATA ===
-PS D:\Homio\REOS_CONTROL_CENTER> Get-Item `
->>   .\AUTONOMY_ENGINE\core\deal.py, `
->>   .\AUTONOMY_ENGINE\core\deal.py.T06_FAILED_20260924_113317.bak, `
->>   .\AUTONOMY_ENGINE\core\deal.py.before-T06-rollback `
->>   -ErrorAction SilentlyContinue |
->>   Select-Object Name,Length,LastWriteTime
+PS C:\Users\Sandip RanjanePatil> Write-Host "============================================================"
+============================================================
+PS C:\Users\Sandip RanjanePatil> Write-Host " REOS CORE-006 T06 RECOVERY / DEVELOPER EVIDENCE"
+ REOS CORE-006 T06 RECOVERY / DEVELOPER EVIDENCE
+PS C:\Users\Sandip RanjanePatil> Write-Host "============================================================"
+============================================================
+PS C:\Users\Sandip RanjanePatil>
+PS C:\Users\Sandip RanjanePatil> Write-Host "`n=== 1. GIT STATUS ==="
 
-Name                                   Length LastWriteTime
-----                                   ------ -------------
-deal.py                                  3820 9/24/2026 11:33:18 AM
-deal.py.T06_FAILED_20260924_113317.bak  37851 9/24/2026 10:49:58 AM
-deal.py.before-T06-rollback              3820 9/24/2026 11:33:18 AM
+=== 1. GIT STATUS ===
+PS C:\Users\Sandip RanjanePatil> git status --short
+warning: could not open directory 'Application Data/': Permission denied
+warning: could not open directory 'Cookies/': Permission denied
+warning: could not open directory 'Documents/My Music/': Permission denied
+warning: could not open directory 'Documents/My Pictures/': Permission denied
+warning: could not open directory 'Documents/My Videos/': Permission denied
+warning: could not open directory 'Local Settings/': Permission denied
+warning: could not open directory 'My Documents/': Permission denied
+warning: could not open directory 'NetHood/': Permission denied
+warning: could not open directory 'PrintHood/': Permission denied
+warning: could not open directory 'Recent/': Permission denied
+warning: could not open directory 'SendTo/': Permission denied
+warning: could not open directory 'Start Menu/': Permission denied
+warning: could not open directory 'Templates/': Permission denied
+?? .cache/
+?? .cagent/
+?? .claude.json
+?? .claude/
+?? .cline/
+?? .config/
+?? .continue/
+?? .copilot/
+?? .cursor/
+?? .docker/
+?? .fontconfig/
+?? .gemini/
+?? .git-for-windows-updater
+?? .gitconfig
+?? .idlerc/
+?? .imagineer_log.txt
+?? .kimi-code/
+?? .lesshst
+?? .node_repl_history
+?? .ollama/
+?? .overture/
+?? .redhat/
+?? .serenade/
+?? .thumbnails/
+?? .viminfo
+?? .vscode-shared/
+?? .vscode/
+?? AppData/
+?? Contacts/
+?? DISM
+?? Desktop/
+?? Favorites/
+?? Intellect-Media/
+?? Links/
+?? "Muse Hub/"
+?? Music/
+?? NTUSER.DAT
+?? NTUSER.DAT{3275fca1-85a8-11f0-afbb-dd351cf339d9}.TM.blf
+?? NTUSER.DAT{3275fca1-85a8-11f0-afbb-dd351cf339d9}.TMContainer00000000000000000001.regtrans-ms
+?? NTUSER.DAT{3275fca1-85a8-11f0-afbb-dd351cf339d9}.TMContainer00000000000000000002.regtrans-ms
+?? "New Corel PHOTO-PAINT 2021 Image.cpt"
+?? Pictures/
+?? PycharmProjects/
+?? "Saved Games/"
+?? Searches/
+?? "This PC - Shortcut.lnk"
+?? Videos/
+?? cd
+?? ntuser.dat.LOG1
+?? ntuser.dat.LOG2
+?? ntuser.ini
+?? py
+?? query
+?? requirements.txt
+PS C:\Users\Sandip RanjanePatil>
+PS C:\Users\Sandip RanjanePatil> Write-Host "`n=== 2. DEAL FILES ==="
 
+=== 2. DEAL FILES ===
+PS C:\Users\Sandip RanjanePatil> Get-ChildItem .\AUTONOMY_ENGINE\core\deal* -File |
+>>     Select-Object Name,Length,LastWriteTime
+Get-ChildItem : Cannot find path 'C:\Users\Sandip RanjanePatil\AUTONOMY_ENGINE\core' because it does not exist.
+At line:1 char:1
++ Get-ChildItem .\AUTONOMY_ENGINE\core\deal* -File |
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\Sandip...OMY_ENGINE\core:String) [Get-ChildItem], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetChildItemCommand
 
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== DEAL CLASS / METHODS ==="
+PS C:\Users\Sandip RanjanePatil>
+PS C:\Users\Sandip RanjanePatil> Write-Host "`n=== 3. DEAL TEST FILES ==="
 
-=== DEAL CLASS / METHODS ===
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($f in @(
->>   ".\AUTONOMY_ENGINE\core\deal.py",
->>   ".\AUTONOMY_ENGINE\core\deal.py.T06_FAILED_20260924_113317.bak",
->>   ".\AUTONOMY_ENGINE\core\deal.py.before-T06-rollback"
->> )) {
->>   if (Test-Path $f) {
->>     Write-Host "`n--- $f ---"
->>     Select-String -Path $f -Pattern '^class Deal\b|^class DealStatus\b|^    def ' |
->>       Select-Object -First 100 |
->>       ForEach-Object {
+=== 3. DEAL TEST FILES ===
+PS C:\Users\Sandip RanjanePatil> Get-ChildItem .\AUTONOMY_ENGINE\core\test_deal* -File |
+>>     Select-Object Name,Length,LastWriteTime
+Get-ChildItem : Cannot find path 'C:\Users\Sandip RanjanePatil\AUTONOMY_ENGINE\core' because it does not exist.
+At line:1 char:1
++ Get-ChildItem .\AUTONOMY_ENGINE\core\test_deal* -File |
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\Sandip...OMY_ENGINE\core:String) [Get-ChildItem], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetChildItemCommand
+
+PS C:\Users\Sandip RanjanePatil>
+PS C:\Users\Sandip RanjanePatil> Write-Host "`n=== 4. DEAL SYMBOLS — CURRENT ==="
+
+=== 4. DEAL SYMBOLS — CURRENT ===
+PS C:\Users\Sandip RanjanePatil> Select-String -Path .\AUTONOMY_ENGINE\core\deal.py `
+>>     -Pattern '^class |^    def ' |
+>>     ForEach-Object {
 >>         "{0}: {1}" -f $_.LineNumber,$_.Line.Trim()
->>       }
->>   }
->> }
+>>     }
+Select-String : Cannot find path 'C:\Users\Sandip RanjanePatil\AUTONOMY_ENGINE\core\deal.py' because it does not exist.
+At line:1 char:1
++ Select-String -Path .\AUTONOMY_ENGINE\core\deal.py `
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\Sandip...NE\core\deal.py:String) [Select-String], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.SelectStringCommand
 
---- .\AUTONOMY_ENGINE\core\deal.py ---
-58: def __post_init__(self) -> None:
-69: def relationship_key(self) -> str:
-72: def to_dict(self) -> dict[str, Any]:
+PS C:\Users\Sandip RanjanePatil>
+PS C:\Users\Sandip RanjanePatil> Write-Host "`n=== 5. DEAL SYMBOLS — FAILED BACKUP ==="
 
---- .\AUTONOMY_ENGINE\core\deal.py.T06_FAILED_20260924_113317.bak ---
-58: def __post_init__(self) -> None:
-69: def relationship_key(self) -> str:
-72: def to_dict(self) -> dict[str, Any]:
-80: class DealStatus(str, Enum):
-112: def to_dict(self) -> dict[str, Any]:
-248: class Deal:
-294: def __post_init__(self) -> None:
-324: def create(
-382: def identity_key(self) -> str:
-386: def party_relationships(self) -> tuple[DealPartyRelationship, ...]:
-405: def party_for(self, role: DealPartyRole) -> str | None:
-415: def is_terminal(self) -> bool:
-419: def opportunity_bound(self) -> bool:
-429: def _assert_tenant(self, tenant_id: str) -> None:
-435: def _assert_version(self, expected_version: int | None) -> None:
-450: def current_offer(self) -> DealOffer | None:
-453: def create_offer(
-515: def submit_offer(
-592: def start_negotiation(
-674: def transition_negotiation(
-731: def advance_negotiation_round(
-770: def last_transaction_milestone(self) -> DealTransactionMilestone | None:
-773: def advance_transaction_milestone(
-835: def attach_evidence(
-893: def record_audit(
-954: def bind_ownership(
-1008: def bind_party(
-1057: def bind_opportunity(
-1121: def transition(
-1209: def to_dict(self) -> dict[str, Any]:
+=== 5. DEAL SYMBOLS — FAILED BACKUP ===
+PS C:\Users\Sandip RanjanePatil> Select-String -Path .\AUTONOMY_ENGINE\core\deal.py.T06_FAILED_20260924_113317.bak `
+>>     -Pattern '^class |^    def ' |
+>>     ForEach-Object {
+>>         "{0}: {1}" -f $_.LineNumber,$_.Line.Trim()
+>>     }
+Select-String : Cannot find path 'C:\Users\Sandip RanjanePatil\AUTONOMY_ENGINE\core\deal.py.T06_FAILED_20260924_113317.bak' because it does not exist.
+At line:1 char:1
++ Select-String -Path .\AUTONOMY_ENGINE\core\deal.py.T06_FAILED_2026092 ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\Sandip...0924_113317.bak:String) [Select-String], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.SelectStringCommand
 
---- .\AUTONOMY_ENGINE\core\deal.py.before-T06-rollback ---
-58: def __post_init__(self) -> None:
-69: def relationship_key(self) -> str:
-72: def to_dict(self) -> dict[str, Any]:
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== T06 FILES ==="
+PS C:\Users\Sandip RanjanePatil>
+PS C:\Users\Sandip RanjanePatil> Write-Host "`n=== 6. T01-T05 TEST NAMES ==="
 
-=== T06 FILES ===
-PS D:\Homio\REOS_CONTROL_CENTER> Get-ChildItem .\AUTONOMY_ENGINE\core\*deal*evidence* `
->>   -ErrorAction SilentlyContinue |
->>   Select-Object Name,Length,LastWriteTime
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== CURRENT DEAL.PY END ==="
+=== 6. T01-T05 TEST NAMES ===
+PS C:\Users\Sandip RanjanePatil> Select-String `
+>>     -Path .\AUTONOMY_ENGINE\core\test_deal.py,
+>>           .\AUTONOMY_ENGINE\core\test_deal_parties.py,
+>>           .\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py,
+>>           .\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py,
+>>           .\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py `
+>>     -Pattern '^\s*def test_' |
+>>     ForEach-Object {
+>>         "{0}: {1}: {2}" -f $_.Path,$_.LineNumber,$_.Line.Trim()
+>>     }
+Select-String : Cannot find path 'C:\Users\Sandip RanjanePatil\AUTONOMY_ENGINE\core\test_deal.py' because it does not exist.
+At line:1 char:1
++ Select-String `
++ ~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\Sandip...re\test_deal.py:String) [Select-String], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.SelectStringCommand
 
-=== CURRENT DEAL.PY END ===
-PS D:\Homio\REOS_CONTROL_CENTER> if (Test-Path .\AUTONOMY_ENGINE\core\deal.py) {
->>   Get-Content .\AUTONOMY_ENGINE\core\deal.py -Tail 40
->> }
-            ],
-            "ownership_binding": (
-                self.ownership_binding.to_dict()
-                if self.ownership_binding is not None
-                else None
-            ),
-            "milestones": [
-                milestone.to_dict()
-                for milestone in self.milestones
-            ],
-            "negotiation": (
-                self.negotiation.to_dict()
-                if self.negotiation is not None
-                else None
-            ),
-        }
+PS C:\Users\Sandip RanjanePatil>
+PS C:\Users\Sandip RanjanePatil> Write-Host "`n=== 7. EVIDENCE / AUDIT FILES ==="
 
-__all__ = [
-    "Deal",    "DealOffer",
-    "DealOfferStatus",
-    "DealNegotiation",
-    "DealNegotiationStatus",
-    "DealStatus",
-    "DealHistoryEntry",
-    "DealDomainError",
-    "DealTransitionError",
-    "DealTenantError",
-    "DealConcurrencyError",
-    "DealReferenceConflictError",
-    "DealValidationError",
-]
+=== 7. EVIDENCE / AUDIT FILES ===
+PS C:\Users\Sandip RanjanePatil> Get-ChildItem .\AUTONOMY_ENGINE\core\*evidence*,.\AUTONOMY_ENGINE\core\*audit* `
+>>     -File -ErrorAction SilentlyContinue |
+>>     Select-Object Name,Length,LastWriteTime
+PS C:\Users\Sandip RanjanePatil>
+PS C:\Users\Sandip RanjanePatil> Write-Host "`n=== 8. INVENTORY EVIDENCE SYMBOLS ==="
 
+=== 8. INVENTORY EVIDENCE SYMBOLS ===
+PS C:\Users\Sandip RanjanePatil> Select-String `
+>>     -Path .\AUTONOMY_ENGINE\core\inventory_evidence.py,
+>>           .\AUTONOMY_ENGINE\core\inventory_history_evidence.py `
+>>     -Pattern '^class |^    def ' |
+>>     ForEach-Object {
+>>         "{0}: {1}: {2}" -f $_.Path,$_.LineNumber,$_.Line.Trim()
+>>     }
+Select-String : Cannot find path 'C:\Users\Sandip RanjanePatil\AUTONOMY_ENGINE\core\inventory_evidence.py' because it does not exist.
+At line:1 char:1
++ Select-String `
++ ~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\Sandip...ory_evidence.py:String) [Select-String], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.SelectStringCommand
 
+PS C:\Users\Sandip RanjanePatil>
+PS C:\Users\Sandip RanjanePatil> Write-Host "`n=== 9. T06 TEST COLLECTION / CURRENT FAILURE ==="
 
+=== 9. T06 TEST COLLECTION / CURRENT FAILURE ===
+PS C:\Users\Sandip RanjanePatil> python -m pytest `
+>>     .\AUTONOMY_ENGINE\core\test_deal.py `
+>>     .\AUTONOMY_ENGINE\core\test_deal_parties.py `
+>>     .\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py `
+>>     .\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py `
+>>     .\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py `
+>>     --collect-only -q
 
+no tests collected in 0.00s
+ERROR: file or directory not found: .\AUTONOMY_ENGINE\core\test_deal.py
+
+PS C:\Users\Sandip RanjanePatil>
+PS C:\Users\Sandip RanjanePatil> Write-Host "`n=== 10. PYTHON COMPILE CURRENT DEAL ==="
+
+=== 10. PYTHON COMPILE CURRENT DEAL ===
+PS C:\Users\Sandip RanjanePatil> python -m py_compile .\AUTONOMY_ENGINE\core\deal.py
+[Errno 2] No such file or directory: '.\\AUTONOMY_ENGINE\\core\\deal.py'
+PS C:\Users\Sandip RanjanePatil>
+PS C:\Users\Sandip RanjanePatil> Write-Host "`n============================================================"
+
+============================================================
+PS C:\Users\Sandip RanjanePatil> Write-Host " END CORE-006 T06 RECOVERY EVIDENCE"
+ END CORE-006 T06 RECOVERY EVIDENCE
+PS C:\Users\Sandip RanjanePatil> Write-Host "============================================================"
+============================================================
+PS C:\Users\Sandip RanjanePatil>
