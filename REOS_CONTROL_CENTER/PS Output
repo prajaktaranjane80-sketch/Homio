@@ -1,352 +1,3 @@
->>     Select-Object Path,LineNumber,Line
-
-Path                                                                                  LineNumber Line
-----                                                                                  ---------- ----
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\action_planner.py                           14         if blockers: return ActionPlan("BLOCKED",None,b...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\constants.py                                32     "publish_event",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\constants.py                                33     "replay_event",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                     15 from .deal_transaction_milestones import DealTransactio...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                    289     milestones: tuple[DealTransactionMilestone, ...] = ...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                    770     def last_transaction_milestone(self) -> DealTransac...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                    771         return self.milestones[-1] if self.milestones e...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                    773     def advance_transaction_milestone(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                    782         """Advance the canonical Deal lifecycle and app...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                    788         transaction_statuses = {
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                    799         if target not in transaction_statuses:
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                    801                 f"{target.value} is not a transaction m...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                    817         milestone = DealTransactionMilestone(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                    818             milestone_id=str(uuid4()),
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                    823             sequence=len(self.milestones) + 1,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                    831             milestones=self.milestones + (milestone,),
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                   1242             "milestones": [
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                   1243                 milestone.to_dict()
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                   1244                 for milestone in self.milestones
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              11 class DealMilestoneError(ValueError):
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              12     """Base error for transaction milestone violations."""
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              15 class DealMilestoneTenantError(DealMilestoneError):
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              16     """Raised when a milestone crosses its tenant bound...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              19 class DealMilestoneConcurrencyError(DealMilestoneError):
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              23 class DealMilestoneTransitionError(DealMilestoneError):
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              24     """Raised when a target is not a transaction milest...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              27 _TRANSACTION_STATUS_VALUES = frozenset(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              42 class DealTransactionMilestone:
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              43     """Immutable transaction milestone evidence owned b...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              45     milestone_id: str
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              59             "milestone_id",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              65                 raise DealMilestoneError(f"{field_name}...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              68             raise DealMilestoneError("sequence must be ...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              71             raise DealMilestoneError("deal_version must...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              74             raise DealMilestoneError(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              81         if to_status.value not in _TRANSACTION_STATUS_V...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              82             raise DealMilestoneError(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              83                 f"{to_status.value} is not a transactio...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              91             "milestone_id": self.milestone_id,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py             104     "DealTransactionMilestone",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py             105     "DealMilestoneConcurrencyError",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py             106     "DealMilestoneError",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py             107     "DealMilestoneTenantError",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py             108     "DealMilestoneTransitionError",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\idempotency.py                               1 def already_applied(state, event_key):
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\idempotency.py                               2     return any(e.get('idempotency_key') == event_key fo...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               141 class InventoryEvent:
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               142     """Persistence-neutral event emitted by an inventor...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               144     event_id: str
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               145     event_type: str
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               155             "event_id": self.event_id,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               156             "event_type": self.event_type,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               287     ) -> tuple["Inventory", InventoryEvent]:
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               310         event = InventoryEvent(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               311             event_id=str(uuid4()),
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               312             event_type="INVENTORY_LIFECYCLE_CHANGED",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               325         return updated, event
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               334     ) -> tuple["Inventory", InventoryEvent]:
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               339         and emits one persistence-neutral domain event.
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               362         event = InventoryEvent(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               363             event_id=str(uuid4()),
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               364             event_type="INVENTORY_AVAILABILITY_CHANGED",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               379         return updated, event
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               387     ) -> tuple["Inventory", InventoryEvent]:
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               401         event = InventoryEvent(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               402             event_id=str(uuid4()),
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               403             event_type="INVENTORY_VERSION_CHANGED",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               416         return updated, event
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                               441     "InventoryEvent",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_concurrency.py                    20 transaction orchestration remain owned by their dedicat...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                    15     - event-to-inventory consistency
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                    30 from .inventory import Inventory, InventoryEvent
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                    64     EVENT = "EVENT"
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                   199     def validate_event(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                   202         event: InventoryEvent,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                   204         """Validate an Inventory event against its aggr...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                   208         if event.inventory_id != inventory.inventory_id:
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                   210                 "Event inventory_id does not match Inve...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                   213         if event.tenant_id != inventory.tenant_id:
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                   215                 "Event tenant_id does not match Invento...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                   218         if event.project_id != inventory.project_id:
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                   220                 "Event project_id does not match Invent...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                   223         if event.inventory_version != inventory.version:
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                   225                 "Event inventory_version does not match...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                   231                 InventoryConsistencyInvariant.EVENT,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                   239     def assert_event(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                   242         event: InventoryEvent,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                   244         """Raise if an Inventory event is inconsistent."""
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_consistency.py                   246         result = self.validate_event(inventory, event)
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_evidence.py                       45 class InventoryEvidenceEvent:
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_evidence.py                       46     """Persistence-neutral evidence event."""
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_evidence.py                       48     event_id: str
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_evidence.py                       49     event_type: str
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_evidence.py                       61             "event_id": self.event_id,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_evidence.py                       62             "event_type": self.event_type,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_evidence.py                      200     ) -> tuple["InventoryEvidence", InventoryEvidenceEv...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_evidence.py                      229         event = InventoryEvidenceEvent(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_evidence.py                      230             event_id=str(uuid4()),
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_evidence.py                      231             event_type="INVENTORY_EVIDENCE_STATUS_CHANG...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_evidence.py                      246         return updated, event
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_evidence.py                      270     "InventoryEvidenceEvent",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                        39 class InventoryHistoryEvent:
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                        40     """Persistence-neutral history event."""
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                        42     event_id: str
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                        43     event_type: str
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                        54             "event_id": self.event_id,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                        55             "event_type": self.event_type,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                        77     event_type: str = "INVENTORY_HISTORY_RECORDED"
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                        87         event_type: str = "INVENTORY_HISTORY_RECORDED",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                        99             event_type=event_type,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                       136     def to_event(self) -> InventoryHistoryEvent:
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                       137         return InventoryHistoryEvent(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                       138             event_id=str(uuid4()),
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                       139             event_type=self.event_type,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                       161             "event_type": self.event_type,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                       169     "InventoryHistoryEvent",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_verification.py                   89 class InventoryVerificationEvent:
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_verification.py                   90     """Persistence-neutral verification domain event."""
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_verification.py                   92     event_id: str
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_verification.py                   93     event_type: str
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_verification.py                  104             "event_id": self.event_id,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_verification.py                  105             "event_type": self.event_type,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_verification.py                  202     ) -> tuple["InventoryVerification", InventoryVerifi...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_verification.py                  255         event = InventoryVerificationEvent(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_verification.py                  256             event_id=str(uuid4()),
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_verification.py                  257             event_type="INVENTORY_VERIFICATION_CHANGED",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_verification.py                  272         return updated, event
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_verification.py                  293     "InventoryVerificationEvent",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\matching.py                                164     - business transaction decisions
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\project.py                                   4 optimistic versioning and domain-event generation. It d...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\project.py                                 113 class ProjectEvent:
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\project.py                                 114     """Persistence-neutral event emitted by a project s...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\project.py                                 116     event_id: str
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\project.py                                 117     event_type: str
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\project.py                                 126             "event_id": self.event_id,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\project.py                                 127             "event_type": self.event_type,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\project.py                                 228     ) -> tuple["Project", ProjectEvent]:
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\project.py                                 229         """Apply one deterministic lifecycle transition...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\project.py                                 245         event = ProjectEvent(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\project.py                                 246             event_id=str(uuid4()),
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\project.py                                 247             event_type="PROJECT_LIFECYCLE_CHANGED",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\project.py                                 258         return updated, event
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\project.py                                 281     "ProjectEvent",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py          6 from AUTONOMY_ENGINE.core.deal_transaction_milestones i...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py          7     DealTransactionMilestone,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py          8     DealMilestoneTransitionError,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         50 def test_booking_pending_creates_milestone():
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         53     updated = deal.advance_transaction_milestone(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         62     assert len(updated.milestones) == 1
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         64     milestone = updated.last_transaction_milestone
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         65     assert milestone.to_status is DealStatus.BOOKING_PE...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         66     assert milestone.from_status is DealStatus.OFFERED
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         67     assert milestone.sequence == 1
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         68     assert milestone.deal_version == updated.version
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         69     assert milestone.reference_id == "booking-request-001"
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         72 def test_full_transaction_milestone_chain_is_monotonic():
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         89         current = current.advance_transaction_milestone(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         99     assert len(current.milestones) == 8
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        100     assert [x.sequence for x in current.milestones] == ...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        103 def test_milestone_versions_match_deal_versions():
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        113         current = current.advance_transaction_milestone(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        119         versions.append(current.milestones[-1].deal_ver...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        122         current.milestones[0].deal_version,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        123         current.milestones[1].deal_version,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        124         current.milestones[2].deal_version,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        129 def test_non_transaction_status_is_rejected():
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        133         deal.advance_transaction_milestone(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        145         deal.advance_transaction_milestone(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        153 def test_cross_tenant_milestone_is_blocked():
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        157         deal.advance_transaction_milestone(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        169         deal.advance_transaction_milestone(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        177 def test_milestone_is_immutable():
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        180     updated = deal.advance_transaction_milestone(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        187     milestone = updated.milestones[0]
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        190         milestone.sequence = 99
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        193 def test_milestone_serialization_preserves_audit_fields():
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        196     updated = deal.advance_transaction_milestone(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        206     assert len(payload["milestones"]) == 1
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        207     assert payload["milestones"][0]["deal_id"] == deal....
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        208     assert payload["milestones"][0]["tenant_id"] == "te...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        209     assert payload["milestones"][0]["from_status"] == "...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        210     assert payload["milestones"][0]["to_status"] == "BO...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        211     assert payload["milestones"][0]["reference_id"] == ...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        214 def test_milestone_object_serialization_is_stable():
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        215     milestone = DealTransactionMilestone(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        216         milestone_id="m-001",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        229     data = milestone.to_dict()
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        231     assert data["milestone_id"] == "m-001"
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        239 def test_terminal_deal_cannot_advance_milestone():
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        272         current.advance_transaction_milestone(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        280 def test_milestones_are_append_only():
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        283     first = current.advance_transaction_milestone(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        290     second = first.advance_transaction_milestone(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        297     assert len(first.milestones) == 1
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        298     assert len(second.milestones) == 2
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        299     assert second.milestones[0] == first.milestones[0]
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_availability.py              53     updated, event = inventory.set_availability(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_availability.py              66     assert event.event_type == "INVENTORY_AVAILABILITY_...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_availability.py              67     assert event.inventory_id == inventory.inventory_id
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_availability.py              68     assert event.project_id == inventory.project_id
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_availability.py              69     assert event.tenant_id == inventory.tenant_id
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_availability.py              70     assert event.inventory_version == updated.version
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_availability.py              71     assert event.payload["from"] == "AVAILABLE"
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_availability.py              72     assert event.payload["to"] == target.value
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              152 def test_inventory_event_matches_inventory(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              156     updated, event = inventory.touch(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              162     result = validator.validate_event(updated, event)
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              168 def test_cross_tenant_event_is_blocked(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              172     _, event = inventory.touch(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              177     tampered_event = type(event)(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              178         event_id=event.event_id,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              179         event_type=event.event_type,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              180         inventory_id=event.inventory_id,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              181         project_id=event.project_id,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              183         inventory_version=event.inventory_version,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              184         occurred_at=event.occurred_at,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              185         payload=event.payload,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              189         validator.assert_event(inventory, tampered_event)
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              192 def test_cross_project_event_is_blocked(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              196     _, event = inventory.touch(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              201     tampered_event = type(event)(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              202         event_id=event.event_id,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              203         event_type=event.event_type,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              204         inventory_id=event.inventory_id,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              206         tenant_id=event.tenant_id,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              207         inventory_version=event.inventory_version,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              208         occurred_at=event.occurred_at,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              209         payload=event.payload,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              213         validator.assert_event(inventory, tampered_event)
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              216 def test_stale_event_version_is_blocked(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              220     _, event = inventory.touch(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py              226         validator.assert_event(inventory, event)
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_domain.py                   116     updated, event = inventory.touch(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_domain.py                   126     assert event.inventory_id == inventory.inventory_id
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_domain.py                   127     assert event.project_id == inventory.project_id
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_domain.py                   128     assert event.tenant_id == inventory.tenant_id
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_domain.py                   129     assert event.inventory_version == 2
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_domain.py                   130     assert event.event_type == "INVENTORY_VERSION_CHANGED"
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_evidence.py                  83     updated, event = evidence.with_status(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_evidence.py                  96     assert event.status is InventoryEvidenceStatus.VERI...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_evidence.py                  99 def test_evidence_event_serializes(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_evidence.py                 102     updated, event = evidence.with_status(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_evidence.py                 109     data = event.to_dict()
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_evidence.py                 111     assert data["event_type"] == "INVENTORY_EVIDENCE_ST...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_history.py                  111 def test_history_event_serializes(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_history.py                  116     event = history.to_event()
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_history.py                  117     data = event.to_dict()
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_history.py                  119     assert data["event_type"] == "INVENTORY_HISTORY_REC...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_lifecycle.py                 33     updated, event = inventory.transition(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_lifecycle.py                 42     assert event.event_type == "INVENTORY_LIFECYCLE_CHA...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_lifecycle.py                 43     assert event.inventory_version == 2
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_lifecycle.py                 44     assert event.payload["from"] == "DRAFT"
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_lifecycle.py                 45     assert event.payload["to"] == "ONBOARDING"
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_verification.py              61     updated, event = verification.transition(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_verification.py              71     assert event.event_type == "INVENTORY_VERIFICATION_...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_verification.py              72     assert event.inventory_id == inventory.inventory_id
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_verification.py              73     assert event.verification_state is InventoryVerific...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_verification.py             109     verified, event = pending.transition(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_verification.py             122     assert event.verification_state is InventoryVerific...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_verification.py             156     rejected, event = pending.transition(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_verification.py             167     assert event.payload["from"] == "PENDING"
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_verification.py             168     assert event.payload["to"] == "REJECTED"
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_verification.py             322 def test_verification_event_serializes_canonically(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_verification.py             326     _, event = verification.transition(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_verification.py             333     data = event.to_dict()
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_verification.py             335     assert data["event_type"] == "INVENTORY_VERIFICATIO...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_project_domain.py                      93     updated, event = project.transition(
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_project_domain.py                     100     assert event.event_type == "PROJECT_LIFECYCLE_CHANGED"
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_project_domain.py                     101     assert event.project_version == 2
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_project_domain.py                     102     assert event.payload["from"] == "DRAFT"
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_project_domain.py                     103     assert event.payload["to"] == "ONBOARDING"
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\__init__.py                                  6     InventoryEvent,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\__init__.py                                 15     ProjectEvent,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\__init__.py                                 26     "InventoryEvent",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\__init__.py                                 32     "ProjectEvent",
-
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n[3] EXISTING T07-RELEVANT TESTS" -ForegroundColor Yellow
-
-[3] EXISTING T07-RELEVANT TESTS
-PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem "AUTONOMY_ENGINE" -Recurse -File -Filter "*test*.py" |
->>     Where-Object {
->>         $_.FullName -notmatch "__pycache__|continuity\\acrl"
->>     } |
->>     Select-String -Pattern `
->>         "deal.*event|transaction.*event|milestone.*event|outbox|idempot" |
->>     Select-Object Path,LineNumber,Line
-
-Path                                                                                                   LineNumber Line
-----                                                                                                   ---------- ----
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                                 85 def test_same_opportunity_binding_is_i...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py                               97 def test_duplicate_offer_id_is_idempot...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py                           51 def test_same_ownership_binding_is_ide...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                                         79 def test_same_party_binding_is_idempot...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_qdrant_indexing.py                                     131 def test_upsert_is_idempotent_for_same...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_search_rebuild.py                                      343 def test_same_source_rebuild_is_idempo...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\orchestration\test_capability_reuse_guard.py                      74             inputs=("deal_id", "event"),
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\orchestration\test_capability_reuse_guard.py                      82             responsibility="Store audi...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\orchestration\test_capability_reuse_guard.py                      85             inputs=("deal_id", "event"),
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\runtime\tests\test_execution_verification.py                      71         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py              36         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py         72         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py        152         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py        175         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py        198         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py        221         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py        244         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py        267         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py        279 def test_idempotency_failure_blocks_be...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py        297         idempotency_clear=False,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py        306     assert result.decision.block_reaso...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py        327         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py        356         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py        380         idempotency_clear=False,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py        515         "idempotency_clear",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py        526         "idempotency_clear": True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py                   60         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py                  106         "idempotency_clear",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py                  126         "idempotency_clear": base.idem...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py                  161         idempotency_clear=base.idempot...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py                      63         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py                     115         "idempotency_clear",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py                     133         "idempotency_clear": base.idem...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py                     169         idempotency_clear=base.idempot...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_l1_l2_acceptance.py                                   191         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_l1_l2_acceptance.py                                   252         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py                        62         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py                       108         ("idempotency_clear", Mutation...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py                       135         "idempotency_clear": request.i...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py                       338         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py                       363         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py                       379     It must not imply that persistent ...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py                  71         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py                 165             "idempotency_clear",
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py                 166             FirewallBlockReason.IDEMPO...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py                 188         "idempotency_clear": True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py                 220         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py                 436         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py                 494         idempotency_clear=True,
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_v6_adversarial.py                                      13 from core.idempotency import already_a...
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_v6_adversarial.py                                      50                 "idempotency_key": req...
-
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n[4] GIT STATUS — DEAL SCOPE ONLY" -ForegroundColor Yellow
 
 [4] GIT STATUS — DEAL SCOPE ONLY
@@ -361,3 +12,174 @@ PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== END T07 DISCOVERY ===" -ForegroundColor Cyan
 
 === END T07 DISCOVERY ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location "D:\HOMIO\REOS_CONTROL_CENTER"
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CORE-002 EVENT AUTHORITY MAP ===" -ForegroundColor Cyan
+=== CORE-002 EVENT AUTHORITY MAP ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n[EVENT FILES]" -ForegroundColor Yellow
+
+[EVENT FILES]
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem "AUTONOMY_ENGINE" -Recurse -File |
+>>     Where-Object {
+>>         $_.FullName -notmatch "__pycache__|continuity\\acrl"
+>>     } |
+>>     Where-Object {
+>>         $_.Name -match "event|outbox|kafka|publisher|consumer|bus|envelope|schema"
+>>     } |
+>>     Select-Object FullName,Length
+
+FullName                                                                                                                   Length
+--------                                                                                                                   ------
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\audit_events.py    311
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\contracts\agent_action.schema.json                                               683
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\observability\events.jsonl                                                         0
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\schemas\action_proposal.schema.json                                             1161
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\schemas\decision.schema.json                                                     841
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\schemas\evidence.schema.json                                                     928
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\schemas\session_state.schema.json                                               1367
+
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n[CAPABILITY REFERENCES]" -ForegroundColor Yellow
+
+[CAPABILITY REFERENCES]
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem "AUTONOMY_ENGINE" -Recurse -File -Filter "*.py" |
+>>     Where-Object {
+>>         $_.FullName -notmatch "__pycache__|continuity\\acrl"
+>>     } |
+>>     Select-String -Pattern `
+>>         "publish_event",
+>>         "replay_event",
+>>         "EventEnvelope",
+>>         "EventBus",
+>>         "Outbox",
+>>         "Kafka",
+>>         "event_type",
+>>         "schema_version" |
+>>     Select-Object Path,LineNumber,Line
+
+Path                                                                                                                              LineNumber Line
+----                                                                                                                              ---------- ----
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\recovery_journal.py                                                               22     event_t...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\recovery_journal.py                                                               31            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\recovery_journal.py                                                               59         eve...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\recovery_journal.py                                                               64         if ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\recovery_journal.py                                                               65            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\recovery_journal.py                                                               72            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\recovery_journal.py                                                               90         if ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\recovery_journal.py                                                               91            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\recovery_journal.py                                                              130         eve...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\recovery_journal.py                                                              133         if ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\recovery_journal.py                                                              134            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\recovery_journal.py                                                              139            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\audit_events.py                 7 def event(e...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\audit_events.py                10         "ty...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\authority_registry.py          15     schema_...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\authority_registry.py          26            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\canonical_manifest.py          23         "sc...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\canonical_manifest.py          35         sch...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\derived_sync_engine.py         19            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\derived_sync_engine.py         65            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\truth_models.py                55     schema_...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\constants.py                                                                            32     "publis...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\constants.py                                                                            33     "replay...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                                                                           145     event_t...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                                                                           156            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                                                                           312            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                                                                           364            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory.py                                                                           403            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_evidence.py                                                                   49     event_t...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_evidence.py                                                                   62            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_evidence.py                                                                  231            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                                                                    43     event_t...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                                                                    55            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                                                                    77     event_t...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                                                                    87         eve...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                                                                    99            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                                                                   139            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_history.py                                                                   161            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_verification.py                                                               93     event_t...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_verification.py                                                              105            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory_verification.py                                                              257            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\project.py                                                                             117     event_t...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\project.py                                                                             127            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\project.py                                                                             247            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_availability.py                                                          66     assert ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py                                                          179         eve...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_consistency.py                                                          203         eve...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_domain.py                                                               130     assert ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_evidence.py                                                             111     assert ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_history.py                                                              119     assert ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_lifecycle.py                                                             42     assert ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_verification.py                                                          71     assert ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_inventory_verification.py                                                         335     assert ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_project_domain.py                                                                 100     assert ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\diagnostics\diagnostic_contract.py                                                           14 SCHEMA_VERS...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\diagnostics\diagnostic_fingerprint.py                                                        38            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\diagnostics\diagnostic_models.py                                                             94     schema_...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\diagnostics\diagnostic_models.py                                                            123            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\diagnostics\diagnostic_policy.py                                                             70            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\diagnostics\reos_health.py                                                                   64 SCHEMA_VERS...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\diagnostics\reos_health.py                                                                  108     schema_...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\diagnostics\reos_health.py                                                                  122            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\diagnostics\reos_health.py                                                                  193            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\diagnostics\test_reos_health.py                                                             288     assert ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\execution\execution_audit.py                                                                 33     INVALID...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\execution\execution_audit.py                                                                 46     event_t...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\execution\execution_audit.py                                                                 68            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\execution\execution_audit.py                                                                121         eve...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\execution\execution_audit.py                                                                132            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\execution\execution_audit.py                                                                147         eve...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\execution\execution_audit.py                                                                163            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\execution\execution_audit.py                                                                225         if ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\execution\execution_audit.py                                                                226            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\execution\execution_audit.py                                                                254            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\execution\execution_audit.py                                                                255            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\execution\execution_audit.py                                                                308     event_t...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\execution\execution_audit.py                                                                319         eve...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\observability\audit.py                                                                        8     def rec...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\observability\audit.py                                                                        9         row...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\telemetry\run_trace.py                                                                       37     event_t...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\telemetry\run_trace.py                                                                       61         eve...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\telemetry\run_trace.py                                                                       65         eve...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\telemetry\run_trace.py                                                                       67         if ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\telemetry\run_trace.py                                                                       68            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\telemetry\run_trace.py                                                                       73            ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_l1_l2_acceptance.py                                                              356     assert ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_readonly_controller_bridge.py                                                    195         "sc...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_readonly_controller_bridge.py                                                    203     assert ...
+
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n[CORE-006 CURRENT DEAL EVENT SURFACE]" -ForegroundColor Yellow
+
+[CORE-006 CURRENT DEAL EVENT SURFACE]
+PS D:\HOMIO\REOS_CONTROL_CENTER> Select-String -Path "AUTONOMY_ENGINE\core\deal.py" `
+>>     -Pattern "event|milestone|transaction" |
+>>     Select-Object LineNumber,Line
+
+LineNumber Line
+---------- ----
+        15 from .deal_transaction_milestones import DealTransactionMilestone
+       289     milestones: tuple[DealTransactionMilestone, ...] = field(default_factory=tuple)
+       770     def last_transaction_milestone(self) -> DealTransactionMilestone | None:
+       771         return self.milestones[-1] if self.milestones else None
+       773     def advance_transaction_milestone(
+       782         """Advance the canonical Deal lifecycle and append one milestone."""
+       788         transaction_statuses = {
+       799         if target not in transaction_statuses:
+       801                 f"{target.value} is not a transaction milestone."
+       817         milestone = DealTransactionMilestone(
+       818             milestone_id=str(uuid4()),
+       823             sequence=len(self.milestones) + 1,
+       831             milestones=self.milestones + (milestone,),
+      1242             "milestones": [
+      1243                 milestone.to_dict()
+      1244                 for milestone in self.milestones
+
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== END ===" -ForegroundColor Cyan
+
+=== END ===
