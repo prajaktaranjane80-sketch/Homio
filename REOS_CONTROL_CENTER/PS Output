@@ -1,82 +1,349 @@
-=== OLD CORE IMPORTS ===
-
-AUTONOMY_ENGINE\core\test_hybrid_retrieval.py:7: from AUTONOMY_ENGINE.core.hybrid_retrieval import (
-AUTONOMY_ENGINE\core\test_hybrid_retrieval.py:12: from AUTONOMY_ENGINE.core.inventory import (
-AUTONOMY_ENGINE\core\test_hybrid_retrieval.py:16: from AUTONOMY_ENGINE.core.inventory_indexing import (
-AUTONOMY_ENGINE\core\test_hybrid_retrieval.py:19: from AUTONOMY_ENGINE.core.qdrant_indexing import (
-AUTONOMY_ENGINE\core\test_location_search.py:5: from AUTONOMY_ENGINE.core.inventory import (
-AUTONOMY_ENGINE\core\test_location_search.py:9: from AUTONOMY_ENGINE.core.inventory_indexing import (
-AUTONOMY_ENGINE\core\test_location_search.py:12: from AUTONOMY_ENGINE.core.location_search import (
-AUTONOMY_ENGINE\core\test_matching.py:5: from AUTONOMY_ENGINE.core.matching import (
-AUTONOMY_ENGINE\core\test_matching.py:12: from AUTONOMY_ENGINE.core.search_ranking import RankedSearchResult
-AUTONOMY_ENGINE\core\test_qdrant_indexing.py:7: from AUTONOMY_ENGINE.core.inventory import (
-AUTONOMY_ENGINE\core\test_qdrant_indexing.py:11: from AUTONOMY_ENGINE.core.inventory_indexing import (
-AUTONOMY_ENGINE\core\test_qdrant_indexing.py:15: from AUTONOMY_ENGINE.core.qdrant_indexing import (
-AUTONOMY_ENGINE\core\test_search_core_t09.py:9: from AUTONOMY_ENGINE.core.hybrid_retrieval import (
-AUTONOMY_ENGINE\core\test_search_core_t09.py:13: from AUTONOMY_ENGINE.core.inventory import Inventory, InventoryType
-AUTONOMY_ENGINE\core\test_search_core_t09.py:14: from AUTONOMY_ENGINE.core.inventory_indexing import InventoryIndexingHook
-AUTONOMY_ENGINE\core\test_search_core_t09.py:15: from AUTONOMY_ENGINE.core.matching import (
-AUTONOMY_ENGINE\core\test_search_core_t09.py:20: from AUTONOMY_ENGINE.core.qdrant_indexing import (
-AUTONOMY_ENGINE\core\test_search_core_t09.py:24: from AUTONOMY_ENGINE.core.search_ranking import (
-AUTONOMY_ENGINE\core\test_search_core_t09.py:28: from AUTONOMY_ENGINE.core.search_visibility import (
-AUTONOMY_ENGINE\core\test_search_core_t09.py:55: from AUTONOMY_ENGINE.core.inventory import (
-AUTONOMY_ENGINE\core\test_search_filters.py:5: from AUTONOMY_ENGINE.core.inventory import (
-AUTONOMY_ENGINE\core\test_search_filters.py:11: from AUTONOMY_ENGINE.core.inventory_indexing import (
-AUTONOMY_ENGINE\core\test_search_filters.py:14: from AUTONOMY_ENGINE.core.search_filters import (
-AUTONOMY_ENGINE\core\test_search_ranking.py:5: from AUTONOMY_ENGINE.core.hybrid_retrieval import HybridSearchResult
-AUTONOMY_ENGINE\core\test_search_ranking.py:6: from AUTONOMY_ENGINE.core.search_ranking import (
-AUTONOMY_ENGINE\core\test_search_rebuild.py:5: from AUTONOMY_ENGINE.core.inventory import Inventory, InventoryType
-AUTONOMY_ENGINE\core\test_search_rebuild.py:6: from AUTONOMY_ENGINE.core.inventory_indexing import (
-AUTONOMY_ENGINE\core\test_search_rebuild.py:10: from AUTONOMY_ENGINE.core.search_rebuild import (
-AUTONOMY_ENGINE\core\test_search_visibility.py:5: from AUTONOMY_ENGINE.core.hybrid_retrieval import HybridSearchResult
-AUTONOMY_ENGINE\core\test_search_visibility.py:6: from AUTONOMY_ENGINE.core.search_visibility import (
-AUTONOMY_ENGINE\core\deal_transaction\test_deal.py:7: from AUTONOMY_ENGINE.core.deal import (
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_final_hardening.py:5: from AUTONOMY_ENGINE.core.deal_transaction_events import DealTransactionEvent
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_final_hardening.py:6: from AUTONOMY_ENGINE.core.deal_transaction_replay import verify_transaction_replay
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_final_hardening.py:7: from AUTONOMY_ENGINE.core.deal_concurrency import DealConcurrencyGuard, DealStaleWriteError
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_final_hardening.py:8: from AUTONOMY_ENGINE.core.deal_consistency import validate_deal_consistency
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_final_hardening.py:9: from AUTONOMY_ENGINE.core.deal_authorization import DealAuthorizationContext, DealOperation, authorize_deal_operation
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_final_hardening.py:10: from AUTONOMY_ENGINE.core.deal_transaction_workflow import build_deal_workflow
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_final_hardening.py:11: from AUTONOMY_ENGINE.core.deal_integrity import hash_deal, validate_deal_integrity
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_final_hardening.py:12: from AUTONOMY_ENGINE.core.deal_freeze import verify_deal_core_freeze
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_final_hardening.py:13: from AUTONOMY_ENGINE.core.deal_external_contracts import DealExternalAuthority, DealExternalReference, DealExternalDecision, DealExternalContractError
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_offer_negotiation.py:7: from AUTONOMY_ENGINE.core.deal import (
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_offer_negotiation.py:36: "AUTONOMY_ENGINE.core.deal",
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_offer_negotiation.py:44: "AUTONOMY_ENGINE.core.deal",
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_offer_negotiation.py:52: "AUTONOMY_ENGINE.core.deal",
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_offer_negotiation.py:363: "AUTONOMY_ENGINE.core.deal",
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_ownership_integration.py:7: from AUTONOMY_ENGINE.core.deal import (
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_ownership_integration.py:11: from AUTONOMY_ENGINE.core.deal_ownership_integration import (
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_ownership_integration.py:99: from AUTONOMY_ENGINE.core.deal import DealTenantError
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_ownership_integration.py:192: from AUTONOMY_ENGINE.core.deal import DealStatus
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_parties.py:5: from AUTONOMY_ENGINE.core.deal import (
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_parties.py:178: __import__("AUTONOMY_ENGINE.core.deal", fromlist=["DealStatus"]).DealStatus.MATCHED,
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_parties.py:199: "AUTONOMY_ENGINE.core.deal",
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_transaction_milestones.py:5: from AUTONOMY_ENGINE.core.deal import Deal, DealStatus, DealTransitionError
-AUTONOMY_ENGINE\core\deal_transaction\test_deal_transaction_milestones.py:6: from AUTONOMY_ENGINE.core.deal_transaction_milestones import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_availability.py:5: from AUTONOMY_ENGINE.core.inventory import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_concurrency.py:5: from AUTONOMY_ENGINE.core.inventory import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_concurrency.py:10: from AUTONOMY_ENGINE.core.inventory_concurrency import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_consistency.py:5: from AUTONOMY_ENGINE.core.inventory import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_consistency.py:10: from AUTONOMY_ENGINE.core.inventory_consistency import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_consistency.py:18: from AUTONOMY_ENGINE.core.inventory_indexing import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_consistency.py:21: from AUTONOMY_ENGINE.core.inventory_verification import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_core_freeze.py:7: from AUTONOMY_ENGINE.core.inventory_core_freeze import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_domain.py:5: from AUTONOMY_ENGINE.core.inventory import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_evidence.py:5: from AUTONOMY_ENGINE.core.inventory import Inventory, InventoryType
-AUTONOMY_ENGINE\core\inventory\test_inventory_evidence.py:6: from AUTONOMY_ENGINE.core.inventory_evidence import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_history.py:5: from AUTONOMY_ENGINE.core.inventory import Inventory, InventoryType
-AUTONOMY_ENGINE\core\inventory\test_inventory_history.py:6: from AUTONOMY_ENGINE.core.inventory_history import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_history_evidence.py:5: from AUTONOMY_ENGINE.core.inventory import Inventory, InventoryType
-AUTONOMY_ENGINE\core\inventory\test_inventory_history_evidence.py:6: from AUTONOMY_ENGINE.core.inventory_evidence import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_history_evidence.py:10: from AUTONOMY_ENGINE.core.inventory_history import InventoryHistory
-AUTONOMY_ENGINE\core\inventory\test_inventory_history_evidence.py:11: from AUTONOMY_ENGINE.core.inventory_history_evidence import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_indexing.py:5: from AUTONOMY_ENGINE.core.inventory import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_indexing.py:9: from AUTONOMY_ENGINE.core.inventory_indexing import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_indexing.py:334: from AUTONOMY_ENGINE.core.inventory import InventoryAvailability
-AUTONOMY_ENGINE\core\inventory\test_inventory_indexing.py:356: from AUTONOMY_ENGINE.core.inventory import InventoryLifecycle
-AUTONOMY_ENGINE\core\inventory\test_inventory_lifecycle.py:5: from AUTONOMY_ENGINE.core.inventory import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_verification.py:5: from AUTONOMY_ENGINE.core.inventory import (
-AUTONOMY_ENGINE\core\inventory\test_inventory_verification.py:9: from AUTONOMY_ENGINE.core.inventory_verification import (
-AUTONOMY_ENGINE\core\inventory\test_project_domain.py:5: from AUTONOMY_ENGINE.core.project import (
-PS D:\Homio\REOS_CONTROL_CENTER>
+BACKUP SAVED OUTSIDE REPO: D:\Homio\REOS_CONTROL_CENTER\..\REOS_LAYER_BACKUP_20260924_201807
+PS D:\Homio\REOS_CONTROL_CENTER> git status --short
+ D AUTONOMY_ENGINE/core/CORE-004-T01-project-domain.patch
+ D AUTONOMY_ENGINE/core/CORE-004-T01-project-domain.txt
+AD AUTONOMY_ENGINE/core/CORE-006_FINAL_UPGRADE.txt
+MD AUTONOMY_ENGINE/core/__pycache__/__init__.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/action_planner.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/autonomy_kernel.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/constants.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/context_compiler.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_authorization.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_authorization.cpython-313.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_concurrency.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_concurrency.cpython-313.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_consistency.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_consistency.cpython-313.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_evidence_audit.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_external_contracts.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_freeze.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_freeze.cpython-313.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_integrity.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_integrity.cpython-313.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_offer_negotiation.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_ownership_integration.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_transaction_events.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_transaction_events.cpython-313.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_transaction_milestones.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_transaction_replay.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_transaction_replay.cpython-313.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_transaction_workflow.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/deal_transaction_workflow.cpython-313.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/hybrid_retrieval.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/idempotency.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/integrity.cpython-312.pyc
+MD AUTONOMY_ENGINE/core/__pycache__/inventory.cpython-312.pyc
+MD AUTONOMY_ENGINE/core/__pycache__/inventory_concurrency.cpython-312.pyc
+MD AUTONOMY_ENGINE/core/__pycache__/inventory_consistency.cpython-312.pyc
+MD AUTONOMY_ENGINE/core/__pycache__/inventory_core_freeze.cpython-312.pyc
+MD AUTONOMY_ENGINE/core/__pycache__/inventory_evidence.cpython-312.pyc
+MD AUTONOMY_ENGINE/core/__pycache__/inventory_history.cpython-312.pyc
+MD AUTONOMY_ENGINE/core/__pycache__/inventory_history_evidence.cpython-312.pyc
+MD AUTONOMY_ENGINE/core/__pycache__/inventory_indexing.cpython-312.pyc
+MD AUTONOMY_ENGINE/core/__pycache__/inventory_verification.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/location_search.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/matching.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/models.cpython-312.pyc
+MD AUTONOMY_ENGINE/core/__pycache__/project.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/qdrant_indexing.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/risk_engine.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/search_filters.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/search_ranking.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/search_rebuild.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/search_visibility.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/semantic_consistency.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/state_store.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_deal.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_deal.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_deal_evidence_audit.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_deal_evidence_audit.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_deal_final_hardening.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_deal_final_hardening.cpython-313-pytest-9.0.2.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_deal_final_hardening.cpython-313.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_deal_offer_negotiation.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_deal_offer_negotiation.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_deal_ownership_integration.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_deal_ownership_integration.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_deal_parties.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_deal_parties.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_deal_transaction_events.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_deal_transaction_events.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_deal_transaction_milestones.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_deal_transaction_milestones.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_hybrid_retrieval.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_hybrid_retrieval.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/test_inventory_availability.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_inventory_availability.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/test_inventory_concurrency.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_inventory_concurrency.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/test_inventory_consistency.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_inventory_consistency.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/test_inventory_core_freeze.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_inventory_core_freeze.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/test_inventory_domain.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_inventory_domain.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/test_inventory_evidence.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_inventory_evidence.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/test_inventory_history.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_inventory_history.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/test_inventory_history_evidence.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_inventory_history_evidence.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/test_inventory_indexing.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_inventory_indexing.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/test_inventory_lifecycle.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_inventory_lifecycle.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/test_inventory_verification.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_inventory_verification.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_location_search.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_location_search.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_matching.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_matching.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/test_project_domain.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_project_domain.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_qdrant_indexing.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_qdrant_indexing.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_search_core_t09.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_search_core_t09.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_search_filters.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_search_filters.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_search_ranking.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_search_ranking.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_search_rebuild.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_search_rebuild.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_search_visibility.cpython-312-pytest-9.1.1.pyc
+AD AUTONOMY_ENGINE/core/__pycache__/test_search_visibility.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/__pycache__/workspace_guard.cpython-312.pyc
+ D AUTONOMY_ENGINE/core/apply_CORE-004-T01.ps1
+AD AUTONOMY_ENGINE/core/apply_CORE-006_FINAL_UPGRADE.ps1
+AD AUTONOMY_ENGINE/core/deal.py
+AD AUTONOMY_ENGINE/core/deal.py.PRE_REBUILD_20260924_154507.bak
+AD AUTONOMY_ENGINE/core/deal.py.T06_FAILED_20260924_113317.bak
+AD AUTONOMY_ENGINE/core/deal.py.T06_WORKING_SOURCE.bak
+A  AUTONOMY_ENGINE/core/deal.py.before-T06-rollback
+AD AUTONOMY_ENGINE/core/deal.py.before-TO_DICT-REPAIR-20260924_161946.bak
+AD AUTONOMY_ENGINE/core/deal_authorization.py
+AD AUTONOMY_ENGINE/core/deal_concurrency.py
+AD AUTONOMY_ENGINE/core/deal_consistency.py
+AD AUTONOMY_ENGINE/core/deal_evidence_audit.py
+AD AUTONOMY_ENGINE/core/deal_external_contracts.py
+AD AUTONOMY_ENGINE/core/deal_freeze.py
+AD AUTONOMY_ENGINE/core/deal_integrity.py
+AD AUTONOMY_ENGINE/core/deal_offer_negotiation.py
+AD AUTONOMY_ENGINE/core/deal_ownership_integration.py
+AM AUTONOMY_ENGINE/core/deal_transaction/__init__.py
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/__init__.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/deal.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/deal_authorization.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/deal_concurrency.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/deal_consistency.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/deal_evidence_audit.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/deal_external_contracts.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/deal_freeze.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/deal_integrity.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/deal_offer_negotiation.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/deal_ownership_integration.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/deal_transaction_events.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/deal_transaction_milestones.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/deal_transaction_replay.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/deal_transaction_workflow.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/test_deal.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/test_deal_evidence_audit.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/test_deal_final_hardening.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/test_deal_offer_negotiation.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/test_deal_ownership_integration.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/test_deal_parties.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/test_deal_transaction_events.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/deal_transaction/__pycache__/test_deal_transaction_milestones.cpython-312.pyc
+AM AUTONOMY_ENGINE/core/deal_transaction/deal.py
+AM AUTONOMY_ENGINE/core/deal_transaction/deal_authorization.py
+AM AUTONOMY_ENGINE/core/deal_transaction/deal_concurrency.py
+AM AUTONOMY_ENGINE/core/deal_transaction/deal_consistency.py
+AM AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
+AM AUTONOMY_ENGINE/core/deal_transaction/deal_external_contracts.py
+AM AUTONOMY_ENGINE/core/deal_transaction/deal_freeze.py
+AM AUTONOMY_ENGINE/core/deal_transaction/deal_integrity.py
+AM AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py
+AM AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py
+AM AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
+AM AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_milestones.py
+AM AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
+AM AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_workflow.py
+AM AUTONOMY_ENGINE/core/deal_transaction/test_deal.py
+AM AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py
+AM AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py
+AM AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py
+AM AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py
+AM AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py
+AM AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
+AM AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py
+AD AUTONOMY_ENGINE/core/deal_transaction_events.py
+AD AUTONOMY_ENGINE/core/deal_transaction_milestones.py
+AD AUTONOMY_ENGINE/core/deal_transaction_replay.py
+AD AUTONOMY_ENGINE/core/deal_transaction_workflow.py
+AM AUTONOMY_ENGINE/core/event_platform/__init__.py
+AD AUTONOMY_ENGINE/core/event_platform/__pycache__/__init__.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/hybrid_retrieval.py
+AM AUTONOMY_ENGINE/core/identity_tenant/__init__.py
+AD AUTONOMY_ENGINE/core/identity_tenant/__pycache__/__init__.cpython-312.pyc
+MD AUTONOMY_ENGINE/core/inventory.py
+AM AUTONOMY_ENGINE/core/inventory/__init__.py
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/__init__.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/inventory.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/inventory_concurrency.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/inventory_consistency.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/inventory_core_freeze.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/inventory_evidence.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/inventory_history.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/inventory_history_evidence.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/inventory_indexing.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/inventory_verification.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/project.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/test_inventory_availability.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/test_inventory_concurrency.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/test_inventory_consistency.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/test_inventory_core_freeze.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/test_inventory_domain.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/test_inventory_evidence.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/test_inventory_history.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/test_inventory_history_evidence.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/test_inventory_indexing.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/test_inventory_lifecycle.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/test_inventory_verification.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/inventory/__pycache__/test_project_domain.cpython-312.pyc
+AM AUTONOMY_ENGINE/core/inventory/inventory.py
+AM AUTONOMY_ENGINE/core/inventory/inventory_concurrency.py
+AM AUTONOMY_ENGINE/core/inventory/inventory_consistency.py
+AM AUTONOMY_ENGINE/core/inventory/inventory_core_freeze.py
+AM AUTONOMY_ENGINE/core/inventory/inventory_evidence.py
+AM AUTONOMY_ENGINE/core/inventory/inventory_history.py
+AM AUTONOMY_ENGINE/core/inventory/inventory_history_evidence.py
+AM AUTONOMY_ENGINE/core/inventory/inventory_indexing.py
+AM AUTONOMY_ENGINE/core/inventory/inventory_verification.py
+AM AUTONOMY_ENGINE/core/inventory/project.py
+AM AUTONOMY_ENGINE/core/inventory/test_inventory_availability.py
+AM AUTONOMY_ENGINE/core/inventory/test_inventory_concurrency.py
+AM AUTONOMY_ENGINE/core/inventory/test_inventory_consistency.py
+AM AUTONOMY_ENGINE/core/inventory/test_inventory_core_freeze.py
+AM AUTONOMY_ENGINE/core/inventory/test_inventory_domain.py
+AM AUTONOMY_ENGINE/core/inventory/test_inventory_evidence.py
+AM AUTONOMY_ENGINE/core/inventory/test_inventory_history.py
+AM AUTONOMY_ENGINE/core/inventory/test_inventory_history_evidence.py
+AM AUTONOMY_ENGINE/core/inventory/test_inventory_indexing.py
+AM AUTONOMY_ENGINE/core/inventory/test_inventory_lifecycle.py
+AM AUTONOMY_ENGINE/core/inventory/test_inventory_verification.py
+AM AUTONOMY_ENGINE/core/inventory/test_project_domain.py
+MD AUTONOMY_ENGINE/core/inventory_concurrency.py
+MD AUTONOMY_ENGINE/core/inventory_consistency.py
+MD AUTONOMY_ENGINE/core/inventory_core_freeze.py
+MD AUTONOMY_ENGINE/core/inventory_evidence.py
+MD AUTONOMY_ENGINE/core/inventory_history.py
+MD AUTONOMY_ENGINE/core/inventory_history_evidence.py
+MD AUTONOMY_ENGINE/core/inventory_indexing.py
+MD AUTONOMY_ENGINE/core/inventory_verification.py
+AM AUTONOMY_ENGINE/core/lead_ownership/__init__.py
+AD AUTONOMY_ENGINE/core/lead_ownership/__pycache__/__init__.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/location_search.py
+A  AUTONOMY_ENGINE/core/manifest.json
+AD AUTONOMY_ENGINE/core/matching.py
+MD AUTONOMY_ENGINE/core/project.py
+AD AUTONOMY_ENGINE/core/qdrant_indexing.py
+AD AUTONOMY_ENGINE/core/search_filters.py
+AM AUTONOMY_ENGINE/core/search_matching/__init__.py
+AD AUTONOMY_ENGINE/core/search_matching/__pycache__/__init__.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/search_matching/__pycache__/matching.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/search_matching/__pycache__/search_filters.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/search_matching/__pycache__/search_ranking.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/search_matching/__pycache__/search_rebuild.cpython-312.pyc
+AD AUTONOMY_ENGINE/core/search_matching/__pycache__/search_visibility.cpython-312.pyc
+AM AUTONOMY_ENGINE/core/search_matching/matching.py
+AM AUTONOMY_ENGINE/core/search_matching/search_filters.py
+AM AUTONOMY_ENGINE/core/search_matching/search_ranking.py
+AM AUTONOMY_ENGINE/core/search_matching/search_rebuild.py
+AM AUTONOMY_ENGINE/core/search_matching/search_visibility.py
+AD AUTONOMY_ENGINE/core/search_ranking.py
+AD AUTONOMY_ENGINE/core/search_rebuild.py
+AD AUTONOMY_ENGINE/core/search_visibility.py
+AD AUTONOMY_ENGINE/core/test_deal.py
+AD AUTONOMY_ENGINE/core/test_deal_evidence_audit.py
+AD AUTONOMY_ENGINE/core/test_deal_final_hardening.py
+AD AUTONOMY_ENGINE/core/test_deal_offer_negotiation.py
+AD AUTONOMY_ENGINE/core/test_deal_ownership_integration.py
+AD AUTONOMY_ENGINE/core/test_deal_parties.py
+AD AUTONOMY_ENGINE/core/test_deal_transaction_events.py
+AD AUTONOMY_ENGINE/core/test_deal_transaction_milestones.py
+AD AUTONOMY_ENGINE/core/test_hybrid_retrieval.py
+MD AUTONOMY_ENGINE/core/test_inventory_availability.py
+MD AUTONOMY_ENGINE/core/test_inventory_concurrency.py
+MD AUTONOMY_ENGINE/core/test_inventory_consistency.py
+MD AUTONOMY_ENGINE/core/test_inventory_core_freeze.py
+MD AUTONOMY_ENGINE/core/test_inventory_domain.py
+MD AUTONOMY_ENGINE/core/test_inventory_evidence.py
+MD AUTONOMY_ENGINE/core/test_inventory_history.py
+MD AUTONOMY_ENGINE/core/test_inventory_history_evidence.py
+MD AUTONOMY_ENGINE/core/test_inventory_indexing.py
+MD AUTONOMY_ENGINE/core/test_inventory_lifecycle.py
+MD AUTONOMY_ENGINE/core/test_inventory_verification.py
+AD AUTONOMY_ENGINE/core/test_location_search.py
+AD AUTONOMY_ENGINE/core/test_matching.py
+MD AUTONOMY_ENGINE/core/test_project_domain.py
+AD AUTONOMY_ENGINE/core/test_qdrant_indexing.py
+AD AUTONOMY_ENGINE/core/test_search_core_t09.py
+AD AUTONOMY_ENGINE/core/test_search_filters.py
+AD AUTONOMY_ENGINE/core/test_search_ranking.py
+AD AUTONOMY_ENGINE/core/test_search_rebuild.py
+AD AUTONOMY_ENGINE/core/test_search_visibility.py
+ M REOS_NEXT_CHAT.txt
+ M data/state.json
+ M errors
+ M packets/NEW_CHAT_PACKET.txt
+?? AUTONOMY_ENGINE/core/deal_transaction/CORE-006_FINAL_UPGRADE.txt
+?? AUTONOMY_ENGINE/core/deal_transaction/apply_CORE-006_FINAL_UPGRADE.ps1
+?? AUTONOMY_ENGINE/core/inventory/CORE-004-T01-project-domain.patch
+?? AUTONOMY_ENGINE/core/inventory/CORE-004-T01-project-domain.txt
+?? AUTONOMY_ENGINE/core/inventory/apply_CORE-004-T01.ps1
+?? AUTONOMY_ENGINE/core/search_matching/hybrid_retrieval.py
+?? AUTONOMY_ENGINE/core/search_matching/location_search.py
+?? AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
+?? AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py
+?? AUTONOMY_ENGINE/core/search_matching/test_location_search.py
+?? AUTONOMY_ENGINE/core/search_matching/test_matching.py
+?? AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py
+?? AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py
+?? AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
+?? AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py
+?? AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py
+?? AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py
+?? AUTONOMY_ENGINE/runtime/__pycache__/
+?? architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json
+?? snapshots/state_20260923_161315_485001.json
+?? snapshots/state_20260923_162404_189597.json
+?? snapshots/state_20260923_180726_043694.json
+?? snapshots/state_20260923_185419_756835.json
+?? snapshots/state_20260923_193323_298297.json
+?? snapshots/state_20260923_195704_509449.json
+?? snapshots/state_20260923_201520_253427.json
+?? snapshots/state_20260923_202052_728724.json
+?? snapshots/state_20260923_202438_366355.json
+?? snapshots/state_20260923_204233_128196.json
+?? snapshots/state_20260923_204315_639535.json
+?? snapshots/state_20260923_204324_226795.json
+?? snapshots/state_20260923_204454_887391.json
+?? snapshots/state_20260923_204454_900139.json
+?? snapshots/state_20260923_205735_470444.json
+?? snapshots/state_20260923_210940_680814.json
+?? snapshots/state_20260923_213138_927057.json
+?? snapshots/state_20260923_223349_496861.json
+?? snapshots/state_20260924_101820_265169.json
+?? ../REOS_LAYER_BACKUP_20260924_201807/
+PS D:\Homio\REOS_CONTROL_CENTER> git branch --show-current
+reos-development
+PS D:\Homio\REOS_CONTROL_CENTER> git push origin reos-development
+To https://github.com/prajaktaranjane80-sketch/Homio.git
+ ! [rejected]        reos-development -> reos-development (fetch first)
+error: failed to push some refs to 'https://github.com/prajaktaranjane80-sketch/Homio.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
