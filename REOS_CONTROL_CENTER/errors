@@ -1,268 +1,124 @@
-PS C:\Users\Sandip RanjanePatil> Set-Location "D:\Homio\REOS_CONTROL_CENTER"
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== STATE ==="
+=== DEAL FILE METADATA ===
+PS D:\Homio\REOS_CONTROL_CENTER> Get-Item `
+>>   .\AUTONOMY_ENGINE\core\deal.py, `
+>>   .\AUTONOMY_ENGINE\core\deal.py.T06_FAILED_20260924_113317.bak, `
+>>   .\AUTONOMY_ENGINE\core\deal.py.before-T06-rollback `
+>>   -ErrorAction SilentlyContinue |
+>>   Select-Object Name,Length,LastWriteTime
 
-=== STATE ===
-PS D:\Homio\REOS_CONTROL_CENTER> python reos_control_center.py status
-HOMIO / REOS CONTROL CENTER v7.0
-========================================================================
-Phase: PRE-CODING ARCHITECTURE
-Gate: CORE-006
-Task: CORE-006-T06: Implement evidence and audit integration.
-Status: CONTROL_CENTER_DRIVEN
-Subtask: CORE-006-T06
-Gate Status: CURRENT
-Subtasks: 10 Criteria: 6
-Approved: 38 Pending: 1
-State: D:\Homio\REOS_CONTROL_CENTER\data\state.json
+Name                                   Length LastWriteTime
+----                                   ------ -------------
+deal.py                                  3820 9/24/2026 11:33:18 AM
+deal.py.T06_FAILED_20260924_113317.bak  37851 9/24/2026 10:49:58 AM
+deal.py.before-T06-rollback              3820 9/24/2026 11:33:18 AM
+
+
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== GATE ==="
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== DEAL CLASS / METHODS ==="
 
-=== GATE ===
-PS D:\Homio\REOS_CONTROL_CENTER> python reos_control_center.py gate
-GATE: Deal & Transaction Core
-STATUS: CURRENT
-CURRENT SUBTASK: CORE-006-T06
-SUBTASKS:
-CORE-006-T01 | Implement deal domain and lifecycle | DONE | CRITICAL
-CORE-006-T02 | Implement deal party relationships | DONE | CRITICAL
-CORE-006-T03 | Implement offer and negotiation state | DONE | HIGH
-CORE-006-T04 | Implement booking and transaction milestones | DONE | CRITICAL
-CORE-006-T05 | Implement deal ownership integration | DONE | CRITICAL
-CORE-006-T06 | Implement evidence and audit integration | CURRENT | HIGH
-CORE-006-T07 | Implement transaction event workflows | PENDING | HIGH
-CORE-006-T08 | Run consistency and concurrency tests | PENDING | CRITICAL
-CORE-006-T09 | Run security and authorization review | PENDING | CRITICAL
-CORE-006-T10 | Freeze deal and transaction core | PENDING | CRITICAL
-ACCEPTANCE CRITERIA:
-CORE-006-AC01 | PENDING | Deal state has one authoritative owner.
-CORE-006-AC02 | PENDING | Lead, inventory and ownership relationships are traceable.
-CORE-006-AC03 | PENDING | Critical transaction transitions are auditable.
-CORE-006-AC04 | PENDING | Concurrent updates are safe.
-CORE-006-AC05 | PENDING | Evidence and events preserve historical truth.
-CORE-006-AC06 | PENDING | Authorization and tenant isolation pass.
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== DEAL.PY STRUCTURE ==="
+=== DEAL CLASS / METHODS ===
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($f in @(
+>>   ".\AUTONOMY_ENGINE\core\deal.py",
+>>   ".\AUTONOMY_ENGINE\core\deal.py.T06_FAILED_20260924_113317.bak",
+>>   ".\AUTONOMY_ENGINE\core\deal.py.before-T06-rollback"
+>> )) {
+>>   if (Test-Path $f) {
+>>     Write-Host "`n--- $f ---"
+>>     Select-String -Path $f -Pattern '^class Deal\b|^class DealStatus\b|^    def ' |
+>>       Select-Object -First 100 |
+>>       ForEach-Object {
+>>         "{0}: {1}" -f $_.LineNumber,$_.Line.Trim()
+>>       }
+>>   }
+>> }
 
-=== DEAL.PY STRUCTURE ===
-PS D:\Homio\REOS_CONTROL_CENTER> Select-String -Path .\AUTONOMY_ENGINE\core\deal.py `
->>   -Pattern '^(class |@dataclass|    def |    [a-zA-Z_][a-zA-Z0-9_]*:)' |
->>   ForEach-Object { "{0}: {1}" -f $_.LineNumber,$_.Line.Trim() }
-19: class DealDomainError(ValueError):
-23: class DealTransitionError(DealDomainError):
-27: class DealTenantError(DealDomainError):
-31: class DealConcurrencyError(DealDomainError):
-35: class DealReferenceConflictError(DealDomainError):
-39: class DealValidationError(DealDomainError):
-43: class DealPartyRole(str, Enum):
-49: @dataclass(frozen=True)
-50: class DealPartyRelationship:
-53: deal_id: str
-54: tenant_id: str
-55: role: DealPartyRole
-56: party_id: str
+--- .\AUTONOMY_ENGINE\core\deal.py ---
+58: def __post_init__(self) -> None:
+69: def relationship_key(self) -> str:
+72: def to_dict(self) -> dict[str, Any]:
+
+--- .\AUTONOMY_ENGINE\core\deal.py.T06_FAILED_20260924_113317.bak ---
+58: def __post_init__(self) -> None:
+69: def relationship_key(self) -> str:
+72: def to_dict(self) -> dict[str, Any]:
+80: class DealStatus(str, Enum):
+112: def to_dict(self) -> dict[str, Any]:
+248: class Deal:
+294: def __post_init__(self) -> None:
+324: def create(
+382: def identity_key(self) -> str:
+386: def party_relationships(self) -> tuple[DealPartyRelationship, ...]:
+405: def party_for(self, role: DealPartyRole) -> str | None:
+415: def is_terminal(self) -> bool:
+419: def opportunity_bound(self) -> bool:
+429: def _assert_tenant(self, tenant_id: str) -> None:
+435: def _assert_version(self, expected_version: int | None) -> None:
+450: def current_offer(self) -> DealOffer | None:
+453: def create_offer(
+515: def submit_offer(
+592: def start_negotiation(
+674: def transition_negotiation(
+731: def advance_negotiation_round(
+770: def last_transaction_milestone(self) -> DealTransactionMilestone | None:
+773: def advance_transaction_milestone(
+835: def attach_evidence(
+893: def record_audit(
+954: def bind_ownership(
+1008: def bind_party(
+1057: def bind_opportunity(
+1121: def transition(
+1209: def to_dict(self) -> dict[str, Any]:
+
+--- .\AUTONOMY_ENGINE\core\deal.py.before-T06-rollback ---
 58: def __post_init__(self) -> None:
 69: def relationship_key(self) -> str:
 72: def to_dict(self) -> dict[str, Any]:
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== DEAL.PY T06 AREA ==="
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== T06 FILES ==="
 
-=== DEAL.PY T06 AREA ===
-PS D:\Homio\REOS_CONTROL_CENTER> $lines = Get-Content .\AUTONOMY_ENGINE\core\deal.py
-PS D:\Homio\REOS_CONTROL_CENTER> $start = [Math]::Max(0, 1120)
-PS D:\Homio\REOS_CONTROL_CENTER> $end = [Math]::Min($lines.Count - 1, 1260)
-PS D:\Homio\REOS_CONTROL_CENTER> for ($i=$start; $i -le $end; $i++) {
->>     "{0}: {1}" -f ($i+1),$lines[$i]
+=== T06 FILES ===
+PS D:\Homio\REOS_CONTROL_CENTER> Get-ChildItem .\AUTONOMY_ENGINE\core\*deal*evidence* `
+>>   -ErrorAction SilentlyContinue |
+>>   Select-Object Name,Length,LastWriteTime
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== CURRENT DEAL.PY END ==="
+
+=== CURRENT DEAL.PY END ===
+PS D:\Homio\REOS_CONTROL_CENTER> if (Test-Path .\AUTONOMY_ENGINE\core\deal.py) {
+>>   Get-Content .\AUTONOMY_ENGINE\core\deal.py -Tail 40
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== T06 FILE ==="
+            ],
+            "ownership_binding": (
+                self.ownership_binding.to_dict()
+                if self.ownership_binding is not None
+                else None
+            ),
+            "milestones": [
+                milestone.to_dict()
+                for milestone in self.milestones
+            ],
+            "negotiation": (
+                self.negotiation.to_dict()
+                if self.negotiation is not None
+                else None
+            ),
+        }
 
-=== T06 FILE ===
-PS D:\Homio\REOS_CONTROL_CENTER> if (Test-Path .\AUTONOMY_ENGINE\core\deal_evidence_audit.py) {
->>     Get-Content .\AUTONOMY_ENGINE\core\deal_evidence_audit.py
->> } else {
->>     Write-Host "MISSING"
->> }
-MISSING
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== T06 TEST FILE ==="
+__all__ = [
+    "Deal",    "DealOffer",
+    "DealOfferStatus",
+    "DealNegotiation",
+    "DealNegotiationStatus",
+    "DealStatus",
+    "DealHistoryEntry",
+    "DealDomainError",
+    "DealTransitionError",
+    "DealTenantError",
+    "DealConcurrencyError",
+    "DealReferenceConflictError",
+    "DealValidationError",
+]
 
-=== T06 TEST FILE ===
-PS D:\Homio\REOS_CONTROL_CENTER> if (Test-Path .\AUTONOMY_ENGINE\core\test_deal_evidence_audit.py) {
->>     Get-Content .\AUTONOMY_ENGINE\core\test_deal_evidence_audit.py
->> } else {
->>     Write-Host "MISSING"
->> }
-MISSING
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== CURRENT PYTEST COLLECTION ==="
 
-=== CURRENT PYTEST COLLECTION ===
-PS D:\Homio\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core -q --collect-only 2>&1 | Select-Object -Last 80
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_cross_tenant_result_is_blocked
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_non_active_lifecycle_is_blocked[DRAFT]
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_non_active_lifecycle_is_blocked[ONBOARDING]
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_non_active_lifecycle_is_blocked[SUSPENDED]
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_non_active_lifecycle_is_blocked[ARCHIVED]
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_unavailable_inventory_is_blocked
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_non_blocked_availability_remains_visible[AVAILABLE]
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_non_blocked_availability_remains_visible[RESERVED]
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_non_blocked_availability_remains_visible[SOLD]
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_apply_filters_without_reordering
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_empty_result_is_safe
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_result_input_is_not_mutated
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_tenant_id_is_trimmed
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_empty_tenant_is_rejected
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_non_string_tenant_is_rejected
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_custom_policy_can_allow_multiple_lifecycles
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_custom_policy_can_block_reserved
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_policy_normalizes_values
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_empty_visibility_policy_is_rejected
-AUTONOMY_ENGINE/core/test_search_visibility.py::test_decision_exposes_all_boundary_dimensions
 
-=================================== ERRORS ====================================
-_____________ ERROR collecting AUTONOMY_ENGINE/core/test_deal.py ______________
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AUTONOMY_ENGINE\core\test_deal.py:7: in <module>
-    from AUTONOMY_ENGINE.core.deal import (
-E   ImportError: cannot import name 'Deal' from 'AUTONOMY_ENGINE.core.deal' (D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py)
-____ ERROR collecting AUTONOMY_ENGINE/core/test_deal_offer_negotiation.py _____
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py:7: in <module>
-    from AUTONOMY_ENGINE.core.deal import (
-E   ImportError: cannot import name 'Deal' from 'AUTONOMY_ENGINE.core.deal' (D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py)
-__ ERROR collecting AUTONOMY_ENGINE/core/test_deal_ownership_integration.py ___
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AUTONOMY_ENGINE\core\test_deal_ownership_integration.py:7: in <module>
-    from AUTONOMY_ENGINE.core.deal import (
-E   ImportError: cannot import name 'Deal' from 'AUTONOMY_ENGINE.core.deal' (D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py)
-_________ ERROR collecting AUTONOMY_ENGINE/core/test_deal_parties.py __________
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AUTONOMY_ENGINE\core\test_deal_parties.py:5: in <module>
-    from AUTONOMY_ENGINE.core.deal import (
-E   ImportError: cannot import name 'Deal' from 'AUTONOMY_ENGINE.core.deal' (D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py)
-__ ERROR collecting AUTONOMY_ENGINE/core/test_deal_transaction_milestones.py __
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py:5: in <module>
-    from AUTONOMY_ENGINE.core.deal import Deal, DealStatus, DealTransitionError
-E   ImportError: cannot import name 'Deal' from 'AUTONOMY_ENGINE.core.deal' (D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py)
-=========================== short test summary info ===========================
-ERROR AUTONOMY_ENGINE/core/test_deal.py
-ERROR AUTONOMY_ENGINE/core/test_deal_offer_negotiation.py
-ERROR AUTONOMY_ENGINE/core/test_deal_ownership_integration.py
-ERROR AUTONOMY_ENGINE/core/test_deal_parties.py
-ERROR AUTONOMY_ENGINE/core/test_deal_transaction_milestones.py
-!!!!!!!!!!!!!!!!!!! Interrupted: 5 errors during collection !!!!!!!!!!!!!!!!!!!
-354 tests collected, 5 errors in 1.26s
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== GIT STATUS ==="
 
-=== GIT STATUS ===
-PS D:\Homio\REOS_CONTROL_CENTER> git status --short
- M AUTONOMY_ENGINE/core/__pycache__/__init__.cpython-312.pyc
- M REOS_NEXT_CHAT.txt
- M data/state.json
- M errors
- M packets/NEW_CHAT_PACKET.txt
-?? AUTONOMY_ENGINE/core/__pycache__/deal.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/deal_offer_negotiation.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/deal_ownership_integration.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/deal_transaction_milestones.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/hybrid_retrieval.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/location_search.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/matching.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/qdrant_indexing.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/search_filters.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/search_ranking.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/search_rebuild.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/search_visibility.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_deal.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_deal_evidence_audit.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_deal_evidence_audit.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_deal_offer_negotiation.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_deal_ownership_integration.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_deal_ownership_integration.cpython-312.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_deal_parties.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_deal_transaction_milestones.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_hybrid_retrieval.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_location_search.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_matching.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_qdrant_indexing.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_search_core_t09.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_search_filters.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_search_ranking.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_search_rebuild.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/core/__pycache__/test_search_visibility.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/core/deal.py
-?? AUTONOMY_ENGINE/core/deal.py.T06_FAILED_20260924_113317.bak
-?? AUTONOMY_ENGINE/core/deal.py.before-T06-rollback
-?? AUTONOMY_ENGINE/core/deal_offer_negotiation.py
-?? AUTONOMY_ENGINE/core/deal_ownership_integration.py
-?? AUTONOMY_ENGINE/core/deal_transaction_milestones.py
-?? AUTONOMY_ENGINE/core/hybrid_retrieval.py
-?? AUTONOMY_ENGINE/core/location_search.py
-?? AUTONOMY_ENGINE/core/matching.py
-?? AUTONOMY_ENGINE/core/qdrant_indexing.py
-?? AUTONOMY_ENGINE/core/search_filters.py
-?? AUTONOMY_ENGINE/core/search_ranking.py
-?? AUTONOMY_ENGINE/core/search_rebuild.py
-?? AUTONOMY_ENGINE/core/search_visibility.py
-?? AUTONOMY_ENGINE/core/test_deal.py
-?? AUTONOMY_ENGINE/core/test_deal_offer_negotiation.py
-?? AUTONOMY_ENGINE/core/test_deal_ownership_integration.py
-?? AUTONOMY_ENGINE/core/test_deal_parties.py
-?? AUTONOMY_ENGINE/core/test_deal_transaction_milestones.py
-?? AUTONOMY_ENGINE/core/test_hybrid_retrieval.py
-?? AUTONOMY_ENGINE/core/test_location_search.py
-?? AUTONOMY_ENGINE/core/test_matching.py
-?? AUTONOMY_ENGINE/core/test_qdrant_indexing.py
-?? AUTONOMY_ENGINE/core/test_search_core_t09.py
-?? AUTONOMY_ENGINE/core/test_search_filters.py
-?? AUTONOMY_ENGINE/core/test_search_ranking.py
-?? AUTONOMY_ENGINE/core/test_search_rebuild.py
-?? AUTONOMY_ENGINE/core/test_search_visibility.py
-?? AUTONOMY_ENGINE/runtime/__pycache__/
-?? architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json
-?? snapshots/state_20260923_161315_485001.json
-?? snapshots/state_20260923_162404_189597.json
-?? snapshots/state_20260923_180726_043694.json
-?? snapshots/state_20260923_185419_756835.json
-?? snapshots/state_20260923_193323_298297.json
-?? snapshots/state_20260923_195704_509449.json
-?? snapshots/state_20260923_201520_253427.json
-?? snapshots/state_20260923_202052_728724.json
-?? snapshots/state_20260923_202438_366355.json
-?? snapshots/state_20260923_204233_128196.json
-?? snapshots/state_20260923_204315_639535.json
-?? snapshots/state_20260923_204324_226795.json
-?? snapshots/state_20260923_204454_887391.json
-?? snapshots/state_20260923_204454_900139.json
-?? snapshots/state_20260923_205735_470444.json
-?? snapshots/state_20260923_210940_680814.json
-?? snapshots/state_20260923_213138_927057.json
-?? snapshots/state_20260923_223349_496861.json
-?? snapshots/state_20260924_101820_265169.json
