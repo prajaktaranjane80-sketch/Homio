@@ -1,4 +1,4 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Content .\AUTONOMY_ENGINE\core\deal.py.T06_FAILED_20260924_113317.bak
+========== .\AUTONOMY_ENGINE\core\deal.py ==========
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
@@ -1261,3 +1261,3984 @@ __all__ = [
 
 
 
+
+
+
+
+
+
+
+========== .\AUTONOMY_ENGINE\core\deal.py.T06_WORKING_SOURCE.bak ==========
+from __future__ import annotations
+
+from dataclasses import dataclass, field, replace
+from datetime import datetime, timezone
+from .deal_offer_negotiation import (
+    DealOffer,
+    DealOfferStatus,
+    DealNegotiation,
+    DealNegotiationStatus,
+)
+from enum import Enum
+from typing import Any
+from uuid import uuid4
+
+from .deal_transaction_milestones import DealTransactionMilestone
+from .deal_ownership_integration import DealOwnershipBinding
+
+
+class DealDomainError(ValueError):
+    """Base error for Deal aggregate failures."""
+
+
+class DealTransitionError(DealDomainError):
+    """Raised when a Deal lifecycle transition is invalid."""
+
+
+class DealTenantError(DealDomainError):
+    """Raised when a Deal operation crosses tenant boundaries."""
+
+
+class DealConcurrencyError(DealDomainError):
+    """Raised when a stale Deal version attempts a mutation."""
+
+
+class DealReferenceConflictError(DealDomainError):
+    """Raised when bound opportunity references are silently substituted."""
+
+
+class DealValidationError(DealDomainError):
+    """Raised when Deal identity or required references are invalid."""
+
+
+class DealPartyRole(str, Enum):
+    CUSTOMER = "CUSTOMER"
+    BROKER = "BROKER"
+    BUILDER = "BUILDER"
+
+
+@dataclass(frozen=True)
+class DealPartyRelationship:
+    """Immutable tenant-scoped relationship view for a Deal party."""
+
+    deal_id: str
+    tenant_id: str
+    role: DealPartyRole
+    party_id: str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.deal_id, str) or not self.deal_id.strip():
+            raise DealValidationError("deal_id is required.")
+        if not isinstance(self.tenant_id, str) or not self.tenant_id.strip():
+            raise DealValidationError("tenant_id is required.")
+        if not isinstance(self.party_id, str) or not self.party_id.strip():
+            raise DealValidationError("party_id is required.")
+
+        object.__setattr__(self, "role", DealPartyRole(self.role))
+
+    @property
+    def relationship_key(self) -> str:
+        return f"{self.tenant_id}:{self.deal_id}:{self.role.value}"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "relationship_key": self.relationship_key,
+            "deal_id": self.deal_id,
+            "tenant_id": self.tenant_id,
+            "role": self.role.value,
+            "party_id": self.party_id,
+        }
+class DealStatus(str, Enum):
+    QUALIFIED = "QUALIFIED"
+    MATCHED = "MATCHED"
+    VISIT_PENDING = "VISIT_PENDING"
+    VISITED = "VISITED"
+    OFFERED = "OFFERED"
+    NEGOTIATING = "NEGOTIATING"
+    BOOKING_PENDING = "BOOKING_PENDING"
+    BOOKED = "BOOKED"
+    AGREEMENT_PENDING = "AGREEMENT_PENDING"
+    AGREED = "AGREED"
+    REGISTRATION_PENDING = "REGISTRATION_PENDING"
+    REGISTERED = "REGISTERED"
+    COMPLETION_PENDING = "COMPLETION_PENDING"
+    COMPLETED = "COMPLETED"
+
+    CANCELLED = "CANCELLED"
+    EXPIRED = "EXPIRED"
+    REJECTED = "REJECTED"
+    DISPUTED = "DISPUTED"
+    FRAUD_BLOCKED = "FRAUD_BLOCKED"
+
+
+@dataclass(frozen=True)
+class DealHistoryEntry:
+    history_id: str
+    from_status: DealStatus | None
+    to_status: DealStatus
+    version: int
+    changed_at: datetime
+    reason: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "history_id": self.history_id,
+            "from_status": (
+                self.from_status.value
+                if self.from_status is not None
+                else None
+            ),
+            "to_status": self.to_status.value,
+            "version": self.version,
+            "changed_at": self.changed_at.isoformat(),
+            "reason": self.reason,
+        }
+
+
+_NOMINAL_TRANSITIONS: dict[DealStatus, frozenset[DealStatus]] = {
+    DealStatus.QUALIFIED: frozenset({DealStatus.MATCHED}),
+    DealStatus.MATCHED: frozenset({DealStatus.VISIT_PENDING}),
+    DealStatus.VISIT_PENDING: frozenset({DealStatus.VISITED}),
+    DealStatus.VISITED: frozenset({DealStatus.OFFERED}),
+    DealStatus.OFFERED: frozenset(
+        {
+            DealStatus.NEGOTIATING,
+            DealStatus.BOOKING_PENDING,
+        }
+    ),
+    DealStatus.NEGOTIATING: frozenset(
+        {
+            DealStatus.OFFERED,
+            DealStatus.BOOKING_PENDING,
+        }
+    ),
+    DealStatus.BOOKING_PENDING: frozenset({DealStatus.BOOKED}),
+    DealStatus.BOOKED: frozenset({DealStatus.AGREEMENT_PENDING}),
+    DealStatus.AGREEMENT_PENDING: frozenset({DealStatus.AGREED}),
+    DealStatus.AGREED: frozenset({DealStatus.REGISTRATION_PENDING}),
+    DealStatus.REGISTRATION_PENDING: frozenset({DealStatus.REGISTERED}),
+    DealStatus.REGISTERED: frozenset({DealStatus.COMPLETION_PENDING}),
+    DealStatus.COMPLETION_PENDING: frozenset({DealStatus.COMPLETED}),
+    DealStatus.COMPLETED: frozenset(),
+    DealStatus.CANCELLED: frozenset(),
+    DealStatus.EXPIRED: frozenset(),
+    DealStatus.REJECTED: frozenset(),
+    DealStatus.DISPUTED: frozenset(),
+    DealStatus.FRAUD_BLOCKED: frozenset(),
+}
+
+
+_PRE_BOOKING_EXPIRY_STATES = frozenset(
+    {
+        DealStatus.QUALIFIED,
+        DealStatus.MATCHED,
+        DealStatus.VISIT_PENDING,
+        DealStatus.VISITED,
+        DealStatus.OFFERED,
+        DealStatus.NEGOTIATING,
+        DealStatus.BOOKING_PENDING,
+        DealStatus.AGREEMENT_PENDING,
+    }
+)
+
+_REJECTION_STATES = frozenset(
+    {
+        DealStatus.QUALIFIED,
+        DealStatus.MATCHED,
+        DealStatus.VISIT_PENDING,
+        DealStatus.VISITED,
+        DealStatus.OFFERED,
+        DealStatus.NEGOTIATING,
+        DealStatus.BOOKING_PENDING,
+        DealStatus.AGREEMENT_PENDING,
+    }
+)
+
+_DISPUTE_STATES = frozenset(
+    {
+        DealStatus.BOOKED,
+        DealStatus.AGREEMENT_PENDING,
+        DealStatus.AGREED,
+        DealStatus.REGISTRATION_PENDING,
+        DealStatus.REGISTERED,
+        DealStatus.COMPLETION_PENDING,
+    }
+)
+
+_NON_TERMINAL_STATES = frozenset(
+    {
+        DealStatus.QUALIFIED,
+        DealStatus.MATCHED,
+        DealStatus.VISIT_PENDING,
+        DealStatus.VISITED,
+        DealStatus.OFFERED,
+        DealStatus.NEGOTIATING,
+        DealStatus.BOOKING_PENDING,
+        DealStatus.BOOKED,
+        DealStatus.AGREEMENT_PENDING,
+        DealStatus.AGREED,
+        DealStatus.REGISTRATION_PENDING,
+        DealStatus.REGISTERED,
+        DealStatus.COMPLETION_PENDING,
+    }
+)
+
+
+def _require_id(value: str, field_name: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise DealValidationError(
+            f"{field_name} must be a non-empty string."
+        )
+    return value.strip()
+
+
+def _coerce_datetime(value: datetime | str | None) -> datetime:
+    if value is None:
+        return datetime.now(timezone.utc)
+
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise DealValidationError(
+                "at must be a valid ISO-8601 datetime."
+            ) from exc
+
+    if not isinstance(value, datetime):
+        raise DealValidationError(
+            "at must be a datetime, ISO-8601 string, or None."
+        )
+
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+
+    return value.astimezone(timezone.utc)
+
+
+@dataclass(frozen=True)
+class Deal:
+    """
+    Canonical Deal aggregate for CORE-006-T01.
+
+    Owns:
+        identity
+        tenant
+        customer/broker references
+        builder/project/unit references
+        lifecycle state
+        version
+        immutable history
+
+    Does not own:
+        commission calculation
+        trust/fraud scoring authority
+        search indexing
+        AI authority
+        global governance policy
+    """
+
+    deal_id: str
+    tenant_id: str
+    customer_id: str
+    broker_id: str
+
+    builder_id: str | None
+    project_id: str | None
+    unit_id: str | None
+
+    status: DealStatus
+    version: int
+
+    created_at: datetime
+    updated_at: datetime
+
+    history: tuple[DealHistoryEntry, ...]
+
+    source_of_truth: str = "deal"
+    offers: tuple[DealOffer, ...] = field(default_factory=tuple)
+    negotiation: DealNegotiation | None = None
+    milestones: tuple[DealTransactionMilestone, ...] = field(default_factory=tuple)
+    ownership_binding: DealOwnershipBinding | None = None
+    evidence: tuple[DealEvidenceReference, ...] = ()
+    audit_log: tuple[DealAuditEntry, ...] = ()
+
+    def __post_init__(self) -> None:
+        _require_id(self.deal_id, "deal_id")
+        _require_id(self.tenant_id, "tenant_id")
+        _require_id(self.customer_id, "customer_id")
+        _require_id(self.broker_id, "broker_id")
+
+        for field_name in (
+            "builder_id",
+            "project_id",
+            "unit_id",
+        ):
+            value = getattr(self, field_name)
+            if value is not None:
+                _require_id(value, field_name)
+
+        if self.version < 1:
+            raise DealValidationError("version must be >= 1.")
+
+        object.__setattr__(
+            self,
+            "status",
+            DealStatus(self.status),
+        )
+
+        if self.source_of_truth != "deal":
+            raise DealValidationError(
+                "Deal source_of_truth must remain 'deal'."
+            )
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        tenant_id: str,
+        customer_id: str,
+        broker_id: str,
+        builder_id: str | None = None,
+        project_id: str | None = None,
+        unit_id: str | None = None,
+        deal_id: str | None = None,
+        at: datetime | str | None = None,
+    ) -> "Deal":
+        timestamp = _coerce_datetime(at)
+
+        deal = cls(
+            deal_id=deal_id or str(uuid4()),
+            tenant_id=_require_id(tenant_id, "tenant_id"),
+            customer_id=_require_id(customer_id, "customer_id"),
+            broker_id=_require_id(broker_id, "broker_id"),
+            builder_id=(
+                _require_id(builder_id, "builder_id")
+                if builder_id is not None
+                else None
+            ),
+            project_id=(
+                _require_id(project_id, "project_id")
+                if project_id is not None
+                else None
+            ),
+            unit_id=(
+                _require_id(unit_id, "unit_id")
+                if unit_id is not None
+                else None
+            ),
+            status=DealStatus.QUALIFIED,
+            version=1,
+            created_at=timestamp,
+            updated_at=timestamp,
+            history=(),
+        )
+
+        creation_history = DealHistoryEntry(
+            history_id=str(uuid4()),
+            from_status=None,
+            to_status=DealStatus.QUALIFIED,
+            version=1,
+            changed_at=timestamp,
+            reason="DEAL_CREATED",
+        )
+
+        return cls(
+            **{
+                **deal.__dict__,
+                "history": (creation_history,),
+            }
+        )
+
+    @property
+    def identity_key(self) -> str:
+        return f"{self.tenant_id}:{self.deal_id}"
+
+    @property
+    def party_relationships(self) -> tuple[DealPartyRelationship, ...]:
+        """Return the canonical current party relationships for this Deal."""
+        bindings = [
+            (DealPartyRole.CUSTOMER, self.customer_id),
+            (DealPartyRole.BROKER, self.broker_id),
+            (DealPartyRole.BUILDER, self.builder_id),
+        ]
+
+        return tuple(
+            DealPartyRelationship(
+                deal_id=self.deal_id,
+                tenant_id=self.tenant_id,
+                role=role,
+                party_id=party_id,
+            )
+            for role, party_id in bindings
+            if party_id is not None
+        )
+
+    def party_for(self, role: DealPartyRole) -> str | None:
+        role = DealPartyRole(role)
+
+        for relationship in self.party_relationships:
+            if relationship.role is role:
+                return relationship.party_id
+
+        return None
+
+    @property
+    def is_terminal(self) -> bool:
+        return self.status not in _NON_TERMINAL_STATES
+
+    @property
+    def opportunity_bound(self) -> bool:
+        return all(
+            value is not None
+            for value in (
+                self.builder_id,
+                self.project_id,
+                self.unit_id,
+            )
+        )
+
+    def _assert_tenant(self, tenant_id: str) -> None:
+        if tenant_id != self.tenant_id:
+            raise DealTenantError(
+                "Deal operation belongs to a different tenant."
+            )
+
+    def _assert_version(self, expected_version: int | None) -> None:
+        if expected_version is None:
+            return
+
+        if expected_version < 1:
+            raise DealConcurrencyError(
+                "expected_version must be >= 1."
+            )
+
+        if expected_version != self.version:
+            raise DealConcurrencyError(
+                "Deal version is stale; refresh before mutating."
+            )
+
+    @property
+    def current_offer(self) -> DealOffer | None:
+        return self.offers[-1] if self.offers else None
+
+    def create_offer(
+        self,
+        offer_id: str,
+        *,
+        tenant_id: str,
+        expected_version: int,
+        supersedes_offer_id: str | None = None,
+        at: datetime | None = None,
+    ) -> "Deal":
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
+
+        if self.is_terminal:
+            raise DealReferenceConflictError(
+                "Terminal deals cannot create offers."
+            )
+
+        if not self.opportunity_bound:
+            raise DealReferenceConflictError(
+                "Offer requires a bound builder/project/unit opportunity."
+            )
+
+        if self.status not in (
+            DealStatus.VISITED,
+            DealStatus.OFFERED,
+            DealStatus.NEGOTIATING,
+        ):
+            raise DealTransitionError(
+                "Offers can only be created after a deal reaches VISITED."
+            )
+
+        if any(
+            existing.offer_id == offer_id
+            for existing in self.offers
+        ):
+            return self
+
+        if supersedes_offer_id is not None and not any(
+            existing.offer_id == supersedes_offer_id
+            for existing in self.offers
+        ):
+            raise DealReferenceConflictError(
+                "supersedes_offer_id must reference an existing offer."
+            )
+
+        timestamp = at or _utc_now()
+
+        offer = DealOffer.create(
+            offer_id=offer_id,
+            deal_id=self.deal_id,
+            tenant_id=self.tenant_id,
+            at=timestamp,
+            supersedes_offer_id=supersedes_offer_id,
+        )
+
+        return replace(
+            self,
+            offers=self.offers + (offer,),
+            version=self.version + 1,
+            updated_at=timestamp,
+        )
+
+    def submit_offer(
+        self,
+        offer_id: str,
+        *,
+        tenant_id: str,
+        expected_version: int,
+        at: datetime | None = None,
+    ) -> "Deal":
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
+
+        offer_index = next(
+            (
+                index
+                for index, existing in enumerate(self.offers)
+                if existing.offer_id == offer_id
+            ),
+            None,
+        )
+
+        if offer_index is None:
+            raise DealReferenceConflictError(
+                "Offer does not belong to this Deal."
+            )
+
+        offer = self.offers[offer_index]
+
+        if offer.status is DealOfferStatus.SUBMITTED:
+            return self
+
+        updated_offer = offer.transition(
+            DealOfferStatus.SUBMITTED,
+            tenant_id=tenant_id,
+            expected_version=offer.version,
+            at=at,
+        )
+
+        updated_offers = list(self.offers)
+        updated_offers[offer_index] = updated_offer
+
+        timestamp = at or _utc_now()
+        target_status = self.status
+
+        if self.status is DealStatus.VISITED:
+            target_status = DealStatus.OFFERED
+        elif self.status not in (
+            DealStatus.OFFERED,
+            DealStatus.NEGOTIATING,
+        ):
+            raise DealTransitionError(
+                "Offer submission is only valid from VISITED, "
+                "OFFERED or NEGOTIATING."
+            )
+
+        history = self.history
+
+        if target_status is not self.status:
+            history = history + (
+                DealHistoryEntry(
+                    history_id=str(uuid4()),
+                    from_status=self.status,
+                    to_status=target_status,
+                    version=self.version + 1,
+                    changed_at=timestamp,
+                    reason="OFFER_SUBMITTED",
+                ),
+            )
+
+        return replace(
+            self,
+            status=target_status,
+            offers=tuple(updated_offers),
+            version=self.version + 1,
+            updated_at=timestamp,
+            history=history,
+        )
+
+    def start_negotiation(
+        self,
+        negotiation_id: str,
+        *,
+        tenant_id: str,
+        expected_version: int,
+        offer_id: str | None = None,
+        at: datetime | None = None,
+    ) -> "Deal":
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
+
+        if self.is_terminal:
+            raise DealReferenceConflictError(
+                "Terminal deals cannot start negotiations."
+            )
+
+        if self.status is not DealStatus.OFFERED:
+            raise DealTransitionError(
+                "Negotiation can only start from OFFERED."
+            )
+
+        if self.negotiation is not None:
+            if self.negotiation.negotiation_id == negotiation_id:
+                return self
+            raise DealReferenceConflictError(
+                "Deal already has a negotiation reference."
+            )
+
+        active_offer = (
+            self.current_offer
+            if offer_id is None
+            else next(
+                (
+                    existing
+                    for existing in self.offers
+                    if existing.offer_id == offer_id
+                ),
+                None,
+            )
+        )
+
+        if active_offer is None:
+            raise DealReferenceConflictError(
+                "Negotiation requires an existing offer."
+            )
+
+        if active_offer.status is not DealOfferStatus.SUBMITTED:
+            raise DealTransitionError(
+                "Negotiation requires a SUBMITTED offer."
+            )
+
+        timestamp = at or _utc_now()
+
+        negotiation = DealNegotiation.create(
+            negotiation_id=negotiation_id,
+            deal_id=self.deal_id,
+            tenant_id=self.tenant_id,
+            active_offer_id=active_offer.offer_id,
+            at=timestamp,
+        )
+
+        history = self.history + (
+            DealHistoryEntry(
+                history_id=str(uuid4()),
+                from_status=self.status,
+                to_status=DealStatus.NEGOTIATING,
+                version=self.version + 1,
+                changed_at=timestamp,
+                reason="NEGOTIATION_STARTED",
+            ),
+        )
+
+        return replace(
+            self,
+            status=DealStatus.NEGOTIATING,
+            negotiation=negotiation,
+            version=self.version + 1,
+            updated_at=timestamp,
+            history=history,
+        )
+
+    def transition_negotiation(
+        self,
+        target: DealNegotiationStatus,
+        *,
+        tenant_id: str,
+        expected_version: int,
+        at: datetime | None = None,
+    ) -> "Deal":
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
+
+        if self.negotiation is None:
+            raise DealReferenceConflictError(
+                "Deal has no negotiation reference."
+            )
+
+        updated_negotiation = self.negotiation.transition(
+            target,
+            tenant_id=tenant_id,
+            expected_version=self.negotiation.version,
+            at=at,
+        )
+
+        timestamp = at or _utc_now()
+        updated_status = self.status
+        history = self.history
+
+        if target in (
+            DealNegotiationStatus.CONCLUDED,
+            DealNegotiationStatus.ABORTED,
+        ):
+            if self.status is not DealStatus.NEGOTIATING:
+                raise DealTransitionError(
+                    "Negotiation can only close while Deal is NEGOTIATING."
+                )
+
+            updated_status = DealStatus.OFFERED
+            history = history + (
+                DealHistoryEntry(
+                    history_id=str(uuid4()),
+                    from_status=self.status,
+                    to_status=updated_status,
+                    version=self.version + 1,
+                    changed_at=timestamp,
+                    reason=f"NEGOTIATION_{target.value}",
+                ),
+            )
+
+        return replace(
+            self,
+            status=updated_status,
+            negotiation=updated_negotiation,
+            version=self.version + 1,
+            updated_at=timestamp,
+            history=history,
+        )
+
+    def advance_negotiation_round(
+        self,
+        *,
+        tenant_id: str,
+        expected_version: int,
+        active_offer_id: str,
+        at: datetime | None = None,
+    ) -> "Deal":
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
+
+        if self.negotiation is None:
+            raise DealReferenceConflictError(
+                "Deal has no negotiation reference."
+            )
+
+        if not any(
+            existing.offer_id == active_offer_id
+            for existing in self.offers
+        ):
+            raise DealReferenceConflictError(
+                "Negotiation round must reference an existing offer."
+            )
+
+        updated_negotiation = self.negotiation.advance_round(
+            tenant_id=tenant_id,
+            expected_version=self.negotiation.version,
+            active_offer_id=active_offer_id,
+            at=at,
+        )
+
+        return replace(
+            self,
+            negotiation=updated_negotiation,
+            version=self.version + 1,
+            updated_at=at or _utc_now(),
+        )
+
+    @property
+    def last_transaction_milestone(self) -> DealTransactionMilestone | None:
+        return self.milestones[-1] if self.milestones else None
+
+    def advance_transaction_milestone(
+        self,
+        target: DealStatus,
+        *,
+        tenant_id: str,
+        expected_version: int,
+        reference_id: str | None = None,
+        at: str | None = None,
+    ) -> "Deal":
+        """Advance the canonical Deal lifecycle and append one milestone."""
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
+
+        target = DealStatus(target)
+
+        transaction_statuses = {
+            DealStatus.BOOKING_PENDING,
+            DealStatus.BOOKED,
+            DealStatus.AGREEMENT_PENDING,
+            DealStatus.AGREED,
+            DealStatus.REGISTRATION_PENDING,
+            DealStatus.REGISTERED,
+            DealStatus.COMPLETION_PENDING,
+            DealStatus.COMPLETED,
+        }
+
+        if target not in transaction_statuses:
+            raise DealTransitionError(
+                f"{target.value} is not a transaction milestone."
+            )
+
+        updated = self.transition(
+            target,
+            tenant_id=tenant_id,
+            expected_version=expected_version,
+            at=at,
+        )
+
+        timestamp = (
+            datetime.fromisoformat(updated.updated_at)
+            if isinstance(updated.updated_at, str)
+            else updated.updated_at
+        )
+
+        milestone = DealTransactionMilestone(
+            milestone_id=str(uuid4()),
+            deal_id=self.deal_id,
+            tenant_id=self.tenant_id,
+            from_status=self.status,
+            to_status=target,
+            sequence=len(self.milestones) + 1,
+            deal_version=updated.version,
+            occurred_at=timestamp,
+            reference_id=reference_id,
+        )
+
+        return replace(
+            updated,
+            milestones=self.milestones + (milestone,),
+        )
+
+
+    def attach_evidence(
+        self,
+        evidence_id: str,
+        *,
+        evidence_type: str,
+        reference: str,
+        tenant_id: str,
+        expected_version: int,
+        at: datetime | str | None = None,
+        metadata: Mapping[str, Any] | None = None,
+    ) -> "Deal":
+        from .deal_evidence_audit import (
+            DealEvidenceConflictError,
+            DealEvidenceReference,
+        )
+
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
+
+        candidate_semantics = (
+            evidence_id,
+            self.deal_id,
+            tenant_id,
+            evidence_type,
+            reference,
+            dict(metadata or {}),
+        )
+
+        for existing in self.evidence:
+            if existing.evidence_id != evidence_id:
+                continue
+
+            if existing.semantic_key() == candidate_semantics:
+                return self
+
+            raise DealEvidenceConflictError(
+                f"Evidence id {evidence_id!r} is already bound "
+                "with different immutable data."
+            )
+
+        new_version = self.version + 1
+        evidence = DealEvidenceReference.create(
+            evidence_id=evidence_id,
+            deal_id=self.deal_id,
+            tenant_id=self.tenant_id,
+            evidence_type=evidence_type,
+            reference=reference,
+            deal_version=new_version,
+            at=at,
+            metadata=metadata,
+        )
+
+        return replace(
+            self,
+            version=new_version,
+            evidence=self.evidence + (evidence,),
+        )
+
+    def record_audit(
+        self,
+        *,
+        action: str,
+        actor_id: str,
+        tenant_id: str,
+        expected_version: int,
+        audit_id: str | None = None,
+        outcome: str = "RECORDED",
+        at: datetime | str | None = None,
+        metadata: Mapping[str, Any] | None = None,
+    ) -> "Deal":
+        from .deal_evidence_audit import (
+            DealAuditConflictError,
+            DealAuditEntry,
+        )
+
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
+
+        for existing in self.audit_log:
+            if audit_id is None or existing.audit_id != audit_id:
+                continue
+
+            candidate_semantics = (
+                audit_id,
+                self.deal_id,
+                tenant_id,
+                action,
+                actor_id,
+                outcome,
+                dict(metadata or {}),
+            )
+
+            if existing.semantic_key() == candidate_semantics:
+                return self
+
+            raise DealAuditConflictError(
+                f"Audit id {audit_id!r} is already recorded "
+                "with different immutable data."
+            )
+
+        new_version = self.version + 1
+        audit = DealAuditEntry.create(
+            audit_id=audit_id,
+            deal_id=self.deal_id,
+            tenant_id=self.tenant_id,
+            action=action,
+            actor_id=actor_id,
+            deal_version=new_version,
+            outcome=outcome,
+            at=at,
+            metadata=metadata,
+        )
+
+        return replace(
+            self,
+            version=new_version,
+            audit_log=self.audit_log + (audit,),
+        )
+
+    def bind_ownership(
+        self,
+        binding_id: str,
+        *,
+        lead_id: str,
+        ownership_record_id: str,
+        owner_id: str,
+        tenant_id: str,
+        expected_version: int,
+        at: datetime | None = None,
+    ) -> "Deal":
+        """Bind the Deal to the authoritative ARCH-011 ownership record."""
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
+
+        if self.is_terminal:
+            raise DealReferenceConflictError(
+                "Terminal deals cannot change ownership binding."
+            )
+
+        timestamp = at or datetime.now(timezone.utc)
+
+        if self.ownership_binding is not None:
+            existing = self.ownership_binding
+
+            if (
+                existing.ownership_record_id == ownership_record_id
+                and existing.lead_id == lead_id
+                and existing.owner_id == owner_id
+            ):
+                return self
+
+            raise DealReferenceConflictError(
+                "Deal ownership binding already exists; "
+                "silent substitution is forbidden."
+            )
+
+        binding = DealOwnershipBinding(
+            binding_id=binding_id,
+            deal_id=self.deal_id,
+            tenant_id=self.tenant_id,
+            lead_id=lead_id,
+            ownership_record_id=ownership_record_id,
+            owner_id=owner_id,
+            bound_at=timestamp,
+        )
+
+        return replace(
+            self,
+            ownership_binding=binding,
+            version=self.version + 1,
+            updated_at=timestamp,
+        )
+
+    def bind_party(
+        self,
+        role: DealPartyRole,
+        party_id: str,
+        *,
+        tenant_id: str,
+        expected_version: int,
+        at: str | None = None,
+    ) -> "Deal":
+        """Bind one canonical party relationship without silent substitution."""
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
+
+        role = DealPartyRole(role)
+
+        if not isinstance(party_id, str) or not party_id.strip():
+            raise DealValidationError("party_id is required.")
+
+        if self.is_terminal:
+            raise DealReferenceConflictError(
+                "Terminal deals cannot change party relationships."
+            )
+
+        current_party_id = self.party_for(role)
+
+        if current_party_id == party_id:
+            return self
+
+        if current_party_id is not None:
+            raise DealReferenceConflictError(
+                f"Cannot silently replace existing {role.value} party."
+            )
+
+        timestamp = at or _utc_now()
+
+        updates: dict[str, Any] = {
+            "updated_at": timestamp,
+            "version": self.version + 1,
+        }
+
+        if role is DealPartyRole.CUSTOMER:
+            updates["customer_id"] = party_id
+        elif role is DealPartyRole.BROKER:
+            updates["broker_id"] = party_id
+        elif role is DealPartyRole.BUILDER:
+            updates["builder_id"] = party_id
+
+        return replace(self, **updates)
+
+    def bind_opportunity(
+        self,
+        *,
+        builder_id: str,
+        project_id: str,
+        unit_id: str,
+        tenant_id: str,
+        expected_version: int | None = None,
+        at: datetime | str | None = None,
+    ) -> "Deal":
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
+
+        if self.status not in {
+            DealStatus.QUALIFIED,
+            DealStatus.MATCHED,
+            DealStatus.VISIT_PENDING,
+            DealStatus.VISITED,
+            DealStatus.OFFERED,
+            DealStatus.NEGOTIATING,
+        }:
+            raise DealReferenceConflictError(
+                "Opportunity references cannot be changed at this "
+                f"Deal status: {self.status.value}."
+            )
+
+        builder_id = _require_id(builder_id, "builder_id")
+        project_id = _require_id(project_id, "project_id")
+        unit_id = _require_id(unit_id, "unit_id")
+
+        existing = (
+            self.builder_id,
+            self.project_id,
+            self.unit_id,
+        )
+
+        requested = (
+            builder_id,
+            project_id,
+            unit_id,
+        )
+
+        if any(value is not None for value in existing):
+            if existing != requested:
+                raise DealReferenceConflictError(
+                    "Existing opportunity references cannot be silently "
+                    "substituted."
+                )
+
+            return self
+
+        timestamp = _coerce_datetime(at)
+
+        return Deal(
+            **{
+                **self.__dict__,
+                "builder_id": builder_id,
+                "project_id": project_id,
+                "unit_id": unit_id,
+                "version": self.version + 1,
+                "updated_at": timestamp,
+            }
+        )
+
+    def transition(
+        self,
+        target: DealStatus | str,
+        *,
+        tenant_id: str,
+        expected_version: int | None = None,
+        reason: str | None = None,
+        at: datetime | str | None = None,
+    ) -> "Deal":
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
+
+        target = DealStatus(target)
+
+        if target == self.status:
+            raise DealTransitionError(
+                "Deal cannot transition to its current status."
+            )
+
+        allowed = set(
+            _NOMINAL_TRANSITIONS.get(
+                self.status,
+                frozenset(),
+            )
+        )
+
+        if target == DealStatus.CANCELLED and self.status in _NON_TERMINAL_STATES:
+            allowed.add(target)
+
+        if target == DealStatus.EXPIRED and self.status in _PRE_BOOKING_EXPIRY_STATES:
+            allowed.add(target)
+
+        if target == DealStatus.REJECTED and self.status in _REJECTION_STATES:
+            allowed.add(target)
+
+        if target == DealStatus.FRAUD_BLOCKED and self.status in _NON_TERMINAL_STATES:
+            allowed.add(target)
+
+        if target == DealStatus.DISPUTED and self.status in _DISPUTE_STATES:
+            allowed.add(target)
+
+        if target not in allowed:
+            raise DealTransitionError(
+                f"Invalid Deal transition: "
+                f"{self.status.value} -> {target.value}."
+            )
+
+        if target in {
+            DealStatus.MATCHED,
+            DealStatus.VISIT_PENDING,
+            DealStatus.VISITED,
+            DealStatus.OFFERED,
+            DealStatus.NEGOTIATING,
+            DealStatus.BOOKING_PENDING,
+            DealStatus.BOOKED,
+            DealStatus.AGREEMENT_PENDING,
+            DealStatus.AGREED,
+            DealStatus.REGISTRATION_PENDING,
+            DealStatus.REGISTERED,
+            DealStatus.COMPLETION_PENDING,
+            DealStatus.COMPLETED,
+        } and not self.opportunity_bound:
+            raise DealTransitionError(
+                f"{target.value} requires a fully bound "
+                "builder/project/unit opportunity."
+            )
+
+        timestamp = _coerce_datetime(at)
+
+        history_entry = DealHistoryEntry(
+            history_id=str(uuid4()),
+            from_status=self.status,
+            to_status=target,
+            version=self.version + 1,
+            changed_at=timestamp,
+            reason=reason,
+        )
+
+        return Deal(
+            **{
+                **self.__dict__,
+                "status": target,
+                "version": self.version + 1,
+                "updated_at": timestamp,
+                "history": self.history + (history_entry,),
+            }
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "deal_id": self.deal_id,
+            "identity_key": self.identity_key,
+            "tenant_id": self.tenant_id,
+            "customer_id": self.customer_id,
+            "broker_id": self.broker_id,
+            "builder_id": self.builder_id,
+            "project_id": self.project_id,
+            "unit_id": self.unit_id,
+            "status": self.status.value,
+            "version": self.version,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+            "history": [
+                entry.to_dict()
+                for entry in self.history
+            ],
+            "source_of_truth": self.source_of_truth,
+            "offers": [offer.to_dict() for offer in self.offers],
+            "ownership_binding": (,
+    "evidence": [item.to_dict() for item in self.evidence],
+    "audit_log": [item.to_dict() for item in self.audit_log],
+                self.ownership_binding.to_dict()
+                if self.ownership_binding is not None
+                else None
+            ),            "milestones": [
+                milestone.to_dict()
+                for milestone in self.milestones
+            ],            "negotiation": (
+                self.negotiation.to_dict()
+                if self.negotiation is not None
+                else None
+            ),
+        }
+
+
+__all__ = [
+    "Deal",    "DealOffer",
+    "DealOfferStatus",
+    "DealNegotiation",
+    "DealNegotiationStatus",
+    "DealStatus",
+    "DealHistoryEntry",
+    "DealDomainError",
+    "DealTransitionError",
+    "DealTenantError",
+    "DealConcurrencyError",
+    "DealReferenceConflictError",
+    "DealValidationError",
+]
+
+
+
+
+
+
+
+
+
+
+========== .\AUTONOMY_ENGINE\core\deal_offer_negotiation.py ==========
+from __future__ import annotations
+
+from dataclasses import dataclass, replace
+from datetime import datetime, timezone
+from enum import Enum
+
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+class DealOfferError(ValueError):
+    """Base error for offer state violations."""
+
+
+class DealOfferTransitionError(DealOfferError):
+    """Raised when an offer state transition is invalid."""
+
+
+class DealOfferTenantError(DealOfferError):
+    """Raised when an offer crosses its tenant boundary."""
+
+
+class DealOfferConcurrencyError(DealOfferError):
+    """Raised when an offer version is stale."""
+
+
+class DealNegotiationError(ValueError):
+    """Base error for negotiation state violations."""
+
+
+class DealNegotiationTransitionError(DealNegotiationError):
+    """Raised when a negotiation state transition is invalid."""
+
+
+class DealNegotiationTenantError(DealNegotiationError):
+    """Raised when a negotiation crosses its tenant boundary."""
+
+
+class DealNegotiationConcurrencyError(DealNegotiationError):
+    """Raised when a negotiation version is stale."""
+
+
+class DealOfferStatus(str, Enum):
+    DRAFT = "DRAFT"
+    SUBMITTED = "SUBMITTED"
+    ACCEPTED = "ACCEPTED"
+    REJECTED = "REJECTED"
+    WITHDRAWN = "WITHDRAWN"
+    EXPIRED = "EXPIRED"
+
+
+class DealNegotiationStatus(str, Enum):
+    OPEN = "OPEN"
+    PAUSED = "PAUSED"
+    CONCLUDED = "CONCLUDED"
+    ABORTED = "ABORTED"
+
+
+_ALLOWED_OFFER_TRANSITIONS: dict[
+    DealOfferStatus, frozenset[DealOfferStatus]
+] = {
+    DealOfferStatus.DRAFT: frozenset(
+        {
+            DealOfferStatus.SUBMITTED,
+            DealOfferStatus.WITHDRAWN,
+            DealOfferStatus.EXPIRED,
+        }
+    ),
+    DealOfferStatus.SUBMITTED: frozenset(
+        {
+            DealOfferStatus.ACCEPTED,
+            DealOfferStatus.REJECTED,
+            DealOfferStatus.WITHDRAWN,
+            DealOfferStatus.EXPIRED,
+        }
+    ),
+    DealOfferStatus.ACCEPTED: frozenset(),
+    DealOfferStatus.REJECTED: frozenset(),
+    DealOfferStatus.WITHDRAWN: frozenset(),
+    DealOfferStatus.EXPIRED: frozenset(),
+}
+
+
+_ALLOWED_NEGOTIATION_TRANSITIONS: dict[
+    DealNegotiationStatus, frozenset[DealNegotiationStatus]
+] = {
+    DealNegotiationStatus.OPEN: frozenset(
+        {
+            DealNegotiationStatus.PAUSED,
+            DealNegotiationStatus.CONCLUDED,
+            DealNegotiationStatus.ABORTED,
+        }
+    ),
+    DealNegotiationStatus.PAUSED: frozenset(
+        {
+            DealNegotiationStatus.OPEN,
+            DealNegotiationStatus.CONCLUDED,
+            DealNegotiationStatus.ABORTED,
+        }
+    ),
+    DealNegotiationStatus.CONCLUDED: frozenset(),
+    DealNegotiationStatus.ABORTED: frozenset(),
+}
+
+
+@dataclass(frozen=True)
+class DealOffer:
+    """Immutable offer state owned by the Deal aggregate."""
+
+    offer_id: str
+    deal_id: str
+    tenant_id: str
+    status: DealOfferStatus
+    version: int
+    created_at: datetime
+    updated_at: datetime
+    supersedes_offer_id: str | None = None
+
+    def __post_init__(self) -> None:
+        for field_name in ("offer_id", "deal_id", "tenant_id"):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise DealOfferError(f"{field_name} is required.")
+
+        if self.version < 1:
+            raise DealOfferError("version must be >= 1.")
+
+        object.__setattr__(self, "status", DealOfferStatus(self.status))
+
+        if self.created_at.tzinfo is None or self.updated_at.tzinfo is None:
+            raise DealOfferError("Offer timestamps must be timezone-aware.")
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        offer_id: str,
+        deal_id: str,
+        tenant_id: str,
+        at: datetime | None = None,
+        supersedes_offer_id: str | None = None,
+    ) -> "DealOffer":
+        timestamp = at or _utc_now()
+
+        return cls(
+            offer_id=offer_id,
+            deal_id=deal_id,
+            tenant_id=tenant_id,
+            status=DealOfferStatus.DRAFT,
+            version=1,
+            created_at=timestamp,
+            updated_at=timestamp,
+            supersedes_offer_id=supersedes_offer_id,
+        )
+
+    def assert_tenant(self, tenant_id: str) -> None:
+        if tenant_id != self.tenant_id:
+            raise DealOfferTenantError(
+                "Offer belongs to a different tenant."
+            )
+
+    def transition(
+        self,
+        target: DealOfferStatus,
+        *,
+        tenant_id: str,
+        expected_version: int,
+        at: datetime | None = None,
+    ) -> "DealOffer":
+        self.assert_tenant(tenant_id)
+
+        if expected_version != self.version:
+            raise DealOfferConcurrencyError(
+                f"Expected offer version {self.version}, "
+                f"received {expected_version}."
+            )
+
+        target = DealOfferStatus(target)
+
+        if target not in _ALLOWED_OFFER_TRANSITIONS[self.status]:
+            raise DealOfferTransitionError(
+                "Invalid offer transition: "
+                f"{self.status.value} -> {target.value}."
+            )
+
+        timestamp = at or _utc_now()
+
+        return replace(
+            self,
+            status=target,
+            version=self.version + 1,
+            updated_at=timestamp,
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "offer_id": self.offer_id,
+            "deal_id": self.deal_id,
+            "tenant_id": self.tenant_id,
+            "status": self.status.value,
+            "version": self.version,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+            "supersedes_offer_id": self.supersedes_offer_id,
+        }
+
+
+@dataclass(frozen=True)
+class DealNegotiation:
+    """Immutable negotiation state owned by the Deal aggregate."""
+
+    negotiation_id: str
+    deal_id: str
+    tenant_id: str
+    active_offer_id: str
+    status: DealNegotiationStatus
+    version: int
+    round_number: int
+    created_at: datetime
+    updated_at: datetime
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "negotiation_id",
+            "deal_id",
+            "tenant_id",
+            "active_offer_id",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise DealNegotiationError(f"{field_name} is required.")
+
+        if self.version < 1:
+            raise DealNegotiationError("version must be >= 1.")
+
+        if self.round_number < 1:
+            raise DealNegotiationError("round_number must be >= 1.")
+
+        object.__setattr__(
+            self,
+            "status",
+            DealNegotiationStatus(self.status),
+        )
+
+        if (
+            self.created_at.tzinfo is None
+            or self.updated_at.tzinfo is None
+        ):
+            raise DealNegotiationError(
+                "Negotiation timestamps must be timezone-aware."
+            )
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        negotiation_id: str,
+        deal_id: str,
+        tenant_id: str,
+        active_offer_id: str,
+        at: datetime | None = None,
+    ) -> "DealNegotiation":
+        timestamp = at or _utc_now()
+
+        return cls(
+            negotiation_id=negotiation_id,
+            deal_id=deal_id,
+            tenant_id=tenant_id,
+            active_offer_id=active_offer_id,
+            status=DealNegotiationStatus.OPEN,
+            version=1,
+            round_number=1,
+            created_at=timestamp,
+            updated_at=timestamp,
+        )
+
+    def assert_tenant(self, tenant_id: str) -> None:
+        if tenant_id != self.tenant_id:
+            raise DealNegotiationTenantError(
+                "Negotiation belongs to a different tenant."
+            )
+
+    def transition(
+        self,
+        target: DealNegotiationStatus,
+        *,
+        tenant_id: str,
+        expected_version: int,
+        at: datetime | None = None,
+    ) -> "DealNegotiation":
+        self.assert_tenant(tenant_id)
+
+        if expected_version != self.version:
+            raise DealNegotiationConcurrencyError(
+                f"Expected negotiation version {self.version}, "
+                f"received {expected_version}."
+            )
+
+        target = DealNegotiationStatus(target)
+
+        if target not in _ALLOWED_NEGOTIATION_TRANSITIONS[self.status]:
+            raise DealNegotiationTransitionError(
+                "Invalid negotiation transition: "
+                f"{self.status.value} -> {target.value}."
+            )
+
+        timestamp = at or _utc_now()
+
+        return replace(
+            self,
+            status=target,
+            version=self.version + 1,
+            updated_at=timestamp,
+        )
+
+    def advance_round(
+        self,
+        *,
+        tenant_id: str,
+        expected_version: int,
+        active_offer_id: str,
+        at: datetime | None = None,
+    ) -> "DealNegotiation":
+        self.assert_tenant(tenant_id)
+
+        if expected_version != self.version:
+            raise DealNegotiationConcurrencyError(
+                f"Expected negotiation version {self.version}, "
+                f"received {expected_version}."
+            )
+
+        if self.status not in (
+            DealNegotiationStatus.OPEN,
+            DealNegotiationStatus.PAUSED,
+        ):
+            raise DealNegotiationTransitionError(
+                "Cannot advance a closed negotiation."
+            )
+
+        if not isinstance(active_offer_id, str) or not active_offer_id.strip():
+            raise DealNegotiationError("active_offer_id is required.")
+
+        timestamp = at or _utc_now()
+
+        return replace(
+            self,
+            active_offer_id=active_offer_id,
+            round_number=self.round_number + 1,
+            version=self.version + 1,
+            updated_at=timestamp,
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "negotiation_id": self.negotiation_id,
+            "deal_id": self.deal_id,
+            "tenant_id": self.tenant_id,
+            "active_offer_id": self.active_offer_id,
+            "status": self.status.value,
+            "version": self.version,
+            "round_number": self.round_number,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+        }
+
+
+__all__ = [
+    "DealOffer",
+    "DealOfferConcurrencyError",
+    "DealOfferError",
+    "DealOfferStatus",
+    "DealOfferTenantError",
+    "DealOfferTransitionError",
+    "DealNegotiation",
+    "DealNegotiationConcurrencyError",
+    "DealNegotiationError",
+    "DealNegotiationStatus",
+    "DealNegotiationTenantError",
+    "DealNegotiationTransitionError",
+]
+
+========== .\AUTONOMY_ENGINE\core\deal_ownership_integration.py ==========
+from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any
+
+
+class DealOwnershipError(ValueError):
+    """Base ownership integration error."""
+
+
+class DealOwnershipValidationError(DealOwnershipError):
+    """Invalid ownership binding data."""
+
+
+class DealOwnershipTenantError(DealOwnershipError):
+    """Ownership binding crosses tenant boundary."""
+
+
+@dataclass(frozen=True)
+class DealOwnershipBinding:
+    """Immutable reference from Deal to the authoritative ownership engine."""
+
+    binding_id: str
+    deal_id: str
+    tenant_id: str
+    lead_id: str
+    ownership_record_id: str
+    owner_id: str
+    bound_at: datetime
+    authority: str = "ARCH-011"
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "binding_id",
+            "deal_id",
+            "tenant_id",
+            "lead_id",
+            "ownership_record_id",
+            "owner_id",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise DealOwnershipValidationError(
+                    f"{field_name} is required."
+                )
+
+        if self.authority != "ARCH-011":
+            raise DealOwnershipValidationError(
+                "Deal ownership authority must remain ARCH-011."
+            )
+
+        if self.bound_at.tzinfo is None:
+            raise DealOwnershipValidationError(
+                "bound_at must be timezone-aware."
+            )
+
+    @property
+    def reference_key(self) -> str:
+        return f"{self.tenant_id}:{self.deal_id}:{self.ownership_record_id}"
+
+    def assert_tenant(self, tenant_id: str) -> None:
+        if tenant_id != self.tenant_id:
+            raise DealOwnershipTenantError(
+                "Ownership binding belongs to a different tenant."
+            )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "binding_id": self.binding_id,
+            "deal_id": self.deal_id,
+            "tenant_id": self.tenant_id,
+            "lead_id": self.lead_id,
+            "ownership_record_id": self.ownership_record_id,
+            "owner_id": self.owner_id,
+            "bound_at": self.bound_at.isoformat(),
+            "authority": self.authority,
+            "reference_key": self.reference_key,
+        }
+
+
+__all__ = [
+    "DealOwnershipBinding",
+    "DealOwnershipError",
+    "DealOwnershipTenantError",
+    "DealOwnershipValidationError",
+]
+
+========== .\AUTONOMY_ENGINE\core\deal_transaction_milestones.py ==========
+from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import datetime
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from .deal import DealStatus
+
+
+class DealMilestoneError(ValueError):
+    """Base error for transaction milestone violations."""
+
+
+class DealMilestoneTenantError(DealMilestoneError):
+    """Raised when a milestone crosses its tenant boundary."""
+
+
+class DealMilestoneConcurrencyError(DealMilestoneError):
+    """Raised when a Deal version is stale."""
+
+
+class DealMilestoneTransitionError(DealMilestoneError):
+    """Raised when a target is not a transaction milestone."""
+
+
+_TRANSACTION_STATUS_VALUES = frozenset(
+    {
+        "BOOKING_PENDING",
+        "BOOKED",
+        "AGREEMENT_PENDING",
+        "AGREED",
+        "REGISTRATION_PENDING",
+        "REGISTERED",
+        "COMPLETION_PENDING",
+        "COMPLETED",
+    }
+)
+
+
+@dataclass(frozen=True)
+class DealTransactionMilestone:
+    """Immutable transaction milestone evidence owned by the Deal."""
+
+    milestone_id: str
+    deal_id: str
+    tenant_id: str
+    from_status: DealStatus
+    to_status: DealStatus
+    sequence: int
+    deal_version: int
+    occurred_at: datetime
+    reference_id: str | None = None
+
+    def __post_init__(self) -> None:
+        from .deal import DealStatus
+
+        for field_name in (
+            "milestone_id",
+            "deal_id",
+            "tenant_id",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise DealMilestoneError(f"{field_name} is required.")
+
+        if self.sequence < 1:
+            raise DealMilestoneError("sequence must be >= 1.")
+
+        if self.deal_version < 1:
+            raise DealMilestoneError("deal_version must be >= 1.")
+
+        if self.occurred_at.tzinfo is None:
+            raise DealMilestoneError(
+                "occurred_at must be timezone-aware."
+            )
+
+        from_status = DealStatus(self.from_status)
+        to_status = DealStatus(self.to_status)
+
+        if to_status.value not in _TRANSACTION_STATUS_VALUES:
+            raise DealMilestoneError(
+                f"{to_status.value} is not a transaction milestone."
+            )
+
+        object.__setattr__(self, "from_status", from_status)
+        object.__setattr__(self, "to_status", to_status)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "milestone_id": self.milestone_id,
+            "deal_id": self.deal_id,
+            "tenant_id": self.tenant_id,
+            "from_status": self.from_status.value,
+            "to_status": self.to_status.value,
+            "sequence": self.sequence,
+            "deal_version": self.deal_version,
+            "occurred_at": self.occurred_at.isoformat(),
+            "reference_id": self.reference_id,
+        }
+
+
+__all__ = [
+    "DealTransactionMilestone",
+    "DealMilestoneConcurrencyError",
+    "DealMilestoneError",
+    "DealMilestoneTenantError",
+    "DealMilestoneTransitionError",
+]
+
+========== .\AUTONOMY_ENGINE\core\test_deal.py ==========
+from __future__ import annotations
+
+from datetime import datetime, timezone
+
+import pytest
+
+from AUTONOMY_ENGINE.core.deal import (
+    Deal,
+    DealConcurrencyError,
+    DealReferenceConflictError,
+    DealStatus,
+    DealTenantError,
+    DealTransitionError,
+    DealValidationError,
+)
+
+
+AT = "2026-09-23T10:00:00+00:00"
+
+
+def create_deal(*, bound: bool = False) -> Deal:
+    return Deal.create(
+        tenant_id="tenant-001",
+        customer_id="customer-001",
+        broker_id="broker-001",
+        builder_id="builder-001" if bound else None,
+        project_id="project-001" if bound else None,
+        unit_id="unit-001" if bound else None,
+        deal_id="deal-001",
+        at=AT,
+    )
+
+
+def bound_deal() -> Deal:
+    return create_deal(bound=True)
+
+
+def test_create_deal_has_qualified_status():
+    deal = create_deal()
+
+    assert deal.status is DealStatus.QUALIFIED
+    assert deal.version == 1
+    assert deal.source_of_truth == "deal"
+
+
+def test_create_deal_has_authoritative_identity():
+    deal = create_deal()
+
+    assert deal.deal_id == "deal-001"
+    assert deal.tenant_id == "tenant-001"
+    assert deal.customer_id == "customer-001"
+    assert deal.broker_id == "broker-001"
+    assert deal.identity_key == "tenant-001:deal-001"
+
+
+def test_creation_history_is_recorded():
+    deal = create_deal()
+
+    assert len(deal.history) == 1
+    assert deal.history[0].from_status is None
+    assert deal.history[0].to_status is DealStatus.QUALIFIED
+    assert deal.history[0].version == 1
+    assert deal.history[0].reason == "DEAL_CREATED"
+
+
+def test_opportunity_can_be_bound():
+    deal = create_deal()
+
+    updated = deal.bind_opportunity(
+        builder_id="builder-001",
+        project_id="project-001",
+        unit_id="unit-001",
+        tenant_id="tenant-001",
+        expected_version=1,
+        at=AT,
+    )
+
+    assert updated.opportunity_bound
+    assert updated.builder_id == "builder-001"
+    assert updated.project_id == "project-001"
+    assert updated.unit_id == "unit-001"
+    assert updated.version == 2
+
+
+def test_same_opportunity_binding_is_idempotent():
+    deal = bound_deal()
+
+    updated = deal.bind_opportunity(
+        builder_id="builder-001",
+        project_id="project-001",
+        unit_id="unit-001",
+        tenant_id="tenant-001",
+        expected_version=1,
+        at=AT,
+    )
+
+    assert updated is deal
+
+
+def test_opportunity_cannot_be_silently_substituted():
+    deal = bound_deal()
+
+    with pytest.raises(DealReferenceConflictError):
+        deal.bind_opportunity(
+            builder_id="builder-002",
+            project_id="project-002",
+            unit_id="unit-002",
+            tenant_id="tenant-001",
+            expected_version=1,
+            at=AT,
+        )
+
+
+def test_wrong_tenant_cannot_bind_opportunity():
+    deal = create_deal()
+
+    with pytest.raises(DealTenantError):
+        deal.bind_opportunity(
+            builder_id="builder-001",
+            project_id="project-001",
+            unit_id="unit-001",
+            tenant_id="tenant-999",
+            expected_version=1,
+        )
+
+
+def test_full_nominal_lifecycle():
+    deal = bound_deal()
+
+    path = (
+        DealStatus.MATCHED,
+        DealStatus.VISIT_PENDING,
+        DealStatus.VISITED,
+        DealStatus.OFFERED,
+        DealStatus.NEGOTIATING,
+        DealStatus.BOOKING_PENDING,
+        DealStatus.BOOKED,
+        DealStatus.AGREEMENT_PENDING,
+        DealStatus.AGREED,
+        DealStatus.REGISTRATION_PENDING,
+        DealStatus.REGISTERED,
+        DealStatus.COMPLETION_PENDING,
+        DealStatus.COMPLETED,
+    )
+
+    current = deal
+
+    for expected_version, status in enumerate(path, start=2):
+        current = current.transition(
+            status,
+            tenant_id="tenant-001",
+            expected_version=expected_version - 1,
+            at=AT,
+        )
+
+        assert current.status is status
+        assert current.version == expected_version
+
+    assert current.status is DealStatus.COMPLETED
+    assert current.is_terminal
+
+
+def test_negotiation_can_return_to_offered():
+    deal = bound_deal()
+
+    current = deal.transition(
+        DealStatus.MATCHED,
+        tenant_id="tenant-001",
+        expected_version=1,
+        at=AT,
+    )
+    current = current.transition(
+        DealStatus.VISIT_PENDING,
+        tenant_id="tenant-001",
+        expected_version=2,
+        at=AT,
+    )
+    current = current.transition(
+        DealStatus.VISITED,
+        tenant_id="tenant-001",
+        expected_version=3,
+        at=AT,
+    )
+    current = current.transition(
+        DealStatus.OFFERED,
+        tenant_id="tenant-001",
+        expected_version=4,
+        at=AT,
+    )
+    current = current.transition(
+        DealStatus.NEGOTIATING,
+        tenant_id="tenant-001",
+        expected_version=5,
+        at=AT,
+    )
+
+    current = current.transition(
+        DealStatus.OFFERED,
+        tenant_id="tenant-001",
+        expected_version=6,
+        at=AT,
+    )
+
+    assert current.status is DealStatus.OFFERED
+    assert current.version == 7
+
+
+def test_invalid_transition_is_blocked():
+    deal = bound_deal()
+
+    with pytest.raises(DealTransitionError):
+        deal.transition(
+            DealStatus.BOOKED,
+            tenant_id="tenant-001",
+            expected_version=1,
+            at=AT,
+        )
+
+
+def test_match_requires_opportunity_binding():
+    deal = create_deal()
+
+    with pytest.raises(DealTransitionError):
+        deal.transition(
+            DealStatus.MATCHED,
+            tenant_id="tenant-001",
+            expected_version=1,
+            at=AT,
+        )
+
+
+def test_wrong_tenant_cannot_transition():
+    deal = bound_deal()
+
+    with pytest.raises(DealTenantError):
+        deal.transition(
+            DealStatus.MATCHED,
+            tenant_id="tenant-999",
+            expected_version=1,
+            at=AT,
+        )
+
+
+def test_stale_version_is_rejected():
+    deal = bound_deal()
+
+    with pytest.raises(DealConcurrencyError):
+        deal.transition(
+            DealStatus.MATCHED,
+            tenant_id="tenant-001",
+            expected_version=99,
+            at=AT,
+        )
+
+
+def test_invalid_expected_version_is_rejected():
+    deal = bound_deal()
+
+    with pytest.raises(DealConcurrencyError):
+        deal.transition(
+            DealStatus.MATCHED,
+            tenant_id="tenant-001",
+            expected_version=0,
+            at=AT,
+        )
+
+
+def test_version_increments_exactly_once_per_transition():
+    deal = bound_deal()
+
+    updated = deal.transition(
+        DealStatus.MATCHED,
+        tenant_id="tenant-001",
+        expected_version=1,
+        at=AT,
+    )
+
+    assert updated.version == deal.version + 1
+
+
+@pytest.mark.parametrize(
+    "terminal_status",
+    [
+        DealStatus.CANCELLED,
+        DealStatus.EXPIRED,
+        DealStatus.REJECTED,
+        DealStatus.FRAUD_BLOCKED,
+    ],
+)
+def test_active_deal_can_enter_terminal_exception(terminal_status):
+    deal = bound_deal()
+
+    updated = deal.transition(
+        terminal_status,
+        tenant_id="tenant-001",
+        expected_version=1,
+        at=AT,
+    )
+
+    assert updated.status is terminal_status
+    assert updated.is_terminal
+
+
+def test_expired_is_rejected_after_completion():
+    current = bound_deal()
+
+    lifecycle = (
+        DealStatus.MATCHED,
+        DealStatus.VISIT_PENDING,
+        DealStatus.VISITED,
+        DealStatus.OFFERED,
+        DealStatus.BOOKING_PENDING,
+        DealStatus.BOOKED,
+        DealStatus.AGREEMENT_PENDING,
+        DealStatus.AGREED,
+        DealStatus.REGISTRATION_PENDING,
+        DealStatus.REGISTERED,
+        DealStatus.COMPLETION_PENDING,
+        DealStatus.COMPLETED,
+    )
+
+    for target in lifecycle:
+        current = current.transition(
+            target,
+            tenant_id="tenant-001",
+            expected_version=current.version,
+            at=AT,
+        )
+
+    with pytest.raises(DealTransitionError):
+        current.transition(
+            DealStatus.EXPIRED,
+            tenant_id="tenant-001",
+            expected_version=current.version,
+            at=AT,
+        )
+def test_dispute_is_allowed_after_booking():
+    deal = bound_deal()
+
+    current = deal.transition(
+        DealStatus.MATCHED,
+        tenant_id="tenant-001",
+        expected_version=1,
+        at=AT,
+    )
+    current = current.transition(
+        DealStatus.VISIT_PENDING,
+        tenant_id="tenant-001",
+        expected_version=2,
+        at=AT,
+    )
+    current = current.transition(
+        DealStatus.VISITED,
+        tenant_id="tenant-001",
+        expected_version=3,
+        at=AT,
+    )
+    current = current.transition(
+        DealStatus.OFFERED,
+        tenant_id="tenant-001",
+        expected_version=4,
+        at=AT,
+    )
+    current = current.transition(
+        DealStatus.BOOKING_PENDING,
+        tenant_id="tenant-001",
+        expected_version=5,
+        at=AT,
+    )
+    current = current.transition(
+        DealStatus.BOOKED,
+        tenant_id="tenant-001",
+        expected_version=6,
+        at=AT,
+    )
+
+    disputed = current.transition(
+        DealStatus.DISPUTED,
+        tenant_id="tenant-001",
+        expected_version=7,
+        at=AT,
+    )
+
+    assert disputed.status is DealStatus.DISPUTED
+    assert disputed.is_terminal
+
+
+def test_dispute_is_blocked_before_booking():
+    deal = bound_deal()
+
+    with pytest.raises(DealTransitionError):
+        deal.transition(
+            DealStatus.DISPUTED,
+            tenant_id="tenant-001",
+            expected_version=1,
+            at=AT,
+        )
+
+
+def test_completed_deal_is_immutable():
+    deal = bound_deal()
+
+    current = deal
+
+    for status in (
+        DealStatus.MATCHED,
+        DealStatus.VISIT_PENDING,
+        DealStatus.VISITED,
+        DealStatus.OFFERED,
+        DealStatus.BOOKING_PENDING,
+        DealStatus.BOOKED,
+        DealStatus.AGREEMENT_PENDING,
+        DealStatus.AGREED,
+        DealStatus.REGISTRATION_PENDING,
+        DealStatus.REGISTERED,
+        DealStatus.COMPLETION_PENDING,
+        DealStatus.COMPLETED,
+    ):
+        current = current.transition(
+            status,
+            tenant_id="tenant-001",
+            expected_version=current.version,
+            at=AT,
+        )
+
+    with pytest.raises(DealTransitionError):
+        current.transition(
+            DealStatus.CANCELLED,
+            tenant_id="tenant-001",
+            expected_version=current.version,
+            at=AT,
+        )
+
+
+def test_history_preserves_every_transition():
+    deal = bound_deal()
+
+    current = deal.transition(
+        DealStatus.MATCHED,
+        tenant_id="tenant-001",
+        expected_version=1,
+        reason="MATCH_CONFIRMED",
+        at=AT,
+    )
+
+    current = current.transition(
+        DealStatus.VISIT_PENDING,
+        tenant_id="tenant-001",
+        expected_version=2,
+        reason="VISIT_REQUESTED",
+        at=AT,
+    )
+
+    assert len(current.history) == 3
+
+    assert current.history[1].to_status is DealStatus.MATCHED
+    assert current.history[1].reason == "MATCH_CONFIRMED"
+
+    assert current.history[2].from_status is DealStatus.MATCHED
+    assert current.history[2].to_status is DealStatus.VISIT_PENDING
+
+
+def test_history_is_immutable():
+    deal = create_deal()
+
+    with pytest.raises(AttributeError):
+        deal.history.append(None)  # type: ignore[attr-defined]
+
+
+def test_timestamps_are_normalized_to_utc():
+    deal = Deal.create(
+        tenant_id="tenant-001",
+        customer_id="customer-001",
+        broker_id="broker-001",
+        deal_id="deal-utc",
+        at="2026-09-23T10:00:00+05:30",
+    )
+
+    assert deal.created_at.tzinfo is not None
+    assert deal.created_at.utcoffset() == timezone.utc.utcoffset(
+        deal.created_at
+    )
+
+
+def test_to_dict_is_serializable():
+    deal = bound_deal()
+
+    data = deal.to_dict()
+
+    assert data["deal_id"] == "deal-001"
+    assert data["identity_key"] == "tenant-001:deal-001"
+    assert data["tenant_id"] == "tenant-001"
+    assert data["status"] == "QUALIFIED"
+    assert data["version"] == 1
+    assert data["source_of_truth"] == "deal"
+    assert len(data["history"]) == 1
+
+
+def test_missing_required_identity_is_rejected():
+    with pytest.raises(DealValidationError):
+        Deal.create(
+            tenant_id="tenant-001",
+            customer_id="",
+            broker_id="broker-001",
+            at=AT,
+        )
+
+
+def test_invalid_source_of_truth_is_rejected():
+    deal = create_deal()
+
+    with pytest.raises(DealValidationError):
+        Deal(
+            **{
+                **deal.__dict__,
+                "source_of_truth": "inventory",
+            }
+        )
+
+
+def test_references_persist_through_lifecycle():
+    deal = bound_deal()
+
+    updated = deal.transition(
+        DealStatus.MATCHED,
+        tenant_id="tenant-001",
+        expected_version=1,
+        at=AT,
+    )
+
+    assert updated.builder_id == "builder-001"
+    assert updated.project_id == "project-001"
+    assert updated.unit_id == "unit-001"
+
+
+def test_created_and_updated_timestamps_are_consistent():
+    deal = create_deal()
+
+    assert deal.updated_at == deal.created_at
+
+    updated = deal.bind_opportunity(
+        builder_id="builder-001",
+        project_id="project-001",
+        unit_id="unit-001",
+        tenant_id="tenant-001",
+        expected_version=1,
+        at="2026-09-23T11:00:00+00:00",
+    )
+
+    assert updated.updated_at > updated.created_at
+
+
+def test_history_versions_are_monotonic():
+    deal = bound_deal()
+
+    current = deal.transition(
+        DealStatus.MATCHED,
+        tenant_id="tenant-001",
+        expected_version=1,
+        at=AT,
+    )
+
+    current = current.transition(
+        DealStatus.VISIT_PENDING,
+        tenant_id="tenant-001",
+        expected_version=2,
+        at=AT,
+    )
+
+    versions = [entry.version for entry in current.history]
+
+    assert versions == sorted(versions)
+    assert versions == [1, 2, 3]
+
+
+
+========== .\AUTONOMY_ENGINE\core\test_deal_parties.py ==========
+from __future__ import annotations
+
+import pytest
+
+from AUTONOMY_ENGINE.core.deal import (
+    Deal,
+    DealConcurrencyError,
+    DealPartyRelationship,
+    DealPartyRole,
+    DealReferenceConflictError,
+    DealTenantError,
+    DealValidationError,
+)
+
+
+AT = "2026-09-23T10:00:00+00:00"
+
+
+@pytest.fixture
+def deal() -> Deal:
+    return Deal.create(
+        tenant_id="tenant-001",
+        customer_id="customer-001",
+        broker_id="broker-001",
+        at=AT,
+    )
+
+
+def test_required_customer_and_broker_relationships_are_exposed(deal: Deal):
+    relationships = deal.party_relationships
+
+    assert len(relationships) == 2
+    assert deal.party_for(DealPartyRole.CUSTOMER) == "customer-001"
+    assert deal.party_for(DealPartyRole.BROKER) == "broker-001"
+    assert deal.party_for(DealPartyRole.BUILDER) is None
+
+
+def test_relationships_are_tenant_and_deal_scoped(deal: Deal):
+    keys = {item.relationship_key for item in deal.party_relationships}
+
+    assert keys == {
+        "tenant-001:" + deal.deal_id + ":CUSTOMER",
+        "tenant-001:" + deal.deal_id + ":BROKER",
+    }
+
+
+def test_relationship_objects_are_immutable(deal: Deal):
+    relationship = deal.party_relationships[0]
+
+    with pytest.raises(Exception):
+        relationship.party_id = "other-party"
+
+
+def test_invalid_party_id_is_rejected(deal: Deal):
+    with pytest.raises(DealValidationError):
+        deal.bind_party(
+            DealPartyRole.BUILDER,
+            "",
+            tenant_id="tenant-001",
+            expected_version=deal.version,
+            at=AT,
+        )
+
+
+def test_builder_can_be_bound_as_a_new_party(deal: Deal):
+    updated = deal.bind_party(
+        DealPartyRole.BUILDER,
+        "builder-001",
+        tenant_id="tenant-001",
+        expected_version=deal.version,
+        at=AT,
+    )
+
+    assert updated.builder_id == "builder-001"
+    assert updated.party_for(DealPartyRole.BUILDER) == "builder-001"
+    assert updated.version == 2
+
+
+def test_same_party_binding_is_idempotent(deal: Deal):
+    updated = deal.bind_party(
+        DealPartyRole.CUSTOMER,
+        "customer-001",
+        tenant_id="tenant-001",
+        expected_version=deal.version,
+        at=AT,
+    )
+
+    assert updated is deal
+    assert updated.version == deal.version
+
+
+def test_existing_party_cannot_be_silently_replaced(deal: Deal):
+    with pytest.raises(DealReferenceConflictError):
+        deal.bind_party(
+            DealPartyRole.BROKER,
+            "broker-002",
+            tenant_id="tenant-001",
+            expected_version=deal.version,
+            at=AT,
+        )
+
+
+def test_builder_cannot_be_silently_replaced(deal: Deal):
+    updated = deal.bind_party(
+        DealPartyRole.BUILDER,
+        "builder-001",
+        tenant_id="tenant-001",
+        expected_version=deal.version,
+        at=AT,
+    )
+
+    with pytest.raises(DealReferenceConflictError):
+        updated.bind_party(
+            DealPartyRole.BUILDER,
+            "builder-002",
+            tenant_id="tenant-001",
+            expected_version=updated.version,
+            at=AT,
+        )
+
+
+def test_cross_tenant_party_binding_is_blocked(deal: Deal):
+    with pytest.raises(DealTenantError):
+        deal.bind_party(
+            DealPartyRole.BUILDER,
+            "builder-001",
+            tenant_id="tenant-002",
+            expected_version=deal.version,
+            at=AT,
+        )
+
+
+def test_stale_party_binding_is_blocked(deal: Deal):
+    with pytest.raises(DealConcurrencyError):
+        deal.bind_party(
+            DealPartyRole.BUILDER,
+            "builder-001",
+            tenant_id="tenant-001",
+            expected_version=999,
+            at=AT,
+        )
+
+
+def test_party_relationship_serialization_is_stable(deal: Deal):
+    relationship = deal.party_relationships[0]
+    payload = relationship.to_dict()
+
+    assert payload["deal_id"] == deal.deal_id
+    assert payload["tenant_id"] == "tenant-001"
+    assert payload["role"] == "CUSTOMER"
+    assert payload["party_id"] == "customer-001"
+
+
+def test_opportunity_builder_and_party_relationship_remain_consistent(deal: Deal):
+    updated = deal.bind_opportunity(
+        builder_id="builder-001",
+        project_id="project-001",
+        unit_id="unit-001",
+        tenant_id="tenant-001",
+        expected_version=deal.version,
+        at=AT,
+    )
+
+    assert updated.party_for(DealPartyRole.BUILDER) == "builder-001"
+
+
+def test_terminal_deal_cannot_change_party_relationship(deal: Deal):
+    current = deal.bind_opportunity(
+        builder_id="builder-001",
+        project_id="project-001",
+        unit_id="unit-001",
+        tenant_id="tenant-001",
+        expected_version=deal.version,
+        at=AT,
+    )
+
+    current = current.transition(
+        __import__("AUTONOMY_ENGINE.core.deal", fromlist=["DealStatus"]).DealStatus.MATCHED,
+        tenant_id="tenant-001",
+        expected_version=current.version,
+        at=AT,
+    )
+
+    lifecycle = [
+        "VISIT_PENDING",
+        "VISITED",
+        "OFFERED",
+        "BOOKING_PENDING",
+        "BOOKED",
+        "AGREEMENT_PENDING",
+        "AGREED",
+        "REGISTRATION_PENDING",
+        "REGISTERED",
+        "COMPLETION_PENDING",
+        "COMPLETED",
+    ]
+
+    DealStatus = __import__(
+        "AUTONOMY_ENGINE.core.deal",
+        fromlist=["DealStatus"],
+    ).DealStatus
+
+    for status in lifecycle:
+        current = current.transition(
+            DealStatus(status),
+            tenant_id="tenant-001",
+            expected_version=current.version,
+            at=AT,
+        )
+
+    with pytest.raises(DealReferenceConflictError):
+        current.bind_party(
+            DealPartyRole.BUILDER,
+            "builder-002",
+            tenant_id="tenant-001",
+            expected_version=current.version,
+            at=AT,
+        )
+
+
+def test_relationship_type_is_explicit():
+    relationship = DealPartyRelationship(
+        deal_id="deal-001",
+        tenant_id="tenant-001",
+        role=DealPartyRole.CUSTOMER,
+        party_id="customer-001",
+    )
+
+    assert relationship.role is DealPartyRole.CUSTOMER
+
+========== .\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py ==========
+from __future__ import annotations
+
+from datetime import datetime, timezone
+
+import pytest
+
+from AUTONOMY_ENGINE.core.deal import (
+    Deal,
+    DealOfferStatus,
+    DealNegotiationStatus,
+    DealReferenceConflictError,
+    DealTransitionError,
+)
+
+
+AT = datetime(2026, 9, 23, 10, 0, tzinfo=timezone.utc)
+
+
+@pytest.fixture
+def visited_deal() -> Deal:
+    deal = Deal.create(
+        tenant_id="tenant-001",
+        customer_id="customer-001",
+        broker_id="broker-001",
+        at=AT,
+    )
+    return deal.bind_opportunity(
+        builder_id="builder-001",
+        project_id="project-001",
+        unit_id="unit-001",
+        tenant_id="tenant-001",
+        expected_version=deal.version,
+        at=AT,
+    ).transition(
+        __import__(
+            "AUTONOMY_ENGINE.core.deal",
+            fromlist=["DealStatus"],
+        ).DealStatus.MATCHED,
+        tenant_id="tenant-001",
+        expected_version=2,
+        at=AT,
+    ).transition(
+        __import__(
+            "AUTONOMY_ENGINE.core.deal",
+            fromlist=["DealStatus"],
+        ).DealStatus.VISIT_PENDING,
+        tenant_id="tenant-001",
+        expected_version=3,
+        at=AT,
+    ).transition(
+        __import__(
+            "AUTONOMY_ENGINE.core.deal",
+            fromlist=["DealStatus"],
+        ).DealStatus.VISITED,
+        tenant_id="tenant-001",
+        expected_version=4,
+        at=AT,
+    )
+
+
+def test_create_offer_is_draft_and_versioned(visited_deal: Deal):
+    updated = visited_deal.create_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=5,
+        at=AT,
+    )
+
+    assert updated.current_offer is not None
+    assert updated.current_offer.status is DealOfferStatus.DRAFT
+    assert updated.current_offer.offer_id == "offer-001"
+    assert updated.version == 6
+    assert updated.status.value == "VISITED"
+
+
+def test_submit_offer_moves_deal_to_offered(visited_deal: Deal):
+    created = visited_deal.create_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=5,
+        at=AT,
+    )
+
+    updated = created.submit_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=6,
+        at=AT,
+    )
+
+    assert updated.status.value == "OFFERED"
+    assert updated.current_offer.status is DealOfferStatus.SUBMITTED
+    assert updated.version == 7
+    assert updated.history[-1].reason == "OFFER_SUBMITTED"
+
+
+def test_duplicate_offer_id_is_idempotent(visited_deal: Deal):
+    updated = visited_deal.create_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=5,
+        at=AT,
+    )
+
+    again = updated.create_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=updated.version,
+        at=AT,
+    )
+
+    assert again is updated
+
+
+def test_superseding_offer_requires_existing_offer(visited_deal: Deal):
+    with pytest.raises(DealReferenceConflictError):
+        visited_deal.create_offer(
+            "offer-002",
+            tenant_id="tenant-001",
+            expected_version=5,
+            supersedes_offer_id="missing",
+            at=AT,
+        )
+
+
+def test_negotiation_requires_submitted_offer(visited_deal: Deal):
+    created = visited_deal.create_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=5,
+        at=AT,
+    )
+
+    with pytest.raises(DealTransitionError):
+        created.start_negotiation(
+            "neg-001",
+            tenant_id="tenant-001",
+            expected_version=6,
+            at=AT,
+        )
+
+
+def test_start_negotiation_is_explicit(visited_deal: Deal):
+    created = visited_deal.create_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=5,
+        at=AT,
+    )
+
+    offered = created.submit_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=6,
+        at=AT,
+    )
+
+    negotiating = offered.start_negotiation(
+        "neg-001",
+        tenant_id="tenant-001",
+        expected_version=7,
+        at=AT,
+    )
+
+    assert negotiating.status.value == "NEGOTIATING"
+    assert negotiating.negotiation is not None
+    assert negotiating.negotiation.status is DealNegotiationStatus.OPEN
+    assert negotiating.negotiation.active_offer_id == "offer-001"
+    assert negotiating.negotiation.round_number == 1
+    assert negotiating.history[-1].reason == "NEGOTIATION_STARTED"
+
+
+def test_pause_and_resume_negotiation(visited_deal: Deal):
+    current = visited_deal.create_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=5,
+        at=AT,
+    ).submit_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=6,
+        at=AT,
+    ).start_negotiation(
+        "neg-001",
+        tenant_id="tenant-001",
+        expected_version=7,
+        at=AT,
+    )
+
+    paused = current.transition_negotiation(
+        DealNegotiationStatus.PAUSED,
+        tenant_id="tenant-001",
+        expected_version=8,
+        at=AT,
+    )
+
+    resumed = paused.transition_negotiation(
+        DealNegotiationStatus.OPEN,
+        tenant_id="tenant-001",
+        expected_version=9,
+        at=AT,
+    )
+
+    assert resumed.status.value == "NEGOTIATING"
+    assert resumed.negotiation.status is DealNegotiationStatus.OPEN
+
+
+def test_negotiation_round_is_versioned(visited_deal: Deal):
+    current = visited_deal.create_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=5,
+        at=AT,
+    ).submit_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=6,
+        at=AT,
+    ).start_negotiation(
+        "neg-001",
+        tenant_id="tenant-001",
+        expected_version=7,
+        at=AT,
+    ).advance_negotiation_round(
+        tenant_id="tenant-001",
+        expected_version=8,
+        active_offer_id="offer-001",
+        at=AT,
+    )
+
+    assert current.negotiation.round_number == 2
+    assert current.negotiation.version == 2
+
+
+def test_concluded_negotiation_returns_deal_to_offered(visited_deal: Deal):
+    current = visited_deal.create_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=5,
+        at=AT,
+    ).submit_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=6,
+        at=AT,
+    ).start_negotiation(
+        "neg-001",
+        tenant_id="tenant-001",
+        expected_version=7,
+        at=AT,
+    )
+
+    concluded = current.transition_negotiation(
+        DealNegotiationStatus.CONCLUDED,
+        tenant_id="tenant-001",
+        expected_version=8,
+        at=AT,
+    )
+
+    assert concluded.status.value == "OFFERED"
+    assert concluded.negotiation.status is DealNegotiationStatus.CONCLUDED
+    assert concluded.history[-1].reason == "NEGOTIATION_CONCLUDED"
+
+
+def test_aborted_negotiation_returns_deal_to_offered(visited_deal: Deal):
+    current = visited_deal.create_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=5,
+        at=AT,
+    ).submit_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=6,
+        at=AT,
+    ).start_negotiation(
+        "neg-001",
+        tenant_id="tenant-001",
+        expected_version=7,
+        at=AT,
+    )
+
+    aborted = current.transition_negotiation(
+        DealNegotiationStatus.ABORTED,
+        tenant_id="tenant-001",
+        expected_version=8,
+        at=AT,
+    )
+
+    assert aborted.status.value == "OFFERED"
+    assert aborted.negotiation.status is DealNegotiationStatus.ABORTED
+
+
+def test_offer_and_negotiation_are_tenant_safe(visited_deal: Deal):
+    created = visited_deal.create_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=5,
+        at=AT,
+    )
+
+    with pytest.raises(Exception):
+        created.submit_offer(
+            "offer-001",
+            tenant_id="tenant-002",
+            expected_version=6,
+            at=AT,
+        )
+
+
+def test_offer_stale_version_is_blocked(visited_deal: Deal):
+    created = visited_deal.create_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=5,
+        at=AT,
+    )
+
+    with pytest.raises(Exception):
+        created.submit_offer(
+            "offer-001",
+            tenant_id="tenant-001",
+            expected_version=999,
+            at=AT,
+        )
+
+
+def test_closed_negotiation_cannot_resume(visited_deal: Deal):
+    current = visited_deal.create_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=5,
+        at=AT,
+    ).submit_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=6,
+        at=AT,
+    ).start_negotiation(
+        "neg-001",
+        tenant_id="tenant-001",
+        expected_version=7,
+        at=AT,
+    ).transition_negotiation(
+        DealNegotiationStatus.CONCLUDED,
+        tenant_id="tenant-001",
+        expected_version=8,
+        at=AT,
+    )
+
+    with pytest.raises(Exception):
+        current.transition_negotiation(
+            DealNegotiationStatus.OPEN,
+            tenant_id="tenant-001",
+            expected_version=9,
+            at=AT,
+        )
+
+
+def test_terminal_deal_cannot_create_offer():
+    DealStatus = __import__(
+        "AUTONOMY_ENGINE.core.deal",
+        fromlist=["DealStatus"],
+    ).DealStatus
+
+    deal = Deal.create(
+        tenant_id="tenant-001",
+        customer_id="customer-001",
+        broker_id="broker-001",
+        builder_id="builder-001",
+        project_id="project-001",
+        unit_id="unit-001",
+        at=AT,
+    )
+
+    current = deal
+    previous = current.version
+
+    for target in (
+        DealStatus.MATCHED,
+        DealStatus.VISIT_PENDING,
+        DealStatus.VISITED,
+        DealStatus.OFFERED,
+        DealStatus.BOOKING_PENDING,
+        DealStatus.BOOKED,
+        DealStatus.AGREEMENT_PENDING,
+        DealStatus.AGREED,
+        DealStatus.REGISTRATION_PENDING,
+        DealStatus.REGISTERED,
+        DealStatus.COMPLETION_PENDING,
+        DealStatus.COMPLETED,
+    ):
+        current = current.transition(
+            target,
+            tenant_id="tenant-001",
+            expected_version=current.version,
+            at=AT,
+        )
+        previous += 1
+
+    with pytest.raises(DealReferenceConflictError):
+        current.create_offer(
+            "offer-terminal",
+            tenant_id="tenant-001",
+            expected_version=current.version,
+            at=AT,
+        )
+
+
+def test_serialization_contains_offer_and_negotiation_state(visited_deal: Deal):
+    current = visited_deal.create_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=5,
+        at=AT,
+    ).submit_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=6,
+        at=AT,
+    ).start_negotiation(
+        "neg-001",
+        tenant_id="tenant-001",
+        expected_version=7,
+        at=AT,
+    )
+
+    payload = current.to_dict()
+
+    assert payload["offers"][0]["offer_id"] == "offer-001"
+    assert payload["offers"][0]["status"] == "SUBMITTED"
+    assert payload["negotiation"]["negotiation_id"] == "neg-001"
+    assert payload["negotiation"]["status"] == "OPEN"
+
+
+def test_offer_history_can_reference_superseded_offer(visited_deal: Deal):
+    first = visited_deal.create_offer(
+        "offer-001",
+        tenant_id="tenant-001",
+        expected_version=5,
+        at=AT,
+    )
+
+    second = first.create_offer(
+        "offer-002",
+        tenant_id="tenant-001",
+        expected_version=6,
+        supersedes_offer_id="offer-001",
+        at=AT,
+    )
+
+    assert second.offers[-1].supersedes_offer_id == "offer-001"
+    assert len(second.offers) == 2
+
+========== .\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py ==========
+from __future__ import annotations
+
+from datetime import datetime, timezone
+
+import pytest
+
+from AUTONOMY_ENGINE.core.deal import (
+    Deal,
+    DealReferenceConflictError,
+)
+from AUTONOMY_ENGINE.core.deal_ownership_integration import (
+    DealOwnershipBinding,
+    DealOwnershipTenantError,
+    DealOwnershipValidationError,
+)
+
+
+AT = datetime(2026, 9, 23, 10, 0, tzinfo=timezone.utc)
+
+
+@pytest.fixture
+def deal() -> Deal:
+    return Deal.create(
+        tenant_id="tenant-001",
+        customer_id="customer-001",
+        broker_id="broker-001",
+        at=AT.isoformat(),
+    )
+
+
+def test_ownership_binding_is_created_and_versioned(deal: Deal):
+    updated = deal.bind_ownership(
+        "binding-001",
+        lead_id="lead-001",
+        ownership_record_id="ownership-001",
+        owner_id="broker-001",
+        tenant_id="tenant-001",
+        expected_version=1,
+        at=AT,
+    )
+
+    assert updated.ownership_binding is not None
+    assert updated.ownership_binding.deal_id == updated.deal_id
+    assert updated.ownership_binding.lead_id == "lead-001"
+    assert updated.ownership_binding.ownership_record_id == "ownership-001"
+    assert updated.ownership_binding.owner_id == "broker-001"
+    assert updated.ownership_binding.authority == "ARCH-011"
+    assert updated.version == 2
+
+
+def test_same_ownership_binding_is_idempotent(deal: Deal):
+    updated = deal.bind_ownership(
+        "binding-001",
+        lead_id="lead-001",
+        ownership_record_id="ownership-001",
+        owner_id="broker-001",
+        tenant_id="tenant-001",
+        expected_version=1,
+        at=AT,
+    )
+
+    again = updated.bind_ownership(
+        "binding-001",
+        lead_id="lead-001",
+        ownership_record_id="ownership-001",
+        owner_id="broker-001",
+        tenant_id="tenant-001",
+        expected_version=updated.version,
+        at=AT,
+    )
+
+    assert again is updated
+
+
+def test_silent_ownership_substitution_is_blocked(deal: Deal):
+    updated = deal.bind_ownership(
+        "binding-001",
+        lead_id="lead-001",
+        ownership_record_id="ownership-001",
+        owner_id="broker-001",
+        tenant_id="tenant-001",
+        expected_version=1,
+        at=AT,
+    )
+
+    with pytest.raises(DealReferenceConflictError):
+        updated.bind_ownership(
+            "binding-002",
+            lead_id="lead-002",
+            ownership_record_id="ownership-002",
+            owner_id="broker-002",
+            tenant_id="tenant-001",
+            expected_version=updated.version,
+            at=AT,
+        )
+
+
+def test_cross_tenant_binding_is_blocked(deal: Deal):
+    from AUTONOMY_ENGINE.core.deal import DealTenantError
+
+    with pytest.raises(DealTenantError):
+        deal.bind_ownership(
+            "binding-001",
+            lead_id="lead-001",
+            ownership_record_id="ownership-001",
+            owner_id="broker-001",
+            tenant_id="tenant-002",
+            expected_version=deal.version,
+            at=AT,
+        )
+
+def test_invalid_ownership_reference_is_rejected(deal: Deal):
+    with pytest.raises(DealOwnershipValidationError):
+        deal.bind_ownership(
+            "binding-001",
+            lead_id="",
+            ownership_record_id="ownership-001",
+            owner_id="broker-001",
+            tenant_id="tenant-001",
+            expected_version=1,
+            at=AT,
+        )
+
+
+def test_authority_cannot_be_replaced():
+    with pytest.raises(DealOwnershipValidationError):
+        DealOwnershipBinding(
+            binding_id="binding-001",
+            deal_id="deal-001",
+            tenant_id="tenant-001",
+            lead_id="lead-001",
+            ownership_record_id="ownership-001",
+            owner_id="broker-001",
+            bound_at=AT,
+            authority="CUSTOM_ENGINE",
+        )
+
+
+def test_ownership_binding_is_immutable(deal: Deal):
+    updated = deal.bind_ownership(
+        "binding-001",
+        lead_id="lead-001",
+        ownership_record_id="ownership-001",
+        owner_id="broker-001",
+        tenant_id="tenant-001",
+        expected_version=1,
+        at=AT,
+    )
+
+    with pytest.raises(Exception):
+        updated.ownership_binding.owner_id = "broker-002"
+
+
+def test_ownership_reference_is_tenant_scoped(deal: Deal):
+    updated = deal.bind_ownership(
+        "binding-001",
+        lead_id="lead-001",
+        ownership_record_id="ownership-001",
+        owner_id="broker-001",
+        tenant_id="tenant-001",
+        expected_version=1,
+        at=AT,
+    )
+
+    assert (
+        updated.ownership_binding.reference_key
+        == f"tenant-001:{deal.deal_id}:ownership-001"
+    )
+
+
+def test_ownership_serialization_is_traceable(deal: Deal):
+    updated = deal.bind_ownership(
+        "binding-001",
+        lead_id="lead-001",
+        ownership_record_id="ownership-001",
+        owner_id="broker-001",
+        tenant_id="tenant-001",
+        expected_version=1,
+        at=AT,
+    )
+
+    payload = updated.to_dict()
+
+    assert payload["ownership_binding"]["deal_id"] == deal.deal_id
+    assert payload["ownership_binding"]["lead_id"] == "lead-001"
+    assert payload["ownership_binding"]["ownership_record_id"] == "ownership-001"
+    assert payload["ownership_binding"]["owner_id"] == "broker-001"
+    assert payload["ownership_binding"]["authority"] == "ARCH-011"
+
+
+def test_terminal_deal_cannot_bind_ownership():
+    from AUTONOMY_ENGINE.core.deal import DealStatus
+
+    current = Deal.create(
+        tenant_id="tenant-001",
+        customer_id="customer-001",
+        broker_id="broker-001",
+        builder_id="builder-001",
+        project_id="project-001",
+        unit_id="unit-001",
+        at=AT.isoformat(),
+    )
+
+    for target in (
+        DealStatus.MATCHED,
+        DealStatus.VISIT_PENDING,
+        DealStatus.VISITED,
+        DealStatus.OFFERED,
+        DealStatus.BOOKING_PENDING,
+        DealStatus.BOOKED,
+        DealStatus.AGREEMENT_PENDING,
+        DealStatus.AGREED,
+        DealStatus.REGISTRATION_PENDING,
+        DealStatus.REGISTERED,
+        DealStatus.COMPLETION_PENDING,
+        DealStatus.COMPLETED,
+    ):
+        current = current.transition(
+            target,
+            tenant_id="tenant-001",
+            expected_version=current.version,
+            at=AT,
+        )
+
+    with pytest.raises(DealReferenceConflictError):
+        current.bind_ownership(
+            "binding-terminal",
+            lead_id="lead-001",
+            ownership_record_id="ownership-001",
+            owner_id="broker-001",
+            tenant_id="tenant-001",
+            expected_version=current.version,
+            at=AT,
+        )
+
+
+def test_existing_deal_party_reference_is_not_duplicated(deal: Deal):
+    updated = deal.bind_ownership(
+        "binding-001",
+        lead_id="lead-001",
+        ownership_record_id="ownership-001",
+        owner_id="broker-001",
+        tenant_id="tenant-001",
+        expected_version=1,
+        at=AT,
+    )
+
+    assert updated.broker_id == "broker-001"
+    assert updated.ownership_binding.owner_id == "broker-001"
+
+
+def test_stale_ownership_binding_is_blocked(deal: Deal):
+    with pytest.raises(Exception):
+        deal.bind_ownership(
+            "binding-001",
+            lead_id="lead-001",
+            ownership_record_id="ownership-001",
+            owner_id="broker-001",
+            tenant_id="tenant-001",
+            expected_version=99,
+            at=AT,
+        )
+
+
+
+
+
+
+========== .\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py ==========
+from __future__ import annotations
+
+import pytest
+
+from AUTONOMY_ENGINE.core.deal import Deal, DealStatus, DealTransitionError
+from AUTONOMY_ENGINE.core.deal_transaction_milestones import (
+    DealTransactionMilestone,
+    DealMilestoneTransitionError,
+)
+
+
+AT = "2026-09-23T10:00:00+00:00"
+
+
+def base_deal() -> Deal:
+    deal = Deal.create(
+        tenant_id="tenant-001",
+        customer_id="customer-001",
+        broker_id="broker-001",
+        at=AT,
+    )
+
+    deal = deal.bind_opportunity(
+        builder_id="builder-001",
+        project_id="project-001",
+        unit_id="unit-001",
+        tenant_id="tenant-001",
+        expected_version=deal.version,
+        at=AT,
+    )
+
+    current = deal
+
+    for target in (
+        DealStatus.MATCHED,
+        DealStatus.VISIT_PENDING,
+        DealStatus.VISITED,
+        DealStatus.OFFERED,
+    ):
+        current = current.transition(
+            target,
+            tenant_id="tenant-001",
+            expected_version=current.version,
+            at=AT,
+        )
+
+    return current
+
+
+def test_booking_pending_creates_milestone():
+    deal = base_deal()
+
+    updated = deal.advance_transaction_milestone(
+        DealStatus.BOOKING_PENDING,
+        tenant_id="tenant-001",
+        expected_version=deal.version,
+        reference_id="booking-request-001",
+        at=AT,
+    )
+
+    assert updated.status is DealStatus.BOOKING_PENDING
+    assert len(updated.milestones) == 1
+
+    milestone = updated.last_transaction_milestone
+    assert milestone.to_status is DealStatus.BOOKING_PENDING
+    assert milestone.from_status is DealStatus.OFFERED
+    assert milestone.sequence == 1
+    assert milestone.deal_version == updated.version
+    assert milestone.reference_id == "booking-request-001"
+
+
+def test_full_transaction_milestone_chain_is_monotonic():
+    current = base_deal()
+
+    targets = (
+        DealStatus.BOOKING_PENDING,
+        DealStatus.BOOKED,
+        DealStatus.AGREEMENT_PENDING,
+        DealStatus.AGREED,
+        DealStatus.REGISTRATION_PENDING,
+        DealStatus.REGISTERED,
+        DealStatus.COMPLETION_PENDING,
+        DealStatus.COMPLETED,
+    )
+
+    expected_version = current.version
+
+    for target in targets:
+        current = current.advance_transaction_milestone(
+            target,
+            tenant_id="tenant-001",
+            expected_version=expected_version,
+            reference_id=f"REF-{target.value}",
+            at=AT,
+        )
+        expected_version = current.version
+
+    assert current.status is DealStatus.COMPLETED
+    assert len(current.milestones) == 8
+    assert [x.sequence for x in current.milestones] == list(range(1, 9))
+
+
+def test_milestone_versions_match_deal_versions():
+    current = base_deal()
+
+    versions = []
+
+    for target in (
+        DealStatus.BOOKING_PENDING,
+        DealStatus.BOOKED,
+        DealStatus.AGREEMENT_PENDING,
+    ):
+        current = current.advance_transaction_milestone(
+            target,
+            tenant_id="tenant-001",
+            expected_version=current.version,
+            at=AT,
+        )
+        versions.append(current.milestones[-1].deal_version)
+
+    assert versions == [
+        current.milestones[0].deal_version,
+        current.milestones[1].deal_version,
+        current.milestones[2].deal_version,
+    ]
+    assert versions == sorted(versions)
+
+
+def test_non_transaction_status_is_rejected():
+    deal = base_deal()
+
+    with pytest.raises(DealTransitionError):
+        deal.advance_transaction_milestone(
+            DealStatus.MATCHED,
+            tenant_id="tenant-001",
+            expected_version=deal.version,
+            at=AT,
+        )
+
+
+def test_invalid_sequence_is_rejected_by_canonical_deal_transition():
+    deal = base_deal()
+
+    with pytest.raises(Exception):
+        deal.advance_transaction_milestone(
+            DealStatus.BOOKED,
+            tenant_id="tenant-001",
+            expected_version=deal.version,
+            at=AT,
+        )
+
+
+def test_cross_tenant_milestone_is_blocked():
+    deal = base_deal()
+
+    with pytest.raises(Exception):
+        deal.advance_transaction_milestone(
+            DealStatus.BOOKING_PENDING,
+            tenant_id="tenant-002",
+            expected_version=deal.version,
+            at=AT,
+        )
+
+
+def test_stale_version_is_blocked():
+    deal = base_deal()
+
+    with pytest.raises(Exception):
+        deal.advance_transaction_milestone(
+            DealStatus.BOOKING_PENDING,
+            tenant_id="tenant-001",
+            expected_version=999,
+            at=AT,
+        )
+
+
+def test_milestone_is_immutable():
+    deal = base_deal()
+
+    updated = deal.advance_transaction_milestone(
+        DealStatus.BOOKING_PENDING,
+        tenant_id="tenant-001",
+        expected_version=deal.version,
+        at=AT,
+    )
+
+    milestone = updated.milestones[0]
+
+    with pytest.raises(Exception):
+        milestone.sequence = 99
+
+
+def test_milestone_serialization_preserves_audit_fields():
+    deal = base_deal()
+
+    updated = deal.advance_transaction_milestone(
+        DealStatus.BOOKING_PENDING,
+        tenant_id="tenant-001",
+        expected_version=deal.version,
+        reference_id="BOOK-001",
+        at=AT,
+    )
+
+    payload = updated.to_dict()
+
+    assert len(payload["milestones"]) == 1
+    assert payload["milestones"][0]["deal_id"] == deal.deal_id
+    assert payload["milestones"][0]["tenant_id"] == "tenant-001"
+    assert payload["milestones"][0]["from_status"] == "OFFERED"
+    assert payload["milestones"][0]["to_status"] == "BOOKING_PENDING"
+    assert payload["milestones"][0]["reference_id"] == "BOOK-001"
+
+
+def test_milestone_object_serialization_is_stable():
+    milestone = DealTransactionMilestone(
+        milestone_id="m-001",
+        deal_id="deal-001",
+        tenant_id="tenant-001",
+        from_status=DealStatus.OFFERED,
+        to_status=DealStatus.BOOKING_PENDING,
+        sequence=1,
+        deal_version=6,
+        occurred_at=__import__(
+            "datetime"
+        ).datetime.fromisoformat(AT),
+        reference_id="BOOK-001",
+    )
+
+    data = milestone.to_dict()
+
+    assert data["milestone_id"] == "m-001"
+    assert data["from_status"] == "OFFERED"
+    assert data["to_status"] == "BOOKING_PENDING"
+    assert data["sequence"] == 1
+    assert data["deal_version"] == 6
+    assert data["reference_id"] == "BOOK-001"
+
+
+def test_terminal_deal_cannot_advance_milestone():
+    current = Deal.create(
+        tenant_id="tenant-001",
+        customer_id="customer-001",
+        broker_id="broker-001",
+        builder_id="builder-001",
+        project_id="project-001",
+        unit_id="unit-001",
+        at=AT,
+    )
+
+    for target in (
+        DealStatus.MATCHED,
+        DealStatus.VISIT_PENDING,
+        DealStatus.VISITED,
+        DealStatus.OFFERED,
+        DealStatus.BOOKING_PENDING,
+        DealStatus.BOOKED,
+        DealStatus.AGREEMENT_PENDING,
+        DealStatus.AGREED,
+        DealStatus.REGISTRATION_PENDING,
+        DealStatus.REGISTERED,
+        DealStatus.COMPLETION_PENDING,
+        DealStatus.COMPLETED,
+    ):
+        current = current.transition(
+            target,
+            tenant_id="tenant-001",
+            expected_version=current.version,
+            at=AT,
+        )
+
+    with pytest.raises(Exception):
+        current.advance_transaction_milestone(
+            DealStatus.BOOKING_PENDING,
+            tenant_id="tenant-001",
+            expected_version=current.version,
+            at=AT,
+        )
+
+
+def test_milestones_are_append_only():
+    current = base_deal()
+
+    first = current.advance_transaction_milestone(
+        DealStatus.BOOKING_PENDING,
+        tenant_id="tenant-001",
+        expected_version=current.version,
+        at=AT,
+    )
+
+    second = first.advance_transaction_milestone(
+        DealStatus.BOOKED,
+        tenant_id="tenant-001",
+        expected_version=first.version,
+        at=AT,
+    )
+
+    assert len(first.milestones) == 1
+    assert len(second.milestones) == 2
+    assert second.milestones[0] == first.milestones[0]
+
+
+
+========== .\AUTONOMY_ENGINE\core\__init__.py ==========
+"""Authoritative REOS business-domain models."""
+
+from .inventory import (
+    Inventory,
+    InventoryDomainError,
+    InventoryEvent,
+    InventoryProjectViolation,
+    InventoryTenantViolation,
+    InventoryType,
+)
+
+from .project import (
+    Project,
+    ProjectDomainError,
+    ProjectEvent,
+    ProjectLifecycle,
+    ProjectLocation,
+    ProjectOperatingMode,
+    ProjectTenantViolation,
+    ProjectTransitionError,
+)
+
+__all__ = [
+    "Inventory",
+    "InventoryDomainError",
+    "InventoryEvent",
+    "InventoryProjectViolation",
+    "InventoryTenantViolation",
+    "InventoryType",
+    "Project",
+    "ProjectDomainError",
+    "ProjectEvent",
+    "ProjectLifecycle",
+    "ProjectLocation",
+    "ProjectOperatingMode",
+    "ProjectTenantViolation",
+    "ProjectTransitionError",
+]
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n========== CORE-006 REFERENCES ==========" -ForegroundColor Yellow
+
+========== CORE-006 REFERENCES ==========
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem .\AUTONOMY_ENGINE\core -File -Filter "*.py" |
+>>     Select-String -Pattern "deal\.|from .*deal|import .*deal|Deal\(" |
+>>     Select-Object Path,LineNumber,Line |
+>>     Format-Table -AutoSize
+
+Path                                                                                  LineNumber Line
+----                                                                                  ---------- ----
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                      5 from .deal_offer_negotiation import (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                     15 from .deal_transaction_milestones import DealTransactio...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                     16 from .deal_ownership_integration import DealOwnershipBi...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                    376                 **deal.__dict__,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                    387         """Return the canonical current party relations...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                    537                 "Offer does not belong to this Deal."
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                    846         from .deal_evidence_audit import (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                    905         from .deal_evidence_audit import (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                   1110         return Deal(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py                                   1199         return Deal(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_ownership_integration.py               22     """Immutable reference from Deal to the authoritati...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py               8     from .deal import DealStatus
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              43     """Immutable transaction milestone evidence owned b...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction_milestones.py              56         from .deal import DealStatus
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                 7 from AUTONOMY_ENGINE.core.deal import (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                21 def create_deal(*, bound: bool = False) -> Deal:
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                22     return Deal.create(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                34 def bound_deal() -> Deal:
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                35     return create_deal(bound=True)
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                39     deal = create_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                41     assert deal.status is DealStatus.QUALIFIED
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                42     assert deal.version == 1
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                43     assert deal.source_of_truth == "deal"
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                47     deal = create_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                49     assert deal.deal_id == "deal-001"
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                50     assert deal.tenant_id == "tenant-001"
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                51     assert deal.customer_id == "customer-001"
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                52     assert deal.broker_id == "broker-001"
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                53     assert deal.identity_key == "tenant-001:deal-001"
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                57     deal = create_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                59     assert len(deal.history) == 1
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                60     assert deal.history[0].from_status is None
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                61     assert deal.history[0].to_status is DealStatus.QUAL...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                62     assert deal.history[0].version == 1
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                63     assert deal.history[0].reason == "DEAL_CREATED"
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                67     deal = create_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                69     updated = deal.bind_opportunity(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                86     deal = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                                88     updated = deal.bind_opportunity(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               101     deal = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               104         deal.bind_opportunity(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               115     deal = create_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               118         deal.bind_opportunity(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               128     deal = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               164     deal = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               166     current = deal.transition(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               209     deal = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               212         deal.transition(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               221     deal = create_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               224         deal.transition(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               233     deal = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               236         deal.transition(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               245     deal = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               248         deal.transition(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               257     deal = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               260         deal.transition(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               269     deal = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               271     updated = deal.transition(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               278     assert updated.version == deal.version + 1
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               291     deal = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               293     updated = deal.transition(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               305     current = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               338     deal = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               340     current = deal.transition(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               389     deal = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               392         deal.transition(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               401     deal = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               436     deal = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               438     current = deal.transition(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               464     deal = create_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               467         deal.history.append(None)  # type: ignore[attr-...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               471     deal = Deal.create(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               479     assert deal.created_at.tzinfo is not None
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               480     assert deal.created_at.utcoffset() == timezone.utc....
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               481         deal.created_at
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               486     deal = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               488     data = deal.to_dict()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               501         Deal.create(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               510     deal = create_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               513         Deal(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               515                 **deal.__dict__,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               522     deal = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               524     updated = deal.transition(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               537     deal = create_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               539     assert deal.updated_at == deal.created_at
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               541     updated = deal.bind_opportunity(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               554     deal = bound_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal.py                               556     current = deal.transition(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py               7 from AUTONOMY_ENGINE.core.deal import (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py              20 def visited_deal() -> Deal:
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py              21     deal = Deal.create(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py              27     return deal.bind_opportunity(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py              32         expected_version=deal.version,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py              62     updated = visited_deal.create_offer(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py              77     created = visited_deal.create_offer(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py              98     updated = visited_deal.create_offer(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py             117         visited_deal.create_offer(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py             127     created = visited_deal.create_offer(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py             144     created = visited_deal.create_offer(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py             174     current = visited_deal.create_offer(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py             210     current = visited_deal.create_offer(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py             237     current = visited_deal.create_offer(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py             267     current = visited_deal.create_offer(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py             296     created = visited_deal.create_offer(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py             313     created = visited_deal.create_offer(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py             330     current = visited_deal.create_offer(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py             367     deal = Deal.create(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py             412     current = visited_deal.create_offer(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py             438     first = visited_deal.create_offer(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py           7 from AUTONOMY_ENGINE.core.deal import (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py          11 from AUTONOMY_ENGINE.core.deal_ownership_integration im...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py          22 def deal() -> Deal:
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py          23     return Deal.create(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py          32     updated = deal.bind_ownership(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py          52     updated = deal.bind_ownership(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py          76     updated = deal.bind_ownership(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py          99     from AUTONOMY_ENGINE.core.deal import DealTenantError
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py         102         deal.bind_ownership(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py         108             expected_version=deal.version,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py         114         deal.bind_ownership(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py         140     updated = deal.bind_ownership(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py         155     updated = deal.bind_ownership(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py         167         == f"tenant-001:{deal.deal_id}:ownership-001"
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py         172     updated = deal.bind_ownership(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py         184     assert payload["ownership_binding"]["deal_id"] == d...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py         192     from AUTONOMY_ENGINE.core.deal import DealStatus
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py         194     current = Deal.create(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py         238     updated = deal.bind_ownership(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py         254         deal.bind_ownership(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                         5 from AUTONOMY_ENGINE.core.deal import (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        20 def deal() -> Deal:
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        21     return Deal.create(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        30     relationships = deal.party_relationships
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        33     assert deal.party_for(DealPartyRole.CUSTOMER) == "c...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        34     assert deal.party_for(DealPartyRole.BROKER) == "bro...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        35     assert deal.party_for(DealPartyRole.BUILDER) is None
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        39     keys = {item.relationship_key for item in deal.part...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        42         "tenant-001:" + deal.deal_id + ":CUSTOMER",
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        43         "tenant-001:" + deal.deal_id + ":BROKER",
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        48     relationship = deal.party_relationships[0]
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        56         deal.bind_party(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        60             expected_version=deal.version,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        66     updated = deal.bind_party(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        70         expected_version=deal.version,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        80     updated = deal.bind_party(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        84         expected_version=deal.version,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        89     assert updated.version == deal.version
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        94         deal.bind_party(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                        98             expected_version=deal.version,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                       104     updated = deal.bind_party(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                       108         expected_version=deal.version,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                       124         deal.bind_party(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                       128             expected_version=deal.version,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                       135         deal.bind_party(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                       145     relationship = deal.party_relationships[0]
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                       148     assert payload["deal_id"] == deal.deal_id
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                       155     updated = deal.bind_opportunity(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                       160         expected_version=deal.version,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                       168     current = deal.bind_opportunity(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_parties.py                       173         expected_version=deal.version,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py          5 from AUTONOMY_ENGINE.core.deal import Deal, DealStatus,...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py          6 from AUTONOMY_ENGINE.core.deal_transaction_milestones i...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         15 def base_deal() -> Deal:
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         16     deal = Deal.create(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         23     deal = deal.bind_opportunity(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         28         expected_version=deal.version,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         51     deal = base_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         53     updated = deal.advance_transaction_milestone(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         56         expected_version=deal.version,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py         73     current = base_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        104     current = base_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        130     deal = base_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        133         deal.advance_transaction_milestone(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        136             expected_version=deal.version,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        142     deal = base_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        145         deal.advance_transaction_milestone(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        148             expected_version=deal.version,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        154     deal = base_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        157         deal.advance_transaction_milestone(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        160             expected_version=deal.version,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        166     deal = base_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        169         deal.advance_transaction_milestone(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        178     deal = base_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        180     updated = deal.advance_transaction_milestone(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        183         expected_version=deal.version,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        194     deal = base_deal()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        196     updated = deal.advance_transaction_milestone(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        199         expected_version=deal.version,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        207     assert payload["milestones"][0]["deal_id"] == deal....
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        240     current = Deal.create(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py        281     current = base_deal()
+
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n========== PYTHON COMPILE CHECK ==========" -ForegroundColor Yellow
+
+========== PYTHON COMPILE CHECK ==========
+PS D:\HOMIO\REOS_CONTROL_CENTER> @(
+>>     ".\AUTONOMY_ENGINE\core\deal.py"
+>>     ".\AUTONOMY_ENGINE\core\deal_offer_negotiation.py"
+>>     ".\AUTONOMY_ENGINE\core\deal_ownership_integration.py"
+>>     ".\AUTONOMY_ENGINE\core\deal_transaction_milestones.py"
+>> ) | ForEach-Object {
+>>     python -m py_compile $_
+>> }
+  File ".\AUTONOMY_ENGINE\core\deal.py", line 1229
+    "ownership_binding": (,
+                          ^
+SyntaxError: invalid syntax
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n========== FILE STATUS ==========" -ForegroundColor Yellow
+
+========== FILE STATUS ==========
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem .\AUTONOMY_ENGINE\core -File |
+>>     Where-Object { $_.Name -match "deal|test_deal" } |
+>>     Select-Object Name,Length,LastWriteTime |
+>>     Format-Table -AutoSize
+
+Name                                   Length LastWriteTime
+----                                   ------ -------------
+deal.py                                 37851 9/24/2026 10:49:58 AM
+deal.py.before-T06-rollback              3820 9/24/2026 11:33:18 AM
+deal.py.T06_FAILED_20260924_113317.bak  37851 9/24/2026 10:49:58 AM
+deal.py.T06_WORKING_SOURCE.bak          37851 9/24/2026 10:49:58 AM
+deal_offer_negotiation.py               10655 9/23/2026 9:15:58 PM
+deal_ownership_integration.py            2466 9/23/2026 10:38:56 PM
+deal_transaction_milestones.py           3015 9/23/2026 10:05:35 PM
+test_deal.py                            13817 9/23/2026 8:53:21 PM
+test_deal_offer_negotiation.py          11610 9/23/2026 9:16:00 PM
+test_deal_ownership_integration.py       7366 9/23/2026 10:49:00 PM
+test_deal_parties.py                     6022 9/23/2026 9:02:27 PM
+test_deal_transaction_milestones.py      7972 9/23/2026 10:23:22 PM
+
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
