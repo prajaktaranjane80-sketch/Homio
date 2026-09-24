@@ -1,56 +1,130 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> "===== CORE-006 T06 REFERENCE AUDIT =====" | Set-Content $out -Encoding utf8
-Set-Content : Could not find a part of the path 'D:\HOMIO\REOS_CONTROL_CENTER\errors\CORE-006-T06-REFERENCE-AUDIT.txt'.
-At line:1 char:46
-+ ... CORE-006 T06 REFERENCE AUDIT =====" | Set-Content $out -Encoding utf8
-+                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (D:\HOMIO\REOS_C...RENCE-AUDIT.txt:String) [Set-Content], DirectoryNotFoundException
-    + FullyQualifiedErrorId : GetContentWriterDirectoryNotFoundError,Microsoft.PowerShell.Commands.SetContentCommand
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> "Generated: $(Get-Date -Format s)" | Add-Content $out
-Add-Content : Could not find a part of the path 'D:\HOMIO\REOS_CONTROL_CENTER\errors\CORE-006-T06-REFERENCE-AUDIT.txt'.
-At line:1 char:38
-+ "Generated: $(Get-Date -Format s)" | Add-Content $out
-+                                      ~~~~~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (D:\HOMIO\REOS_C...RENCE-AUDIT.txt:String) [Add-Content], DirectoryNotFoundException
-    + FullyQualifiedErrorId : GetContentWriterDirectoryNotFoundError,Microsoft.PowerShell.Commands.AddContentCommand
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> "" | Add-Content $out
-Add-Content : Could not find a part of the path 'D:\HOMIO\REOS_CONTROL_CENTER\errors\CORE-006-T06-REFERENCE-AUDIT.txt'.
-At line:1 char:6
-+ "" | Add-Content $out
-+      ~~~~~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (D:\HOMIO\REOS_C...RENCE-AUDIT.txt:String) [Add-Content], DirectoryNotFoundException
-    + FullyQualifiedErrorId : GetContentWriterDirectoryNotFoundError,Microsoft.PowerShell.Commands.AddContentCommand
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($f in $files) {
->>     Add-Content $out ("`n===== FILE: $f =====")
->>     if (Test-Path $f) {
->>         Get-Content $f -Raw -Encoding utf8 | Add-Content $out
->>     }
->>     elseif (Test-Path $f -PathType Leaf) {
->>         Get-Content $f -Raw | Add-Content $out
->>     }
->>     else {
->>         Add-Content $out "MISSING"
->>     }
->> }
-Add-Content : Could not find a part of the path 'D:\HOMIO\REOS_CONTROL_CENTER\errors\CORE-006-T06-REFERENCE-AUDIT.txt'.
-At line:2 char:5
-+     Add-Content $out ("`n===== FILE: $f =====")
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (D:\HOMIO\REOS_C...RENCE-AUDIT.txt:String) [Add-Content], DirectoryNotFoundException
-    + FullyQualifiedErrorId : GetContentWriterDirectoryNotFoundError,Microsoft.PowerShell.Commands.AddContentCommand
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REFERENCE_AUDIT_CREATED"
-REFERENCE_AUDIT_CREATED
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "FILE=$out"
-FILE=errors\CORE-006-T06-REFERENCE-AUDIT.txt
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "BYTES=$((Get-Item $out).Length)"
-Get-Item : Cannot find path 'D:\HOMIO\REOS_CONTROL_CENTER\errors\CORE-006-T06-REFERENCE-AUDIT.txt' because it does not exist.
-At line:1 char:22
-+ Write-Host "BYTES=$((Get-Item $out).Length)"
-+                      ~~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (D:\HOMIO\REOS_C...RENCE-AUDIT.txt:String) [Get-Item], ItemNotFoundException
-    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetItemCommand
+========================================================================= ERRORS ==========================================================================
+___________________________________________________ ERROR collecting AUTONOMY_ENGINE/core/test_deal.py ____________________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\python.py:508: in importtestmodule
+    mod = import_path(
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\assertion\rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+AUTONOMY_ENGINE\core\test_deal.py:7: in <module>
+    from AUTONOMY_ENGINE.core.deal import (
+E     File "D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py", line 1229
+E       "ownership_binding": (,
+E                             ^
+E   SyntaxError: invalid syntax
+__________________________________________ ERROR collecting AUTONOMY_ENGINE/core/test_deal_offer_negotiation.py ___________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\python.py:508: in importtestmodule
+    mod = import_path(
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\assertion\rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py:7: in <module>
+    from AUTONOMY_ENGINE.core.deal import (
+E     File "D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py", line 1229
+E       "ownership_binding": (,
+E                             ^
+E   SyntaxError: invalid syntax
+________________________________________ ERROR collecting AUTONOMY_ENGINE/core/test_deal_ownership_integration.py _________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\python.py:508: in importtestmodule
+    mod = import_path(
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\assertion\rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+AUTONOMY_ENGINE\core\test_deal_ownership_integration.py:7: in <module>
+    from AUTONOMY_ENGINE.core.deal import (
+E     File "D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py", line 1229
+E       "ownership_binding": (,
+E                             ^
+E   SyntaxError: invalid syntax
+_______________________________________________ ERROR collecting AUTONOMY_ENGINE/core/test_deal_parties.py ________________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\python.py:508: in importtestmodule
+    mod = import_path(
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\assertion\rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+AUTONOMY_ENGINE\core\test_deal_parties.py:5: in <module>
+    from AUTONOMY_ENGINE.core.deal import (
+E     File "D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py", line 1229
+E       "ownership_binding": (,
+E                             ^
+E   SyntaxError: invalid syntax
+________________________________________ ERROR collecting AUTONOMY_ENGINE/core/test_deal_transaction_milestones.py ________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\python.py:508: in importtestmodule
+    mod = import_path(
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\assertion\rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py:5: in <module>
+    from AUTONOMY_ENGINE.core.deal import Deal, DealStatus, DealTransitionError
+E     File "D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py", line 1229
+E       "ownership_binding": (,
+E                             ^
+E   SyntaxError: invalid syntax
+================================================================= short test summary info =================================================================
+ERROR AUTONOMY_ENGINE/core/test_deal.py
+ERROR AUTONOMY_ENGINE/core/test_deal_offer_negotiation.py
+ERROR AUTONOMY_ENGINE/core/test_deal_ownership_integration.py
+ERROR AUTONOMY_ENGINE/core/test_deal_parties.py
+ERROR AUTONOMY_ENGINE/core/test_deal_transaction_milestones.py
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 5 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+5 errors in 3.73s
