@@ -1,45 +1,129 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m py_compile AUTONOMY_ENGINE\core\deal.py
-  File "AUTONOMY_ENGINE\core\deal.py", line 1229
-    "ownership_binding": (,
-                          ^
-SyntaxError: invalid syntax
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) { throw "deal.py compile failed" }
-deal.py compile failed
-At line:1 char:28
-+ if ($LASTEXITCODE -ne 0) { throw "deal.py compile failed" }
-+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (deal.py compile failed:String) [], RuntimeException
-    + FullyQualifiedErrorId : deal.py compile failed
-
+PS D:\HOMIO\REOS_CONTROL_CENTER> cd D:\HOMIO\REOS_CONTROL_CENTER
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\test_deal_evidence_audit.py -q
+PS D:\HOMIO\REOS_CONTROL_CENTER> $root = (Get-Location).Path
+PS D:\HOMIO\REOS_CONTROL_CENTER> $p = Join-Path $root "AUTONOMY_ENGINE\core\deal.py"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $b = Join-Path $root "AUTONOMY_ENGINE\core\deal.py.T06-corrupt-backup"
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Copy-Item $p $b -Force
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== STATUS ==="
+=== STATUS ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short -- AUTONOMY_ENGINE/core/deal.py AUTONOMY_ENGINE/core/deal_evidence_audit.py AUTONOMY_ENGINE/core/test_deal_evidence_audit.py
+?? AUTONOMY_ENGINE/core/deal.py
+?? AUTONOMY_ENGINE/core/deal_evidence_audit.py
+?? AUTONOMY_ENGINE/core/test_deal_evidence_audit.py
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== T06 ANCHORS ==="
 
-========================================================================= ERRORS ==========================================================================
-____________________________________________ ERROR collecting AUTONOMY_ENGINE/core/test_deal_evidence_audit.py ____________________________________________
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\python.py:508: in importtestmodule
-    mod = import_path(
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\pathlib.py:596: in import_path
-    importlib.import_module(module_name)
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-<frozen importlib._bootstrap>:1387: in _gcd_import
-    ???
-<frozen importlib._bootstrap>:1360: in _find_and_load
-    ???
-<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
-    ???
-<frozen importlib._bootstrap>:935: in _load_unlocked
-    ???
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\assertion\rewrite.py:188: in exec_module
-    exec(co, module.__dict__)
-AUTONOMY_ENGINE\core\test_deal_evidence_audit.py:7: in <module>
-    from AUTONOMY_ENGINE.core.deal import (
-E     File "D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py", line 1229
-E       "ownership_binding": (,
-E                             ^
-E   SyntaxError: invalid syntax
-================================================================= short test summary info =================================================================
-ERROR AUTONOMY_ENGINE/core/test_deal_evidence_audit.py
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-1 error in 0.26s
+=== T06 ANCHORS ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Select-String -Path $p -Pattern "DealEvidence|DealAudit|evidence:|audit_log:|attach_evidence|record_audit|ownership_binding|`"evidence`"|`"audit_log`"" |
+>> ForEach-Object { "{0}: {1}" -f $_.LineNumber,$_.Line.Trim() }
+290: ownership_binding: DealOwnershipBinding | None = None
+291: evidence: tuple[DealEvidenceReference, ...] = ()
+292: audit_log: tuple[DealAuditEntry, ...] = ()
+835: def attach_evidence(
+847: DealEvidenceConflictError,
+848: DealEvidenceReference,
+863: for existing in self.evidence:
+870: raise DealEvidenceConflictError(
+876: evidence = DealEvidenceReference.create(
+893: def record_audit(
+906: DealAuditConflictError,
+907: DealAuditEntry,
+913: for existing in self.audit_log:
+930: raise DealAuditConflictError(
+936: audit = DealAuditEntry.create(
+976: if self.ownership_binding is not None:
+977: existing = self.ownership_binding
+1003: ownership_binding=binding,
+1229: "ownership_binding": (,
+1230: "evidence": [item.to_dict() for item in self.evidence],
+1231: "audit_log": [item.to_dict() for item in self.audit_log],
+1232: self.ownership_binding.to_dict()
+1233: if self.ownership_binding is not None
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== IMPORTS ==="
+
+=== IMPORTS ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> $L = Get-Content $p
+PS D:\HOMIO\REOS_CONTROL_CENTER> 1..40 | ForEach-Object { "{0}: {1}" -f $_,$L[$_-1] }
+1: from __future__ import annotations
+2:
+3: from dataclasses import dataclass, field, replace
+4: from datetime import datetime, timezone
+5: from .deal_offer_negotiation import (
+6:     DealOffer,
+7:     DealOfferStatus,
+8:     DealNegotiation,
+9:     DealNegotiationStatus,
+10: )
+11: from enum import Enum
+12: from typing import Any
+13: from uuid import uuid4
+14:
+15: from .deal_transaction_milestones import DealTransactionMilestone
+16: from .deal_ownership_integration import DealOwnershipBinding
+17:
+18:
+19: class DealDomainError(ValueError):
+20:     """Base error for Deal aggregate failures."""
+21:
+22:
+23: class DealTransitionError(DealDomainError):
+24:     """Raised when a Deal lifecycle transition is invalid."""
+25:
+26:
+27: class DealTenantError(DealDomainError):
+28:     """Raised when a Deal operation crosses tenant boundaries."""
+29:
+30:
+31: class DealConcurrencyError(DealDomainError):
+32:     """Raised when a stale Deal version attempts a mutation."""
+33:
+34:
+35: class DealReferenceConflictError(DealDomainError):
+36:     """Raised when bound opportunity references are silently substituted."""
+37:
+38:
+39: class DealValidationError(DealDomainError):
+40:     """Raised when Deal identity or required references are invalid."""
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== TO_DICT BLOCK ==="
+
+=== TO_DICT BLOCK ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> 1218..1248 | ForEach-Object { "{0}: {1}" -f $_,$L[$_-1] }
+1218:             "unit_id": self.unit_id,
+1219:             "status": self.status.value,
+1220:             "version": self.version,
+1221:             "created_at": self.created_at.isoformat(),
+1222:             "updated_at": self.updated_at.isoformat(),
+1223:             "history": [
+1224:                 entry.to_dict()
+1225:                 for entry in self.history
+1226:             ],
+1227:             "source_of_truth": self.source_of_truth,
+1228:             "offers": [offer.to_dict() for offer in self.offers],
+1229:             "ownership_binding": (,
+1230:     "evidence": [item.to_dict() for item in self.evidence],
+1231:     "audit_log": [item.to_dict() for item in self.audit_log],
+1232:                 self.ownership_binding.to_dict()
+1233:                 if self.ownership_binding is not None
+1234:                 else None
+1235:             ),            "milestones": [
+1236:                 milestone.to_dict()
+1237:                 for milestone in self.milestones
+1238:             ],            "negotiation": (
+1239:                 self.negotiation.to_dict()
+1240:                 if self.negotiation is not None
+1241:                 else None
+1242:             ),
+1243:         }
+1244:
+1245:
+1246: __all__ = [
+1247:     "Deal",    "DealOffer",
+1248:     "DealOfferStatus",
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`nBACKUP=$b"
+
+BACKUP=D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal.py.T06-corrupt-backup
