@@ -1,7 +1,7 @@
 {
   "contract": {
     "name": "REOS Identity & Tenant Foundation",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "domain": "CORE-001",
     "subtask": "CORE-001-T01",
     "status": "ACTIVE"
@@ -86,6 +86,61 @@
       ]
     }
   },
+  "lifecycle": {
+    "identity_status_transitions": {
+      "ACTIVE": [
+        "SUSPENDED",
+        "DEACTIVATED"
+      ],
+      "SUSPENDED": [
+        "ACTIVE",
+        "DEACTIVATED"
+      ],
+      "DEACTIVATED": []
+    },
+    "account_status_transitions": {
+      "ENABLED": [
+        "LOCKED",
+        "DISABLED"
+      ],
+      "LOCKED": [
+        "ENABLED",
+        "DISABLED"
+      ],
+      "DISABLED": []
+    },
+    "external_identity_status_transitions": {
+      "ACTIVE": [
+        "REVOKED"
+      ],
+      "REVOKED": []
+    }
+  },
+  "canonicalization": {
+    "handle": {
+      "normalized": true,
+      "normalization": "trim_then_lowercase",
+      "case_sensitive": false,
+      "unique": true
+    },
+    "external_provider": {
+      "normalized": true,
+      "normalization": "trim_then_lowercase"
+    },
+    "external_subject": {
+      "case_sensitive": true
+    }
+  },
+  "registry": {
+    "type": "in_memory_domain_boundary",
+    "indexes": [
+      "identity_id",
+      "handle",
+      "external_provider_subject"
+    ],
+    "authoritative_resolution_boundary": true,
+    "persistence_owned_elsewhere": true
+  },
   "capabilities": {
     "human_identity": true,
     "service_identity": true,
@@ -95,19 +150,65 @@
     "deterministic_external_resolution": true,
     "immutable_identity_model": true,
     "account_identity_separation": true,
-    "authorization_ready_context": true
+    "authorization_ready_context": true,
+    "canonical_handle_uniqueness": true,
+    "controlled_identity_lifecycle": true,
+    "controlled_account_lifecycle": true,
+    "canonical_identity_account_binding": true
   },
   "security_invariants": [
     "identity_id_is_immutable",
     "identity_is_distinct_from_account",
     "identity_is_distinct_from_credential",
     "identity_is_distinct_from_session",
+    "canonical_handle_is_unique",
+    "canonical_handle_is_case_insensitive",
+    "registered_identity_cannot_change_canonical_handle",
+    "identity_status_transition_is_valid",
+    "deactivated_identity_is_terminal",
+    "account_requires_canonical_identity",
+    "account_status_transition_is_valid",
+    "disabled_account_is_terminal",
+    "authentication_epoch_is_monotonic",
+    "created_at_is_immutable",
+    "updated_at_is_timezone_aware",
+    "revision_starts_at_one",
+    "mutation_increments_revision_by_one",
+    "no_op_does_not_increment_revision",
+    "identity_id_survives_revision",
     "external_provider_subject_is_deterministic_key",
     "duplicate_external_binding_cannot_rebind_identity",
+    "revoked_external_identity_is_terminal",
     "unknown_external_identity_fails_closed",
     "revoked_external_identity_fails_closed",
     "inactive_canonical_identity_fails_closed",
-    "no_authentication_secret_is_stored_in_identity_model"
+    "no_authentication_secret_is_stored_in_identity_model",
+    "registry_resolution_is_fail_closed"
+  ],
+  "source_of_truth_boundary": {
+    "Identity": "canonical identity domain record",
+    "IdentityAccount": "account and authentication-epoch boundary",
+    "ExternalIdentityReference": "external provider identity binding",
+    "IdentityRegistry": "deterministic T01 identity resolution boundary",
+    "excluded_from_T01": [
+      "credentials",
+      "sessions",
+      "authorization",
+      "tenant_membership",
+      "persistence",
+      "event_bus",
+      "audit_engine"
+    ]
+  },
+  "forbidden_identity_fields": [
+    "password",
+    "password_hash",
+    "secret",
+    "access_token",
+    "refresh_token",
+    "private_key",
+    "credential",
+    "session_token"
   ],
   "resolution_outcomes": [
     "RESOLVED",
