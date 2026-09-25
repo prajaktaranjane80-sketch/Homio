@@ -746,13 +746,17 @@ class IdentityRegistry:
 
 
 def identity_model_field_names() -> frozenset[str]:
-    """Return all fields owned by the T01 identity domain models."""
+    """Return fields owned by the primary T01 identity domain models.
+
+    IdentityResolutionResult is intentionally excluded because it is a
+    resolution-result DTO, not one of the three primary canonical identity
+    domain models. Its complete field contract is validated independently.
+    """
 
     model_types = (
         Identity,
         IdentityAccount,
         ExternalIdentityReference,
-        IdentityResolutionResult,
     )
 
     return frozenset(
