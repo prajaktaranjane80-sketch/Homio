@@ -1,0 +1,117 @@
+{
+  "contract": {
+    "name": "REOS Identity & Tenant Foundation",
+    "version": "1.0.0",
+    "domain": "CORE-001",
+    "subtask": "CORE-001-T01",
+    "status": "ACTIVE"
+  },
+  "entities": {
+    "Identity": {
+      "fields": [
+        "identity_id",
+        "identity_type",
+        "display_name",
+        "handle",
+        "status",
+        "privacy_class",
+        "revision",
+        "created_at",
+        "updated_at"
+      ],
+      "identity_types": [
+        "HUMAN",
+        "SERVICE",
+        "AI",
+        "SYSTEM"
+      ],
+      "statuses": [
+        "ACTIVE",
+        "SUSPENDED",
+        "DEACTIVATED"
+      ],
+      "privacy_classes": [
+        "INTERNAL",
+        "CONFIDENTIAL",
+        "RESTRICTED"
+      ]
+    },
+    "IdentityAccount": {
+      "fields": [
+        "account_id",
+        "identity_id",
+        "status",
+        "authentication_epoch",
+        "created_at",
+        "updated_at"
+      ],
+      "statuses": [
+        "ENABLED",
+        "LOCKED",
+        "DISABLED"
+      ]
+    },
+    "ExternalIdentityReference": {
+      "fields": [
+        "reference_id",
+        "identity_id",
+        "provider",
+        "subject",
+        "status",
+        "revision",
+        "linked_at"
+      ],
+      "statuses": [
+        "ACTIVE",
+        "REVOKED"
+      ],
+      "key": [
+        "provider",
+        "subject"
+      ]
+    },
+    "IdentityResolutionResult": {
+      "fields": [
+        "status",
+        "identity_id",
+        "reference_id",
+        "provider",
+        "subject",
+        "reason"
+      ],
+      "statuses": [
+        "RESOLVED",
+        "NOT_FOUND",
+        "REVOKED"
+      ]
+    }
+  },
+  "capabilities": {
+    "human_identity": true,
+    "service_identity": true,
+    "ai_identity": true,
+    "system_principal": true,
+    "external_identity_reference": true,
+    "deterministic_external_resolution": true,
+    "immutable_identity_model": true,
+    "account_identity_separation": true,
+    "authorization_ready_context": true
+  },
+  "security_invariants": [
+    "identity_id_is_immutable",
+    "identity_is_distinct_from_account",
+    "identity_is_distinct_from_credential",
+    "identity_is_distinct_from_session",
+    "external_provider_subject_is_deterministic_key",
+    "duplicate_external_binding_cannot_rebind_identity",
+    "unknown_external_identity_fails_closed",
+    "revoked_external_identity_fails_closed",
+    "inactive_canonical_identity_fails_closed",
+    "no_authentication_secret_is_stored_in_identity_model"
+  ],
+  "resolution_outcomes": [
+    "RESOLVED",
+    "NOT_FOUND",
+    "REVOKED"
+  ]
+}

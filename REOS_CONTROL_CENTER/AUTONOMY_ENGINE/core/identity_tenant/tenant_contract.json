@@ -1,0 +1,101 @@
+{
+  "contract": {
+    "name": "REOS Tenant Lifecycle Contract",
+    "version": "1.0.0",
+    "domain": "CORE-001",
+    "subtask": "CORE-001-T02",
+    "status": "ACTIVE"
+  },
+  "entities": {
+    "Tenant": {
+      "fields": [
+        "tenant_id",
+        "tenant_kind",
+        "operating_mode",
+        "display_name",
+        "slug",
+        "status",
+        "isolation_profile",
+        "residency_mode",
+        "residency_region",
+        "jurisdiction",
+        "quota_profile",
+        "owner_identity_id",
+        "primary_admin_identity_id",
+        "revision",
+        "created_at",
+        "updated_at"
+      ],
+      "kinds": [
+        "BROKERAGE",
+        "BUILDER",
+        "ENTERPRISE",
+        "PARTNER",
+        "PLATFORM"
+      ],
+      "operating_modes": [
+        "OWNED_INTERNATIONAL_BROKERAGE",
+        "BROKER_SAAS",
+        "BUILDER_SAAS",
+        "ENTERPRISE_WHITE_LABEL",
+        "PLATFORM_API_PARTNER"
+      ],
+      "statuses": [
+        "PROVISIONING",
+        "PENDING_ACTIVATION",
+        "ACTIVE",
+        "RESTRICTED",
+        "SUSPENDED",
+        "DEACTIVATING",
+        "DEACTIVATED",
+        "ARCHIVED"
+      ],
+      "isolation_profiles": [
+        "SHARED_LOGICAL",
+        "TENANT_DEDICATED"
+      ],
+      "residency_modes": [
+        "GLOBAL_ALLOWED",
+        "REGION_BOUND",
+        "COUNTRY_BOUND",
+        "CUSTOM_POLICY"
+      ]
+    },
+    "TenantProvisioningIntent": {
+      "fields": [
+        "intent_id",
+        "tenant_id",
+        "idempotency_key",
+        "status",
+        "revision",
+        "requested_at",
+        "updated_at"
+      ],
+      "statuses": [
+        "REQUESTED",
+        "ACCEPTED",
+        "APPLIED",
+        "REJECTED"
+      ],
+      "idempotency_key": true
+    }
+  },
+  "lifecycle": {
+    "terminal_state": "ARCHIVED",
+    "activation_requires_owner": true,
+    "activation_requires_primary_admin": true,
+    "archived_state_is_terminal": true,
+    "deletion_is_not_a_direct_transition": true
+  },
+  "invariants": [
+    "tenant_id_is_immutable",
+    "slug_is_canonical",
+    "tenant_lifecycle_transitions_are_explicit",
+    "invalid_transitions_fail_closed",
+    "active_tenant_requires_owner_and_primary_admin",
+    "restricted_residency_requires_scope",
+    "provisioning_is_idempotency_keyed",
+    "archived_tenant_is_terminal",
+    "tenant_model_does_not_store_credentials_or_tokens"
+  ]
+}
