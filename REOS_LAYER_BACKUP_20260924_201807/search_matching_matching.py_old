@@ -1,0 +1,390 @@
+﻿from __future__ import annotations
+
+from dataclasses import dataclass
+import re
+from typing import Sequence
+
+from .search_ranking import RankedSearchResult
+
+
+_TOKEN_PATTERN = re.compile(r"[A-Za-z0-9]+")
+
+
+class MatchingError(ValueError):
+    """Base matching/recommendation error."""
+
+
+class MatchingTenantError(MatchingError):
+    """Raised when candidates violate the requested tenant boundary."""
+
+
+class MatchingLimitError(MatchingError):
+    """Raised when recommendation limits are invalid."""
+
+
+class MatchingConfigurationError(MatchingError):
+    """Raised when matching configuration is invalid."""
+
+
+def _tokens(value: str) -> frozenset[str]:
+    return frozenset(
+        token.casefold()
+        for token in _TOKEN_PATTERN.findall(value)
+    )
+
+
+def _normalize_values(values: frozenset[str]) -> frozenset[str]:
+    return frozenset(
+        str(value).strip().casefold()
+        for value in values
+        if str(value).strip()
+    )
+
+
+@dataclass(frozen=True)
+class MatchingProfile:
+    """
+    Persistence-neutral matching preferences.
+
+    Required fields are hard eligibility constraints.
+    Preferred fields influence recommendation ordering only.
+    """
+
+    tenant_id: str
+
+    required_inventory_types: frozenset[str] = frozenset()
+    required_project_ids: frozenset[str] = frozenset()
+    required_availability: frozenset[str] = frozenset()
+
+    preferred_inventory_types: frozenset[str] = frozenset()
+    preferred_project_ids: frozenset[str] = frozenset()
+    preferred_availability: frozenset[str] = frozenset()
+    preferred_inventory_codes: frozenset[str] = frozenset()
+    preferred_keywords: frozenset[str] = frozenset()
+
+    excluded_keywords: frozenset[str] = frozenset()
+
+    search_weight: float = 0.70
+    preference_weight: float = 0.30
+    limit: int = 10
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.tenant_id, str) or not self.tenant_id.strip():
+            raise MatchingConfigurationError(
+                "tenant_id must be a non-empty string."
+            )
+
+        for field_name in (
+            "required_inventory_types",
+            "required_project_ids",
+            "required_availability",
+            "preferred_inventory_types",
+            "preferred_project_ids",
+            "preferred_availability",
+            "preferred_inventory_codes",
+            "preferred_keywords",
+            "excluded_keywords",
+        ):
+            object.__setattr__(
+                self,
+                field_name,
+                _normalize_values(getattr(self, field_name)),
+            )
+
+        if self.search_weight < 0 or self.preference_weight < 0:
+            raise MatchingConfigurationError(
+                "matching weights must be non-negative."
+            )
+
+        if self.search_weight + self.preference_weight <= 0:
+            raise MatchingConfigurationError(
+                "at least one matching weight must be positive."
+            )
+
+        if not isinstance(self.limit, int) or isinstance(self.limit, bool):
+            raise MatchingLimitError("limit must be an integer.")
+
+        if self.limit <= 0:
+            raise MatchingLimitError("limit must be positive.")
+
+
+@dataclass(frozen=True)
+class MatchExplanation:
+    matched_signals: tuple[str, ...]
+    search_relevance: float
+    preference_score: float
+
+
+@dataclass(frozen=True)
+class Recommendation:
+    candidate: RankedSearchResult
+    search_relevance: float
+    preference_score: float
+    match_score: float
+    rank: int
+    explanation: MatchExplanation
+
+    @property
+    def document(self):
+        return self.candidate.document
+
+    @property
+    def inventory_id(self) -> str:
+        return self.candidate.document.inventory_id
+
+    @property
+    def inventory_code(self) -> str:
+        return self.candidate.document.inventory_code
+
+    @property
+    def project_id(self) -> str:
+        return self.candidate.document.project_id
+
+    @property
+    def tenant_id(self) -> str:
+        return self.candidate.document.tenant_id
+
+
+class MatchingRecommendationPipeline:
+    """
+    Deterministic matching/recommendation layer over ranked search results.
+
+    Responsibilities:
+    - enforce hard matching eligibility
+    - apply preference signals
+    - preserve tenant isolation
+    - generate explainable recommendation scores
+    - produce deterministic ordering
+
+    Non-responsibilities:
+    - canonical inventory mutation
+    - persistence
+    - search retrieval
+    - visibility policy ownership
+    - business transaction decisions
+    """
+
+    def match(
+        self,
+        candidates: Sequence[RankedSearchResult],
+        *,
+        profile: MatchingProfile,
+    ) -> tuple[Recommendation, ...]:
+        tenant = profile.tenant_id.strip()
+
+        prepared: list[Recommendation] = []
+
+        for candidate in candidates:
+            if candidate.document.tenant_id != tenant:
+                raise MatchingTenantError(
+                    "Matching candidates contain a different tenant."
+                )
+
+            if not self._eligible(candidate, profile):
+                continue
+
+            prepared.append(
+                self._build_recommendation(
+                    candidate,
+                    profile=profile,
+                )
+            )
+
+        prepared.sort(
+            key=lambda item: (
+                -item.match_score,
+                -item.preference_score,
+                -item.search_relevance,
+                item.candidate.rank,
+                item.document.index_key.casefold(),
+            )
+        )
+
+        limited = prepared[: profile.limit]
+
+        return tuple(
+            Recommendation(
+                candidate=item.candidate,
+                search_relevance=item.search_relevance,
+                preference_score=item.preference_score,
+                match_score=item.match_score,
+                rank=index,
+                explanation=item.explanation,
+            )
+            for index, item in enumerate(limited, start=1)
+        )
+
+    @staticmethod
+    def _eligible(
+        candidate: RankedSearchResult,
+        profile: MatchingProfile,
+    ) -> bool:
+        document = candidate.document
+
+        inventory_type = str(document.inventory_type).strip().casefold()
+        project_id = str(document.project_id).strip().casefold()
+        availability = str(document.availability).strip().casefold()
+        inventory_code = str(document.inventory_code).strip().casefold()
+
+        if (
+            profile.required_inventory_types
+            and inventory_type not in profile.required_inventory_types
+        ):
+            return False
+
+        if (
+            profile.required_project_ids
+            and project_id not in profile.required_project_ids
+        ):
+            return False
+
+        if (
+            profile.required_availability
+            and availability not in profile.required_availability
+        ):
+            return False
+
+        document_tokens = _tokens(
+            f"{document.inventory_code} {document.name}"
+        )
+
+        if profile.excluded_keywords & document_tokens:
+            return False
+
+        return True
+
+    @staticmethod
+    def _build_recommendation(
+        candidate: RankedSearchResult,
+        *,
+        profile: MatchingProfile,
+    ) -> Recommendation:
+        document = candidate.document
+
+        # Rank is an intentionally stable signal independent of T05's
+        # internal numeric score scale.
+        search_relevance = 1.0 / max(candidate.rank, 1)
+
+        signals: list[str] = []
+        preference_values: list[float] = []
+
+        inventory_type = str(
+            document.inventory_type
+        ).strip().casefold()
+
+        project_id = str(
+            document.project_id
+        ).strip().casefold()
+
+        availability = str(
+            document.availability
+        ).strip().casefold()
+
+        inventory_code = str(
+            document.inventory_code
+        ).strip().casefold()
+
+        if profile.preferred_inventory_types:
+            value = (
+                1.0
+                if inventory_type in profile.preferred_inventory_types
+                else 0.0
+            )
+            preference_values.append(value)
+
+            if value:
+                signals.append("preferred_inventory_type")
+
+        if profile.preferred_project_ids:
+            value = (
+                1.0
+                if project_id in profile.preferred_project_ids
+                else 0.0
+            )
+            preference_values.append(value)
+
+            if value:
+                signals.append("preferred_project")
+
+        if profile.preferred_availability:
+            value = (
+                1.0
+                if availability in profile.preferred_availability
+                else 0.0
+            )
+            preference_values.append(value)
+
+            if value:
+                signals.append("preferred_availability")
+
+        if profile.preferred_inventory_codes:
+            value = (
+                1.0
+                if inventory_code in profile.preferred_inventory_codes
+                else 0.0
+            )
+            preference_values.append(value)
+
+            if value:
+                signals.append("preferred_inventory_code")
+
+        if profile.preferred_keywords:
+            document_tokens = _tokens(
+                f"{document.inventory_code} {document.name}"
+            )
+
+            matched = profile.preferred_keywords & document_tokens
+
+            value = (
+                len(matched) / len(profile.preferred_keywords)
+                if profile.preferred_keywords
+                else 0.0
+            )
+
+            preference_values.append(value)
+
+            if value:
+                signals.append("preferred_keywords")
+
+        preference_score = (
+            sum(preference_values) / len(preference_values)
+            if preference_values
+            else 0.0
+        )
+
+        total_weight = profile.search_weight + profile.preference_weight
+
+        match_score = (
+            (
+                profile.search_weight * search_relevance
+                + profile.preference_weight * preference_score
+            )
+            / total_weight
+        )
+
+        explanation = MatchExplanation(
+            matched_signals=tuple(signals),
+            search_relevance=search_relevance,
+            preference_score=preference_score,
+        )
+
+        return Recommendation(
+            candidate=candidate,
+            search_relevance=search_relevance,
+            preference_score=preference_score,
+            match_score=match_score,
+            rank=0,
+            explanation=explanation,
+        )
+
+
+__all__ = [
+    "MatchingError",
+    "MatchingTenantError",
+    "MatchingLimitError",
+    "MatchingConfigurationError",
+    "MatchingProfile",
+    "MatchExplanation",
+    "Recommendation",
+    "MatchingRecommendationPipeline",
+]

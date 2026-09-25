@@ -1,0 +1,222 @@
+﻿from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Iterable
+
+from .inventory import (
+    InventoryAvailability,
+    InventoryLifecycle,
+    InventoryType,
+)
+from .inventory_indexing import InventoryIndexDocument
+
+
+class StructuredSearchFilterError(ValueError):
+    """Base error for invalid structured search filters."""
+
+
+class StructuredSearchTenantError(StructuredSearchFilterError):
+    """Raised when tenant scope is missing or invalid."""
+
+
+def _normalize_required(value: str, field_name: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise StructuredSearchFilterError(
+            f"{field_name} must be a non-empty string."
+        )
+    return value.strip()
+
+
+def _normalize_strings(
+    values: Iterable[str],
+    field_name: str,
+) -> tuple[str, ...]:
+    normalized = []
+
+    for value in values:
+        if not isinstance(value, str) or not value.strip():
+            raise StructuredSearchFilterError(
+                f"{field_name} cannot contain empty values."
+            )
+        normalized.append(value.strip())
+
+    return tuple(sorted(set(normalized), key=str.casefold))
+
+
+@dataclass(frozen=True)
+class StructuredSearchFilter:
+    """
+    Deterministic structured filter contract for derived inventory search data.
+
+    Rules:
+    - tenant_id is mandatory and always applied first.
+    - Only canonical inventory projection fields are filtered here.
+    - No search filter mutates Inventory or Index truth.
+    - Location/vector/ranking concerns belong to later CORE-005 subtasks.
+    """
+
+    tenant_id: str
+    project_ids: tuple[str, ...] = ()
+    inventory_codes: tuple[str, ...] = ()
+    inventory_types: tuple[InventoryType, ...] = ()
+    lifecycle_states: tuple[InventoryLifecycle, ...] = ()
+    availability_states: tuple[InventoryAvailability, ...] = ()
+    name_contains: str | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "tenant_id",
+            _normalize_required(
+                self.tenant_id,
+                "tenant_id",
+            ),
+        )
+
+        object.__setattr__(
+            self,
+            "project_ids",
+            _normalize_strings(
+                self.project_ids,
+                "project_ids",
+            ),
+        )
+
+        object.__setattr__(
+            self,
+            "inventory_codes",
+            _normalize_strings(
+                self.inventory_codes,
+                "inventory_codes",
+            ),
+        )
+
+        object.__setattr__(
+            self,
+            "inventory_types",
+            tuple(
+                sorted(
+                    {
+                        InventoryType(value)
+                        for value in self.inventory_types
+                    },
+                    key=lambda value: value.value,
+                )
+            ),
+        )
+
+        object.__setattr__(
+            self,
+            "lifecycle_states",
+            tuple(
+                sorted(
+                    {
+                        InventoryLifecycle(value)
+                        for value in self.lifecycle_states
+                    },
+                    key=lambda value: value.value,
+                )
+            ),
+        )
+
+        object.__setattr__(
+            self,
+            "availability_states",
+            tuple(
+                sorted(
+                    {
+                        InventoryAvailability(value)
+                        for value in self.availability_states
+                    },
+                    key=lambda value: value.value,
+                )
+            ),
+        )
+
+        if self.name_contains is not None:
+            normalized_name = _normalize_required(
+                self.name_contains,
+                "name_contains",
+            )
+            object.__setattr__(
+                self,
+                "name_contains",
+                normalized_name.casefold(),
+            )
+
+    def matches(
+        self,
+        document: InventoryIndexDocument,
+    ) -> bool:
+        """Return whether one derived inventory document matches the filter."""
+
+        if document.tenant_id != self.tenant_id:
+            return False
+
+        if self.project_ids and document.project_id not in self.project_ids:
+            return False
+
+        if (
+            self.inventory_codes
+            and document.inventory_code not in self.inventory_codes
+        ):
+            return False
+
+        if (
+            self.inventory_types
+            and document.inventory_type
+            not in {item.value for item in self.inventory_types}
+        ):
+            return False
+
+        if (
+            self.lifecycle_states
+            and document.lifecycle
+            not in {item.value for item in self.lifecycle_states}
+        ):
+            return False
+
+        if (
+            self.availability_states
+            and document.availability
+            not in {item.value for item in self.availability_states}
+        ):
+            return False
+
+        if (
+            self.name_contains is not None
+            and self.name_contains not in document.name.casefold()
+        ):
+            return False
+
+        return True
+
+    def apply(
+        self,
+        documents: Iterable[InventoryIndexDocument],
+    ) -> tuple[InventoryIndexDocument, ...]:
+        """
+        Apply filters deterministically to derived inventory documents.
+
+        Results are sorted by canonical index_key so backend ordering cannot
+        accidentally become business ranking.
+        """
+
+        matched = [
+            document
+            for document in documents
+            if self.matches(document)
+        ]
+
+        matched.sort(
+            key=lambda document: document.index_key.casefold()
+        )
+
+        return tuple(matched)
+
+
+__all__ = [
+    "StructuredSearchFilter",
+    "StructuredSearchFilterError",
+    "StructuredSearchTenantError",
+]

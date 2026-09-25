@@ -1,0 +1,548 @@
+{
+  "schema_version": "1.0",
+  "architecture_id": "ARCH-039",
+  "name": "HOMIO / REOS Master Architecture",
+  "version": "1.0",
+  "status": "FINAL_ARCHITECTURE_CONTENT",
+  "authority": {
+    "role": "Single canonical architectural blueprint for HOMIO / REOS.",
+    "architecture_source": "This file",
+    "execution_state": "REOS_CONTROL_CENTER/data/state.json",
+    "execution_templates": "REOS_CONTROL_CENTER/GATE_TEMPLATES.json",
+    "code_truth": "Git repository",
+    "continuity_truth": "ACRL derived from canonical machine state and repository evidence",
+    "chat_is_authority": false,
+    "parallel_master_architecture_forbidden": true
+  },
+  "north_star": {
+    "statement": "A customer gives HOMIO one real-estate problem; HOMIO's broker-owned AI operating system finds, verifies, matches, communicates, protects, negotiates and coordinates the right opportunity through a governed transaction.",
+    "outcomes": [
+      "Generate genuine property demand",
+      "Acquire and verify differentiated inventory",
+      "Protect lead ownership and deal ownership",
+      "Protect customer attribution and commission",
+      "Automate repeatable operations safely",
+      "Scale internationally"
+    ]
+  },
+  "architecture_nodes": [
+    {
+      "id": "ARCH-001",
+      "name": "Lead Generation Layer",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-002",
+      "name": "Lead Generation Engine v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-003",
+      "name": "Lead Qualification + Genuine Lead Detection",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-004",
+      "name": "Lead Scoring + Routing + Attribution",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-005",
+      "name": "Inventory Acquisition Layer",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-006",
+      "name": "Inventory Acquisition Engine v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-007",
+      "name": "Builder Onboarding + Project Acquisition",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-008",
+      "name": "Multi-Project / Flat / Plot Inventory",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-009",
+      "name": "Communication Engine v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-010",
+      "name": "Lead Ownership Engine v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-011",
+      "name": "Deal Ownership Engine v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-012",
+      "name": "Commission Protection Engine v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-013",
+      "name": "Customer Attribution + Builder Acknowledgement",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-014",
+      "name": "Evidence / Consent / Visit / Enquiry Proof Layer",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-015",
+      "name": "Trust Score Engine v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-016",
+      "name": "Fraud Detection Algorithm v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-017",
+      "name": "Governance Engine v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-018",
+      "name": "Preventive Error + Policy Enforcement Layer",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-019",
+      "name": "AI Agent Layer v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-020",
+      "name": "SEO + Data Intelligence Layer",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-021",
+      "name": "Database DNA Architecture v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-022",
+      "name": "Event-Driven Database Design v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-023",
+      "name": "Search Architecture v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-024",
+      "name": "API Architecture v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-025",
+      "name": "Microservice Architecture v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-026",
+      "name": "Data Warehouse Architecture v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-027",
+      "name": "Analytics Architecture v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-028",
+      "name": "Security Architecture v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-029",
+      "name": "DevOps Architecture v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-030",
+      "name": "AI Infrastructure Architecture v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-031",
+      "name": "Global Multi-Tenant Architecture v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-032",
+      "name": "International Brokerage Operating Model",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-033",
+      "name": "Builder–Broker–Customer Relationship Protection",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-034",
+      "name": "Commission Lifecycle + Dispute Protection",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-035",
+      "name": "Automation-First Customer Journey",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-036",
+      "name": "Business Operating Modes Architecture v1.0",
+      "status": "APPROVED"
+    },
+    {
+      "id": "ARCH-037",
+      "name": "Database Final Schema Design v1.0",
+      "status": "APPROVED",
+      "approved_at": "2026-08-15T18:21:35+05:30"
+    },
+    {
+      "id": "ARCH-038",
+      "name": "Technology Stack Lock v1.0",
+      "status": "APPROVED",
+      "approved_at": "2026-08-15T19:50:05+05:30"
+    },
+    {
+      "id": "ARCH-039",
+      "name": "Master Blueprint v1.0",
+      "status": "PENDING"
+    }
+  ],
+  "canonical_graphs": [
+    {
+      "id": "GRAPH-001",
+      "name": "Demand Graph",
+      "purpose": "Demand, intent, attribution and genuine-lead intelligence"
+    },
+    {
+      "id": "GRAPH-002",
+      "name": "Inventory Graph",
+      "purpose": "Builder, project, phase, tower, floor, unit, availability, price and verification"
+    },
+    {
+      "id": "GRAPH-003",
+      "name": "Relationship Graph",
+      "purpose": "Customer, HOMIO/broker, builder, project and unit relationship protection"
+    },
+    {
+      "id": "GRAPH-004",
+      "name": "Transaction Graph",
+      "purpose": "Lead to qualification to visit to offer to booking to completion"
+    },
+    {
+      "id": "GRAPH-005",
+      "name": "Evidence Graph",
+      "purpose": "Events, consent, attribution, audit and dispute-grade proof"
+    },
+    {
+      "id": "GRAPH-006",
+      "name": "Intelligence Graph",
+      "purpose": "Market, demand, inventory, conversion, pricing and outcome intelligence"
+    }
+  ],
+  "strategic_capabilities": {
+    "demand_acquisition_mesh": {
+      "owner": [
+        "ARCH-001",
+        "ARCH-002",
+        "ARCH-020"
+      ],
+      "channels": [
+        "SEO",
+        "organic",
+        "AI search",
+        "social",
+        "referral",
+        "direct",
+        "partners",
+        "market signals",
+        "lawful public/licensed/permissioned external data"
+      ]
+    },
+    "opportunity_radar": {
+      "owner": [
+        "ARCH-001",
+        "ARCH-020"
+      ],
+      "signals": [
+        "demand spikes",
+        "inventory scarcity",
+        "price movement",
+        "builder activity",
+        "conversion changes",
+        "unserved customer intent"
+      ],
+      "authority": "Advisory intelligence only"
+    },
+    "demand_to_inventory_gap_engine": {
+      "owner": [
+        "ARCH-004",
+        "ARCH-005",
+        "ARCH-020"
+      ],
+      "flow": [
+        "qualified demand",
+        "gap detection",
+        "inventory shortage",
+        "builder/project candidate",
+        "governed acquisition"
+      ]
+    },
+    "builder_acquisition_intelligence": {
+      "owner": [
+        "ARCH-005",
+        "ARCH-007",
+        "ARCH-020",
+        "ARCH-033"
+      ],
+      "inputs": [
+        "builder trust",
+        "project fit",
+        "inventory",
+        "sales velocity",
+        "demand gaps",
+        "relationship history",
+        "commercial terms",
+        "payout behavior"
+      ],
+      "authority": "Advisory; legal/commercial commitment remains governed"
+    },
+    "broker_chief_of_staff": {
+      "owner": [
+        "ARCH-019",
+        "ARCH-035"
+      ],
+      "functions": [
+        "daily briefing",
+        "priority queue",
+        "opportunity surfacing",
+        "risk alerts",
+        "next-best-action proposals",
+        "administrative automation"
+      ]
+    },
+    "deal_digital_twin": {
+      "owner": [
+        "ARCH-011",
+        "ARCH-022"
+      ],
+      "source_of_truth": false,
+      "derived_from": [
+        "deal",
+        "ownership",
+        "customer",
+        "builder",
+        "project",
+        "unit",
+        "events",
+        "evidence",
+        "risk references",
+        "commission references"
+      ]
+    },
+    "continuous_learning_loop": {
+      "owner": [
+        "ARCH-020",
+        "ARCH-027",
+        "ARCH-030"
+      ],
+      "flow": [
+        "lead",
+        "qualification",
+        "match",
+        "visit",
+        "offer",
+        "deal",
+        "outcome",
+        "win/loss reason",
+        "governed improvement"
+      ],
+      "rule": "Never rewrite historical truth"
+    },
+    "external_data_governance": {
+      "owner": [
+        "ARCH-017",
+        "ARCH-018",
+        "ARCH-020",
+        "ARCH-024",
+        "ARCH-028"
+      ],
+      "controls": [
+        "source registry",
+        "lawful-use classification",
+        "permission/licence tracking",
+        "provenance",
+        "freshness",
+        "normalization",
+        "retention",
+        "access policy"
+      ]
+    }
+  },
+  "canonical_truth_rules": {
+    "business_truth": [
+      "identity",
+      "tenant",
+      "customer",
+      "lead",
+      "lead ownership",
+      "builder",
+      "project",
+      "inventory",
+      "deal",
+      "governance",
+      "evidence",
+      "commission obligation/reference"
+    ],
+    "derived_views": [
+      "search indexes",
+      "vector indexes",
+      "analytics",
+      "warehouse",
+      "AI context",
+      "digital twins",
+      "recommendations",
+      "opportunity signals",
+      "caches"
+    ],
+    "rule": "Derived systems can consume canonical truth and events, but cannot silently become business source of truth."
+  },
+  "core_006_deal_architecture": {
+    "aggregate": "Deal",
+    "owns": [
+      "deal identity",
+      "tenant",
+      "customer reference",
+      "broker reference",
+      "builder reference",
+      "project reference",
+      "unit reference",
+      "ownership binding",
+      "deal status",
+      "milestone state",
+      "offer/negotiation references",
+      "evidence references",
+      "risk/governance references",
+      "commission obligation reference",
+      "event sequence",
+      "idempotency",
+      "concurrency",
+      "deal history"
+    ],
+    "does_not_own": [
+      "commission calculation/invoicing/settlement",
+      "trust scoring",
+      "fraud scoring authority",
+      "search indexing",
+      "AI decision authority",
+      "global governance policy"
+    ],
+    "lifecycle": [
+      "QUALIFIED",
+      "MATCHED",
+      "VISIT_PENDING",
+      "VISITED",
+      "OFFERED",
+      "NEGOTIATING",
+      "BOOKING_PENDING",
+      "BOOKED",
+      "AGREEMENT_PENDING",
+      "AGREED",
+      "REGISTRATION_PENDING",
+      "REGISTERED",
+      "COMPLETION_PENDING",
+      "COMPLETED"
+    ],
+    "exceptions": [
+      "CANCELLED",
+      "EXPIRED",
+      "REJECTED",
+      "DISPUTED",
+      "FRAUD_BLOCKED"
+    ]
+  },
+  "ai_workforce": {
+    "owner": "ARCH-019",
+    "roles": [
+      "Lead Hunter",
+      "Lead Qualifier",
+      "Market Intelligence Agent",
+      "Inventory Research Agent",
+      "Builder Acquisition Agent",
+      "Customer Follow-up Agent",
+      "Property Matching Agent",
+      "Visit Coordinator",
+      "Negotiation Assistant",
+      "Deal Coordinator",
+      "Evidence Guardian",
+      "Commission Guardian",
+      "Fraud Guardian",
+      "SEO Intelligence Agent",
+      "Broker Chief-of-Staff"
+    ],
+    "rule": "These are roles inside ARCH-019, not new architecture nodes."
+  },
+  "autonomy_boundary": {
+    "build_time": "REOS_CONTROL_CENTER + AUTONOMY_ENGINE + existing ACRL T01-T30",
+    "runtime": "Same proven autonomy capabilities may later operate HOMIO under production governance",
+    "hard_rules": [
+      "AI does not replace canonical domain truth",
+      "AI does not replace Control Center authority",
+      "AI does not bypass governance",
+      "AI does not bypass security",
+      "AI does not bypass human approval for irreversible/high-risk actions",
+      "Do not create ACRL T31 merely to extend the sequence"
+    ]
+  },
+  "global_invariants": [
+    "One authoritative source per business responsibility",
+    "No duplicate domain logic",
+    "Tenant isolation across API, database, events, search, cache and analytics",
+    "Lead attribution cannot be silently overwritten",
+    "Lead ownership cannot be silently reassigned",
+    "Deal ownership cannot be silently substituted",
+    "Commission evidence remains traceable",
+    "Historical truth remains auditable",
+    "Derived views remain rebuildable",
+    "High-risk irreversible actions require explicit authorization",
+    "External data retains provenance and lawful-use metadata"
+  ],
+  "architecture_change_policy": {
+    "requires_review": [
+      "new top-level business domain",
+      "new source of truth",
+      "ownership boundary change",
+      "tenant model change",
+      "governance boundary change",
+      "new autonomous authority",
+      "canonical event/data model replacement"
+    ],
+    "forbidden_without_explicit_approval": [
+      "second master architecture",
+      "second execution-state authority",
+      "duplicate domain engine",
+      "AI as final business authority",
+      "derived search/index becoming canonical truth"
+    ]
+  },
+  "final_file": {
+    "path": "REOS_CONTROL_CENTER/architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json",
+    "rule": "Future architectural changes must update this file through a versioned, reviewed change mapped to an existing ARCH node."
+  }
+}

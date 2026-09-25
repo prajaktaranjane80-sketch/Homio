@@ -1,0 +1,135 @@
+﻿from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Sequence
+
+from .hybrid_retrieval import HybridSearchResult
+
+
+class SearchVisibilityError(ValueError):
+    """Base error for search visibility enforcement."""
+
+
+class TenantScopeError(SearchVisibilityError):
+    """Raised when a tenant scope is invalid or violated."""
+
+
+class VisibilityPolicyError(SearchVisibilityError):
+    """Raised when a visibility policy is invalid."""
+
+
+@dataclass(frozen=True)
+class SearchVisibilityPolicy:
+    """
+    Explicit visibility policy for derived inventory search results.
+
+    Canonical Inventory remains the source of truth.
+    This policy only controls whether an already-derived search candidate may
+    cross the result-exposure boundary.
+    """
+
+    visible_lifecycles: frozenset[str] = frozenset({"ACTIVE"})
+    blocked_availability: frozenset[str] = frozenset({"UNAVAILABLE"})
+
+    def __post_init__(self) -> None:
+        visible = frozenset(
+            str(value).strip().upper()
+            for value in self.visible_lifecycles
+            if str(value).strip()
+        )
+        blocked = frozenset(
+            str(value).strip().upper()
+            for value in self.blocked_availability
+            if str(value).strip()
+        )
+
+        if not visible:
+            raise VisibilityPolicyError(
+                "visible_lifecycles must contain at least one lifecycle."
+            )
+
+        object.__setattr__(self, "visible_lifecycles", visible)
+        object.__setattr__(self, "blocked_availability", blocked)
+
+
+@dataclass(frozen=True)
+class VisibilityDecision:
+    allowed: bool
+    tenant_allowed: bool
+    lifecycle_allowed: bool
+    availability_allowed: bool
+
+
+class TenantVisibilityFilter:
+    """
+    Final tenant + visibility boundary for search result exposure.
+
+    T04 already applies tenant-safe retrieval constraints. T06 adds a
+    defense-in-depth result-layer boundary so a candidate cannot be exposed
+    outside the requested tenant or visibility policy.
+    """
+
+    def __init__(
+        self,
+        *,
+        tenant_id: str,
+        policy: SearchVisibilityPolicy | None = None,
+    ) -> None:
+        if not isinstance(tenant_id, str) or not tenant_id.strip():
+            raise TenantScopeError("tenant_id must be a non-empty string")
+
+        self.tenant_id = tenant_id.strip()
+        self.policy = policy or SearchVisibilityPolicy()
+
+    def decide(self, result: HybridSearchResult) -> VisibilityDecision:
+        document = result.document
+
+        tenant_allowed = document.tenant_id == self.tenant_id
+
+        lifecycle = str(document.lifecycle).strip().upper()
+        lifecycle_allowed = lifecycle in self.policy.visible_lifecycles
+
+        availability = str(document.availability).strip().upper()
+        availability_allowed = (
+            availability not in self.policy.blocked_availability
+        )
+
+        return VisibilityDecision(
+            allowed=(
+                tenant_allowed
+                and lifecycle_allowed
+                and availability_allowed
+            ),
+            tenant_allowed=tenant_allowed,
+            lifecycle_allowed=lifecycle_allowed,
+            availability_allowed=availability_allowed,
+        )
+
+    def is_visible(self, result: HybridSearchResult) -> bool:
+        return self.decide(result).allowed
+
+    def apply(
+        self,
+        results: Sequence[HybridSearchResult],
+    ) -> tuple[HybridSearchResult, ...]:
+        """
+        Return only results safe for exposure.
+
+        Input ordering is preserved. No result or document is mutated.
+        """
+
+        return tuple(
+            result
+            for result in results
+            if self.is_visible(result)
+        )
+
+
+__all__ = [
+    "SearchVisibilityError",
+    "TenantScopeError",
+    "VisibilityPolicyError",
+    "SearchVisibilityPolicy",
+    "VisibilityDecision",
+    "TenantVisibilityFilter",
+]

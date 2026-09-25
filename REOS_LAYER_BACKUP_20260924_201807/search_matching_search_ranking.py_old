@@ -1,0 +1,292 @@
+﻿from __future__ import annotations
+
+from dataclasses import dataclass
+from math import isfinite
+import re
+from typing import Sequence
+
+from .hybrid_retrieval import HybridSearchResult
+
+
+_TOKEN_PATTERN = re.compile(r"[A-Za-z0-9]+")
+
+
+class RankingError(ValueError):
+    """Base ranking validation error."""
+
+
+class RankingQueryError(RankingError):
+    """Raised when reranking query text is invalid."""
+
+
+class RankingLimitError(RankingError):
+    """Raised when a ranking limit is invalid."""
+
+
+@dataclass(frozen=True)
+class RankingConfig:
+    hybrid_weight: float = 1.0
+    lexical_weight: float = 0.25
+    vector_weight: float = 0.25
+
+    exact_code_weight: float = 1.0
+    exact_phrase_weight: float = 0.5
+    token_coverage_weight: float = 0.25
+
+    def __post_init__(self) -> None:
+        values = (
+            self.hybrid_weight,
+            self.lexical_weight,
+            self.vector_weight,
+            self.exact_code_weight,
+            self.exact_phrase_weight,
+            self.token_coverage_weight,
+        )
+
+        if any(not isfinite(value) for value in values):
+            raise RankingError("ranking weights must be finite")
+
+        if any(value < 0 for value in values):
+            raise RankingError("ranking weights must be non-negative")
+
+
+@dataclass(frozen=True)
+class RankedSearchResult:
+    result: HybridSearchResult
+    ranking_score: float
+    rerank_score: float | None
+    rank: int
+
+    @property
+    def document(self):
+        return self.result.document
+
+    @property
+    def inventory_code(self) -> str:
+        return self.result.document.inventory_code
+
+    @property
+    def index_key(self) -> str:
+        return self.result.document.index_key
+
+
+def _tokens(value: str) -> tuple[str, ...]:
+    return tuple(token.casefold() for token in _TOKEN_PATTERN.findall(value))
+
+
+def _canonical(value: str) -> str:
+    return " ".join(_tokens(value))
+
+
+def _reciprocal_rank(rank: int | None) -> float:
+    if rank is None:
+        return 0.0
+    if rank <= 0:
+        raise RankingError("search ranks must be positive")
+    return 1.0 / (1.0 + rank)
+
+
+def _document_sort_key(item: RankedSearchResult) -> tuple:
+    lexical_rank = (
+        item.result.lexical_rank
+        if item.result.lexical_rank is not None
+        else float("inf")
+    )
+    vector_rank = (
+        item.result.vector_rank
+        if item.result.vector_rank is not None
+        else float("inf")
+    )
+
+    return (
+        -item.rerank_score if item.rerank_score is not None else -item.ranking_score,
+        -item.ranking_score,
+        lexical_rank,
+        vector_rank,
+        item.result.document.index_key.casefold(),
+    )
+
+
+class SearchRankingPipeline:
+    """
+    Deterministic ranking and query-aware reranking for hybrid search results.
+
+    This layer only ranks derived search candidates. It never mutates canonical
+    inventory data or the HybridSearchResult objects.
+    """
+
+    def __init__(
+        self,
+        *,
+        config: RankingConfig | None = None,
+    ) -> None:
+        self.config = config or RankingConfig()
+
+    @staticmethod
+    def _validate_limit(limit: int | None) -> int | None:
+        if limit is None:
+            return None
+        if not isinstance(limit, int) or isinstance(limit, bool):
+            raise RankingLimitError("limit must be an integer")
+        if limit <= 0:
+            raise RankingLimitError("limit must be positive")
+        return limit
+
+    def _base_score(self, result: HybridSearchResult) -> float:
+        lexical_signal = _reciprocal_rank(result.lexical_rank)
+        vector_signal = _reciprocal_rank(result.vector_rank)
+
+        return (
+            self.config.hybrid_weight * result.rrf_score
+            + self.config.lexical_weight * lexical_signal
+            + self.config.vector_weight * vector_signal
+        )
+
+    def rank(
+        self,
+        results: Sequence[HybridSearchResult],
+        *,
+        limit: int | None = None,
+    ) -> tuple[RankedSearchResult, ...]:
+        limit = self._validate_limit(limit)
+
+        ranked = [
+            RankedSearchResult(
+                result=result,
+                ranking_score=self._base_score(result),
+                rerank_score=None,
+                rank=0,
+            )
+            for result in results
+        ]
+
+        ranked.sort(
+            key=lambda item: (
+                -item.ranking_score,
+                item.result.lexical_rank
+                if item.result.lexical_rank is not None
+                else float("inf"),
+                item.result.vector_rank
+                if item.result.vector_rank is not None
+                else float("inf"),
+                item.result.document.index_key.casefold(),
+            )
+        )
+
+        if limit is not None:
+            ranked = ranked[:limit]
+
+        return tuple(
+            RankedSearchResult(
+                result=item.result,
+                ranking_score=item.ranking_score,
+                rerank_score=item.rerank_score,
+                rank=index,
+            )
+            for index, item in enumerate(ranked, start=1)
+        )
+
+    def _query_match_score(
+        self,
+        *,
+        query_text: str,
+        result: HybridSearchResult,
+    ) -> float:
+        query_tokens = _tokens(query_text)
+
+        if not query_tokens:
+            raise RankingQueryError("query_text must not be empty")
+
+        query_canonical = " ".join(query_tokens)
+
+        document = result.document
+        code_canonical = _canonical(str(document.inventory_code))
+        name_canonical = _canonical(str(document.name))
+
+        exact_code = (
+            self.config.exact_code_weight
+            if code_canonical == query_canonical
+            else 0.0
+        )
+
+        exact_phrase = (
+            self.config.exact_phrase_weight
+            if query_canonical and query_canonical in name_canonical
+            else 0.0
+        )
+
+        name_tokens = set(_tokens(str(document.name)))
+        matched_tokens = sum(
+            1 for token in query_tokens if token in name_tokens
+        )
+        token_coverage = (
+            matched_tokens / len(query_tokens)
+            if query_tokens
+            else 0.0
+        )
+
+        return (
+            exact_code
+            + exact_phrase
+            + self.config.token_coverage_weight * token_coverage
+        )
+
+    def rerank(
+        self,
+        results: Sequence[RankedSearchResult],
+        *,
+        query_text: str,
+        window: int | None = None,
+        limit: int | None = None,
+    ) -> tuple[RankedSearchResult, ...]:
+        limit = self._validate_limit(limit)
+        window = self._validate_limit(window)
+
+        if not query_text or not query_text.strip():
+            raise RankingQueryError("query_text must not be empty")
+
+        ordered = list(results)
+
+        if limit is not None:
+            ordered = ordered[:limit]
+
+        rerank_window = len(ordered) if window is None else min(window, len(ordered))
+
+        head = ordered[:rerank_window]
+        tail = ordered[rerank_window:]
+
+        reranked_head: list[RankedSearchResult] = []
+
+        for item in head:
+            match_score = self._query_match_score(
+                query_text=query_text,
+                result=item.result,
+            )
+
+            rerank_score = item.ranking_score + match_score
+
+            reranked_head.append(
+                RankedSearchResult(
+                    result=item.result,
+                    ranking_score=item.ranking_score,
+                    rerank_score=rerank_score,
+                    rank=0,
+                )
+            )
+
+        reranked_head.sort(key=_document_sort_key)
+
+        final = reranked_head + tail
+
+        if limit is not None:
+            final = final[:limit]
+
+        return tuple(
+            RankedSearchResult(
+                result=item.result,
+                ranking_score=item.ranking_score,
+                rerank_score=item.rerank_score,
+                rank=index,
+            )
+            for index, item in enumerate(final, start=1)
+        )

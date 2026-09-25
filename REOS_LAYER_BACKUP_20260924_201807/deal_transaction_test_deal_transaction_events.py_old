@@ -1,0 +1,137 @@
+﻿from __future__ import annotations
+
+import pytest
+
+from .deal import Deal
+from .deal_transaction_events import (
+    DealTransactionEvent,
+    DealTransactionEventScopeError,
+    transaction_event_from_milestone,
+)
+
+
+def make_deal() -> Deal:
+    deal = Deal.create(
+        tenant_id="tenant-001",
+        customer_id="customer-001",
+        broker_id="broker-001",
+        builder_id="builder-001",
+        project_id="project-001",
+        unit_id="unit-001",
+        at="2026-09-24T10:00:00+00:00",
+    )
+
+    updated = deal.advance_transaction_milestone(
+        target="BOOKING_PENDING",
+        tenant_id="tenant-001",
+        expected_version=deal.version,
+        reference_id="booking-001",
+        at="2026-09-24T10:01:00+00:00",
+    )
+
+    return updated
+
+
+def test_event_is_derived_from_authoritative_milestone() -> None:
+    deal = make_deal()
+    milestone = deal.last_transaction_milestone()
+
+    assert milestone is not None
+
+    event = DealTransactionEvent.from_milestone(milestone)
+
+    assert event.event_id == milestone.milestone_id
+    assert event.deal_id == deal.deal_id
+    assert event.tenant_id == deal.tenant_id
+    assert event.from_status is milestone.from_status
+    assert event.to_status is milestone.to_status
+    assert event.deal_version == milestone.deal_version
+    assert event.sequence == milestone.sequence
+    assert event.reference_id == "booking-001"
+
+
+def test_event_identity_is_stable_for_replay() -> None:
+    deal = make_deal()
+    milestone = deal.last_transaction_milestone()
+
+    assert milestone is not None
+
+    first = DealTransactionEvent.from_milestone(milestone)
+    second = DealTransactionEvent.from_milestone(milestone)
+
+    assert first == second
+    assert first.event_id == second.event_id
+    assert first.idempotency_key == second.idempotency_key
+
+
+def test_event_scope_is_tenant_and_deal_bound() -> None:
+    deal = make_deal()
+    milestone = deal.last_transaction_milestone()
+
+    assert milestone is not None
+
+    event = transaction_event_from_milestone(milestone)
+
+    with pytest.raises(DealTransactionEventScopeError):
+        event.assert_scope(
+            deal_id="different-deal",
+            tenant_id="tenant-001",
+        )
+
+    with pytest.raises(DealTransactionEventScopeError):
+        event.assert_scope(
+            deal_id=deal.deal_id,
+            tenant_id="tenant-002",
+        )
+
+
+def test_event_serialization_is_canonical() -> None:
+    deal = make_deal()
+    milestone = deal.last_transaction_milestone()
+
+    assert milestone is not None
+
+    data = DealTransactionEvent.from_milestone(
+        milestone
+    ).to_dict()
+
+    assert data["event_type"] == (
+        "DEAL_TRANSACTION_MILESTONE_CHANGED"
+    )
+    assert data["deal_id"] == deal.deal_id
+    assert data["tenant_id"] == "tenant-001"
+    assert data["from_status"] == milestone.from_status.value
+    assert data["to_status"] == milestone.to_status.value
+    assert data["deal_version"] == milestone.deal_version
+    assert data["sequence"] == milestone.sequence
+    assert data["reference_id"] == "booking-001"
+    assert data["source_of_truth"] == (
+        "deal_transaction_milestone"
+    )
+    assert data["idempotency_key"] == milestone.milestone_id
+
+
+def test_multiple_milestones_create_distinct_ordered_events() -> None:
+    deal = make_deal()
+
+    next_deal = deal.advance_transaction_milestone(
+        target="BOOKED",
+        tenant_id="tenant-001",
+        expected_version=deal.version,
+        reference_id="booking-002",
+        at="2026-09-24T10:02:00+00:00",
+    )
+
+    first = DealTransactionEvent.from_milestone(
+        deal.milestones[0]
+    )
+    second = DealTransactionEvent.from_milestone(
+        next_deal.milestones[1]
+    )
+
+    assert first.sequence == 1
+    assert second.sequence == 2
+    assert first.event_id != second.event_id
+    assert first.idempotency_key != second.idempotency_key
+    assert first.to_status.value == "BOOKING_PENDING"
+    assert second.to_status.value == "BOOKED"

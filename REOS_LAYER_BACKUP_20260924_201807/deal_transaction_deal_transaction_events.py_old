@@ -1,0 +1,128 @@
+"""REOS CORE-006 transaction event contract.
+
+Deal and transaction milestone remain authoritative. This module creates a
+canonical, transport-neutral transaction event. Kafka, outbox, retries,
+consumer groups and DLQ behavior belong to CORE-002.
+"""
+from __future__ import annotations
+from dataclasses import dataclass, field
+from typing import Any, Mapping
+import hashlib
+import json
+try:
+    from .deal_transaction_milestones import DealTransactionMilestone
+except ImportError:  # pragma: no cover
+    DealTransactionMilestone = Any  # type: ignore[misc,assignment]
+EVENT_SCHEMA_VERSION = "1.0"
+TRANSACTION_EVENT_TYPE = "DEAL_TRANSACTION_MILESTONE_CHANGED"
+SOURCE_OF_TRUTH = "deal_transaction_milestone"
+class DealTransactionEventError(ValueError):
+    """Base transaction-event contract error."""
+class DealTransactionEventScopeError(DealTransactionEventError):
+    """Raised when event access crosses deal/tenant scope."""
+class DealTransactionEventIntegrityError(DealTransactionEventError):
+    """Raised for canonical event integrity violations."""
+def _canonical_json(value: Mapping[str, Any]) -> str:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+def _payload_hash(value: Mapping[str, Any]) -> str:
+    return hashlib.sha256(_canonical_json(value).encode("utf-8")).hexdigest()
+@dataclass(frozen=True)
+class DealTransactionEvent:
+    event_id: str
+    event_type: str
+    deal_id: str
+    tenant_id: str
+    from_status: str
+    to_status: str
+    deal_version: int
+    sequence: int
+    occurred_at: str
+    reference_id: str | None = None
+    correlation_id: str | None = None
+    causation_id: str | None = None
+    idempotency_key: str | None = None
+    schema_version: str = EVENT_SCHEMA_VERSION
+    source_of_truth: str = SOURCE_OF_TRUTH
+    payload: Mapping[str, Any] = field(default_factory=dict)
+    payload_hash: str = ""
+    def __post_init__(self) -> None:
+        for name in ("event_id", "deal_id", "tenant_id", "from_status", "to_status", "occurred_at"):
+            value = getattr(self, name)
+            if not isinstance(value, str) or not value.strip():
+                raise DealTransactionEventError(f"{name} is required.")
+        if self.deal_version < 1 or self.sequence < 1:
+            raise DealTransactionEventError("deal_version and sequence must be >= 1.")
+        if self.event_type != TRANSACTION_EVENT_TYPE:
+            raise DealTransactionEventError("Unsupported transaction event type.")
+        if self.source_of_truth != SOURCE_OF_TRUTH:
+            raise DealTransactionEventIntegrityError("Transaction event source_of_truth is immutable.")
+        key = self.idempotency_key or self.event_id
+        if key != self.event_id:
+            raise DealTransactionEventIntegrityError("idempotency_key must equal event_id.")
+        object.__setattr__(self, "idempotency_key", key)
+        calculated = _payload_hash(dict(self.payload))
+        if self.payload_hash and self.payload_hash != calculated:
+            raise DealTransactionEventIntegrityError("payload_hash does not match canonical payload.")
+        object.__setattr__(self, "payload_hash", calculated)
+    @classmethod
+    def from_milestone(cls, milestone: DealTransactionMilestone, *, correlation_id: str | None = None, causation_id: str | None = None) -> "DealTransactionEvent":
+        fs = getattr(milestone.from_status, "value", milestone.from_status)
+        ts = getattr(milestone.to_status, "value", milestone.to_status)
+        occurred = milestone.occurred_at.isoformat() if hasattr(milestone.occurred_at, "isoformat") else milestone.occurred_at
+        payload = {
+            "milestone_id": milestone.milestone_id,
+            "deal_id": milestone.deal_id,
+            "tenant_id": milestone.tenant_id,
+            "from_status": fs,
+            "to_status": ts,
+            "deal_version": milestone.deal_version,
+            "sequence": milestone.sequence,
+            "occurred_at": occurred,
+            "reference_id": milestone.reference_id,
+        }
+        return cls(
+            event_id=milestone.milestone_id,
+            event_type=TRANSACTION_EVENT_TYPE,
+            deal_id=milestone.deal_id,
+            tenant_id=milestone.tenant_id,
+            from_status=fs,
+            to_status=ts,
+            deal_version=milestone.deal_version,
+            sequence=milestone.sequence,
+            occurred_at=occurred,
+            reference_id=milestone.reference_id,
+            correlation_id=correlation_id,
+            causation_id=causation_id,
+            idempotency_key=milestone.milestone_id,
+            payload=payload,
+        )
+    def assert_scope(self, *, deal_id: str, tenant_id: str) -> None:
+        if self.deal_id != deal_id:
+            raise DealTransactionEventScopeError("Transaction event belongs to a different deal.")
+        if self.tenant_id != tenant_id:
+            raise DealTransactionEventScopeError("Transaction event belongs to a different tenant.")
+    @property
+    def semantic_key(self) -> str:
+        return f"{self.deal_id}:{self.deal_version}:{self.sequence}:{self.event_id}"
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "event_id": self.event_id,
+            "event_type": self.event_type,
+            "schema_version": self.schema_version,
+            "source_of_truth": self.source_of_truth,
+            "deal_id": self.deal_id,
+            "tenant_id": self.tenant_id,
+            "from_status": self.from_status,
+            "to_status": self.to_status,
+            "deal_version": self.deal_version,
+            "sequence": self.sequence,
+            "occurred_at": self.occurred_at,
+            "reference_id": self.reference_id,
+            "correlation_id": self.correlation_id,
+            "causation_id": self.causation_id,
+            "idempotency_key": self.idempotency_key,
+            "payload": dict(self.payload),
+            "payload_hash": self.payload_hash,
+            "semantic_key": self.semantic_key,
+        }
+__all__ = ["DealTransactionEvent", "DealTransactionEventError", "DealTransactionEventIntegrityError", "DealTransactionEventScopeError", "EVENT_SCHEMA_VERSION", "SOURCE_OF_TRUTH", "TRANSACTION_EVENT_TYPE"]

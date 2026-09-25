@@ -1,0 +1,354 @@
+﻿from __future__ import annotations
+
+from dataclasses import dataclass
+from math import isfinite
+from typing import Callable, Protocol, Sequence
+from uuid import uuid4
+
+from .inventory import Inventory
+from .inventory_indexing import InventoryIndexDocument, InventoryIndexingHook
+
+
+class SearchRebuildError(RuntimeError):
+    """Raised when a rebuild stops and can be safely resumed."""
+
+
+class SearchRebuildConfigurationError(ValueError):
+    """Raised when rebuild configuration is invalid."""
+
+
+class SearchRebuildSinkError(SearchRebuildError):
+    """Raised when a derived-index sink fails."""
+
+
+class SearchRebuildSink(Protocol):
+    """Persistence-neutral derived search index sink."""
+
+    def upsert(
+        self,
+        document: InventoryIndexDocument,
+        vector: Sequence[float],
+    ) -> None:
+        ...
+
+    def delete(self, index_key: str) -> None:
+        ...
+
+
+VectorProvider = Callable[
+    [InventoryIndexDocument],
+    Sequence[float],
+]
+
+
+@dataclass(frozen=True)
+class SearchRebuildCheckpoint:
+    """
+    Immutable resume token.
+
+    completed_index_keys identifies source-derived documents whose writes
+    already succeeded. A resumed execution skips only these keys.
+    """
+
+    run_id: str
+    completed_index_keys: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.run_id, str) or not self.run_id.strip():
+            raise SearchRebuildConfigurationError(
+                "run_id must be a non-empty string."
+            )
+
+        normalized = tuple(
+            sorted(
+                {
+                    str(value).strip()
+                    for value in self.completed_index_keys
+                    if str(value).strip()
+                },
+                key=str.casefold,
+            )
+        )
+
+        object.__setattr__(
+            self,
+            "run_id",
+            self.run_id.strip(),
+        )
+        object.__setattr__(
+            self,
+            "completed_index_keys",
+            normalized,
+        )
+
+    @property
+    def completed(self) -> frozenset[str]:
+        return frozenset(self.completed_index_keys)
+
+
+@dataclass(frozen=True)
+class SearchRebuildReport:
+    run_id: str
+    scanned: int
+    indexed: int
+    skipped: int
+    deleted_stale: int
+    completed_index_keys: tuple[str, ...]
+    resumed: bool
+    complete: bool
+
+    @property
+    def checkpoint(self) -> SearchRebuildCheckpoint:
+        return SearchRebuildCheckpoint(
+            run_id=self.run_id,
+            completed_index_keys=self.completed_index_keys,
+        )
+
+
+class SearchRebuildPipeline:
+    """
+    Rebuild derived search indexes from canonical Inventory truth.
+
+    Safety properties:
+    - deterministic source ordering
+    - tenant-aware processing
+    - idempotent successful writes
+    - resumable partial execution
+    - no canonical Inventory mutation
+    - stale deletion only after complete indexing
+    """
+
+    def __init__(
+        self,
+        *,
+        sink: SearchRebuildSink,
+        indexing_hook: InventoryIndexingHook | None = None,
+    ) -> None:
+        self.sink = sink
+        self.indexing_hook = indexing_hook or InventoryIndexingHook()
+
+    @staticmethod
+    def _validate_vector(
+        vector: Sequence[float],
+    ) -> tuple[float, ...]:
+        try:
+            values = tuple(float(value) for value in vector)
+        except (TypeError, ValueError) as exc:
+            raise SearchRebuildSinkError(
+                "Vector provider returned non-numeric data."
+            ) from exc
+
+        if not values:
+            raise SearchRebuildSinkError(
+                "Vector provider returned an empty vector."
+            )
+
+        if any(not isfinite(value) for value in values):
+            raise SearchRebuildSinkError(
+                "Vector provider returned non-finite values."
+            )
+
+        return values
+
+    @staticmethod
+    def _ordered_inventory(
+        inventories: Sequence[Inventory],
+        *,
+        tenant_id: str | None,
+    ) -> tuple[Inventory, ...]:
+        filtered = [
+            inventory
+            for inventory in inventories
+            if tenant_id is None or inventory.tenant_id == tenant_id
+        ]
+
+        return tuple(
+            sorted(
+                filtered,
+                key=lambda item: item.identity_key.casefold(),
+            )
+        )
+
+    @staticmethod
+    def _validate_tenant(tenant_id: str | None) -> None:
+        if tenant_id is not None and (
+            not isinstance(tenant_id, str)
+            or not tenant_id.strip()
+        ):
+            raise SearchRebuildConfigurationError(
+                "tenant_id must be None or a non-empty string."
+            )
+
+    @staticmethod
+    def _current_index_keys(
+        inventories: Sequence[Inventory],
+        *,
+        tenant_id: str | None,
+    ) -> frozenset[str]:
+        return frozenset(
+            inventory.identity_key
+            for inventory in inventories
+            if tenant_id is None
+            or inventory.tenant_id == tenant_id
+        )
+
+    def rebuild(
+        self,
+        inventories: Sequence[Inventory],
+        *,
+        vector_provider: VectorProvider,
+        tenant_id: str | None = None,
+        checkpoint: SearchRebuildCheckpoint | None = None,
+        existing_index_documents: Sequence[
+            InventoryIndexDocument
+        ] = (),
+    ) -> SearchRebuildReport:
+        self._validate_tenant(tenant_id)
+
+        run_checkpoint = checkpoint or SearchRebuildCheckpoint(
+            run_id=str(uuid4()),
+        )
+
+        ordered = self._ordered_inventory(
+            inventories,
+            tenant_id=tenant_id,
+        )
+
+        completed = set(run_checkpoint.completed)
+
+        scanned = 0
+        indexed = 0
+        skipped = 0
+
+        for inventory in ordered:
+            scanned += 1
+
+            index_key = inventory.identity_key
+
+            if index_key in completed:
+                skipped += 1
+                continue
+
+            try:
+                document = self.indexing_hook.build_upsert(
+                    inventory,
+                    tenant_id=inventory.tenant_id,
+                    project_id=inventory.project_id,
+                    expected_version=inventory.version,
+                )
+
+                vector = self._validate_vector(
+                    vector_provider(document),
+                )
+
+                self.sink.upsert(
+                    document,
+                    vector,
+                )
+
+            except Exception as exc:
+                recovery_checkpoint = SearchRebuildCheckpoint(
+                    run_id=run_checkpoint.run_id,
+                    completed_index_keys=tuple(completed),
+                )
+
+                raise SearchRebuildError(
+                    f"Search rebuild stopped at {index_key}. "
+                    "Resume using the returned checkpoint.",
+                    recovery_checkpoint,
+                ) from exc
+
+            completed.add(index_key)
+            indexed += 1
+
+        deleted_stale = 0
+
+        current_keys = self._current_index_keys(
+            inventories,
+            tenant_id=tenant_id,
+        )
+
+        stale_documents = tuple(
+            document
+            for document in existing_index_documents
+            if (
+                (tenant_id is None or document.tenant_id == tenant_id)
+                and document.index_key not in current_keys
+            )
+        )
+
+        # Never perform destructive cleanup until the source-derived rebuild
+        # has fully succeeded.
+        for document in sorted(
+            stale_documents,
+            key=lambda item: item.index_key.casefold(),
+        ):
+            try:
+                self.sink.delete(document.index_key)
+            except Exception as exc:
+                recovery_checkpoint = SearchRebuildCheckpoint(
+                    run_id=run_checkpoint.run_id,
+                    completed_index_keys=tuple(completed),
+                )
+
+                raise SearchRebuildError(
+                    f"Stale-index cleanup failed at "
+                    f"{document.index_key}. "
+                    "All source-derived writes succeeded; resume cleanup "
+                    "using the returned checkpoint.",
+                    recovery_checkpoint,
+                ) from exc
+
+            deleted_stale += 1
+
+        final_checkpoint = SearchRebuildCheckpoint(
+            run_id=run_checkpoint.run_id,
+            completed_index_keys=tuple(completed),
+        )
+
+        return SearchRebuildReport(
+            run_id=final_checkpoint.run_id,
+            scanned=scanned,
+            indexed=indexed,
+            skipped=skipped,
+            deleted_stale=deleted_stale,
+            completed_index_keys=final_checkpoint.completed_index_keys,
+            resumed=checkpoint is not None,
+            complete=True,
+        )
+
+
+class InMemorySearchRebuildSink:
+    """
+    Test/development sink.
+
+    This is deliberately not a business source of truth.
+    """
+
+    def __init__(self) -> None:
+        self.documents: dict[str, InventoryIndexDocument] = {}
+        self.vectors: dict[str, tuple[float, ...]] = {}
+
+    def upsert(
+        self,
+        document: InventoryIndexDocument,
+        vector: Sequence[float],
+    ) -> None:
+        self.documents[document.index_key] = document
+        self.vectors[document.index_key] = tuple(vector)
+
+    def delete(self, index_key: str) -> None:
+        self.documents.pop(index_key, None)
+        self.vectors.pop(index_key, None)
+
+
+__all__ = [
+    "SearchRebuildError",
+    "SearchRebuildConfigurationError",
+    "SearchRebuildSinkError",
+    "SearchRebuildCheckpoint",
+    "SearchRebuildReport",
+    "SearchRebuildPipeline",
+    "SearchRebuildSink",
+    "InMemorySearchRebuildSink",
+]
