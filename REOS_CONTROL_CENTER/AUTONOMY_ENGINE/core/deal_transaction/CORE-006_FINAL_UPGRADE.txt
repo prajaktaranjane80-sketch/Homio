@@ -1,0 +1,29 @@
+CORE-006 FINAL ULTRA-PRO UPGRADE
+
+Adds:
+- canonical transaction event contract
+- replay/reconstruction verification
+- optimistic concurrency boundary
+- cross-capability consistency validator
+- contextual deny-by-default authorization
+- deterministic workflow projection
+- canonical integrity hashing
+- final-freeze capability verifier
+- adversarial hardening tests
+
+Authority boundaries preserved:
+Deal lifecycle = Deal aggregate
+Ownership = ARCH-011
+Evidence = ARCH-014
+Governance/Fraud = CORE-007
+Commission/Finance = CORE-008
+Kafka/Outbox/transport = CORE-002
+Identity/Tenant authority = CORE-001
+AI decisioning = AI layer
+
+State safety:
+- does not mutate state.json
+- does not approve gates
+- does not weaken Deal transitions
+- backs up same-named local files
+- only patches T07 fixture after a guarded pattern match

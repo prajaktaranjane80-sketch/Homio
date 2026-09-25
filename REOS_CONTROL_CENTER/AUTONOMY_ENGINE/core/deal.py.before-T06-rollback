@@ -1,0 +1,132 @@
+﻿from __future__ import annotations
+
+from dataclasses import dataclass, field, replace
+from datetime import datetime, timezone
+from .deal_offer_negotiation import (
+    DealOffer,
+    DealOfferStatus,
+    DealNegotiation,
+    DealNegotiationStatus,
+)
+from enum import Enum
+from typing import Any
+from uuid import uuid4
+
+from .deal_transaction_milestones import DealTransactionMilestone
+from .deal_ownership_integration import DealOwnershipBinding
+
+
+class DealDomainError(ValueError):
+    """Base error for Deal aggregate failures."""
+
+
+class DealTransitionError(DealDomainError):
+    """Raised when a Deal lifecycle transition is invalid."""
+
+
+class DealTenantError(DealDomainError):
+    """Raised when a Deal operation crosses tenant boundaries."""
+
+
+class DealConcurrencyError(DealDomainError):
+    """Raised when a stale Deal version attempts a mutation."""
+
+
+class DealReferenceConflictError(DealDomainError):
+    """Raised when bound opportunity references are silently substituted."""
+
+
+class DealValidationError(DealDomainError):
+    """Raised when Deal identity or required references are invalid."""
+
+
+class DealPartyRole(str, Enum):
+    CUSTOMER = "CUSTOMER"
+    BROKER = "BROKER"
+    BUILDER = "BUILDER"
+
+
+@dataclass(frozen=True)
+class DealPartyRelationship:
+    """Immutable tenant-scoped relationship view for a Deal party."""
+
+    deal_id: str
+    tenant_id: str
+    role: DealPartyRole
+    party_id: str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.deal_id, str) or not self.deal_id.strip():
+            raise DealValidationError("deal_id is required.")
+        if not isinstance(self.tenant_id, str) or not self.tenant_id.strip():
+            raise DealValidationError("tenant_id is required.")
+        if not isinstance(self.party_id, str) or not self.party_id.strip():
+            raise DealValidationError("party_id is required.")
+
+        object.__setattr__(self, "role", DealPartyRole(self.role))
+
+    @property
+    def relationship_key(self) -> str:
+        return f"{self.tenant_id}:{self.deal_id}:{self.role.value}"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "deal_id": self.deal_id,
+            "tenant_id": self.tenant_id,
+            "customer_id": self.customer_id,
+            "broker_id": self.broker_id,
+            "builder_id": self.builder_id,
+            "project_id": self.project_id,
+            "unit_id": self.unit_id,
+            "status": self.status.value,
+            "version": self.version,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+            "history": [
+                entry.to_dict()
+                for entry in self.history
+            ],
+            "source_of_truth": self.source_of_truth,
+            "offers": [
+                offer.to_dict()
+                for offer in self.offers
+            ],
+            "ownership_binding": (
+                self.ownership_binding.to_dict()
+                if self.ownership_binding is not None
+                else None
+            ),
+            "milestones": [
+                milestone.to_dict()
+                for milestone in self.milestones
+            ],
+            "negotiation": (
+                self.negotiation.to_dict()
+                if self.negotiation is not None
+                else None
+            ),
+        }
+
+__all__ = [
+    "Deal",    "DealOffer",
+    "DealOfferStatus",
+    "DealNegotiation",
+    "DealNegotiationStatus",
+    "DealStatus",
+    "DealHistoryEntry",
+    "DealDomainError",
+    "DealTransitionError",
+    "DealTenantError",
+    "DealConcurrencyError",
+    "DealReferenceConflictError",
+    "DealValidationError",
+]
+
+
+
+
+
+
+
+
+
