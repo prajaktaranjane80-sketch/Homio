@@ -1,591 +1,105 @@
+Identity dataclass: PASS
+ExternalIdentityReference dataclass: PASS
+System principal: PASS
+IdentityRegistry: PASS
+Resolution result: PASS
+Machine contract: PASS
+No password field: PASS
+No token field: PASS
+No secret field: FAIL
+Contract/runtime alignment: PASS
+FAILED CHECKS: No secret field
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # 3. Clean duplicate dataclass imports created by earlier patches.
-PS D:\HOMIO\REOS_CONTROL_CENTER> $content = $content -replace `
->>     '(?m)^from dataclasses import .*$', `
->>     'from dataclasses import dataclass, field, replace'
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== T01 TESTS ===" -ForegroundColor Cyan
+
+=== T01 TESTS ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\identity_tenant -q
+...................................                                                                                                                  [100%]
+35 passed in 0.13s
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Content $path $content -Encoding UTF8
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== CONTROL CENTER BEFORE COMPLETION ===" -ForegroundColor Cyan
+
+=== CONTROL CENTER BEFORE COMPLETION ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py status
+HOMIO / REOS CONTROL CENTER v7.0
+========================================================================
+Phase: PRE-CODING ARCHITECTURE
+Gate: CORE-001
+Task: CORE-001-T01: Define identity model.
+Status: CONTROL_CENTER_DRIVEN
+Subtask: CORE-001-T01
+Gate Status: CURRENT
+Subtasks: 10 Criteria: 7
+Approved: 38 Pending: 1
+State: D:\Homio\REOS_CONTROL_CENTER\data\state.json
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py gate
+GATE: Identity & Tenant Foundation
+STATUS: CURRENT
+CURRENT SUBTASK: CORE-001-T01
+SUBTASKS:
+CORE-001-T01 | Define identity model | CURRENT | CRITICAL
+CORE-001-T02 | Define tenant model and lifecycle | PENDING | CRITICAL
+CORE-001-T03 | Implement role and permission model | PENDING | CRITICAL
+CORE-001-T04 | Implement tenant isolation enforcement | PENDING | CRITICAL
+CORE-001-T05 | Implement session and authentication boundaries | PENDING | HIGH
+CORE-001-T06 | Implement authorization context propagation | PENDING | HIGH
+CORE-001-T07 | Implement audit hooks for identity and tenant actions | PENDING | HIGH
+CORE-001-T08 | Run tenant-isolation security tests | PENDING | CRITICAL
+CORE-001-T09 | Run identity dependency and performance review | PENDING | HIGH
+CORE-001-T10 | Freeze identity and tenant foundation | PENDING | CRITICAL
+ACCEPTANCE CRITERIA:
+CORE-001-AC01 | PENDING | Identity has one authoritative source of truth.
+CORE-001-AC02 | PENDING | Tenant isolation is enforceable.
+CORE-001-AC03 | PENDING | Roles and permissions are explicit.
+CORE-001-AC04 | PENDING | Authorization context propagates safely.
+CORE-001-AC05 | PENDING | Identity and tenant lifecycle changes are auditable.
+CORE-001-AC06 | PENDING | Security and cross-tenant tests pass.
+CORE-001-AC07 | PENDING | Foundation supports all approved operating modes.
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py verify-state
+STATE HASH STORED: 307a16d2a88af0c8a4d2650cea56905c3b24c5670dadcd156134a53bb0f38ad7
+STATE HASH CALCULATED: 307a16d2a88af0c8a4d2650cea56905c3b24c5670dadcd156134a53bb0f38ad7
+INTEGRITY: PASS
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== SYNTAX / IMPORT CHECK ===" -ForegroundColor Cyan
-
-=== SYNTAX / IMPORT CHECK ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m py_compile $path
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== T01 FULL TEST ===" -ForegroundColor Cyan
-
-=== T01 FULL TEST ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\identity_tenant\test_identity.py -q
-FFFFF....FFFFFFFF......                                                                                                                              [100%]
-======================================================================== FAILURES =========================================================================
-____________________________________________________ test_identity_creation_is_authoritative_and_typed ____________________________________________________
-
-    def test_identity_creation_is_authoritative_and_typed():
->       identity = Identity.create(
-            identity_type=IdentityType.HUMAN,
-            display_name="HOMIO Admin",
-            handle="homio.admin",
-        )
-
-AUTONOMY_ENGINE\core\identity_tenant\test_identity.py:16:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-cls = <class 'AUTONOMY_ENGINE.core.identity_tenant.identity.Identity'>, identity_type = <IdentityType.HUMAN: 'HUMAN'>, display_name = 'HOMIO Admin'
-handle = 'homio.admin', privacy_class = <PrivacyClass.INTERNAL: 'INTERNAL'>
-
-    @classmethod
-    def create(
-        cls,
-        *,
-        identity_type: IdentityType,
-        display_name: str,
-        handle: str,
-        privacy_class: PrivacyClass = PrivacyClass.INTERNAL,
-    ) -> "Identity":
-        now = _utc_now()
-
->       return cls(
-            identity_id=uuid4(),
-            identity_type=identity_type,
-            display_name=display_name,
-            handle=handle,
-            privacy_class=privacy_class,
-            created_at=now,
-            updated_at=now,
-        )
-E       TypeError: Identity() takes no arguments
-
-AUTONOMY_ENGINE\core\identity_tenant\identity.py:241: TypeError
-__________________________________________________________ test_supported_identity_types[HUMAN] ___________________________________________________________
-
-identity_type = <IdentityType.HUMAN: 'HUMAN'>
-
-    @pytest.mark.parametrize(
-        "identity_type",
-        [
-            IdentityType.HUMAN,
-            IdentityType.SERVICE,
-            IdentityType.AI,
-        ],
-    )
-    def test_supported_identity_types(identity_type):
->       identity = Identity.create(
-            identity_type=identity_type,
-            display_name="Actor",
-            handle=f"{identity_type.value.lower()}-actor",
-        )
-
-AUTONOMY_ENGINE\core\identity_tenant\test_identity.py:38:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-cls = <class 'AUTONOMY_ENGINE.core.identity_tenant.identity.Identity'>, identity_type = <IdentityType.HUMAN: 'HUMAN'>, display_name = 'Actor'
-handle = 'human-actor', privacy_class = <PrivacyClass.INTERNAL: 'INTERNAL'>
-
-    @classmethod
-    def create(
-        cls,
-        *,
-        identity_type: IdentityType,
-        display_name: str,
-        handle: str,
-        privacy_class: PrivacyClass = PrivacyClass.INTERNAL,
-    ) -> "Identity":
-        now = _utc_now()
-
->       return cls(
-            identity_id=uuid4(),
-            identity_type=identity_type,
-            display_name=display_name,
-            handle=handle,
-            privacy_class=privacy_class,
-            created_at=now,
-            updated_at=now,
-        )
-E       TypeError: Identity() takes no arguments
-
-AUTONOMY_ENGINE\core\identity_tenant\identity.py:241: TypeError
-_________________________________________________________ test_supported_identity_types[SERVICE] __________________________________________________________
-
-identity_type = <IdentityType.SERVICE: 'SERVICE'>
-
-    @pytest.mark.parametrize(
-        "identity_type",
-        [
-            IdentityType.HUMAN,
-            IdentityType.SERVICE,
-            IdentityType.AI,
-        ],
-    )
-    def test_supported_identity_types(identity_type):
->       identity = Identity.create(
-            identity_type=identity_type,
-            display_name="Actor",
-            handle=f"{identity_type.value.lower()}-actor",
-        )
-
-AUTONOMY_ENGINE\core\identity_tenant\test_identity.py:38:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-cls = <class 'AUTONOMY_ENGINE.core.identity_tenant.identity.Identity'>, identity_type = <IdentityType.SERVICE: 'SERVICE'>, display_name = 'Actor'
-handle = 'service-actor', privacy_class = <PrivacyClass.INTERNAL: 'INTERNAL'>
-
-    @classmethod
-    def create(
-        cls,
-        *,
-        identity_type: IdentityType,
-        display_name: str,
-        handle: str,
-        privacy_class: PrivacyClass = PrivacyClass.INTERNAL,
-    ) -> "Identity":
-        now = _utc_now()
-
->       return cls(
-            identity_id=uuid4(),
-            identity_type=identity_type,
-            display_name=display_name,
-            handle=handle,
-            privacy_class=privacy_class,
-            created_at=now,
-            updated_at=now,
-        )
-E       TypeError: Identity() takes no arguments
-
-AUTONOMY_ENGINE\core\identity_tenant\identity.py:241: TypeError
-____________________________________________________________ test_supported_identity_types[AI] ____________________________________________________________
-
-identity_type = <IdentityType.AI: 'AI'>
-
-    @pytest.mark.parametrize(
-        "identity_type",
-        [
-            IdentityType.HUMAN,
-            IdentityType.SERVICE,
-            IdentityType.AI,
-        ],
-    )
-    def test_supported_identity_types(identity_type):
->       identity = Identity.create(
-            identity_type=identity_type,
-            display_name="Actor",
-            handle=f"{identity_type.value.lower()}-actor",
-        )
-
-AUTONOMY_ENGINE\core\identity_tenant\test_identity.py:38:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-cls = <class 'AUTONOMY_ENGINE.core.identity_tenant.identity.Identity'>, identity_type = <IdentityType.AI: 'AI'>, display_name = 'Actor', handle = 'ai-actor'
-privacy_class = <PrivacyClass.INTERNAL: 'INTERNAL'>
-
-    @classmethod
-    def create(
-        cls,
-        *,
-        identity_type: IdentityType,
-        display_name: str,
-        handle: str,
-        privacy_class: PrivacyClass = PrivacyClass.INTERNAL,
-    ) -> "Identity":
-        now = _utc_now()
-
->       return cls(
-            identity_id=uuid4(),
-            identity_type=identity_type,
-            display_name=display_name,
-            handle=handle,
-            privacy_class=privacy_class,
-            created_at=now,
-            updated_at=now,
-        )
-E       TypeError: Identity() takes no arguments
-
-AUTONOMY_ENGINE\core\identity_tenant\identity.py:241: TypeError
-________________________________________________________________ test_handle_is_normalized ________________________________________________________________
-
-    def test_handle_is_normalized():
->       identity = Identity.create(
-            identity_type=IdentityType.SERVICE,
-            display_name="Search Service",
-            handle="  SEARCH.Service  ",
-        )
-
-AUTONOMY_ENGINE\core\identity_tenant\test_identity.py:48:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-cls = <class 'AUTONOMY_ENGINE.core.identity_tenant.identity.Identity'>, identity_type = <IdentityType.SERVICE: 'SERVICE'>, display_name = 'Search Service'
-handle = '  SEARCH.Service  ', privacy_class = <PrivacyClass.INTERNAL: 'INTERNAL'>
-
-    @classmethod
-    def create(
-        cls,
-        *,
-        identity_type: IdentityType,
-        display_name: str,
-        handle: str,
-        privacy_class: PrivacyClass = PrivacyClass.INTERNAL,
-    ) -> "Identity":
-        now = _utc_now()
-
->       return cls(
-            identity_id=uuid4(),
-            identity_type=identity_type,
-            display_name=display_name,
-            handle=handle,
-            privacy_class=privacy_class,
-            created_at=now,
-            updated_at=now,
-        )
-E       TypeError: Identity() takes no arguments
-
-AUTONOMY_ENGINE\core\identity_tenant\identity.py:241: TypeError
-_______________________________________________________ test_identity_state_transition_is_immutable _______________________________________________________
-
-    def test_identity_state_transition_is_immutable():
->       original = Identity.create(
-            identity_type=IdentityType.HUMAN,
-            display_name="Actor",
-            handle="actor.one",
-        )
-
-AUTONOMY_ENGINE\core\identity_tenant\test_identity.py:71:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-cls = <class 'AUTONOMY_ENGINE.core.identity_tenant.identity.Identity'>, identity_type = <IdentityType.HUMAN: 'HUMAN'>, display_name = 'Actor'
-handle = 'actor.one', privacy_class = <PrivacyClass.INTERNAL: 'INTERNAL'>
-
-    @classmethod
-    def create(
-        cls,
-        *,
-        identity_type: IdentityType,
-        display_name: str,
-        handle: str,
-        privacy_class: PrivacyClass = PrivacyClass.INTERNAL,
-    ) -> "Identity":
-        now = _utc_now()
-
->       return cls(
-            identity_id=uuid4(),
-            identity_type=identity_type,
-            display_name=display_name,
-            handle=handle,
-            privacy_class=privacy_class,
-            created_at=now,
-            updated_at=now,
-        )
-E       TypeError: Identity() takes no arguments
-
-AUTONOMY_ENGINE\core\identity_tenant\identity.py:241: TypeError
-____________________________________________________________ test_identity_rename_is_immutable ____________________________________________________________
-
-    def test_identity_rename_is_immutable():
->       original = Identity.create(
-            identity_type=IdentityType.HUMAN,
-            display_name="Original",
-            handle="original.actor",
-        )
-
-AUTONOMY_ENGINE\core\identity_tenant\test_identity.py:86:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-cls = <class 'AUTONOMY_ENGINE.core.identity_tenant.identity.Identity'>, identity_type = <IdentityType.HUMAN: 'HUMAN'>, display_name = 'Original'
-handle = 'original.actor', privacy_class = <PrivacyClass.INTERNAL: 'INTERNAL'>
-
-    @classmethod
-    def create(
-        cls,
-        *,
-        identity_type: IdentityType,
-        display_name: str,
-        handle: str,
-        privacy_class: PrivacyClass = PrivacyClass.INTERNAL,
-    ) -> "Identity":
-        now = _utc_now()
-
->       return cls(
-            identity_id=uuid4(),
-            identity_type=identity_type,
-            display_name=display_name,
-            handle=handle,
-            privacy_class=privacy_class,
-            created_at=now,
-            updated_at=now,
-        )
-E       TypeError: Identity() takes no arguments
-
-AUTONOMY_ENGINE\core\identity_tenant\identity.py:241: TypeError
-_______________________________________________________ test_restricted_privacy_class_is_supported ________________________________________________________
-
-    def test_restricted_privacy_class_is_supported():
->       identity = Identity.create(
-            identity_type=IdentityType.AI,
-            display_name="Risk Agent",
-            handle="risk-agent",
-            privacy_class=PrivacyClass.RESTRICTED,
-        )
-
-AUTONOMY_ENGINE\core\identity_tenant\test_identity.py:100:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-cls = <class 'AUTONOMY_ENGINE.core.identity_tenant.identity.Identity'>, identity_type = <IdentityType.AI: 'AI'>, display_name = 'Risk Agent'
-handle = 'risk-agent', privacy_class = <PrivacyClass.RESTRICTED: 'RESTRICTED'>
-
-    @classmethod
-    def create(
-        cls,
-        *,
-        identity_type: IdentityType,
-        display_name: str,
-        handle: str,
-        privacy_class: PrivacyClass = PrivacyClass.INTERNAL,
-    ) -> "Identity":
-        now = _utc_now()
-
->       return cls(
-            identity_id=uuid4(),
-            identity_type=identity_type,
-            display_name=display_name,
-            handle=handle,
-            privacy_class=privacy_class,
-            created_at=now,
-            updated_at=now,
-        )
-E       TypeError: Identity() takes no arguments
-
-AUTONOMY_ENGINE\core\identity_tenant\identity.py:241: TypeError
-_________________________________________________________ test_account_is_separate_from_identity __________________________________________________________
-
-    def test_account_is_separate_from_identity():
->       identity = Identity.create(
-            identity_type=IdentityType.HUMAN,
-            display_name="Broker",
-            handle="broker.one",
-        )
-
-AUTONOMY_ENGINE\core\identity_tenant\test_identity.py:111:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-cls = <class 'AUTONOMY_ENGINE.core.identity_tenant.identity.Identity'>, identity_type = <IdentityType.HUMAN: 'HUMAN'>, display_name = 'Broker'
-handle = 'broker.one', privacy_class = <PrivacyClass.INTERNAL: 'INTERNAL'>
-
-    @classmethod
-    def create(
-        cls,
-        *,
-        identity_type: IdentityType,
-        display_name: str,
-        handle: str,
-        privacy_class: PrivacyClass = PrivacyClass.INTERNAL,
-    ) -> "Identity":
-        now = _utc_now()
-
->       return cls(
-            identity_id=uuid4(),
-            identity_type=identity_type,
-            display_name=display_name,
-            handle=handle,
-            privacy_class=privacy_class,
-            created_at=now,
-            updated_at=now,
-        )
-E       TypeError: Identity() takes no arguments
-
-AUTONOMY_ENGINE\core\identity_tenant\identity.py:241: TypeError
-_____________________________________________________ test_authentication_epoch_rotation_is_immutable _____________________________________________________
-
-    def test_authentication_epoch_rotation_is_immutable():
->       identity = Identity.create(
-            identity_type=IdentityType.SERVICE,
-            display_name="API Service",
-            handle="api-service",
-        )
-
-AUTONOMY_ENGINE\core\identity_tenant\test_identity.py:125:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-cls = <class 'AUTONOMY_ENGINE.core.identity_tenant.identity.Identity'>, identity_type = <IdentityType.SERVICE: 'SERVICE'>, display_name = 'API Service'
-handle = 'api-service', privacy_class = <PrivacyClass.INTERNAL: 'INTERNAL'>
-
-    @classmethod
-    def create(
-        cls,
-        *,
-        identity_type: IdentityType,
-        display_name: str,
-        handle: str,
-        privacy_class: PrivacyClass = PrivacyClass.INTERNAL,
-    ) -> "Identity":
-        now = _utc_now()
-
->       return cls(
-            identity_id=uuid4(),
-            identity_type=identity_type,
-            display_name=display_name,
-            handle=handle,
-            privacy_class=privacy_class,
-            created_at=now,
-            updated_at=now,
-        )
-E       TypeError: Identity() takes no arguments
-
-AUTONOMY_ENGINE\core\identity_tenant\identity.py:241: TypeError
-_________________________________________________ test_identity_and_account_timestamps_are_timezone_aware _________________________________________________
-
-    def test_identity_and_account_timestamps_are_timezone_aware():
->       identity = Identity.create(
-            identity_type=IdentityType.HUMAN,
-            display_name="Broker",
-            handle="broker.two",
-        )
-
-AUTONOMY_ENGINE\core\identity_tenant\test_identity.py:140:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-cls = <class 'AUTONOMY_ENGINE.core.identity_tenant.identity.Identity'>, identity_type = <IdentityType.HUMAN: 'HUMAN'>, display_name = 'Broker'
-handle = 'broker.two', privacy_class = <PrivacyClass.INTERNAL: 'INTERNAL'>
-
-    @classmethod
-    def create(
-        cls,
-        *,
-        identity_type: IdentityType,
-        display_name: str,
-        handle: str,
-        privacy_class: PrivacyClass = PrivacyClass.INTERNAL,
-    ) -> "Identity":
-        now = _utc_now()
-
->       return cls(
-            identity_id=uuid4(),
-            identity_type=identity_type,
-            display_name=display_name,
-            handle=handle,
-            privacy_class=privacy_class,
-            created_at=now,
-            updated_at=now,
-        )
-E       TypeError: Identity() takes no arguments
-
-AUTONOMY_ENGINE\core\identity_tenant\identity.py:241: TypeError
-________________________________________________ test_mixed_case_handle_normalizes_to_canonical_lowercase _________________________________________________
-
-    def test_mixed_case_handle_normalizes_to_canonical_lowercase():
->       identity = Identity.create(
-            identity_type=IdentityType.SERVICE,
-            display_name="Search Service",
-            handle="BadName",
-        )
-
-AUTONOMY_ENGINE\core\identity_tenant\test_identity.py:154:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-cls = <class 'AUTONOMY_ENGINE.core.identity_tenant.identity.Identity'>, identity_type = <IdentityType.SERVICE: 'SERVICE'>, display_name = 'Search Service'
-handle = 'BadName', privacy_class = <PrivacyClass.INTERNAL: 'INTERNAL'>
-
-    @classmethod
-    def create(
-        cls,
-        *,
-        identity_type: IdentityType,
-        display_name: str,
-        handle: str,
-        privacy_class: PrivacyClass = PrivacyClass.INTERNAL,
-    ) -> "Identity":
-        now = _utc_now()
-
->       return cls(
-            identity_id=uuid4(),
-            identity_type=identity_type,
-            display_name=display_name,
-            handle=handle,
-            privacy_class=privacy_class,
-            created_at=now,
-            updated_at=now,
-        )
-E       TypeError: Identity() takes no arguments
-
-AUTONOMY_ENGINE\core\identity_tenant\identity.py:241: TypeError
-___________________________________________________________ test_system_identity_is_first_class ___________________________________________________________
-
-    def test_system_identity_is_first_class():
->       identity = Identity.create(
-            identity_type=IdentityType.SYSTEM,
-            display_name="REOS Control System",
-            handle="reos.system",
-        )
-
-AUTONOMY_ENGINE\core\identity_tenant\test_identity.py:163:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-cls = <class 'AUTONOMY_ENGINE.core.identity_tenant.identity.Identity'>, identity_type = <IdentityType.SYSTEM: 'SYSTEM'>
-display_name = 'REOS Control System', handle = 'reos.system', privacy_class = <PrivacyClass.INTERNAL: 'INTERNAL'>
-
-    @classmethod
-    def create(
-        cls,
-        *,
-        identity_type: IdentityType,
-        display_name: str,
-        handle: str,
-        privacy_class: PrivacyClass = PrivacyClass.INTERNAL,
-    ) -> "Identity":
-        now = _utc_now()
-
->       return cls(
-            identity_id=uuid4(),
-            identity_type=identity_type,
-            display_name=display_name,
-            handle=handle,
-            privacy_class=privacy_class,
-            created_at=now,
-            updated_at=now,
-        )
-E       TypeError: Identity() takes no arguments
-
-AUTONOMY_ENGINE\core\identity_tenant\identity.py:241: TypeError
-================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/identity_tenant/test_identity.py::test_identity_creation_is_authoritative_and_typed - TypeError: Identity() takes no arguments
-FAILED AUTONOMY_ENGINE/core/identity_tenant/test_identity.py::test_supported_identity_types[HUMAN] - TypeError: Identity() takes no arguments
-FAILED AUTONOMY_ENGINE/core/identity_tenant/test_identity.py::test_supported_identity_types[SERVICE] - TypeError: Identity() takes no arguments
-FAILED AUTONOMY_ENGINE/core/identity_tenant/test_identity.py::test_supported_identity_types[AI] - TypeError: Identity() takes no arguments
-FAILED AUTONOMY_ENGINE/core/identity_tenant/test_identity.py::test_handle_is_normalized - TypeError: Identity() takes no arguments
-FAILED AUTONOMY_ENGINE/core/identity_tenant/test_identity.py::test_identity_state_transition_is_immutable - TypeError: Identity() takes no arguments
-FAILED AUTONOMY_ENGINE/core/identity_tenant/test_identity.py::test_identity_rename_is_immutable - TypeError: Identity() takes no arguments
-FAILED AUTONOMY_ENGINE/core/identity_tenant/test_identity.py::test_restricted_privacy_class_is_supported - TypeError: Identity() takes no arguments
-FAILED AUTONOMY_ENGINE/core/identity_tenant/test_identity.py::test_account_is_separate_from_identity - TypeError: Identity() takes no arguments
-FAILED AUTONOMY_ENGINE/core/identity_tenant/test_identity.py::test_authentication_epoch_rotation_is_immutable - TypeError: Identity() takes no arguments
-FAILED AUTONOMY_ENGINE/core/identity_tenant/test_identity.py::test_identity_and_account_timestamps_are_timezone_aware - TypeError: Identity() takes no arguments
-FAILED AUTONOMY_ENGINE/core/identity_tenant/test_identity.py::test_mixed_case_handle_normalizes_to_canonical_lowercase - TypeError: Identity() takes no arguments
-FAILED AUTONOMY_ENGINE/core/identity_tenant/test_identity.py::test_system_identity_is_first_class - TypeError: Identity() takes no arguments
-13 failed, 10 passed in 0.52s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== T01-B IMPORT CHECK ===" -ForegroundColor Cyan
-
-=== T01-B IMPORT CHECK ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> @'
->> from AUTONOMY_ENGINE.core.identity_tenant.identity import (
->>     IdentityType,
->>     ExternalIdentityReference,
->>     ExternalIdentityStatus,
->> )
->>
->> print("IDENTITY TYPES:", ", ".join(x.name for x in IdentityType))
->> print("EXTERNAL IDENTITY REFERENCE: PASS")
->> print("STATUS:", ", ".join(x.name for x in ExternalIdentityStatus))
->> print("IMPORT: PASS")
->> '@ | python -
-IDENTITY TYPES: HUMAN, SERVICE, AI, SYSTEM
-EXTERNAL IDENTITY REFERENCE: PASS
-STATUS: ACTIVE, REVOKED
-IMPORT: PASS
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== GIT STATE ===" -ForegroundColor Cyan
-
-=== GIT STATE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short -- AUTONOMY_ENGINE\core\identity_tenant
- M AUTONOMY_ENGINE/core/identity_tenant/__init__.py
-?? AUTONOMY_ENGINE/core/identity_tenant/__pycache__/
-?? AUTONOMY_ENGINE/core/identity_tenant/identity.py
-?? AUTONOMY_ENGINE/core/identity_tenant/identity.py.T01_B_PRE_PATCH.bak
-?? AUTONOMY_ENGINE/core/identity_tenant/identity.py.T01_B_SYNTAX_FIX.bak
-?? AUTONOMY_ENGINE/core/identity_tenant/test_identity.py
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== CLEAN TEMP PYTHON CACHE ===" -ForegroundColor Cyan
+
+=== CLEAN TEMP PYTHON CACHE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Remove-Item "AUTONOMY_ENGINE\core\identity_tenant\__pycache__" -Recurse -Force -ErrorAction SilentlyContinue
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py complete-subtask CORE-001-T01 --note "T01 production identity model verified: HUMAN/SERVICE/AI/SYSTEM identities, immutable identity boundary, account separation, external identity references, deterministic fail-closed resolution, machine-readable contract, and 35/35 regression tests passing."
+COMPLETED: CORE-001-T01
+NEXT: CORE-001-T02: Define tenant model and lifecycle.
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py status
+HOMIO / REOS CONTROL CENTER v7.0
+========================================================================
+Phase: PRE-CODING ARCHITECTURE
+Gate: CORE-001
+Task: CORE-001-T02: Define tenant model and lifecycle.
+Status: CONTROL_CENTER_DRIVEN
+Subtask: CORE-001-T02
+Gate Status: CURRENT
+Subtasks: 10 Criteria: 7
+Approved: 38 Pending: 1
+State: D:\Homio\REOS_CONTROL_CENTER\data\state.json
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py gate
+GATE: Identity & Tenant Foundation
+STATUS: CURRENT
+CURRENT SUBTASK: CORE-001-T02
+SUBTASKS:
+CORE-001-T01 | Define identity model | DONE | CRITICAL
+CORE-001-T02 | Define tenant model and lifecycle | CURRENT | CRITICAL
+CORE-001-T03 | Implement role and permission model | PENDING | CRITICAL
+CORE-001-T04 | Implement tenant isolation enforcement | PENDING | CRITICAL
+CORE-001-T05 | Implement session and authentication boundaries | PENDING | HIGH
+CORE-001-T06 | Implement authorization context propagation | PENDING | HIGH
+CORE-001-T07 | Implement audit hooks for identity and tenant actions | PENDING | HIGH
+CORE-001-T08 | Run tenant-isolation security tests | PENDING | CRITICAL
+CORE-001-T09 | Run identity dependency and performance review | PENDING | HIGH
+CORE-001-T10 | Freeze identity and tenant foundation | PENDING | CRITICAL
+ACCEPTANCE CRITERIA:
+CORE-001-AC01 | PENDING | Identity has one authoritative source of truth.
+CORE-001-AC02 | PENDING | Tenant isolation is enforceable.
+CORE-001-AC03 | PENDING | Roles and permissions are explicit.
+CORE-001-AC04 | PENDING | Authorization context propagates safely.
+CORE-001-AC05 | PENDING | Identity and tenant lifecycle changes are auditable.
+CORE-001-AC06 | PENDING | Security and cross-tenant tests pass.
+CORE-001-AC07 | PENDING | Foundation supports all approved operating modes.
 PS D:\HOMIO\REOS_CONTROL_CENTER>
