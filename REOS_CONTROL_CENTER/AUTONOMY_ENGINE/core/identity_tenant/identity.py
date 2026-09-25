@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field, fields, replace
 from datetime import datetime, timezone
 from enum import StrEnum
 from re import fullmatch
@@ -8,6 +8,19 @@ from uuid import UUID, uuid4
 
 
 _HANDLE_PATTERN = r"^[a-z0-9][a-z0-9._-]{2,63}$"
+
+FORBIDDEN_IDENTITY_FIELDS = frozenset(
+    {
+        "password",
+        "password_hash",
+        "secret",
+        "access_token",
+        "refresh_token",
+        "private_key",
+        "credential",
+        "session_token",
+    }
+)
 
 
 def _utc_now() -> datetime:
@@ -47,10 +60,8 @@ class IdentityType(StrEnum):
     HUMAN = "HUMAN"
     SERVICE = "SERVICE"
     AI = "AI"
-
-
-
     SYSTEM = "SYSTEM"
+
 
 class IdentityStatus(StrEnum):
     ACTIVE = "ACTIVE"
@@ -70,12 +81,109 @@ class AccountStatus(StrEnum):
     DISABLED = "DISABLED"
 
 
+class ExternalIdentityStatus(StrEnum):
+    ACTIVE = "ACTIVE"
+    REVOKED = "REVOKED"
+
+
+class IdentityResolutionStatus(StrEnum):
+    RESOLVED = "RESOLVED"
+    NOT_FOUND = "NOT_FOUND"
+    REVOKED = "REVOKED"
+
+
+IDENTITY_STATUS_TRANSITIONS: dict[
+    IdentityStatus,
+    frozenset[IdentityStatus],
+] = {
+    IdentityStatus.ACTIVE: frozenset(
+        {
+            IdentityStatus.SUSPENDED,
+            IdentityStatus.DEACTIVATED,
+        }
+    ),
+    IdentityStatus.SUSPENDED: frozenset(
+        {
+            IdentityStatus.ACTIVE,
+            IdentityStatus.DEACTIVATED,
+        }
+    ),
+    IdentityStatus.DEACTIVATED: frozenset(),
+}
+
+
+ACCOUNT_STATUS_TRANSITIONS: dict[
+    AccountStatus,
+    frozenset[AccountStatus],
+] = {
+    AccountStatus.ENABLED: frozenset(
+        {
+            AccountStatus.LOCKED,
+            AccountStatus.DISABLED,
+        }
+    ),
+    AccountStatus.LOCKED: frozenset(
+        {
+            AccountStatus.ENABLED,
+            AccountStatus.DISABLED,
+        }
+    ),
+    AccountStatus.DISABLED: frozenset(),
+}
+
+
+def _validate_identity_transition(
+    current: IdentityStatus,
+    target: IdentityStatus,
+) -> None:
+    if not isinstance(target, IdentityStatus):
+        raise TypeError("status must be IdentityStatus")
+
+    if target == current:
+        return
+
+    allowed = IDENTITY_STATUS_TRANSITIONS[current]
+
+    if target not in allowed:
+        raise ValueError(
+            f"invalid identity status transition: "
+            f"{current.value} -> {target.value}"
+        )
+
+
+def _validate_account_transition(
+    current: AccountStatus,
+    target: AccountStatus,
+) -> None:
+    if not isinstance(target, AccountStatus):
+        raise TypeError("status must be AccountStatus")
+
+    if target == current:
+        return
+
+    allowed = ACCOUNT_STATUS_TRANSITIONS[current]
+
+    if target not in allowed:
+        raise ValueError(
+            f"invalid account status transition: "
+            f"{current.value} -> {target.value}"
+        )
+
+
 @dataclass(frozen=True, slots=True)
 class Identity:
     """Immutable authoritative identity record.
 
-    Authentication secrets, sessions, tenant memberships and permissions are
-    deliberately not stored here. They belong to later CORE-001 boundaries.
+    T01 owns canonical identity data only.
+
+    Deliberately outside this model:
+    - authentication credentials
+    - sessions
+    - authorization permissions
+    - tenant membership
+    - persistence
+    - event bus
+    - audit engine
     """
 
     identity_id: UUID
@@ -101,6 +209,9 @@ class Identity:
         if not isinstance(self.privacy_class, PrivacyClass):
             raise TypeError("privacy_class must be PrivacyClass")
 
+        if not isinstance(self.revision, int):
+            raise TypeError("revision must be int")
+
         if self.revision < 1:
             raise ValueError("revision must be >= 1")
 
@@ -109,14 +220,27 @@ class Identity:
             "display_name",
             _required_text(self.display_name, "display_name", 120),
         )
+
         object.__setattr__(
             self,
             "handle",
             _normalize_handle(self.handle),
         )
 
-        if self.created_at.tzinfo is None or self.updated_at.tzinfo is None:
-            raise ValueError("identity timestamps must be timezone-aware")
+        if not isinstance(self.created_at, datetime):
+            raise TypeError("created_at must be datetime")
+
+        if not isinstance(self.updated_at, datetime):
+            raise TypeError("updated_at must be datetime")
+
+        if self.created_at.tzinfo is None or self.created_at.utcoffset() is None:
+            raise ValueError("created_at must be timezone-aware")
+
+        if self.updated_at.tzinfo is None or self.updated_at.utcoffset() is None:
+            raise ValueError("updated_at must be timezone-aware")
+
+        if self.updated_at < self.created_at:
+            raise ValueError("updated_at cannot be earlier than created_at")
 
     @classmethod
     def create(
@@ -135,11 +259,14 @@ class Identity:
             display_name=display_name,
             handle=handle,
             privacy_class=privacy_class,
+            revision=1,
             created_at=now,
             updated_at=now,
         )
 
     def with_status(self, status: IdentityStatus) -> "Identity":
+        _validate_identity_transition(self.status, status)
+
         if status == self.status:
             return self
 
@@ -172,8 +299,10 @@ class Identity:
 class IdentityAccount:
     """Authentication-independent account boundary.
 
-    Credentials/tokens are intentionally absent. The account only owns
-    lifecycle and authentication epoch state.
+    Credentials, tokens and sessions are deliberately absent.
+
+    The canonical Identity relationship is enforced by IdentityRegistry when
+    an account is registered into the T01 domain boundary.
     """
 
     account_id: UUID
@@ -193,17 +322,47 @@ class IdentityAccount:
         if not isinstance(self.status, AccountStatus):
             raise TypeError("status must be AccountStatus")
 
+        if not isinstance(self.authentication_epoch, int):
+            raise TypeError("authentication_epoch must be int")
+
         if self.authentication_epoch < 1:
             raise ValueError("authentication_epoch must be >= 1")
 
-        if self.created_at.tzinfo is None or self.updated_at.tzinfo is None:
-            raise ValueError("account timestamps must be timezone-aware")
+        if not isinstance(self.created_at, datetime):
+            raise TypeError("created_at must be datetime")
+
+        if not isinstance(self.updated_at, datetime):
+            raise TypeError("updated_at must be datetime")
+
+        if self.created_at.tzinfo is None or self.created_at.utcoffset() is None:
+            raise ValueError("created_at must be timezone-aware")
+
+        if self.updated_at.tzinfo is None or self.updated_at.utcoffset() is None:
+            raise ValueError("updated_at must be timezone-aware")
+
+        if self.updated_at < self.created_at:
+            raise ValueError("updated_at cannot be earlier than created_at")
 
     @classmethod
     def create(cls, identity_id: UUID) -> "IdentityAccount":
+        if not isinstance(identity_id, UUID):
+            raise TypeError("identity_id must be UUID")
+
         return cls(
             account_id=uuid4(),
             identity_id=identity_id,
+        )
+
+    def with_status(self, status: AccountStatus) -> "IdentityAccount":
+        _validate_account_transition(self.status, status)
+
+        if status == self.status:
+            return self
+
+        return replace(
+            self,
+            status=status,
+            updated_at=_utc_now(),
         )
 
     def rotate_authentication_epoch(self) -> "IdentityAccount":
@@ -212,6 +371,7 @@ class IdentityAccount:
             authentication_epoch=self.authentication_epoch + 1,
             updated_at=_utc_now(),
         )
+
 
 def _validate_external_provider(provider: str) -> str:
     if not isinstance(provider, str):
@@ -226,7 +386,9 @@ def _validate_external_provider(provider: str) -> str:
         raise ValueError("provider is too long")
 
     if any(ord(ch) < 32 or ch.isspace() for ch in candidate):
-        raise ValueError("provider must not contain whitespace or control characters")
+        raise ValueError(
+            "provider must not contain whitespace or control characters"
+        )
 
     return candidate
 
@@ -242,14 +404,11 @@ def _validate_external_subject(subject: str) -> str:
         raise ValueError("subject is too long")
 
     if any(ord(ch) < 32 for ch in subject):
-        raise ValueError("subject must not contain control characters")
+        raise ValueError(
+            "subject must not contain control characters"
+        )
 
     return subject
-
-
-class ExternalIdentityStatus(StrEnum):
-    ACTIVE = "ACTIVE"
-    REVOKED = "REVOKED"
 
 
 @dataclass(frozen=True, slots=True)
@@ -270,12 +429,23 @@ class ExternalIdentityReference:
             raise TypeError("identity_id must be a UUID")
 
         if not isinstance(self.status, ExternalIdentityStatus):
-            raise TypeError("status must be ExternalIdentityStatus")
+            raise TypeError(
+                "status must be ExternalIdentityStatus"
+            )
+
+        if not isinstance(self.revision, int):
+            raise TypeError("revision must be int")
 
         if self.revision < 1:
             raise ValueError("revision must be >= 1")
 
-        if self.linked_at.tzinfo is None or self.linked_at.utcoffset() is None:
+        if not isinstance(self.linked_at, datetime):
+            raise TypeError("linked_at must be datetime")
+
+        if (
+            self.linked_at.tzinfo is None
+            or self.linked_at.utcoffset() is None
+        ):
             raise ValueError("linked_at must be timezone-aware")
 
         object.__setattr__(
@@ -283,6 +453,7 @@ class ExternalIdentityReference:
             "provider",
             _validate_external_provider(self.provider),
         )
+
         object.__setattr__(
             self,
             "subject",
@@ -296,6 +467,9 @@ class ExternalIdentityReference:
         provider: str,
         subject: str,
     ) -> "ExternalIdentityReference":
+        if not isinstance(identity_id, UUID):
+            raise TypeError("identity_id must be UUID")
+
         return cls(
             reference_id=uuid4(),
             identity_id=identity_id,
@@ -311,7 +485,20 @@ class ExternalIdentityReference:
         status: ExternalIdentityStatus,
     ) -> "ExternalIdentityReference":
         if not isinstance(status, ExternalIdentityStatus):
-            raise TypeError("status must be ExternalIdentityStatus")
+            raise TypeError(
+                "status must be ExternalIdentityStatus"
+            )
+
+        if status == self.status:
+            return self
+
+        if (
+            self.status is ExternalIdentityStatus.REVOKED
+            and status is ExternalIdentityStatus.ACTIVE
+        ):
+            raise ValueError(
+                "revoked external identity reference is terminal"
+            )
 
         return replace(
             self,
@@ -321,11 +508,6 @@ class ExternalIdentityReference:
 
     def revoked(self) -> "ExternalIdentityReference":
         return self.with_status(ExternalIdentityStatus.REVOKED)
-
-class IdentityResolutionStatus(StrEnum):
-    RESOLVED = "RESOLVED"
-    NOT_FOUND = "NOT_FOUND"
-    REVOKED = "REVOKED"
 
 
 @dataclass(frozen=True, slots=True)
@@ -337,22 +519,59 @@ class IdentityResolutionResult:
     subject: str = ""
     reason: str = ""
 
+    def __post_init__(self) -> None:
+        if not isinstance(self.status, IdentityResolutionStatus):
+            raise TypeError(
+                "status must be IdentityResolutionStatus"
+            )
+
+        if self.identity_id is not None and not isinstance(
+            self.identity_id,
+            UUID,
+        ):
+            raise TypeError("identity_id must be UUID or None")
+
+        if self.reference_id is not None and not isinstance(
+            self.reference_id,
+            UUID,
+        ):
+            raise TypeError("reference_id must be UUID or None")
+
+        if not isinstance(self.provider, str):
+            raise TypeError("provider must be string")
+
+        if not isinstance(self.subject, str):
+            raise TypeError("subject must be string")
+
+        if not isinstance(self.reason, str):
+            raise TypeError("reason must be string")
+
     @property
     def resolved(self) -> bool:
         return self.status is IdentityResolutionStatus.RESOLVED
 
 
 class IdentityRegistry:
-    """
-    Deterministic in-memory identity registry for the T01 domain boundary.
+    """Deterministic in-memory T01 identity resolution boundary.
 
-    Persistence belongs to the later platform/data layers. This registry
-    defines the authoritative resolution contract used by those layers.
+    This registry is deliberately NOT:
+    - a database repository
+    - an authentication engine
+    - an authorization engine
+    - a session engine
+    - a tenant-membership engine
+    - an event bus
+    - an audit engine
     """
 
     def __init__(self) -> None:
         self._identities: dict[UUID, Identity] = {}
-        self._external: dict[tuple[str, str], ExternalIdentityReference] = {}
+        self._handles: dict[str, UUID] = {}
+        self._external: dict[
+            tuple[str, str],
+            ExternalIdentityReference,
+        ] = {}
+        self._accounts: dict[UUID, IdentityAccount] = {}
 
     def register_identity(self, identity: Identity) -> None:
         if not isinstance(identity, Identity):
@@ -361,9 +580,73 @@ class IdentityRegistry:
         existing = self._identities.get(identity.identity_id)
 
         if existing is not None and existing != identity:
-            raise ValueError("identity_id already belongs to a different identity")
+            raise ValueError(
+                "identity_id already belongs to a different identity"
+            )
+
+        existing_handle_identity = self._handles.get(identity.handle)
+
+        if (
+            existing_handle_identity is not None
+            and existing_handle_identity != identity.identity_id
+        ):
+            raise ValueError(
+                "handle is already assigned to another identity"
+            )
+
+        if existing is not None:
+            if existing.handle != identity.handle:
+                raise ValueError(
+                    "registered identity cannot change its canonical handle"
+                )
+
+            self._identities[identity.identity_id] = identity
+            self._handles[identity.handle] = identity.identity_id
+            return
 
         self._identities[identity.identity_id] = identity
+        self._handles[identity.handle] = identity.identity_id
+
+    def get_identity(self, identity_id: UUID) -> Identity | None:
+        if not isinstance(identity_id, UUID):
+            raise TypeError("identity_id must be UUID")
+
+        return self._identities.get(identity_id)
+
+    def get_identity_by_handle(self, handle: str) -> Identity | None:
+        normalized = _normalize_handle(handle)
+        identity_id = self._handles.get(normalized)
+
+        if identity_id is None:
+            return None
+
+        return self._identities.get(identity_id)
+
+    def register_account(self, account: IdentityAccount) -> None:
+        if not isinstance(account, IdentityAccount):
+            raise TypeError(
+                "account must be an IdentityAccount"
+            )
+
+        if account.identity_id not in self._identities:
+            raise ValueError(
+                "account requires a registered canonical identity"
+            )
+
+        existing = self._accounts.get(account.account_id)
+
+        if existing is not None and existing != account:
+            raise ValueError(
+                "account_id already belongs to a different account"
+            )
+
+        self._accounts[account.account_id] = account
+
+    def get_account(self, account_id: UUID) -> IdentityAccount | None:
+        if not isinstance(account_id, UUID):
+            raise TypeError("account_id must be UUID")
+
+        return self._accounts.get(account_id)
 
     def register_external_reference(
         self,
@@ -385,12 +668,20 @@ class IdentityRegistry:
         if existing is not None:
             if existing.identity_id != reference.identity_id:
                 raise ValueError(
-                    "external identity key is already linked to another identity"
+                    "external identity key is already linked "
+                    "to another identity"
                 )
 
             if existing.reference_id != reference.reference_id:
                 raise ValueError(
-                    "external identity key already has a different reference"
+                    "external identity key already has "
+                    "a different reference"
+                )
+
+            if existing != reference:
+                raise ValueError(
+                    "external identity reference replacement "
+                    "must preserve the canonical reference"
                 )
 
         self._external[key] = reference
@@ -453,6 +744,19 @@ class IdentityRegistry:
             reason="canonical identity resolved",
         )
 
-    def get_identity(self, identity_id: UUID) -> Identity | None:
-        return self._identities.get(identity_id)
 
+def identity_model_field_names() -> frozenset[str]:
+    """Return all fields owned by the T01 identity domain models."""
+
+    model_types = (
+        Identity,
+        IdentityAccount,
+        ExternalIdentityReference,
+        IdentityResolutionResult,
+    )
+
+    return frozenset(
+        field.name
+        for model_type in model_types
+        for field in fields(model_type)
+    )
