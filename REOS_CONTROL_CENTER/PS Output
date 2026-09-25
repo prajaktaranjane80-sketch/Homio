@@ -1,13 +1,3 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> git reset --hard origin/reos-development
-HEAD is now at bc36a8f Create .gitignore
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git clean -fdX
-Removing .pytest_cache/
-Removing AUTONOMY_ENGINE/.pytest_cache/
-Removing AUTONOMY_ENGINE/core/.pytest_cache/
-Removing AUTONOMY_ENGINE/core/__pycache__/
-Removing AUTONOMY_ENGINE/core/identity_tenant/__pycache__/
-PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\identity_tenant -q
 ..........................................................F.........FF...........................................                                    [100%]
 ======================================================================== FAILURES =========================================================================
@@ -75,6 +65,81 @@ FAILED AUTONOMY_ENGINE/core/identity_tenant/test_identity.py::test_identity_mode
 FAILED AUTONOMY_ENGINE/core/identity_tenant/test_t01_d_contract.py::test_machine_contract_identity_lifecycle_matches_runtime - AssertionError: assert {'ACTIVE': ['...CTIVATED': []} == {'ACTIVE': ['...CTIVATED': []}
 FAILED AUTONOMY_ENGINE/core/identity_tenant/test_t01_d_contract.py::test_machine_contract_account_lifecycle_matches_runtime - AssertionError: assert {'ENABLED': [...DISABLED': []} == {'ENABLED': [...DISABLED': []}
 3 failed, 110 passed in 0.53s
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
+PS D:\HOMIO\REOS_CONTROL_CENTER> cd D:\HOMIO\REOS_CONTROL_CENTER
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m py_compile AUTONOMY_ENGINE\core\identity_tenant\identity.py
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\identity_tenant -q
+..........................................................F.........FF...........................................                                    [100%]
+======================================================================== FAILURES =========================================================================
+______________________________________________ test_identity_model_field_names_match_expected_domain_models _______________________________________________
+
+    def test_identity_model_field_names_match_expected_domain_models():
+>       assert set(identity_model_field_names()) == {
+            field.name
+            for model in (
+                Identity,
+                IdentityAccount,
+                ExternalIdentityReference,
+            )
+            for field in fields(model)
+        }
+E       AssertionError: assert {'account_id'...tity_id', ...} == {'account_id'...tity_id', ...}
+E
+E         Extra items in the left set:
+E         'reason'
+E         Use -v to get more diff
+
+AUTONOMY_ENGINE\core\identity_tenant\test_identity.py:774: AssertionError
+________________________________________________ test_machine_contract_identity_lifecycle_matches_runtime _________________________________________________
+
+    def test_machine_contract_identity_lifecycle_matches_runtime():
+        contract = _load_contract()
+
+        expected = {
+            status.value: sorted(target.value for target in targets)
+            for status, targets in IDENTITY_STATUS_TRANSITIONS.items()
+        }
+
+>       assert contract["lifecycle"]["identity_status_transitions"] == expected
+E       AssertionError: assert {'ACTIVE': ['...CTIVATED': []} == {'ACTIVE': ['...CTIVATED': []}
+E
+E         Omitting 2 identical items, use -vv to show
+E         Differing items:
+E         {'ACTIVE': ['SUSPENDED', 'DEACTIVATED']} != {'ACTIVE': ['DEACTIVATED', 'SUSPENDED']}
+E         Use -v to get more diff
+
+AUTONOMY_ENGINE\core\identity_tenant\test_t01_d_contract.py:124: AssertionError
+_________________________________________________ test_machine_contract_account_lifecycle_matches_runtime _________________________________________________
+
+    def test_machine_contract_account_lifecycle_matches_runtime():
+        contract = _load_contract()
+
+        expected = {
+            status.value: sorted(target.value for target in targets)
+            for status, targets in ACCOUNT_STATUS_TRANSITIONS.items()
+        }
+
+>       assert contract["lifecycle"]["account_status_transitions"] == expected
+E       AssertionError: assert {'ENABLED': [...DISABLED': []} == {'ENABLED': [...DISABLED': []}
+E
+E         Omitting 1 identical items, use -vv to show
+E         Differing items:
+E         {'LOCKED': ['ENABLED', 'DISABLED']} != {'LOCKED': ['DISABLED', 'ENABLED']}
+E         {'ENABLED': ['LOCKED'
+E
+E         ...Full output truncated (2 lines hidden), use '-vv' to show
+
+AUTONOMY_ENGINE\core\identity_tenant\test_t01_d_contract.py:135: AssertionError
+================================================================= short test summary info =================================================================
+FAILED AUTONOMY_ENGINE/core/identity_tenant/test_identity.py::test_identity_model_field_names_match_expected_domain_models - AssertionError: assert {'account_id'...tity_id', ...} == {'account_id'...tity_id', ...}
+FAILED AUTONOMY_ENGINE/core/identity_tenant/test_t01_d_contract.py::test_machine_contract_identity_lifecycle_matches_runtime - AssertionError: assert {'ACTIVE': ['...CTIVATED': []} == {'ACTIVE': ['...CTIVATED': []}
+FAILED AUTONOMY_ENGINE/core/identity_tenant/test_t01_d_contract.py::test_machine_contract_account_lifecycle_matches_runtime - AssertionError: assert {'ENABLED': [...DISABLED': []} == {'ENABLED': [...DISABLED': []}
+3 failed, 110 passed in 0.28s
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check
 PS D:\HOMIO\REOS_CONTROL_CENTER>
