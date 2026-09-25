@@ -1,151 +1,67 @@
-action_planner.py
-autonomy_kernel.py
-constants.py
-context_compiler.py
-idempotency.py
-integrity.py
-models.py
-risk_engine.py
-semantic_consistency.py
-state_store.py
-workspace_guard.py
-__init__.py
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Layer in @(
->>     "identity_tenant",
->>     "event_platform",
->>     "lead_ownership",
->>     "inventory",
->>     "search_matching",
->>     "deal_transaction"
->> )) {
->>     Write-Host "`n[$Layer]" -ForegroundColor Yellow
->>     Get-ChildItem (Join-Path $Core $Layer) -File |
->>         Select-Object -ExpandProperty Name
->> }
+========================================================================= ERRORS ==========================================================================
+_________________________________________ ERROR collecting AUTONOMY_ENGINE/core/identity_tenant/test_identity.py __________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\python.py:508: in importtestmodule
+    mod = import_path(
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\identity_tenant\__init__.py:3: in <module>
+    from .identity import (
+E     File "D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\identity_tenant\identity.py", line 53
+E       SYSTEM = "SYSTEM"class IdentityStatus(StrEnum):
+E                        ^^^^^
+E   SyntaxError: invalid syntax
+================================================================= short test summary info =================================================================
+ERROR AUTONOMY_ENGINE/core/identity_tenant/test_identity.py
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 error in 0.39s
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== T01-A CONTRACT ===" -ForegroundColor Cyan
 
-[identity_tenant]
-identity.py
-test_identity.py
-__init__.py
+=== T01-A CONTRACT ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> @'
+>> from AUTONOMY_ENGINE.core.identity_tenant.identity import IdentityType
+>>
+>> print("IDENTITY TYPES:", ", ".join(x.name for x in IdentityType))
+>> print("SYSTEM PRINCIPAL:", "PASS" if hasattr(IdentityType, "SYSTEM") else "FAIL")
+>> '@ | python -
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\identity_tenant\__init__.py", line 3, in <module>
+    from .identity import (
+  File "D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\identity_tenant\identity.py", line 53
+    SYSTEM = "SYSTEM"class IdentityStatus(StrEnum):
+                     ^^^^^
+SyntaxError: invalid syntax
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== GIT STATE ===" -ForegroundColor Cyan
 
-[event_platform]
-__init__.py
-
-[lead_ownership]
-__init__.py
-
-[inventory]
-apply_CORE-004-T01.ps1
-CORE-004-T01-project-domain.patch
-CORE-004-T01-project-domain.txt
-inventory.py
-inventory_concurrency.py
-inventory_consistency.py
-inventory_core_freeze.py
-inventory_evidence.py
-inventory_history.py
-inventory_history_evidence.py
-inventory_indexing.py
-inventory_verification.py
-project.py
-test_inventory_availability.py
-test_inventory_concurrency.py
-test_inventory_consistency.py
-test_inventory_core_freeze.py
-test_inventory_domain.py
-test_inventory_evidence.py
-test_inventory_history.py
-test_inventory_history_evidence.py
-test_inventory_indexing.py
-test_inventory_lifecycle.py
-test_inventory_verification.py
-test_project_domain.py
-__init__.py
-
-[search_matching]
-hybrid_retrieval.py
-location_search.py
-matching.py
-qdrant_indexing.py
-search_filters.py
-search_ranking.py
-search_rebuild.py
-search_visibility.py
-test_hybrid_retrieval.py
-test_location_search.py
-test_matching.py
-test_qdrant_indexing.py
-test_search_core_t09.py
-test_search_filters.py
-test_search_ranking.py
-test_search_rebuild.py
-test_search_visibility.py
-__init__.py
-
-[deal_transaction]
-apply_CORE-006_FINAL_UPGRADE.ps1
-CORE-006_FINAL_UPGRADE.txt
-deal.py
-deal_authorization.py
-deal_concurrency.py
-deal_consistency.py
-deal_evidence_audit.py
-deal_external_contracts.py
-deal_freeze.py
-deal_integrity.py
-deal_offer_negotiation.py
-deal_ownership_integration.py
-deal_transaction_events.py
-deal_transaction_milestones.py
-deal_transaction_replay.py
-deal_transaction_workflow.py
-manifest.json
-test_deal.py
-test_deal_evidence_audit.py
-test_deal_final_hardening.py
-test_deal_offer_negotiation.py
-test_deal_ownership_integration.py
-test_deal_parties.py
-test_deal_transaction_events.py
-test_deal_transaction_milestones.py
-__init__.py
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== CONTROL CENTER ===" -ForegroundColor Cyan
-
-=== CONTROL CENTER ===
-PS D:\Homio\REOS_CONTROL_CENTER> python reos_control_center.py status
-HOMIO / REOS CONTROL CENTER v7.0
-========================================================================
-Phase: PRE-CODING ARCHITECTURE
-Gate: CORE-001
-Task: CORE-001-T01: Define identity model.
-Status: CONTROL_CENTER_DRIVEN
-Subtask: CORE-001-T01
-Gate Status: CURRENT
-Subtasks: 10 Criteria: 7
-Approved: 38 Pending: 1
-State: D:\Homio\REOS_CONTROL_CENTER\data\state.json
-PS D:\Homio\REOS_CONTROL_CENTER> python reos_control_center.py gate
-GATE: Identity & Tenant Foundation
-STATUS: CURRENT
-CURRENT SUBTASK: CORE-001-T01
-SUBTASKS:
-CORE-001-T01 | Define identity model | CURRENT | CRITICAL
-CORE-001-T02 | Define tenant model and lifecycle | PENDING | CRITICAL
-CORE-001-T03 | Implement role and permission model | PENDING | CRITICAL
-CORE-001-T04 | Implement tenant isolation enforcement | PENDING | CRITICAL
-CORE-001-T05 | Implement session and authentication boundaries | PENDING | HIGH
-CORE-001-T06 | Implement authorization context propagation | PENDING | HIGH
-CORE-001-T07 | Implement audit hooks for identity and tenant actions | PENDING | HIGH
-CORE-001-T08 | Run tenant-isolation security tests | PENDING | CRITICAL
-CORE-001-T09 | Run identity dependency and performance review | PENDING | HIGH
-CORE-001-T10 | Freeze identity and tenant foundation | PENDING | CRITICAL
-ACCEPTANCE CRITERIA:
-CORE-001-AC01 | PENDING | Identity has one authoritative source of truth.
-CORE-001-AC02 | PENDING | Tenant isolation is enforceable.
-CORE-001-AC03 | PENDING | Roles and permissions are explicit.
-CORE-001-AC04 | PENDING | Authorization context propagates safely.
-CORE-001-AC05 | PENDING | Identity and tenant lifecycle changes are auditable.
-CORE-001-AC06 | PENDING | Security and cross-tenant tests pass.
-CORE-001-AC07 | PENDING | Foundation supports all approved operating modes.
+=== GIT STATE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short -- AUTONOMY_ENGINE\core\identity_tenant
+ M AUTONOMY_ENGINE/core/identity_tenant/__init__.py
+?? AUTONOMY_ENGINE/core/identity_tenant/__pycache__/
+?? AUTONOMY_ENGINE/core/identity_tenant/identity.py
+?? AUTONOMY_ENGINE/core/identity_tenant/test_identity.py
+PS D:\HOMIO\REOS_CONTROL_CENTER>
