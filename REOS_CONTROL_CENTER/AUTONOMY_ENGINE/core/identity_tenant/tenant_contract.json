@@ -1,12 +1,35 @@
 {
   "contract": {
-    "name": "REOS Tenant Lifecycle Contract",
-    "version": "1.0.0",
+    "name": "REOS Tenant Lifecycle and Context Contract",
+    "version": "2.0.0",
     "domain": "CORE-001",
     "subtask": "CORE-001-T02",
     "status": "ACTIVE"
   },
   "entities": {
+    "TenantConfigurationReference": {
+      "fields": [
+        "reference_id",
+        "configuration_key",
+        "version"
+      ]
+    },
+    "TenantSecurityProfileReference": {
+      "fields": [
+        "reference_id",
+        "profile_key",
+        "version",
+        "fail_closed",
+        "require_valid_tenant_context"
+      ]
+    },
+    "TenantRegionJurisdictionReference": {
+      "fields": [
+        "reference_id",
+        "region",
+        "jurisdiction"
+      ]
+    },
     "Tenant": {
       "fields": [
         "tenant_id",
@@ -22,6 +45,9 @@
         "quota_profile",
         "owner_identity_id",
         "primary_admin_identity_id",
+        "configuration_ref",
+        "security_profile_ref",
+        "region_jurisdiction_ref",
         "revision",
         "created_at",
         "updated_at"
@@ -61,6 +87,34 @@
         "CUSTOM_POLICY"
       ]
     },
+    "TenantContext": {
+      "fields": [
+        "tenant_id",
+        "tenant_revision",
+        "tenant_status",
+        "tenant_kind",
+        "operating_mode",
+        "configuration_ref",
+        "security_profile_ref",
+        "region_jurisdiction_ref",
+        "resolved_at"
+      ]
+    },
+    "TenantResolutionResult": {
+      "fields": [
+        "status",
+        "tenant_id",
+        "tenant_revision",
+        "context",
+        "reason"
+      ],
+      "statuses": [
+        "RESOLVED",
+        "NOT_FOUND",
+        "INACTIVE",
+        "ARCHIVED"
+      ]
+    },
     "TenantProvisioningIntent": {
       "fields": [
         "intent_id",
@@ -81,21 +135,116 @@
     }
   },
   "lifecycle": {
+    "transitions": {
+      "PROVISIONING": [
+        "DEACTIVATING",
+        "PENDING_ACTIVATION",
+        "RESTRICTED"
+      ],
+      "PENDING_ACTIVATION": [
+        "ACTIVE",
+        "DEACTIVATING",
+        "RESTRICTED",
+        "SUSPENDED"
+      ],
+      "ACTIVE": [
+        "DEACTIVATING",
+        "RESTRICTED",
+        "SUSPENDED"
+      ],
+      "RESTRICTED": [
+        "ACTIVE",
+        "DEACTIVATING",
+        "SUSPENDED"
+      ],
+      "SUSPENDED": [
+        "ACTIVE",
+        "DEACTIVATING",
+        "RESTRICTED"
+      ],
+      "DEACTIVATING": [
+        "DEACTIVATED"
+      ],
+      "DEACTIVATED": [
+        "ARCHIVED"
+      ],
+      "ARCHIVED": []
+    },
     "terminal_state": "ARCHIVED",
     "activation_requires_owner": true,
     "activation_requires_primary_admin": true,
     "archived_state_is_terminal": true,
     "deletion_is_not_a_direct_transition": true
   },
-  "invariants": [
+  "context_resolution": {
+    "authoritative_boundary": true,
+    "lookup_indexes": [
+      "tenant_id",
+      "slug"
+    ],
+    "valid_context_statuses": [
+      "ACTIVE",
+      "RESTRICTED"
+    ],
+    "inactive_statuses": [
+      "PROVISIONING",
+      "PENDING_ACTIVATION",
+      "SUSPENDED",
+      "DEACTIVATING",
+      "DEACTIVATED"
+    ],
+    "archived_status": "ARCHIVED",
+    "unknown_tenant": "NOT_FOUND",
+    "invalid_or_inactive_tenant": "INACTIVE",
+    "archived_tenant": "ARCHIVED"
+  },
+  "security_invariants": [
     "tenant_id_is_immutable",
     "slug_is_canonical",
+    "tenant_slug_is_unique",
+    "tenant_revision_is_monotonic",
+    "same_revision_cannot_represent_different_state",
     "tenant_lifecycle_transitions_are_explicit",
     "invalid_transitions_fail_closed",
     "active_tenant_requires_owner_and_primary_admin",
+    "active_tenant_requires_fail_closed_security_profile",
+    "active_tenant_requires_valid_tenant_context_policy",
     "restricted_residency_requires_scope",
     "provisioning_is_idempotency_keyed",
     "archived_tenant_is_terminal",
-    "tenant_model_does_not_store_credentials_or_tokens"
+    "tenant_configuration_is_reference_only",
+    "tenant_security_profile_is_reference_only",
+    "tenant_region_jurisdiction_is_reference_only",
+    "no_credentials_or_tokens_in_tenant_model",
+    "unknown_tenant_context_fails_closed",
+    "inactive_tenant_context_fails_closed",
+    "archived_tenant_context_fails_closed",
+    "valid_tenant_context_contains_current_revision",
+    "valid_tenant_context_contains_operating_mode",
+    "valid_tenant_context_contains_configuration_reference",
+    "valid_tenant_context_contains_security_profile_reference"
+  ],
+  "source_of_truth_boundary": {
+    "Tenant": "canonical tenant domain record",
+    "TenantRegistry": "deterministic tenant lookup and context resolution boundary",
+    "TenantContext": "resolved tenant execution context",
+    "TenantConfigurationReference": "reference to externally owned tenant configuration",
+    "TenantSecurityProfileReference": "reference to externally owned tenant security policy",
+    "TenantRegionJurisdictionReference": "canonical region and jurisdiction reference",
+    "excluded_from_T02": [
+      "memberships",
+      "roles",
+      "permissions",
+      "authorization_decisions",
+      "cross_tenant_enforcement",
+      "credentials",
+      "sessions",
+      "audit_storage",
+      "event_persistence"
+    ]
+  },
+  "hard_rules": [
+    "NO_VALID_TENANT_CONTEXT",
+    "DENY"
   ]
 }
