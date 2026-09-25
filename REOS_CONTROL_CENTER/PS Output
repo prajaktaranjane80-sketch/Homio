@@ -1,95 +1,151 @@
-CONFLICT (modify/delete): REOS_CONTROL_CENTER/errors deleted in Updated upstream and modified in Stashed changes.  Version Stashed changes of REOS_CONTROL_CENTER/errors left in tree.
-On branch reos-development
-Your branch is ahead of 'origin/reos-development' by 1 commit.
-  (use "git push" to publish your local commits)
-
-Changes to be committed:
-  (use "git restore --staged <file>..." to unstage)
-        modified:   REOS_NEXT_CHAT.txt
-        modified:   data/state.json
-        modified:   packets/NEW_CHAT_PACKET.txt
-
-Unmerged paths:
-  (use "git restore --staged <file>..." to unstage)
-  (use "git add/rm <file>..." as appropriate to mark resolution)
-        deleted by us:   errors
-
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-        AUTONOMY_ENGINE/runtime/__pycache__/
-        architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json
-        snapshots/state_20260923_161315_485001.json
-        snapshots/state_20260923_162404_189597.json
-        snapshots/state_20260923_180726_043694.json
-        snapshots/state_20260923_185419_756835.json
-        snapshots/state_20260923_193323_298297.json
-        snapshots/state_20260923_195704_509449.json
-        snapshots/state_20260923_201520_253427.json
-        snapshots/state_20260923_202052_728724.json
-        snapshots/state_20260923_202438_366355.json
-        snapshots/state_20260923_204233_128196.json
-        snapshots/state_20260923_204315_639535.json
-        snapshots/state_20260923_204324_226795.json
-        snapshots/state_20260923_204454_887391.json
-        snapshots/state_20260923_204454_900139.json
-        snapshots/state_20260923_205735_470444.json
-        snapshots/state_20260923_210940_680814.json
-        snapshots/state_20260923_213138_927057.json
-        snapshots/state_20260923_223349_496861.json
-        snapshots/state_20260924_101820_265169.json
-        ../REOS_LAYER_BACKUP_20260924_201807/
-
-The stash entry is kept in case you need it again.
+action_planner.py
+autonomy_kernel.py
+constants.py
+context_compiler.py
+idempotency.py
+integrity.py
+models.py
+risk_engine.py
+semantic_consistency.py
+state_store.py
+workspace_guard.py
+__init__.py
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     Write-Host "`n!!! STASH POP CONFLICT — PUSH MAT KARNA !!!" -ForegroundColor Red
->>     git status
->>     exit 1
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Layer in @(
+>>     "identity_tenant",
+>>     "event_platform",
+>>     "lead_ownership",
+>>     "inventory",
+>>     "search_matching",
+>>     "deal_transaction"
+>> )) {
+>>     Write-Host "`n[$Layer]" -ForegroundColor Yellow
+>>     Get-ChildItem (Join-Path $Core $Layer) -File |
+>>         Select-Object -ExpandProperty Name
 >> }
 
-!!! STASH POP CONFLICT — PUSH MAT KARNA !!!
-On branch reos-development
-Your branch is ahead of 'origin/reos-development' by 1 commit.
-  (use "git push" to publish your local commits)
+[identity_tenant]
+identity.py
+test_identity.py
+__init__.py
 
-Changes to be committed:
-  (use "git restore --staged <file>..." to unstage)
-        modified:   REOS_NEXT_CHAT.txt
-        modified:   data/state.json
-        modified:   packets/NEW_CHAT_PACKET.txt
+[event_platform]
+__init__.py
 
-Unmerged paths:
-  (use "git restore --staged <file>..." to unstage)
-  (use "git add/rm <file>..." as appropriate to mark resolution)
-        deleted by us:   errors
+[lead_ownership]
+__init__.py
 
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-        AUTONOMY_ENGINE/runtime/__pycache__/
-        architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json
-        snapshots/state_20260923_161315_485001.json
-        snapshots/state_20260923_162404_189597.json
-        snapshots/state_20260923_180726_043694.json
-        snapshots/state_20260923_185419_756835.json
-        snapshots/state_20260923_193323_298297.json
-        snapshots/state_20260923_195704_509449.json
-        snapshots/state_20260923_201520_253427.json
-        snapshots/state_20260923_202052_728724.json
-        snapshots/state_20260923_202438_366355.json
-        snapshots/state_20260923_204233_128196.json
-        snapshots/state_20260923_204315_639535.json
-        snapshots/state_20260923_204324_226795.json
-        snapshots/state_20260923_204454_887391.json
-        snapshots/state_20260923_204454_900139.json
-        snapshots/state_20260923_205735_470444.json
-        snapshots/state_20260923_210940_680814.json
-        snapshots/state_20260923_213138_927057.json
-        snapshots/state_20260923_223349_496861.json
-        snapshots/state_20260924_101820_265169.json
-        ../REOS_LAYER_BACKUP_20260924_201807/
+[inventory]
+apply_CORE-004-T01.ps1
+CORE-004-T01-project-domain.patch
+CORE-004-T01-project-domain.txt
+inventory.py
+inventory_concurrency.py
+inventory_consistency.py
+inventory_core_freeze.py
+inventory_evidence.py
+inventory_history.py
+inventory_history_evidence.py
+inventory_indexing.py
+inventory_verification.py
+project.py
+test_inventory_availability.py
+test_inventory_concurrency.py
+test_inventory_consistency.py
+test_inventory_core_freeze.py
+test_inventory_domain.py
+test_inventory_evidence.py
+test_inventory_history.py
+test_inventory_history_evidence.py
+test_inventory_indexing.py
+test_inventory_lifecycle.py
+test_inventory_verification.py
+test_project_domain.py
+__init__.py
 
+[search_matching]
+hybrid_retrieval.py
+location_search.py
+matching.py
+qdrant_indexing.py
+search_filters.py
+search_ranking.py
+search_rebuild.py
+search_visibility.py
+test_hybrid_retrieval.py
+test_location_search.py
+test_matching.py
+test_qdrant_indexing.py
+test_search_core_t09.py
+test_search_filters.py
+test_search_ranking.py
+test_search_rebuild.py
+test_search_visibility.py
+__init__.py
 
-[process exited with code 1 (0x00000001)]
-You can now close this terminal with Ctrl+D, or press Enter to restart.
-Windows PowerShell
-Copyright (C) Microsoft Corporation. All rights reserved.
+[deal_transaction]
+apply_CORE-006_FINAL_UPGRADE.ps1
+CORE-006_FINAL_UPGRADE.txt
+deal.py
+deal_authorization.py
+deal_concurrency.py
+deal_consistency.py
+deal_evidence_audit.py
+deal_external_contracts.py
+deal_freeze.py
+deal_integrity.py
+deal_offer_negotiation.py
+deal_ownership_integration.py
+deal_transaction_events.py
+deal_transaction_milestones.py
+deal_transaction_replay.py
+deal_transaction_workflow.py
+manifest.json
+test_deal.py
+test_deal_evidence_audit.py
+test_deal_final_hardening.py
+test_deal_offer_negotiation.py
+test_deal_ownership_integration.py
+test_deal_parties.py
+test_deal_transaction_events.py
+test_deal_transaction_milestones.py
+__init__.py
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== CONTROL CENTER ===" -ForegroundColor Cyan
+
+=== CONTROL CENTER ===
+PS D:\Homio\REOS_CONTROL_CENTER> python reos_control_center.py status
+HOMIO / REOS CONTROL CENTER v7.0
+========================================================================
+Phase: PRE-CODING ARCHITECTURE
+Gate: CORE-001
+Task: CORE-001-T01: Define identity model.
+Status: CONTROL_CENTER_DRIVEN
+Subtask: CORE-001-T01
+Gate Status: CURRENT
+Subtasks: 10 Criteria: 7
+Approved: 38 Pending: 1
+State: D:\Homio\REOS_CONTROL_CENTER\data\state.json
+PS D:\Homio\REOS_CONTROL_CENTER> python reos_control_center.py gate
+GATE: Identity & Tenant Foundation
+STATUS: CURRENT
+CURRENT SUBTASK: CORE-001-T01
+SUBTASKS:
+CORE-001-T01 | Define identity model | CURRENT | CRITICAL
+CORE-001-T02 | Define tenant model and lifecycle | PENDING | CRITICAL
+CORE-001-T03 | Implement role and permission model | PENDING | CRITICAL
+CORE-001-T04 | Implement tenant isolation enforcement | PENDING | CRITICAL
+CORE-001-T05 | Implement session and authentication boundaries | PENDING | HIGH
+CORE-001-T06 | Implement authorization context propagation | PENDING | HIGH
+CORE-001-T07 | Implement audit hooks for identity and tenant actions | PENDING | HIGH
+CORE-001-T08 | Run tenant-isolation security tests | PENDING | CRITICAL
+CORE-001-T09 | Run identity dependency and performance review | PENDING | HIGH
+CORE-001-T10 | Freeze identity and tenant foundation | PENDING | CRITICAL
+ACCEPTANCE CRITERIA:
+CORE-001-AC01 | PENDING | Identity has one authoritative source of truth.
+CORE-001-AC02 | PENDING | Tenant isolation is enforceable.
+CORE-001-AC03 | PENDING | Roles and permissions are explicit.
+CORE-001-AC04 | PENDING | Authorization context propagates safely.
+CORE-001-AC05 | PENDING | Identity and tenant lifecycle changes are auditable.
+CORE-001-AC06 | PENDING | Security and cross-tenant tests pass.
+CORE-001-AC07 | PENDING | Foundation supports all approved operating modes.
