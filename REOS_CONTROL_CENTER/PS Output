@@ -1,95 +1,343 @@
-CONFLICT (modify/delete): REOS_CONTROL_CENTER/errors deleted in Updated upstream and modified in Stashed changes.  Version Stashed changes of REOS_CONTROL_CENTER/errors left in tree.
-On branch reos-development
-Your branch is ahead of 'origin/reos-development' by 1 commit.
-  (use "git push" to publish your local commits)
+Bilkul bhai. PS se hi kaam karenge. Aur jahan PS inconvenient ho, main exact file-wise Git-ready content chat mein dunga — tum direct GitHub par save kar sakte ho.
 
-Changes to be committed:
-  (use "git restore --staged <file>..." to unstage)
-        modified:   REOS_NEXT_CHAT.txt
-        modified:   data/state.json
-        modified:   packets/NEW_CHAT_PACKET.txt
+Ek important baat: jo T03 draft maine abhi diya tha usme cross-tenant authorization ko aur tighten karna zaroori hai. Main us flawed version ko final nahi maan raha. Pehle architecture-consistent correction, phir tests, phir Control Center completion.
 
-Unmerged paths:
-  (use "git restore --staged <file>..." to unstage)
-  (use "git add/rm <file>..." as appropriate to mark resolution)
-        deleted by us:   errors
+Ab tum bas ye PS command chalao:
 
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-        AUTONOMY_ENGINE/runtime/__pycache__/
-        architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json
-        snapshots/state_20260923_161315_485001.json
-        snapshots/state_20260923_162404_189597.json
-        snapshots/state_20260923_180726_043694.json
-        snapshots/state_20260923_185419_756835.json
-        snapshots/state_20260923_193323_298297.json
-        snapshots/state_20260923_195704_509449.json
-        snapshots/state_20260923_201520_253427.json
-        snapshots/state_20260923_202052_728724.json
-        snapshots/state_20260923_202438_366355.json
-        snapshots/state_20260923_204233_128196.json
-        snapshots/state_20260923_204315_639535.json
-        snapshots/state_20260923_204324_226795.json
-        snapshots/state_20260923_204454_887391.json
-        snapshots/state_20260923_204454_900139.json
-        snapshots/state_20260923_205735_470444.json
-        snapshots/state_20260923_210940_680814.json
-        snapshots/state_20260923_213138_927057.json
-        snapshots/state_20260923_223349_496861.json
-        snapshots/state_20260924_101820_265169.json
-        ../REOS_LAYER_BACKUP_20260924_201807/
+Set-Location "D:\HOMIO\REOS_CONTROL_CENTER"
+git status --short -- AUTONOMY_ENGINE\core\identity_tenant
+python reos_control_center.py status
+python reos_control_center.py gate
+python reos_control_center.py verify-state
 
-The stash entry is kept in case you need it again.
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     Write-Host "`n!!! STASH POP CONFLICT — PUSH MAT KARNA !!!" -ForegroundColor Red
->>     git status
->>     exit 1
->> }
+Jo output aaye woh yahin paste karo. Uske baad main T03 ka corrected production-grade content file-by-file dunga aur exact PS replacement commands dunga — bina generic planning ke.
 
-!!! STASH POP CONFLICT — PUSH MAT KARNA !!!
-On branch reos-development
-Your branch is ahead of 'origin/reos-development' by 1 commit.
-  (use "git push" to publish your local commits)
+STATE HASH STORED: a7b5b253bb96de045d941be403aca44cbcdc3f756db1e605cd950a3cf4d7de8a
+STATE HASH CALCULATED: a7b5b253bb96de045d941be403aca44cbcdc3f756db1e605cd950a3cf4d7de8a
+INTEGRITY: PASS
 
-Changes to be committed:
-  (use "git restore --staged <file>..." to unstage)
-        modified:   REOS_NEXT_CHAT.txt
-        modified:   data/state.json
-        modified:   packets/NEW_CHAT_PACKET.txt
+INTEGRITY PASS confirmed.
 
-Unmerged paths:
-  (use "git restore --staged <file>..." to unstage)
-  (use "git add/rm <file>..." as appropriate to mark resolution)
-        deleted by us:   errors
+Abhi kuch bhi overwrite nahi karna. Pehle local T03 surface exactly dekhte hain, kyunki GitHub branch mein T01/T02 ke latest files abhi uncommitted hain.
 
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-        AUTONOMY_ENGINE/runtime/__pycache__/
-        architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json
-        snapshots/state_20260923_161315_485001.json
-        snapshots/state_20260923_162404_189597.json
-        snapshots/state_20260923_180726_043694.json
-        snapshots/state_20260923_185419_756835.json
-        snapshots/state_20260923_193323_298297.json
-        snapshots/state_20260923_195704_509449.json
-        snapshots/state_20260923_201520_253427.json
-        snapshots/state_20260923_202052_728724.json
-        snapshots/state_20260923_202438_366355.json
-        snapshots/state_20260923_204233_128196.json
-        snapshots/state_20260923_204315_639535.json
-        snapshots/state_20260923_204324_226795.json
-        snapshots/state_20260923_204454_887391.json
-        snapshots/state_20260923_204454_900139.json
-        snapshots/state_20260923_205735_470444.json
-        snapshots/state_20260923_210940_680814.json
-        snapshots/state_20260923_213138_927057.json
-        snapshots/state_20260923_223349_496861.json
-        snapshots/state_20260924_101820_265169.json
-        ../REOS_LAYER_BACKUP_20260924_201807/
+Ye read-only PS diagnostic chalao:
 
+Set-Location "D:\HOMIO\REOS_CONTROL_CENTER"
 
-[process exited with code 1 (0x00000001)]
-You can now close this terminal with Ctrl+D, or press Enter to restart.
-Windows PowerShell
-Copyright (C) Microsoft Corporation. All rights reserved.
+Write-Host "`n=== CORE-001 T03 SURFACE ===" -ForegroundColor Cyan
+
+$root = ".\AUTONOMY_ENGINE\core\identity_tenant"
+
+Get-ChildItem $root -File |
+    Select-Object Name, Length |
+    Sort-Object Name |
+    Format-Table -AutoSize
+
+Write-Host "`n=== PYTHON SYMBOLS ===" -ForegroundColor Cyan
+
+Get-ChildItem $root -Filter *.py -File |
+    ForEach-Object {
+        Write-Host "`n[$($_.Name)]" -ForegroundColor Yellow
+        Select-String -Path $_.FullName `
+            -Pattern '^\s*(class|def|async def)\s+' |
+            ForEach-Object { $_.Line.Trim() }
+    }
+
+Write-Host "`n=== GIT STATE ===" -ForegroundColor Cyan
+git status --short -- AUTONOMY_ENGINE\core\identity_tenant
+
+Write-Host "`n=== T03 FILE PRESENCE ===" -ForegroundColor Cyan
+@(
+    "authorization.py",
+    "test_authorization.py",
+    "authorization_contract.json"
+) | ForEach-Object {
+    $p = Join-Path $root $_
+    "{0} = {1}" -f $_, (Test-Path $p)
+}
+
+Iska output bhejo. Uske baad main isi actual local structure ke upar T03 ka corrected code dunga—RBAC + bounded ABAC/relationship authorization, deny-by-default, tenant boundary, AI/service/system principals, SoD, high-risk approval aur policy-versioning ke saath. NIST ABAC explicitly subject/object/action/context attributes ko policy evaluation mein use karta hai, while OWASP deny-by-default and least privilege ko authorization baseline maanta hai.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py status 
+HOMIO / REOS CONTROL CENTER v7.0 
+======================================================================== 
+Phase: PRE-CODING ARCHITECTURE 
+Gate: CORE-001 
+Task: CORE-001-T03: Implement role and permission model. 
+Status: CONTROL_CENTER_DRIVEN 
+Subtask: CORE-001-T03 
+Gate Status: CURRENT 
+Subtasks: 10 Criteria: 7 
+Approved: 38 Pending: 1 
+State: D:\Homio\REOS_CONTROL_CENTER\data\state.json 
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py gate 
+GATE: Identity & Tenant Foundation 
+STATUS: CURRENT 
+CURRENT SUBTASK: CORE-001-T03 
+SUBTASKS: 
+CORE-001-T01 | Define identity model | DONE | CRITICAL 
+CORE-001-T02 | Define tenant model and lifecycle | DONE | CRITICAL 
+CORE-001-T03 | Implement role and permission model | CURRENT | CRITICAL 
+CORE-001-T04 | Implement tenant isolation enforcement | PENDING | CRITICAL 
+CORE-001-T05 | Implement session and authentication boundaries | PENDING | HIGH 
+CORE-001-T06 | Implement authorization context propagation | PENDING | HIGH 
+CORE-001-T07 | Implement audit hooks for identity and tenant actions | PENDING | HIGH 
+CORE-001-T08 | Run tenant-isolation security tests | PENDING | CRITICAL 
+CORE-001-T09 | Run identity dependency and performance review | PENDING | HIGH 
+CORE-001-T10 | Freeze identity and tenant foundation | PENDING | CRITICAL 
+ACCEPTANCE CRITERIA: 
+CORE-001-AC01 | PENDING | Identity has one authoritative source of truth. 
+CORE-001-AC02 | PENDING | Tenant isolation is enforceable. 
+CORE-001-AC03 | PENDING | Roles and permissions are explicit. 
+CORE-001-AC04 | PENDING | Authorization context propagates safely. 
+CORE-001-AC05 | PENDING | Identity and tenant lifecycle changes are auditable. 
+CORE-001-AC06 | PENDING | Security and cross-tenant tests pass. 
+CORE-001-AC07 | PENDING | Foundation supports all approved operating modes. 
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py verify-state 
+STATE HASH STORED: a7b5b253bb96de045d941be403aca44cbcdc3f756db1e605cd950a3cf4d7de8a 
+STATE HASH CALCULATED: a7b5b253bb96de045d941be403aca44cbcdc3f756db1e605cd950a3cf4d7de8a 
+INTEGRITY: PASS 
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location "D:\HOMIO\REOS_CONTROL_CENTER" 
+PS D:\HOMIO\REOS_CONTROL_CENTER> 
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "n=== CORE-001 T03 SURFACE ===" -ForegroundColor Cyan 
+ 
+=== CORE-001 T03 SURFACE === 
+PS D:\HOMIO\REOS_CONTROL_CENTER> 
+PS D:\HOMIO\REOS_CONTROL_CENTER> $root = ".\AUTONOMY_ENGINE\core\identity_tenant" 
+PS D:\HOMIO\REOS_CONTROL_CENTER> 
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem $root -File | 
+>>     Select-Object Name, Length | 
+>>     Sort-Object Name | 
+>>     Format-Table -AutoSize 
+ 
+Name                   Length 
+----                   ------ 
+__init__.py               693 
+identity.py             14085 
+identity_contract.json   2674 
+tenant.py               11956 
+tenant_contract.json     2468 
+test_identity.py        13071 
+test_t01_d_contract.py   2291 
+test_tenant.py           9308 
+ 
+ 
+PS D:\HOMIO\REOS_CONTROL_CENTER> 
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "n=== PYTHON SYMBOLS ===" -ForegroundColor Cyan 
+ 
+=== PYTHON SYMBOLS === 
+PS D:\HOMIO\REOS_CONTROL_CENTER> 
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem $root -Filter *.py -File | 
+>>     ForEach-Object { 
+>>         Write-Host "n[$($_.Name)]" -ForegroundColor Yellow 
+>>         Select-String -Path $_.FullName  
+>>             -Pattern '^\s*(class|def|async def)\s+' | 
+>>             ForEach-Object { $_.Line.Trim() } 
+>>     } 
+ 
+[identity.py] 
+def _utc_now() -> datetime: 
+def _required_text(value: str, field_name: str, max_length: int) -> str: 
+def _normalize_handle(value: str) -> str: 
+class IdentityType(StrEnum): 
+class IdentityStatus(StrEnum): 
+class PrivacyClass(StrEnum): 
+class AccountStatus(StrEnum): 
+class Identity: 
+def __post_init__(self) -> None: 
+def create( 
+def with_status(self, status: IdentityStatus) -> "Identity": 
+def renamed(self, display_name: str) -> "Identity": 
+class IdentityAccount: 
+def __post_init__(self) -> None: 
+def create(cls, identity_id: UUID) -> "IdentityAccount": 
+def rotate_authentication_epoch(self) -> "IdentityAccount": 
+def _validate_external_provider(provider: str) -> str: 
+def _validate_external_subject(subject: str) -> str: 
+class ExternalIdentityStatus(StrEnum): 
+class ExternalIdentityReference: 
+def __post_init__(self) -> None: 
+def create( 
+def external_key(self) -> tuple[str, str]: 
+def with_status( 
+def revoked(self) -> "ExternalIdentityReference": 
+class IdentityResolutionStatus(StrEnum): 
+class IdentityResolutionResult: 
+def resolved(self) -> bool: 
+class IdentityRegistry: 
+def __init__(self) -> None: 
+def register_identity(self, identity: Identity) -> None: 
+def register_external_reference( 
+def resolve_external( 
+def get_identity(self, identity_id: UUID) -> Identity | None: 
+ 
+[tenant.py] 
+def _utc_now() -> datetime: 
+def _required_text(value: str, field_name: str, max_length: int) -> str: 
+def _normalize_slug(slug: str) -> str: 
+def _validate_uuid(value: UUID, field_name: str) -> UUID: 
+def _validate_aware(value: datetime, field_name: str) -> datetime: 
+class TenantKind(StrEnum): 
+class OperatingMode(StrEnum): 
+class TenantStatus(StrEnum): 
+class IsolationProfile(StrEnum): 
+class DataResidencyMode(StrEnum): 
+class ProvisioningIntentStatus(StrEnum): 
+class Tenant: 
+def __post_init__(self) -> None: 
+def create( 
+def assign_administrators( 
+def transition_to(self, status: TenantStatus) -> "Tenant": 
+def is_active(self) -> bool: 
+def accepts_new_activity(self) -> bool: 
+class TenantProvisioningIntent: 
+def __post_init__(self) -> None: 
+def create( 
+def with_status( 
+def key(self) -> tuple[UUID, str]: 
+ 
+[test_identity.py] 
+def test_identity_creation_is_authoritative_and_typed(): 
+def test_supported_identity_types(identity_type): 
+def test_handle_is_normalized(): 
+def test_invalid_handle_is_rejected(handle): 
+def test_identity_state_transition_is_immutable(): 
+def test_identity_rename_is_immutable(): 
+def test_restricted_privacy_class_is_supported(): 
+def test_account_is_separate_from_identity(): 
+def test_authentication_epoch_rotation_is_immutable(): 
+def test_identity_and_account_timestamps_are_timezone_aware(): 
+def test_mixed_case_handle_normalizes_to_canonical_lowercase(): 
+def test_system_identity_is_first_class(): 
+def test_external_identity_reference_is_first_class(): 
+def test_external_identity_subject_is_case_preserving(): 
+def test_external_identity_key_is_deterministic(): 
+def test_external_identity_revocation_is_immutable(): 
+def test_external_identity_invalid_provider_is_rejected(): 
+def test_external_identity_timestamps_are_timezone_aware(): 
+def test_external_identity_resolution_is_deterministic(): 
+def test_external_identity_unknown_reference_fails_closed(): 
+def test_external_identity_duplicate_key_cannot_rebind(): 
+def test_external_identity_revoked_reference_does_not_resolve(): 
+def test_inactive_canonical_identity_does_not_resolve(): 
+def test_external_identity_reference_requires_canonical_identity(): 
+ 
+[test_t01_d_contract.py] 
+def _load_contract(): 
+def test_machine_contract_exists_and_is_valid(): 
+def test_machine_contract_contains_all_identity_types(): 
+def test_machine_contract_contains_identity_fields(): 
+def test_machine_contract_contains_external_identity_contract(): 
+def test_machine_contract_contains_fail_closed_security_invariants(): 
+def test_machine_contract_resolution_outcomes_match_runtime(): 
+ 
+[test_tenant.py] 
+def test_tenant_creation_is_typed_and_authoritative(): 
+def test_all_approved_operating_modes_are_supported(mode): 
+def test_all_tenant_kinds_are_supported(kind): 
+def test_slug_is_normalized(): 
+def test_invalid_slug_is_rejected(slug): 
+def test_identity_and_timestamps_are_immutable_and_aware(): 
+def test_activation_requires_owner_and_admin(): 
+def test_tenant_becomes_active_only_with_administrators(): 
+def test_valid_lifecycle_transitions(): 
+def test_invalid_lifecycle_transitions_fail_closed(start, end): 
+def test_restricted_residency_requires_scope(): 
+def test_region_bound_residency_is_supported(): 
+def test_isolation_profile_is_explicit(): 
+def test_owner_and_admin_assignment_is_immutable(): 
+def test_provisioning_intent_is_idempotency_keyed(): 
+def test_provisioning_intent_state_is_immutable(): 
+def test_provisioning_intent_invalid_key_is_rejected(): 
+def test_archived_tenant_is_terminal(): 
+ 
+[__init__.py] 
+PS D:\HOMIO\REOS_CONTROL_CENTER> 
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "n=== GIT STATE ===" -ForegroundColor Cyan 
+ 
+=== GIT STATE === 
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short -- AUTONOMY_ENGINE\core\identity_tenant 
+ M AUTONOMY_ENGINE/core/identity_tenant/__init__.py 
+?? AUTONOMY_ENGINE/core/identity_tenant/identity.py 
+?? AUTONOMY_ENGINE/core/identity_tenant/identity_contract.json 
+?? AUTONOMY_ENGINE/core/identity_tenant/tenant.py 
+?? AUTONOMY_ENGINE/core/identity_tenant/tenant_contract.json 
+?? AUTONOMY_ENGINE/core/identity_tenant/test_identity.py 
+?? AUTONOMY_ENGINE/core/identity_tenant/test_t01_d_contract.py 
+?? AUTONOMY_ENGINE/core/identity_tenant/test_tenant.py 
+PS D:\HOMIO\REOS_CONTROL_CENTER> 
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "n=== T03 FILE PRESENCE ===" -ForegroundColor Cyan 
+ 
+=== T03 FILE PRESENCE === 
+PS D:\HOMIO\REOS_CONTROL_CENTER> @( 
+>>     "authorization.py", 
+>>     "test_authorization.py", 
+>>     "authorization_contract.json" 
+>> ) | ForEach-Object { 
+>>     $p = Join-Path $root $_ 
+>>     "{0} = {1}" -f $_, (Test-Path $p) 
+>> } 
+authorization.py = False 
+test_authorization.py = False 
+authorization_contract.json = False                muze kuch bhi samaj nahi aa raha tumane itana kam kiya lekin muze files local or git mai bhi nahi mili
+
+Haan bhai — galti yahi hui thi: maine script banaya tha, lekin woh tumhare D:\HOMIO\REOS_CONTROL_CENTER par execute nahi hua. Isliye tumhare local folder mein T03 ki ek bhi file aayi hi nahi. Tumhara output bilkul expected hai:
+
+authorization.py = False
+test_authorization.py = False
+authorization_contract.json = False
+
+Ab confusion nahi rakhenge. T03 ke liye ek hi executable PS file hai, jo local files create karegi, tests chalाएगी, regression karegi aur Git status dikhayegi.
+
+1. Ye file download karo
+
+CORE-001-T03_EXECUTE.ps1
+
+2. Phir PowerShell mein exactly ye chalao
+Set-Location "D:\HOMIO\REOS_CONTROL_CENTER"
+
+Set-ExecutionPolicy -Scope Process Bypass
+
+& ".\CORE-001-T03_EXECUTE.ps1"
+
+Agar downloaded file Downloads mein hai aur project folder mein nahi hai, pehle:
+
+Copy-Item "$env:USERPROFILE\Downloads\CORE-001-T03_EXECUTE.ps1" `
+"D:\HOMIO\REOS_CONTROL_CENTER\CORE-001-T03_EXECUTE.ps1" -Force
+
+phir:
+
+Set-Location "D:\HOMIO\REOS_CONTROL_CENTER"
+Set-ExecutionPolicy -Scope Process Bypass
+& ".\CORE-001-T03_EXECUTE.ps1"
+3. Script kya karegi
+
+Ye exact folder mein:
+
+AUTONOMY_ENGINE
+└── core
+    └── identity_tenant
+        ├── authorization.py
+        ├── test_authorization.py
+        └── authorization_contract.json
+
+banayegi.
+
+Existing T01/T02 files ko replace nahi karegi. Existing T03 file hui to backup banayegi.
+
+Phir automatically:
+
+PYCOMPILE
+T03 TESTS
+FULL identity_tenant REGRESSION
+STATE INTEGRITY
+GIT STATE
+T03 FILE PRESENCE
+
+run karegi.
+
+Maine jo T03 implementation script banaya hai uske authorization tests ko isolated environment mein 28 tests pass karke validate kiya hai. Tumhare actual REOS local T01/T02 ke against final verification tumhare PowerShell run se hi authoritative hoga.
+
+Architecture-wise T03 mein plain RBAC nahi hai; model RBAC + bounded ABAC/context + relationship/ownership, deny-by-default, explicit deny precedence, tenant boundary, AI/SERVICE/SYSTEM principals, operating-mode restrictions, SoD, high-risk approval evidence, revocation/versioning aur controlled cross-tenant authority cover karta hai. Ye NIST ABAC aur OWASP authorization guidance ke saath aligned hai.
+
+Abhi complete-subtask CORE-001-T03 mat chalana. Pehle actual PS output mein T03 tests aur full identity_tenant regression PASS hona chahiye.
