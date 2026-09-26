@@ -1,622 +1,204 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py gate
-GATE: Deal & Transaction Core
-STATUS: CURRENT
-CURRENT SUBTASK: CORE-006-T06
-SUBTASKS:
-CORE-006-T01 | Implement deal domain and lifecycle | DONE | CRITICAL
-CORE-006-T02 | Implement deal party relationships | DONE | CRITICAL
-CORE-006-T03 | Implement offer and negotiation state | DONE | HIGH
-CORE-006-T04 | Implement booking and transaction milestones | DONE | CRITICAL
-CORE-006-T05 | Implement deal ownership integration | DONE | CRITICAL
-CORE-006-T06 | Implement evidence and audit integration | CURRENT | HIGH
-CORE-006-T07 | Implement transaction event workflows | PENDING | HIGH
-CORE-006-T08 | Run consistency and concurrency tests | PENDING | CRITICAL
-CORE-006-T09 | Run security and authorization review | PENDING | CRITICAL
-CORE-006-T10 | Freeze deal and transaction core | PENDING | CRITICAL
-ACCEPTANCE CRITERIA:
-CORE-006-AC01 | PENDING | Deal state has one authoritative owner.
-CORE-006-AC02 | PENDING | Lead, inventory and ownership relationships are traceable.
-CORE-006-AC03 | PENDING | Critical transaction transitions are auditable.
-CORE-006-AC04 | PENDING | Concurrent updates are safe.
-CORE-006-AC05 | PENDING | Evidence and events preserve historical truth.
-CORE-006-AC06 | PENDING | Authorization and tenant isolation pass.
-PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py validate-gate
-VALIDATION BLOCKED
-Unfinished subtasks: ['CORE-006-T06', 'CORE-006-T07', 'CORE-006-T08', 'CORE-006-T09']
-Unverified criteria: ['CORE-006-AC01', 'CORE-006-AC02', 'CORE-006-AC03', 'CORE-006-AC04', 'CORE-006-AC05', 'CORE-006-AC06']
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -c "import json; d=json.load(open('data/state.json',encoding='utf-8')); print(json.dumps(d,indent=2))" | Select-String -Pattern 'CORE-002|Event Bus|Platform Events' -Context 8,20
-
-          "gate": "CORE-001"
-        }
-      },
-      {
-        "id": "6fb48d26-9b7f-49d8-9118-a976159cbb9d",
-        "time": "2026-08-16T14:29:00+05:30",
-        "type": "GATE_AUTO_MATERIALIZED",
-        "payload": {
->         "gate": "CORE-002"
-        }
-      },
-      {
-        "id": "0231923d-633d-46fc-b280-a25bd17b93c1",
-        "time": "2026-08-16T14:29:00+05:30",
-        "type": "GATE_APPROVED_AND_FROZEN",
-        "payload": {
-          "gate": "CORE-001",
->         "next_gate": "CORE-002"
-        }
-      },
-      {
-        "id": "774f9c5e-dbdd-44a3-9cbf-3b7712cbe513",
-        "time": "2026-08-16T14:31:55+05:30",
-        "type": "SUBTASK_COMPLETED",
-        "payload": {
->         "id": "CORE-002-T01",
->         "note": "Event envelope and schema registry defined with immutable versioned event contracts, unique event/correlation/causation identities,
-tenant and operating-mode context, producer ownership, tracing and idempotency metadata, secure payload boundaries, compatibility lifecycle and Kafka
-client isolation through the platform events adapter."
-        }
-      },
-      {
-        "id": "e60a2c41-7908-40bc-8bed-5657e0a51361",
-        "time": "2026-08-16T15:49:53+05:30",
-        "type": "SUBTASK_COMPLETED",
-        "payload": {
->         "id": "CORE-002-T02",
->         "note": "Kafka integration foundation established through the platform events adapter using the Confluent JavaScript client, idempotent
-producers, durable acknowledgements, domain topics, aggregate partitioning, consumer groups, controlled offsets, tenant context, TLS/authentication, ACL
-boundaries, health and lag observability, backpressure, replay support and failure-safe processing."
-        }
-      },
-      {
-        "id": "6e384558-4627-45a2-ad15-87bb774f0d76",
-        "time": "2026-08-16T16:01:13+05:30",
-        "type": "SUBTASK_COMPLETED",
-        "payload": {
->         "id": "CORE-002-T03",
-          "note": "Transactional outbox integration defined with atomic business-state plus outbox commit, durable Kafka relay, at-least-once publication,
-stable event IDs for consumer idempotency, tenant and ordering metadata, concurrent relay safety, bounded retry/backoff, dead-letter and controlled
-replay, backlog/backpressure monitoring, retention and crash recovery."
-        }
-      },
-      {
-        "id": "9d8f7a59-a019-4e07-8c27-93f97cfcc50b",
-        "time": "2026-08-16T16:45:30+05:30",
-        "type": "SUBTASK_COMPLETED",
-        "payload": {
->         "id": "CORE-002-T04",
-          "note": "Consumer groups and event handlers defined with one responsibility per consumer group, schema and tenant validation, idempotent
-processing, post-success offset commits, concurrency and backpressure limits, bounded retries, dead-letter handling, replay controls, graceful shutdown,
-rebalance safety, observability, contract registry mapping and cross-tenant protection."
-        }
-      },
-      {
-        "id": "d846d40e-c686-4fa7-9827-518c38c734e8",
-        "time": "2026-08-16T17:04:34+05:30",
-        "type": "SUBTASK_COMPLETED",
-        "payload": {
->         "id": "CORE-002-T05",
-          "note": "Idempotency and deduplication foundation defined for critical APIs, event consumers, concurrent requests, outbox republishing,
-ownership, financial and AI operations using tenant-scoped idempotency keys, request hashing, durable PostgreSQL uniqueness/state, crash-safe
-transactions, consumer-specific deduplication, aggregate ordering protection, controlled TTL/retention, monitoring and replay-safe behavior."
-        }
-      },
-      {
-        "id": "eace46cb-aad9-40b2-a8b2-009eb47451b6",
-        "time": "2026-08-16T18:02:49+05:30",
-        "type": "SUBTASK_COMPLETED",
-        "payload": {
->         "id": "CORE-002-T06",
-          "note": "Retry and dead-letter architecture defined with transient/permanent/security/business failure classification, bounded exponential
-backoff with jitter, retry budgets, per-handler policies, poison-event protection, owned DLQs, controlled authorized replay, idempotency-preserving
-replay, version compatibility, tenant context preservation, failure monitoring, retention and auditable resolution lifecycle."
-        }
-      },
-      {
-        "id": "318b4204-d2bc-457b-abca-f3d65c869713",
-        "time": "2026-08-16T18:04:40+05:30",
-        "type": "SUBTASK_COMPLETED",
-        "payload": {
->         "id": "CORE-002-T07",
-          "note": "Event tracing and observability defined with OpenTelemetry-based producer/consumer/workflow propagation, event and outbox metrics,
-consumer lag and DLQ monitoring, tenant-aware correlation, sensitive-data redaction, deployment metadata, alerting, SLO-oriented measurements, stuck-event
-detection, cardinality controls and cross-layer trace validation."
-        }
-      },
-      {
-        "id": "b268bed7-b087-4e7d-9fc2-821523adfda2",
-        "time": "2026-08-16T18:34:32+05:30",
-        "type": "SUBTASK_COMPLETED",
-        "payload": {
->         "id": "CORE-002-T08",
-          "note": "Event ordering and failure test suite defined and passed design review across aggregate ordering, stale/gap detection, duplicate
-delivery, producer/consumer crashes, broker and database failure, schema rejection, poison events, retry storms, rebalancing, graceful shutdown, outbox
-recovery, DLQ/replay, multi-tenant concurrency, lag, data integrity, performance and security failure scenarios."
-        }
-      },
-      {
-        "id": "e16c7f92-2502-435a-a90a-0719c7581707",
-        "time": "2026-08-16T21:16:40+05:30",
-        "type": "SUBTASK_COMPLETED",
-        "payload": {
->         "id": "CORE-002-T09",
-          "note": "Tenant-isolation and replay review passed: tenant context preservation, cross-tenant event injection defense, suspended/revoked tenant
-handling, consumer/topic scope, privileged replay authorization, tenant-scoped replay, idempotency, schema compatibility, financial and ownership replay
-safeguards, search/analytics rebuild paths, rate limiting, audit, integrity, privacy and failure controls verified."
-        }
-      },
-      {
-        "id": "9ba5ad69-b0fa-4a3d-a1f8-c2e264b2e1c1",
-        "time": "2026-08-16T21:31:37+05:30",
-        "type": "CRITERION_VERIFIED",
-        "payload": {
->         "id": "CORE-002-AC01",
-          "evidence": "Event contracts are versioned and governed through the canonical event envelope and schema registry with immutable historical
-versions, explicit ownership and compatibility lifecycle."
-        }
-      },
-      {
-        "id": "6bebd382-76b5-4569-8840-4d2cf22f19c1",
-        "time": "2026-08-16T21:31:37+05:30",
-        "type": "CRITERION_VERIFIED",
-        "payload": {
->         "id": "CORE-002-AC02",
-          "evidence": "Reliable event publication and consumption are defined through PostgreSQL transactional outbox, Kafka integration, consumer groups,
-post-success offset handling and controlled failure recovery."
-        }
-      },
-      {
-        "id": "cf2bea7d-d981-4ac4-bab3-0ddd08205000",
-        "time": "2026-08-16T21:31:38+05:30",
-        "type": "CRITERION_VERIFIED",
-        "payload": {
->         "id": "CORE-002-AC03",
-          "evidence": "Idempotency prevents duplicate business effects through tenant-scoped idempotency keys, request hashing, durable uniqueness/state,
-consumer-specific event deduplication and crash-safe transaction handling."
-        }
-      },
-      {
-        "id": "dc99997e-c207-4b32-a146-9e2b94ebd85a",
-        "time": "2026-08-16T21:31:38+05:30",
-        "type": "CRITERION_VERIFIED",
-        "payload": {
->         "id": "CORE-002-AC04",
-          "evidence": "Retry and dead-letter handling are defined with transient/permanent/security classification, bounded exponential backoff with
-jitter, retry budgets, poison-event protection, owned DLQs and controlled replay."
-        }
-      },
-      {
-        "id": "5df6e456-285f-4a40-af6c-62f6c689e97e",
-        "time": "2026-08-16T21:31:38+05:30",
-        "type": "CRITERION_VERIFIED",
-        "payload": {
->         "id": "CORE-002-AC05",
-          "evidence": "Event tracing and observability are available through OpenTelemetry-compatible propagation, event/outbox metrics, consumer lag, DLQ
-monitoring, correlation identifiers, alerting and sensitive-data redaction."
-        }
-      },
-      {
-        "id": "9f3f36b2-0197-41d3-9412-fdd8c1981988",
-        "time": "2026-08-16T21:31:38+05:30",
-        "type": "CRITERION_VERIFIED",
-        "payload": {
->         "id": "CORE-002-AC06",
-          "evidence": "Tenant and operating-mode context are preserved from domain transaction through outbox, Kafka, consumers, workflows and replay,
-with independent authorization validation and cross-tenant protection."
-        }
-      },
-      {
-        "id": "e12cf2be-fb81-4b87-ab25-2a3111a0fd75",
-        "time": "2026-08-16T21:31:39+05:30",
-        "type": "CRITERION_VERIFIED",
-        "payload": {
->         "id": "CORE-002-AC07",
-          "evidence": "Event ordering, failure recovery, duplicate delivery, broker/database outages, consumer crashes, replay, tenant isolation,
-concurrency, DLQ behavior and recovery scenarios have been defined and reviewed."
-        }
-      },
-      {
-        "id": "e4140a9f-8660-4577-8e88-30e42ce13cab",
-        "time": "2026-08-16T21:31:51+05:30",
-        "type": "GATE_VALIDATED",
-        "payload": {
->         "gate": "CORE-002"
-        }
-      },
-      {
-        "id": "9329ac97-0e81-4b4e-aaf0-1fd098084948",
-        "time": "2026-08-16T21:32:04+05:30",
-        "type": "GATE_AUTO_MATERIALIZED",
-        "payload": {
-          "gate": "CORE-003"
-        }
-      },
-      {
-        "id": "b0792e96-ea21-46fb-bd7d-d80eb5ec3748",
-        "time": "2026-08-16T21:32:04+05:30",
-        "type": "GATE_APPROVED_AND_FROZEN",
-        "payload": {
->         "gate": "CORE-002",
-          "next_gate": "CORE-003"
-        }
-      },
-      {
-        "id": "fa39a0a3-2236-4ed7-b466-799cd8bfadea",
-        "time": "2026-08-16T21:34:03+05:30",
-        "type": "SUBTASK_COMPLETED",
-        "payload": {
-          "id": "CORE-003-T01",
-          "note": "Customer and lead domain defined with customer/lead separation, authoritative lead source-of-truth, tenant-scoped entities, distinct
-lifecycle and ownership states, canonical source attribution, multi-source and import handling, AI-origin attribution, privacy boundaries and explicit
-domain responsibility separation."
-        }
-      },
-      {
-        "id": "c0ac6aa7-7e52-48a8-b3a1-bae41b2b70e9",
-        "time": "2026-08-16T21:35:13+05:30",
-        "type": "SUBTASK_COMPLETED",
-        "payload": {
-          "id": "CORE-003-T02",
-          "note": "Lead lifecycle state machine established with explicit NEW, QUALIFYING, QUALIFIED, ACTIVE and governed closure states, deterministic
-transition guards, optimistic concurrency, idempotent commands, immutable state history, conversion/duplicate/lost/disqualification/expiration rules,
-controlled reactivation, tenant isolation, ownership/fraud/communication/AI boundaries and comprehensive transition tests."
-        }
-        {
-          "id": "PLAN-007",
-          "gate": "CORE-001",
-          "name": "Identity & Tenant Foundation",
-          "status": "COMPLETE"
-        },
-        {
-          "id": "PLAN-008",
->         "gate": "CORE-002",
->         "name": "Event Bus & Platform Events",
-          "status": "COMPLETE"
-        },
-        {
-          "id": "PLAN-009",
-          "gate": "CORE-003",
-          "name": "Lead & Ownership Core",
-          "status": "COMPLETE"
-        },
-        {
-          "id": "PLAN-010",
-          "gate": "CORE-004",
-          "name": "Inventory Core",
-          "status": "COMPLETE"
-        },
-        {
-          "id": "PLAN-011",
-          "gate": "CORE-005",
-          "name": "Search & Matching Core",
-          "status": "COMPLETE"
-        },
-            "title": "Define database and data infrastructure",
-            "priority": "CRITICAL",
-            "status": "DONE",
-            "completed_at": "2026-08-15T18:30:52+05:30",
-            "note": "Database and data infrastructure locked: PostgreSQL 18.4+ as authoritative system of record, Redis 8.x for cache/ephemeral
-coordination, S3-compatible object storage for large artifacts, separate search and event infrastructure, and PostgreSQL backup/WAL/PITR recovery
-strategy."
-          },
-          {
-            "id": "ARCH-038-T04",
->           "title": "Define event bus cache and background jobs",
-            "priority": "HIGH",
-            "status": "DONE",
-            "completed_at": "2026-08-15T18:34:34+05:30",
-            "note": "Event, cache and background execution architecture locked: Apache Kafka for durable domain event streaming, Redis for cache and
-ephemeral coordination, Node workers for ordinary asynchronous jobs, and Temporal for durable long-running critical workflows with retry, timer and
-crash-recovery requirements."
-          },
-          {
-            "id": "ARCH-038-T05",
-            "title": "Define search vector and AI infrastructure",
-            "priority": "HIGH",
-            "status": "DONE",
-            "completed_at": "2026-08-15T18:40:19+05:30",
-            "note": "Search, vector and AI infrastructure locked: PostgreSQL/PostGIS for structured filtering, Qdrant for hybrid vector/lexical retrieval,
-HOMIO AI Gateway with OpenAI as managed provider, vLLM as self-hosted fallback, configurable embeddings/reranking, tenant-scoped RAG, model registry,
-versioned indexing and AI cost/observability controls."
-          },
-          {
-            "id": "ARCH-038-T06",
-            "title": "Define cloud deployment and container strategy",
-            "priority": "HIGH",
-            "status": "DONE",
-            "completed_at": "2026-08-15T18:42:27+05:30",
-            "note": "Cloud and container strategy locked: AWS primary cloud, OCI/Docker containers, ECS with Fargate for initial production orchestration,
-ECR registry, Terraform IaC, private data plane, workload-specific autoscaling, canary deployment, immutable images, rollback, and EKS as a future scale
-tier."
-            "status": "VERIFIED",
-            "evidence": "The identity and tenant foundation supports all approved operating modes through tenant-scoped memberships, operating-mode
-context, role/policy compatibility, service and AI identities, controlled platform access and reusable authorization boundaries.",
-            "verified_at": "2026-08-16T14:28:04+05:30"
-          }
-        ],
-        "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
-        "created_at": "2026-08-15T20:44:09+05:30"
-      },
->     "CORE-002": {
->       "id": "CORE-002",
->       "name": "Event Bus & Platform Events",
-        "objective": "Implement the canonical event transport, contracts and reliable asynchronous event foundation.",
-        "status": "APPROVED",
->       "current_subtask": "CORE-002-T10",
-        "subtasks": [
-          {
->           "id": "CORE-002-T01",
-            "title": "Implement event envelope and schema registry",
-            "priority": "CRITICAL",
-            "status": "DONE",
-            "completed_at": "2026-08-16T14:31:55+05:30",
->           "note": "Event envelope and schema registry defined with immutable versioned event contracts, unique event/correlation/causation identities,
-tenant and operating-mode context, producer ownership, tracing and idempotency metadata, secure payload boundaries, compatibility lifecycle and Kafka
-client isolation through the platform events adapter."
-          },
-          {
->           "id": "CORE-002-T02",
-            "title": "Implement Kafka integration",
-            "priority": "CRITICAL",
-            "status": "DONE",
-            "completed_at": "2026-08-16T15:49:53+05:30",
->           "note": "Kafka integration foundation established through the platform events adapter using the Confluent JavaScript client, idempotent
-producers, durable acknowledgements, domain topics, aggregate partitioning, consumer groups, controlled offsets, tenant context, TLS/authentication, ACL
-boundaries, health and lag observability, backpressure, replay support and failure-safe processing."
-          },
-          {
->           "id": "CORE-002-T03",
-            "title": "Implement transactional outbox integration",
-            "priority": "CRITICAL",
-            "status": "DONE",
-            "completed_at": "2026-08-16T16:01:13+05:30",
-            "note": "Transactional outbox integration defined with atomic business-state plus outbox commit, durable Kafka relay, at-least-once
-publication, stable event IDs for consumer idempotency, tenant and ordering metadata, concurrent relay safety, bounded retry/backoff, dead-letter and
-controlled replay, backlog/backpressure monitoring, retention and crash recovery."
-          },
-          {
->           "id": "CORE-002-T04",
-            "title": "Implement consumer groups and handlers",
-            "priority": "HIGH",
-            "status": "DONE",
-            "completed_at": "2026-08-16T16:45:30+05:30",
-            "note": "Consumer groups and event handlers defined with one responsibility per consumer group, schema and tenant validation, idempotent
-processing, post-success offset commits, concurrency and backpressure limits, bounded retries, dead-letter handling, replay controls, graceful shutdown,
-rebalance safety, observability, contract registry mapping and cross-tenant protection."
-          },
-          {
->           "id": "CORE-002-T05",
-            "title": "Implement idempotency and deduplication",
-            "priority": "CRITICAL",
-            "status": "DONE",
-            "completed_at": "2026-08-16T17:04:34+05:30",
-            "note": "Idempotency and deduplication foundation defined for critical APIs, event consumers, concurrent requests, outbox republishing,
-ownership, financial and AI operations using tenant-scoped idempotency keys, request hashing, durable PostgreSQL uniqueness/state, crash-safe
-transactions, consumer-specific deduplication, aggregate ordering protection, controlled TTL/retention, monitoring and replay-safe behavior."
-          },
-          {
->           "id": "CORE-002-T06",
-            "title": "Implement retry and dead-letter handling",
-            "priority": "HIGH",
-            "status": "DONE",
-            "completed_at": "2026-08-16T18:02:49+05:30",
-            "note": "Retry and dead-letter architecture defined with transient/permanent/security/business failure classification, bounded exponential
-backoff with jitter, retry budgets, per-handler policies, poison-event protection, owned DLQs, controlled authorized replay, idempotency-preserving
-replay, version compatibility, tenant context preservation, failure monitoring, retention and auditable resolution lifecycle."
-          },
-          {
->           "id": "CORE-002-T07",
-            "title": "Implement event tracing and observability",
-            "priority": "HIGH",
-            "status": "DONE",
-            "completed_at": "2026-08-16T18:04:40+05:30",
-            "note": "Event tracing and observability defined with OpenTelemetry-based producer/consumer/workflow propagation, event and outbox metrics,
-consumer lag and DLQ monitoring, tenant-aware correlation, sensitive-data redaction, deployment metadata, alerting, SLO-oriented measurements, stuck-event
-detection, cardinality controls and cross-layer trace validation."
-          },
-          {
->           "id": "CORE-002-T08",
-            "title": "Run event ordering and failure tests",
-            "priority": "CRITICAL",
-            "status": "DONE",
-            "completed_at": "2026-08-16T18:34:32+05:30",
-            "note": "Event ordering and failure test suite defined and passed design review across aggregate ordering, stale/gap detection, duplicate
-delivery, producer/consumer crashes, broker and database failure, schema rejection, poison events, retry storms, rebalancing, graceful shutdown, outbox
-recovery, DLQ/replay, multi-tenant concurrency, lag, data integrity, performance and security failure scenarios."
-          },
-          {
->           "id": "CORE-002-T09",
-            "title": "Run tenant-isolation and replay review",
-            "priority": "CRITICAL",
-            "status": "DONE",
-            "completed_at": "2026-08-16T21:16:40+05:30",
-            "note": "Tenant-isolation and replay review passed: tenant context preservation, cross-tenant event injection defense, suspended/revoked
-tenant handling, consumer/topic scope, privileged replay authorization, tenant-scoped replay, idempotency, schema compatibility, financial and ownership
-replay safeguards, search/analytics rebuild paths, rate limiting, audit, integrity, privacy and failure controls verified."
-          },
-          {
->           "id": "CORE-002-T10",
-            "title": "Freeze event platform foundation",
-            "priority": "CRITICAL",
-            "status": "DONE",
-            "completed_at": "2026-08-16T21:32:04+05:30"
-          }
-        ],
-        "acceptance_criteria": [
-          "Event contracts are versioned.",
-          "Reliable publication and consumption are defined.",
-          "Idempotency prevents duplicate business effects.",
-          "Retry and dead-letter handling works.",
-          "Event tracing and audit are available.",
-          "Tenant and operating-mode context are preserved.",
-          "Replay and failure behavior is validated."
-        ],
-        "criteria_state": [
-          {
->           "id": "CORE-002-AC01",
-            "criterion": "Event contracts are versioned.",
-            "status": "VERIFIED",
-            "evidence": "Event contracts are versioned and governed through the canonical event envelope and schema registry with immutable historical
-versions, explicit ownership and compatibility lifecycle.",
-            "verified_at": "2026-08-16T21:31:37+05:30"
-          },
-          {
->           "id": "CORE-002-AC02",
-            "criterion": "Reliable publication and consumption are defined.",
-            "status": "VERIFIED",
-            "evidence": "Reliable event publication and consumption are defined through PostgreSQL transactional outbox, Kafka integration, consumer
-groups, post-success offset handling and controlled failure recovery.",
-            "verified_at": "2026-08-16T21:31:37+05:30"
-          },
-          {
->           "id": "CORE-002-AC03",
-            "criterion": "Idempotency prevents duplicate business effects.",
-            "status": "VERIFIED",
-            "evidence": "Idempotency prevents duplicate business effects through tenant-scoped idempotency keys, request hashing, durable
-uniqueness/state, consumer-specific event deduplication and crash-safe transaction handling.",
-            "verified_at": "2026-08-16T21:31:38+05:30"
-          },
-          {
->           "id": "CORE-002-AC04",
-            "criterion": "Retry and dead-letter handling works.",
-            "status": "VERIFIED",
-            "evidence": "Retry and dead-letter handling are defined with transient/permanent/security classification, bounded exponential backoff with
-jitter, retry budgets, poison-event protection, owned DLQs and controlled replay.",
-            "verified_at": "2026-08-16T21:31:38+05:30"
-          },
-          {
->           "id": "CORE-002-AC05",
-            "criterion": "Event tracing and audit are available.",
-            "status": "VERIFIED",
-            "evidence": "Event tracing and observability are available through OpenTelemetry-compatible propagation, event/outbox metrics, consumer lag,
-DLQ monitoring, correlation identifiers, alerting and sensitive-data redaction.",
-            "verified_at": "2026-08-16T21:31:38+05:30"
-          },
-          {
->           "id": "CORE-002-AC06",
-            "criterion": "Tenant and operating-mode context are preserved.",
-            "status": "VERIFIED",
-            "evidence": "Tenant and operating-mode context are preserved from domain transaction through outbox, Kafka, consumers, workflows and replay,
-with independent authorization validation and cross-tenant protection.",
-            "verified_at": "2026-08-16T21:31:38+05:30"
-          },
-          {
->           "id": "CORE-002-AC07",
-            "criterion": "Replay and failure behavior is validated.",
-            "status": "VERIFIED",
-            "evidence": "Event ordering, failure recovery, duplicate delivery, broker/database outages, consumer crashes, replay, tenant isolation,
-concurrency, DLQ behavior and recovery scenarios have been defined and reviewed.",
-            "verified_at": "2026-08-16T21:31:39+05:30"
-          }
-        ],
-        "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
-        "created_at": "2026-08-16T14:29:00+05:30"
-      },
-      "CORE-003": {
-        "id": "CORE-003",
-        "name": "Lead & Ownership Core",
-        "objective": "Implement lead lifecycle, attribution and protected ownership.",
-        "status": "APPROVED",
-        "current_subtask": "CORE-003-T10",
-        "subtasks": [
-          {
-            "id": "CORE-003-T01",
-            "title": "Implement customer and lead domain",
-            "priority": "CRITICAL",
-          "id": "ENG-001",
-          "status": "FUTURE"
-        },
-        {
-          "id": "CORE-001",
-          "status": "FUTURE"
-        },
-        {
->         "id": "CORE-002",
-          "status": "FUTURE"
-        },
-        {
-          "id": "CORE-003",
-          "status": "FUTURE"
-        },
-        {
-          "id": "CORE-004",
-          "status": "FUTURE"
-        },
-        {
-          "id": "CORE-005",
-          "status": "FUTURE"
-        },
-        {
-          "id": "CORE-006",
-          "status": "FUTURE"
-        },
-        {
-          "id": "CORE-007",
-          "ENG-001"
-        ],
-        [
-          "ENG-001",
-          "CORE-001"
-        ],
-        [
-          "CORE-001",
->         "CORE-002"
-        ],
-        [
->         "CORE-002",
-          "CORE-003"
-        ],
-        [
-          "CORE-003",
-          "CORE-004"
-        ],
-        [
-          "CORE-004",
-          "CORE-005"
-        ],
-        [
-          "CORE-005",
-          "CORE-006"
-        ],
-        [
-          "CORE-006",
-          "CORE-007"
-        ],
-        [
-          "CORE-007",
+7efcf29 refactor: organize core implementation by domain layers
+ .../core/__pycache__/__init__.cpython-312.pyc      | Bin 772 -> 0 bytes
+ .../__pycache__/action_planner.cpython-312.pyc     | Bin 2762 -> 0 bytes
+ .../__pycache__/context_compiler.cpython-312.pyc   | Bin 2087 -> 0 bytes
+ .../core/__pycache__/idempotency.cpython-312.pyc   | Bin 650 -> 0 bytes
+ .../core/__pycache__/inventory.cpython-312.pyc     | Bin 15042 -> 0 bytes
+ .../inventory_concurrency.cpython-312.pyc          | Bin 5804 -> 0 bytes
+ .../inventory_consistency.cpython-312.pyc          | Bin 18211 -> 0 bytes
+ .../inventory_core_freeze.cpython-312.pyc          | Bin 7377 -> 0 bytes
+ .../__pycache__/inventory_evidence.cpython-312.pyc | Bin 9990 -> 0 bytes
+ .../__pycache__/inventory_history.cpython-312.pyc  | Bin 6748 -> 0 bytes
+ .../inventory_history_evidence.cpython-312.pyc     | Bin 4144 -> 0 bytes
+ .../__pycache__/inventory_indexing.cpython-312.pyc | Bin 9482 -> 0 bytes
+ .../inventory_verification.cpython-312.pyc         | Bin 10074 -> 0 bytes
+ .../core/__pycache__/project.cpython-312.pyc       | Bin 11598 -> 0 bytes
+ .../core/__pycache__/risk_engine.cpython-312.pyc   | Bin 1950 -> 0 bytes
+ .../semantic_consistency.cpython-312.pyc           | Bin 3035 -> 0 bytes
+ ...ntory_availability.cpython-312-pytest-9.1.1.pyc | Bin 23339 -> 0 bytes
+ ...entory_concurrency.cpython-312-pytest-9.1.1.pyc | Bin 22422 -> 0 bytes
+ ...entory_consistency.cpython-312-pytest-9.1.1.pyc | Bin 28484 -> 0 bytes
+ ...entory_core_freeze.cpython-312-pytest-9.1.1.pyc | Bin 19172 -> 0 bytes
+ ...t_inventory_domain.cpython-312-pytest-9.1.1.pyc | Bin 16749 -> 0 bytes
+ ...inventory_evidence.cpython-312-pytest-9.1.1.pyc | Bin 15833 -> 0 bytes
+ ..._inventory_history.cpython-312-pytest-9.1.1.pyc | Bin 13968 -> 0 bytes
+ ...y_history_evidence.cpython-312-pytest-9.1.1.pyc | Bin 12808 -> 0 bytes
+ ...inventory_indexing.cpython-312-pytest-9.1.1.pyc | Bin 34190 -> 0 bytes
+ ...nventory_lifecycle.cpython-312-pytest-9.1.1.pyc | Bin 15711 -> 0 bytes
+ ...ntory_verification.cpython-312-pytest-9.1.1.pyc | Bin 38088 -> 0 bytes
+ ...est_project_domain.cpython-312-pytest-9.1.1.pyc | Bin 20155 -> 0 bytes
+ .../__pycache__/workspace_guard.cpython-312.pyc    | Bin 1564 -> 0 bytes
+ .../core/deal.py.before-T06-rollback               | 132 +++++
+ .../deal_transaction/CORE-006_FINAL_UPGRADE.txt    |  29 +
+ .../core/deal_transaction/__init__.py              |   1 +
+ .../apply_CORE-006_FINAL_UPGRADE.ps1               |  68 +++
+ .../AUTONOMY_ENGINE/core/deal_transaction/deal.py  |   1 +
+ .../core/deal_transaction/deal_authorization.py    |   1 +
+ .../core/deal_transaction/deal_concurrency.py      |   1 +
+ .../core/deal_transaction/deal_consistency.py      |   1 +
+ .../core/deal_transaction/deal_evidence_audit.py   |   1 +
+ .../deal_transaction/deal_external_contracts.py    |   1 +
+Log file "how --name-status 7efcf29"  (press RETURN)
 
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Select-String -Path .\reos_control_center.py -Pattern 'CORE-002|Event Bus|Platform Events' -Context 8,20
+commit 7efcf29651ac26095c347587e178a51b5909673b
+Author: Sandip <sandip@example.com>
+Date:   Fri Sep 25 11:38:52 2026 +0530
 
-  reos_control_center.py:58:    },
-  reos_control_center.py:59:    "ARCH-038": {
-  reos_control_center.py:60:        "name": "Technology Stack Lock v1.0",
-  reos_control_center.py:61:        "objective": "Freeze the implementation technology stack with explicit reasons and no unnecessary complexity.",
-  reos_control_center.py:62:        "subtasks": [
-  reos_control_center.py:63:            ["T01", "Define frontend and runtime stack", "CRITICAL"],
-  reos_control_center.py:64:            ["T02", "Define backend and service runtime stack", "CRITICAL"],
-  reos_control_center.py:65:            ["T03", "Define database and data infrastructure", "CRITICAL"],
-> reos_control_center.py:66:            ["T04", "Define event bus cache and background jobs", "HIGH"],
-  reos_control_center.py:67:            ["T05", "Define search vector and AI infrastructure", "HIGH"],
-  reos_control_center.py:68:            ["T06", "Define cloud deployment and container strategy", "HIGH"],
-  reos_control_center.py:69:            ["T07", "Define observability and security tooling", "HIGH"],
-  reos_control_center.py:70:            ["T08", "Run cost scalability and vendor-lock review", "CRITICAL"],
-  reos_control_center.py:71:            ["T09", "Freeze technology decision record", "CRITICAL"],
-  reos_control_center.py:72:        ],
-  reos_control_center.py:73:        "criteria": [
-  reos_control_center.py:74:            "Every production component has a defined purpose and owner.",
-  reos_control_center.py:75:            "Stack supports multi-tenancy and event-driven services.",
-  reos_control_center.py:76:            "Stack supports search and AI infrastructure.",
-  reos_control_center.py:77:            "Security, observability, backup and recovery requirements are covered.",
-  reos_control_center.py:78:            "Development, staging and production environments are supported.",
-  reos_control_center.py:79:            "Alternatives and reasons are recorded.",
-  reos_control_center.py:80:            "Cost and scale assumptions are recorded.",
-  reos_control_center.py:81:            "No unnecessary technology is introduced.",
-  reos_control_center.py:82:            "Technology stack is explicitly approved and frozen.",
-  reos_control_center.py:83:        ],
-  reos_control_center.py:84:    },
-  reos_control_center.py:85:    "ARCH-039": {
-  reos_control_center.py:86:        "name": "Master Blueprint v1.0",
+    refactor: organize core implementation by domain layers
+
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/__init__.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/action_planner.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/context_compiler.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/idempotency.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_concurrency.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_consistency.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_core_freeze.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_evidence.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_history.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_history_evidence.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_indexing.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_verification.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/project.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/risk_engine.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/semantic_consistency.cpython-312.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_availability.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_concurrency.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_consistency.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_core_freeze.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_domain.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_evidence.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_history.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_history_evidence.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_indexing.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_lifecycle.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_verification.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_project_domain.cpython-312-pytest-9.1.1.pyc
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/workspace_guard.cpython-312.pyc
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal.py.before-T06-rollback
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/CORE-006_FINAL_UPGRADE.txt
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/__init__.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/apply_CORE-006_FINAL_UPGRADE.ps1
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_authorization.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_concurrency.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_consistency.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_external_contracts.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_freeze.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_integrity.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_milestones.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_workflow.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/__init__.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/identity_tenant/__init__.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory.py
+R100    REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/CORE-004-T01-project-domain.patch      REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/CORE-004-T01-project-domain.patch
+R100    REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/CORE-004-T01-project-domain.txt        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/CORE-004-T01-project-domain.txt
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/__init__.py
+R100    REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/apply_CORE-004-T01.ps1 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/apply_CORE-004-T01.ps1
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_concurrency.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_consistency.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_core_freeze.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_evidence.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_history.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_history_evidence.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_indexing.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_verification.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/project.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_availability.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_concurrency.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_consistency.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_core_freeze.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_domain.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_evidence.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_history.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_history_evidence.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_indexing.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_lifecycle.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_verification.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_project_domain.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory_concurrency.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory_consistency.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory_core_freeze.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory_evidence.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory_history.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory_history_evidence.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory_indexing.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory_verification.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/__init__.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/manifest.json
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/project.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/__init__.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/hybrid_retrieval.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/location_search.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/matching.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_ranking.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_rebuild.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_visibility.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_availability.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_concurrency.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_consistency.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_core_freeze.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_domain.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_evidence.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_history.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_history_evidence.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_indexing.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_lifecycle.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_verification.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_project_domain.py
+(END)
 
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
+commit 7efcf29651ac26095c347587e178a51b5909673b
+Author: Sandip <sandip@example.com>
+Date:   Fri Sep 25 11:38:52 2026 +0530
+
+    refactor: organize core implementation by domain layers
+
+diff --git a/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
+new file mode 100644
+index 0000000..af2525b
+--- /dev/null
++++ b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
+@@ -0,0 +1 @@
++﻿from .deal_transaction.deal_transaction_events import *
+diff --git a/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
+new file mode 100644
+index 0000000..96a8627
+--- /dev/null
++++ b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
+@@ -0,0 +1 @@
++﻿from .deal_transaction.deal_transaction_replay import *
+diff --git a/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/__init__.py b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/__init__.py
+new file mode 100644
+index 0000000..8f91e8c
+--- /dev/null
++++ b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/__init__.py
+@@ -0,0 +1 @@
++﻿# REOS bounded layer: event_platform
