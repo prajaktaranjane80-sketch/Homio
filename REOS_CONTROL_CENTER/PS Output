@@ -1,24 +1,64 @@
-=== GIT HISTORY: LEAD / OWNERSHIP ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git log --all --oneline --decorate -- AUTONOMY_ENGINE/core/lead_ownership AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py
-e64999b (refs/stash) On reos-development: BACKUP before CORE-001 remote sync 2026-09-25
-7efcf29 refactor: organize core implementation by domain layers
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest .\AUTONOMY_ENGINE\core\identity_tenant\test_t03_d_contract.py -q
+..........                                                                                                                                           [100%]
+10 passed in 0.07s
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== GIT HISTORY: CORE-003 TERMS ===" -ForegroundColor Cyan
-
-=== GIT HISTORY: CORE-003 TERMS ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git log --all --oneline --decorate --grep="CORE-003" --regexp-ignore-case
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest .\AUTONOMY_ENGINE\core\identity_tenant -q
+.................................................................................................................................................... [ 76%]
+..............................................                                                                                                       [100%]
+194 passed in 0.30s
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py status
+HOMIO / REOS CONTROL CENTER v7.0
+========================================================================
+Phase: PRE-CODING ARCHITECTURE
+Gate: CORE-006
+Task: CORE-006-T06: Implement evidence and audit integration.
+Status: CONTROL_CENTER_DRIVEN
+Subtask: CORE-006-T06
+Gate Status: CURRENT
+Subtasks: 10 Criteria: 6
+Approved: 38 Pending: 1
+State: D:\Homio\REOS_CONTROL_CENTER\data\state.json
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py plan
+PLAN VERSION: 1.0
+MODE: AUTONOMOUS_SEQUENCE
+PLAN-001 | ARCH-036 | Business Operating Modes Architecture v1.0 | COMPLETE
+PLAN-002 | ARCH-037 | Database Final Schema Design v1.0 | COMPLETE
+PLAN-003 | ARCH-038 | Technology Stack Lock v1.0 | COMPLETE
+PLAN-004 | ARCH-039 | Master Blueprint v1.0 | COMPLETE
+PLAN-005 | REPO-001 | Repository Architecture & HOMIO Foundation | COMPLETE
+PLAN-006 | ENG-001 | Engineering Foundation | COMPLETE
+PLAN-007 | CORE-001 | Identity & Tenant Foundation | COMPLETE
+PLAN-008 | CORE-002 | Event Bus & Platform Events | COMPLETE
+PLAN-009 | CORE-003 | Lead & Ownership Core | COMPLETE
+PLAN-010 | CORE-004 | Inventory Core | COMPLETE
+PLAN-011 | CORE-005 | Search & Matching Core | COMPLETE
+PLAN-012 | CORE-006 | Deal & Transaction Core | CURRENT
+PLAN-013 | CORE-007 | Trust, Fraud & Governance Core | FUTURE
+PLAN-014 | CORE-008 | Commission & Financial Core | FUTURE
+PLAN-015 | AI-001 | AI Platform & Agents | FUTURE
+PLAN-016 | APP-001 | Buyer / Broker / Builder Applications | FUTURE
+PLAN-017 | REL-001 | Testing, Security & Release Gates | FUTURE
+PLAN-018 | SCALE-001 | Production Scale & International Rollout | FUTURE
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py gate
+GATE: Deal & Transaction Core
+STATUS: CURRENT
+CURRENT SUBTASK: CORE-006-T06
+SUBTASKS:
+CORE-006-T01 | Implement deal domain and lifecycle | DONE | CRITICAL
+CORE-006-T02 | Implement deal party relationships | DONE | CRITICAL
+CORE-006-T03 | Implement offer and negotiation state | DONE | HIGH
+CORE-006-T04 | Implement booking and transaction milestones | DONE | CRITICAL
+CORE-006-T05 | Implement deal ownership integration | DONE | CRITICAL
+CORE-006-T06 | Implement evidence and audit integration | CURRENT | HIGH
+CORE-006-T07 | Implement transaction event workflows | PENDING | HIGH
+CORE-006-T08 | Run consistency and concurrency tests | PENDING | CRITICAL
+CORE-006-T09 | Run security and authorization review | PENDING | CRITICAL
+CORE-006-T10 | Freeze deal and transaction core | PENDING | CRITICAL
+ACCEPTANCE CRITERIA:
+CORE-006-AC01 | PENDING | Deal state has one authoritative owner.
+CORE-006-AC02 | PENDING | Lead, inventory and ownership relationships are traceable.
+CORE-006-AC03 | PENDING | Critical transaction transitions are auditable.
+CORE-006-AC04 | PENDING | Concurrent updates are safe.
+CORE-006-AC05 | PENDING | Evidence and events preserve historical truth.
+CORE-006-AC06 | PENDING | Authorization and tenant isolation pass.
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== ACRL REFERENCES ===" -ForegroundColor Cyan
-
-=== ACRL REFERENCES ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem .\AUTONOMY_ENGINE\continuity\acrl -Recurse -File |
->>     Select-String -Pattern 'lead|ownership|CORE-003' -List |
->>     Select-Object Path
-
-Path
-----
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_part01_canonical_project_identity_acceptance.py
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_project_dna.py
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\__pycache__\test_project_dna.cpython-312-pytest-9.1.1.pyc
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\__pycache__\test_project_dna.cpython-312.pyc
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\test_part02_architecture_authority_acceptance.py
