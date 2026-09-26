@@ -1,64 +1,51 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest .\AUTONOMY_ENGINE\core\identity_tenant\test_t03_d_contract.py -q
-..........                                                                                                                                           [100%]
-10 passed in 0.07s
+FullName                                                                                          Length
+--------                                                                                          ------
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py                            41
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_freeze.py                     48
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_integrity.py                  51
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_concurrency.py                53
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_consistency.py                53
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_authorization.py              55
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py             56
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_offer_negotiation.py          59
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_replay.py         60
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_events.py         60
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_workflow.py       62
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_ownership_integration.py      63
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_milestones.py     64
+
+
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest .\AUTONOMY_ENGINE\core\identity_tenant -q
-.................................................................................................................................................... [ 76%]
-..............................................                                                                                                       [100%]
-194 passed in 0.30s
-PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py status
-HOMIO / REOS CONTROL CENTER v7.0
-========================================================================
-Phase: PRE-CODING ARCHITECTURE
-Gate: CORE-006
-Task: CORE-006-T06: Implement evidence and audit integration.
-Status: CONTROL_CENTER_DRIVEN
-Subtask: CORE-006-T06
-Gate Status: CURRENT
-Subtasks: 10 Criteria: 6
-Approved: 38 Pending: 1
-State: D:\Homio\REOS_CONTROL_CENTER\data\state.json
-PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py plan
-PLAN VERSION: 1.0
-MODE: AUTONOMOUS_SEQUENCE
-PLAN-001 | ARCH-036 | Business Operating Modes Architecture v1.0 | COMPLETE
-PLAN-002 | ARCH-037 | Database Final Schema Design v1.0 | COMPLETE
-PLAN-003 | ARCH-038 | Technology Stack Lock v1.0 | COMPLETE
-PLAN-004 | ARCH-039 | Master Blueprint v1.0 | COMPLETE
-PLAN-005 | REPO-001 | Repository Architecture & HOMIO Foundation | COMPLETE
-PLAN-006 | ENG-001 | Engineering Foundation | COMPLETE
-PLAN-007 | CORE-001 | Identity & Tenant Foundation | COMPLETE
-PLAN-008 | CORE-002 | Event Bus & Platform Events | COMPLETE
-PLAN-009 | CORE-003 | Lead & Ownership Core | COMPLETE
-PLAN-010 | CORE-004 | Inventory Core | COMPLETE
-PLAN-011 | CORE-005 | Search & Matching Core | COMPLETE
-PLAN-012 | CORE-006 | Deal & Transaction Core | CURRENT
-PLAN-013 | CORE-007 | Trust, Fraud & Governance Core | FUTURE
-PLAN-014 | CORE-008 | Commission & Financial Core | FUTURE
-PLAN-015 | AI-001 | AI Platform & Agents | FUTURE
-PLAN-016 | APP-001 | Buyer / Broker / Builder Applications | FUTURE
-PLAN-017 | REL-001 | Testing, Security & Release Gates | FUTURE
-PLAN-018 | SCALE-001 | Production Scale & International Rollout | FUTURE
-PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py gate
-GATE: Deal & Transaction Core
-STATUS: CURRENT
-CURRENT SUBTASK: CORE-006-T06
-SUBTASKS:
-CORE-006-T01 | Implement deal domain and lifecycle | DONE | CRITICAL
-CORE-006-T02 | Implement deal party relationships | DONE | CRITICAL
-CORE-006-T03 | Implement offer and negotiation state | DONE | HIGH
-CORE-006-T04 | Implement booking and transaction milestones | DONE | CRITICAL
-CORE-006-T05 | Implement deal ownership integration | DONE | CRITICAL
-CORE-006-T06 | Implement evidence and audit integration | CURRENT | HIGH
-CORE-006-T07 | Implement transaction event workflows | PENDING | HIGH
-CORE-006-T08 | Run consistency and concurrency tests | PENDING | CRITICAL
-CORE-006-T09 | Run security and authorization review | PENDING | CRITICAL
-CORE-006-T10 | Freeze deal and transaction core | PENDING | CRITICAL
-ACCEPTANCE CRITERIA:
-CORE-006-AC01 | PENDING | Deal state has one authoritative owner.
-CORE-006-AC02 | PENDING | Lead, inventory and ownership relationships are traceable.
-CORE-006-AC03 | PENDING | Critical transaction transitions are auditable.
-CORE-006-AC04 | PENDING | Concurrent updates are safe.
-CORE-006-AC05 | PENDING | Evidence and events preserve historical truth.
-CORE-006-AC06 | PENDING | Authorization and tenant isolation pass.
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== GIT HISTORY: CORE-006 FILE LOCATIONS ===" -ForegroundColor Cyan
+
+=== GIT HISTORY: CORE-006 FILE LOCATIONS ===
 PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git log --all --full-history --name-only --pretty=format:"COMMIT %h %s" -- `
+>>     AUTONOMY_ENGINE/core/deal.py `
+>>     AUTONOMY_ENGINE/core/deal_transaction `
+>>     REOS_LAYER_BACKUP_20260924_201807 |
+>> Select-String "COMMIT|deal.py|deal_authorization|deal_concurrency|deal_consistency|deal_evidence|deal_freeze|deal_integrity|deal_offer|deal_ownership|deal_transaction_events|deal_transaction_milestones|deal_transaction_replay|deal_transaction_workflow"
+
+COMMIT 9868381 merge: synchronize CORE-001 foundation with remote
+COMMIT e64999b On reos-development: BACKUP before CORE-001 remote sync 2026-09-25
+COMMIT 95c33a5 feat: restore CORE-001 identity and tenant foundation
+COMMIT 7efcf29 refactor: organize core implementation by domain layers
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_authorization.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_concurrency.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_consistency.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_freeze.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_integrity.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_milestones.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_workflow.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py
