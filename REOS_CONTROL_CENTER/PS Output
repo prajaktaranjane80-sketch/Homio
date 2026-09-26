@@ -1,34 +1,91 @@
->>     $_.Name -match 'event|idempot|outbox|replay|delivery|dispatch|contract|registry'
->> } |
->> Select-Object -ExpandProperty FullName
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\idempotency.py
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_external_contracts.py
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_events.py
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_replay.py
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_transaction_events.py
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\__pycache__\test_deal_transaction_events.cpython-312-pytest-9.1.1.pyc
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\identity_tenant\identity_contract.json
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\identity_tenant\membership_contract.json
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\identity_tenant\tenant_contract.json
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\identity_tenant\test_t01_d_contract.py
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\identity_tenant\test_t02_d_contract.py
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\identity_tenant\test_t03_d_contract.py
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\identity_tenant\__pycache__\test_t01_d_contract.cpython-312-pytest-9.1.1.pyc
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\identity_tenant\__pycache__\test_t02_d_contract.cpython-312-pytest-9.1.1.pyc
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\identity_tenant\__pycache__\test_t03_d_contract.cpython-312-pytest-9.1.1.pyc
-PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem AUTONOMY_ENGINE\core -Recurse -File -Filter *.py |
->> Where-Object {
->>     $_.Name -match 'event|idempot|outbox|replay|delivery|dispatch|contract|registry'
->> } |
->> ForEach-Object {
->>     "$($_.FullName) | $((Get-Content $_.FullName).Count) lines"
+PS C:\Users\Sandip RanjanePatil>  Set-Location "D:\Homio\REOS_CONTROL_CENTER"
+PS D:\Homio\REOS_CONTROL_CENTER> $P="AUTONOMY_ENGINE\core\event_platform"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== CORE-002 EVENT PLATFORM PREFLIGHT ===" -ForegroundColor Cyan
+
+=== CORE-002 EVENT PLATFORM PREFLIGHT ===
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $files = Get-ChildItem $P -Filter "*.py" -File | Sort-Object Name
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $files) {
+>>     Write-Host "FAIL: event_platform directory/files not found" -ForegroundColor Red
+>>     exit 1
 >> }
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\idempotency.py | 2 lines
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_external_contracts.py | 1 lines
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_events.py | 1 lines
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_replay.py | 1 lines
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_transaction_events.py | 1 lines
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\identity_tenant\test_t01_d_contract.py | 291 lines
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\identity_tenant\test_t02_d_contract.py | 322 lines
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\identity_tenant\test_t03_d_contract.py | 180 lines
-PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Files discovered: $($files.Count)" -ForegroundColor White
+Files discovered: 1
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> python -m compileall -q $P
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     Write-Host "FAIL: Python compilation" -ForegroundColor Red
+>>     exit 1
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "PASS: compilation" -ForegroundColor Green
+PASS: compilation
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> python -m pytest $P -q
+
+no tests ran in 0.03s
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     Write-Host "FAIL: CORE-002 event_platform pytest" -ForegroundColor Red
+>>     exit 1
+>> }
+FAIL: CORE-002 event_platform pytest
+
+[process exited with code 1 (0x00000001)]
+You can now close this terminal with Ctrl+D, or press Enter to restart.
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+PS C:\Users\Sandip RanjanePatil> python -m pytest `
+>>   AUTONOMY_ENGINE\core\event_platform `
+>>   -q `
+>>   --disable-warnings
+
+no tests ran in 0.00s
+ERROR: file or directory not found: AUTONOMY_ENGINE\core\event_platform
+
+PS C:\Users\Sandip RanjanePatil> $P="AUTONOMY_ENGINE\core\event_platform"
+PS C:\Users\Sandip RanjanePatil>
+PS C:\Users\Sandip RanjanePatil> "--- CORE-002 FILE INVENTORY ---"
+--- CORE-002 FILE INVENTORY ---
+PS C:\Users\Sandip RanjanePatil>
+PS C:\Users\Sandip RanjanePatil> @(
+>> "event_domain.py",
+>> "event_contract.py",
+>> "event_delivery.py",
+>> "event_transaction.py",
+>> "event_replay.py",
+>> "event_ordering.py",
+>> "event_resilience.py",
+>> "event_observability.py",
+>> "event_security.py",
+>> "event_reos_contract.py",
+>> "event_acrl_contract.py",
+>> "event_transport.py",
+>> "test_event_platform_regression.py"
+>> ) | ForEach-Object {
+>>     $f=Join-Path $P $_
+>>     if (Test-Path $f) {
+>>         $size=(Get-Item $f).Length
+>>         Write-Host "PASS  $_  [$size bytes]" -ForegroundColor Green
+>>     } else {
+>>         Write-Host "MISS  $_" -ForegroundColor Yellow
+>>     }
+>> }
+MISS  event_domain.py
+MISS  event_contract.py
+MISS  event_delivery.py
+MISS  event_transaction.py
+MISS  event_replay.py
+MISS  event_ordering.py
+MISS  event_resilience.py
+MISS  event_observability.py
+MISS  event_security.py
+MISS  event_reos_contract.py
+MISS  event_acrl_contract.py
+MISS  event_transport.py
+MISS  test_event_platform_regression.py
