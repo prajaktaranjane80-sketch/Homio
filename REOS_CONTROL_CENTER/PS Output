@@ -1,204 +1,1290 @@
-7efcf29 refactor: organize core implementation by domain layers
- .../core/__pycache__/__init__.cpython-312.pyc      | Bin 772 -> 0 bytes
- .../__pycache__/action_planner.cpython-312.pyc     | Bin 2762 -> 0 bytes
- .../__pycache__/context_compiler.cpython-312.pyc   | Bin 2087 -> 0 bytes
- .../core/__pycache__/idempotency.cpython-312.pyc   | Bin 650 -> 0 bytes
- .../core/__pycache__/inventory.cpython-312.pyc     | Bin 15042 -> 0 bytes
- .../inventory_concurrency.cpython-312.pyc          | Bin 5804 -> 0 bytes
- .../inventory_consistency.cpython-312.pyc          | Bin 18211 -> 0 bytes
- .../inventory_core_freeze.cpython-312.pyc          | Bin 7377 -> 0 bytes
- .../__pycache__/inventory_evidence.cpython-312.pyc | Bin 9990 -> 0 bytes
- .../__pycache__/inventory_history.cpython-312.pyc  | Bin 6748 -> 0 bytes
- .../inventory_history_evidence.cpython-312.pyc     | Bin 4144 -> 0 bytes
- .../__pycache__/inventory_indexing.cpython-312.pyc | Bin 9482 -> 0 bytes
- .../inventory_verification.cpython-312.pyc         | Bin 10074 -> 0 bytes
- .../core/__pycache__/project.cpython-312.pyc       | Bin 11598 -> 0 bytes
- .../core/__pycache__/risk_engine.cpython-312.pyc   | Bin 1950 -> 0 bytes
- .../semantic_consistency.cpython-312.pyc           | Bin 3035 -> 0 bytes
- ...ntory_availability.cpython-312-pytest-9.1.1.pyc | Bin 23339 -> 0 bytes
- ...entory_concurrency.cpython-312-pytest-9.1.1.pyc | Bin 22422 -> 0 bytes
- ...entory_consistency.cpython-312-pytest-9.1.1.pyc | Bin 28484 -> 0 bytes
- ...entory_core_freeze.cpython-312-pytest-9.1.1.pyc | Bin 19172 -> 0 bytes
- ...t_inventory_domain.cpython-312-pytest-9.1.1.pyc | Bin 16749 -> 0 bytes
- ...inventory_evidence.cpython-312-pytest-9.1.1.pyc | Bin 15833 -> 0 bytes
- ..._inventory_history.cpython-312-pytest-9.1.1.pyc | Bin 13968 -> 0 bytes
- ...y_history_evidence.cpython-312-pytest-9.1.1.pyc | Bin 12808 -> 0 bytes
- ...inventory_indexing.cpython-312-pytest-9.1.1.pyc | Bin 34190 -> 0 bytes
- ...nventory_lifecycle.cpython-312-pytest-9.1.1.pyc | Bin 15711 -> 0 bytes
- ...ntory_verification.cpython-312-pytest-9.1.1.pyc | Bin 38088 -> 0 bytes
- ...est_project_domain.cpython-312-pytest-9.1.1.pyc | Bin 20155 -> 0 bytes
- .../__pycache__/workspace_guard.cpython-312.pyc    | Bin 1564 -> 0 bytes
- .../core/deal.py.before-T06-rollback               | 132 +++++
- .../deal_transaction/CORE-006_FINAL_UPGRADE.txt    |  29 +
- .../core/deal_transaction/__init__.py              |   1 +
- .../apply_CORE-006_FINAL_UPGRADE.ps1               |  68 +++
- .../AUTONOMY_ENGINE/core/deal_transaction/deal.py  |   1 +
- .../core/deal_transaction/deal_authorization.py    |   1 +
- .../core/deal_transaction/deal_concurrency.py      |   1 +
- .../core/deal_transaction/deal_consistency.py      |   1 +
- .../core/deal_transaction/deal_evidence_audit.py   |   1 +
- .../deal_transaction/deal_external_contracts.py    |   1 +
-Log file "how --name-status 7efcf29"  (press RETURN)
+PS D:\Homio\REOS_CONTROL_CENTER> git ls-tree -r --name-only 7efcf29^ -- REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core | Select-String -Pattern 'event|kafka|outbox|consumer|idempot|replay|schema'
+PS D:\Homio\REOS_CONTROL_CENTER> git diff --find-renames --find-copies 7efcf29^ 7efcf29 -- REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core
+PS D:\Homio\REOS_CONTROL_CENTER> Get-ChildItem .\AUTONOMY_ENGINE -Recurse -File |
+>> Where-Object {
+>>     $_.Name -match 'event|kafka|outbox|consumer|idempot|replay|schema|retry|dead|dlq|trace'
+>> } |
+>> Select-Object FullName
+
+FullName
+--------
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\test_t22_replay.py
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\__pycache__\test_t22_replay.cpython-312-pytest...
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\test_t24_replay.py
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\test_t25_replay.py
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_t26_replay.py
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\test_t27_replay.py
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\test_t28_replay.py
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\acrl\T29_Human_Decision_Boundary_Controller\test_t29_replay.py
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\audit_events.py
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\test_idempotency.py
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\contracts\agent_action.schema.json
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\idempotency.py
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_events.py
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_replay.py
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_transaction_events.py
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\observability\events.jsonl
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\schemas\action_proposal.schema.json
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\schemas\decision.schema.json
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\schemas\evidence.schema.json
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\schemas\session_state.schema.json
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\telemetry\run_trace.py
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\telemetry\__pycache__\run_trace.cpython-312.pyc
 
 
-commit 7efcf29651ac26095c347587e178a51b5909673b
-Author: Sandip <sandip@example.com>
-Date:   Fri Sep 25 11:38:52 2026 +0530
+PS D:\Homio\REOS_CONTROL_CENTER> Get-ChildItem .\AUTONOMY_ENGINE -Recurse -File -Filter *.py |
+>> Select-String -Pattern 'event_platform|EventEnvelope|Kafka|Outbox|idempotency|replay|consumer|schema|DLQ|dead.?letter'
 
-    refactor: organize core implementation by domain layers
+AUTONOMY_ENGINE\continuity\acrl\project_dna.py:9:    DNA_SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\project_dna.py:19:    "DNA_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\__init__.py:14:    SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\__init__.py:34:    "SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\runtime_integration\continuity_controller.py:118:    if context.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\runtime_integration\continuity_controller.py:119:        return "Unsupported reconstructed context schema."
+AUTONOMY_ENGINE\continuity\acrl\runtime_integration\continuity_controller.py:280:            "REPLAY_DETECTED",
+AUTONOMY_ENGINE\continuity\acrl\runtime_integration\operational_runtime.py:225:        idempotency_clear=True,
+AUTONOMY_ENGINE\continuity\acrl\runtime_integration\test_continuity_controller.py:14:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\runtime_integration\unified_runtime_context.py:17:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\runtime_integration\unified_runtime_context.py:84:            "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\runtime_integration\unified_runtime_context.py:111:            schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\runtime_integration\unified_runtime_context.py:163:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\bootstrap.py:20:BOOTSTRAP_SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\bootstrap.py:34:            "schema_version": BOOTSTRAP_SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\bootstrap.py:87:    "BOOTSTRAP_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\compatibility.py:1:"""ACRL T01 — Project DNA schema compatibility."""
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\compatibility.py:10:COMPATIBILITY_SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\compatibility.py:31:    schema_version: str = COMPATIBILITY_SCHEMA_VERSION
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\compatibility.py:35:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\compatibility.py:44:def evaluate_state_schema_compatibility(
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\compatibility.py:50:    """Evaluate state schema compatibility without performing migration."""
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\compatibility.py:58:            reason="State schema is older than the supported minimum.",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\compatibility.py:67:            reason="State schema is newer than the supported maximum.",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\compatibility.py:75:        reason="State schema is supported.",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\compatibility.py:80:    "COMPATIBILITY_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\compatibility.py:83:    "evaluate_state_schema_compatibility",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\fingerprint.py:10:FINGERPRINT_SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\fingerprint.py:19:    schema_version: str = FINGERPRINT_SCHEMA_VERSION
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\fingerprint.py:23:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\fingerprint.py:55:    "FINGERPRINT_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\freshness.py:11:FRESHNESS_SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\freshness.py:39:    schema_version: str = FRESHNESS_SCHEMA_VERSION
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\freshness.py:43:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\freshness.py:133:    "FRESHNESS_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\health.py:14:HEALTH_SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\health.py:34:    schema_version: str = HEALTH_SCHEMA_VERSION
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\health.py:38:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\health.py:64:        reasons.append("State schema migration is required.")
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\health.py:67:        reasons.append("State schema is newer than supported.")
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\health.py:70:        reasons.append("State schema is unsupported.")
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\health.py:104:    "HEALTH_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\identity.py:12:IDENTITY_SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\identity.py:23:    state_schema_version: int
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\identity.py:24:    dna_schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\identity.py:30:            "schema_version": IDENTITY_SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\identity.py:35:            "state_schema_version": self.state_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\identity.py:36:            "dna_schema_version": self.dna_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\identity.py:50:        "state_schema_version": dna.state_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\identity.py:51:        "dna_schema_version": dna.dna_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\identity.py:69:        state_schema_version=dna.state_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\identity.py:70:        dna_schema_version=dna.dna_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\identity.py:77:    "IDENTITY_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\linking.py:30:    evaluate_state_schema_compatibility,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\linking.py:59:LINKING_SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\linking.py:79:            "schema_version": LINKING_SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\linking.py:129:    supported_state_schema_minimum: int = 3,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\linking.py:130:    supported_state_schema_maximum: int = 3,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\linking.py:155:    compatibility = evaluate_state_schema_compatibility(
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\linking.py:156:        dna.state_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\linking.py:157:        supported_minimum=supported_state_schema_minimum,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\linking.py:158:        supported_maximum=supported_state_schema_maximum,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\linking.py:185:    "LINKING_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\observation.py:11:OBSERVATION_SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\observation.py:29:    schema_size: int
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\observation.py:30:    schema_mtime_ns: int
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\observation.py:34:            "schema_version": OBSERVATION_SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\observation.py:38:            "schema_size": self.schema_size,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\observation.py:39:            "schema_mtime_ns": self.schema_mtime_ns,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\observation.py:71:        schema_size=after.st_size,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\observation.py:72:        schema_mtime_ns=after.st_mtime_ns,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\observation.py:77:    "OBSERVATION_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\project_dna.py:48:DNA_SCHEMA_VERSION = "2.0"
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\project_dna.py:74:    state_schema_version: int
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\project_dna.py:88:    dna_schema_version: str = DNA_SCHEMA_VERSION
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\project_dna.py:94:            "schema_version": self.dna_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\project_dna.py:101:            "state_schema_version": self.state_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\project_dna.py:130:                f"HOMIO / REOS — PROJECT DNA v{self.dna_schema_version}",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\project_dna.py:137:                f"STATE_SCHEMA_VERSION={self.state_schema_version}",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\project_dna.py:153:            "dna_schema_version": self.dna_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\project_dna.py:171:                "state_schema_version": self.state_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\project_dna.py:430:            state_schema_version=self._required_int(
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\project_dna.py:432:                "schema_version",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\project_dna.py:463:    "DNA_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\provenance.py:13:PROVENANCE_SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\provenance.py:38:            "schema_version": PROVENANCE_SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\provenance.py:126:    "PROVENANCE_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_adversarial_project_dna.py:44:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_bootstrap.py:24:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_fingerprint.py:23:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_identity.py:21:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_part01_canonical_project_identity_acceptance.py:29:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_project_dna.py:11:    DNA_SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_project_dna.py:35:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_project_dna.py:95:    assert payload["schema_version"] == DNA_SCHEMA_VERSION
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_project_dna.py:124:    assert payload["dna_schema_version"] == DNA_SCHEMA_VERSION
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_project_dna.py:130:    assert payload["compatibility"]["state_schema_version"] == 3
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_t01_final.py:32:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_t01_hardening.py:11:    evaluate_state_schema_compatibility,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_t01_hardening.py:67:def test_supported_schema_is_accepted() -> None:
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_t01_hardening.py:68:    result = evaluate_state_schema_compatibility(3)
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_t01_hardening.py:73:def test_old_schema_requires_migration() -> None:
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_t01_hardening.py:74:    result = evaluate_state_schema_compatibility(2)
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_t01_hardening.py:79:def test_future_schema_is_not_accepted() -> None:
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_t01_hardening.py:80:    result = evaluate_state_schema_compatibility(4)
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\__init__.py:4:    BOOTSTRAP_SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\__init__.py:10:    COMPATIBILITY_SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\__init__.py:13:    evaluate_state_schema_compatibility,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\__init__.py:30:    DNA_SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\__init__.py:40:    "BOOTSTRAP_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\__init__.py:44:    "COMPATIBILITY_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\__init__.py:47:    "evaluate_state_schema_compatibility",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\__init__.py:56:    "DNA_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\architecture_authority.py:4:canonical REOS_CONTROL_CENTER/data/state.json schema.
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\architecture_authority.py:23:ARCHITECTURE_AUTHORITY_SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\architecture_authority.py:60:    schema_version: str = (
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\architecture_authority.py:61:        ARCHITECTURE_AUTHORITY_SCHEMA_VERSION
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\architecture_authority.py:66:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\architecture_authority.py:376:    "ARCHITECTURE_AUTHORITY_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\architecture_contract.py:25:    if lock.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\architecture_contract.py:27:            "Unsupported T02 architecture-lock schema."
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\architecture_contract.py:60:        "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\architecture_contract.py:76:            "replay_safe": True,
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\architecture_lock.py:30:ARCHITECTURE_LOCK_SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\architecture_lock.py:70:    schema_version: str = ARCHITECTURE_LOCK_SCHEMA_VERSION
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\architecture_lock.py:76:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\architecture_lock.py:435:    "ARCHITECTURE_LOCK_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\test_architecture_drift.py:24:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\test_architecture_lock.py:32:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\test_architecture_lock.py:75:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\test_part02_architecture_authority_acceptance.py:20:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\test_t02_hardening.py:38:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\__init__.py:17:    ARCHITECTURE_LOCK_SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\__init__.py:29:    ARCHITECTURE_AUTHORITY_SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\__init__.py:39:    "ARCHITECTURE_LOCK_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\__init__.py:55:    "ARCHITECTURE_AUTHORITY_SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\state_identity.py:15:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\state_identity.py:21:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\state_identity.py:43:    schema_version: str = "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\state_identity.py:70:        schema_version=schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\state_reconstruction.py:58:    state_schema_version: int
+AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\state_reconstruction.py:68:            "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\state_reconstruction.py:85:                "state_schema_version": self.state_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\state_reconstruction.py:421:            state_schema_version=self._int(
+AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\state_reconstruction.py:423:                "schema_version",
+AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\test_reconstruction_validation.py:33:        state_schema_version=3,
+AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\test_state_identity.py:65:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\test_state_reconstruction.py:61:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\test_state_reconstruction.py:278:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T04_Gate_Subtask_Continuity\gate_subtask_continuity.py:81:            "schema_version": "2.0",
+AUTONOMY_ENGINE\continuity\acrl\T04_Gate_Subtask_Continuity\test_gate_subtask_continuity.py:56:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T04_Gate_Subtask_Continuity\test_gate_subtask_continuity.py:246:    assert payload["schema_version"] == "2.0"
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\authority_contract.py:55:        "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\authority_identity.py:19:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\authority_identity.py:25:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\authority_identity.py:73:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\authority_normalization.py:40:                item.consumer,
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\authority_normalization.py:75:                "consumer": dependency.consumer,
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\authority_validation.py:83:            item.consumer,
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\authority_validation.py:100:        if item.consumer == item.source
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\authority_validation.py:127:            item.consumer == "ACRL"
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\dependency_authority_map.py:55:    """Relationship classification between consumers and
+sources."""
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\dependency_authority_map.py:102:    consumer: str
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\dependency_authority_map.py:109:            "consumer",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\dependency_authority_map.py:149:        consumer: str,
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\dependency_authority_map.py:151:        """Return dependencies for a consumer."""
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\dependency_authority_map.py:156:            if item.consumer == consumer
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\dependency_authority_map.py:163:            "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\dependency_authority_map.py:177:                    "consumer": dependency.consumer,
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\dependency_authority_map.py:302:                consumer="ACRL",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\dependency_authority_map.py:311:                consumer="ACRL",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\dependency_authority_map.py:320:                consumer="ACRL",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\dependency_authority_map.py:329:                consumer="ACRL",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\dependency_authority_map.py:338:                consumer="NEW_CHAT",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\dependency_authority_map.py:343:                    "instead of requiring manual historical
+replay."
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\dependency_authority_map.py:418:                dependency.consumer == "ACRL"
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\dependency_authority_map.py:454:                    "consumer": dependency.consumer,
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\task_dependency_reconstruction.py:105:            "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_authority_normalization.py:28:    consumer: str,
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_authority_normalization.py:32:        consumer=consumer,
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_authority_validation.py:44:            consumer="ACRL",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_authority_validation.py:50:            consumer="ACRL",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_authority_validation.py:85:            consumer="ACRL",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_authority_validation.py:91:            consumer="REOS_STATE",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_dependency_authority_map.py:187:            consumer="ACRL",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_dependency_authority_map.py:215:            consumer="ACRL",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_dependency_authority_map.py:234:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_task_dependency_reconstruction.py:34:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_task_dependency_reconstruction.py:322:        "SEARCH_SCHEMA",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_task_dependency_reconstruction.py:325:        "SEARCH_SCHEMA": "SEARCH_DOMAIN",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_task_dependency_reconstruction.py:336:        "SEARCH_SCHEMA",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_task_dependency_reconstruction.py:339:        "SEARCH_SCHEMA",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_task_dependency_reconstruction.py:367:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_continuity.py:135:            "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_contract.py:50:        "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_contract.py:89:            "replay_conflict_detection": True,
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_engine.py:46:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_engine.py:63:            "schema_version": self.metadata.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_engine.py:101:    SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_engine.py:244:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_identity.py:16:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_identity.py:24:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_identity.py:55:        "schema_version": checkpoint.metadata.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_identity.py:73:        schema_version=(
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_identity.py:74:            checkpoint.metadata.schema_version
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_provenance.py:24:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_provenance.py:38:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_provenance.py:78:        schema_version=(
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_provenance.py:79:            checkpoint.metadata.schema_version
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_validation.py:82:        "schema_version",
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_validation.py:83:        checkpoint.metadata.schema_version
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_validation.py:84:        == CheckpointEngine.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\checkpoint_validation.py:85:        "Unsupported checkpoint schema version.",
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\test_checkpoint_continuity.py:30:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\test_checkpoint_continuity.py:390:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\test_checkpoint_validation.py:60:def test_wrong_schema_is_invalid():
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\test_checkpoint_validation.py:65:        "schema_version",
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:75:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:93:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:119:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:162:    SCHEMA_VERSION = "2.0"
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:462:            "schema_version": self.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:482:            schema_version=self.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\test_new_chat_bootstrap.py:321:    assert payload["schema_version"] == "2.0"
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_compatibility.py:58:    CURRENT_SCHEMA_VERSION: Final[str] = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_compatibility.py:62:    SUPPORTED_SCHEMA_VERSIONS: Final[frozenset[str]] = frozenset(
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_compatibility.py:78:    MIGRATABLE_SCHEMA_VERSIONS: Final[
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_compatibility.py:91:    def check_schema(
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_compatibility.py:95:        """Check schema compatibility."""
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_compatibility.py:99:            target_version=cls.CURRENT_SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_compatibility.py:100:            supported=cls.SUPPORTED_SCHEMA_VERSIONS,
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_compatibility.py:101:            migratable=cls.MIGRATABLE_SCHEMA_VERSIONS,
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_compatibility.py:102:            label="schema",
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_compatibility.py:139:        schema_version: str,
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_compatibility.py:146:            cls.check_schema(schema_version),
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_compatibility.py:232:    schema_version: str,
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_compatibility.py:239:        schema_version=schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_provenance.py:35:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_provenance.py:47:            ("schema_version", self.schema_version),
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_provenance.py:67:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_provenance.py:124:        expected_schema_version: str | None = None,
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_provenance.py:166:            expected_schema_version is not None
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_provenance.py:167:            and self.schema_version
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_provenance.py:168:            != expected_schema_version
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_provenance.py:171:                "Compression schema version mismatch."
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_provenance.py:189:    schema_version: str,
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_provenance.py:201:        schema_version=schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_provenance.py:221:        "schema_version",
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_provenance.py:248:        schema_version=str(
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\compression_provenance.py:249:            value["schema_version"]
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\context_compression.py:60:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\context_compression.py:78:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\context_compression.py:111:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\context_compression.py:156:    SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\context_compression.py:315:            "schema_version": cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\context_compression.py:331:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_compatibility.py:58:    CURRENT_SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_compatibility.py:63:    def check_schema(
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_compatibility.py:68:            "schema",
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_compatibility.py:71:                cls.CURRENT_SCHEMA_VERSION:
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_compatibility.py:163:        schema_version: str,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_compatibility.py:168:            cls.check_schema(schema_version),
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_identity.py:7:- bind identity to schema, authority, algorithm and fingerprint
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_identity.py:40:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_identity.py:49:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_identity.py:59:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_identity.py:120:            "schema_version": snapshot.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_identity.py:150:            schema_version=snapshot.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_provenance.py:8:- preserve algorithm, authority and schema information
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_provenance.py:41:    source_schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_provenance.py:51:            "source_schema_version": self.source_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_provenance.py:62:            "source_schema_version": self.source_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_provenance.py:164:            "source_schema_version": snapshot.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_provenance.py:184:            source_schema_version=snapshot.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_registry.py:6:It provides deterministic lookup and replay-safe registration.
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_registry.py:44:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_registry.py:52:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_registry.py:123:            schema_version=snapshot.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_validation.py:8:- schema version
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_validation.py:61:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_validation.py:72:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_validation.py:82:    SUPPORTED_SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_validation.py:101:        schema_version = ""
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_validation.py:112:            schema_version = snapshot.schema_version
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_validation.py:123:                snapshot.schema_version
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_validation.py:124:                != cls.SUPPORTED_SCHEMA_VERSION
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_validation.py:127:                    "Unsupported snapshot schema version."
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\fingerprint_validation.py:225:            schema_version=schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\state_integrity.py:77:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\state_integrity.py:91:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\state_integrity.py:115:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\state_integrity.py:127:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\state_integrity.py:147:    SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\state_integrity.py:233:            "schema_version": cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\state_integrity.py:288:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\state_integrity.py:379:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_compatibility.py:11:def test_current_schema_is_supported():
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_compatibility.py:12:    result = FingerprintCompatibilityEngine.check_schema(
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_compatibility.py:39:def test_unknown_schema_fails_closed():
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_compatibility.py:40:    result = FingerprintCompatibilityEngine.check_schema(
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_compatibility.py:61:        FingerprintCompatibilityEngine.check_schema(
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_identity.py:62:        schema_version=identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_provenance.py:88:        schema_version=identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_registry.py:60:def test_registration_is_replay_safe():
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_validation.py:69:        schema_version=identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_validation.py:90:        source_schema_version=provenance.source_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_state_integrity.py:72:def test_schema_version_is_present() -> None:
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_state_integrity.py:77:    assert snapshot.schema_version == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_t09_adversarial.py:36:        schema_version=snapshot.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_t09_adversarial.py:52:def test_unknown_schema_fails_closed():
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_t09_adversarial.py:53:    result = FingerprintCompatibilityEngine.check_schema(
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_t09_adversarial.py:76:        schema_version=identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_t09_adversarial.py:101:        source_schema_version=provenance.source_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_t09_adversarial.py:127:        schema_version=identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_t09_contract.py:55:            snapshot.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T10_Drift_Detection\drift_detection.py:103:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T10_Drift_Detection\drift_detection.py:114:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T10_Drift_Detection\drift_detection.py:136:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T10_Drift_Detection\drift_detection.py:145:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T10_Drift_Detection\drift_detection.py:163:    SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T10_Drift_Detection\drift_detection.py:265:            "schema_version": cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T10_Drift_Detection\drift_detection.py:276:            "schema_version": cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T10_Drift_Detection\drift_detection.py:292:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T10_Drift_Detection\drift_detection.py:350:            "schema_version": baseline.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T10_Drift_Detection\drift_detection.py:368:            "schema_version": baseline.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T10_Drift_Detection\drift_detection.py:493:            "schema_version": cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T10_Drift_Detection\drift_detection.py:529:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\recovery_compatibility.py:22:    CURRENT_SCHEMA = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\recovery_compatibility.py:31:        schema_version: str,
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\recovery_compatibility.py:37:            schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\recovery_compatibility.py:49:        if schema_version != cls.CURRENT_SCHEMA:
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\recovery_guard.py:96:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\recovery_guard.py:108:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\recovery_guard.py:127:    SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\recovery_guard.py:261:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\recovery_guard.py:371:                schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\recovery_guard.py:389:                schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\recovery_identity.py:18:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\recovery_identity.py:27:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\recovery_identity.py:66:        schema_version: str,
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\recovery_identity.py:83:            "schema_version": schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\recovery_identity.py:93:            schema_version=schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\recovery_identity.py:124:            schema_version=identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_compatibility.py:16:        "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_compatibility.py:33:def test_unknown_schema_is_incompatible() -> None:
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_compatibility.py:35:    versions["schema_version"] = "9.9"
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_guard.py:468:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_guard.py:499:def test_schema_version_is_fixed() -> None:
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_guard.py:504:    assert report.schema_version == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_identity.py:16:        "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_identity.py:32:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_identity.py:45:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_identity.py:57:            schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_identity.py:66:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_identity.py:74:        schema_version=identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_validation.py:85:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_t11_adversarial.py:79:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_t11_adversarial.py:87:        schema_version=identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_t11_contract.py:54:        schema_version=report.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\resume_compatibility.py:16:    CURRENT_SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\resume_compatibility.py:22:    def schema_status(cls, version: str) ->
+ResumeCompatibilityStatus:
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\resume_compatibility.py:23:        if version == cls.CURRENT_SCHEMA_VERSION:
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\resume_identity.py:9:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\resume_identity.py:18:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\resume_identity.py:29:    SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\resume_identity.py:63:            "schema_version": cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\resume_identity.py:73:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\resume_identity.py:86:        if identity.schema_version != cls.SCHEMA_VERSION:
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\resume_safety_validation.py:128:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\resume_safety_validation.py:139:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\resume_safety_validation.py:155:    SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\resume_safety_validation.py:221:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\resume_safety_validation.py:240:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\resume_safety_validation.py:408:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\resume_validation.py:110:            "schema_version",
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_resume_safety_validation.py:400:    assert data["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_resume_safety_validation.py:523:def test_schema_version_is_fixed() -> None:
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_resume_safety_validation.py:528:    assert report.schema_version == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_t12_integration.py:208:def test_t12_compatibility_current_schema_is_supported():
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_t12_integration.py:209:    status = ResumeCompatibilityEngine.schema_status("1.0")
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_t12_integration.py:238:def test_t12_compatibility_unknown_schema_does_not_pass():
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_t12_integration.py:239:    status = ResumeCompatibilityEngine.schema_status("")
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_t12_integration.py:244:def test_t12_compatibility_incompatible_schema_does_not_pass():
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_t12_integration.py:245:    status = ResumeCompatibilityEngine.schema_status("9.9")
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_t12_integration.py:320:        "schema_version",
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_t12_integration.py:430:    status = ResumeCompatibilityEngine.schema_status("9.9")
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\compatibility_bridge.py:14:    SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\compatibility_bridge.py:33:    "SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_compatibility.py:18:    CURRENT_SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_compatibility.py:38:    def schema_status(cls, version: str) ->
+ControllerCompatibilityStatus:
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_compatibility.py:39:        return cls._status(version, cls.CURRENT_SCHEMA_VERSION)
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_context_adapter.py:21:SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_context_adapter.py:73:    SCHEMA_VERSION = SCHEMA_VERSION
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_context_adapter.py:186:            "state_schema_version": meta.get(
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_context_adapter.py:187:                "schema_version"
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_context_adapter.py:244:    "SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_identity.py:14:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_identity.py:23:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_identity.py:33:    SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_identity.py:68:            "schema_version": cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_identity.py:80:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_identity.py:95:        if identity.schema_version != cls.SCHEMA_VERSION:
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_identity.py:96:            raise ValueError("Unsupported T13 schema version.")
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_identity.py:112:            "schema_version": identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_integration.py:37:SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_integration.py:173:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_integration.py:192:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_integration.py:242:    SCHEMA_VERSION = SCHEMA_VERSION
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_integration.py:392:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_integration.py:723:    "SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\controller_validation.py:385:            "schema_version",
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_compatibility.py:10:def test_current_schema_is_supported():
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_compatibility.py:11:    status =
+ControllerCompatibilityEngine.schema_status("1.0")
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_compatibility.py:40:def test_empty_schema_is_unknown():
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_compatibility.py:41:    status = ControllerCompatibilityEngine.schema_status("")
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_compatibility.py:46:def test_unknown_schema_is_incompatible():
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_compatibility.py:47:    status =
+ControllerCompatibilityEngine.schema_status("99.0")
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_context_adapter.py:24:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_identity.py:73:    assert data["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_identity.py:83:        schema_version=identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_integration.py:777:def test_schema_version_is_stable() -> None:
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_integration.py:782:    assert report.schema_version == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_t13_contract.py:128:        assert "schema_version" in data
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_t13_contract.py:160:    def test_schema_version_stable(self) -> None:
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_t13_contract.py:168:        assert report.schema_version == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_t13_contract.py:171:class TestIdempotencyContract:
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_t13_contract.py:172:    """Test idempotency guarantees."""
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_t13_integration.py:214:class TestT13PipelineIdempotency:
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_t13_integration.py:215:    """Test idempotency for repeated pipeline invocations."""
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\regression_compatibility.py:13:def compare_schema(expected: str, actual: str) -> CompatibilityStatus:
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\regression_layer.py:15:from .regression_compatibility import CompatibilityStatus, compare_schema
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\regression_layer.py:92:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\regression_layer.py:102:    policy_schema: str
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\regression_layer.py:112:        return {"schema_version": self.schema_version, "decision":
+self.decision.value,
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\regression_layer.py:117:                "metrics": dict(self.metrics), "policy_schema":
+self.policy_schema,
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\regression_layer.py:137:    SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\regression_layer.py:209:        data = {"schema_version": cls.SCHEMA_VERSION, "results": [x.to_dict()
+for x in normalized]}
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\regression_layer.py:212:        compatibility = compare_schema(cls.SCHEMA_VERSION,
+policy.schema_version)
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\regression_layer.py:215:        return RegressionReport(cls.SCHEMA_VERSION, decision, reason,
+len(normalized), len(normalized)-len(failed),
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\regression_layer.py:220:                                policy.schema_version, provenance_fp,
+compatibility)
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\regression_policy.py:10:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\regression_policy.py:20:        if self.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\regression_policy.py:21:            raise ValueError("Unsupported T14 policy schema.")
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\test_regression_compatibility.py:1:from .regression_compatibility import CompatibilityStatus,
+compare_schema
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\test_regression_compatibility.py:3:def test_supported(): assert compare_schema('1.0','1.0') is
+CompatibilityStatus.SUPPORTED
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\test_regression_compatibility.py:5:def test_migratable(): assert compare_schema('1.0','1.1') is
+CompatibilityStatus.MIGRATABLE
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\test_regression_compatibility.py:7:def test_incompatible(): assert compare_schema('1.0','2.0') is
+CompatibilityStatus.INCOMPATIBLE
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\test_regression_layer.py:122:    assert "policy_schema" in data
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\test_t14_contract.py:4:def test_contract_schema_and_manifest():
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\test_t14_contract.py:5:    assert RegressionLayerEngine.SCHEMA_VERSION=='1.0'
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\test_t14_contract.py:14:    assert
+{'metrics','policy_schema','provenance_fingerprint','compatibility'} <= set(RegressionLayerEngine.build_report([]).to_dict())
+AUTONOMY_ENGINE\continuity\acrl\T14_Repository_Intelligence_Context\repository_context.py:23:SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T14_Repository_Intelligence_Context\repository_context.py:72:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T14_Repository_Intelligence_Context\repository_context.py:94:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T14_Repository_Intelligence_Context\repository_context.py:381:            schema_version=SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T14_Repository_Intelligence_Context\__init__.py:3:    SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T14_Repository_Intelligence_Context\__init__.py:17:    "SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_autonomy.py:82:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_autonomy.py:96:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_autonomy.py:115:    SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_autonomy.py:221:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_autonomy.py:242:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_autonomy.py:393:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_compatibility.py:26:    CURRENT_SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_compatibility.py:46:    def schema_status(
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_compatibility.py:52:            cls.CURRENT_SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_identity.py:22:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_identity.py:31:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_identity.py:43:    SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_identity.py:81:            "schema_version": cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_identity.py:93:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_identity.py:115:        if identity.schema_version != cls.SCHEMA_VERSION:
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_identity.py:117:                "Unsupported T15 schema version."
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_identity.py:145:                    "schema_version": identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_integration.py:24:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_integration.py:37:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_integration.py:53:    SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_integration.py:79:            schema_version=cls.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_policy.py:60:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_policy.py:73:        if self.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\operator_policy.py:75:                "Unsupported T15 policy schema version."
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\test_operator_autonomy.py:373:    assert data["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\test_t15_contract.py:113:def test_t15_schema_is_supported():
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\test_t15_contract.py:115:        OperatorCompatibilityEngine.schema_status("1.0")
+AUTONOMY_ENGINE\continuity\acrl\T16_Repository_Intelligence_File_Discovery\repository_intelligence.py:117:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T16_Repository_Intelligence_File_Discovery\repository_intelligence.py:899:    SCHEMA_VERSION = "1.1"
+AUTONOMY_ENGINE\continuity\acrl\T16_Repository_Intelligence_File_Discovery\repository_intelligence.py:962:            schema_version=self.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T16_Repository_Intelligence_File_Discovery\repository_intelligence.py:1121:            "schema_version": "1.1",
+AUTONOMY_ENGINE\continuity\acrl\T16_Repository_Intelligence_File_Discovery\test_repository_intelligence.py:814:    assert snapshot.schema_version == "1.1"
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\change_impact_analysis.py:91:    SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\change_impact_analysis.py:376:            schema_version=self.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\change_impact_analysis.py:394:            policy_schema=self.policy.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_compatibility.py:1:SUPPORTED_SCHEMA = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_compatibility.py:3:    return value == SUPPORTED_SCHEMA
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_context.py:24:SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_context.py:114:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_context.py:161:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_context.py:413:            "schema_version": SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_context.py:436:            schema_version=SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_context.py:489:    "SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_errors.py:21:    """Raised when an unsupported T17 schema is encountered."""
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_identity.py:13:        "schema_version": report.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_models.py:36:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_models.py:46:    policy_schema: str
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_models.py:69:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_models.py:101:            "policy_schema": self.policy_schema,
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_policy.py:13:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_policy.py:22:        if self.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_policy.py:24:                self.schema_version
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_validation.py:27:    if report.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\impact_validation.py:29:            "Unsupported T17 schema."
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\authorization_errors.py:21:    """Raised when a T18 schema or upstream contract is
+incompatible."""
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\authorization_models.py:69:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\authorization_models.py:84:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\authorization_policy.py:19:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\authorization_policy.py:33:        if self.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\authorization_policy.py:35:                "Unsupported T18 policy schema version."
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\authorization_validation.py:64:    if operator_report.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\authorization_validation.py:66:            "Unsupported T15 operator report schema."
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\authorization_validation.py:94:    if impact_report.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\authorization_validation.py:96:            "Unsupported T17 report schema."
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\execution_authorization.py:37:    SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\execution_authorization.py:62:            "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\execution_authorization.py:81:            schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\execution_authorization.py:209:            "schema_version": self.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\execution_authorization.py:221:            schema_version=self.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\test_t18_contract.py:15:def test_t18_contract_schema():
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\test_t18_contract.py:27:    assert data["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\failure_diagnosis.py:112:        "schema" in combined
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\failure_diagnosis.py:224:                    "The failure contains a
+schema or contract "
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\failure_diagnosis.py:334:        "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\failure_diagnosis.py:348:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\selection_engine.py:235:    SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\selection_engine.py:407:            "schema_version": self.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\selection_engine.py:434:            schema_version=self.SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\t19_identity.py:8:SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\t19_identity.py:29:    "SCHEMA_VERSION",
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\t19_models.py:71:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\t19_models.py:84:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\t19_models.py:152:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\t19_models.py:164:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\t19_validation.py:71:    if resume_report.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\t19_validation.py:73:            "Unsupported T12 schema version."
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\t19_validation.py:99:    if impact_report.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\t19_validation.py:101:            "Unsupported T17 schema version."
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\t19_validation.py:154:    if plan.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\t19_validation.py:156:            "Unsupported T19 selection-plan schema."
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_failure_diagnosis.py:23:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_failure_diagnosis.py:33:        policy_schema="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_failure_diagnosis.py:94:        message="Unsupported schema
+contract",
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_selection_engine.py:57:        state_schema_version=3,
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_selection_engine.py:66:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_selection_engine.py:79:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_selection_engine.py:89:        policy_schema="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_selection_engine.py:99:
+schema_version=payload["schema_version"],
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_selection_engine.py:109:
+policy_schema=payload["policy_schema"],
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_selection_engine.py:208:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_t19_contract.py:27:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_t19_contract.py:80:            "24_idempotency_replay_safety",
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\repair_continuity.py:39:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\repair_continuity.py:51:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\repair_continuity.py:72:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\repair_continuity.py:165:        "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\repair_continuity.py:182:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\repair_models.py:32:    REPLAY_DETECTED = "REPLAY_DETECTED"
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\repair_models.py:38:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\repair_models.py:141:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\repair_models.py:157:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\repair_policy.py:7:    if policy.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\repair_policy.py:8:        raise ValueError("Unsupported T20 schema version.")
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\repair_registry.py:8:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\repair_registry.py:18:        if self.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\repair_registry.py:20:                "Unsupported T20 registry schema."
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\repair_transaction.py:60:            schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\repair_transaction.py:102:                schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\repair_transaction.py:144:            schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\test_repair_continuity.py:19:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\test_repair_contract.py:19:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\test_repair_transaction.py:40:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\test_repair_transaction.py:107:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T21_Git_Repository_Read_Write_Coordination\git_models.py:49:    REPLAY_DETECTED = "REPLAY_DETECTED"
+AUTONOMY_ENGINE\continuity\acrl\T21_Git_Repository_Read_Write_Coordination\git_models.py:55:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T21_Git_Repository_Read_Write_Coordination\git_models.py:125:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T21_Git_Repository_Read_Write_Coordination\git_models.py:157:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T21_Git_Repository_Read_Write_Coordination\git_policy.py:11:    if policy.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T21_Git_Repository_Read_Write_Coordination\git_policy.py:13:            "Unsupported T21 schema version."
+AUTONOMY_ENGINE\continuity\acrl\T21_Git_Repository_Read_Write_Coordination\git_registry.py:12:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T21_Git_Repository_Read_Write_Coordination\git_registry.py:21:        if self.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T21_Git_Repository_Read_Write_Coordination\git_registry.py:23:                "Unsupported T21 schema."
+AUTONOMY_ENGINE\continuity\acrl\T21_Git_Repository_Read_Write_Coordination\git_transaction.py:63:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T21_Git_Repository_Read_Write_Coordination\test_t21_contract.py:19:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_builder.py:14:        "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_builder.py:49:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_coordinator.py:25:    CheckpointReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_coordinator.py:40:    replay: bool = False,
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_coordinator.py:50:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_coordinator.py:60:        replay=replay,
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_coordinator.py:268:
+decision=CheckpointDecision.REPLAY_DETECTED,
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_coordinator.py:272:            replay=True,
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_coordinator.py:286:    except CheckpointReplayError:
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_coordinator.py:288:
+decision=CheckpointDecision.REPLAY_DETECTED,
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_coordinator.py:289:            reason="CHECKPOINT_REPLAY",
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_coordinator.py:292:            replay=True,
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_models.py:20:    REPLAY_DETECTED = "REPLAY_DETECTED"
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_models.py:26:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_models.py:55:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_models.py:98:    allow_replay: bool = False
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_models.py:115:            "allow_replay": self.allow_replay,
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_models.py:121:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_models.py:130:    replay: bool
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_models.py:136:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_models.py:146:            "replay": self.replay,
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_policy.py:8:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_policy.py:16:    allow_replay: bool = False
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_policy.py:30:    if policy.allow_replay:
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_policy.py:32:            "T22 policy cannot allow replay."
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_registry.py:12:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_registry.py:39:        if self.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_registry.py:41:                "Unsupported T22 schema version."
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_store.py:9:class CheckpointReplayError(RuntimeError):
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_store.py:49:                    raise CheckpointReplayError(
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_validation.py:129:    if request.allow_replay:
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\checkpoint_validation.py:131:            "Replay is not permitted by T22."
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\test_checkpoint_store.py:11:    CheckpointReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\test_checkpoint_store.py:56:        CheckpointReplayError
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\test_t22_concurrency.py:48:        schema_version=second.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\test_t22_contract.py:17:    assert data["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\test_t22_replay.py:51:def test_replay_is_detected():
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\test_t22_replay.py:112:        == CheckpointDecision.REPLAY_DETECTED
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\test_t22_replay.py:115:    assert second.replay is True
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\evidence_models.py:122:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\evidence_models.py:154:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\evidence_policy.py:10:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\resolution_coordinator.py:28:    ResolutionReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\resolution_coordinator.py:78:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\resolution_coordinator.py:201:
+schema_version=result.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\resolution_coordinator.py:243:        except ResolutionReplayError:
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\resolution_coordinator.py:247:
+schema_version=result.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\resolution_store.py:9:class ResolutionReplayError(RuntimeError):
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\resolution_store.py:49:                raise ResolutionReplayError(
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\test_resolution_store.py:10:    ResolutionReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\test_resolution_store.py:29:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\test_resolution_store.py:45:def test_store_replay():
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\test_resolution_store.py:55:    except ResolutionReplayError:
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\continuity_coordinator.py:28:    ContinuityReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\continuity_coordinator.py:71:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\continuity_coordinator.py:337:
+schema_version=result.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\continuity_coordinator.py:390:    except ContinuityReplayError:
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\continuity_coordinator.py:392:            schema_version=result.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\continuity_coordinator.py:396:            reason="REPLAY_REUSED",
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\continuity_models.py:22:    REPLAY_DETECTED = "REPLAY_DETECTED"
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\continuity_models.py:54:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\continuity_models.py:84:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\continuity_models.py:162:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\continuity_models.py:186:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\continuity_policy.py:8:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\continuity_snapshot.py:31:        "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\continuity_snapshot.py:65:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\continuity_store.py:11:class ContinuityReplayError(RuntimeError):
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\continuity_store.py:51:                raise ContinuityReplayError(
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\test_continuity_store.py:6:    ContinuityReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\test_continuity_store.py:13:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\test_continuity_store.py:29:def test_replay():
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\test_continuity_store.py:39:    except ContinuityReplayError:
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\test_t24_replay.py:15:def test_same_recovery_is_read_only_replay():
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_coordinator.py:34:    BudgetReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_coordinator.py:72:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_coordinator.py:161:            schema_version=existing.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_coordinator.py:163:            reason="REPLAY_REUSED",
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_coordinator.py:268:    except BudgetReplayError:
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_manager.py:122:            "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_manager.py:166:            schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_models.py:20:    REPLAY_DETECTED = "REPLAY_DETECTED"
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_models.py:119:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_models.py:144:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_models.py:217:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_models.py:235:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_policy.py:8:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_registry.py:12:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_registry.py:34:        if self.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_registry.py:36:                "Unsupported T25 schema version."
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_store.py:11:class BudgetReplayError(RuntimeError):
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\budget_store.py:51:                raise BudgetReplayError(
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\test_budget_store.py:7:    BudgetReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\test_budget_store.py:14:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\test_budget_store.py:33:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\test_budget_store.py:46:def test_replay_is_detected():
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\test_budget_store.py:55:    except BudgetReplayError:
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\test_t25_replay.py:33:def test_identical_request_is_read_only_replay():
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_controller.py:37:    LoopReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_controller.py:67:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_controller.py:86:        "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_controller.py:119:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_controller.py:337:                decision=LoopDecision.REPLAY_DETECTED,
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_controller.py:373:    except LoopReplayError:
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_controller.py:375:            decision=LoopDecision.REPLAY_DETECTED,
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_controller.py:376:            reason="LOOP_REPLAY",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_models.py:28:    REPLAY_DETECTED = "REPLAY_DETECTED"
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_models.py:71:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_models.py:115:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_models.py:192:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_models.py:208:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_policy.py:8:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_registry.py:14:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_registry.py:40:        if self.schema_version != "1.0":
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_registry.py:42:                "Unsupported T26 schema version."
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_store.py:9:class LoopReplayError(RuntimeError):
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\loop_store.py:49:                raise LoopReplayError(
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_loop_checkpoint.py:31:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_loop_guard.py:15:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_loop_models.py:9:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_loop_progress.py:32:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_loop_store.py:8:    LoopReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_loop_store.py:15:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_loop_store.py:50:        LoopReplayError
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_t26_concurrency.py:17:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_t26_exhaustion.py:16:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_t26_no_progress.py:32:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_t26_replay.py:55:def test_replay_detected():
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_t26_replay.py:95:        is LoopDecision.REPLAY_DETECTED
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\scheduler_controller.py:40:    SchedulerReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\scheduler_controller.py:68:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\scheduler_controller.py:284:                decision=SchedulerDecision.REPLAY_DETECTED,
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\scheduler_controller.py:307:    except SchedulerReplayError:
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\scheduler_controller.py:309:            decision=SchedulerDecision.REPLAY_DETECTED,
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\scheduler_models.py:42:    REPLAY_DETECTED = "REPLAY_DETECTED"
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\scheduler_models.py:58:    idempotency_key: str = ""
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\scheduler_models.py:72:            "idempotency_key": self.idempotency_key,
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\scheduler_models.py:166:    schema_version: str
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\scheduler_models.py:176:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\scheduler_registry.py:5:    schema_version = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\scheduler_registry.py:9:        if not self.schema_version:
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\scheduler_registry.py:11:                "scheduler schema version missing."
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\scheduler_store.py:8:class SchedulerReplayError(Exception):
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\scheduler_store.py:52:                raise SchedulerReplayError(
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\test_t27_replay.py:28:        scheduler_id="replay",
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\test_t27_replay.py:41:def test_replay_detected():
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\test_t27_replay.py:62:        is SchedulerDecision.REPLAY_DETECTED
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\conflict_classifier.py:23:        "replay": ConflictKind.REPLAY_CONFLICT,
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\conflict_classifier.py:35:            ConflictKind.REPLAY_CONFLICT,
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\precedence_engine.py:6:    ConflictKind.REPLAY_CONFLICT: 95,
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\reconciliation_controller.py:14:    ReconciliationReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\reconciliation_controller.py:84:    except ReconciliationReplayError:
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\reconciliation_models.py:12:    REPLAY_CONFLICT = "REPLAY_CONFLICT"
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\reconciliation_models.py:50:    REPLAY_DETECTED = "REPLAY_DETECTED"
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\reconciliation_registry.py:1:SUPPORTED_SCHEMA = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\reconciliation_registry.py:6:    schema_version: str,
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\reconciliation_registry.py:9:    if schema_version != SUPPORTED_SCHEMA:
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\reconciliation_registry.py:10:        raise ValueError("unsupported schema
+version")
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\reconciliation_store.py:4:class ReconciliationReplayError(RuntimeError):
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\reconciliation_store.py:26:                    raise
+ReconciliationReplayError(
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\resolution_engine.py:22:        ConflictKind.REPLAY_CONFLICT,
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\resolution_engine.py:28:            rationale="Unsafe identity or replay
+conflict.",
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\test_t28_replay.py:6:    ReconciliationReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\test_t28_replay.py:11:def test_replay_detected():
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\test_t28_replay.py:24:    with pytest.raises(ReconciliationReplayError):
+AUTONOMY_ENGINE\continuity\acrl\T29_Human_Decision_Boundary_Controller\decision_controller.py:17:    DecisionReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T29_Human_Decision_Boundary_Controller\decision_controller.py:77:    except DecisionReplayError:
+AUTONOMY_ENGINE\continuity\acrl\T29_Human_Decision_Boundary_Controller\decision_controller.py:163:                raise DecisionReplayError(
+AUTONOMY_ENGINE\continuity\acrl\T29_Human_Decision_Boundary_Controller\decision_models.py:21:    REPLAY_DETECTED = "REPLAY_DETECTED"
+AUTONOMY_ENGINE\continuity\acrl\T29_Human_Decision_Boundary_Controller\decision_registry.py:1:SUPPORTED_SCHEMA = "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T29_Human_Decision_Boundary_Controller\decision_registry.py:6:    schema_version: str,
+AUTONOMY_ENGINE\continuity\acrl\T29_Human_Decision_Boundary_Controller\decision_registry.py:9:    if schema_version != SUPPORTED_SCHEMA:
+AUTONOMY_ENGINE\continuity\acrl\T29_Human_Decision_Boundary_Controller\decision_registry.py:10:        raise ValueError("unsupported schema version")
+AUTONOMY_ENGINE\continuity\acrl\T29_Human_Decision_Boundary_Controller\decision_store.py:4:class DecisionReplayError(RuntimeError):
+AUTONOMY_ENGINE\continuity\acrl\T29_Human_Decision_Boundary_Controller\decision_store.py:27:                    raise DecisionReplayError(
+AUTONOMY_ENGINE\continuity\acrl\T29_Human_Decision_Boundary_Controller\test_t29_replay.py:10:    DecisionReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T29_Human_Decision_Boundary_Controller\test_t29_replay.py:15:def test_replay_detected():
+AUTONOMY_ENGINE\continuity\acrl\T29_Human_Decision_Boundary_Controller\test_t29_replay.py:33:    with pytest.raises(DecisionReplayError):
+AUTONOMY_ENGINE\continuity\acrl\T30_Autonomous_Completion_Handoff_Engine\completion_store.py:3:class CompletionReplayError(RuntimeError): pass
+AUTONOMY_ENGINE\continuity\acrl\T30_Autonomous_Completion_Handoff_Engine\completion_store.py:16:                    raise
+CompletionReplayError("completion already recorded")
+AUTONOMY_ENGINE\continuity\acrl\T30_Autonomous_Completion_Handoff_Engine\handoff_builder.py:23:        metadata={"schema": "T30-HANDOFF-1.0"},
+AUTONOMY_ENGINE\continuity\acrl\T30_Autonomous_Completion_Handoff_Engine\test_completion_store.py:1:from .completion_store import CompletionStore,
+CompletionReplayError
+AUTONOMY_ENGINE\continuity\acrl\T30_Autonomous_Completion_Handoff_Engine\test_completion_store.py:4:def test_store_replay():
+AUTONOMY_ENGINE\continuity\acrl\T30_Autonomous_Completion_Handoff_Engine\test_completion_store.py:7:    except CompletionReplayError: pass
+AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\authority_registry.py:15:    schema_version: str = "1.0"
+AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\authority_registry.py:26:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\canonical_manifest.py:23:        "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\canonical_manifest.py:35:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\derived_sync_engine.py:19:            "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\derived_sync_engine.py:65:            "schema_version":
+manifest.schema_version,
+AUTONOMY_ENGINE\continuity\canonical_truth\STAGE0_Canonical_Truth_Sync_Engine\truth_models.py:55:    schema_version: str
+AUTONOMY_ENGINE\core\constants.py:33:    "replay_event",
+AUTONOMY_ENGINE\core\idempotency.py:2:    return any(e.get('idempotency_key') == event_key for e in state.get('events', []))
+AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_replay.py:1:from .deal_transaction.deal_transaction_replay import *
+AUTONOMY_ENGINE\core\event_platform\__init__.py:1:# REOS bounded layer: event_platform
+AUTONOMY_ENGINE\core\identity_tenant\tenant.py:1098:    idempotency_key: str
+AUTONOMY_ENGINE\core\identity_tenant\tenant.py:1129:            self.idempotency_key,
+AUTONOMY_ENGINE\core\identity_tenant\tenant.py:1130:            "idempotency_key",
+AUTONOMY_ENGINE\core\identity_tenant\tenant.py:1163:            "idempotency_key",
+AUTONOMY_ENGINE\core\identity_tenant\tenant.py:1172:        idempotency_key: str,
+AUTONOMY_ENGINE\core\identity_tenant\tenant.py:1179:            idempotency_key=idempotency_key,
+AUTONOMY_ENGINE\core\identity_tenant\tenant.py:1209:            self.idempotency_key,
+AUTONOMY_ENGINE\core\identity_tenant\test_t02_d_contract.py:303:        "provisioning_is_idempotency_keyed",
+AUTONOMY_ENGINE\core\identity_tenant\test_tenant.py:512:def test_provisioning_intent_is_idempotency_keyed():
+AUTONOMY_ENGINE\core\identity_tenant\test_tenant.py:517:        idempotency_key="tenant-create-001",
+AUTONOMY_ENGINE\core\identity_tenant\test_tenant.py:533:        idempotency_key="tenant-create-002",
+AUTONOMY_ENGINE\core\identity_tenant\test_tenant.py:557:        idempotency_key="tenant-create-003",
+AUTONOMY_ENGINE\core\identity_tenant\test_tenant.py:572:            idempotency_key="",
+AUTONOMY_ENGINE\diagnostics\diagnostic_contract.py:14:SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\diagnostics\diagnostic_fingerprint.py:38:            "schema_version": report.schema_version,
+AUTONOMY_ENGINE\diagnostics\diagnostic_models.py:94:    schema_version: str
+AUTONOMY_ENGINE\diagnostics\diagnostic_models.py:123:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\diagnostics\diagnostic_policy.py:70:            schema_version=report.schema_version,
+AUTONOMY_ENGINE\diagnostics\reos_health.py:64:SCHEMA_VERSION = "1.0"
+AUTONOMY_ENGINE\diagnostics\reos_health.py:108:    schema_version: str
+AUTONOMY_ENGINE\diagnostics\reos_health.py:122:            "schema_version": self.schema_version,
+AUTONOMY_ENGINE\diagnostics\reos_health.py:193:            schema_version=SCHEMA_VERSION,
+AUTONOMY_ENGINE\diagnostics\reos_health.py:315:                next_action="Repair state.json schema",
+AUTONOMY_ENGINE\diagnostics\test_reos_health.py:288:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\execution\execution_pipeline.py:163:                    "pipeline_replay_blocked": True,
+AUTONOMY_ENGINE\execution\execution_pipeline.py:264:        This does not clear controller state or persistent idempotency records.
+AUTONOMY_ENGINE\execution\mutation_adapter.py:16:- Idempotency is checked before execution.
+AUTONOMY_ENGINE\execution\mutation_adapter.py:59:    IDEMPOTENCY_BLOCKED = "IDEMPOTENCY_BLOCKED"
+AUTONOMY_ENGINE\execution\mutation_adapter.py:133:    idempotency_clear: bool = False
+AUTONOMY_ENGINE\execution\mutation_adapter.py:160:        2. replay protection
+AUTONOMY_ENGINE\execution\mutation_adapter.py:189:        if not request.idempotency_clear:
+AUTONOMY_ENGINE\execution\mutation_adapter.py:192:                MutationBlockReason.IDEMPOTENCY_BLOCKED,
+AUTONOMY_ENGINE\execution\mutation_adapter.py:193:                "Idempotency clearance was not explicitly provided.",
+AUTONOMY_ENGINE\execution\mutation_adapter.py:277:        boundary. This prevents a second call from silently replaying the
+AUTONOMY_ENGINE\execution\mutation_adapter.py:357:        This method does NOT clear controller state or persistent idempotency
+AUTONOMY_ENGINE\execution\mutation_adapter.py:358:        records. Persistent replay protection must remain authoritative outside
+AUTONOMY_ENGINE\execution\pre_execution_firewall.py:21:It validates structural, authorization, replay, architecture, executor,
+AUTONOMY_ENGINE\execution\pre_execution_firewall.py:65:    IDEMPOTENCY_BLOCKED = "IDEMPOTENCY_BLOCKED"
+AUTONOMY_ENGINE\execution\pre_execution_firewall.py:137:        3. replay protection
+AUTONOMY_ENGINE\execution\pre_execution_firewall.py:144:        10. idempotency
+AUTONOMY_ENGINE\execution\pre_execution_firewall.py:214:                "idempotency",
+AUTONOMY_ENGINE\execution\pre_execution_firewall.py:215:                context.idempotency_clear,
+AUTONOMY_ENGINE\execution\pre_execution_firewall.py:216:                FirewallBlockReason.IDEMPOTENCY_BLOCKED,
+AUTONOMY_ENGINE\execution\pre_execution_firewall.py:311:                "idempotency",
+AUTONOMY_ENGINE\execution\pre_execution_firewall.py:334:        This does not clear controller state or persistent replay protection.
+AUTONOMY_ENGINE\execution\production_execution_contract.py:38:- replay-resistant contract shape
+AUTONOMY_ENGINE\execution\production_execution_contract.py:72:    CONTRACT_REPLAY = "CONTRACT_REPLAY"
+AUTONOMY_ENGINE\execution\production_executor.py:444:                    "replay_blocked": True,
+AUTONOMY_ENGINE\execution\production_executor.py:552:        This does not reset controller state, persistent idempotency records,
+AUTONOMY_ENGINE\integration\integration_lock.py:52:    +--> idempotency
+AUTONOMY_ENGINE\integration\safe_execution.py:13:- All authorization, capability, policy, risk, guard, idempotency,
+AUTONOMY_ENGINE\integration\safe_execution.py:219:                    "replay_blocked": True,
+AUTONOMY_ENGINE\integration\safe_execution.py:308:                    "replay_blocked": True,
+AUTONOMY_ENGINE\integration\safe_execution.py:426:        This does not clear controller state or persistent idempotency state.
+AUTONOMY_ENGINE\orchestration\execution_coordinator.py:118:    idempotency_clear: bool = False
+AUTONOMY_ENGINE\orchestration\execution_coordinator.py:305:                    "coordination_replay_blocked": True,
+AUTONOMY_ENGINE\orchestration\execution_coordinator.py:375:            idempotency_clear=context.idempotency_clear,
+AUTONOMY_ENGINE\orchestration\execution_coordinator.py:839:            ("idempotency", context.idempotency_clear),
+AUTONOMY_ENGINE\orchestration\execution_coordinator.py:963:        This does not clear controller state or persistent idempotency state.
+AUTONOMY_ENGINE\runtime\execution_runtime.py:23:    idempotency_clear: bool
+AUTONOMY_ENGINE\runtime\execution_runtime.py:46:        idempotency_clear: bool = False,
+AUTONOMY_ENGINE\runtime\execution_runtime.py:61:            idempotency_clear=idempotency_clear,
+AUTONOMY_ENGINE\runtime\execution_runtime.py:77:                envelope.idempotency_clear,
+AUTONOMY_ENGINE\runtime\risk_runtime.py:38:            "schema",
+AUTONOMY_ENGINE\runtime\tests\test_execution_verification.py:71:        idempotency_clear=True,
+AUTONOMY_ENGINE\runtime\tests\test_governance.py:24:        "modify inventory database schema",
+AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:36:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:17:- Replay protection remains active.
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:72:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:152:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:175:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:198:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:221:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:244:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:267:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:279:def test_idempotency_failure_blocks_before_executor() -> None:
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:297:        idempotency_clear=False,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:306:    assert result.decision.block_reason is
+MutationBlockReason.IDEMPOTENCY_BLOCKED
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:327:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:356:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:380:        idempotency_clear=False,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:515:        "idempotency_clear",
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:526:        "idempotency_clear": True,
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:10:- preserves replay protection;
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:60:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:106:        "idempotency_clear",
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:126:        "idempotency_clear": base.idempotency_clear,
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:161:        idempotency_clear=base.idempotency_clear,
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:236:def test_failed_execution_cannot_be_replayed() -> None:
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:331:def test_successful_action_cannot_be_replayed() -> None:
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:370:    """Coordinator replay memory must remain local to the instance."""
+AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:10:- blocks replay,
+AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:63:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:115:        "idempotency_clear",
+AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:133:        "idempotency_clear": base.idempotency_clear,
+AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:169:        idempotency_clear=base.idempotency_clear,
+AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:280:def test_replay_is_blocked() -> None:
+AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:398:    """Different actions must not collide in local replay protection."""
+AUTONOMY_ENGINE\tests\test_l1_l2_acceptance.py:191:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_l1_l2_acceptance.py:252:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_l1_l2_acceptance.py:356:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:62:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:108:        ("idempotency_clear", MutationBlockReason.IDEMPOTENCY_BLOCKED),
+AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:135:        "idempotency_clear": request.idempotency_clear,
+AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:249:def test_replay_of_same_action_id_is_blocked() -> None:
+AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:338:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:363:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:379:    It must not imply that persistent controller idempotency state has been
+AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py:71:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py:165:            "idempotency_clear",
+AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py:166:            FirewallBlockReason.IDEMPOTENCY_BLOCKED,
+AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py:188:        "idempotency_clear": True,
+AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py:220:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py:388:    """Local replay protection is scoped to action_id."""
+AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py:436:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py:494:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:22:13. The proposal action_id remains the authoritative local replay key.
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:223:def test_replay_is_blocked_after_success() -> None:
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:224:    """A completed action must not be silently replayed."""
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:377:def test_attempted_uses_action_id_as_replay_boundary() -> None:
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:378:    """Replay tracking must be deterministic and action-specific."""
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:394:    """Reset must only clear local replay state."""
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:503:    """Preflight must never consume the action replay slot."""
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:515:    """Replay protection must not incorrectly block unrelated actions."""
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:536:def test_same_action_id_with_different_payload_is_still_replay_blocked() -> None:
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:538:    action_id remains the replay boundary.
+AUTONOMY_ENGINE\tests\test_readonly_controller_bridge.py:5:1. Never invent or require fields that the authoritative controller schema
+AUTONOMY_ENGINE\tests\test_readonly_controller_bridge.py:12:7. Preserve the existing REOS_CONTROL_CENTER architecture and state schema.
+AUTONOMY_ENGINE\tests\test_readonly_controller_bridge.py:191:    # These fields are part of the observed authoritative state schema.
+AUTONOMY_ENGINE\tests\test_readonly_controller_bridge.py:195:        "schema_version",
+AUTONOMY_ENGINE\tests\test_readonly_controller_bridge.py:203:    assert isinstance(meta["schema_version"], int)
+AUTONOMY_ENGINE\tests\test_v6_additions.py:51:def test_action_proposal_schema_exists_and_is_valid_json() -> None:
+AUTONOMY_ENGINE\tests\test_v6_additions.py:52:    path = ROOT / "schemas" / "action_proposal.schema.json"
+AUTONOMY_ENGINE\tests\test_v6_additions.py:58:    assert data["$schema"]
+AUTONOMY_ENGINE\tests\test_v6_additions.py:64:def test_session_state_schema_exists_and_is_valid_json() -> None:
+AUTONOMY_ENGINE\tests\test_v6_additions.py:65:    path = ROOT / "schemas" / "session_state.schema.json"
+AUTONOMY_ENGINE\tests\test_v6_additions.py:71:    assert data["$schema"]
+AUTONOMY_ENGINE\tests\test_v6_additions.py:80:        ROOT / "schemas" / "action_proposal.schema.json",
+AUTONOMY_ENGINE\tests\test_v6_additions.py:81:        ROOT / "schemas" / "session_state.schema.json",
+AUTONOMY_ENGINE\tests\test_v6_adversarial.py:13:from core.idempotency import already_applied
+AUTONOMY_ENGINE\tests\test_v6_adversarial.py:50:                "idempotency_key": request_id,
 
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/__init__.cpython-312.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/action_planner.cpython-312.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/context_compiler.cpython-312.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/idempotency.cpython-312.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory.cpython-312.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_concurrency.cpython-312.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_consistency.cpython-312.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_core_freeze.cpython-312.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_evidence.cpython-312.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_history.cpython-312.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_history_evidence.cpython-312.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_indexing.cpython-312.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/inventory_verification.cpython-312.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/project.cpython-312.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/risk_engine.cpython-312.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/semantic_consistency.cpython-312.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_availability.cpython-312-pytest-9.1.1.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_concurrency.cpython-312-pytest-9.1.1.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_consistency.cpython-312-pytest-9.1.1.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_core_freeze.cpython-312-pytest-9.1.1.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_domain.cpython-312-pytest-9.1.1.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_evidence.cpython-312-pytest-9.1.1.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_history.cpython-312-pytest-9.1.1.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_history_evidence.cpython-312-pytest-9.1.1.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_indexing.cpython-312-pytest-9.1.1.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_lifecycle.cpython-312-pytest-9.1.1.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_inventory_verification.cpython-312-pytest-9.1.1.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/test_project_domain.cpython-312-pytest-9.1.1.pyc
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__pycache__/workspace_guard.cpython-312.pyc
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal.py.before-T06-rollback
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/CORE-006_FINAL_UPGRADE.txt
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/__init__.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/apply_CORE-006_FINAL_UPGRADE.ps1
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_authorization.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_concurrency.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_consistency.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_external_contracts.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_freeze.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_integrity.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_milestones.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_workflow.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/__init__.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/identity_tenant/__init__.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory.py
-R100    REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/CORE-004-T01-project-domain.patch      REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/CORE-004-T01-project-domain.patch
-R100    REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/CORE-004-T01-project-domain.txt        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/CORE-004-T01-project-domain.txt
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/__init__.py
-R100    REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/apply_CORE-004-T01.ps1 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/apply_CORE-004-T01.ps1
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_concurrency.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_consistency.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_core_freeze.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_evidence.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_history.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_history_evidence.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_indexing.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_verification.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/project.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_availability.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_concurrency.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_consistency.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_core_freeze.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_domain.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_evidence.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_history.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_history_evidence.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_indexing.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_lifecycle.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_verification.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_project_domain.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory_concurrency.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory_consistency.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory_core_freeze.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory_evidence.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory_history.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory_history_evidence.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory_indexing.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory_verification.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/__init__.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/manifest.json
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/project.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/__init__.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/hybrid_retrieval.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/location_search.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/matching.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_ranking.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_rebuild.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_visibility.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_availability.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_concurrency.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_consistency.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_core_freeze.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_domain.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_evidence.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_history.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_history_evidence.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_indexing.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_lifecycle.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_inventory_verification.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_project_domain.py
-(END)
 
+PS D:\Homio\REOS_CONTROL_CENTER> Get-ChildItem . -Recurse -File -Filter test_*.py |
+>> Select-String -Pattern 'CORE-002|event bus|event platform|Kafka|outbox|idempot|replay|DLQ|schema'
 
-commit 7efcf29651ac26095c347587e178a51b5909673b
-Author: Sandip <sandip@example.com>
-Date:   Fri Sep 25 11:38:52 2026 +0530
+AUTONOMY_ENGINE\continuity\acrl\runtime_integration\test_continuity_controller.py:14:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_adversarial_project_dna.py:44:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_bootstrap.py:24:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_fingerprint.py:23:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_identity.py:21:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_part01_canonical_project_identity_acceptance.py:29:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_project_dna.py:11:    DNA_SCHEMA_VERSION,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_project_dna.py:35:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_project_dna.py:95:    assert payload["schema_version"] == DNA_SCHEMA_VERSION
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_project_dna.py:124:    assert payload["dna_schema_version"] == DNA_SCHEMA_VERSION
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_project_dna.py:130:    assert payload["compatibility"]["state_schema_version"] == 3
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_t01_final.py:32:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_t01_hardening.py:11:    evaluate_state_schema_compatibility,
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_t01_hardening.py:67:def test_supported_schema_is_accepted() -> None:
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_t01_hardening.py:68:    result = evaluate_state_schema_compatibility(3)
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_t01_hardening.py:73:def test_old_schema_requires_migration() -> None:
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_t01_hardening.py:74:    result = evaluate_state_schema_compatibility(2)
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_t01_hardening.py:79:def test_future_schema_is_not_accepted() -> None:
+AUTONOMY_ENGINE\continuity\acrl\T01_Project_DNA\test_t01_hardening.py:80:    result = evaluate_state_schema_compatibility(4)
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\test_architecture_drift.py:24:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\test_architecture_lock.py:32:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\test_architecture_lock.py:75:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\test_part02_architecture_authority_acceptance.py:20:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T02_Architecture_Lock\test_t02_hardening.py:38:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\test_reconstruction_validation.py:33:        state_schema_version=3,
+AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\test_state_identity.py:65:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\test_state_reconstruction.py:61:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\test_state_reconstruction.py:278:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T04_Gate_Subtask_Continuity\test_gate_subtask_continuity.py:56:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T04_Gate_Subtask_Continuity\test_gate_subtask_continuity.py:246:    assert payload["schema_version"] == "2.0"
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_dependency_authority_map.py:234:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_task_dependency_reconstruction.py:34:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_task_dependency_reconstruction.py:322:        "SEARCH_SCHEMA",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_task_dependency_reconstruction.py:325:        "SEARCH_SCHEMA": "SEARCH_DOMAIN",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_task_dependency_reconstruction.py:336:        "SEARCH_SCHEMA",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_task_dependency_reconstruction.py:339:        "SEARCH_SCHEMA",
+AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_task_dependency_reconstruction.py:367:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\test_checkpoint_continuity.py:30:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\test_checkpoint_continuity.py:390:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\test_checkpoint_validation.py:60:def test_wrong_schema_is_invalid():
+AUTONOMY_ENGINE\continuity\acrl\T06_Checkpoint_Engine\test_checkpoint_validation.py:65:        "schema_version",
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\test_new_chat_bootstrap.py:321:    assert payload["schema_version"] == "2.0"
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_compatibility.py:11:def test_current_schema_is_supported():
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_compatibility.py:12:    result = FingerprintCompatibilityEngine.check_schema(
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_compatibility.py:39:def test_unknown_schema_fails_closed():
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_compatibility.py:40:    result = FingerprintCompatibilityEngine.check_schema(
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_compatibility.py:61:        FingerprintCompatibilityEngine.check_schema(
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_identity.py:62:        schema_version=identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_provenance.py:88:        schema_version=identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_registry.py:60:def test_registration_is_replay_safe():
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_validation.py:69:        schema_version=identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_fingerprint_validation.py:90:        source_schema_version=provenance.source_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_state_integrity.py:72:def test_schema_version_is_present() -> None:
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_state_integrity.py:77:    assert snapshot.schema_version == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_t09_adversarial.py:36:        schema_version=snapshot.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_t09_adversarial.py:52:def test_unknown_schema_fails_closed():
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_t09_adversarial.py:53:    result = FingerprintCompatibilityEngine.check_schema(
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_t09_adversarial.py:76:        schema_version=identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_t09_adversarial.py:101:        source_schema_version=provenance.source_schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_t09_adversarial.py:127:        schema_version=identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T09_State_Fingerprint\test_t09_contract.py:55:            snapshot.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_compatibility.py:16:        "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_compatibility.py:33:def test_unknown_schema_is_incompatible() -> None:
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_compatibility.py:35:    versions["schema_version"] = "9.9"
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_guard.py:468:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_guard.py:499:def test_schema_version_is_fixed() -> None:
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_guard.py:504:    assert report.schema_version == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_identity.py:16:        "schema_version": "1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_identity.py:32:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_identity.py:45:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_identity.py:57:            schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_identity.py:66:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_identity.py:74:        schema_version=identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_recovery_validation.py:85:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_t11_adversarial.py:79:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_t11_adversarial.py:87:        schema_version=identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T11_Recovery_Fail_Closed\test_t11_contract.py:54:        schema_version=report.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_resume_safety_validation.py:400:    assert data["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_resume_safety_validation.py:523:def test_schema_version_is_fixed() -> None:
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_resume_safety_validation.py:528:    assert report.schema_version == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_t12_integration.py:208:def test_t12_compatibility_current_schema_is_supported():
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_t12_integration.py:209:    status = ResumeCompatibilityEngine.schema_status("1.0")
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_t12_integration.py:238:def test_t12_compatibility_unknown_schema_does_not_pass():
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_t12_integration.py:239:    status = ResumeCompatibilityEngine.schema_status("")
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_t12_integration.py:244:def test_t12_compatibility_incompatible_schema_does_not_pass():
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_t12_integration.py:245:    status = ResumeCompatibilityEngine.schema_status("9.9")
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_t12_integration.py:320:        "schema_version",
+AUTONOMY_ENGINE\continuity\acrl\T12_Resume_Safety_Validation\test_t12_integration.py:430:    status = ResumeCompatibilityEngine.schema_status("9.9")
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_compatibility.py:10:def test_current_schema_is_supported():
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_compatibility.py:11:    status =
+ControllerCompatibilityEngine.schema_status("1.0")
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_compatibility.py:40:def test_empty_schema_is_unknown():
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_compatibility.py:41:    status = ControllerCompatibilityEngine.schema_status("")
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_compatibility.py:46:def test_unknown_schema_is_incompatible():
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_compatibility.py:47:    status =
+ControllerCompatibilityEngine.schema_status("99.0")
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_context_adapter.py:24:            "schema_version": 3,
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_identity.py:73:    assert data["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_identity.py:83:        schema_version=identity.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_integration.py:777:def test_schema_version_is_stable() -> None:
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_integration.py:782:    assert report.schema_version == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_controller_integration.py:817:def test_safe_integration_is_idempotent() -> None:
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_t13_contract.py:128:        assert "schema_version" in data
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_t13_contract.py:160:    def test_schema_version_stable(self) -> None:
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_t13_contract.py:168:        assert report.schema_version == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_t13_contract.py:171:class TestIdempotencyContract:
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_t13_contract.py:172:    """Test idempotency guarantees."""
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_t13_integration.py:214:class TestT13PipelineIdempotency:
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_t13_integration.py:215:    """Test idempotency for repeated pipeline invocations."""
+AUTONOMY_ENGINE\continuity\acrl\T13_Controller_Integration\test_t13_integration.py:217:    def test_t13_idempotent_on_valid_evidence(self) -> None:
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\test_regression_compatibility.py:1:from .regression_compatibility import CompatibilityStatus,
+compare_schema
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\test_regression_compatibility.py:3:def test_supported(): assert compare_schema('1.0','1.0') is
+CompatibilityStatus.SUPPORTED
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\test_regression_compatibility.py:5:def test_migratable(): assert compare_schema('1.0','1.1') is
+CompatibilityStatus.MIGRATABLE
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\test_regression_compatibility.py:7:def test_incompatible(): assert compare_schema('1.0','2.0') is
+CompatibilityStatus.INCOMPATIBLE
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\test_regression_layer.py:122:    assert "policy_schema" in data
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\test_t14_contract.py:4:def test_contract_schema_and_manifest():
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\test_t14_contract.py:5:    assert RegressionLayerEngine.SCHEMA_VERSION=='1.0'
+AUTONOMY_ENGINE\continuity\acrl\T14_Full_Regression\test_t14_contract.py:14:    assert
+{'metrics','policy_schema','provenance_fingerprint','compatibility'} <= set(RegressionLayerEngine.build_report([]).to_dict())
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\test_operator_autonomy.py:373:    assert data["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\test_t15_contract.py:113:def test_t15_schema_is_supported():
+AUTONOMY_ENGINE\continuity\acrl\T15_AI_Operator_Autonomy\test_t15_contract.py:115:        OperatorCompatibilityEngine.schema_status("1.0")
+AUTONOMY_ENGINE\continuity\acrl\T16_Repository_Intelligence_File_Discovery\test_repository_intelligence.py:814:    assert snapshot.schema_version == "1.1"
+AUTONOMY_ENGINE\continuity\acrl\T17_Change_Impact_Dependency_Analysis\test_change_impact_analysis.py:79:def test_idempotent_duplicate_paths(tmp_path):
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\test_t18_contract.py:15:def test_t18_contract_schema():
+AUTONOMY_ENGINE\continuity\acrl\T18_Safe_Execution_Authorization_Guard\test_t18_contract.py:27:    assert data["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_failure_diagnosis.py:23:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_failure_diagnosis.py:33:        policy_schema="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_failure_diagnosis.py:94:        message="Unsupported schema
+contract",
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_selection_engine.py:57:        state_schema_version=3,
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_selection_engine.py:66:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_selection_engine.py:79:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_selection_engine.py:89:        policy_schema="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_selection_engine.py:99:
+schema_version=payload["schema_version"],
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_selection_engine.py:109:
+policy_schema=payload["policy_schema"],
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_selection_engine.py:208:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_t19_contract.py:27:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T19_Intelligent_Test_Selection_Failure_Diagnosis\test_t19_contract.py:80:            "24_idempotency_replay_safety",
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\test_repair_continuity.py:19:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\test_repair_contract.py:19:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\test_repair_transaction.py:40:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T20_Autonomous_Repair_Patch_Verification\test_repair_transaction.py:107:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T21_Git_Repository_Read_Write_Coordination\test_t21_contract.py:19:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\test_checkpoint_store.py:11:    CheckpointReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\test_checkpoint_store.py:56:        CheckpointReplayError
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\test_t22_concurrency.py:48:        schema_version=second.schema_version,
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\test_t22_contract.py:17:    assert data["schema_version"] == "1.0"
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\test_t22_replay.py:51:def test_replay_is_detected():
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\test_t22_replay.py:112:        == CheckpointDecision.REPLAY_DETECTED
+AUTONOMY_ENGINE\continuity\acrl\T22_Commit_Execution_Checkpoint_Coordination\test_t22_replay.py:115:    assert second.replay is True
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\test_resolution_store.py:10:    ResolutionReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\test_resolution_store.py:29:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\test_resolution_store.py:45:def test_store_replay():
+AUTONOMY_ENGINE\continuity\acrl\T23_Reference_Evidence_Resolution_Engine\test_resolution_store.py:55:    except ResolutionReplayError:
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\test_continuity_store.py:6:    ContinuityReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\test_continuity_store.py:13:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\test_continuity_store.py:29:def test_replay():
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\test_continuity_store.py:39:    except ContinuityReplayError:
+AUTONOMY_ENGINE\continuity\acrl\T24_Cross_Chat_Continuity_Recovery_Engine\test_t24_replay.py:15:def test_same_recovery_is_read_only_replay():
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\test_budget_store.py:7:    BudgetReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\test_budget_store.py:14:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\test_budget_store.py:33:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\test_budget_store.py:46:def test_replay_is_detected():
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\test_budget_store.py:55:    except BudgetReplayError:
+AUTONOMY_ENGINE\continuity\acrl\T25_Context_Token_Work_Budget_Manager\test_t25_replay.py:33:def test_identical_request_is_read_only_replay():
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_loop_checkpoint.py:31:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_loop_guard.py:15:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_loop_models.py:9:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_loop_progress.py:32:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_loop_store.py:8:    LoopReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_loop_store.py:15:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_loop_store.py:50:        LoopReplayError
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_t26_concurrency.py:17:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_t26_exhaustion.py:16:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_t26_no_progress.py:32:        schema_version="1.0",
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_t26_replay.py:55:def test_replay_detected():
+AUTONOMY_ENGINE\continuity\acrl\T26_Autonomous_Execution_Loop_Controller\test_t26_replay.py:95:        is LoopDecision.REPLAY_DETECTED
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\test_t27_replay.py:28:        scheduler_id="replay",
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\test_t27_replay.py:41:def test_replay_detected():
+AUTONOMY_ENGINE\continuity\acrl\T27_Dependency_Aware_Work_Scheduler\test_t27_replay.py:62:        is SchedulerDecision.REPLAY_DETECTED
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\test_t28_replay.py:6:    ReconciliationReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\test_t28_replay.py:11:def test_replay_detected():
+AUTONOMY_ENGINE\continuity\acrl\T28_Conflict_Resolution_Reconciliation_Engine\test_t28_replay.py:24:    with pytest.raises(ReconciliationReplayError):
+AUTONOMY_ENGINE\continuity\acrl\T29_Human_Decision_Boundary_Controller\test_t29_replay.py:10:    DecisionReplayError,
+AUTONOMY_ENGINE\continuity\acrl\T29_Human_Decision_Boundary_Controller\test_t29_replay.py:15:def test_replay_detected():
+AUTONOMY_ENGINE\continuity\acrl\T29_Human_Decision_Boundary_Controller\test_t29_replay.py:33:    with pytest.raises(DecisionReplayError):
+AUTONOMY_ENGINE\continuity\acrl\T30_Autonomous_Completion_Handoff_Engine\test_completion_store.py:1:from .completion_store import CompletionStore,
+CompletionReplayError
+AUTONOMY_ENGINE\continuity\acrl\T30_Autonomous_Completion_Handoff_Engine\test_completion_store.py:4:def test_store_replay():
+AUTONOMY_ENGINE\continuity\acrl\T30_Autonomous_Completion_Handoff_Engine\test_completion_store.py:7:    except CompletionReplayError: pass
+AUTONOMY_ENGINE\core\identity_tenant\test_identity.py:634:def test_external_identity_same_reference_is_idempotent():
+AUTONOMY_ENGINE\core\identity_tenant\test_identity.py:638:        handle="broker.external.idempotent",
+AUTONOMY_ENGINE\core\identity_tenant\test_t02_d_contract.py:303:        "provisioning_is_idempotency_keyed",
+AUTONOMY_ENGINE\core\identity_tenant\test_tenant.py:512:def test_provisioning_intent_is_idempotency_keyed():
+AUTONOMY_ENGINE\core\identity_tenant\test_tenant.py:517:        idempotency_key="tenant-create-001",
+AUTONOMY_ENGINE\core\identity_tenant\test_tenant.py:533:        idempotency_key="tenant-create-002",
+AUTONOMY_ENGINE\core\identity_tenant\test_tenant.py:557:        idempotency_key="tenant-create-003",
+AUTONOMY_ENGINE\core\identity_tenant\test_tenant.py:572:            idempotency_key="",
+AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:131:def test_upsert_is_idempotent_for_same_inventory(pipeline):
+AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:343:def test_same_source_rebuild_is_idempotent(pipeline):
+AUTONOMY_ENGINE\diagnostics\test_reos_health.py:288:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\runtime\tests\test_execution_verification.py:71:        idempotency_clear=True,
+AUTONOMY_ENGINE\runtime\tests\test_governance.py:24:        "modify inventory database schema",
+AUTONOMY_ENGINE\tests\test_capability_reuse_execution_integration.py:36:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:17:- Replay protection remains active.
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:72:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:152:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:175:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:198:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:221:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:244:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:267:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:279:def test_idempotency_failure_blocks_before_executor() -> None:
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:297:        idempotency_clear=False,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:306:    assert result.decision.block_reason is
+MutationBlockReason.IDEMPOTENCY_BLOCKED
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:327:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:356:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:380:        idempotency_clear=False,
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:515:        "idempotency_clear",
+AUTONOMY_ENGINE\tests\test_controller_autonomy_integration_adversarial.py:526:        "idempotency_clear": True,
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:10:- preserves replay protection;
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:60:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:106:        "idempotency_clear",
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:126:        "idempotency_clear": base.idempotency_clear,
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:161:        idempotency_clear=base.idempotency_clear,
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:236:def test_failed_execution_cannot_be_replayed() -> None:
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:331:def test_successful_action_cannot_be_replayed() -> None:
+AUTONOMY_ENGINE\tests\test_execution_coordinator_adversarial.py:370:    """Coordinator replay memory must remain local to the instance."""
+AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:10:- blocks replay,
+AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:63:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:115:        "idempotency_clear",
+AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:133:        "idempotency_clear": base.idempotency_clear,
+AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:169:        idempotency_clear=base.idempotency_clear,
+AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:280:def test_replay_is_blocked() -> None:
+AUTONOMY_ENGINE\tests\test_execution_pipeline_adversarial.py:398:    """Different actions must not collide in local replay protection."""
+AUTONOMY_ENGINE\tests\test_l1_l2_acceptance.py:191:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_l1_l2_acceptance.py:252:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_l1_l2_acceptance.py:356:    assert payload["schema_version"] == "1.0"
+AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:62:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:108:        ("idempotency_clear", MutationBlockReason.IDEMPOTENCY_BLOCKED),
+AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:135:        "idempotency_clear": request.idempotency_clear,
+AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:249:def test_replay_of_same_action_id_is_blocked() -> None:
+AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:338:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:363:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_mutation_adapter_adversarial.py:379:    It must not imply that persistent controller idempotency state has been
+AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py:71:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py:165:            "idempotency_clear",
+AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py:166:            FirewallBlockReason.IDEMPOTENCY_BLOCKED,
+AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py:188:        "idempotency_clear": True,
+AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py:220:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py:388:    """Local replay protection is scoped to action_id."""
+AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py:436:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_pre_execution_firewall_adversarial.py:494:        idempotency_clear=True,
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:22:13. The proposal action_id remains the authoritative local replay key.
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:223:def test_replay_is_blocked_after_success() -> None:
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:224:    """A completed action must not be silently replayed."""
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:377:def test_attempted_uses_action_id_as_replay_boundary() -> None:
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:378:    """Replay tracking must be deterministic and action-specific."""
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:394:    """Reset must only clear local replay state."""
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:503:    """Preflight must never consume the action replay slot."""
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:515:    """Replay protection must not incorrectly block unrelated actions."""
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:536:def test_same_action_id_with_different_payload_is_still_replay_blocked() -> None:
+AUTONOMY_ENGINE\tests\test_production_executor_adversarial.py:538:    action_id remains the replay boundary.
+AUTONOMY_ENGINE\tests\test_readonly_controller_bridge.py:5:1. Never invent or require fields that the authoritative controller schema
+AUTONOMY_ENGINE\tests\test_readonly_controller_bridge.py:12:7. Preserve the existing REOS_CONTROL_CENTER architecture and state schema.
+AUTONOMY_ENGINE\tests\test_readonly_controller_bridge.py:191:    # These fields are part of the observed authoritative state schema.
+AUTONOMY_ENGINE\tests\test_readonly_controller_bridge.py:195:        "schema_version",
+AUTONOMY_ENGINE\tests\test_readonly_controller_bridge.py:203:    assert isinstance(meta["schema_version"], int)
+AUTONOMY_ENGINE\tests\test_v6_additions.py:51:def test_action_proposal_schema_exists_and_is_valid_json() -> None:
+AUTONOMY_ENGINE\tests\test_v6_additions.py:52:    path = ROOT / "schemas" / "action_proposal.schema.json"
+AUTONOMY_ENGINE\tests\test_v6_additions.py:58:    assert data["$schema"]
+AUTONOMY_ENGINE\tests\test_v6_additions.py:64:def test_session_state_schema_exists_and_is_valid_json() -> None:
+AUTONOMY_ENGINE\tests\test_v6_additions.py:65:    path = ROOT / "schemas" / "session_state.schema.json"
+AUTONOMY_ENGINE\tests\test_v6_additions.py:71:    assert data["$schema"]
+AUTONOMY_ENGINE\tests\test_v6_additions.py:80:        ROOT / "schemas" / "action_proposal.schema.json",
+AUTONOMY_ENGINE\tests\test_v6_additions.py:81:        ROOT / "schemas" / "session_state.schema.json",
+AUTONOMY_ENGINE\tests\test_v6_adversarial.py:13:from core.idempotency import already_applied
+AUTONOMY_ENGINE\tests\test_v6_adversarial.py:50:                "idempotency_key": request_id,
 
-    refactor: organize core implementation by domain layers
-
-diff --git a/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
-new file mode 100644
-index 0000000..af2525b
---- /dev/null
-+++ b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
-@@ -0,0 +1 @@
-+﻿from .deal_transaction.deal_transaction_events import *
-diff --git a/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
-new file mode 100644
-index 0000000..96a8627
---- /dev/null
-+++ b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
-@@ -0,0 +1 @@
-+﻿from .deal_transaction.deal_transaction_replay import *
-diff --git a/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/__init__.py b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/__init__.py
-new file mode 100644
-index 0000000..8f91e8c
---- /dev/null
-+++ b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/__init__.py
-@@ -0,0 +1 @@
-+﻿# REOS bounded layer: event_platform
