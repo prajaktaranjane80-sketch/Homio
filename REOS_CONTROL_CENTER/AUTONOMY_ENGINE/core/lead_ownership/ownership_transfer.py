@@ -157,7 +157,7 @@ class OwnershipTransfer:
                 ),
             )
 
-        @classmethod
+    @classmethod
     def create(
         cls,
         *,
