@@ -1,267 +1,347 @@
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "===== EVENT PLATFORM WORKTREE DIFF =====" -ForegroundColor Cyan
-===== EVENT PLATFORM WORKTREE DIFF =====
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> git diff --name-status origin/reos-development -- `
->> AUTONOMY_ENGINE/core/event_platform
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/event_contract.py', LF will be replaced by CRLF the next time Git touches it
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/event_contract.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/test_event_platform_deep_regression.py
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n===== EVENT CONTRACT LOCAL CHANGES =====" -ForegroundColor Yellow
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> Get-ChildItem "REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership" -Recurse -File |
+>> Select-Object Name, Length, LastWriteTime
 
-===== EVENT CONTRACT LOCAL CHANGES =====
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> git diff -- `
->> AUTONOMY_ENGINE/core/event_platform/event_contract.py
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/event_contract.py', LF will be replaced by CRLF the next time Git touches it
-diff --git a/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/event_contract.py b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/event_contract.py
-index ed770a9..92eb599 100644
---- a/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/event_contract.py
-+++ b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/event_contract.py
-@@ -1,7 +1,8 @@
--from __future__ import annotations
-+﻿from __future__ import annotations
+Name                             Length LastWriteTime
+----                             ------ -------------
+lead.py                           12193 9/27/2026 12:51:32 PM
+lead_acrl_contract.py             13224 9/27/2026 12:51:32 PM
+lead_attribution.py                5064 9/27/2026 12:51:32 PM
+lead_communication.py              7828 9/27/2026 12:51:32 PM
+lead_consistency.py                9838 9/27/2026 12:51:32 PM
+lead_contract.py                   5183 9/27/2026 12:51:32 PM
+lead_event_integration.py          9846 9/27/2026 12:51:32 PM
+lead_fraud_handoff.py              9128 9/27/2026 12:51:32 PM
+lead_ownership.py                  6975 9/27/2026 12:51:32 PM
+lead_security.py                   6082 9/27/2026 12:51:32 PM
+ownership_transfer.py              7725 9/27/2026 12:51:32 PM
+test_core_003_adversarial.py      10174 9/27/2026 12:51:32 PM
+test_core_003_contract_matrix.py  32178 9/27/2026 12:51:32 PM
+test_core_003_regression.py        9721 9/27/2026 12:51:32 PM
+__init__.py                          41 9/27/2026 12:51:32 PM
 
--from dataclasses import dataclass
-+from dataclasses import dataclass, field
- from hashlib import sha256
-+from types import MappingProxyType
- from typing import Any, Mapping
- import json
- import re
-@@ -58,22 +59,24 @@ class EventContract:
-     event_version: int
 
-     required_fields: tuple[str, ...] = ()
--    field_types: Mapping[str, str] = ()
-+    field_types: Mapping[str, str] = field(
-+        default_factory=dict
-+    )
-     allow_additional_fields: bool = True
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> python -m pytest REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership --collect-only -q
 
-     def __post_init__(self) -> None:
--        if not isinstance(
--            self.schema_name,
--            str,
--        ) or not self.schema_name.strip():
-+        if (
-+            not isinstance(self.schema_name, str)
-+            or not self.schema_name.strip()
-+        ):
-             raise ValueError(
-                 "schema_name is required"
-             )
+========================================================================= ERRORS ==========================================================================
+__________________________ ERROR collecting REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py __________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\python.py:508: in importtestmodule
+    mod = import_path(
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\assertion\rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_adversarial.py:39: in <module>
+    from .ownership_transfer import (
+E     File "D:\HOMIO\REOS_CORE3_REMOTE_TEST\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py", line 161
+E       def create(
+E   IndentationError: unexpected unindent
+________________________ ERROR collecting REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py ________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\python.py:508: in importtestmodule
+    mod = import_path(
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\assertion\rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_contract_matrix.py:69: in <module>
+    from .ownership_transfer import (
+E     File "D:\HOMIO\REOS_CORE3_REMOTE_TEST\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py", line 161
+E       def create(
+E   IndentationError: unexpected unindent
+__________________________ ERROR collecting REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_regression.py ___________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\python.py:508: in importtestmodule
+    mod = import_path(
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\assertion\rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_regression.py:38: in <module>
+    from .ownership_transfer import (
+E     File "D:\HOMIO\REOS_CORE3_REMOTE_TEST\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py", line 161
+E       def create(
+E   IndentationError: unexpected unindent
+================================================================= short test summary info =================================================================
+ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py
+ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py
+ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_regression.py
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+no tests collected, 3 errors in 1.10s
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> python -m pytest REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\event_platform -q
+.........FFFFF.F.....................................                                                                                                [100%]
+======================================================================== FAILURES =========================================================================
+_______________________________________________________ test_contract_default_field_types_is_usable _______________________________________________________
 
--        if not isinstance(
--            self.event_type,
--            str,
--        ) or not self.event_type.strip():
-+        if (
-+            not isinstance(self.event_type, str)
-+            or not self.event_type.strip()
-+        ):
-             raise ValueError(
-                 "event_type is required"
-             )
-@@ -86,33 +89,70 @@ class EventContract:
-                 "event_type must use canonical uppercase naming"
-             )
+    def test_contract_default_field_types_is_usable():
+>       contract = EventContract(
+            schema_name="reos.test",
+            event_type="PING.EVENT",
+            schema_version=1,
+            event_version=1,
+        )
 
-+        if (
-+            isinstance(self.schema_version, bool)
-+            or not isinstance(self.schema_version, int)
-+        ):
-+            raise TypeError(
-+                "schema_version must be int"
-+            )
-+
-         if self.schema_version < 1:
-             raise ValueError(
-                 "schema_version must be >= 1"
-             )
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\event_platform\test_event_platform_deep_regression.py:161:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+<string>:10: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-+        if (
-+            isinstance(self.event_version, bool)
-+            or not isinstance(self.event_version, int)
-+        ):
-+            raise TypeError(
-+                "event_version must be int"
-+            )
-+
-         if self.event_version < 1:
-             raise ValueError(
-                 "event_version must be >= 1"
-             )
+self = EventContract(schema_name='reos.test', event_type='PING.EVENT', schema_version=1, event_version=1, required_fields=(), field_types=(), allow_additional_fields=True)
 
--        required = tuple(
--            sorted(
--                {
--                    str(field).strip()
--                    for field in self.required_fields
--                    if str(field).strip()
--                }
-+        if not isinstance(
-+            self.required_fields,
-+            tuple,
-+        ):
-+            raise TypeError(
-+                "required_fields must be tuple"
-+            )
-+
-+        normalized_required = []
-+
-+        for field_name in self.required_fields:
-+            if not isinstance(field_name, str):
-+                raise TypeError(
-+                    "required field names must be strings"
-+                )
-+
-+            normalized = field_name.strip()
-+
-+            if not normalized:
-+                raise ValueError(
-+                    "required field names cannot be empty"
-+                )
-+
-+            normalized_required.append(
-+                normalized
-             )
--        )
+    def __post_init__(self) -> None:
+        if not isinstance(
+            self.schema_name,
+            str,
+        ) or not self.schema_name.strip():
+            raise ValueError(
+                "schema_name is required"
+            )
 
--        if len(required) != len(
--            set(required)
-+        if len(normalized_required) != len(
-+            set(normalized_required)
-         ):
-             raise ValueError(
-                 "required_fields contain duplicates"
-             )
+        if not isinstance(
+            self.event_type,
+            str,
+        ) or not self.event_type.strip():
+            raise ValueError(
+                "event_type is required"
+            )
 
-+        required = tuple(
-+            sorted(normalized_required)
-+        )
-+
-         object.__setattr__(
-             self,
-             "required_fields",
-@@ -127,17 +167,69 @@ class EventContract:
-                 "field_types must be a mapping"
-             )
+        if not re.fullmatch(
+            r"[A-Z][A-Z0-9_.-]{1,199}",
+            self.event_type,
+        ):
+            raise ValueError(
+                "event_type must use canonical uppercase naming"
+            )
 
--        normalized_types = {
--            str(key): str(value)
--            for key, value in self.field_types.items()
--        }
-+        normalized_types: dict[str, str] = {}
-+
-+        for key, value in self.field_types.items():
-+            if not isinstance(key, str):
-+                raise TypeError(
-+                    "field_types keys must be strings"
-+                )
-+
-+            if not isinstance(value, str):
-+                raise TypeError(
-+                    "field_types values must be strings"
-+                )
-+
-+            normalized_key = key.strip()
-+            normalized_value = value.strip()
-+
-+            if not normalized_key:
-+                raise ValueError(
-+                    "field_types keys cannot be empty"
-+                )
-+
-+            if not normalized_value:
-+                raise ValueError(
-+                    "field_types values cannot be empty"
-+                )
-+
-+            normalized_types[
-+                normalized_key
-+            ] = normalized_value
+        if self.schema_version < 1:
+            raise ValueError(
+                "schema_version must be >= 1"
+            )
 
-         object.__setattr__(
-             self,
-             "field_types",
--            normalized_types,
-+            MappingProxyType(
-+                dict(
-+                    sorted(
-+                        normalized_types.items()
-+                    )
-+                )
-+            ),
-         )
+        if self.event_version < 1:
+            raise ValueError(
+                "event_version must be >= 1"
+            )
 
-+        if not isinstance(
-+            self.allow_additional_fields,
-+            bool,
-+        ):
-+            raise TypeError(
-+                "allow_additional_fields must be bool"
-+            )
-+
-+        missing_type_definitions = (
-+            set(self.required_fields)
-+            - set(self.field_types)
-+        )
-+
-+        if missing_type_definitions:
-+            raise ValueError(
-+                "required fields missing type definitions: "
-+                + ", ".join(
-+                    sorted(missing_type_definitions)
-+                )
-+            )
-+
-     @property
-     def contract_key(self) -> tuple[
-         str,
-@@ -215,9 +307,9 @@ class EventContract:
-         payload = event.payload
+        required = tuple(
+            sorted(
+                {
+                    str(field).strip()
+                    for field in self.required_fields
+                    if str(field).strip()
+                }
+            )
+        )
 
-         missing = [
--            field
--            for field in self.required_fields
--            if field not in payload
-+            field_name
-+            for field_name in self.required_fields
-+            if field_name not in payload
-         ]
+        if len(required) != len(
+            set(required)
+        ):
+            raise ValueError(
+                "required_fields contain duplicates"
+            )
 
-         if missing:
-@@ -234,12 +326,15 @@ class EventContract:
-             if unknown:
-                 raise EventValidationError(
-                     "unsupported event fields: "
--                    + ", ".join(sorted(unknown))
-+                    + ", ".join(
-+                        sorted(unknown)
-+                    )
-                 )
+        object.__setattr__(
+            self,
+            "required_fields",
+            required,
+        )
 
--        for field_name, expected_type in (
--            self.field_types.items()
--        ):
-+        for (
-+            field_name,
-+            expected_type,
-+        ) in self.field_types.items():
-             if field_name not in payload:
-                 continue
+        if not isinstance(
+            self.field_types,
+            Mapping,
+        ):
+>           raise TypeError(
+                "field_types must be a mapping"
+            )
+E           TypeError: field_types must be a mapping
 
-@@ -281,7 +376,10 @@ class EventContract:
-             return isinstance(value, Mapping)
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\event_platform\event_contract.py:126: TypeError
+_________________________________________________________ test_contract_field_types_are_immutable _________________________________________________________
 
-         if expected_type == "array":
--            return isinstance(value, (list, tuple))
-+            return isinstance(
-+                value,
-+                (list, tuple),
-+            )
+    def test_contract_field_types_are_immutable():
+        contract = make_contract()
 
-         if expected_type == "null":
-             return value is None
-(END)
+>       assert isinstance(
+            contract.field_types,
+            MappingProxyType,
+        )
+E       AssertionError: assert False
+E        +  where False = isinstance({'lead_id': 'string', 'source': 'string'}, MappingProxyType)
+E        +    where {'lead_id': 'string', 'source': 'string'} = EventContract(schema_name='reos.test', event_type='LEAD.CREATED', schema_version=1, event_version=1, required_fields=('lead_id', 'source'), field_types={'lead_id': 'string', 'source': 'string'}, allow_additional_fields=True).field_types
+
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\event_platform\test_event_platform_deep_regression.py:174: AssertionError
+__________________________________________________ test_contract_required_field_duplicates_are_rejected ___________________________________________________
+
+    def test_contract_required_field_duplicates_are_rejected():
+>       with pytest.raises(ValueError, match="duplicates"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\event_platform\test_event_platform_deep_regression.py:184: Failed
+_______________________________________________________ test_contract_boolean_versions_are_rejected _______________________________________________________
+
+    def test_contract_boolean_versions_are_rejected():
+        with pytest.raises(TypeError):
+            EventContract(
+                schema_name="reos.test",
+                event_type="LEAD.CREATED",
+                schema_version=True,
+                event_version=1,
+            )
+
+        with pytest.raises(TypeError):
+>           EventContract(
+                schema_name="reos.test",
+                event_type="LEAD.CREATED",
+                schema_version=1,
+                event_version=False,
+            )
+
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\event_platform\test_event_platform_deep_regression.py:210:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+<string>:10: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = EventContract(schema_name='reos.test', event_type='LEAD.CREATED', schema_version=1, event_version=False, required_fields=(), field_types=(), allow_additional_fields=True)
+
+    def __post_init__(self) -> None:
+        if not isinstance(
+            self.schema_name,
+            str,
+        ) or not self.schema_name.strip():
+            raise ValueError(
+                "schema_name is required"
+            )
+
+        if not isinstance(
+            self.event_type,
+            str,
+        ) or not self.event_type.strip():
+            raise ValueError(
+                "event_type is required"
+            )
+
+        if not re.fullmatch(
+            r"[A-Z][A-Z0-9_.-]{1,199}",
+            self.event_type,
+        ):
+            raise ValueError(
+                "event_type must use canonical uppercase naming"
+            )
+
+        if self.schema_version < 1:
+            raise ValueError(
+                "schema_version must be >= 1"
+            )
+
+        if self.event_version < 1:
+>           raise ValueError(
+                "event_version must be >= 1"
+            )
+E           ValueError: event_version must be >= 1
+
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\event_platform\event_contract.py:95: ValueError
+______________________________________________________ test_required_field_must_have_type_definition ______________________________________________________
+
+    def test_required_field_must_have_type_definition():
+>       with pytest.raises(
+            ValueError,
+            match="missing type definitions",
+        ):
+E       Failed: DID NOT RAISE ValueError
+
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\event_platform\test_event_platform_deep_regression.py:219: Failed
+________________________________________________ test_schema_version_evolution_requires_explicit_contract _________________________________________________
+
+    def test_schema_version_evolution_requires_explicit_contract():
+        registry = EventContractRegistry()
+
+        v1 = make_contract(
+            schema_version=1,
+            event_version=1,
+        )
+
+        registry.register(v1)
+
+        event_v2 = make_event(
+            schema_version=2,
+            event_version=1,
+        )
+
+        with pytest.raises(UnsupportedEventVersionError):
+>           registry.validate(event_v2)
+
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\event_platform\test_event_platform_deep_regression.py:274:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\event_platform\event_contract.py:370: in validate
+    contract = self.resolve(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <AUTONOMY_ENGINE.core.event_platform.event_contract.EventContractRegistry object at 0x0000028F98DAFC20>, schema_name = 'reos.test'
+event_type = 'LEAD.CREATED', schema_version = 2, event_version = 1
+
+    def resolve(
+        self,
+        *,
+        schema_name: str,
+        event_type: str,
+        schema_version: int,
+        event_version: int,
+    ) -> EventContract:
+        key = (
+            schema_name,
+            event_type,
+            schema_version,
+            event_version,
+        )
+
+        contract = self._contracts.get(key)
+
+        if contract is None:
+>           raise UnknownEventTypeError(
+                f"unsupported event contract: {key}"
+            )
+E           AUTONOMY_ENGINE.core.event_platform.event_contract.UnknownEventTypeError: unsupported event contract: ('reos.test', 'LEAD.CREATED', 2, 1)
+
+REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\event_platform\event_contract.py:360: UnknownEventTypeError
+================================================================= short test summary info =================================================================
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/test_event_platform_deep_regression.py::test_contract_default_field_types_is_usable - TypeError: field_types must be a mapping
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/test_event_platform_deep_regression.py::test_contract_field_types_are_immutable - AssertionError: assert False
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/test_event_platform_deep_regression.py::test_contract_required_field_duplicates_are_rejected - Failed: DID NOT RAISE ValueError
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/test_event_platform_deep_regression.py::test_contract_boolean_versions_are_rejected - ValueError: event_version must be >= 1
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/test_event_platform_deep_regression.py::test_required_field_must_have_type_definition - Failed: DID NOT RAISE ValueError
+FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/test_event_platform_deep_regression.py::test_schema_version_evolution_requires_explicit_contract - AUTONOMY_ENGINE.core.event_platform.event_contract.UnknownEventTypeError: unsupported event contract: ('reos.test', 'LEAD.CREATED', 2, 1)
+6 failed, 47 passed in 0.81s
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
