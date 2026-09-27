@@ -1,5 +1,5 @@
 """
-CORE-003 T13 — Full Regression + Cross-Core Verification
+CORE-003 T13 â€” Full Regression + Cross-Core Verification
 
 End-to-end domain contract verification for CORE-003.
 
@@ -87,22 +87,22 @@ def test_core_003_complete_business_flow():
         },
     )
 
-    DEFAULT_LEAD_CONTRACT.validate_mapping(
-        lead.to_dict()
-        | {
-            "lead_id": lead.lead_id,
-            "tenant_id": lead.tenant_id,
-            "customer_id": lead.customer_id,
-            "status": lead.status,
-            "priority": lead.priority,
-            "source": lead.source,
-            "metadata": lead.metadata,
-            "revision": lead.revision,
-            "created_at": lead.created_at,
-            "updated_at": lead.updated_at,
-        }
-    )
+    domain_payload = {
+        "lead_id": lead.lead_id,
+        "tenant_id": lead.tenant_id,
+        "customer_id": lead.customer_id,
+        "status": lead.status,
+        "priority": lead.priority,
+        "source": lead.source,
+        "metadata": lead.metadata,
+        "revision": lead.revision,
+        "created_at": lead.created_at,
+        "updated_at": lead.updated_at,
+    }
 
+    DEFAULT_LEAD_CONTRACT.validate_mapping(
+        domain_payload
+    )
     attribution = LeadAttribution(
         lead_id=lead.lead_id,
         tenant_id=tenant_id,

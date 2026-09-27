@@ -1,5 +1,5 @@
 """
-CORE-003 T05 — Ownership History & Transfer
+CORE-003 T05 Ã¢â‚¬â€ Ownership History & Transfer
 
 Owns:
 - immutable ownership transfer record
