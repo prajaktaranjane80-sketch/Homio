@@ -1,146 +1,21 @@
-======================================================================== FAILURES =========================================================================
-__________________________________________________________ test_core_003_complete_business_flow ___________________________________________________________
-
-    def test_core_003_complete_business_flow():
-        tenant_id = uuid4()
-        customer_id = uuid4()
-
-        lead = Lead.create(
-            tenant_id=tenant_id,
-            customer_id=customer_id,
-            source=LeadSource(
-                source_type=LeadSourceType.BUILDER,
-                source_id="builder-source-001",
-                campaign_id="campaign-001",
-                channel="partner",
-            ),
-            priority=LeadPriority.HIGH,
-            metadata={
-                "market": "international",
-                "origin": "builder",
-            },
-        )
-
->       DEFAULT_LEAD_CONTRACT.validate_mapping(
-            lead.to_dict()
-            | {
-                "lead_id": lead.lead_id,
-                "tenant_id": lead.tenant_id,
-                "customer_id": lead.customer_id,
-                "status": lead.status,
-                "priority": lead.priority,
-                "source": lead.source,
-                "metadata": lead.metadata,
-                "revision": lead.revision,
-                "created_at": lead.created_at,
-                "updated_at": lead.updated_at,
-            }
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_regression.py:90:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = LeadContract(schema_name='REOS.CORE-003.LEAD', schema_version=1, required_fields=('lead_id', 'tenant_id', 'customer_id', 'status', 'priority', 'source', 'metadata', 'revision', 'created_at', 'updated_at'), allow_additional_fields=False)
-payload = {'lead_id': UUID('6073b46e-61fc-4187-b3e0-7278d9504b38'), 'tenant_id': UUID('b2cfb2b8-3a5e-470c-875a-539f2406392d'), 'customer_id': UUID('2b741592-f985-4df5-8678-1126bd0b9a3c'), 'status': <LeadStatus.NEW: 'NEW'>, ...}
-
-    def validate_mapping(
-        self,
-        payload: Mapping[str, Any],
-    ) -> None:
-        if not isinstance(payload, Mapping):
-            raise LeadSchemaError("Lead payload must be a mapping")
-
-        keys = set(payload)
-        required = set(self.required_fields)
-
-        missing = required - keys
-
-        if missing:
-            raise LeadSchemaError(
-                f"Missing required lead fields: "
-                f"{sorted(missing)}"
-            )
-
-        if not self.allow_additional_fields:
-            extra = keys - required
-
-            if extra:
->               raise LeadSchemaError(
-                    f"Unknown lead fields: {sorted(extra)}"
-                )
-E               AUTONOMY_ENGINE.core.lead_ownership.lead_contract.LeadSchemaError: Unknown lead fields: ['immutable_fingerprint']
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_contract.py:121: LeadSchemaError
-================================================================= short test summary info =================================================================
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_regression.py::test_core_003_complete_business_flow - AUTONOMY_ENGINE.core.lead_ownership.lead_contract.LeadSchemaError: Unknown lead fields: ['immutable_fingerprint']
-1 failed, 73 passed in 0.39s
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git fetch origin reos-development
-remote: Enumerating objects: 35, done.
-remote: Counting objects: 100% (35/35), done.
-remote: Compressing objects: 100% (32/32), done.
-remote: Total 32 (delta 19), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (32/32), 22.74 KiB | 130.00 KiB/s, done.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   adcc0c6..58e52c0  reos-development -> origin/reos-development
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git rebase origin/reos-development
-error: cannot rebase: You have unstaged changes.
-error: Please commit or stash them.
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $path = "REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_regression.py"
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $raw = Get-Content $path -Raw
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $start = $raw.IndexOf("    DEFAULT_LEAD_CONTRACT.validate_mapping(")
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $end   = $raw.IndexOf("    attribution = LeadAttribution(", $start)
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> if ($start -lt 0 -or $end -lt 0) {
->>     throw "T13 validation block not found."
->> }
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $replacement = @'
->>     domain_payload = {
->>         "lead_id": lead.lead_id,
->>         "tenant_id": lead.tenant_id,
->>         "customer_id": lead.customer_id,
->>         "status": lead.status,
->>         "priority": lead.priority,
->>         "source": lead.source,
->>         "metadata": lead.metadata,
->>         "revision": lead.revision,
->>         "created_at": lead.created_at,
->>         "updated_at": lead.updated_at,
->>     }
->>
->>     DEFAULT_LEAD_CONTRACT.validate_mapping(
->>         domain_payload
->>     )
->>
->> '@
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $fixed = (
->>     $raw.Substring(0, $start) +
->>     $replacement +
->>     $raw.Substring($end)
->> )
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> [System.IO.File]::WriteAllText(
->>     (Resolve-Path $path),
->>     $fixed,
->>     [System.Text.UTF8Encoding]::new($false)
->> )
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> python -m pytest REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership -q
-..........................................................................                                                                           [100%]
-74 passed in 0.28s
 PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git status --short
  M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/__pycache__/__init__.cpython-312.pyc
  M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/ownership_transfer.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_regression.py
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git add REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_regression.py
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_regression.py', LF will be replaced by CRLF the next time Git touches it
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git commit --amend --no-edit
-[detached HEAD d772c4f] fix: CORE-003 T05 ownership transfer indentation
- Date: Sun Sep 27 14:51:52 2026 +0530
- 2 files changed, 16 insertions(+), 16 deletions(-)
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git fetch origin reos-development
+remote: Enumerating objects: 7, done.
+remote: Counting objects: 100% (7/7), done.
+remote: Compressing objects: 100% (4/4), done.
+remote: Total 4 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (4/4), 2.52 KiB | 76.00 KiB/s, done.
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+   58e52c0..d1d75aa  reos-development -> origin/reos-development
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git rebase origin/reos-development
+error: cannot rebase: You have unstaged changes.
+error: Please commit or stash them.
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> python -m pytest REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership -q
+..........................................................................                                                                           [100%]
+74 passed in 0.23s
 PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git push origin HEAD:reos-development
 To https://github.com/prajaktaranjane80-sketch/Homio.git
  ! [rejected]        HEAD -> reos-development (non-fast-forward)
@@ -148,34 +23,4 @@ error: failed to push some refs to 'https://github.com/prajaktaranjane80-sketch/
 hint: Updates were rejected because a pushed branch tip is behind its remote
 hint: counterpart. If you want to integrate the remote changes, use 'git pull'
 hint: before pushing again.
-hint: See the 'Note about fast-forwards' in 'git push --help' for details.
-
-
-
-Kya tume niche diye gaye tests ke acording kam kar rahe ho  
-Test                   
-| --------------------------------- 
-| Event identity/domain             
-| Tenant isolation                  
-| Serialization/fingerprint         
-| Contract registration/validation  
-| Unknown contract fail-closed      
-| Ordering stale/future            
-| Resilience transient/permanent    
-| Transport registry                
-| Replay authorization/scope        
-| Replay partial failure            
-| Delivery                          
-| Transaction/outbox boundary       
-| Observability/evidence            
-| REOS integration contract         
-| ACRL integration contract         
-| Security producer authorization   
-| Schema evolution/compatibility    
-| Contract fingerprint immutability  
-| Deep adversarial regression        
-
-
-
-
-
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.    to tume sahi se dignous karake error fix nahi kar rahi ya tumane core 3 ultra pro banaya nahi tum kuch gadbad kar rahe ho kya
