@@ -2,27 +2,30 @@ PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $path = "REOS_CONTROL_CENTER\AUTONOMY_ENGINE
 PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
 PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $raw = Get-Content $path -Raw
 PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $fixed = $raw -replace '(?m)^        @classmethod$', '    @classmethod'
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $old = "`n        @classmethod`n    def create("
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $new = "`n    @classmethod`n    def create("
 PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> if ($fixed -eq $raw) {
->>     throw "Expected malformed @classmethod indentation was not found."
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> if (-not $raw.Contains($old)) {
+>>     throw "Expected malformed @classmethod indentation not found."
 >> }
-Expected malformed @classmethod indentation was not found.
+Expected malformed @classmethod indentation not found.
 At line:2 char:5
-+     throw "Expected malformed @classmethod indentation was not found. ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Expected malfor... was not found.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Expected malformed @classmethod indentation was not found.
++     throw "Expected malformed @classmethod indentation not found."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Expected malfor...tion not found.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Expected malformed @classmethod indentation not found.
 
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $fixed = $raw.Replace($old, $new)
 PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
 PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> [System.IO.File]::WriteAllText(
 >>     (Resolve-Path $path),
 >>     $fixed,
->>     (New-Object System.Text.UTF8Encoding($false))
+>>     [System.Text.UTF8Encoding]::new($false)
 >> )
 PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> Write-Host "ownership_transfer.py T05 indentation FIXED" -ForegroundColor Green
-ownership_transfer.py T05 indentation FIXED
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> Write-Host "T05 ownership_transfer.py FIXED" -ForegroundColor Green
+T05 ownership_transfer.py FIXED
 PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> python -m py_compile REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py
 Sorry: IndentationError: unexpected unindent (ownership_transfer.py, line 161)
 PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> python -m pytest REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership --collect-only -q
@@ -102,7 +105,7 @@ ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adve
 ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py
 ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_regression.py
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-no tests collected, 3 errors in 0.59s
+no tests collected, 3 errors in 0.58s
 PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> python -m pytest REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership -q
 
 ========================================================================= ERRORS ==========================================================================
@@ -180,5 +183,24 @@ ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adve
 ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py
 ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_regression.py
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-3 errors in 0.54s
+3 errors in 0.47s
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git status --short
+Refresh index: 100% (1703/1703), done.
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/__pycache__/__init__.cpython-312.pyc
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/ownership_transfer.py
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git add REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py
 PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git commit -m "fix: CORE-003 T05 ownership transfer indentation"
+[detached HEAD 64a2114] fix: CORE-003 T05 ownership transfer indentation
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git push origin HEAD:reos-development
+To https://github.com/prajaktaranjane80-sketch/Homio.git
+ ! [rejected]        HEAD -> reos-development (fetch first)
+error: failed to push some refs to 'https://github.com/prajaktaranjane80-sketch/Homio.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>       tum kya fix kar rahe ho same comand same error aa rahe hai
