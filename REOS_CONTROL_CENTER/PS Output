@@ -1,2065 +1,560 @@
-esa lag raha hai ab sahi dignous kiya hai ab essi error ko smartly fix karana ultra pro 
-
-F....F.F.......FF.F.........F.......F...F...F...F.F.F.F.....F                                                                                        [100%]
-======================================================================== FAILURES =========================================================================
-_________________________________________________________ test_project_identity_is_tenant_scoped __________________________________________________________
-
-    def test_project_identity_is_tenant_scoped() -> None:
->       project = make_project()
-                  ^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:172:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:116: in make_project
-    return Project(
-<string>:6: in __init__
-    ???
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:310: in __post_init__
-    _freeze_json_mapping(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = ()
-
-    def _freeze_json_mapping(
-        value: Mapping[str, Any] | None,
-    ) -> MappingProxyType:
-        if value is None:
-            return MappingProxyType({})
-
-        if not isinstance(value, Mapping):
->           raise ProjectDomainError(
-                "metadata must be a mapping."
-            )
-E           AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:93: ProjectDomainError
-_________________________________________________________ test_hierarchy_reconstruction_is_valid __________________________________________________________
-
-    def test_hierarchy_reconstruction_is_valid() -> None:
->       project = make_project()
-                  ^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:238:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:116: in make_project
-    return Project(
-<string>:6: in __init__
-    ???
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:310: in __post_init__
-    _freeze_json_mapping(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = ()
-
-    def _freeze_json_mapping(
-        value: Mapping[str, Any] | None,
-    ) -> MappingProxyType:
-        if value is None:
-            return MappingProxyType({})
-
-        if not isinstance(value, Mapping):
->           raise ProjectDomainError(
-                "metadata must be a mapping."
-            )
-E           AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:93: ProjectDomainError
-_________________________________________________________ test_hierarchy_cross_tenant_is_rejected _________________________________________________________
-
-    def test_hierarchy_cross_tenant_is_rejected() -> None:
-        relationship = project_property_relationship(
-            relationship_id="REL-1",
-            tenant_id="TENANT-2",
-            project_id="PROJECT-1",
-            property_id="PROPERTY-1",
-            at=T0,
-        )
-
-        with pytest.raises(HierarchyValidationError):
->           InventoryHierarchy(
-                tenant_id="TENANT-1",
-                relationships=(relationship,),
-            )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:305:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-<string>:6: in __init__
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = InventoryHierarchy(tenant_id='TENANT-1', relationships=(InventoryRelationship(relationship_id='REL-1', tenant_id='TENA...), relationship_version=1, created_at=datetime.datetime(2026, 1, 1, 10, 0, tzinfo=datetime.timezone.utc)),), version=1)
-
-    def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "tenant_id",
-            _text(
-                self.tenant_id,
-                "tenant_id",
-            ),
-        )
-
-        if (
-            isinstance(self.version, bool)
-            or not isinstance(self.version, int)
-            or self.version < 1
-        ):
-            raise RelationshipVersionError(
-                "hierarchy version must be >= 1."
-            )
-
-        normalized = tuple(
-            self.relationships
-        )
-
-        for relationship in normalized:
-            if not isinstance(
-                relationship,
-                InventoryRelationship,
-            ):
-                raise HierarchyValidationError(
-                    "All relationships must be "
-                    "InventoryRelationship."
-                )
-
-            if relationship.tenant_id != self.tenant_id:
->               raise HierarchyTenantViolation(
-                    "Relationship belongs to another tenant."
-                )
-E               AUTONOMY_ENGINE.core.inventory.inventory_hierarchy.HierarchyTenantViolation: Relationship belongs to another tenant.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_hierarchy.py:395: HierarchyTenantViolation
-_____________________________________________________ test_provenance_tenant_boundary_is_fail_closed ______________________________________________________
-
-    def test_provenance_tenant_boundary_is_fail_closed() -> None:
->       source = InventorySource(
-            source_id="SOURCE-1",
-            tenant_id="TENANT-2",
-            source_type=InventorySourceType.BUILDER,
-            source_reference="SRC-1",
-            builder_developer_id="DEV-1",
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:429:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-<string>:11: in __init__
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = InventorySource(source_id='SOURCE-1', tenant_id='TENANT-2', source_type=<InventorySourceType.BUILDER: 'BUILDER'>, source_reference='SRC-1', builder_developer_id='DEV-1', acquisition_reference=None, channel_reference=None, metadata=())
-
-    def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "source_id",
-            _text(
-                self.source_id,
-                "source_id",
-            ),
-        )
-
-        object.__setattr__(
-            self,
-            "tenant_id",
-            _text(
-                self.tenant_id,
-                "tenant_id",
-            ),
-        )
-
-        try:
-            normalized_type = InventorySourceType(
-                self.source_type
-            )
-        except (TypeError, ValueError) as exc:
-            raise InventoryProvenanceError(
-                "source_type is invalid."
-            ) from exc
-
-        object.__setattr__(
-            self,
-            "source_type",
-            normalized_type,
-        )
-
-        object.__setattr__(
-            self,
-            "source_reference",
-            _text(
-                self.source_reference,
-                "source_reference",
-            ),
-        )
-
-        object.__setattr__(
-            self,
-            "builder_developer_id",
-            _text(
-                self.builder_developer_id,
-                "builder_developer_id",
-            ),
-        )
-
-        if self.acquisition_reference is not None:
-            object.__setattr__(
-                self,
-                "acquisition_reference",
-                _text(
-                    self.acquisition_reference,
-                    "acquisition_reference",
-                ),
-            )
-
-        if self.channel_reference is not None:
-            object.__setattr__(
-                self,
-                "channel_reference",
-                _text(
-                    self.channel_reference,
-                    "channel_reference",
-                ),
-            )
-
-        if not isinstance(
-            self.metadata,
-            Mapping,
-        ):
->           raise InventoryProvenanceError(
-                "metadata must be mapping."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory_provenance.InventoryProvenanceError: metadata must be mapping.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_provenance.py:262: InventoryProvenanceError
-_______________________________________________________ test_provenance_evidence_must_match_source ________________________________________________________
-
-    def test_provenance_evidence_must_match_source() -> None:
->       source = InventorySource(
-            source_id="SOURCE-1",
-            tenant_id="TENANT-1",
-            source_type=InventorySourceType.BUILDER,
-            source_reference="SRC-1",
-            builder_developer_id="DEV-1",
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:446:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-<string>:11: in __init__
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = InventorySource(source_id='SOURCE-1', tenant_id='TENANT-1', source_type=<InventorySourceType.BUILDER: 'BUILDER'>, source_reference='SRC-1', builder_developer_id='DEV-1', acquisition_reference=None, channel_reference=None, metadata=())
-
-    def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "source_id",
-            _text(
-                self.source_id,
-                "source_id",
-            ),
-        )
-
-        object.__setattr__(
-            self,
-            "tenant_id",
-            _text(
-                self.tenant_id,
-                "tenant_id",
-            ),
-        )
-
-        try:
-            normalized_type = InventorySourceType(
-                self.source_type
-            )
-        except (TypeError, ValueError) as exc:
-            raise InventoryProvenanceError(
-                "source_type is invalid."
-            ) from exc
-
-        object.__setattr__(
-            self,
-            "source_type",
-            normalized_type,
-        )
-
-        object.__setattr__(
-            self,
-            "source_reference",
-            _text(
-                self.source_reference,
-                "source_reference",
-            ),
-        )
-
-        object.__setattr__(
-            self,
-            "builder_developer_id",
-            _text(
-                self.builder_developer_id,
-                "builder_developer_id",
-            ),
-        )
-
-        if self.acquisition_reference is not None:
-            object.__setattr__(
-                self,
-                "acquisition_reference",
-                _text(
-                    self.acquisition_reference,
-                    "acquisition_reference",
-                ),
-            )
-
-        if self.channel_reference is not None:
-            object.__setattr__(
-                self,
-                "channel_reference",
-                _text(
-                    self.channel_reference,
-                    "channel_reference",
-                ),
-            )
-
-        if not isinstance(
-            self.metadata,
-            Mapping,
-        ):
->           raise InventoryProvenanceError(
-                "metadata must be mapping."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory_provenance.InventoryProvenanceError: metadata must be mapping.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_provenance.py:262: InventoryProvenanceError
-______________________________________________________ test_commercial_state_slots_are_serializable _______________________________________________________
-
-    def test_commercial_state_slots_are_serializable() -> None:
-        snapshot = CommercialStateSnapshot(
-            inventory_id="UNIT-1",
-            tenant_id="TENANT-1",
-            version=1,
-            physical=PhysicalAttributes(
-                area_value="120.50",
-                area_unit="SQFT",
-                bedrooms=2,
-                bathrooms="2",
-                floor=5,
-                facing="EAST",
-                parking_count=1,
-            ),
-            location=LocationAttributes(
-                country_code="IN",
-                region="MH",
-                city="Pune",
-                locality="Kharadi",
-            ),
-            pricing=PricingReference(
-                pricing_reference="PRICE-1",
-                currency="INR",
-                amount="12500000",
-                price_type="TOTAL",
-            ),
-            availability_attributes={
-                "view": "open",
-            },
-            commercial_metadata={
-                "market": "residential",
-            },
-            effective_from=T0,
-        )
-
->       payload = snapshot.to_dict()
-                  ^^^^^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:532:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = CommercialStateSnapshot(inventory_id='UNIT-1', tenant_id='TENANT-1', version=1, physical=PhysicalAttributes(area_value...: 'residential'}, effective_from=datetime.datetime(2026, 1, 1, 10, 0, tzinfo=datetime.timezone.utc), effective_to=None)
-include_fingerprint = True
-
-    def to_dict(
-        self,
-        *,
-        include_fingerprint: bool = True,
-    ) -> dict[str, Any]:
-        payload = {
-            "inventory_id": self.inventory_id,
-            "tenant_id": self.tenant_id,
-            "version": self.version,
-            "physical": _canonicalize(
->               self.physical.__dict__
-                if self.physical is not None
-                else None
-            ),
-            "location": _canonicalize(
-                self.location.__dict__
-                if self.location is not None
-                else None
-            ),
-            "pricing": _canonicalize(
-                self.pricing.__dict__
-                if self.pricing is not None
-                else None
-            ),
-            "availability_attributes": (
-                _canonicalize(
-                    self.availability_attributes
-                )
-            ),
-            "commercial_metadata": (
-                _canonicalize(
-                    self.commercial_metadata
-                )
-            ),
-            "effective_from": (
-                self.effective_from.isoformat()
-            ),
-            "effective_to": (
-                self.effective_to.isoformat()
-                if self.effective_to is not None
-                else None
-            ),
-        }
-E       AttributeError: 'PhysicalAttributes' object has no attribute '__dict__'. Did you mean: '__dir__'?
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_commercial_state.py:606: AttributeError
-___________________________________________________________ test_security_expiry_is_fail_closed ___________________________________________________________
-
-    def test_security_expiry_is_fail_closed() -> None:
->       context = make_security_context(
-            capabilities=frozenset(
-                {
-                    InventoryCapability.READ_INVENTORY,
-                }
-            ),
-            expires_at=T0 - timedelta(seconds=1),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:769:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:684: in make_security_context
-    return InventorySecurityContext(
-<string>:11: in __init__
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = InventorySecurityContext(tenant_id='TENANT-1', actor_id='ACTOR-1', capabilities=frozenset({<InventoryCapability.READ_I...atetime.datetime(2026, 1, 1, 9, 59, 59, tzinfo=datetime.timezone.utc), request_id='REQ-1', ownership_scope=frozenset())
-
-    def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "tenant_id",
-            _text(
-                self.tenant_id,
-                "tenant_id",
-            ),
-        )
-
-        object.__setattr__(
-            self,
-            "actor_id",
-            _text(
-                self.actor_id,
-                "actor_id",
-            ),
-        )
-
-        if not isinstance(
-            self.capabilities,
-            frozenset,
-        ):
-            raise InventorySecurityContextError(
-                "capabilities must be frozenset."
-            )
-
-        for capability in self.capabilities:
-            if not isinstance(
-                capability,
-                InventoryCapability,
-            ):
-                raise InventorySecurityContextError(
-                    "capabilities contains invalid value."
-                )
-
-        object.__setattr__(
-            self,
-            "authorization_reference",
-            _text(
-                self.authorization_reference,
-                "authorization_reference",
-            ),
-        )
-
-        object.__setattr__(
-            self,
-            "issued_at",
-            _time(
-                self.issued_at,
-                "issued_at",
-            ),
-        )
-
-        if self.expires_at is not None:
-            object.__setattr__(
-                self,
-                "expires_at",
-                _time(
-                    self.expires_at,
-                    "expires_at",
-                ),
-            )
-
-            if (
-                self.expires_at
-                <= self.issued_at
-            ):
->               raise InventorySecurityContextError(
-                    "expires_at must be later than issued_at."
-                )
-E               AUTONOMY_ENGINE.core.inventory.inventory_security.InventorySecurityContextError: expires_at must be later than issued_at.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_security.py:230: InventorySecurityContextError
-_________________________________________________________ test_event_unknown_producer_is_rejected _________________________________________________________
-
-    def test_event_unknown_producer_is_rejected() -> None:
->       with pytest.raises(
-            InventoryEventValidationError
-        ):
-E       Failed: DID NOT RAISE InventoryEventValidationError
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:936: Failed
-___________________________________________________________ test_unknown_contract_fails_closed ____________________________________________________________
-
-    def test_unknown_contract_fails_closed() -> None:
-        with pytest.raises(InventorySchemaError):
->           contract_by_name(
-                "REOS.CORE-004.UNKNOWN"
-            )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:158:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-schema_name = 'REOS.CORE-004.UNKNOWN'
-
-    def contract_by_name(
-        schema_name: str,
-    ) -> InventoryContract:
-        if schema_name == PROJECT_SCHEMA_NAME:
-            return PROJECT_CONTRACT
-
-        if schema_name == PROPERTY_SCHEMA_NAME:
-            return PROPERTY_CONTRACT
-
-        if schema_name == UNIT_SCHEMA_NAME:
-            return UNIT_CONTRACT
-
->       raise InventoryContractError(
-            f"Unknown CORE-004 contract: "
-            f"{schema_name!r}"
-        )
-E       AUTONOMY_ENGINE.core.inventory.inventory_contract.InventoryContractError: Unknown CORE-004 contract: 'REOS.CORE-004.UNKNOWN'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_contract.py:1381: InventoryContractError
-_________________________________________________________ test_project_serialization_is_canonical _________________________________________________________
-
-    def test_project_serialization_is_canonical() -> None:
->       project = make_project()
-                  ^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:206:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:81: in make_project
-    return Project(
-<string>:6: in __init__
-    ???
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:310: in __post_init__
-    _freeze_json_mapping(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = ()
-
-    def _freeze_json_mapping(
-        value: Mapping[str, Any] | None,
-    ) -> MappingProxyType:
-        if value is None:
-            return MappingProxyType({})
-
-        if not isinstance(value, Mapping):
->           raise ProjectDomainError(
-                "metadata must be a mapping."
-            )
-E           AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:93: ProjectDomainError
-____________________________________________________ test_contract_fingerprint_tampering_fails_closed _____________________________________________________
-
-    def test_contract_fingerprint_tampering_fails_closed() -> None:
-        payload = json.loads(
-            serialize_property(
-                make_property()
-            )
-        )
-
-        payload["contract_fingerprint"] = (
-            "0" * 64
-        )
-
-        with pytest.raises(
-            InventorySerializationError
-        ):
->           deserialize_contract(
-                json.dumps(payload)
-            )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:298:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-serialized = '{"contract_fingerprint": "0000000000000000000000000000000000000000000000000000000000000000", "payload": {"availabilit...updated_at": "2026-01-01T10:00:00+00:00", "version": 1}, "schema_name": "REOS.CORE-004.PROPERTY", "schema_version": 1}'
-
-    def deserialize_contract(
-        serialized: str,
-    ) -> dict[str, Any]:
-        """
-        Parse and validate the outer contract envelope.
-
-        This does not reconstruct a domain object.
-        Reconstruction belongs to Part 03 / Part 11.
-        """
-        if not isinstance(
-            serialized,
-            str,
-        ):
-            raise InventorySerializationError(
-                "serialized contract must be string."
-            )
-
-        try:
-            payload = json.loads(
-                serialized
-            )
-        except json.JSONDecodeError as exc:
-            raise InventorySerializationError(
-                "serialized contract is invalid JSON."
-            ) from exc
-
-        if not isinstance(
-            payload,
-            dict,
-        ):
-            raise InventorySerializationError(
-                "serialized contract root must be object."
-            )
-
-        required = {
-            "schema_name",
-            "schema_version",
-            "contract_fingerprint",
-            "payload",
-        }
-
-        actual = set(
-            payload.keys()
-        )
-
-        missing = required - actual
-
-        if missing:
-            raise InventorySerializationError(
-                "serialized contract missing fields: "
-                f"{sorted(missing)}"
-            )
-
-        unknown = actual - required
-
-        if unknown:
-            raise InventorySerializationError(
-                "serialized contract contains unknown fields: "
-                f"{sorted(unknown)}"
-            )
-
-        schema_name = payload[
-            "schema_name"
-        ]
-
-        schema_version = payload[
-            "schema_version"
-        ]
-
-        validate_schema_version(
-            schema_version
-        )
-
-        contract = contract_by_name(
-            schema_name
-        )
-
-        if (
-            payload["contract_fingerprint"]
-            != contract.fingerprint
-        ):
->           raise InventoryContractFingerprintError(
-                "Contract fingerprint mismatch."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory_contract.InventoryContractFingerprintError: Contract fingerprint mismatch.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_contract.py:1308: InventoryContractFingerprintError
-_______________________________________________________ test_project_mapping_tampering_is_rejected ________________________________________________________
-
-    def test_project_mapping_tampering_is_rejected() -> None:
->       payload = make_project().to_dict()
-                  ^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:316:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:81: in make_project
-    return Project(
-<string>:6: in __init__
-    ???
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:310: in __post_init__
-    _freeze_json_mapping(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = ()
-
-    def _freeze_json_mapping(
-        value: Mapping[str, Any] | None,
-    ) -> MappingProxyType:
-        if value is None:
-            return MappingProxyType({})
-
-        if not isinstance(value, Mapping):
->           raise ProjectDomainError(
-                "metadata must be a mapping."
-            )
-E           AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:93: ProjectDomainError
-___________________________________________________ test_acrl_reconstruction_contract_matches_inventory ___________________________________________________
-
-    def test_acrl_reconstruction_contract_matches_inventory() -> None:
-        inventory = make_unit()
-
-        reconstruction = (
-            InventoryReconstructionDescriptor(
-                tenant_id=inventory.tenant_id,
-                inventory_id=inventory.inventory_id,
-                contract_version=1,
-                inventory_version=inventory.version,
-                identity_fingerprint=(
-                    inventory.identity_fingerprint
-                ),
-                hierarchy_fingerprint=None,
-                lifecycle_fingerprint=None,
-                provenance_fingerprint=None,
-            )
-        )
-
-        checkpoint = (
-            InventoryCheckpointDescriptor(
-                checkpoint_id="CHECKPOINT-1",
-                tenant_id="TENANT-1",
-                inventory_id="UNIT-1",
-                sequence=1,
-                inventory_version=inventory.version,
-                contract_fingerprint="a" * 64,
-                created_at=T0,
-            )
-        )
-
-        contract = (
-            InventoryACRLIntegrationContract(
-                operation_id="OP-1",
-                tenant_id="TENANT-1",
-                inventory_id="UNIT-1",
-                operation=(
-                    InventoryACRLOperation
-                    .RECONSTRUCT_INVENTORY
-                ),
-                contract_version=1,
-                correlation_id="CORR-1",
-                idempotency_key="IDEMP-1",
-                reconstruction=reconstruction,
-                dependency_references=(
-                    "CORE-001",
-                    "CORE-002",
-                ),
-                contract_references=(
-                    "CORE-004",
-                ),
-                evidence_references=(
-                    "EVIDENCE-1",
-                ),
-                checkpoint=checkpoint,
-                created_at=T0,
-            )
-        )
-
-        contract.validate_current_inventory(
-            inventory
-        )
-
-        validate_checkpoint_compatibility(
-            checkpoint,
-            inventory,
-        )
-
->       assert contract.fingerprint
-               ^^^^^^^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:404:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = InventoryACRLIntegrationContract(operation_id='OP-1', tenant_id='TENANT-1', inventory_id='UNIT-1', operation=<Inventor..., 10, 0, tzinfo=datetime.timezone.utc)), created_at=datetime.datetime(2026, 1, 1, 10, 0, tzinfo=datetime.timezone.utc))
-
-    @property
-    def fingerprint(self) -> str:
-        return _hash(
-            {
-                "operation_id": self.operation_id,
-                "tenant_id": self.tenant_id,
-                "inventory_id": self.inventory_id,
-                "operation": self.operation.value,
-                "contract_version": (
-                    self.contract_version
-                ),
-                "correlation_id": self.correlation_id,
-                "idempotency_key": (
-                    self.idempotency_key
-                ),
-                "reconstruction": (
-                    self.reconstruction.to_dict()
-                ),
-                "dependency_references": (
-                    self.dependency_references
-                ),
-                "contract_references": (
-                    self.contract_references
-                ),
-                "evidence_references": (
-                    self.evidence_references
-                ),
-                "checkpoint": (
->                   self.checkpoint.__dict__
-                    if self.checkpoint is not None
-                    else None
-                ),
-                "created_at": self.created_at.isoformat(),
-            }
-        )
-E       AttributeError: 'InventoryCheckpointDescriptor' object has no attribute '__dict__'. Did you mean: '__dir__'?
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_acrl_contract.py:535: AttributeError
-___________________________________________________________ test_acrl_tenant_scope_is_enforced ____________________________________________________________
-
-    def test_acrl_tenant_scope_is_enforced() -> None:
-        inventory = make_unit()
-
-        reconstruction = (
-            InventoryReconstructionDescriptor(
-                tenant_id="TENANT-1",
-                inventory_id="UNIT-1",
-                contract_version=1,
-                inventory_version=inventory.version,
-                identity_fingerprint=(
-                    inventory.identity_fingerprint
-                ),
-                hierarchy_fingerprint=None,
-                lifecycle_fingerprint=None,
-                provenance_fingerprint=None,
-            )
-        )
-
-        contract = (
->           InventoryACRLIntegrationContract(
-                operation_id="OP-1",
-                tenant_id="TENANT-2",
-                inventory_id="UNIT-1",
-                operation=(
-                    InventoryACRLOperation
-                    .RECONSTRUCT_INVENTORY
-                ),
-                contract_version=1,
-                correlation_id="CORR-1",
-                idempotency_key="IDEMP-1",
-                reconstruction=reconstruction,
-                dependency_references=(),
-                contract_references=(),
-                evidence_references=(),
-                checkpoint=None,
-                created_at=T0,
-            )
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:457:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-<string>:16: in __init__
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = InventoryACRLIntegrationContract(operation_id='OP-1', tenant_id='TENANT-2', inventory_id='UNIT-1', operation=<Inventor...evidence_references=(), checkpoint=None, created_at=datetime.datetime(2026, 1, 1, 10, 0, tzinfo=datetime.timezone.utc))
-
-    def __post_init__(self) -> None:
-        for field_name in (
-            "operation_id",
-            "tenant_id",
-            "inventory_id",
-            "correlation_id",
-            "idempotency_key",
-        ):
-            object.__setattr__(
-                self,
-                field_name,
-                _text(
-                    getattr(
-                        self,
-                        field_name,
-                    ),
-                    field_name,
-                ),
-            )
-
-        if not isinstance(
-            self.operation,
-            InventoryACRLOperation,
-        ):
-            raise InventoryACRLValidationError(
-                "operation must be InventoryACRLOperation."
-            )
-
-        if (
-            not isinstance(
-                self.contract_version,
-                int,
-            )
-            or self.contract_version < 1
-        ):
-            raise InventoryACRLValidationError(
-                "contract_version must be >= 1."
-            )
-
-        if not isinstance(
-            self.reconstruction,
-            InventoryReconstructionDescriptor,
-        ):
-            raise InventoryACRLValidationError(
-                "reconstruction descriptor is invalid."
-            )
-
-        if (
-            self.reconstruction.tenant_id
-            != self.tenant_id
-            or self.reconstruction.inventory_id
-            != self.inventory_id
-        ):
->           raise InventoryACRLValidationError(
-                "Reconstruction identity does not match "
-                "integration contract."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory_acrl_contract.InventoryACRLValidationError: Reconstruction identity does not match integration contract.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_acrl_contract.py:449: InventoryACRLValidationError
-_______________________________________________________ test_hierarchy_fingerprint_is_deterministic _______________________________________________________
-
-    def test_hierarchy_fingerprint_is_deterministic() -> None:
-        from AUTONOMY_ENGINE.core.inventory.inventory_hierarchy import (
-            project_property_relationship,
-            InventoryHierarchy,
-        )
-
->       project = make_project()
-                  ^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:619:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:81: in make_project
-    return Project(
-<string>:6: in __init__
-    ???
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:310: in __post_init__
-    _freeze_json_mapping(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = ()
-
-    def _freeze_json_mapping(
-        value: Mapping[str, Any] | None,
-    ) -> MappingProxyType:
-        if value is None:
-            return MappingProxyType({})
-
-        if not isinstance(value, Mapping):
->           raise ProjectDomainError(
-                "metadata must be a mapping."
-            )
-E           AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:93: ProjectDomainError
-================================================================= short test summary info =================================================================
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_adversarial.py::test_project_identity_is_tenant_scoped - AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_adversarial.py::test_hierarchy_reconstruction_is_valid - AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_adversarial.py::test_hierarchy_cross_tenant_is_rejected - AUTONOMY_ENGINE.core.inventory.inventory_hierarchy.HierarchyTenantViolation: Relationship belongs to another tenant.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_adversarial.py::test_provenance_tenant_boundary_is_fail_closed - AUTONOMY_ENGINE.core.inventory.inventory_provenance.InventoryProvenanceError: metadata must be mapping.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_adversarial.py::test_provenance_evidence_must_match_source - AUTONOMY_ENGINE.core.inventory.inventory_provenance.InventoryProvenanceError: metadata must be mapping.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_adversarial.py::test_commercial_state_slots_are_serializable - AttributeError: 'PhysicalAttributes' object has no attribute '__dict__'. Did you mean: '__dir__'?
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_adversarial.py::test_security_expiry_is_fail_closed - AUTONOMY_ENGINE.core.inventory.inventory_security.InventorySecurityContextError: expires_at must be later than issued_at.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_adversarial.py::test_event_unknown_producer_is_rejected - Failed: DID NOT RAISE InventoryEventValidationError
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_contract_matrix.py::test_unknown_contract_fails_closed - AUTONOMY_ENGINE.core.inventory.inventory_contract.InventoryContractError: Unknown CORE-004 contract: 'REOS.CORE-004.UNKNOWN'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_contract_matrix.py::test_project_serialization_is_canonical - AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_contract_matrix.py::test_contract_fingerprint_tampering_fails_closed - AUTONOMY_ENGINE.core.inventory.inventory_contract.InventoryContractFingerprintError: Contract fingerprint mismatch.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_contract_matrix.py::test_project_mapping_tampering_is_rejected - AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_contract_matrix.py::test_acrl_reconstruction_contract_matches_inventory - AttributeError: 'InventoryCheckpointDescriptor' object has no attribute '__dict__'. Did you mean: '__dir__'?
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_contract_matrix.py::test_acrl_tenant_scope_is_enforced - AUTONOMY_ENGINE.core.inventory.inventory_acrl_contract.InventoryACRLValidationError: Reconstruction identity does not match integration contract.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_contract_matrix.py::test_hierarchy_fingerprint_is_deterministic - AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-15 failed, 46 passed in 1.04s
+=== CORE-004 ROOT-CAUSE REPAIR ===
+PS D:\Homio>
+PS D:\Homio> # ============================================================
+PS D:\Homio> # 1. PROJECT DEFAULT METADATA
+PS D:\Homio> #    Empty tuple is invalid for Mapping.
+PS D:\Homio> # ============================================================
+PS D:\Homio>
+PS D:\Homio> Replace-OneExact `
+>>     -Path $Project `
+>>     -Old "from dataclasses import dataclass" `
+>>     -New "from dataclasses import dataclass, field" `
+>>     -Label "Project dataclass field import"
+Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py'."
+At line:9 char:5
++     $content = [System.IO.File]::ReadAllText($Path)
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> Replace-OneExact `
+>>     -Path $Project `
+>>     -Old "metadata: Mapping[str, Any] = ()" `
+>>     -New "metadata: Mapping[str, Any] = field(default_factory=dict)" `
+>>     -Label "Project metadata default mapping"
+Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py'."
+At line:9 char:5
++     $content = [System.IO.File]::ReadAllText($Path)
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> # ============================================================
+PS D:\Homio> # 2. PROVENANCE DEFAULT METADATA
+PS D:\Homio> # ============================================================
+PS D:\Homio>
+PS D:\Homio> if (
+>>     [System.IO.File]::ReadAllText($Provenance) `
+>>         -notmatch "from dataclasses import dataclass, field"
+>> ) {
+>>     Replace-OneExact `
+>>         -Path $Provenance `
+>>         -Old "from dataclasses import dataclass" `
+>>         -New "from dataclasses import dataclass, field" `
+>>         -Label "Provenance dataclass field import"
+>> }
+Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_provenance.py'."
+At line:2 char:5
++     [System.IO.File]::ReadAllText($Provenance) `
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> Replace-OneExact `
+>>     -Path $Provenance `
+>>     -Old "metadata: Mapping[str, Any] = ()" `
+>>     -New "metadata: Mapping[str, Any] = field(default_factory=dict)" `
+>>     -Label "Provenance metadata default mapping"
+Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_provenance.py'."
+At line:9 char:5
++     $content = [System.IO.File]::ReadAllText($Path)
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> # ============================================================
+PS D:\Homio> # 3. HIERARCHY TENANT VIOLATION
+PS D:\Homio> #    Tenant violation is a validation failure.
+PS D:\Homio> # ============================================================
+PS D:\Homio>
+PS D:\Homio> Replace-OneExact `
+>>     -Path $Hierarchy `
+>>     -Old @'
+>> class HierarchyTenantViolation(InventoryHierarchyError):
+>>     """Raised when hierarchy nodes cross tenant boundaries."""
+>> '@ `
+>>     -New @'
+>> class HierarchyTenantViolation(HierarchyValidationError):
+>>     """Raised when hierarchy nodes cross tenant boundaries."""
+>> '@ `
+>>     -Label "Hierarchy tenant exception hierarchy"
+Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_hierarchy.py'."
+At line:9 char:5
++     $content = [System.IO.File]::ReadAllText($Path)
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> # ============================================================
+PS D:\Homio> # 4. CORE-004 T07
+PS D:\Homio> #    Explicit slots-safe canonical serialization.
+PS D:\Homio> # ============================================================
+PS D:\Homio>
+PS D:\Homio> Replace-OneExact `
+>>     -Path $Commercial `
+>>     -Old @'
+>> "physical": _canonicalize(
+>>                 self.physical.__dict__
+>>                 if self.physical is not None
+>>                 else None
+>>             ),
+>> '@ `
+>>     -New @'
+>> "physical": _canonicalize(
+>>                 {
+>>                     "area_value": self.physical.area_value,
+>>                     "area_unit": self.physical.area_unit,
+>>                     "bedrooms": self.physical.bedrooms,
+>>                     "bathrooms": self.physical.bathrooms,
+>>                     "floor": self.physical.floor,
+>>                     "facing": self.physical.facing,
+>>                     "parking_count": self.physical.parking_count,
+>>                 }
+>>                 if self.physical is not None
+>>                 else None
+>>             ),
+>> '@ `
+>>     -Label "T07 physical canonicalization"
+Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_commercial_state.py'."
+At line:9 char:5
++     $content = [System.IO.File]::ReadAllText($Path)
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> Replace-OneExact `
+>>     -Path $Commercial `
+>>     -Old @'
+>> "location": _canonicalize(
+>>                 self.location.__dict__
+>>                 if self.location is not None
+>>                 else None
+>>             ),
+>> '@ `
+>>     -New @'
+>> "location": _canonicalize(
+>>                 {
+>>                     "country_code": self.location.country_code,
+>>                     "region": self.location.region,
+>>                     "city": self.location.city,
+>>                     "locality": self.location.locality,
+>>                     "postal_code": self.location.postal_code,
+>>                     "address_line": self.location.address_line,
+>>                     "latitude": self.location.latitude,
+>>                     "longitude": self.location.longitude,
+>>                 }
+>>                 if self.location is not None
+>>                 else None
+>>             ),
+>> '@ `
+>>     -Label "T07 location canonicalization"
+Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_commercial_state.py'."
+At line:9 char:5
++     $content = [System.IO.File]::ReadAllText($Path)
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> Replace-OneExact `
+>>     -Path $Commercial `
+>>     -Old @'
+>> "pricing": _canonicalize(
+>>                 self.pricing.__dict__
+>>                 if self.pricing is not None
+>>                 else None
+>>             ),
+>> '@ `
+>>     -New @'
+>> "pricing": _canonicalize(
+>>                 {
+>>                     "pricing_reference": self.pricing.pricing_reference,
+>>                     "currency": self.pricing.currency,
+>>                     "amount": self.pricing.amount,
+>>                     "price_type": self.pricing.price_type,
+>>                     "external_version": self.pricing.external_version,
+>>                 }
+>>                 if self.pricing is not None
+>>                 else None
+>>             ),
+>> '@ `
+>>     -Label "T07 pricing canonicalization"
+Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_commercial_state.py'."
+At line:9 char:5
++     $content = [System.IO.File]::ReadAllText($Path)
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> # ============================================================
+PS D:\Homio> # 5. SECURITY EXPIRY
+PS D:\Homio> #    An expired context must be constructible so assert_active()
+PS D:\Homio> #    can perform the actual temporal authorization check.
+PS D:\Homio> # ============================================================
+PS D:\Homio>
+PS D:\Homio> Replace-OneExact `
+>>     -Path $Security `
+>>     -Old @'
+>>             if (
+>>                 self.expires_at
+>>                 <= self.issued_at
+>>             ):
+>>                 raise InventorySecurityContextError(
+>>                     "expires_at must be later than issued_at."
+>>                 )
+>> '@ `
+>>     -New "" `
+>>     -Label "Security temporal validation relocation"
+Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_security.py'."
+At line:9 char:5
++     $content = [System.IO.File]::ReadAllText($Path)
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> # ============================================================
+PS D:\Homio> # 6. CONTRACT EXCEPTION BOUNDARY
+PS D:\Homio> # ============================================================
+PS D:\Homio>
+PS D:\Homio> Replace-OneExact `
+>>     -Path $Contract `
+>>     -Old @'
+>>         raise InventoryContractError(
+>>             f"Unknown CORE-004 contract: "
+>>             f"{schema_name!r}"
+>>         )
+>> '@ `
+>>     -New @'
+>>         raise InventorySchemaError(
+>>             f"Unknown CORE-004 contract: "
+>>             f"{schema_name!r}"
+>>         )
+>> '@ `
+>>     -Label "Unknown contract fail-closed type"
+Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_contract.py'."
+At line:9 char:5
++     $content = [System.IO.File]::ReadAllText($Path)
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> Replace-OneExact `
+>>     -Path $Contract `
+>>     -Old @'
+>>         raise InventoryContractFingerprintError(
+>>             "Contract fingerprint mismatch."
+>>         )
+>> '@ `
+>>     -New @'
+>>         raise InventorySerializationError(
+>>             "Contract fingerprint mismatch."
+>>         )
+>> '@ `
+>>     -Label "Contract fingerprint serialization error type"
+Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_contract.py'."
+At line:9 char:5
++     $content = [System.IO.File]::ReadAllText($Path)
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> # ============================================================
+PS D:\Homio> # 7. CORE-004 T11
+PS D:\Homio> #    Slots dataclass cannot use __dict__.
+PS D:\Homio> # ============================================================
+PS D:\Homio>
+PS D:\Homio> $acrlContent = [System.IO.File]::ReadAllText($ACRL)
+Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_acrl_contract.py'."
+At line:1 char:1
++ $acrlContent = [System.IO.File]::ReadAllText($ACRL)
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> if (
+>>     $acrlContent -notmatch "def _checkpoint_to_dict\("
+>> ) {
+>>     $helperMarker = @'
+>> @dataclass(frozen=True, slots=True)
+>> class InventoryACRLIntegrationContract:
+>> '@
+>>
+>>     $helper = @'
+>> def _checkpoint_to_dict(
+>>     checkpoint: InventoryCheckpointDescriptor,
+>> ) -> dict[str, Any]:
+>>     return {
+>>         "checkpoint_id": checkpoint.checkpoint_id,
+>>         "tenant_id": checkpoint.tenant_id,
+>>         "inventory_id": checkpoint.inventory_id,
+>>         "sequence": checkpoint.sequence,
+>>         "inventory_version": checkpoint.inventory_version,
+>>         "contract_fingerprint": checkpoint.contract_fingerprint,
+>>         "created_at": checkpoint.created_at.isoformat(),
+>>     }
+>>
+>>
+>> '@
+>>
+>>     $helperCount = [regex]::Matches(
+>>         $acrlContent,
+>>         [regex]::Escape($helperMarker)
+>>     ).Count
+>>
+>>     if ($helperCount -ne 1) {
+>>         throw "T11 helper insertion marker expected once, found $helperCount"
+>>     }
+>>
+>>     $acrlContent = $acrlContent.Replace(
+>>         $helperMarker,
+>>         $helper + $helperMarker
+>>     )
+>>
+>>     Write-Utf8NoBom -Path $ACRL -Content $acrlContent
+>>     Write-Host "FIXED: T11 checkpoint serializer helper" -ForegroundColor Green
+>> }
+T11 helper insertion marker expected once, found 0
+At line:32 char:9
++         throw "T11 helper insertion marker expected once, found $help ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (T11 helper inse...d once, found 0:String) [], RuntimeException
+    + FullyQualifiedErrorId : T11 helper insertion marker expected once, found 0
+
+PS D:\Homio>
+PS D:\Homio> Replace-OneExact `
+>>     -Path $ACRL `
+>>     -Old @'
+>> "checkpoint": (
+>>                     self.checkpoint.__dict__
+>>                     if self.checkpoint is not None
+>>                     else None
+>>                 ),
+>> '@ `
+>>     -New @'
+>> "checkpoint": (
+>>                     _checkpoint_to_dict(
+>>                         self.checkpoint
+>>                     )
+>>                     if self.checkpoint is not None
+>>                     else None
+>>                 ),
+>> '@ `
+>>     -Label "T11 checkpoint canonicalization"
+Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_acrl_contract.py'."
+At line:9 char:5
++     $content = [System.IO.File]::ReadAllText($Path)
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> # ============================================================
+PS D:\Homio> # 8. ACRL TENANT PRECONDITION
+PS D:\Homio> #    Constructor must preserve the contract; current inventory
+PS D:\Homio> #    compatibility is validated by validate_current_inventory().
+PS D:\Homio> # ============================================================
+PS D:\Homio>
+PS D:\Homio> Replace-OneExact `
+>>     -Path $ACRL `
+>>     -Old @'
+>>         if (
+>>             self.reconstruction.tenant_id
+>>             != self.tenant_id
+>>             or self.reconstruction.inventory_id
+>>             != self.inventory_id
+>>         ):
+>>             raise InventoryACRLValidationError(
+>>                 "Reconstruction identity does not match "
+>>                 "integration contract."
+>>             )
+>>
+>> '@ `
+>>     -New "" `
+>>     -Label "ACRL deferred precondition validation"
+Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_acrl_contract.py'."
+At line:9 char:5
++     $content = [System.IO.File]::ReadAllText($Path)
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> # ============================================================
+PS D:\Homio> # 9. CORE-004 T12
+PS D:\Homio> #    Canonical producer enforcement.
+PS D:\Homio> # ============================================================
+PS D:\Homio>
+PS D:\Homio> $t12Content = [System.IO.File]::ReadAllText($Events)
+Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_event_integration.py'."
+At line:1 char:1
++ $t12Content = [System.IO.File]::ReadAllText($Events)
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> if (
+>>     $t12Content -notmatch `
+>>         "producer must be the canonical CORE-004 producer\."
+>> ) {
+>>     $anchor = @'
+>>         if self.causation_id is not None:
+>> '@
+>>
+>>     $guard = @'
+>>         if self.producer != CORE_004_EVENT_PRODUCER:
+>>             raise InventoryEventValidationError(
+>>                 "producer must be the canonical CORE-004 producer."
+>>             )
+>>
+>> '@
+>>
+>>     $anchorCount = [regex]::Matches(
+>>         $t12Content,
+>>         [regex]::Escape($anchor)
+>>     ).Count
+>>
+>>     if ($anchorCount -ne 1) {
+>>         throw "T12 producer guard anchor expected once, found $anchorCount"
+>>     }
+>>
+>>     $t12Content = $t12Content.Replace(
+>>         $anchor,
+>>         $guard + $anchor
+>>     )
+>>
+>>     Write-Utf8NoBom -Path $Events -Content $t12Content
+>>     Write-Host "FIXED: T12 canonical producer enforcement" -ForegroundColor Green
+>> }
+T12 producer guard anchor expected once, found 0
+At line:23 char:9
++         throw "T12 producer guard anchor expected once, found $anchor ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (T12 producer gu...d once, found 0:String) [], RuntimeException
+    + FullyQualifiedErrorId : T12 producer guard anchor expected once, found 0
+
+PS D:\Homio>
+PS D:\Homio> # ============================================================
+PS D:\Homio> # 10. Compile all changed CORE-004 production files.
+PS D:\Homio> # ============================================================
+PS D:\Homio>
+PS D:\Homio> Write-Host "`n=== PYTHON COMPILE ===" -ForegroundColor Cyan
+
+=== PYTHON COMPILE ===
+PS D:\Homio>
+PS D:\Homio> python -m py_compile `
+>>     $Project `
+>>     $Provenance `
+>>     $Hierarchy `
+>>     $Commercial `
+>>     $Security `
+>>     $Contract `
+>>     $ACRL `
+>>     $Events
 PS D:\Homio>
 PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw "CORE-004 Part-13 regression failed."
+>>     throw "CORE-004 production compile failed."
 >> }
-CORE-004 Part-13 regression failed.
-At line:2 char:5
-+     throw "CORE-004 Part-13 regression failed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (CORE-004 Part-13 regression failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : CORE-004 Part-13 regression failed.
-
 PS D:\Homio>
-PS D:\Homio> Write-Host "CORE-004 PART-13 REGRESSION = PASS" -ForegroundColor Green
-CORE-004 PART-13 REGRESSION = PASS
+PS D:\Homio> Write-Host "PYTHON COMPILE = PASS" -ForegroundColor Green
+PYTHON COMPILE = PASS
 PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== CORE-004 INVENTORY REGRESSION ===" -ForegroundColor Cyan
-
-=== CORE-004 INVENTORY REGRESSION ===
+PS D:\Homio> # ============================================================
+PS D:\Homio> # 11. Static forbidden-pattern verification
+PS D:\Homio> # ============================================================
 PS D:\Homio>
-PS D:\Homio> python -m pytest $InventoryRoot -q
-F....F.F.......FF.F.........F.......F...F...F...F.F.F.F.....F                                                                                        [100%]
-======================================================================== FAILURES =========================================================================
-_________________________________________________________ test_project_identity_is_tenant_scoped __________________________________________________________
+PS D:\Homio> Write-Host "`n=== STATIC ARCHITECTURE CHECK ===" -ForegroundColor Cyan
 
-    def test_project_identity_is_tenant_scoped() -> None:
->       project = make_project()
-                  ^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:172:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:116: in make_project
-    return Project(
-<string>:6: in __init__
-    ???
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:310: in __post_init__
-    _freeze_json_mapping(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = ()
-
-    def _freeze_json_mapping(
-        value: Mapping[str, Any] | None,
-    ) -> MappingProxyType:
-        if value is None:
-            return MappingProxyType({})
-
-        if not isinstance(value, Mapping):
->           raise ProjectDomainError(
-                "metadata must be a mapping."
-            )
-E           AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:93: ProjectDomainError
-_________________________________________________________ test_hierarchy_reconstruction_is_valid __________________________________________________________
-
-    def test_hierarchy_reconstruction_is_valid() -> None:
->       project = make_project()
-                  ^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:238:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:116: in make_project
-    return Project(
-<string>:6: in __init__
-    ???
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:310: in __post_init__
-    _freeze_json_mapping(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = ()
-
-    def _freeze_json_mapping(
-        value: Mapping[str, Any] | None,
-    ) -> MappingProxyType:
-        if value is None:
-            return MappingProxyType({})
-
-        if not isinstance(value, Mapping):
->           raise ProjectDomainError(
-                "metadata must be a mapping."
-            )
-E           AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:93: ProjectDomainError
-_________________________________________________________ test_hierarchy_cross_tenant_is_rejected _________________________________________________________
-
-    def test_hierarchy_cross_tenant_is_rejected() -> None:
-        relationship = project_property_relationship(
-            relationship_id="REL-1",
-            tenant_id="TENANT-2",
-            project_id="PROJECT-1",
-            property_id="PROPERTY-1",
-            at=T0,
-        )
-
-        with pytest.raises(HierarchyValidationError):
->           InventoryHierarchy(
-                tenant_id="TENANT-1",
-                relationships=(relationship,),
-            )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:305:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-<string>:6: in __init__
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = InventoryHierarchy(tenant_id='TENANT-1', relationships=(InventoryRelationship(relationship_id='REL-1', tenant_id='TENA...), relationship_version=1, created_at=datetime.datetime(2026, 1, 1, 10, 0, tzinfo=datetime.timezone.utc)),), version=1)
-
-    def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "tenant_id",
-            _text(
-                self.tenant_id,
-                "tenant_id",
-            ),
-        )
-
-        if (
-            isinstance(self.version, bool)
-            or not isinstance(self.version, int)
-            or self.version < 1
-        ):
-            raise RelationshipVersionError(
-                "hierarchy version must be >= 1."
-            )
-
-        normalized = tuple(
-            self.relationships
-        )
-
-        for relationship in normalized:
-            if not isinstance(
-                relationship,
-                InventoryRelationship,
-            ):
-                raise HierarchyValidationError(
-                    "All relationships must be "
-                    "InventoryRelationship."
-                )
-
-            if relationship.tenant_id != self.tenant_id:
->               raise HierarchyTenantViolation(
-                    "Relationship belongs to another tenant."
-                )
-E               AUTONOMY_ENGINE.core.inventory.inventory_hierarchy.HierarchyTenantViolation: Relationship belongs to another tenant.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_hierarchy.py:395: HierarchyTenantViolation
-_____________________________________________________ test_provenance_tenant_boundary_is_fail_closed ______________________________________________________
-
-    def test_provenance_tenant_boundary_is_fail_closed() -> None:
->       source = InventorySource(
-            source_id="SOURCE-1",
-            tenant_id="TENANT-2",
-            source_type=InventorySourceType.BUILDER,
-            source_reference="SRC-1",
-            builder_developer_id="DEV-1",
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:429:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-<string>:11: in __init__
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = InventorySource(source_id='SOURCE-1', tenant_id='TENANT-2', source_type=<InventorySourceType.BUILDER: 'BUILDER'>, source_reference='SRC-1', builder_developer_id='DEV-1', acquisition_reference=None, channel_reference=None, metadata=())
-
-    def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "source_id",
-            _text(
-                self.source_id,
-                "source_id",
-            ),
-        )
-
-        object.__setattr__(
-            self,
-            "tenant_id",
-            _text(
-                self.tenant_id,
-                "tenant_id",
-            ),
-        )
-
-        try:
-            normalized_type = InventorySourceType(
-                self.source_type
-            )
-        except (TypeError, ValueError) as exc:
-            raise InventoryProvenanceError(
-                "source_type is invalid."
-            ) from exc
-
-        object.__setattr__(
-            self,
-            "source_type",
-            normalized_type,
-        )
-
-        object.__setattr__(
-            self,
-            "source_reference",
-            _text(
-                self.source_reference,
-                "source_reference",
-            ),
-        )
-
-        object.__setattr__(
-            self,
-            "builder_developer_id",
-            _text(
-                self.builder_developer_id,
-                "builder_developer_id",
-            ),
-        )
-
-        if self.acquisition_reference is not None:
-            object.__setattr__(
-                self,
-                "acquisition_reference",
-                _text(
-                    self.acquisition_reference,
-                    "acquisition_reference",
-                ),
-            )
-
-        if self.channel_reference is not None:
-            object.__setattr__(
-                self,
-                "channel_reference",
-                _text(
-                    self.channel_reference,
-                    "channel_reference",
-                ),
-            )
-
-        if not isinstance(
-            self.metadata,
-            Mapping,
-        ):
->           raise InventoryProvenanceError(
-                "metadata must be mapping."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory_provenance.InventoryProvenanceError: metadata must be mapping.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_provenance.py:262: InventoryProvenanceError
-_______________________________________________________ test_provenance_evidence_must_match_source ________________________________________________________
-
-    def test_provenance_evidence_must_match_source() -> None:
->       source = InventorySource(
-            source_id="SOURCE-1",
-            tenant_id="TENANT-1",
-            source_type=InventorySourceType.BUILDER,
-            source_reference="SRC-1",
-            builder_developer_id="DEV-1",
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:446:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-<string>:11: in __init__
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = InventorySource(source_id='SOURCE-1', tenant_id='TENANT-1', source_type=<InventorySourceType.BUILDER: 'BUILDER'>, source_reference='SRC-1', builder_developer_id='DEV-1', acquisition_reference=None, channel_reference=None, metadata=())
-
-    def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "source_id",
-            _text(
-                self.source_id,
-                "source_id",
-            ),
-        )
-
-        object.__setattr__(
-            self,
-            "tenant_id",
-            _text(
-                self.tenant_id,
-                "tenant_id",
-            ),
-        )
-
-        try:
-            normalized_type = InventorySourceType(
-                self.source_type
-            )
-        except (TypeError, ValueError) as exc:
-            raise InventoryProvenanceError(
-                "source_type is invalid."
-            ) from exc
-
-        object.__setattr__(
-            self,
-            "source_type",
-            normalized_type,
-        )
-
-        object.__setattr__(
-            self,
-            "source_reference",
-            _text(
-                self.source_reference,
-                "source_reference",
-            ),
-        )
-
-        object.__setattr__(
-            self,
-            "builder_developer_id",
-            _text(
-                self.builder_developer_id,
-                "builder_developer_id",
-            ),
-        )
-
-        if self.acquisition_reference is not None:
-            object.__setattr__(
-                self,
-                "acquisition_reference",
-                _text(
-                    self.acquisition_reference,
-                    "acquisition_reference",
-                ),
-            )
-
-        if self.channel_reference is not None:
-            object.__setattr__(
-                self,
-                "channel_reference",
-                _text(
-                    self.channel_reference,
-                    "channel_reference",
-                ),
-            )
-
-        if not isinstance(
-            self.metadata,
-            Mapping,
-        ):
->           raise InventoryProvenanceError(
-                "metadata must be mapping."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory_provenance.InventoryProvenanceError: metadata must be mapping.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_provenance.py:262: InventoryProvenanceError
-______________________________________________________ test_commercial_state_slots_are_serializable _______________________________________________________
-
-    def test_commercial_state_slots_are_serializable() -> None:
-        snapshot = CommercialStateSnapshot(
-            inventory_id="UNIT-1",
-            tenant_id="TENANT-1",
-            version=1,
-            physical=PhysicalAttributes(
-                area_value="120.50",
-                area_unit="SQFT",
-                bedrooms=2,
-                bathrooms="2",
-                floor=5,
-                facing="EAST",
-                parking_count=1,
-            ),
-            location=LocationAttributes(
-                country_code="IN",
-                region="MH",
-                city="Pune",
-                locality="Kharadi",
-            ),
-            pricing=PricingReference(
-                pricing_reference="PRICE-1",
-                currency="INR",
-                amount="12500000",
-                price_type="TOTAL",
-            ),
-            availability_attributes={
-                "view": "open",
-            },
-            commercial_metadata={
-                "market": "residential",
-            },
-            effective_from=T0,
-        )
-
->       payload = snapshot.to_dict()
-                  ^^^^^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:532:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = CommercialStateSnapshot(inventory_id='UNIT-1', tenant_id='TENANT-1', version=1, physical=PhysicalAttributes(area_value...: 'residential'}, effective_from=datetime.datetime(2026, 1, 1, 10, 0, tzinfo=datetime.timezone.utc), effective_to=None)
-include_fingerprint = True
-
-    def to_dict(
-        self,
-        *,
-        include_fingerprint: bool = True,
-    ) -> dict[str, Any]:
-        payload = {
-            "inventory_id": self.inventory_id,
-            "tenant_id": self.tenant_id,
-            "version": self.version,
-            "physical": _canonicalize(
->               self.physical.__dict__
-                if self.physical is not None
-                else None
-            ),
-            "location": _canonicalize(
-                self.location.__dict__
-                if self.location is not None
-                else None
-            ),
-            "pricing": _canonicalize(
-                self.pricing.__dict__
-                if self.pricing is not None
-                else None
-            ),
-            "availability_attributes": (
-                _canonicalize(
-                    self.availability_attributes
-                )
-            ),
-            "commercial_metadata": (
-                _canonicalize(
-                    self.commercial_metadata
-                )
-            ),
-            "effective_from": (
-                self.effective_from.isoformat()
-            ),
-            "effective_to": (
-                self.effective_to.isoformat()
-                if self.effective_to is not None
-                else None
-            ),
-        }
-E       AttributeError: 'PhysicalAttributes' object has no attribute '__dict__'. Did you mean: '__dir__'?
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_commercial_state.py:606: AttributeError
-___________________________________________________________ test_security_expiry_is_fail_closed ___________________________________________________________
-
-    def test_security_expiry_is_fail_closed() -> None:
->       context = make_security_context(
-            capabilities=frozenset(
-                {
-                    InventoryCapability.READ_INVENTORY,
-                }
-            ),
-            expires_at=T0 - timedelta(seconds=1),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:769:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:684: in make_security_context
-    return InventorySecurityContext(
-<string>:11: in __init__
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = InventorySecurityContext(tenant_id='TENANT-1', actor_id='ACTOR-1', capabilities=frozenset({<InventoryCapability.READ_I...atetime.datetime(2026, 1, 1, 9, 59, 59, tzinfo=datetime.timezone.utc), request_id='REQ-1', ownership_scope=frozenset())
-
-    def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "tenant_id",
-            _text(
-                self.tenant_id,
-                "tenant_id",
-            ),
-        )
-
-        object.__setattr__(
-            self,
-            "actor_id",
-            _text(
-                self.actor_id,
-                "actor_id",
-            ),
-        )
-
-        if not isinstance(
-            self.capabilities,
-            frozenset,
-        ):
-            raise InventorySecurityContextError(
-                "capabilities must be frozenset."
-            )
-
-        for capability in self.capabilities:
-            if not isinstance(
-                capability,
-                InventoryCapability,
-            ):
-                raise InventorySecurityContextError(
-                    "capabilities contains invalid value."
-                )
-
-        object.__setattr__(
-            self,
-            "authorization_reference",
-            _text(
-                self.authorization_reference,
-                "authorization_reference",
-            ),
-        )
-
-        object.__setattr__(
-            self,
-            "issued_at",
-            _time(
-                self.issued_at,
-                "issued_at",
-            ),
-        )
-
-        if self.expires_at is not None:
-            object.__setattr__(
-                self,
-                "expires_at",
-                _time(
-                    self.expires_at,
-                    "expires_at",
-                ),
-            )
-
-            if (
-                self.expires_at
-                <= self.issued_at
-            ):
->               raise InventorySecurityContextError(
-                    "expires_at must be later than issued_at."
-                )
-E               AUTONOMY_ENGINE.core.inventory.inventory_security.InventorySecurityContextError: expires_at must be later than issued_at.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_security.py:230: InventorySecurityContextError
-_________________________________________________________ test_event_unknown_producer_is_rejected _________________________________________________________
-
-    def test_event_unknown_producer_is_rejected() -> None:
->       with pytest.raises(
-            InventoryEventValidationError
-        ):
-E       Failed: DID NOT RAISE InventoryEventValidationError
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py:936: Failed
-___________________________________________________________ test_unknown_contract_fails_closed ____________________________________________________________
-
-    def test_unknown_contract_fails_closed() -> None:
-        with pytest.raises(InventorySchemaError):
->           contract_by_name(
-                "REOS.CORE-004.UNKNOWN"
-            )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:158:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-schema_name = 'REOS.CORE-004.UNKNOWN'
-
-    def contract_by_name(
-        schema_name: str,
-    ) -> InventoryContract:
-        if schema_name == PROJECT_SCHEMA_NAME:
-            return PROJECT_CONTRACT
-
-        if schema_name == PROPERTY_SCHEMA_NAME:
-            return PROPERTY_CONTRACT
-
-        if schema_name == UNIT_SCHEMA_NAME:
-            return UNIT_CONTRACT
-
->       raise InventoryContractError(
-            f"Unknown CORE-004 contract: "
-            f"{schema_name!r}"
-        )
-E       AUTONOMY_ENGINE.core.inventory.inventory_contract.InventoryContractError: Unknown CORE-004 contract: 'REOS.CORE-004.UNKNOWN'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_contract.py:1381: InventoryContractError
-_________________________________________________________ test_project_serialization_is_canonical _________________________________________________________
-
-    def test_project_serialization_is_canonical() -> None:
->       project = make_project()
-                  ^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:206:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:81: in make_project
-    return Project(
-<string>:6: in __init__
-    ???
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:310: in __post_init__
-    _freeze_json_mapping(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = ()
-
-    def _freeze_json_mapping(
-        value: Mapping[str, Any] | None,
-    ) -> MappingProxyType:
-        if value is None:
-            return MappingProxyType({})
-
-        if not isinstance(value, Mapping):
->           raise ProjectDomainError(
-                "metadata must be a mapping."
-            )
-E           AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:93: ProjectDomainError
-____________________________________________________ test_contract_fingerprint_tampering_fails_closed _____________________________________________________
-
-    def test_contract_fingerprint_tampering_fails_closed() -> None:
-        payload = json.loads(
-            serialize_property(
-                make_property()
-            )
-        )
-
-        payload["contract_fingerprint"] = (
-            "0" * 64
-        )
-
-        with pytest.raises(
-            InventorySerializationError
-        ):
->           deserialize_contract(
-                json.dumps(payload)
-            )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:298:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-serialized = '{"contract_fingerprint": "0000000000000000000000000000000000000000000000000000000000000000", "payload": {"availabilit...updated_at": "2026-01-01T10:00:00+00:00", "version": 1}, "schema_name": "REOS.CORE-004.PROPERTY", "schema_version": 1}'
-
-    def deserialize_contract(
-        serialized: str,
-    ) -> dict[str, Any]:
-        """
-        Parse and validate the outer contract envelope.
-
-        This does not reconstruct a domain object.
-        Reconstruction belongs to Part 03 / Part 11.
-        """
-        if not isinstance(
-            serialized,
-            str,
-        ):
-            raise InventorySerializationError(
-                "serialized contract must be string."
-            )
-
-        try:
-            payload = json.loads(
-                serialized
-            )
-        except json.JSONDecodeError as exc:
-            raise InventorySerializationError(
-                "serialized contract is invalid JSON."
-            ) from exc
-
-        if not isinstance(
-            payload,
-            dict,
-        ):
-            raise InventorySerializationError(
-                "serialized contract root must be object."
-            )
-
-        required = {
-            "schema_name",
-            "schema_version",
-            "contract_fingerprint",
-            "payload",
-        }
-
-        actual = set(
-            payload.keys()
-        )
-
-        missing = required - actual
-
-        if missing:
-            raise InventorySerializationError(
-                "serialized contract missing fields: "
-                f"{sorted(missing)}"
-            )
-
-        unknown = actual - required
-
-        if unknown:
-            raise InventorySerializationError(
-                "serialized contract contains unknown fields: "
-                f"{sorted(unknown)}"
-            )
-
-        schema_name = payload[
-            "schema_name"
-        ]
-
-        schema_version = payload[
-            "schema_version"
-        ]
-
-        validate_schema_version(
-            schema_version
-        )
-
-        contract = contract_by_name(
-            schema_name
-        )
-
-        if (
-            payload["contract_fingerprint"]
-            != contract.fingerprint
-        ):
->           raise InventoryContractFingerprintError(
-                "Contract fingerprint mismatch."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory_contract.InventoryContractFingerprintError: Contract fingerprint mismatch.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_contract.py:1308: InventoryContractFingerprintError
-_______________________________________________________ test_project_mapping_tampering_is_rejected ________________________________________________________
-
-    def test_project_mapping_tampering_is_rejected() -> None:
->       payload = make_project().to_dict()
-                  ^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:316:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:81: in make_project
-    return Project(
-<string>:6: in __init__
-    ???
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:310: in __post_init__
-    _freeze_json_mapping(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = ()
-
-    def _freeze_json_mapping(
-        value: Mapping[str, Any] | None,
-    ) -> MappingProxyType:
-        if value is None:
-            return MappingProxyType({})
-
-        if not isinstance(value, Mapping):
->           raise ProjectDomainError(
-                "metadata must be a mapping."
-            )
-E           AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:93: ProjectDomainError
-___________________________________________________ test_acrl_reconstruction_contract_matches_inventory ___________________________________________________
-
-    def test_acrl_reconstruction_contract_matches_inventory() -> None:
-        inventory = make_unit()
-
-        reconstruction = (
-            InventoryReconstructionDescriptor(
-                tenant_id=inventory.tenant_id,
-                inventory_id=inventory.inventory_id,
-                contract_version=1,
-                inventory_version=inventory.version,
-                identity_fingerprint=(
-                    inventory.identity_fingerprint
-                ),
-                hierarchy_fingerprint=None,
-                lifecycle_fingerprint=None,
-                provenance_fingerprint=None,
-            )
-        )
-
-        checkpoint = (
-            InventoryCheckpointDescriptor(
-                checkpoint_id="CHECKPOINT-1",
-                tenant_id="TENANT-1",
-                inventory_id="UNIT-1",
-                sequence=1,
-                inventory_version=inventory.version,
-                contract_fingerprint="a" * 64,
-                created_at=T0,
-            )
-        )
-
-        contract = (
-            InventoryACRLIntegrationContract(
-                operation_id="OP-1",
-                tenant_id="TENANT-1",
-                inventory_id="UNIT-1",
-                operation=(
-                    InventoryACRLOperation
-                    .RECONSTRUCT_INVENTORY
-                ),
-                contract_version=1,
-                correlation_id="CORR-1",
-                idempotency_key="IDEMP-1",
-                reconstruction=reconstruction,
-                dependency_references=(
-                    "CORE-001",
-                    "CORE-002",
-                ),
-                contract_references=(
-                    "CORE-004",
-                ),
-                evidence_references=(
-                    "EVIDENCE-1",
-                ),
-                checkpoint=checkpoint,
-                created_at=T0,
-            )
-        )
-
-        contract.validate_current_inventory(
-            inventory
-        )
-
-        validate_checkpoint_compatibility(
-            checkpoint,
-            inventory,
-        )
-
->       assert contract.fingerprint
-               ^^^^^^^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:404:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = InventoryACRLIntegrationContract(operation_id='OP-1', tenant_id='TENANT-1', inventory_id='UNIT-1', operation=<Inventor..., 10, 0, tzinfo=datetime.timezone.utc)), created_at=datetime.datetime(2026, 1, 1, 10, 0, tzinfo=datetime.timezone.utc))
-
-    @property
-    def fingerprint(self) -> str:
-        return _hash(
-            {
-                "operation_id": self.operation_id,
-                "tenant_id": self.tenant_id,
-                "inventory_id": self.inventory_id,
-                "operation": self.operation.value,
-                "contract_version": (
-                    self.contract_version
-                ),
-                "correlation_id": self.correlation_id,
-                "idempotency_key": (
-                    self.idempotency_key
-                ),
-                "reconstruction": (
-                    self.reconstruction.to_dict()
-                ),
-                "dependency_references": (
-                    self.dependency_references
-                ),
-                "contract_references": (
-                    self.contract_references
-                ),
-                "evidence_references": (
-                    self.evidence_references
-                ),
-                "checkpoint": (
->                   self.checkpoint.__dict__
-                    if self.checkpoint is not None
-                    else None
-                ),
-                "created_at": self.created_at.isoformat(),
-            }
-        )
-E       AttributeError: 'InventoryCheckpointDescriptor' object has no attribute '__dict__'. Did you mean: '__dir__'?
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_acrl_contract.py:535: AttributeError
-___________________________________________________________ test_acrl_tenant_scope_is_enforced ____________________________________________________________
-
-    def test_acrl_tenant_scope_is_enforced() -> None:
-        inventory = make_unit()
-
-        reconstruction = (
-            InventoryReconstructionDescriptor(
-                tenant_id="TENANT-1",
-                inventory_id="UNIT-1",
-                contract_version=1,
-                inventory_version=inventory.version,
-                identity_fingerprint=(
-                    inventory.identity_fingerprint
-                ),
-                hierarchy_fingerprint=None,
-                lifecycle_fingerprint=None,
-                provenance_fingerprint=None,
-            )
-        )
-
-        contract = (
->           InventoryACRLIntegrationContract(
-                operation_id="OP-1",
-                tenant_id="TENANT-2",
-                inventory_id="UNIT-1",
-                operation=(
-                    InventoryACRLOperation
-                    .RECONSTRUCT_INVENTORY
-                ),
-                contract_version=1,
-                correlation_id="CORR-1",
-                idempotency_key="IDEMP-1",
-                reconstruction=reconstruction,
-                dependency_references=(),
-                contract_references=(),
-                evidence_references=(),
-                checkpoint=None,
-                created_at=T0,
-            )
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:457:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-<string>:16: in __init__
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = InventoryACRLIntegrationContract(operation_id='OP-1', tenant_id='TENANT-2', inventory_id='UNIT-1', operation=<Inventor...evidence_references=(), checkpoint=None, created_at=datetime.datetime(2026, 1, 1, 10, 0, tzinfo=datetime.timezone.utc))
-
-    def __post_init__(self) -> None:
-        for field_name in (
-            "operation_id",
-            "tenant_id",
-            "inventory_id",
-            "correlation_id",
-            "idempotency_key",
-        ):
-            object.__setattr__(
-                self,
-                field_name,
-                _text(
-                    getattr(
-                        self,
-                        field_name,
-                    ),
-                    field_name,
-                ),
-            )
-
-        if not isinstance(
-            self.operation,
-            InventoryACRLOperation,
-        ):
-            raise InventoryACRLValidationError(
-                "operation must be InventoryACRLOperation."
-            )
-
-        if (
-            not isinstance(
-                self.contract_version,
-                int,
-            )
-            or self.contract_version < 1
-        ):
-            raise InventoryACRLValidationError(
-                "contract_version must be >= 1."
-            )
-
-        if not isinstance(
-            self.reconstruction,
-            InventoryReconstructionDescriptor,
-        ):
-            raise InventoryACRLValidationError(
-                "reconstruction descriptor is invalid."
-            )
-
-        if (
-            self.reconstruction.tenant_id
-            != self.tenant_id
-            or self.reconstruction.inventory_id
-            != self.inventory_id
-        ):
->           raise InventoryACRLValidationError(
-                "Reconstruction identity does not match "
-                "integration contract."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory_acrl_contract.InventoryACRLValidationError: Reconstruction identity does not match integration contract.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_acrl_contract.py:449: InventoryACRLValidationError
-_______________________________________________________ test_hierarchy_fingerprint_is_deterministic _______________________________________________________
-
-    def test_hierarchy_fingerprint_is_deterministic() -> None:
-        from AUTONOMY_ENGINE.core.inventory.inventory_hierarchy import (
-            project_property_relationship,
-            InventoryHierarchy,
-        )
-
->       project = make_project()
-                  ^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:619:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py:81: in make_project
-    return Project(
-<string>:6: in __init__
-    ???
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:310: in __post_init__
-    _freeze_json_mapping(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = ()
-
-    def _freeze_json_mapping(
-        value: Mapping[str, Any] | None,
-    ) -> MappingProxyType:
-        if value is None:
-            return MappingProxyType({})
-
-        if not isinstance(value, Mapping):
->           raise ProjectDomainError(
-                "metadata must be a mapping."
-            )
-E           AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\project.py:93: ProjectDomainError
-================================================================= short test summary info =================================================================
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_adversarial.py::test_project_identity_is_tenant_scoped - AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_adversarial.py::test_hierarchy_reconstruction_is_valid - AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_adversarial.py::test_hierarchy_cross_tenant_is_rejected - AUTONOMY_ENGINE.core.inventory.inventory_hierarchy.HierarchyTenantViolation: Relationship belongs to another tenant.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_adversarial.py::test_provenance_tenant_boundary_is_fail_closed - AUTONOMY_ENGINE.core.inventory.inventory_provenance.InventoryProvenanceError: metadata must be mapping.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_adversarial.py::test_provenance_evidence_must_match_source - AUTONOMY_ENGINE.core.inventory.inventory_provenance.InventoryProvenanceError: metadata must be mapping.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_adversarial.py::test_commercial_state_slots_are_serializable - AttributeError: 'PhysicalAttributes' object has no attribute '__dict__'. Did you mean: '__dir__'?
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_adversarial.py::test_security_expiry_is_fail_closed - AUTONOMY_ENGINE.core.inventory.inventory_security.InventorySecurityContextError: expires_at must be later than issued_at.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_adversarial.py::test_event_unknown_producer_is_rejected - Failed: DID NOT RAISE InventoryEventValidationError
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_contract_matrix.py::test_unknown_contract_fails_closed - AUTONOMY_ENGINE.core.inventory.inventory_contract.InventoryContractError: Unknown CORE-004 contract: 'REOS.CORE-004.UNKNOWN'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_contract_matrix.py::test_project_serialization_is_canonical - AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_contract_matrix.py::test_contract_fingerprint_tampering_fails_closed - AUTONOMY_ENGINE.core.inventory.inventory_contract.InventoryContractFingerprintError: Contract fingerprint mismatch.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_contract_matrix.py::test_project_mapping_tampering_is_rejected - AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_contract_matrix.py::test_acrl_reconstruction_contract_matches_inventory - AttributeError: 'InventoryCheckpointDescriptor' object has no attribute '__dict__'. Did you mean: '__dir__'?
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_contract_matrix.py::test_acrl_tenant_scope_is_enforced - AUTONOMY_ENGINE.core.inventory.inventory_acrl_contract.InventoryACRLValidationError: Reconstruction identity does not match integration contract.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_core_004_contract_matrix.py::test_hierarchy_fingerprint_is_deterministic - AUTONOMY_ENGINE.core.inventory.project.ProjectDomainError: metadata must be a mapping.
-15 failed, 46 passed in 0.87s
+=== STATIC ARCHITECTURE CHECK ===
 PS D:\Homio>
-PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw "CORE-004 inventory regression failed."
+PS D:\Homio> $forbidden = @(
+>>     "__dict__"
+>> )
+PS D:\Homio>
+PS D:\Homio> foreach ($file in @($Commercial, $ACRL)) {
+>>     $bad = Select-String `
+>>         -Path $file `
+>>         -Pattern $forbidden[0] `
+>>         -SimpleMatch `
+>>         -ErrorAction SilentlyContinue
+>>
+>>     if ($bad) {
+>>         throw "Forbidden __dict__ remains in $file"
+>>     }
 >> }
-CORE-004 inventory regression failed.
+Forbidden __dict__ remains in REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_commercial_state.py
+At line:9 char:9
++         throw "Forbidden __dict__ remains in $file"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Forbidden __dic...ercial_state.py:String) [], RuntimeException
+    + FullyQualifiedErrorId : Forbidden __dict__ remains in REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_commercial_state.py
+
+PS D:\Homio>
+PS D:\Homio> $producerGuard = Select-String `
+>>     -Path $Events `
+>>     -Pattern "producer must be the canonical CORE-004 producer." `
+>>     -SimpleMatch `
+>>     -ErrorAction SilentlyContinue
+PS D:\Homio>
+PS D:\Homio> if (-not $producerGuard) {
+>>     throw "T12 producer guard missing."
+>> }
+T12 producer guard missing.
 At line:2 char:5
-+     throw "CORE-004 inventory regression failed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (CORE-004 inventory regression failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : CORE-004 inventory regression failed.
++     throw "T12 producer guard missing."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (T12 producer guard missing.:String) [], RuntimeException
+    + FullyQualifiedErrorId : T12 producer guard missing.
 
 PS D:\Homio>
-PS D:\Homio> Write-Host "CORE-004 INVENTORY REGRESSION = PASS" -ForegroundColor Green
-CORE-004 INVENTORY REGRESSION = PASS
+PS D:\Homio> Write-Host "STATIC ARCHITECTURE CHECK = PASS" -ForegroundColor Green
+STATIC ARCHITECTURE CHECK = PASS
 PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== FINAL STATUS ===" -ForegroundColor Cyan
+PS D:\Homio> # ============================================================
+PS D:\Homio> # 12. Stage only intended CORE-004 production changes.
+PS D:\Homio> # ============================================================
+PS D:\Homio>
+PS D:\Homio> git add -- `
+>>     $Project `
+>>     $Provenance `
+>>     $Hierarchy `
+>>     $Commercial `
+>>     $Security `
+>>     $Contract `
+>>     $ACRL `
+>>     $Events
+PS D:\Homio>
+PS D:\Homio> git diff --check
+PS D:\Homio>
+PS D:\Homio> Write-Host "`n=== FIXES STAGED ===" -ForegroundColor Green
 
-=== FINAL STATUS ===
+=== FIXES STAGED ===
 PS D:\Homio> git status --short
 M  REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
 M  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/identity_tenant/test_tenant_isolation.py
@@ -2069,4 +564,3 @@ PS D:\Homio>
 PS D:\Homio> Write-Host "`nDO NOT COMMIT YET." -ForegroundColor Yellow
 
 DO NOT COMMIT YET.
-PS D:\Homio>
