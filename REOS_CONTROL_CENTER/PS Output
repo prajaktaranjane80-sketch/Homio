@@ -1,2901 +1,662 @@
-PS C:\Users\Sandip RanjanePatil>  Set-Location "D:\Homio\REOS_CONTROL_CENTER"
-PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Set-Location "D:\Homio"
+PS D:\Homio> Set-StrictMode -Version Latest
+PS D:\Homio> $ErrorActionPreference = "Stop"
 PS D:\Homio>
-PS D:\Homio> $cc = "D:\Homio\REOS_CONTROL_CENTER"
-PS D:\Homio> $search = "$cc\AUTONOMY_ENGINE\core\search_matching"
-PS D:\Homio> $contract = "$search\search_index_contract.py"
+PS D:\Homio> # ============================================================
+PS D:\Homio> # HOMIO / REOS — CORE-005 CLEAN REBUILD FOUNDATION
+PS D:\Homio> # Remote branch: reos-development
+PS D:\Homio> # Scope: ONLY AUTONOMY_ENGINE/core/search_matching
+PS D:\Homio> # CORE-004 untouched
+PS D:\Homio> # ============================================================
 PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 1. VERIFY CANONICAL OPERATION CLASS ===" -ForegroundColor Cyan
+PS D:\Homio> Set-Location "D:\HOMIO\REOS_CONTROL_CENTER"
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
 
-=== 1. VERIFY CANONICAL OPERATION CLASS ===
-PS D:\Homio>
-PS D:\Homio> $contractText = Get-Content $contract -Raw
-PS D:\Homio>
-PS D:\Homio> if ($contractText -notmatch "(?m)^class SearchIndexOperation\b") {
->>     throw "Canonical SearchIndexOperation class is missing from search_index_contract.py."
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CORE-005 CLEAN REBUILD ===" -ForegroundColor Cyan
+=== CORE-005 CLEAN REBUILD ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
+remote: Enumerating objects: 31, done.
+remote: Counting objects: 100% (31/31), done.
+remote: Compressing objects: 100% (28/28), done.
+remote: Total 28 (delta 20), reused 0 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (28/28), 22.66 KiB | 100.00 KiB/s, done.
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+   3e82cb0..9e18ec9  reos-development -> origin/reos-development
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 1. Preserve current local HEAD before synchronization
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> $backupBranch = "backup/core-005-pre-rebuild-$(Get-Date -Format yyyyMMddHHmmss)"
+PS D:\HOMIO\REOS_CONTROL_CENTER> git branch $backupBranch
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # Preserve any local uncommitted/untracked work safely
+PS D:\HOMIO\REOS_CONTROL_CENTER> $stashCheck = git status --porcelain
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($stashCheck) {
+>>     git stash push -u -m "pre-core-005-clean-rebuild"
 >> }
-PS D:\Homio>
-PS D:\Homio> Write-Host "SearchIndexOperation definition FOUND."
-SearchIndexOperation definition FOUND.
-PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 2. BACKUP CURRENT SEARCH INDEX CONTRACT ===" -ForegroundColor Cyan
-
-=== 2. BACKUP CURRENT SEARCH INDEX CONTRACT ===
-PS D:\Homio>
-PS D:\Homio> $backupRoot = "$cc\AUTONOMY_ENGINE\_BACKUPS"
-PS D:\Homio> New-Item -ItemType Directory -Force -Path $backupRoot | Out-Null
-PS D:\Homio>
-PS D:\Homio> $backupFile = Join-Path `
->>     $backupRoot `
->>     ("search_index_contract_before_operation_normalize_{0}.py" -f (Get-Date -Format "yyyyMMdd_HHmmss"))
-PS D:\Homio>
-PS D:\Homio> Copy-Item -Path $contract -Destination $backupFile -Force
-PS D:\Homio>
-PS D:\Homio> Write-Host "Backup: $backupFile"
-Backup: D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\_BACKUPS\search_index_contract_before_operation_normalize_20260927_205452.py
-PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 3. REMOVE INVENTORYINDEXOPERATION ALIAS COMPLETELY ===" -ForegroundColor Cyan
-
-=== 3. REMOVE INVENTORYINDEXOPERATION ALIAS COMPLETELY ===
-PS D:\Homio>
-PS D:\Homio> $lines = [System.Collections.Generic.List[string]](
->>     [System.IO.File]::ReadAllLines($contract)
->> )
-PS D:\Homio>
-PS D:\Homio> for ($i = $lines.Count - 1; $i -ge 0; $i--) {
->>
->>     if (
->>         $lines[$i] -match '^\s*InventoryIndexOperation\s*=\s*SearchIndexOperation\s*$'
->>     ) {
->>         $lines.RemoveAt($i)
->>         continue
->>     }
->>
->>     if (
->>         $lines[$i] -match '^\s*# Compatibility name used by the runtime Qdrant adapter\.\s*$'
->>     ) {
->>         $lines.RemoveAt($i)
->>         continue
->>     }
->>
->>     if (
->>         $lines[$i] -match '^\s*# Alias only; this does not create a second operation contract\.\s*$'
->>     ) {
->>         $lines.RemoveAt($i)
->>         continue
->>     }
->> }
-PS D:\Homio>
-PS D:\Homio> [System.IO.File]::WriteAllLines(
->>     $contract,
->>     $lines,
->>     [System.Text.UTF8Encoding]::new($false)
->> )
-PS D:\Homio>
-PS D:\Homio> Write-Host "InventoryIndexOperation alias removed."
-InventoryIndexOperation alias removed.
-PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 4. NORMALIZE ALL CORE-005 PYTHON REFERENCES ===" -ForegroundColor Cyan
-
-=== 4. NORMALIZE ALL CORE-005 PYTHON REFERENCES ===
-PS D:\Homio>
-PS D:\Homio> $coreFiles = Get-ChildItem `
->>     -Path $search `
->>     -Recurse `
->>     -File `
->>     -Filter "*.py"
-PS D:\Homio>
-PS D:\Homio> foreach ($file in $coreFiles) {
->>
->>     $content = Get-Content $file.FullName -Raw
->>
->>     if ($content -match "InventoryIndexOperation") {
->>
->>         $updated = $content -replace `
->>             "\bInventoryIndexOperation\b", `
->>             "SearchIndexOperation"
->>
->>         Set-Content `
->>             -Path $file.FullName `
->>             -Value $updated `
->>             -Encoding UTF8
->>
->>         Write-Host "Normalized: $($file.FullName)"
->>     }
->> }
-Normalized: D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\qdrant_indexing.py
-Normalized: D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\search_index_contract.py
-PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 5. VERIFY NO LEGACY OPERATION NAME REMAINS ===" -ForegroundColor Cyan
-
-=== 5. VERIFY NO LEGACY OPERATION NAME REMAINS ===
-PS D:\Homio>
-PS D:\Homio> $legacy = Select-String `
->>     -Path ($coreFiles.FullName) `
->>     -Pattern "InventoryIndexOperation" `
->>     -SimpleMatch `
->>     -ErrorAction SilentlyContinue
-PS D:\Homio>
-PS D:\Homio> if ($legacy) {
->>     $legacy | ForEach-Object {
->>         Write-Host "$($_.Path):$($_.LineNumber): $($_.Line)"
->>     }
->>
->>     throw "InventoryIndexOperation still exists in CORE-005 Python source."
->> }
-PS D:\Homio>
-PS D:\Homio> Write-Host "No InventoryIndexOperation references remain."
-No InventoryIndexOperation references remain.
-PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 6. VERIFY QDRANT USES CANONICAL OPERATION ===" -ForegroundColor Cyan
-
-=== 6. VERIFY QDRANT USES CANONICAL OPERATION ===
-PS D:\Homio>
-PS D:\Homio> $qdrant = Get-Content "$search\qdrant_indexing.py" -Raw
-PS D:\Homio>
-PS D:\Homio> if ($qdrant -notmatch "SearchIndexOperation") {
->>     throw "qdrant_indexing.py does not use SearchIndexOperation."
->> }
-PS D:\Homio>
-PS D:\Homio> if ($qdrant -match "inventory_indexing") {
->>     throw "qdrant_indexing.py still imports obsolete CORE-004 inventory_indexing."
->> }
-PS D:\Homio>
-PS D:\Homio> Write-Host "Qdrant operation boundary PASS."
-Qdrant operation boundary PASS.
-PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 7. DIRECT IMPORT TEST FROM CONTROL CENTER ROOT ===" -ForegroundColor Cyan
-
-=== 7. DIRECT IMPORT TEST FROM CONTROL CENTER ROOT ===
-PS D:\Homio>
-PS D:\Homio> Set-Location $cc
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> python -c "from AUTONOMY_ENGINE.core.search_matching.search_index_contract import SearchIndexOperation; assert {x.value for x in SearchIndexOperation} == {'UPSERT','DELETE'}; print('SEARCH INDEX OPERATION IMPORT PASS')"
-SEARCH INDEX OPERATION IMPORT PASS
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "SearchIndexOperation import failed."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== 8. COMPILE CORE-005 ===" -ForegroundColor Cyan
-
-=== 8. COMPILE CORE-005 ===
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Set-Location "D:\Homio"
-PS D:\Homio>
-PS D:\Homio> python -m compileall -q $search
-PS D:\Homio>
-PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw "CORE-005 compile failed."
->> }
-PS D:\Homio>
-PS D:\Homio> Write-Host "Compile PASS."
-Compile PASS.
-PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 9. COLLECTION ===" -ForegroundColor Cyan
-
-=== 9. COLLECTION ===
-PS D:\Homio>
-PS D:\Homio> python -m pytest $search --collect-only -q
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_lexical_matches_are_returned
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_vector_candidates_are_included
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_cross_tenant_results_are_blocked
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_lexical_and_vector_overlap_has_both_ranks
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_result_order_is_deterministic
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_limit_is_honored
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_empty_query_is_rejected
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_empty_tenant_is_rejected
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_lexical_only_candidate_is_allowed
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_vector_only_candidate_is_allowed
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_search_does_not_mutate_documents
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_rrf_score_uses_both_rank_contributions
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_valid_geo_point
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_invalid_geo_point_rejected[91.0-73.8567]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_invalid_geo_point_rejected[-91.0-73.8567]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_invalid_geo_point_rejected[18.5204-181.0]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_invalid_geo_point_rejected[18.5204--181.0]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_empty_tenant_rejected
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_invalid_radius_rejected[0]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_invalid_radius_rejected[-1]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_invalid_radius_rejected[inf]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_same_point_distance_is_zero
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_tenant_isolation
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_radius_excludes_far_document
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_radius_boundary_is_included
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_results_sorted_by_distance
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_search_does_not_mutate_documents
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_basic_matching_returns_recommendation
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_matching_is_tenant_safe
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_required_inventory_type_is_enforced
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_required_project_is_enforced
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_required_availability_is_enforced
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_excluded_keyword_is_hard_block
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_preferred_inventory_type_improves_score
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_preferred_project_improves_score
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_preferred_availability_is_explainable
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_preferred_inventory_code_is_supported
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_keyword_preference_is_supported
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_search_rank_remains_a_stable_signal
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_limit_is_enforced
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_recommendation_order_is_deterministic
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_match_is_explainable
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_empty_candidates_are_safe
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_profile_weights_are_validated
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_negative_weight_is_rejected
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_limit_must_be_positive
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_tenant_is_required
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_input_candidates_are_not_mutated
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_result_preserves_downstream_inventory_identity
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_deterministic_point_id_is_stable
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_different_inventory_keys_get_different_ids
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_collection_is_created
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_build_point_preserves_canonical_identity
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_upsert_writes_one_point
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_upsert_is_idempotent_for_same_inventory
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_batch_upsert
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_wrong_tenant_is_blocked
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_wrong_vector_size_is_blocked
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_non_finite_vector_is_blocked
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_stale_version_is_blocked
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_delete_removes_existing_point
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_batch_empty_input_is_safe
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_hybrid_retrieval_does_not_expose_cross_tenant_results
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_visibility_boundary_blocks_cross_tenant_result
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_visibility_boundary_blocks_non_visible_lifecycle
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_matching_fails_closed_for_cross_tenant_candidate
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_ranking_is_deterministic
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_reranking_preserves_relevance_signal
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_recommendation_result_is_deterministic
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_relevance_prefers_exact_preferred_inventory_code
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_performance_ranking_2000_candidates
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_performance_matching_2000_candidates
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_visibility_filter_scales_to_5000_results
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_tenant_filter_is_fail_closed_for_custom_policy
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_ranking_does_not_mutate_candidates
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_matching_does_not_mutate_candidates
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_visibility_does_not_mutate_candidates
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_indexing_projection_preserves_source_truth
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_tenant_scope_is_mandatory
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_tenant_isolation_is_always_enforced
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_project_filter
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_inventory_type_filter
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_availability_filter
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_lifecycle_filter
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_inventory_code_filter
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_name_contains_is_case_insensitive
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_multiple_filters_are_combined
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_empty_filter_returns_only_tenant_records
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_result_order_is_deterministic
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_filter_does_not_mutate_documents
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_rank_orders_by_score
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_lexical_signal_contributes_to_ranking
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_vector_signal_contributes_to_ranking
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_missing_rank_signals_are_safe
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_rank_is_deterministic
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_limit_is_honored
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_rerank_rewards_exact_inventory_code
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_rerank_rewards_exact_phrase
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_rerank_rewards_token_coverage
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_rerank_window_limits_second_stage
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_ranking_does_not_mutate_input
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_invalid_limit_is_rejected
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_invalid_query_is_rejected
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_negative_weight_is_rejected
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_rank_numbers_are_one_based
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_rebuild_indexes_canonical_inventory
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_rebuild_is_deterministic
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_tenant_scope_limits_rebuild
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_resume_skips_successfully_completed_items
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_failed_vector_generation_is_resumable
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_existing_stale_document_is_deleted
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_stale_cleanup_is_not_run_when_rebuild_fails
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_rebuild_does_not_mutate_inventory
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_vector_is_persisted_as_immutable_tuple
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_empty_vector_is_rejected
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_non_finite_vector_is_rejected
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_completed_checkpoint_normalizes_keys
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_report_exposes_resume_checkpoint
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_empty_source_is_safe
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_cross_tenant_stale_data_is_not_deleted
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_same_source_rebuild_is_idempotent
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_stale_cleanup_order_is_deterministic
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_run_id_is_preserved_during_resume
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_same_tenant_active_available_is_visible
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_cross_tenant_result_is_blocked
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_non_active_lifecycle_is_blocked[DRAFT]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_non_active_lifecycle_is_blocked[ONBOARDING]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_non_active_lifecycle_is_blocked[SUSPENDED]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_non_active_lifecycle_is_blocked[ARCHIVED]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_unavailable_inventory_is_blocked
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_non_blocked_availability_remains_visible[AVAILABLE]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_non_blocked_availability_remains_visible[RESERVED]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_non_blocked_availability_remains_visible[SOLD]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_apply_filters_without_reordering
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_empty_result_is_safe
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_result_input_is_not_mutated
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_tenant_id_is_trimmed
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_empty_tenant_is_rejected
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_non_string_tenant_is_rejected
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_custom_policy_can_allow_multiple_lifecycles
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_custom_policy_can_block_reserved
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_policy_normalizes_values
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_empty_visibility_policy_is_rejected
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_decision_exposes_all_boundary_dimensions
-
-144 tests collected in 1.69s
-PS D:\Homio>
-PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw "CORE-005 collection failed."
->> }
-PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 10. FULL CORE-005 TEST ===" -ForegroundColor Cyan
-
-=== 10. FULL CORE-005 TEST ===
-PS D:\Homio>
-PS D:\Homio> python -m pytest $search -q
-EEEEEEEEEEEE..........EEEEE.........................FFFFFFFFF.F..............F.EEEEEEEEEEE...............FFFFFFFFFFF.F.FFFF.....................     [100%]
-========================================================================= ERRORS ==========================================================================
-___________________________________________________ ERROR at setup of test_lexical_matches_are_returned ___________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-001",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-002",
-                name="Compact Office",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Premium Three Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-004",
-                inventory_code="UNIT-004",
-                name="Premium Two Bedroom",
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:50:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Premium Two Bedroom'
-
-    def make_document(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-        name: str,
-    ):
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=name,
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:36: AttributeError
-__________________________________________________ ERROR at setup of test_vector_candidates_are_included __________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-001",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-002",
-                name="Compact Office",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Premium Three Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-004",
-                inventory_code="UNIT-004",
-                name="Premium Two Bedroom",
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:50:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Premium Two Bedroom'
-
-    def make_document(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-        name: str,
-    ):
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=name,
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:36: AttributeError
-_________________________________________________ ERROR at setup of test_cross_tenant_results_are_blocked _________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-001",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-002",
-                name="Compact Office",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Premium Three Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-004",
-                inventory_code="UNIT-004",
-                name="Premium Two Bedroom",
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:50:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Premium Two Bedroom'
-
-    def make_document(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-        name: str,
-    ):
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=name,
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:36: AttributeError
-____________________________________________ ERROR at setup of test_lexical_and_vector_overlap_has_both_ranks _____________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-001",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-002",
-                name="Compact Office",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Premium Three Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-004",
-                inventory_code="UNIT-004",
-                name="Premium Two Bedroom",
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:50:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Premium Two Bedroom'
-
-    def make_document(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-        name: str,
-    ):
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=name,
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:36: AttributeError
-__________________________________________________ ERROR at setup of test_result_order_is_deterministic ___________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-001",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-002",
-                name="Compact Office",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Premium Three Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-004",
-                inventory_code="UNIT-004",
-                name="Premium Two Bedroom",
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:50:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Premium Two Bedroom'
-
-    def make_document(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-        name: str,
-    ):
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=name,
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:36: AttributeError
-_________________________________________________________ ERROR at setup of test_limit_is_honored _________________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-001",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-002",
-                name="Compact Office",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Premium Three Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-004",
-                inventory_code="UNIT-004",
-                name="Premium Two Bedroom",
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:50:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Premium Two Bedroom'
-
-    def make_document(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-        name: str,
-    ):
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=name,
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:36: AttributeError
-_____________________________________________________ ERROR at setup of test_empty_query_is_rejected ______________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-001",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-002",
-                name="Compact Office",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Premium Three Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-004",
-                inventory_code="UNIT-004",
-                name="Premium Two Bedroom",
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:50:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Premium Two Bedroom'
-
-    def make_document(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-        name: str,
-    ):
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=name,
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:36: AttributeError
-_____________________________________________________ ERROR at setup of test_empty_tenant_is_rejected _____________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-001",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-002",
-                name="Compact Office",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Premium Three Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-004",
-                inventory_code="UNIT-004",
-                name="Premium Two Bedroom",
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:50:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Premium Two Bedroom'
-
-    def make_document(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-        name: str,
-    ):
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=name,
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:36: AttributeError
-________________________________________________ ERROR at setup of test_lexical_only_candidate_is_allowed _________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-001",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-002",
-                name="Compact Office",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Premium Three Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-004",
-                inventory_code="UNIT-004",
-                name="Premium Two Bedroom",
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:50:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Premium Two Bedroom'
-
-    def make_document(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-        name: str,
-    ):
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=name,
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:36: AttributeError
-_________________________________________________ ERROR at setup of test_vector_only_candidate_is_allowed _________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-001",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-002",
-                name="Compact Office",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Premium Three Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-004",
-                inventory_code="UNIT-004",
-                name="Premium Two Bedroom",
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:50:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Premium Two Bedroom'
-
-    def make_document(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-        name: str,
-    ):
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=name,
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:36: AttributeError
-_________________________________________________ ERROR at setup of test_search_does_not_mutate_documents _________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-001",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-002",
-                name="Compact Office",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Premium Three Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-004",
-                inventory_code="UNIT-004",
-                name="Premium Two Bedroom",
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:50:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Premium Two Bedroom'
-
-    def make_document(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-        name: str,
-    ):
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=name,
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:36: AttributeError
-______________________________________________ ERROR at setup of test_rrf_score_uses_both_rank_contributions ______________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-001",
-                name="Premium Two Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-002",
-                name="Compact Office",
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Premium Three Bedroom",
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-004",
-                inventory_code="UNIT-004",
-                name="Premium Two Bedroom",
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:50:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Premium Two Bedroom'
-
-    def make_document(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-        name: str,
-    ):
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=name,
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py:36: AttributeError
-_________________________________________________________ ERROR at setup of test_tenant_isolation _________________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
-            LocationSearchDocument(
->               document=make_document(
-                    tenant_id="tenant-001",
-                    project_id="project-001",
-                    inventory_code="UNIT-001",
-                ),
-                point=GeoPoint(18.5204, 73.8567),
-            ),
-            LocationSearchDocument(
-                document=make_document(
-                    tenant_id="tenant-001",
-                    project_id="project-002",
-                    inventory_code="UNIT-002",
-                ),
-                point=GeoPoint(18.5310, 73.8470),
-            ),
-            LocationSearchDocument(
-                document=make_document(
-                    tenant_id="tenant-002",
-                    project_id="project-003",
-                    inventory_code="UNIT-003",
-                ),
-                point=GeoPoint(18.5204, 73.8567),
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_location_search.py:48:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001'
-
-    def make_document(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-    ):
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=f"Unit {inventory_code}",
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_location_search.py:33: AttributeError
-___________________________________________________ ERROR at setup of test_radius_excludes_far_document ___________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
-            LocationSearchDocument(
->               document=make_document(
-                    tenant_id="tenant-001",
-                    project_id="project-001",
-                    inventory_code="UNIT-001",
-                ),
-                point=GeoPoint(18.5204, 73.8567),
-            ),
-            LocationSearchDocument(
-                document=make_document(
-                    tenant_id="tenant-001",
-                    project_id="project-002",
-                    inventory_code="UNIT-002",
-                ),
-                point=GeoPoint(18.5310, 73.8470),
-            ),
-            LocationSearchDocument(
-                document=make_document(
-                    tenant_id="tenant-002",
-                    project_id="project-003",
-                    inventory_code="UNIT-003",
-                ),
-                point=GeoPoint(18.5204, 73.8567),
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_location_search.py:48:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001'
-
-    def make_document(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-    ):
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=f"Unit {inventory_code}",
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_location_search.py:33: AttributeError
-___________________________________________________ ERROR at setup of test_radius_boundary_is_included ____________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
-            LocationSearchDocument(
->               document=make_document(
-                    tenant_id="tenant-001",
-                    project_id="project-001",
-                    inventory_code="UNIT-001",
-                ),
-                point=GeoPoint(18.5204, 73.8567),
-            ),
-            LocationSearchDocument(
-                document=make_document(
-                    tenant_id="tenant-001",
-                    project_id="project-002",
-                    inventory_code="UNIT-002",
-                ),
-                point=GeoPoint(18.5310, 73.8470),
-            ),
-            LocationSearchDocument(
-                document=make_document(
-                    tenant_id="tenant-002",
-                    project_id="project-003",
-                    inventory_code="UNIT-003",
-                ),
-                point=GeoPoint(18.5204, 73.8567),
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_location_search.py:48:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001'
-
-    def make_document(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-    ):
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=f"Unit {inventory_code}",
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_location_search.py:33: AttributeError
-____________________________________________________ ERROR at setup of test_results_sorted_by_distance ____________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
-            LocationSearchDocument(
->               document=make_document(
-                    tenant_id="tenant-001",
-                    project_id="project-001",
-                    inventory_code="UNIT-001",
-                ),
-                point=GeoPoint(18.5204, 73.8567),
-            ),
-            LocationSearchDocument(
-                document=make_document(
-                    tenant_id="tenant-001",
-                    project_id="project-002",
-                    inventory_code="UNIT-002",
-                ),
-                point=GeoPoint(18.5310, 73.8470),
-            ),
-            LocationSearchDocument(
-                document=make_document(
-                    tenant_id="tenant-002",
-                    project_id="project-003",
-                    inventory_code="UNIT-003",
-                ),
-                point=GeoPoint(18.5204, 73.8567),
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_location_search.py:48:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001'
-
-    def make_document(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-    ):
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=f"Unit {inventory_code}",
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_location_search.py:33: AttributeError
-_________________________________________________ ERROR at setup of test_search_does_not_mutate_documents _________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
-            LocationSearchDocument(
->               document=make_document(
-                    tenant_id="tenant-001",
-                    project_id="project-001",
-                    inventory_code="UNIT-001",
-                ),
-                point=GeoPoint(18.5204, 73.8567),
-            ),
-            LocationSearchDocument(
-                document=make_document(
-                    tenant_id="tenant-001",
-                    project_id="project-002",
-                    inventory_code="UNIT-002",
-                ),
-                point=GeoPoint(18.5310, 73.8470),
-            ),
-            LocationSearchDocument(
-                document=make_document(
-                    tenant_id="tenant-002",
-                    project_id="project-003",
-                    inventory_code="UNIT-003",
-                ),
-                point=GeoPoint(18.5204, 73.8567),
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_location_search.py:48:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001'
-
-    def make_document(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-    ):
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=f"Unit {inventory_code}",
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_location_search.py:33: AttributeError
-_______________________________________________ ERROR at setup of test_tenant_isolation_is_always_enforced ________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-                inventory_type=InventoryType.UNIT,
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.PROPERTY,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-                inventory_type=InventoryType.UNIT,
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:75:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:36: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-__________________________________________________________ ERROR at setup of test_project_filter __________________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-                inventory_type=InventoryType.UNIT,
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.PROPERTY,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-                inventory_type=InventoryType.UNIT,
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:75:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:36: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-______________________________________________________ ERROR at setup of test_inventory_type_filter _______________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-                inventory_type=InventoryType.UNIT,
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.PROPERTY,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-                inventory_type=InventoryType.UNIT,
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:75:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:36: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-_______________________________________________________ ERROR at setup of test_availability_filter ________________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-                inventory_type=InventoryType.UNIT,
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.PROPERTY,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-                inventory_type=InventoryType.UNIT,
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:75:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:36: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-_________________________________________________________ ERROR at setup of test_lifecycle_filter _________________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-                inventory_type=InventoryType.UNIT,
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.PROPERTY,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-                inventory_type=InventoryType.UNIT,
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:75:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:36: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-______________________________________________________ ERROR at setup of test_inventory_code_filter _______________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-                inventory_type=InventoryType.UNIT,
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.PROPERTY,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-                inventory_type=InventoryType.UNIT,
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:75:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:36: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-________________________________________________ ERROR at setup of test_name_contains_is_case_insensitive _________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-                inventory_type=InventoryType.UNIT,
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.PROPERTY,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-                inventory_type=InventoryType.UNIT,
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:75:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:36: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-__________________________________________________ ERROR at setup of test_multiple_filters_are_combined ___________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-                inventory_type=InventoryType.UNIT,
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.PROPERTY,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-                inventory_type=InventoryType.UNIT,
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:75:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:36: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-_____________________________________________ ERROR at setup of test_empty_filter_returns_only_tenant_records _____________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-                inventory_type=InventoryType.UNIT,
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.PROPERTY,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-                inventory_type=InventoryType.UNIT,
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:75:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:36: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-__________________________________________________ ERROR at setup of test_result_order_is_deterministic ___________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-                inventory_type=InventoryType.UNIT,
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.PROPERTY,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-                inventory_type=InventoryType.UNIT,
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:75:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:36: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-_________________________________________________ ERROR at setup of test_filter_does_not_mutate_documents _________________________________________________
-
-    @pytest.fixture
-    def documents():
-        return (
->           make_document(
-                tenant_id="tenant-001",
-                project_id="project-001",
-                inventory_code="UNIT-002",
-                name="Premium Two Bedroom",
-                inventory_type=InventoryType.UNIT,
-            ),
-            make_document(
-                tenant_id="tenant-001",
-                project_id="project-002",
-                inventory_code="UNIT-001",
-                name="Compact Office",
-                inventory_type=InventoryType.PROPERTY,
-            ),
-            make_document(
-                tenant_id="tenant-002",
-                project_id="project-003",
-                inventory_code="UNIT-003",
-                name="Other Tenant Unit",
-                inventory_type=InventoryType.UNIT,
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:75:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:36: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-======================================================================== FAILURES =========================================================================
-______________________________________________________ test_build_point_preserves_canonical_identity ______________________________________________________
-
-pipeline = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000002078F727EC0>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
-
-    def test_build_point_preserves_canonical_identity(pipeline):
->       document = make_document()
-                   ^^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:101:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:29: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-______________________________________________________________ test_upsert_writes_one_point _______________________________________________________________
-
-pipeline = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x00000207F6E7C080>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
-
-    def test_upsert_writes_one_point(pipeline):
->       document = make_document()
-                   ^^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:119:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:29: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-______________________________________________________ test_upsert_is_idempotent_for_same_inventory _______________________________________________________
-
-pipeline = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000002078F75F6B0>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
-
-    def test_upsert_is_idempotent_for_same_inventory(pipeline):
->       document = make_document()
-                   ^^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:137:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:29: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-____________________________________________________________________ test_batch_upsert ____________________________________________________________________
-
-pipeline = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000002078F6C7A40>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
-
-    def test_batch_upsert(pipeline):
->       first = make_document()
-                ^^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:179:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:29: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-______________________________________________________________ test_wrong_tenant_is_blocked _______________________________________________________________
-
-pipeline = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000002078F85CE00>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
-
-    def test_wrong_tenant_is_blocked(pipeline):
-        with pytest.raises(QdrantTenantViolation):
-            pipeline.build_point(
->               make_document(),
-                ^^^^^^^^^^^^^^^
-                [0.1, 0.2, 0.3, 0.4],
-                tenant_id="tenant-999",
-            )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:215:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:29: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-____________________________________________________________ test_wrong_vector_size_is_blocked ____________________________________________________________
-
-pipeline = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000002078F85CEF0>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
-
-    def test_wrong_vector_size_is_blocked(pipeline):
-        with pytest.raises(QdrantVectorError):
-            pipeline.build_point(
->               make_document(),
-                ^^^^^^^^^^^^^^^
-                [0.1, 0.2, 0.3],
-                tenant_id="tenant-001",
-            )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:224:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:29: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-____________________________________________________________ test_non_finite_vector_is_blocked ____________________________________________________________
-
-pipeline = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000002078F85EDB0>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
-
-    def test_non_finite_vector_is_blocked(pipeline):
-        with pytest.raises(QdrantVectorError):
-            pipeline.build_point(
->               make_document(),
-                ^^^^^^^^^^^^^^^
-                [0.1, float("nan"), 0.3, 0.4],
-                tenant_id="tenant-001",
-            )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:233:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:29: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-______________________________________________________________ test_stale_version_is_blocked ______________________________________________________________
-
-pipeline = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000002078F85F200>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
-
-    def test_stale_version_is_blocked(pipeline):
-        with pytest.raises(QdrantVersionViolation):
-            pipeline.build_point(
->               make_document(),
-                ^^^^^^^^^^^^^^^
-                [0.1, 0.2, 0.3, 0.4],
-                tenant_id="tenant-001",
-                expected_version=2,
-            )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:242:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:29: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-___________________________________________________________ test_delete_removes_existing_point ____________________________________________________________
-
-pipeline = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000002078F724FE0>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
-
-    def test_delete_removes_existing_point(pipeline):
->       upsert_document = make_document()
-                          ^^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:250:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:29: in make_document
-    inventory = Inventory.create(
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:673: in create
-    else _validate_aware_datetime(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '2026-08-30T10:00:00+00:00', field_name = 'at'
-
-    def _validate_aware_datetime(
-        value: datetime,
-        field_name: str,
-    ) -> datetime:
-        if not isinstance(
-            value,
-            datetime,
-        ):
->           raise InventoryDomainError(
-                f"{field_name} must be datetime."
-            )
-E           AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py:141: InventoryDomainError
-_______________________________________________ test_hybrid_retrieval_does_not_expose_cross_tenant_results ________________________________________________
-
-    def test_hybrid_retrieval_does_not_expose_cross_tenant_results():
-        client = QdrantClient(":memory:")
-        config = QdrantIndexingConfig(
-            collection_name="t09_hybrid_security",
-            vector_size=4,
-        )
-        indexer = QdrantIndexingPipeline(
-            client=client,
-            config=config,
-        )
-        indexer.ensure_collection()
-
-        hook = InventoryIndexingHook()
-
->       tenant_1 = make_inventory(
-            tenant_id="tenant-001",
-            project_id="project-001",
-            inventory_code="UNIT-001",
-            name="Tenant One Premium",
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_core_t09.py:144:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Tenant One Premium', lifecycle = 'ACTIVE'
-availability = 'AVAILABLE'
-
-    def make_inventory(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-        name: str,
-        lifecycle: str = "ACTIVE",
-        availability: str = "AVAILABLE",
-    ) -> Inventory:
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_core_t09.py:47: AttributeError
-_____________________________________________________ test_indexing_projection_preserves_source_truth _____________________________________________________
-
-    def test_indexing_projection_preserves_source_truth():
->       inventory = make_inventory(
-            tenant_id="tenant-001",
-            project_id="project-001",
-            inventory_code="UNIT-001",
-            name="Premium Two Bedroom",
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_core_t09.py:589:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Premium Two Bedroom', lifecycle = 'ACTIVE'
-availability = 'AVAILABLE'
-
-    def make_inventory(
-        *,
-        tenant_id: str,
-        project_id: str,
-        inventory_code: str,
-        name: str,
-        lifecycle: str = "ACTIVE",
-        availability: str = "AVAILABLE",
-    ) -> Inventory:
-        inventory = Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
->           inventory_type=InventoryType.RESIDENTIAL_UNIT,
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_core_t09.py:47: AttributeError
-________________________________________________________ test_rebuild_indexes_canonical_inventory _________________________________________________________
-
-pipeline = <AUTONOMY_ENGINE.core.search_matching.search_rebuild.SearchRebuildPipeline object at 0x000002078FCD23F0>
-
-    def test_rebuild_indexes_canonical_inventory(pipeline):
->       inventory = make_inventory()
-                    ^^^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:48:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Unit 001'
-
-    def make_inventory(
-        *,
-        tenant_id: str = "tenant-001",
-        project_id: str = "project-001",
-        inventory_code: str = "UNIT-001",
-        name: str = "Unit 001",
-    ) -> Inventory:
->       return Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
-            inventory_type=InventoryType.UNIT,
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:25: TypeError
-______________________________________________________________ test_rebuild_is_deterministic ______________________________________________________________
-
-pipeline = <AUTONOMY_ENGINE.core.search_matching.search_rebuild.SearchRebuildPipeline object at 0x000002078FB30AA0>
-
-    def test_rebuild_is_deterministic(pipeline):
-        inventories = (
->           make_inventory(inventory_code="UNIT-002"),
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            make_inventory(inventory_code="UNIT-001"),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:63:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-002', name = 'Unit 001'
-
-    def make_inventory(
-        *,
-        tenant_id: str = "tenant-001",
-        project_id: str = "project-001",
-        inventory_code: str = "UNIT-001",
-        name: str = "Unit 001",
-    ) -> Inventory:
->       return Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
-            inventory_type=InventoryType.UNIT,
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:25: TypeError
-____________________________________________________________ test_tenant_scope_limits_rebuild _____________________________________________________________
-
-pipeline = <AUTONOMY_ENGINE.core.search_matching.search_rebuild.SearchRebuildPipeline object at 0x000002078FB307A0>
-
-    def test_tenant_scope_limits_rebuild(pipeline):
-        inventories = (
->           make_inventory(
-                tenant_id="tenant-001",
-                inventory_code="UNIT-001",
-            ),
-            make_inventory(
-                tenant_id="tenant-002",
-                inventory_code="UNIT-002",
-            ),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:79:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Unit 001'
-
-    def make_inventory(
-        *,
-        tenant_id: str = "tenant-001",
-        project_id: str = "project-001",
-        inventory_code: str = "UNIT-001",
-        name: str = "Unit 001",
-    ) -> Inventory:
->       return Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
-            inventory_type=InventoryType.UNIT,
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:25: TypeError
-_____________________________________________________ test_resume_skips_successfully_completed_items ______________________________________________________
-
-pipeline = <AUTONOMY_ENGINE.core.search_matching.search_rebuild.SearchRebuildPipeline object at 0x000002078FB31B50>
-
-    def test_resume_skips_successfully_completed_items(pipeline):
-        inventories = (
->           make_inventory(inventory_code="UNIT-001"),
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            make_inventory(inventory_code="UNIT-002"),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:101:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Unit 001'
-
-    def make_inventory(
-        *,
-        tenant_id: str = "tenant-001",
-        project_id: str = "project-001",
-        inventory_code: str = "UNIT-001",
-        name: str = "Unit 001",
-    ) -> Inventory:
->       return Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
-            inventory_type=InventoryType.UNIT,
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:25: TypeError
-_______________________________________________________ test_failed_vector_generation_is_resumable ________________________________________________________
-
-    def test_failed_vector_generation_is_resumable():
-        sink = InMemorySearchRebuildSink()
-        pipeline = SearchRebuildPipeline(sink=sink)
-
-        inventories = (
->           make_inventory(inventory_code="UNIT-001"),
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            make_inventory(inventory_code="UNIT-002"),
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:127:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Unit 001'
-
-    def make_inventory(
-        *,
-        tenant_id: str = "tenant-001",
-        project_id: str = "project-001",
-        inventory_code: str = "UNIT-001",
-        name: str = "Unit 001",
-    ) -> Inventory:
->       return Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
-            inventory_type=InventoryType.UNIT,
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:25: TypeError
-_________________________________________________________ test_existing_stale_document_is_deleted _________________________________________________________
-
-pipeline = <AUTONOMY_ENGINE.core.search_matching.search_rebuild.SearchRebuildPipeline object at 0x00000207FFEE62D0>
-
-    def test_existing_stale_document_is_deleted(pipeline):
-        sink = pipeline.sink
-
->       stale_inventory = make_inventory(
-            inventory_code="UNIT-999",
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:165:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-999', name = 'Unit 001'
-
-    def make_inventory(
-        *,
-        tenant_id: str = "tenant-001",
-        project_id: str = "project-001",
-        inventory_code: str = "UNIT-001",
-        name: str = "Unit 001",
-    ) -> Inventory:
->       return Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
-            inventory_type=InventoryType.UNIT,
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:25: TypeError
-____________________________________________________ test_stale_cleanup_is_not_run_when_rebuild_fails _____________________________________________________
-
-    def test_stale_cleanup_is_not_run_when_rebuild_fails():
-        sink = InMemorySearchRebuildSink()
-        pipeline = SearchRebuildPipeline(sink=sink)
-
->       stale_inventory = make_inventory(
-            inventory_code="UNIT-999",
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:199:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-999', name = 'Unit 001'
-
-    def make_inventory(
-        *,
-        tenant_id: str = "tenant-001",
-        project_id: str = "project-001",
-        inventory_code: str = "UNIT-001",
-        name: str = "Unit 001",
-    ) -> Inventory:
->       return Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
-            inventory_type=InventoryType.UNIT,
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:25: TypeError
-_________________________________________________________ test_rebuild_does_not_mutate_inventory __________________________________________________________
-
-pipeline = <AUTONOMY_ENGINE.core.search_matching.search_rebuild.SearchRebuildPipeline object at 0x00000207FFEE6990>
-
-    def test_rebuild_does_not_mutate_inventory(pipeline):
->       inventory = make_inventory()
-                    ^^^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:229:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Unit 001'
-
-    def make_inventory(
-        *,
-        tenant_id: str = "tenant-001",
-        project_id: str = "project-001",
-        inventory_code: str = "UNIT-001",
-        name: str = "Unit 001",
-    ) -> Inventory:
->       return Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
-            inventory_type=InventoryType.UNIT,
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:25: TypeError
-_______________________________________________________ test_vector_is_persisted_as_immutable_tuple _______________________________________________________
-
-pipeline = <AUTONOMY_ENGINE.core.search_matching.search_rebuild.SearchRebuildPipeline object at 0x000002078FB31790>
-
-    def test_vector_is_persisted_as_immutable_tuple(pipeline):
-        sink = pipeline.sink
->       inventory = make_inventory()
-                    ^^^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:242:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Unit 001'
-
-    def make_inventory(
-        *,
-        tenant_id: str = "tenant-001",
-        project_id: str = "project-001",
-        inventory_code: str = "UNIT-001",
-        name: str = "Unit 001",
-    ) -> Inventory:
->       return Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
-            inventory_type=InventoryType.UNIT,
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:25: TypeError
-______________________________________________________________ test_empty_vector_is_rejected ______________________________________________________________
-
-pipeline = <AUTONOMY_ENGINE.core.search_matching.search_rebuild.SearchRebuildPipeline object at 0x000002078FB32750>
-
-    def test_empty_vector_is_rejected(pipeline):
-        with pytest.raises(SearchRebuildError):
-            pipeline.rebuild(
->               (make_inventory(),),
-                 ^^^^^^^^^^^^^^^^
-                vector_provider=lambda document: [],
-            )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:257:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Unit 001'
-
-    def make_inventory(
-        *,
-        tenant_id: str = "tenant-001",
-        project_id: str = "project-001",
-        inventory_code: str = "UNIT-001",
-        name: str = "Unit 001",
-    ) -> Inventory:
->       return Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
-            inventory_type=InventoryType.UNIT,
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:25: TypeError
-___________________________________________________________ test_non_finite_vector_is_rejected ____________________________________________________________
-
-pipeline = <AUTONOMY_ENGINE.core.search_matching.search_rebuild.SearchRebuildPipeline object at 0x000002078FCD0B60>
-
-    def test_non_finite_vector_is_rejected(pipeline):
-        with pytest.raises(SearchRebuildError):
-            pipeline.rebuild(
->               (make_inventory(),),
-                 ^^^^^^^^^^^^^^^^
-                vector_provider=lambda document: [1.0, float("nan")],
-            )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:265:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Unit 001'
-
-    def make_inventory(
-        *,
-        tenant_id: str = "tenant-001",
-        project_id: str = "project-001",
-        inventory_code: str = "UNIT-001",
-        name: str = "Unit 001",
-    ) -> Inventory:
->       return Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
-            inventory_type=InventoryType.UNIT,
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:25: TypeError
-__________________________________________________________ test_report_exposes_resume_checkpoint __________________________________________________________
-
-pipeline = <AUTONOMY_ENGINE.core.search_matching.search_rebuild.SearchRebuildPipeline object at 0x000002078FCD2600>
-
-    def test_report_exposes_resume_checkpoint(pipeline):
-        report = pipeline.rebuild(
->           (make_inventory(),),
-             ^^^^^^^^^^^^^^^^
-            vector_provider=vector_provider,
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:287:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Unit 001'
-
-    def make_inventory(
-        *,
-        tenant_id: str = "tenant-001",
-        project_id: str = "project-001",
-        inventory_code: str = "UNIT-001",
-        name: str = "Unit 001",
-    ) -> Inventory:
->       return Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
-            inventory_type=InventoryType.UNIT,
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:25: TypeError
-_______________________________________________________ test_cross_tenant_stale_data_is_not_deleted _______________________________________________________
-
-    def test_cross_tenant_stale_data_is_not_deleted():
-        sink = InMemorySearchRebuildSink()
-        pipeline = SearchRebuildPipeline(sink=sink)
-
->       other_tenant = make_inventory(
-            tenant_id="tenant-002",
-            inventory_code="UNIT-999",
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:314:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-002', project_id = 'project-001', inventory_code = 'UNIT-999', name = 'Unit 001'
-
-    def make_inventory(
-        *,
-        tenant_id: str = "tenant-001",
-        project_id: str = "project-001",
-        inventory_code: str = "UNIT-001",
-        name: str = "Unit 001",
-    ) -> Inventory:
->       return Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
-            inventory_type=InventoryType.UNIT,
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:25: TypeError
-_________________________________________________________ test_same_source_rebuild_is_idempotent __________________________________________________________
-
-pipeline = <AUTONOMY_ENGINE.core.search_matching.search_rebuild.SearchRebuildPipeline object at 0x000002078F75D310>
-
-    def test_same_source_rebuild_is_idempotent(pipeline):
->       inventory = make_inventory()
-                    ^^^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:342:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Unit 001'
-
-    def make_inventory(
-        *,
-        tenant_id: str = "tenant-001",
-        project_id: str = "project-001",
-        inventory_code: str = "UNIT-001",
-        name: str = "Unit 001",
-    ) -> Inventory:
->       return Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
-            inventory_type=InventoryType.UNIT,
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:25: TypeError
-________________________________________________________ test_stale_cleanup_order_is_deterministic ________________________________________________________
-
-pipeline = <AUTONOMY_ENGINE.core.search_matching.search_rebuild.SearchRebuildPipeline object at 0x00000207F6E43B90>
-
-    def test_stale_cleanup_order_is_deterministic(pipeline):
->       stale_a = make_inventory(inventory_code="UNIT-002")
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:361:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-002', name = 'Unit 001'
-
-    def make_inventory(
-        *,
-        tenant_id: str = "tenant-001",
-        project_id: str = "project-001",
-        inventory_code: str = "UNIT-001",
-        name: str = "Unit 001",
-    ) -> Inventory:
->       return Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
-            inventory_type=InventoryType.UNIT,
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:25: TypeError
-_________________________________________________________ test_run_id_is_preserved_during_resume __________________________________________________________
-
-    def test_run_id_is_preserved_during_resume():
-        sink = InMemorySearchRebuildSink()
-        pipeline = SearchRebuildPipeline(sink=sink)
-
-        checkpoint = SearchRebuildCheckpoint(run_id="stable-run")
-
-        report = pipeline.rebuild(
->           (make_inventory(),),
-             ^^^^^^^^^^^^^^^^
-            vector_provider=vector_provider,
-            checkpoint=checkpoint,
-        )
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:407:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-tenant_id = 'tenant-001', project_id = 'project-001', inventory_code = 'UNIT-001', name = 'Unit 001'
-
-    def make_inventory(
-        *,
-        tenant_id: str = "tenant-001",
-        project_id: str = "project-001",
-        inventory_code: str = "UNIT-001",
-        name: str = "Unit 001",
-    ) -> Inventory:
->       return Inventory.create(
-            tenant_id=tenant_id,
-            project_id=project_id,
-            inventory_code=inventory_code,
-            inventory_type=InventoryType.UNIT,
-            name=name,
-            metadata={},
-            at="2026-08-30T10:00:00+00:00",
-        )
-E       TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_rebuild.py:25: TypeError
-================================================================= short test summary info =================================================================
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_build_point_preserves_canonical_identity - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_upsert_writes_one_point - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_upsert_is_idempotent_for_same_inventory - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_batch_upsert - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_wrong_tenant_is_blocked - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_wrong_vector_size_is_blocked - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_non_finite_vector_is_blocked - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_stale_version_is_blocked - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_delete_removes_existing_point - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_hybrid_retrieval_does_not_expose_cross_tenant_results - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py::test_indexing_projection_preserves_source_truth - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_rebuild_indexes_canonical_inventory - TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_rebuild_is_deterministic - TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_tenant_scope_limits_rebuild - TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_resume_skips_successfully_completed_items - TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_failed_vector_generation_is_resumable - TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_existing_stale_document_is_deleted - TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_stale_cleanup_is_not_run_when_rebuild_fails - TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_rebuild_does_not_mutate_inventory - TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_vector_is_persisted_as_immutable_tuple - TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_empty_vector_is_rejected - TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_non_finite_vector_is_rejected - TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_report_exposes_resume_checkpoint - TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_cross_tenant_stale_data_is_not_deleted - TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_same_source_rebuild_is_idempotent - TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_stale_cleanup_order_is_deterministic - TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py::test_run_id_is_preserved_during_resume - TypeError: Inventory.create() got an unexpected keyword argument 'inventory_code'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_lexical_matches_are_returned - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_vector_candidates_are_included - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_cross_tenant_results_are_blocked - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_lexical_and_vector_overlap_has_both_ranks - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_result_order_is_deterministic - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_limit_is_honored - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_empty_query_is_rejected - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_empty_tenant_is_rejected - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_lexical_only_candidate_is_allowed - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_vector_only_candidate_is_allowed - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_search_does_not_mutate_documents - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py::test_rrf_score_uses_both_rank_contributions - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_tenant_isolation - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_radius_excludes_far_document - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_radius_boundary_is_included - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_results_sorted_by_distance - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_search_does_not_mutate_documents - AttributeError: type object 'InventoryType' has no attribute 'RESIDENTIAL_UNIT'
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_tenant_isolation_is_always_enforced - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_project_filter - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_inventory_type_filter - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_availability_filter - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_lifecycle_filter - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_inventory_code_filter - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_name_contains_is_case_insensitive - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_multiple_filters_are_combined - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_empty_filter_returns_only_tenant_records - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_result_order_is_deterministic - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_filter_does_not_mutate_documents - AUTONOMY_ENGINE.core.inventory.inventory.InventoryDomainError: at must be datetime.
-27 failed, 89 passed, 28 errors in 3.59s
-PS D:\Homio>
-PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw "CORE-005 full test failed."
->> }
-CORE-005 full test failed.
-At line:2 char:5
-+     throw "CORE-005 full test failed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (CORE-005 full test failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : CORE-005 full test failed.
-
-PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 11. DIFF CHECK ===" -ForegroundColor Cyan
-
-=== 11. DIFF CHECK ===
-PS D:\Homio>
-PS D:\Homio> git diff --check
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_index_contract.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py', LF will be replaced by CRLF the next time Git touches it
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py:306: new blank line at EOF.
-PS D:\Homio>
-PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw "git diff --check failed."
+Saved working directory and index state On reos-development: pre-core-005-clean-rebuild
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # Sync working branch exactly to remote
+PS D:\HOMIO\REOS_CONTROL_CENTER> git checkout reos-development
+Already on 'reos-development'
+Your branch is behind 'origin/reos-development' by 7 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+PS D:\HOMIO\REOS_CONTROL_CENTER> git reset --hard origin/reos-development
+HEAD is now at 9e18ec9 Update PS Output
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 2. Remove OLD CORE-005 tree completely
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> $core5Path = "AUTONOMY_ENGINE\core\search_matching"
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (Test-Path $core5Path) {
+>>     git rm -r --ignore-unmatch $core5Path
 >> }
-git diff --check failed.
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/__init__.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/hybrid_retrieval.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/location_search.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/matching.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_ranking.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_rebuild.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_visibility.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py'
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> New-Item -ItemType Directory -Force $core5Path | Out-Null
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 3. Fresh CORE-005 canonical foundation
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> @'
+>> """CORE-005 Search & Matching Core."""
+>>
+>> from .search_index_contract import (
+>>     InventoryIndexDocument,
+>>     InventoryIndexingError,
+>>     InventoryIndexingHook,
+>>     InventoryIndexStaleVersionError,
+>>     SearchIndexContractError,
+>>     SearchIndexDocumentError,
+>>     SearchIndexOperation,
+>>     SearchIndexScopeError,
+>>     SearchIndexVersionError,
+>>     build_inventory_index,
+>>     build_inventory_index_delete,
+>> )
+>>
+>> __all__ = [
+>>     "InventoryIndexDocument",
+>>     "InventoryIndexingError",
+>>     "InventoryIndexingHook",
+>>     "InventoryIndexStaleVersionError",
+>>     "SearchIndexContractError",
+>>     "SearchIndexDocumentError",
+>>     "SearchIndexOperation",
+>>     "SearchIndexScopeError",
+>>     "SearchIndexVersionError",
+>>     "build_inventory_index",
+>>     "build_inventory_index_delete",
+>> ]
+>> '@ | Set-Content "$core5Path\__init__.py" -Encoding UTF8
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> @'
+>> """
+>> CORE-005 — Canonical Search Index Contract.
+>>
+>> Search is a derived projection of canonical CORE-004 Inventory.
+>>
+>> This module owns ONLY the search-index projection contract.
+>>
+>> It does NOT own:
+>> - canonical inventory truth
+>> - inventory lifecycle transitions
+>> - inventory availability transitions
+>> - business ownership
+>> - deal state
+>> - commission
+>> - fraud
+>> - governance
+>> - event transport
+>> - Qdrant client behavior
+>> - ranking policy
+>> - matching policy
+>> - Control Center state
+>>
+>> Canonical source:
+>>     AUTONOMY_ENGINE.core.inventory.inventory.Inventory
+>> """
+>>
+>> from __future__ import annotations
+>>
+>> from dataclasses import dataclass, field
+>> from enum import Enum
+>> from types import MappingProxyType
+>> from typing import Any, Callable, Mapping
+>>
+>> from ..inventory.inventory import Inventory
+>>
+>>
+>> class SearchIndexContractError(ValueError):
+>>     """Base CORE-005 search-index contract error."""
+>>
+>>
+>> class SearchIndexScopeError(SearchIndexContractError):
+>>     """Raised when tenant/project/index scope is invalid."""
+>>
+>>
+>> class SearchIndexVersionError(SearchIndexContractError):
+>>     """Raised when an index document version is invalid or stale."""
+>>
+>>
+>> class SearchIndexDocumentError(SearchIndexContractError):
+>>     """Raised when an index document is malformed."""
+>>
+>>
+>> class SearchIndexOperation(str, Enum):
+>>     UPSERT = "UPSERT"
+>>     DELETE = "DELETE"
+>>
+>>
+>> def _require_text(value: str, field_name: str) -> str:
+>>     if not isinstance(value, str):
+>>         raise SearchIndexDocumentError(
+>>             f"{field_name} must be a string."
+>>         )
+>>
+>>     normalized = value.strip()
+>>
+>>     if not normalized:
+>>         raise SearchIndexDocumentError(
+>>             f"{field_name} cannot be empty."
+>>         )
+>>
+>>     return normalized
+>>
+>>
+>> def _require_version(value: int) -> int:
+>>     if (
+>>         isinstance(value, bool)
+>>         or not isinstance(value, int)
+>>         or value < 1
+>>     ):
+>>         raise SearchIndexVersionError(
+>>             "inventory_version must be a positive integer."
+>>         )
+>>
+>>     return value
+>>
+>>
+>> def _freeze_payload(
+>>     payload: Mapping[str, Any] | None,
+>> ) -> MappingProxyType:
+>>     if payload is None:
+>>         return MappingProxyType({})
+>>
+>>     if not isinstance(payload, Mapping):
+>>         raise SearchIndexDocumentError(
+>>             "payload must be a mapping."
+>>         )
+>>
+>>     normalized: dict[str, Any] = {}
+>>
+>>     for key, value in payload.items():
+>>         if not isinstance(key, str):
+>>             raise SearchIndexDocumentError(
+>>                 "payload keys must be strings."
+>>             )
+>>
+>>         normalized[key] = value
+>>
+>>     return MappingProxyType(normalized)
+>>
+>>
+>> @dataclass(frozen=True, slots=True)
+>> class InventoryIndexDocument:
+>>     """
+>>     Immutable derived search projection of canonical Inventory.
+>>
+>>     One document represents one search-visible projection state.
+>>     The document can never become the business source of truth.
+>>     """
+>>
+>>     tenant_id: str
+>>     project_id: str
+>>     inventory_id: str
+>>     inventory_code: str
+>>     inventory_type: str
+>>     lifecycle: str
+>>     availability: str
+>>     name: str
+>>     inventory_version: int
+>>     index_key: str
+>>     operation: SearchIndexOperation = SearchIndexOperation.UPSERT
+>>     payload: Mapping[str, Any] = field(default_factory=dict)
+>>
+>>     def __post_init__(self) -> None:
+>>         object.__setattr__(
+>>             self,
+>>             "tenant_id",
+>>             _require_text(self.tenant_id, "tenant_id"),
+>>         )
+>>         object.__setattr__(
+>>             self,
+>>             "project_id",
+>>             _require_text(self.project_id, "project_id"),
+>>         )
+>>         object.__setattr__(
+>>             self,
+>>             "inventory_id",
+>>             _require_text(self.inventory_id, "inventory_id"),
+>>         )
+>>         object.__setattr__(
+>>             self,
+>>             "inventory_code",
+>>             _require_text(self.inventory_code, "inventory_code"),
+>>         )
+>>         object.__setattr__(
+>>             self,
+>>             "inventory_type",
+>>             _require_text(self.inventory_type, "inventory_type"),
+>>         )
+>>         object.__setattr__(
+>>             self,
+>>             "lifecycle",
+>>             _require_text(self.lifecycle, "lifecycle"),
+>>         )
+>>         object.__setattr__(
+>>             self,
+>>             "availability",
+>>             _require_text(self.availability, "availability"),
+>>         )
+>>         object.__setattr__(
+>>             self,
+>>             "name",
+>>             _require_text(self.name, "name"),
+>>         )
+>>         object.__setattr__(
+>>             self,
+>>             "inventory_version",
+>>             _require_version(self.inventory_version),
+>>         )
+>>         object.__setattr__(
+>>             self,
+>>             "index_key",
+>>             _require_text(self.index_key, "index_key"),
+>>         )
+>>
+>>         try:
+>>             operation = SearchIndexOperation(self.operation)
+>>         except (TypeError, ValueError) as exc:
+>>             raise SearchIndexDocumentError(
+>>                 "operation must be UPSERT or DELETE."
+>>             ) from exc
+>>
+>>         object.__setattr__(self, "operation", operation)
+>>         object.__setattr__(
+>>             self,
+>>             "payload",
+>>             _freeze_payload(self.payload),
+>>         )
+>>
+>>         if self.operation is SearchIndexOperation.UPSERT:
+>>             if not self.name:
+>>                 raise SearchIndexDocumentError(
+>>                     "UPSERT document requires name."
+>>                 )
+>>
+>>     @property
+>>     def is_upsert(self) -> bool:
+>>         return self.operation is SearchIndexOperation.UPSERT
+>>
+>>     @property
+>>     def is_delete(self) -> bool:
+>>         return self.operation is SearchIndexOperation.DELETE
+>>
+>>     def assert_tenant(self, tenant_id: str) -> None:
+>>         tenant_id = _require_text(
+>>             tenant_id,
+>>             "tenant_id",
+>>         )
+>>
+>>         if tenant_id != self.tenant_id:
+>>             raise SearchIndexScopeError(
+>>                 "Search document belongs to another tenant."
+>>             )
+>>
+>>     def assert_version(
+>>         self,
+>>         expected_version: int,
+>>     ) -> None:
+>>         expected_version = _require_version(
+>>             expected_version
+>>         )
+>>
+>>         if expected_version != self.inventory_version:
+>>             raise SearchIndexVersionError(
+>>                 "Search document targets a stale inventory version."
+>>             )
+>>
+>>     def to_dict(self) -> dict[str, Any]:
+>>         return {
+>>             "tenant_id": self.tenant_id,
+>>             "project_id": self.project_id,
+>>             "inventory_id": self.inventory_id,
+>>             "inventory_code": self.inventory_code,
+>>             "inventory_type": self.inventory_type,
+>>             "lifecycle": self.lifecycle,
+>>             "availability": self.availability,
+>>             "name": self.name,
+>>             "inventory_version": self.inventory_version,
+>>             "index_key": self.index_key,
+>>             "operation": self.operation.value,
+>>             "payload": dict(self.payload),
+>>         }
+>>
+>>
+>> def _inventory_code(inventory: Inventory) -> str:
+>>     """
+>>     Derive a stable search-facing inventory code.
+>>
+>>     CORE-004 has no separate inventory_code field.
+>>     """
+>>     return (
+>>         inventory.unit_id
+>>         or inventory.property_id
+>>         or inventory.inventory_id
+>>     )
+>>
+>>
+>> def _base_payload(inventory: Inventory) -> dict[str, Any]:
+>>     return {
+>>         "developer_id": inventory.developer_id,
+>>         "project_id": inventory.project_id,
+>>         "property_id": inventory.property_id,
+>>         "unit_id": inventory.unit_id,
+>>         "identity_fingerprint": inventory.identity_fingerprint,
+>>         "metadata": dict(inventory.metadata),
+>>     }
+>>
+>>
+>> def build_inventory_index(
+>>     inventory: Inventory,
+>> ) -> InventoryIndexDocument:
+>>     """
+>>     Build the canonical UPSERT projection from CORE-004 Inventory.
+>>
+>>     No mutation is performed.
+>>     """
+>>     if not isinstance(inventory, Inventory):
+>>         raise SearchIndexDocumentError(
+>>             "inventory must be a CORE-004 Inventory."
+>>         )
+>>
+>>     return InventoryIndexDocument(
+>>         tenant_id=inventory.tenant_id,
+>>         project_id=inventory.project_id,
+>>         inventory_id=inventory.inventory_id,
+>>         inventory_code=_inventory_code(inventory),
+>>         inventory_type=inventory.inventory_type.value,
+>>         lifecycle=inventory.lifecycle.value,
+>>         availability=inventory.availability.value,
+>>         name=inventory.name,
+>>         inventory_version=inventory.version,
+>>         index_key=inventory.identity_key,
+>>         operation=SearchIndexOperation.UPSERT,
+>>         payload=_base_payload(inventory),
+>>     )
+>>
+>>
+>> def build_inventory_index_delete(
+>>     inventory: Inventory,
+>> ) -> InventoryIndexDocument:
+>>     """
+>>     Build the canonical DELETE projection for one Inventory identity.
+>>     """
+>>     if not isinstance(inventory, Inventory):
+>>         raise SearchIndexDocumentError(
+>>             "inventory must be a CORE-004 Inventory."
+>>         )
+>>
+>>     return InventoryIndexDocument(
+>>         tenant_id=inventory.tenant_id,
+>>         project_id=inventory.project_id,
+>>         inventory_id=inventory.inventory_id,
+>>         inventory_code=_inventory_code(inventory),
+>>         inventory_type=inventory.inventory_type.value,
+>>         lifecycle=inventory.lifecycle.value,
+>>         availability=inventory.availability.value,
+>>         name=inventory.name,
+>>         inventory_version=inventory.version,
+>>         index_key=inventory.identity_key,
+>>         operation=SearchIndexOperation.DELETE,
+>>         payload=_base_payload(inventory),
+>>     )
+>>
+>>
+>> @dataclass(frozen=True, slots=True)
+>> class InventoryIndexingHook:
+>>     """
+>>     Thin projection hook.
+>>
+>>     This is NOT an indexing engine.
+>>     It produces canonical derived documents only.
+>>     Runtime adapters consume those documents later.
+>>     """
+>>
+>>     on_upsert: Callable[
+>>         [InventoryIndexDocument],
+>>         None,
+>>     ] | None = None
+>>
+>>     on_delete: Callable[
+>>         [InventoryIndexDocument],
+>>         None,
+>>     ] | None = None
+>>
+>>     def upsert(
+>>         self,
+>>         inventory: Inventory,
+>>     ) -> InventoryIndexDocument:
+>>         document = build_inventory_index(inventory)
+>>
+>>         if self.on_upsert is not None:
+>>             self.on_upsert(document)
+>>
+>>         return document
+>>
+>>     def delete(
+>>         self,
+>>         inventory: Inventory,
+>>     ) -> InventoryIndexDocument:
+>>         document = build_inventory_index_delete(inventory)
+>>
+>>         if self.on_delete is not None:
+>>             self.on_delete(document)
+>>
+>>         return document
+>>
+>>
+>> # Historical names retained ONLY as exception aliases.
+>> # They do not recreate the removed CORE-004 indexing subsystem.
+>> InventoryIndexingError = SearchIndexContractError
+>> InventoryIndexStaleVersionError = SearchIndexVersionError
+>>
+>>
+>> __all__ = [
+>>     "InventoryIndexDocument",
+>>     "InventoryIndexingError",
+>>     "InventoryIndexingHook",
+>>     "InventoryIndexStaleVersionError",
+>>     "SearchIndexContractError",
+>>     "SearchIndexDocumentError",
+>>     "SearchIndexOperation",
+>>     "SearchIndexScopeError",
+>>     "SearchIndexVersionError",
+>>     "build_inventory_index",
+>>     "build_inventory_index_delete",
+>> ]
+>> '@ | Set-Content "$core5Path\search_index_contract.py" -Encoding UTF8
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 4. Local verification — FOUNDATION ONLY
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m compileall -q AUTONOMY_ENGINE\core\search_matching
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -c "from AUTONOMY_ENGINE.core.search_matching.search_index_contract import InventoryIndexDocument, SearchIndexOperation, build_inventory_index; print('CORE-005 CLEAN FOUNDATION IMPORT = PASS')"
+CORE-005 CLEAN FOUNDATION IMPORT = PASS
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 5. Inspect exactly what will be committed
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== STAGED FILES ===" -ForegroundColor Yellow
+=== STAGED FILES ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
+D  AUTONOMY_ENGINE/core/search_matching/__init__.py
+D  AUTONOMY_ENGINE/core/search_matching/hybrid_retrieval.py
+D  AUTONOMY_ENGINE/core/search_matching/location_search.py
+D  AUTONOMY_ENGINE/core/search_matching/matching.py
+D  AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
+D  AUTONOMY_ENGINE/core/search_matching/search_filters.py
+D  AUTONOMY_ENGINE/core/search_matching/search_ranking.py
+D  AUTONOMY_ENGINE/core/search_matching/search_rebuild.py
+D  AUTONOMY_ENGINE/core/search_matching/search_visibility.py
+D  AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py
+D  AUTONOMY_ENGINE/core/search_matching/test_location_search.py
+D  AUTONOMY_ENGINE/core/search_matching/test_matching.py
+D  AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py
+D  AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py
+D  AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
+D  AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py
+D  AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py
+D  AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py
+?? AUTONOMY_ENGINE/core/search_matching/
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git add -A AUTONOMY_ENGINE\core\search_matching
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/__init__.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_index_contract.py', LF will be replaced by CRLF the next time Git touches it
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== STAGED DIFF STAT ===" -ForegroundColor Yellow
+=== STAGED DIFF STAT ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --cached --stat
+ .../core/search_matching/__init__.py               |  30 +-
+ .../core/search_matching/hybrid_retrieval.py       | 353 ------------
+ .../core/search_matching/location_search.py        | 216 --------
+ .../core/search_matching/matching.py               |   1 -
+ .../core/search_matching/qdrant_indexing.py        | 305 -----------
+ .../core/search_matching/search_filters.py         |   1 -
+ .../core/search_matching/search_index_contract.py  | 395 ++++++++++++++
+ .../core/search_matching/search_ranking.py         |   1 -
+ .../core/search_matching/search_rebuild.py         |   1 -
+ .../core/search_matching/search_visibility.py      |   1 -
+ .../core/search_matching/test_hybrid_retrieval.py  | 301 ----------
+ .../core/search_matching/test_location_search.py   | 191 -------
+ .../core/search_matching/test_matching.py          | 449 ---------------
+ .../core/search_matching/test_qdrant_indexing.py   | 269 ---------
+ .../core/search_matching/test_search_core_t09.py   | 607 ---------------------
+ .../core/search_matching/test_search_filters.py    | 223 --------
+ .../core/search_matching/test_search_ranking.py    | 363 ------------
+ .../core/search_matching/test_search_rebuild.py    | 414 --------------
+ .../core/search_matching/test_search_visibility.py | 257 ---------
+ 19 files changed, 424 insertions(+), 3954 deletions(-)
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # Safety: only CORE-005 path may be changed
+PS D:\HOMIO\REOS_CONTROL_CENTER> $badPaths = git diff --cached --name-only |
+>>     Where-Object {
+>>         $_ -notlike "AUTONOMY_ENGINE/core/search_matching/*"
+>>         -and
+>>         $_ -notlike "AUTONOMY_ENGINE\core\search_matching\*"
+>>     }
+Where-Object : The term '-and' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or
+if a path was included, verify that the path is correct and try again.
 At line:2 char:5
-+     throw "git diff --check failed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (git diff --check failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : git diff --check failed.
++     Where-Object {
++     ~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (-and:String) [Where-Object], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException,Microsoft.PowerShell.Commands.WhereObjectCommand
 
-PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 12. FINAL STATUS ===" -ForegroundColor Cyan
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($badPaths) {
+>>     Write-Host "ERROR: Unexpected staged paths detected:" -ForegroundColor Red
+>>     $badPaths
+>>     git reset
+>>     exit 1
+>> }
+The variable '$badPaths' cannot be retrieved because it has not been set.
+At line:1 char:5
++ if ($badPaths) {
++     ~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (badPaths:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : VariableIsUndefined
 
-=== 12. FINAL STATUS ===
-PS D:\Homio>
-PS D:\Homio> git status --short
- M REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/identity_tenant/test_tenant_isolation.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/hybrid_retrieval.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/location_search.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/matching.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_ranking.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_rebuild.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_visibility.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py
-?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/_BACKUPS/
-?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_index_contract.py
-PS D:\Homio>
-PS D:\Homio> Write-Host "`nCORE-005 REAL REGRESSION GATE = PASS" -ForegroundColor Green
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 6. Commit + push
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> git commit -m "refactor(core-005): clean rebuild search matching foundation"
+[reos-development b5a58b6] refactor(core-005): clean rebuild search matching foundation
+ 19 files changed, 424 insertions(+), 3954 deletions(-)
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/hybrid_retrieval.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/location_search.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/matching.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py
+ create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_index_contract.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_ranking.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_rebuild.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_visibility.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git push origin reos-development
+Enumerating objects: 14, done.
+Counting objects: 100% (14/14), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (8/8), done.
+Writing objects: 100% (8/8), 3.07 KiB | 787.00 KiB/s, done.
+Total 8 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (5/5), completed with 4 local objects.
+To https://github.com/prajaktaranjane80-sketch/Homio.git
+   9e18ec9..b5a58b6  reos-development -> reos-development
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
 
-CORE-005 REAL REGRESSION GATE = PASS
-PS D:\Homio>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CORE-005 CLEAN FOUNDATION PUSH COMPLETE ===" -ForegroundColor Green
+=== CORE-005 CLEAN FOUNDATION PUSH COMPLETE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git log -1 --oneline
+b5a58b6 (HEAD -> reos-development, origin/reos-development) refactor(core-005): clean rebuild search matching foundation
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
+PS D:\HOMIO\REOS_CONTROL_CENTER>
