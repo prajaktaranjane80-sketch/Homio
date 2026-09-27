@@ -30,7 +30,7 @@ acquisition engine.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 import hashlib
@@ -181,7 +181,7 @@ class InventorySource:
     builder_developer_id: str
     acquisition_reference: str | None = None
     channel_reference: str | None = None
-    metadata: Mapping[str, Any] = ()
+    metadata: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         object.__setattr__(

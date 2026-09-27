@@ -603,17 +603,40 @@ class CommercialStateSnapshot:
             "tenant_id": self.tenant_id,
             "version": self.version,
             "physical": _canonicalize(
-                self.physical.__dict__
+                {
+                    "area_value": self.physical.area_value,
+                    "area_unit": self.physical.area_unit,
+                    "bedrooms": self.physical.bedrooms,
+                    "bathrooms": self.physical.bathrooms,
+                    "floor": self.physical.floor,
+                    "facing": self.physical.facing,
+                    "parking_count": self.physical.parking_count,
+                }
                 if self.physical is not None
                 else None
             ),
             "location": _canonicalize(
-                self.location.__dict__
+                {
+                    "country_code": self.location.country_code,
+                    "region": self.location.region,
+                    "city": self.location.city,
+                    "locality": self.location.locality,
+                    "postal_code": self.location.postal_code,
+                    "address_line": self.location.address_line,
+                    "latitude": self.location.latitude,
+                    "longitude": self.location.longitude,
+                }
                 if self.location is not None
                 else None
             ),
             "pricing": _canonicalize(
-                self.pricing.__dict__
+                {
+                    "pricing_reference": self.pricing.pricing_reference,
+                    "currency": self.pricing.currency,
+                    "amount": self.pricing.amount,
+                    "price_type": self.pricing.price_type,
+                    "external_version": self.pricing.external_version,
+                }
                 if self.pricing is not None
                 else None
             ),

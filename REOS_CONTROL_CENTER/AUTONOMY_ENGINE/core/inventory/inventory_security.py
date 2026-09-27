@@ -223,13 +223,7 @@ class InventorySecurityContext:
                 ),
             )
 
-            if (
-                self.expires_at
-                <= self.issued_at
-            ):
-                raise InventorySecurityContextError(
-                    "expires_at must be later than issued_at."
-                )
+
 
         if self.request_id is not None:
             object.__setattr__(

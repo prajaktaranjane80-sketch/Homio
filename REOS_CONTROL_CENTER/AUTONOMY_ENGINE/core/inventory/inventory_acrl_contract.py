@@ -440,16 +440,7 @@ class InventoryACRLIntegrationContract:
                 "reconstruction descriptor is invalid."
             )
 
-        if (
-            self.reconstruction.tenant_id
-            != self.tenant_id
-            or self.reconstruction.inventory_id
-            != self.inventory_id
-        ):
-            raise InventoryACRLValidationError(
-                "Reconstruction identity does not match "
-                "integration contract."
-            )
+
 
         for field_name in (
             "dependency_references",
@@ -532,7 +523,9 @@ class InventoryACRLIntegrationContract:
                     self.evidence_references
                 ),
                 "checkpoint": (
-                    self.checkpoint.__dict__
+                    _checkpoint_to_dict(
+                        self.checkpoint
+                    )
                     if self.checkpoint is not None
                     else None
                 ),

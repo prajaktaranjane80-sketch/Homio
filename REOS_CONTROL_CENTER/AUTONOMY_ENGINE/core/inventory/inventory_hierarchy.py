@@ -52,7 +52,7 @@ class HierarchyValidationError(InventoryHierarchyError):
     """Raised when a hierarchy invariant is violated."""
 
 
-class HierarchyTenantViolation(InventoryHierarchyError):
+class HierarchyTenantViolation(HierarchyValidationError):
     """Raised when hierarchy nodes cross tenant boundaries."""
 
 

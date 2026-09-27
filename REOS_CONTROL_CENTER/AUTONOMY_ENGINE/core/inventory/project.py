@@ -26,7 +26,7 @@ Does NOT own:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import hashlib
 import json
 import re
@@ -284,7 +284,7 @@ class Project:
 
     identity: ProjectIdentity
     name: str
-    metadata: Mapping[str, Any] = ()
+    metadata: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not isinstance(

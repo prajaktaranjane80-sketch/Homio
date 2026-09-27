@@ -225,6 +225,10 @@ class InventoryDomainEvent:
                 ),
             )
 
+        if self.producer != CORE_004_EVENT_PRODUCER:
+            raise InventoryEventValidationError(
+                "producer must be the canonical CORE-004 producer."
+            )
         if self.causation_id is not None:
             object.__setattr__(
                 self,

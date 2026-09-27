@@ -1305,7 +1305,7 @@ def deserialize_contract(
         payload["contract_fingerprint"]
         != contract.fingerprint
     ):
-        raise InventoryContractFingerprintError(
+        raise InventorySerializationError(
             "Contract fingerprint mismatch."
         )
 
@@ -1378,10 +1378,10 @@ def contract_by_name(
     if schema_name == UNIT_SCHEMA_NAME:
         return UNIT_CONTRACT
 
-    raise InventoryContractError(
-        f"Unknown CORE-004 contract: "
-        f"{schema_name!r}"
-    )
+    raise InventorySchemaError(
+            f"Unknown CORE-004 contract: "
+            f"{schema_name!r}"
+        )
 
 
 def contract_for_inventory_type(
