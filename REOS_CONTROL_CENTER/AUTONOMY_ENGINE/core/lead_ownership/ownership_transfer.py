@@ -157,7 +157,7 @@ class OwnershipTransfer:
                 ),
             )
 
-    @classmethod
+        @classmethod
     def create(
         cls,
         *,
@@ -171,6 +171,8 @@ class OwnershipTransfer:
         transfer_id: UUID | None = None,
         transfer_reference: str | None = None,
     ) -> "OwnershipTransfer":
+        from uuid import uuid4
+
         timestamp = (
             datetime.now(timezone.utc)
             if transferred_at is None
@@ -178,9 +180,7 @@ class OwnershipTransfer:
         )
 
         return cls(
-            transfer_id=transfer_id or UUID(int=0)
-            if transfer_id is None
-            else transfer_id,
+            transfer_id=transfer_id or uuid4(),
             lead_id=lead_id,
             tenant_id=tenant_id,
             previous_owner_id=previous_owner_id,
