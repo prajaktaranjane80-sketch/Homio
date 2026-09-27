@@ -1,91 +1,108 @@
-PS C:\Users\Sandip RanjanePatil>  Set-Location "D:\Homio\REOS_CONTROL_CENTER"
-PS D:\Homio\REOS_CONTROL_CENTER> $P="AUTONOMY_ENGINE\core\event_platform"
+===== REOS / CORE-003 BASELINE =====
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== CORE-002 EVENT PLATFORM PREFLIGHT ===" -ForegroundColor Cyan
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n--- BRANCH / WORKTREE ---" -ForegroundColor Yellow
 
-=== CORE-002 EVENT PLATFORM PREFLIGHT ===
+--- BRANCH / WORKTREE ---
+PS D:\Homio\REOS_CONTROL_CENTER> git branch --show-current
+reos-development
+PS D:\Homio\REOS_CONTROL_CENTER> git status --short
+ M AI_AGENT_ENTRYPOINT.py
+M  AUTONOMY_ENGINE/core/event_platform/__init__.py
+A  AUTONOMY_ENGINE/core/event_platform/event_acrl_contract.py
+AM AUTONOMY_ENGINE/core/event_platform/event_contract.py
+A  AUTONOMY_ENGINE/core/event_platform/event_delivery.py
+A  AUTONOMY_ENGINE/core/event_platform/event_domain.py
+A  AUTONOMY_ENGINE/core/event_platform/event_observability.py
+A  AUTONOMY_ENGINE/core/event_platform/event_ordering.py
+A  AUTONOMY_ENGINE/core/event_platform/event_reos_contract.py
+A  AUTONOMY_ENGINE/core/event_platform/event_replay.py
+A  AUTONOMY_ENGINE/core/event_platform/event_resilience.py
+A  AUTONOMY_ENGINE/core/event_platform/event_security.py
+A  AUTONOMY_ENGINE/core/event_platform/event_transaction.py
+A  AUTONOMY_ENGINE/core/event_platform/event_transport.py
+A  AUTONOMY_ENGINE/core/event_platform/test_event_domain.py
+A  AUTONOMY_ENGINE/core/event_platform/test_event_platform_regression.py
+ M AUTONOMY_ENGINE/core/identity_tenant/test_tenant_isolation.py
+?? AUTONOMY_ENGINE/core/event_platform/test_event_platform_deep_regression.py
+?? "../how --name-status 7efcf29"
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $files = Get-ChildItem $P -Filter "*.py" -File | Sort-Object Name
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $files) {
->>     Write-Host "FAIL: event_platform directory/files not found" -ForegroundColor Red
->>     exit 1
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Files discovered: $($files.Count)" -ForegroundColor White
-Files discovered: 1
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> python -m compileall -q $P
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     Write-Host "FAIL: Python compilation" -ForegroundColor Red
->>     exit 1
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "PASS: compilation" -ForegroundColor Green
-PASS: compilation
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> python -m pytest $P -q
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n--- RECENT COMMITS ---" -ForegroundColor Yellow
 
-no tests ran in 0.03s
+--- RECENT COMMITS ---
+PS D:\Homio\REOS_CONTROL_CENTER> git log --oneline --decorate -15
+3a1c372 (HEAD -> reos-development) Create AI_AGENT_ENTRYPOINT.py
+f4e6023 Update PS Output
+29e2f9c Create test_tenant_isolation.py
+eee32e8 Create tenant_isolation.py
+9951694 Create test_t03_d_contract.py
+616ee41 Create test_membership.py
+be889db Create membership_contract.json
+f6f31e1 Create membership.py
+55aabde Create test_t02_d_contract.py
+22ff007 Update tenant_contract.json
+d2aba46 Update test_tenant.py
+3bb10a5 Update tenant.py
+b545928 Update PS Output
+e782311 Update identity_contract.json
+e1de71a Update identity.py
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     Write-Host "FAIL: CORE-002 event_platform pytest" -ForegroundColor Red
->>     exit 1
->> }
-FAIL: CORE-002 event_platform pytest
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n--- REMOTE ---" -ForegroundColor Yellow
 
-[process exited with code 1 (0x00000001)]
-You can now close this terminal with Ctrl+D, or press Enter to restart.
-Windows PowerShell
-Copyright (C) Microsoft Corporation. All rights reserved.
+--- REMOTE ---
+PS D:\Homio\REOS_CONTROL_CENTER> git remote -v
+origin  https://prajaktaranjane80-sketch@github.com/prajaktaranjane80-sketch/Homio.git (fetch)
+origin  https://prajaktaranjane80-sketch@github.com/prajaktaranjane80-sketch/Homio.git (push)
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n--- CORE-003 CANDIDATE FILES ---" -ForegroundColor Yellow
 
-PS C:\Users\Sandip RanjanePatil> python -m pytest `
->>   AUTONOMY_ENGINE\core\event_platform `
->>   -q `
->>   --disable-warnings
+--- CORE-003 CANDIDATE FILES ---
+PS D:\Homio\REOS_CONTROL_CENTER> Get-ChildItem AUTONOMY_ENGINE\core -Recurse -File |
+>> Where-Object {
+>>     $_.FullName -match "lead|ownership|customer|attribution"
+>> } |
+>> Select-Object FullName, Length, LastWriteTime
 
-no tests ran in 0.00s
-ERROR: file or directory not found: AUTONOMY_ENGINE\core\event_platform
+FullName                                                                                                                                    Length LastWrit
+                                                                                                                                                   eTime
+--------                                                                                                                                    ------ --------
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_ownership_integration.py                                                63 9/25/...
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_ownership_integration.py                                           68 9/25/...
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\__pycache__\test_deal_ownership_integration.cpython-312-pytest-9.1.1.pyc    387 9/26/...
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\__init__.py                                                                    41 9/25/...
 
-PS C:\Users\Sandip RanjanePatil> $P="AUTONOMY_ENGINE\core\event_platform"
-PS C:\Users\Sandip RanjanePatil>
-PS C:\Users\Sandip RanjanePatil> "--- CORE-002 FILE INVENTORY ---"
---- CORE-002 FILE INVENTORY ---
-PS C:\Users\Sandip RanjanePatil>
-PS C:\Users\Sandip RanjanePatil> @(
->> "event_domain.py",
->> "event_contract.py",
->> "event_delivery.py",
->> "event_transaction.py",
->> "event_replay.py",
->> "event_ordering.py",
->> "event_resilience.py",
->> "event_observability.py",
->> "event_security.py",
->> "event_reos_contract.py",
->> "event_acrl_contract.py",
->> "event_transport.py",
->> "test_event_platform_regression.py"
->> ) | ForEach-Object {
->>     $f=Join-Path $P $_
->>     if (Test-Path $f) {
->>         $size=(Get-Item $f).Length
->>         Write-Host "PASS  $_  [$size bytes]" -ForegroundColor Green
->>     } else {
->>         Write-Host "MISS  $_" -ForegroundColor Yellow
->>     }
->> }
-MISS  event_domain.py
-MISS  event_contract.py
-MISS  event_delivery.py
-MISS  event_transaction.py
-MISS  event_replay.py
-MISS  event_ordering.py
-MISS  event_resilience.py
-MISS  event_observability.py
-MISS  event_security.py
-MISS  event_reos_contract.py
-MISS  event_acrl_contract.py
-MISS  event_transport.py
-MISS  test_event_platform_regression.py
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n--- CORE DIRECTORY TOP LEVEL ---" -ForegroundColor Yellow
+
+--- CORE DIRECTORY TOP LEVEL ---
+PS D:\Homio\REOS_CONTROL_CENTER> Get-ChildItem AUTONOMY_ENGINE\core -Directory |
+>> Select-Object Name
+
+Name
+----
+deal_transaction
+event_platform
+identity_tenant
+inventory
+lead_ownership
+search_matching
+__pycache__
+
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n--- CONTROL CENTER STATUS ---" -ForegroundColor Yellow
+
+--- CONTROL CENTER STATUS ---
+PS D:\Homio\REOS_CONTROL_CENTER> python reos_control_center.py status
+HOMIO / REOS CONTROL CENTER v7.0
+========================================================================
+Phase: PRE-CODING ARCHITECTURE
+Gate: CORE-006
+Task: CORE-006-T06: Implement evidence and audit integration.
+Status: CONTROL_CENTER_DRIVEN
+Subtask: CORE-006-T06
+Gate Status: CURRENT
+Subtasks: 10 Criteria: 6
+Approved: 38 Pending: 1
+State: D:\Homio\REOS_CONTROL_CENTER\data\state.json
+PS D:\Homio\REOS_CONTROL_CENTER>
