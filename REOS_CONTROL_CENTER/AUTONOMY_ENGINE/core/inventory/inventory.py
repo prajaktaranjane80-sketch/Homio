@@ -1,14 +1,31 @@
-"""Authoritative CORE-004 inventory domain.
+"""
+CORE-004 T01 — Inventory Domain
 
-This module owns canonical inventory identity and the immutable domain
-representation used by later CORE-004 contracts.
+Owns:
+- inventory identity
+- project/development reference
+- property identity
+- unit identity
+- inventory type vocabulary
+- lifecycle-state vocabulary
+- availability-state vocabulary
+- tenant identity
+- immutable identity semantics
+- immutable inventory baseline
 
-It does not:
-- persist state
-- perform search indexing
-- acquire inventory
-- store evidence
-- mutate REOS Control Center state
+Does NOT own:
+- hierarchy mutation
+- lifecycle transition rules
+- availability mutation
+- reservation engine
+- allocation engine
+- provenance storage
+- commercial state
+- concurrency coordination
+- authorization policy
+- event transport
+- REOS Control Center state
+- ACRL reconstruction
 """
 
 from __future__ import annotations
@@ -16,27 +33,41 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from hashlib import sha256
+import hashlib
 import json
 from types import MappingProxyType
 from typing import Any, Mapping
-from uuid import uuid4
 
 
 class InventoryDomainError(ValueError):
-    """Base error for invalid inventory-domain data."""
+    """Base CORE-004 inventory-domain error."""
 
 
-class InventoryTenantViolation(InventoryDomainError):
-    """Raised when a caller crosses the inventory tenant boundary."""
+class InventoryTenantViolation(
+    InventoryDomainError
+):
+    """Raised when inventory is accessed across tenants."""
 
 
-class InventoryProjectViolation(InventoryDomainError):
-    """Raised when inventory is used outside its project boundary."""
+class InventoryProjectViolation(
+    InventoryDomainError
+):
+    """Raised when inventory is used across projects."""
 
 
 class InventoryType(str, Enum):
-    """Canonical inventory hierarchy level."""
+    """
+    Canonical inventory hierarchy level.
+
+    DEVELOPMENT
+        Project/development identity.
+
+    PROPERTY
+        Property-level inventory beneath a project.
+
+    UNIT
+        Unit-level inventory beneath a property.
+    """
 
     DEVELOPMENT = "DEVELOPMENT"
     PROPERTY = "PROPERTY"
@@ -44,7 +75,11 @@ class InventoryType(str, Enum):
 
 
 class LifecycleState(str, Enum):
-    """Canonical lifecycle vocabulary shared by CORE-004."""
+    """
+    Canonical lifecycle vocabulary.
+
+    Transition ownership belongs to CORE-004 Part 04.
+    """
 
     DRAFT = "DRAFT"
     ACTIVE = "ACTIVE"
@@ -56,7 +91,11 @@ class LifecycleState(str, Enum):
 
 
 class AvailabilityState(str, Enum):
-    """Canonical availability vocabulary shared by CORE-004."""
+    """
+    Canonical availability vocabulary.
+
+    Availability transition ownership belongs to Part 05.
+    """
 
     AVAILABLE = "AVAILABLE"
     RESERVED = "RESERVED"
@@ -66,14 +105,120 @@ class AvailabilityState(str, Enum):
     UNAVAILABLE = "UNAVAILABLE"
 
 
-def _utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+def _utc_now() -> datetime:
+    return datetime.now(
+        timezone.utc
+    )
 
 
-def _require_text(name: str, value: str) -> str:
-    if not isinstance(value, str) or not value.strip():
-        raise InventoryDomainError(f"{name} is required.")
-    return value.strip()
+def _require_text(
+    value: str,
+    field_name: str,
+) -> str:
+    if not isinstance(value, str):
+        raise InventoryDomainError(
+            f"{field_name} must be a string."
+        )
+
+    normalized = value.strip()
+
+    if not normalized:
+        raise InventoryDomainError(
+            f"{field_name} cannot be empty."
+        )
+
+    return normalized
+
+
+def _validate_aware_datetime(
+    value: datetime,
+    field_name: str,
+) -> datetime:
+    if not isinstance(
+        value,
+        datetime,
+    ):
+        raise InventoryDomainError(
+            f"{field_name} must be datetime."
+        )
+
+    if (
+        value.tzinfo is None
+        or value.utcoffset() is None
+    ):
+        raise InventoryDomainError(
+            f"{field_name} must be timezone-aware."
+        )
+
+    return value.astimezone(
+        timezone.utc
+    )
+
+
+def _canonicalize(
+    value: Any,
+) -> Any:
+    if value is None:
+        return None
+
+    if isinstance(
+        value,
+        Enum,
+    ):
+        return value.value
+
+    if isinstance(
+        value,
+        datetime,
+    ):
+        return _validate_aware_datetime(
+            value,
+            "datetime",
+        ).isoformat()
+
+    if isinstance(
+        value,
+        (str, int, float, bool),
+    ):
+        return value
+
+    if isinstance(
+        value,
+        Mapping,
+    ):
+        result: dict[str, Any] = {}
+
+        for key, item in sorted(
+            value.items(),
+            key=lambda pair: str(pair[0]),
+        ):
+            if not isinstance(
+                key,
+                str,
+            ):
+                raise InventoryDomainError(
+                    "Metadata keys must be strings."
+                )
+
+            result[key] = _canonicalize(
+                item
+            )
+
+        return result
+
+    if isinstance(
+        value,
+        (list, tuple),
+    ):
+        return [
+            _canonicalize(item)
+            for item in value
+        ]
+
+    raise InventoryDomainError(
+        "Unsupported inventory value type: "
+        f"{type(value).__name__}"
+    )
 
 
 def _freeze_mapping(
@@ -83,47 +228,79 @@ def _freeze_mapping(
     if value is None:
         return MappingProxyType({})
 
-    if not isinstance(value, Mapping):
-        raise InventoryDomainError(f"{name} must be a mapping.")
-
-    frozen = {str(key): item for key, item in value.items()}
-
-    try:
-        json.dumps(
-            frozen,
-            sort_keys=True,
-            ensure_ascii=False,
-            separators=(",", ":"),
-            default=str,
-        )
-    except (TypeError, ValueError) as exc:
+    if not isinstance(
+        value,
+        Mapping,
+    ):
         raise InventoryDomainError(
-            f"{name} contains unsupported values."
-        ) from exc
+            f"{name} must be a mapping."
+        )
 
-    return MappingProxyType(frozen)
+    normalized: dict[str, Any] = {}
+
+    for key, item in value.items():
+        if not isinstance(
+            key,
+            str,
+        ):
+            raise InventoryDomainError(
+                f"{name} keys must be strings."
+            )
+
+        normalized[key] = _canonicalize(
+            item
+        )
+
+    return MappingProxyType(
+        normalized
+    )
 
 
-def _canonical_payload(value: Mapping[str, Any]) -> bytes:
+def _canonical_json(
+    value: Mapping[str, Any],
+) -> bytes:
     try:
         return json.dumps(
-            dict(value),
+            _canonicalize(value),
             sort_keys=True,
-            ensure_ascii=False,
             separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
         ).encode("utf-8")
     except (TypeError, ValueError) as exc:
         raise InventoryDomainError(
-            "Inventory identity contains non-canonical values."
+            "Inventory identity cannot be "
+            "canonically serialized."
         ) from exc
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class InventoryIdentity:
-    """Immutable, tenant-scoped identity for one inventory aggregate.
+    """
+    Immutable identity of one inventory aggregate.
 
-    project_id is the canonical project/development identity.
-    It is not duplicated as an independently owned development identifier.
+    Hierarchy rules:
+
+    DEVELOPMENT
+        project_id required
+        property_id forbidden
+        unit_id forbidden
+
+    PROPERTY
+        project_id required
+        property_id required
+        unit_id forbidden
+
+    UNIT
+        project_id required
+        property_id required
+        unit_id required
+
+    The identity itself is immutable.
+
+    Relationship reconstruction and parent/child validation belong to
+    Part 03; this object only guarantees that one identity cannot encode
+    an impossible hierarchy level.
     """
 
     inventory_id: str
@@ -135,21 +312,50 @@ class InventoryIdentity:
     unit_id: str | None = None
 
     def __post_init__(self) -> None:
-        for name in (
+        object.__setattr__(
+            self,
             "inventory_id",
+            _require_text(
+                self.inventory_id,
+                "inventory_id",
+            ),
+        )
+
+        object.__setattr__(
+            self,
             "tenant_id",
+            _require_text(
+                self.tenant_id,
+                "tenant_id",
+            ),
+        )
+
+        object.__setattr__(
+            self,
             "developer_id",
+            _require_text(
+                self.developer_id,
+                "developer_id",
+            ),
+        )
+
+        object.__setattr__(
+            self,
             "project_id",
-        ):
-            object.__setattr__(
-                self,
-                name,
-                _require_text(name, getattr(self, name)),
-            )
+            _require_text(
+                self.project_id,
+                "project_id",
+            ),
+        )
 
         try:
-            normalized_type = InventoryType(self.inventory_type)
-        except (TypeError, ValueError) as exc:
+            normalized_type = InventoryType(
+                self.inventory_type
+            )
+        except (
+            TypeError,
+            ValueError,
+        ) as exc:
             raise InventoryDomainError(
                 "inventory_type is invalid."
             ) from exc
@@ -164,39 +370,80 @@ class InventoryIdentity:
             object.__setattr__(
                 self,
                 "property_id",
-                _require_text("property_id", self.property_id),
+                _require_text(
+                    self.property_id,
+                    "property_id",
+                ),
             )
 
         if self.unit_id is not None:
             object.__setattr__(
                 self,
                 "unit_id",
-                _require_text("unit_id", self.unit_id),
+                _require_text(
+                    self.unit_id,
+                    "unit_id",
+                ),
             )
 
-        if normalized_type is InventoryType.DEVELOPMENT:
-            if self.property_id is not None or self.unit_id is not None:
+        self._validate_identity_shape()
+
+    def _validate_identity_shape(
+        self,
+    ) -> None:
+        if (
+            self.inventory_type
+            is InventoryType.DEVELOPMENT
+        ):
+            if (
+                self.property_id is not None
+                or self.unit_id is not None
+            ):
                 raise InventoryDomainError(
-                    "DEVELOPMENT inventory cannot carry "
-                    "property_id or unit_id."
+                    "DEVELOPMENT inventory cannot "
+                    "contain property_id or unit_id."
                 )
 
-        elif normalized_type is InventoryType.PROPERTY:
-            if self.property_id is None or self.unit_id is not None:
+        elif (
+            self.inventory_type
+            is InventoryType.PROPERTY
+        ):
+            if self.property_id is None:
                 raise InventoryDomainError(
-                    "PROPERTY inventory requires property_id "
-                    "and forbids unit_id."
+                    "PROPERTY inventory requires "
+                    "property_id."
                 )
 
-        elif normalized_type is InventoryType.UNIT:
-            if self.property_id is None or self.unit_id is None:
+            if self.unit_id is not None:
                 raise InventoryDomainError(
-                    "UNIT inventory requires both property_id "
-                    "and unit_id."
+                    "PROPERTY inventory cannot "
+                    "contain unit_id."
+                )
+
+        elif (
+            self.inventory_type
+            is InventoryType.UNIT
+        ):
+            if self.property_id is None:
+                raise InventoryDomainError(
+                    "UNIT inventory requires "
+                    "property_id."
+                )
+
+            if self.unit_id is None:
+                raise InventoryDomainError(
+                    "UNIT inventory requires "
+                    "unit_id."
                 )
 
     @property
     def identity_key(self) -> str:
+        """
+        Deterministic tenant-scoped identity.
+
+        The complete hierarchy path is included, preventing collisions
+        between development/property/unit identities.
+        """
         return ":".join(
             (
                 self.tenant_id,
@@ -210,25 +457,63 @@ class InventoryIdentity:
 
     @property
     def fingerprint(self) -> str:
+        """
+        Fingerprint of immutable identity only.
+
+        Mutable lifecycle, availability and commercial attributes are
+        deliberately excluded.
+        """
         payload = {
             "inventory_id": self.inventory_id,
             "tenant_id": self.tenant_id,
-            "inventory_type": self.inventory_type.value,
+            "inventory_type": (
+                self.inventory_type.value
+            ),
             "developer_id": self.developer_id,
             "project_id": self.project_id,
             "property_id": self.property_id,
             "unit_id": self.unit_id,
         }
 
-        return sha256(
-            _canonical_payload(payload)
+        return hashlib.sha256(
+            _canonical_json(payload)
         ).hexdigest()
 
+    def assert_tenant(
+        self,
+        tenant_id: str,
+    ) -> None:
+        tenant_id = _require_text(
+            tenant_id,
+            "tenant_id",
+        )
+
+        if tenant_id != self.tenant_id:
+            raise InventoryTenantViolation(
+                "Inventory belongs to another tenant."
+            )
+
+    def assert_project(
+        self,
+        project_id: str,
+    ) -> None:
+        project_id = _require_text(
+            project_id,
+            "project_id",
+        )
+
+        if project_id != self.project_id:
+            raise InventoryProjectViolation(
+                "Inventory belongs to another project."
+            )
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "inventory_id": self.inventory_id,
             "tenant_id": self.tenant_id,
-            "inventory_type": self.inventory_type.value,
+            "inventory_type": (
+                self.inventory_type.value
+            ),
             "developer_id": self.developer_id,
             "project_id": self.project_id,
             "property_id": self.property_id,
@@ -236,113 +521,113 @@ class InventoryIdentity:
         }
 
 
-@dataclass(frozen=True)
-class InventoryEvent:
-    """Persistence-neutral event emitted by the inventory domain."""
-
-    event_id: str
-    event_type: str
-    inventory_id: str
-    tenant_id: str
-    inventory_version: int
-    occurred_at: str
-    payload: Mapping[str, Any] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "event_id",
-            _require_text("event_id", self.event_id),
-        )
-
-        object.__setattr__(
-            self,
-            "event_type",
-            _require_text("event_type", self.event_type),
-        )
-
-        object.__setattr__(
-            self,
-            "inventory_id",
-            _require_text("inventory_id", self.inventory_id),
-        )
-
-        object.__setattr__(
-            self,
-            "tenant_id",
-            _require_text("tenant_id", self.tenant_id),
-        )
-
-        if (
-            not isinstance(self.inventory_version, int)
-            or self.inventory_version < 1
-        ):
-            raise InventoryDomainError(
-                "inventory_version must be a positive integer."
-            )
-
-        object.__setattr__(
-            self,
-            "payload",
-            _freeze_mapping("payload", self.payload),
-        )
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "event_id": self.event_id,
-            "event_type": self.event_type,
-            "inventory_id": self.inventory_id,
-            "tenant_id": self.tenant_id,
-            "inventory_version": self.inventory_version,
-            "occurred_at": self.occurred_at,
-            "payload": dict(self.payload),
-        }
-
-
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Inventory:
-    """Canonical immutable inventory aggregate baseline for CORE-004."""
+    """
+    Immutable canonical inventory baseline.
+
+    Part 01 intentionally does not implement state transitions.
+
+    Lifecycle mutation belongs to Part 04.
+    Availability mutation belongs to Part 05.
+    Concurrency/version conflict handling belongs to Part 08.
+    """
 
     identity: InventoryIdentity
     name: str
     lifecycle: LifecycleState
     availability: AvailabilityState
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
     version: int = 1
-    metadata: Mapping[str, Any] = field(default_factory=dict)
+    metadata: Mapping[str, Any] = field(
+        default_factory=dict
+    )
 
     def __post_init__(self) -> None:
-        if not isinstance(self.identity, InventoryIdentity):
+        if not isinstance(
+            self.identity,
+            InventoryIdentity,
+        ):
             raise InventoryDomainError(
-                "identity must be an InventoryIdentity."
+                "identity must be InventoryIdentity."
             )
 
         object.__setattr__(
             self,
             "name",
-            _require_text("name", self.name),
+            _require_text(
+                self.name,
+                "name",
+            ),
         )
 
         try:
-            object.__setattr__(
-                self,
-                "lifecycle",
-                LifecycleState(self.lifecycle),
+            lifecycle = LifecycleState(
+                self.lifecycle
             )
-
-            object.__setattr__(
-                self,
-                "availability",
-                AvailabilityState(self.availability),
-            )
-        except (TypeError, ValueError) as exc:
+        except (
+            TypeError,
+            ValueError,
+        ) as exc:
             raise InventoryDomainError(
-                "Invalid inventory state."
+                "lifecycle is invalid."
             ) from exc
 
+        try:
+            availability = AvailabilityState(
+                self.availability
+            )
+        except (
+            TypeError,
+            ValueError,
+        ) as exc:
+            raise InventoryDomainError(
+                "availability is invalid."
+            ) from exc
+
+        object.__setattr__(
+            self,
+            "lifecycle",
+            lifecycle,
+        )
+
+        object.__setattr__(
+            self,
+            "availability",
+            availability,
+        )
+
+        object.__setattr__(
+            self,
+            "created_at",
+            _validate_aware_datetime(
+                self.created_at,
+                "created_at",
+            ),
+        )
+
+        object.__setattr__(
+            self,
+            "updated_at",
+            _validate_aware_datetime(
+                self.updated_at,
+                "updated_at",
+            ),
+        )
+
+        if self.updated_at < self.created_at:
+            raise InventoryDomainError(
+                "updated_at cannot be earlier "
+                "than created_at."
+            )
+
         if (
-            not isinstance(self.version, int)
+            isinstance(self.version, bool)
+            or not isinstance(
+                self.version,
+                int,
+            )
             or self.version < 1
         ):
             raise InventoryDomainError(
@@ -352,7 +637,10 @@ class Inventory:
         object.__setattr__(
             self,
             "metadata",
-            _freeze_mapping("metadata", self.metadata),
+            _freeze_mapping(
+                "metadata",
+                self.metadata,
+            ),
         )
 
     @classmethod
@@ -366,14 +654,30 @@ class Inventory:
         name: str,
         property_id: str | None = None,
         unit_id: str | None = None,
-        inventory_id: str | None = None,
-        at: str | None = None,
+        inventory_id: str,
+        at: datetime | None = None,
         metadata: Mapping[str, Any] | None = None,
     ) -> "Inventory":
-        timestamp = at or _utc_now()
+        """
+        Create the immutable baseline identity.
+
+        New inventory always starts as:
+            lifecycle = DRAFT
+            availability = UNAVAILABLE
+
+        The later lifecycle/availability layers decide when it may move.
+        """
+        timestamp = (
+            _utc_now()
+            if at is None
+            else _validate_aware_datetime(
+                at,
+                "at",
+            )
+        )
 
         identity = InventoryIdentity(
-            inventory_id=inventory_id or str(uuid4()),
+            inventory_id=inventory_id,
             tenant_id=tenant_id,
             inventory_type=inventory_type,
             developer_id=developer_id,
@@ -386,9 +690,12 @@ class Inventory:
             identity=identity,
             name=name,
             lifecycle=LifecycleState.DRAFT,
-            availability=AvailabilityState.UNAVAILABLE,
+            availability=(
+                AvailabilityState.UNAVAILABLE
+            ),
             created_at=timestamp,
             updated_at=timestamp,
+            version=1,
             metadata=metadata or {},
         )
 
@@ -401,50 +708,47 @@ class Inventory:
         return self.identity.tenant_id
 
     @property
+    def developer_id(self) -> str:
+        return self.identity.developer_id
+
+    @property
     def project_id(self) -> str:
         return self.identity.project_id
+
+    @property
+    def property_id(self) -> str | None:
+        return self.identity.property_id
+
+    @property
+    def unit_id(self) -> str | None:
+        return self.identity.unit_id
 
     @property
     def inventory_type(self) -> InventoryType:
         return self.identity.inventory_type
 
     @property
+    def identity_key(self) -> str:
+        return self.identity.identity_key
+
+    @property
     def identity_fingerprint(self) -> str:
         return self.identity.fingerprint
 
-    def assert_tenant(self, tenant_id: str) -> None:
-        if tenant_id != self.tenant_id:
-            raise InventoryTenantViolation(
-                "Inventory belongs to a different tenant."
-            )
-
-    def assert_project(self, project_id: str) -> None:
-        if project_id != self.project_id:
-            raise InventoryProjectViolation(
-                "Inventory belongs to a different project."
-            )
-
-    def created_event(
+    def assert_tenant(
         self,
-        *,
-        at: str | None = None,
-    ) -> InventoryEvent:
-        timestamp = at or self.created_at
+        tenant_id: str,
+    ) -> None:
+        self.identity.assert_tenant(
+            tenant_id
+        )
 
-        return InventoryEvent(
-            event_id=str(uuid4()),
-            event_type="INVENTORY_CREATED",
-            inventory_id=self.inventory_id,
-            tenant_id=self.tenant_id,
-            inventory_version=self.version,
-            occurred_at=timestamp,
-            payload={
-                "inventory_type": self.inventory_type.value,
-                "project_id": self.project_id,
-                "property_id": self.identity.property_id,
-                "unit_id": self.identity.unit_id,
-                "identity_fingerprint": self.identity_fingerprint,
-            },
+    def assert_project(
+        self,
+        project_id: str,
+    ) -> None:
+        self.identity.assert_project(
+            project_id
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -452,12 +756,20 @@ class Inventory:
             "identity": self.identity.to_dict(),
             "name": self.name,
             "lifecycle": self.lifecycle.value,
-            "availability": self.availability.value,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
+            "availability": (
+                self.availability.value
+            ),
+            "created_at": (
+                self.created_at.isoformat()
+            ),
+            "updated_at": (
+                self.updated_at.isoformat()
+            ),
             "version": self.version,
             "metadata": dict(self.metadata),
-            "identity_fingerprint": self.identity_fingerprint,
+            "identity_fingerprint": (
+                self.identity_fingerprint
+            ),
         }
 
 
@@ -465,7 +777,6 @@ __all__ = [
     "AvailabilityState",
     "Inventory",
     "InventoryDomainError",
-    "InventoryEvent",
     "InventoryIdentity",
     "InventoryProjectViolation",
     "InventoryTenantViolation",
