@@ -1,26 +1,29 @@
 PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git status --short
  M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/__pycache__/__init__.cpython-312.pyc
  M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/ownership_transfer.py
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git diff --name-status origin/reos-development...HEAD -- `
+>> REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/ownership_transfer.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_regression.py
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git push origin HEAD:reos-development
+Enumerating objects: 15, done.
+Counting objects: 100% (15/15), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (8/8), done.
+Writing objects: 100% (8/8), 779 bytes | 779.00 KiB/s, done.
+Total 8 (delta 7), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (7/7), completed with 7 local objects.
+To https://github.com/prajaktaranjane80-sketch/Homio.git
+   433b3a9..09c951c  HEAD -> reos-development
 PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git fetch origin reos-development
-remote: Enumerating objects: 7, done.
-remote: Counting objects: 100% (7/7), done.
-remote: Compressing objects: 100% (4/4), done.
-remote: Total 4 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (4/4), 2.52 KiB | 76.00 KiB/s, done.
 From https://github.com/prajaktaranjane80-sketch/Homio
  * branch            reos-development -> FETCH_HEAD
-   58e52c0..d1d75aa  reos-development -> origin/reos-development
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git rebase origin/reos-development
-error: cannot rebase: You have unstaged changes.
-error: Please commit or stash them.
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> python -m pytest REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership -q
-..........................................................................                                                                           [100%]
-74 passed in 0.23s
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git push origin HEAD:reos-development
-To https://github.com/prajaktaranjane80-sketch/Homio.git
- ! [rejected]        HEAD -> reos-development (non-fast-forward)
-error: failed to push some refs to 'https://github.com/prajaktaranjane80-sketch/Homio.git'
-hint: Updates were rejected because a pushed branch tip is behind its remote
-hint: counterpart. If you want to integrate the remote changes, use 'git pull'
-hint: before pushing again.
-hint: See the 'Note about fast-forwards' in 'git push --help' for details.    to tume sahi se dignous karake error fix nahi kar rahi ya tumane core 3 ultra pro banaya nahi tum kuch gadbad kar rahe ho kya
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git log -1 --oneline origin/reos-development
+09c951c (HEAD, origin/reos-development) fix: CORE-003 T05 ownership transfer indentation
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git show origin/reos-development:REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/ownership_transfer.py |
+>> Select-String "@classmethod"
+
+        @classmethod
