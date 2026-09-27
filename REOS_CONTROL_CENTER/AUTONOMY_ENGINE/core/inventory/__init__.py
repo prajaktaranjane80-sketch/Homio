@@ -1,16 +1,9 @@
-"""CORE-004 Inventory domain package.
-
-The package owns canonical inventory identity and project identity for the
-inventory bounded context. Higher-level contracts, hierarchy, lifecycle,
-availability, provenance, commercial state, concurrency, security and
-integration contracts are added by dedicated CORE-004 modules.
-"""
+"""CORE-004 Inventory bounded-context public exports."""
 
 from .inventory import (
     AvailabilityState,
     Inventory,
     InventoryDomainError,
-    InventoryEvent,
     InventoryIdentity,
     InventoryProjectViolation,
     InventoryTenantViolation,
@@ -21,19 +14,21 @@ from .inventory import (
 from .project import (
     Project,
     ProjectDomainError,
-    ProjectEvent,
-    ProjectLifecycle,
-    ProjectLocation,
-    ProjectOperatingMode,
+    ProjectIdentity,
     ProjectTenantViolation,
-    ProjectTransitionError,
+)
+
+from .inventory_event_integration import (
+    CORE_004_EVENT_PRODUCER,
+    CORE_004_EVENT_SCHEMA_VERSION,
+    InventoryDomainEvent,
+    InventoryDomainEventType,
 )
 
 __all__ = [
     "AvailabilityState",
     "Inventory",
     "InventoryDomainError",
-    "InventoryEvent",
     "InventoryIdentity",
     "InventoryProjectViolation",
     "InventoryTenantViolation",
@@ -41,10 +36,10 @@ __all__ = [
     "LifecycleState",
     "Project",
     "ProjectDomainError",
-    "ProjectEvent",
-    "ProjectLifecycle",
-    "ProjectLocation",
-    "ProjectOperatingMode",
+    "ProjectIdentity",
     "ProjectTenantViolation",
-    "ProjectTransitionError",
+    "CORE_004_EVENT_PRODUCER",
+    "CORE_004_EVENT_SCHEMA_VERSION",
+    "InventoryDomainEvent",
+    "InventoryDomainEventType",
 ]
