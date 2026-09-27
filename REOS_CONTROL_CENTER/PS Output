@@ -1,66 +1,104 @@
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git switch -C reos-development origin/reos-development
-fatal: 'reos-development' is already used by worktree at 'D:/Homio'
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git status --short
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git branch --show-current
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git rev-parse --short HEAD
-8fc578e
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> Set-Location "D:\HOMIO\REOS_CORE3_REMOTE_TEST\REOS_CONTROL_CENTER"
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST\REOS_CONTROL_CENTER> python reos_control_center.py status
-HOMIO / REOS CONTROL CENTER v7.0
-========================================================================
-Phase: PRE-CODING ARCHITECTURE
-Gate: CORE-006
-Task: CORE-006-T06: Implement evidence and audit integration.
-Status: CONTROL_CENTER_DRIVEN
-Subtask: CORE-006-T06
-Gate Status: CURRENT
-Subtasks: 10 Criteria: 6
-Approved: 38 Pending: 1
-State: D:\Homio\REOS_CORE3_REMOTE_TEST\REOS_CONTROL_CENTER\data\state.json
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST\REOS_CONTROL_CENTER> python reos_control_center.py plan
-PLAN VERSION: 1.0
-MODE: AUTONOMOUS_SEQUENCE
-PLAN-001 | ARCH-036 | Business Operating Modes Architecture v1.0 | COMPLETE
-PLAN-002 | ARCH-037 | Database Final Schema Design v1.0 | COMPLETE
-PLAN-003 | ARCH-038 | Technology Stack Lock v1.0 | COMPLETE
-PLAN-004 | ARCH-039 | Master Blueprint v1.0 | COMPLETE
-PLAN-005 | REPO-001 | Repository Architecture & HOMIO Foundation | COMPLETE
-PLAN-006 | ENG-001 | Engineering Foundation | COMPLETE
-PLAN-007 | CORE-001 | Identity & Tenant Foundation | COMPLETE
-PLAN-008 | CORE-002 | Event Bus & Platform Events | COMPLETE
-PLAN-009 | CORE-003 | Lead & Ownership Core | COMPLETE
-PLAN-010 | CORE-004 | Inventory Core | COMPLETE
-PLAN-011 | CORE-005 | Search & Matching Core | COMPLETE
-PLAN-012 | CORE-006 | Deal & Transaction Core | CURRENT
-PLAN-013 | CORE-007 | Trust, Fraud & Governance Core | FUTURE
-PLAN-014 | CORE-008 | Commission & Financial Core | FUTURE
-PLAN-015 | AI-001 | AI Platform & Agents | FUTURE
-PLAN-016 | APP-001 | Buyer / Broker / Builder Applications | FUTURE
-PLAN-017 | REL-001 | Testing, Security & Release Gates | FUTURE
-PLAN-018 | SCALE-001 | Production Scale & International Rollout | FUTURE
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST\REOS_CONTROL_CENTER> python reos_control_center.py gate
-GATE: Deal & Transaction Core
-STATUS: CURRENT
-CURRENT SUBTASK: CORE-006-T06
-SUBTASKS:
-CORE-006-T01 | Implement deal domain and lifecycle | DONE | CRITICAL
-CORE-006-T02 | Implement deal party relationships | DONE | CRITICAL
-CORE-006-T03 | Implement offer and negotiation state | DONE | HIGH
-CORE-006-T04 | Implement booking and transaction milestones | DONE | CRITICAL
-CORE-006-T05 | Implement deal ownership integration | DONE | CRITICAL
-CORE-006-T06 | Implement evidence and audit integration | CURRENT | HIGH
-CORE-006-T07 | Implement transaction event workflows | PENDING | HIGH
-CORE-006-T08 | Run consistency and concurrency tests | PENDING | CRITICAL
-CORE-006-T09 | Run security and authorization review | PENDING | CRITICAL
-CORE-006-T10 | Freeze deal and transaction core | PENDING | CRITICAL
-ACCEPTANCE CRITERIA:
-CORE-006-AC01 | PENDING | Deal state has one authoritative owner.
-CORE-006-AC02 | PENDING | Lead, inventory and ownership relationships are traceable.
-CORE-006-AC03 | PENDING | Critical transaction transitions are auditable.
-CORE-006-AC04 | PENDING | Concurrent updates are safe.
-CORE-006-AC05 | PENDING | Evidence and events preserve historical truth.
-CORE-006-AC06 | PENDING | Authorization and tenant isolation pass.
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short -- REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_acrl_contract.py
+warning: could not open directory 'REOS_CONTROL_CENTER/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/': No such file or directory
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location (git rev-parse --show-toplevel)
+PS D:\Homio> git fetch origin reos-development
+remote: Enumerating objects: 175, done.
+remote: Counting objects: 100% (171/171), done.
+remote: Compressing objects: 100% (166/166), done.
+remote: Total 175 (delta 123), reused 4 (delta 4), pack-reused 4 (from 1)
+Receiving objects: 100% (175/175), 96.51 KiB | 2.30 MiB/s, done.
+Resolving deltas: 100% (123/123), completed with 2 local objects.
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+   8fc578e..0da49ae  reos-development -> origin/reos-development
+Enumerating objects: 8061, done.
+Counting objects: 100% (8061/8061), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (3544/3544), done.
+Writing objects: 100% (8061/8061), done.
+Total 8061 (delta 4515), reused 7795 (delta 4278), pack-reused 0 (from 0)
+Enumerating cruft objects: 180, done.
+Traversing cruft objects: 237, done.
+Counting objects: 100% (180/180), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (141/141), done.
+Writing objects: 100% (180/180), done.
+Total 180 (delta 40), reused 172 (delta 37), pack-reused 0 (from 0)
+PS D:\Homio> git reset -- "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_acrl_contract.py"
+Unstaged changes after reset:
+M       REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/event_contract.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/identity_tenant/test_tenant_isolation.py
+PS D:\Homio>
+PS D:\Homio> $path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_acrl_contract.py"
+PS D:\Homio>
+PS D:\Homio> $content = git show "origin/reos-development:$path" 2>$null
+PS D:\Homio>
+PS D:\Homio> if ([string]::IsNullOrWhiteSpace($content)) {
+>>     throw "Remote Git source is empty or unavailable: $path"
+>> }
+PS D:\Homio>
+PS D:\Homio> $old = @'
+>>                     self.checkpoint.__dict__
+>>                     if self.checkpoint is not None
+>>                     else None
+>> '@
+PS D:\Homio>
+PS D:\Homio> $new = @'
+>>                     _checkpoint_to_dict(
+>>                         self.checkpoint
+>>                     )
+>>                     if self.checkpoint is not None
+>>                     else None
+>> '@
+PS D:\Homio>
+PS D:\Homio> if (-not $content.Contains($old)) {
+>>     throw "T11 target block not found in remote Git source. No change made."
+>> }
+T11 target block not found in remote Git source. No change made.
+At line:2 char:5
++     throw "T11 target block not found in remote Git source. No change ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (T11 target bloc...No change made.:String) [], RuntimeException
+    + FullyQualifiedErrorId : T11 target block not found in remote Git source. No change made.
+
+PS D:\Homio>
+PS D:\Homio> $content = $content.Replace($old, $new)
+PS D:\Homio>
+PS D:\Homio> $bytes = [System.Text.Encoding]::UTF8.GetBytes($content)
+PS D:\Homio>
+PS D:\Homio> $psi = [System.Diagnostics.ProcessStartInfo]::new()
+PS D:\Homio> $psi.FileName = "git.exe"
+PS D:\Homio> $psi.Arguments = "hash-object -w --stdin"
+PS D:\Homio> $psi.UseShellExecute = $false
+PS D:\Homio> $psi.RedirectStandardInput = $true
+PS D:\Homio> $psi.RedirectStandardOutput = $true
+PS D:\Homio> $psi.RedirectStandardError = $true
+PS D:\Homio>
+PS D:\Homio> $process = [System.Diagnostics.Process]::Start($psi)
+PS D:\Homio> $process.StandardInput.BaseStream.Write($bytes, 0, $bytes.Length)
+PS D:\Homio> $process.StandardInput.Close()
+PS D:\Homio>
+PS D:\Homio> $blob = $process.StandardOutput.ReadToEnd().Trim()
+PS D:\Homio> $errorText = $process.StandardError.ReadToEnd()
+PS D:\Homio> $process.WaitForExit()
+PS D:\Homio>
+PS D:\Homio> if ($process.ExitCode -ne 0 -or $blob.Length -ne 40) {
+>>     throw "Git blob creation failed: $errorText"
+>> }
+PS D:\Homio>
+PS D:\Homio> git update-index --add --cacheinfo 100644 $blob $path
+PS D:\Homio>
+PS D:\Homio> if ($LASTEXITCODE -ne 0) {
+>>     throw "Git index update failed."
+>> }
+PS D:\Homio>
+PS D:\Homio> Write-Host "T11 Git edit completed."
+T11 Git edit completed.
+PS D:\Homio> Write-Host "Blob: $blob"
+Blob: fbfee780a96ad697ed657fcddc99014dabcffbad
+PS D:\Homio> git status --short -- "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_acrl_contract.py"
+AM REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_acrl_contract.py
+PS D:\Homio> git diff --cached --stat -- "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_acrl_contract.py"
+fatal: unable to read fbfee780a96ad697ed657fcddc99014dabcffbad
+PS D:\Homio>
