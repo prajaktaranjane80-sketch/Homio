@@ -1,1 +1,0 @@
-﻿from .inventory.project import *
