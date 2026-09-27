@@ -1,45 +1,190 @@
-FIXED: Provenance metadata default
+=== CURRENT STATUS ===
+PS D:\Homio> git status --short
+M  REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
+M  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/identity_tenant/test_tenant_isolation.py
+M  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_event_integration.py
+M  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_provenance.py
+M  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/project.py
+D  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_domain.py
+D  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_project_compatibility.py
 PS D:\Homio>
-PS D:\Homio> # ============================================================
-PS D:\Homio> # 3. HIERARCHY: tenant violation is a validation error subtype
-PS D:\Homio> # ============================================================
-PS D:\Homio>
-PS D:\Homio> Replace-OneExact `
->>     -Path $Hierarchy `
->>     -Old @'
->> class HierarchyTenantViolation(InventoryHierarchyError):
->>     """Raised when hierarchy nodes cross tenant boundaries."""
->> '@ `
->>     -New @'
->> class HierarchyTenantViolation(HierarchyValidationError):
->>     """Raised when hierarchy nodes cross tenant boundaries."""
->> '@ `
->>     -Label "Hierarchy tenant violation inheritance"
-Hierarchy tenant violation inheritance : expected exactly 1 match, found 0 in
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_hierarchy.py
-At line:21 char:9
-+         throw "$Label : expected exactly 1 match, found $count in $Pa ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Hierarchy tenan...ry_hierarchy.py:String) [], RuntimeException
-    + FullyQualifiedErrorId : Hierarchy tenant violation inheritance : expected exactly 1 match, found 0 in D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\c
-   ore\inventory\inventory_hierarchy.py
+PS D:\Homio> Write-Host "`nSOURCE REPAIR COMPLETE. DO NOT COMMIT YET." -ForegroundColor Yellow
 
+SOURCE REPAIR COMPLETE. DO NOT COMMIT YET.
+PS D:\Homio> ```powershell
+`powershell : The term '`powershell' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the
+name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ ```powershell
++ ~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (`powershell:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio> Set-Location -LiteralPath "D:\Homio"
+PS D:\Homio> $ErrorActionPreference = "Stop"
+PS D:\Homio>
+PS D:\Homio> $RepoRoot = (Get-Location).ProviderPath
+PS D:\Homio> $Core = Join-Path $RepoRoot "REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory"
+PS D:\Homio>
+PS D:\Homio> $Project    = Join-Path $Core "project.py"
+PS D:\Homio> $Provenance = Join-Path $Core "inventory_provenance.py"
+PS D:\Homio> $Hierarchy  = Join-Path $Core "inventory_hierarchy.py"
+PS D:\Homio> $Commercial = Join-Path $Core "inventory_commercial_state.py"
+PS D:\Homio> $Security   = Join-Path $Core "inventory_security.py"
+PS D:\Homio> $Contract   = Join-Path $Core "inventory_contract.py"
+PS D:\Homio> $ACRL       = Join-Path $Core "inventory_acrl_contract.py"
+PS D:\Homio> $Events     = Join-Path $Core "inventory_event_integration.py"
+PS D:\Homio>
+PS D:\Homio> function Read-Utf8 {
+>>     param([string]$Path)
+>>     return [System.IO.File]::ReadAllText($Path)
+>> }
+PS D:\Homio>
+PS D:\Homio> function Write-Utf8 {
+>>     param(
+>>         [string]$Path,
+>>         [string]$Content
+>>     )
+>>     [System.IO.File]::WriteAllText(
+>>         $Path,
+>>         $Content,
+>>         (New-Object System.Text.UTF8Encoding($false))
+>>     )
+>> }
+PS D:\Homio>
+PS D:\Homio> function Replace-RegexOnce {
+>>     param(
+>>         [string]$Path,
+>>         [string]$Pattern,
+>>         [string]$Replacement,
+>>         [string]$Label
+>>     )
+>>
+>>     $text = Read-Utf8 $Path
+>>     $matches = [regex]::Matches(
+>>         $text,
+>>         $Pattern,
+>>         [System.Text.RegularExpressions.RegexOptions]::Multiline
+>>     )
+>>
+>>     if ($matches.Count -eq 0) {
+>>         Write-Host "SKIP: $Label (already fixed / pattern absent)" -ForegroundColor Yellow
+>>         return
+>>     }
+>>
+>>     if ($matches.Count -ne 1) {
+>>         throw "$Label : expected 1 match, found $($matches.Count) in $Path"
+>>     }
+>>
+>>     $newText = [regex]::Replace(
+>>         $text,
+>>         $Pattern,
+>>         $Replacement,
+>>         [System.Text.RegularExpressions.RegexOptions]::Multiline,
+>>         1
+>>     )
+>>
+>>     Write-Utf8 $Path $newText
+>>     Write-Host "FIXED: $Label" -ForegroundColor Green
+>> }
+PS D:\Homio>
+PS D:\Homio> function Ensure-Contains {
+>>     param(
+>>         [string]$Path,
+>>         [string]$Pattern,
+>>         [string]$Label
+>>     )
+>>
+>>     $text = Read-Utf8 $Path
+>>
+>>     if (-not [regex]::IsMatch(
+>>         $text,
+>>         $Pattern,
+>>         [System.Text.RegularExpressions.RegexOptions]::Multiline
+>>     )) {
+>>         throw "VERIFY FAILED: $Label missing in $Path"
+>>     }
+>>
+>>     Write-Host "VERIFIED: $Label" -ForegroundColor Green
+>> }
+PS D:\Homio>
+PS D:\Homio> Write-Host "`n=== CORE-004 CRLF-SAFE ROOT-CAUSE REPAIR ===" -ForegroundColor Cyan
+
+=== CORE-004 CRLF-SAFE ROOT-CAUSE REPAIR ===
 PS D:\Homio>
 PS D:\Homio> # ============================================================
-PS D:\Homio> # 4. T07: slots-safe serialization
+PS D:\Homio> # 1. PROJECT metadata default
 PS D:\Homio> # ============================================================
 PS D:\Homio>
-PS D:\Homio> Replace-OneExact `
+PS D:\Homio> $projectText = Read-Utf8 $Project
+PS D:\Homio>
+PS D:\Homio> if ($projectText -match 'metadata:\s*Mapping\[str,\s*Any\]\s*=\s*\(\)') {
+>>
+>>     if ($projectText -notmatch 'from dataclasses import dataclass,\s*field') {
+>>         Replace-RegexOnce `
+>>             -Path $Project `
+>>             -Pattern 'from dataclasses import dataclass\r?\n' `
+>>             -Replacement 'from dataclasses import dataclass, field`r`n' `
+>>             -Label "Project dataclass field import"
+>>     }
+>>
+>>     Replace-RegexOnce `
+>>         -Path $Project `
+>>         -Pattern 'metadata:\s*Mapping\[str,\s*Any\]\s*=\s*\(\)' `
+>>         -Replacement 'metadata: Mapping[str, Any] = field(default_factory=dict)' `
+>>         -Label "Project metadata default"
+>>
+>> } else {
+>>     Write-Host "SKIP: Project metadata default (already corrected)" -ForegroundColor Yellow
+>> }
+SKIP: Project metadata default (already corrected)
+PS D:\Homio>
+PS D:\Homio> # ============================================================
+PS D:\Homio> # 2. PROVENANCE metadata default
+PS D:\Homio> # ============================================================
+PS D:\Homio>
+PS D:\Homio> $provText = Read-Utf8 $Provenance
+PS D:\Homio>
+PS D:\Homio> if ($provText -match 'metadata:\s*Mapping\[str,\s*Any\]\s*=\s*\(\)') {
+>>
+>>     if ($provText -notmatch 'from dataclasses import dataclass,\s*field') {
+>>         Replace-RegexOnce `
+>>             -Path $Provenance `
+>>             -Pattern 'from dataclasses import dataclass\r?\n' `
+>>             -Replacement 'from dataclasses import dataclass, field`r`n' `
+>>             -Label "Provenance dataclass field import"
+>>     }
+>>
+>>     Replace-RegexOnce `
+>>         -Path $Provenance `
+>>         -Pattern 'metadata:\s*Mapping\[str,\s*Any\]\s*=\s*\(\)' `
+>>         -Replacement 'metadata: Mapping[str, Any] = field(default_factory=dict)' `
+>>         -Label "Provenance metadata default"
+>>
+>> } else {
+>>     Write-Host "SKIP: Provenance metadata default (already corrected)" -ForegroundColor Yellow
+>> }
+SKIP: Provenance metadata default (already corrected)
+PS D:\Homio>
+PS D:\Homio> # ============================================================
+PS D:\Homio> # 3. HIERARCHY tenant violation subtype
+PS D:\Homio> # ============================================================
+PS D:\Homio>
+PS D:\Homio> Replace-RegexOnce `
+>>     -Path $Hierarchy `
+>>     -Pattern 'class HierarchyTenantViolation\(InventoryHierarchyError\):' `
+>>     -Replacement 'class HierarchyTenantViolation(HierarchyValidationError):' `
+>>     -Label "Hierarchy tenant violation inheritance"
+FIXED: Hierarchy tenant violation inheritance
+PS D:\Homio>
+PS D:\Homio> # ============================================================
+PS D:\Homio> # 4. T07 slots-safe commercial serialization
+PS D:\Homio> # ============================================================
+PS D:\Homio>
+PS D:\Homio> Replace-RegexOnce `
 >>     -Path $Commercial `
->>     -Old @'
->> "physical": _canonicalize(
->>                 self.physical.__dict__
->>                 if self.physical is not None
->>                 else None
->>             ),
->> '@ `
->>     -New @'
->> "physical": _canonicalize(
+>>     -Pattern '"physical":\s*_canonicalize\(\s*self\.physical\.__dict__\s*if\s*self\.physical\s*is\s*not\s*None\s*else\s*None\s*\),' `
+>>     -Replacement '"physical": _canonicalize(
 >>                 {
 >>                     "area_value": self.physical.area_value,
 >>                     "area_unit": self.physical.area_unit,
@@ -51,29 +196,14 @@ PS D:\Homio> Replace-OneExact `
 >>                 }
 >>                 if self.physical is not None
 >>                 else None
->>             ),
->> '@ `
+>>             ),' `
 >>     -Label "T07 physical serialization"
-T07 physical serialization : expected exactly 1 match, found 0 in D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_commercial_state.py
-At line:21 char:9
-+         throw "$Label : expected exactly 1 match, found $count in $Pa ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (T07 physical se...ercial_state.py:String) [], RuntimeException
-    + FullyQualifiedErrorId : T07 physical serialization : expected exactly 1 match, found 0 in D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventor
-   y\inventory_commercial_state.py
-
+FIXED: T07 physical serialization
 PS D:\Homio>
-PS D:\Homio> Replace-OneExact `
+PS D:\Homio> Replace-RegexOnce `
 >>     -Path $Commercial `
->>     -Old @'
->> "location": _canonicalize(
->>                 self.location.__dict__
->>                 if self.location is not None
->>                 else None
->>             ),
->> '@ `
->>     -New @'
->> "location": _canonicalize(
+>>     -Pattern '"location":\s*_canonicalize\(\s*self\.location\.__dict__\s*if\s*self\.location\s*is\s*not\s*None\s*else\s*None\s*\),' `
+>>     -Replacement '"location": _canonicalize(
 >>                 {
 >>                     "country_code": self.location.country_code,
 >>                     "region": self.location.region,
@@ -86,29 +216,14 @@ PS D:\Homio> Replace-OneExact `
 >>                 }
 >>                 if self.location is not None
 >>                 else None
->>             ),
->> '@ `
+>>             ),' `
 >>     -Label "T07 location serialization"
-T07 location serialization : expected exactly 1 match, found 0 in D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_commercial_state.py
-At line:21 char:9
-+         throw "$Label : expected exactly 1 match, found $count in $Pa ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (T07 location se...ercial_state.py:String) [], RuntimeException
-    + FullyQualifiedErrorId : T07 location serialization : expected exactly 1 match, found 0 in D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventor
-   y\inventory_commercial_state.py
-
+FIXED: T07 location serialization
 PS D:\Homio>
-PS D:\Homio> Replace-OneExact `
+PS D:\Homio> Replace-RegexOnce `
 >>     -Path $Commercial `
->>     -Old @'
->> "pricing": _canonicalize(
->>                 self.pricing.__dict__
->>                 if self.pricing is not None
->>                 else None
->>             ),
->> '@ `
->>     -New @'
->> "pricing": _canonicalize(
+>>     -Pattern '"pricing":\s*_canonicalize\(\s*self\.pricing\.__dict__\s*if\s*self\.pricing\s*is\s*not\s*None\s*else\s*None\s*\),' `
+>>     -Replacement '"pricing": _canonicalize(
 >>                 {
 >>                     "pricing_reference": self.pricing.pricing_reference,
 >>                     "currency": self.pricing.currency,
@@ -118,109 +233,53 @@ PS D:\Homio> Replace-OneExact `
 >>                 }
 >>                 if self.pricing is not None
 >>                 else None
->>             ),
->> '@ `
+>>             ),' `
 >>     -Label "T07 pricing serialization"
-T07 pricing serialization : expected exactly 1 match, found 0 in D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_commercial_state.py
-At line:21 char:9
-+         throw "$Label : expected exactly 1 match, found $count in $Pa ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (T07 pricing ser...ercial_state.py:String) [], RuntimeException
-    + FullyQualifiedErrorId : T07 pricing serialization : expected exactly 1 match, found 0 in D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory
-   \inventory_commercial_state.py
-
+FIXED: T07 pricing serialization
 PS D:\Homio>
 PS D:\Homio> # ============================================================
-PS D:\Homio> # 5. SECURITY: allow expired context construction;
-PS D:\Homio> #    assert_active() owns temporal validity.
+PS D:\Homio> # 5. SECURITY temporal validation
 PS D:\Homio> # ============================================================
 PS D:\Homio>
-PS D:\Homio> Replace-OneExact `
+PS D:\Homio> Replace-RegexOnce `
 >>     -Path $Security `
->>     -Old @'
->>             if (
->>                 self.expires_at
->>                 <= self.issued_at
->>             ):
->>                 raise InventorySecurityContextError(
->>                     "expires_at must be later than issued_at."
->>                 )
->> '@ `
->>     -New "" `
+>>     -Pattern '(?s)if\s*\(\s*self\.expires_at\s*<=\s*self\.issued_at\s*\):\s*raise\s+InventorySecurityContextError\(\s*"expires_at must be later than issued_at\."\s*\)' `
+>>     -Replacement '' `
 >>     -Label "Security expiry constructor guard removal"
-Security expiry constructor guard removal : expected exactly 1 match, found 0 in
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_security.py
-At line:21 char:9
-+         throw "$Label : expected exactly 1 match, found $count in $Pa ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Security expiry...ory_security.py:String) [], RuntimeException
-    + FullyQualifiedErrorId : Security expiry constructor guard removal : expected exactly 1 match, found 0 in D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGIN
-   E\core\inventory\inventory_security.py
-
+FIXED: Security expiry constructor guard removal
 PS D:\Homio>
 PS D:\Homio> # ============================================================
-PS D:\Homio> # 6. CONTRACT: exact public error boundary
+PS D:\Homio> # 6. CONTRACT public error boundaries
 PS D:\Homio> # ============================================================
 PS D:\Homio>
-PS D:\Homio> Replace-OneExact `
+PS D:\Homio> Replace-RegexOnce `
 >>     -Path $Contract `
->>     -Old @'
->>         raise InventoryContractError(
+>>     -Pattern 'raise\s+InventoryContractError\(\s*f"Unknown CORE-004 contract: "\s*f"\{schema_name!r\}"\s*\)' `
+>>     -Replacement 'raise InventorySchemaError(
 >>             f"Unknown CORE-004 contract: "
 >>             f"{schema_name!r}"
->>         )
->> '@ `
->>     -New @'
->>         raise InventorySchemaError(
->>             f"Unknown CORE-004 contract: "
->>             f"{schema_name!r}"
->>         )
->> '@ `
+>>         )' `
 >>     -Label "Unknown contract schema error"
-Unknown contract schema error : expected exactly 1 match, found 0 in D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_contract.py
-At line:21 char:9
-+         throw "$Label : expected exactly 1 match, found $count in $Pa ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Unknown contrac...ory_contract.py:String) [], RuntimeException
-    + FullyQualifiedErrorId : Unknown contract schema error : expected exactly 1 match, found 0 in D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inven
-   tory\inventory_contract.py
-
+FIXED: Unknown contract schema error
 PS D:\Homio>
-PS D:\Homio> Replace-OneExact `
+PS D:\Homio> Replace-RegexOnce `
 >>     -Path $Contract `
->>     -Old @'
->>         raise InventoryContractFingerprintError(
+>>     -Pattern 'raise\s+InventoryContractFingerprintError\(\s*"Contract fingerprint mismatch\."\s*\)' `
+>>     -Replacement 'raise InventorySerializationError(
 >>             "Contract fingerprint mismatch."
->>         )
->> '@ `
->>     -New @'
->>         raise InventorySerializationError(
->>             "Contract fingerprint mismatch."
->>         )
->> '@ `
+>>         )' `
 >>     -Label "Contract fingerprint serialization error"
-Contract fingerprint serialization error : expected exactly 1 match, found 0 in
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_contract.py
-At line:21 char:9
-+         throw "$Label : expected exactly 1 match, found $count in $Pa ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Contract finger...ory_contract.py:String) [], RuntimeException
-    + FullyQualifiedErrorId : Contract fingerprint serialization error : expected exactly 1 match, found 0 in D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE
-   \core\inventory\inventory_contract.py
-
+FIXED: Contract fingerprint serialization error
 PS D:\Homio>
 PS D:\Homio> # ============================================================
-PS D:\Homio> # 7. T11: checkpoint slots serialization
+PS D:\Homio> # 7. T11 checkpoint slots-safe serialization
 PS D:\Homio> # ============================================================
 PS D:\Homio>
-PS D:\Homio> $acrlContent = [System.IO.File]::ReadAllText($ACRL)
+PS D:\Homio> $acrlText = Read-Utf8 $ACRL
 PS D:\Homio>
-PS D:\Homio> if ($acrlContent -notmatch 'def _checkpoint_to_dict\(') {
+PS D:\Homio> if ($acrlText -notmatch 'def _checkpoint_to_dict\(') {
 >>
->>     $marker = @'
->> @dataclass(frozen=True, slots=True)
->> class InventoryACRLIntegrationContract:
->> '@
+>>     $markerPattern = '@dataclass\(frozen=True,\s*slots=True\)\r?\nclass InventoryACRLIntegrationContract:'
 >>
 >>     $helper = @'
 >> def _checkpoint_to_dict(
@@ -237,100 +296,69 @@ PS D:\Homio> if ($acrlContent -notmatch 'def _checkpoint_to_dict\(') {
 >>     }
 >>
 >>
+>> @dataclass(frozen=True, slots=True)
+>> class InventoryACRLIntegrationContract:
 >> '@
 >>
->>     $markerCount = [regex]::Matches(
->>         $acrlContent,
->>         [regex]::Escape($marker)
+>>     $count = [regex]::Matches(
+>>         $acrlText,
+>>         $markerPattern,
+>>         [System.Text.RegularExpressions.RegexOptions]::Multiline
 >>     ).Count
 >>
->>     if ($markerCount -ne 1) {
->>         throw "T11 helper insertion marker expected once, found $markerCount"
+>>     if ($count -ne 1) {
+>>         throw "T11 helper insertion marker expected once, found $count"
 >>     }
 >>
->>     $acrlContent = $acrlContent.Replace(
->>         $marker,
->>         $helper + $marker
+>>     $acrlText = [regex]::Replace(
+>>         $acrlText,
+>>         $markerPattern,
+>>         $helper,
+>>         [System.Text.RegularExpressions.RegexOptions]::Multiline,
+>>         1
 >>     )
 >>
->>     Write-Utf8NoBom `
->>         -Path $ACRL `
->>         -Content $acrlContent
->>
+>>     Write-Utf8 $ACRL $acrlText
 >>     Write-Host "FIXED: T11 checkpoint serializer helper" -ForegroundColor Green
+>> } else {
+>>     Write-Host "SKIP: T11 checkpoint serializer helper (already exists)" -ForegroundColor Yellow
 >> }
+SKIP: T11 checkpoint serializer helper (already exists)
 PS D:\Homio>
-PS D:\Homio> Replace-OneExact `
+PS D:\Homio> Replace-RegexOnce `
 >>     -Path $ACRL `
->>     -Old @'
->> "checkpoint": (
->>                     self.checkpoint.__dict__
->>                     if self.checkpoint is not None
->>                     else None
->>                 ),
->> '@ `
->>     -New @'
->> "checkpoint": (
+>>     -Pattern '"checkpoint":\s*\(\s*self\.checkpoint\.__dict__\s*if\s*self\.checkpoint\s*is\s*not\s*None\s*else\s*None\s*\),' `
+>>     -Replacement '"checkpoint": (
 >>                     _checkpoint_to_dict(
 >>                         self.checkpoint
 >>                     )
 >>                     if self.checkpoint is not None
 >>                     else None
->>                 ),
->> '@ `
+>>                 ),' `
 >>     -Label "T11 checkpoint serialization"
-T11 checkpoint serialization : expected exactly 1 match, found 0 in D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_acrl_contract.py
-At line:21 char:9
-+         throw "$Label : expected exactly 1 match, found $count in $Pa ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (T11 checkpoint ...crl_contract.py:String) [], RuntimeException
-    + FullyQualifiedErrorId : T11 checkpoint serialization : expected exactly 1 match, found 0 in D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\invent
-   ory\inventory_acrl_contract.py
-
+FIXED: T11 checkpoint serialization
 PS D:\Homio>
 PS D:\Homio> # ============================================================
-PS D:\Homio> # 8. ACRL: constructor stores declared contract;
-PS D:\Homio> #    current-state compatibility checked by validate_current_inventory()
+PS D:\Homio> # 8. ACRL reconstruction identity validation belongs to
+PS D:\Homio> #    validate_current_inventory(), not constructor
 PS D:\Homio> # ============================================================
 PS D:\Homio>
-PS D:\Homio> Replace-OneExact `
+PS D:\Homio> Replace-RegexOnce `
 >>     -Path $ACRL `
->>     -Old @'
->>         if (
->>             self.reconstruction.tenant_id
->>             != self.tenant_id
->>             or self.reconstruction.inventory_id
->>             != self.inventory_id
->>         ):
->>             raise InventoryACRLValidationError(
->>                 "Reconstruction identity does not match "
->>                 "integration contract."
->>             )
->>
->> '@ `
->>     -New "" `
+>>     -Pattern '(?s)if\s*\(\s*self\.reconstruction\.tenant_id\s*!=\s*self\.tenant_id\s*or\s*self\.reconstruction\.inventory_id\s*!=\s*self\.inventory_id\s*\):\s*raise\s+InventoryACRLValidationError\(\s*"Reconstruction identity does not match "\s*"integration contract\."\s*\)' `
+>>     -Replacement '' `
 >>     -Label "ACRL deferred identity precondition"
-ACRL deferred identity precondition : expected exactly 1 match, found 0 in
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory_acrl_contract.py
-At line:21 char:9
-+         throw "$Label : expected exactly 1 match, found $count in $Pa ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (ACRL deferred i...crl_contract.py:String) [], RuntimeException
-    + FullyQualifiedErrorId : ACRL deferred identity precondition : expected exactly 1 match, found 0 in D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core
-   \inventory\inventory_acrl_contract.py
-
+FIXED: ACRL deferred identity precondition
 PS D:\Homio>
 PS D:\Homio> # ============================================================
-PS D:\Homio> # 9. T12: canonical CORE-004 producer
+PS D:\Homio> # 9. T12 canonical producer guard
 PS D:\Homio> # ============================================================
 PS D:\Homio>
-PS D:\Homio> $t12Content = [System.IO.File]::ReadAllText($Events)
+PS D:\Homio> $eventText = Read-Utf8 $Events
 PS D:\Homio>
-PS D:\Homio> if ($t12Content -notmatch 'producer must be the canonical CORE-004 producer\.') {
+PS D:\Homio> if ($eventText -notmatch 'producer must be the canonical CORE-004 producer\.') {
 >>
->>     $anchor = @'
->>         if self.causation_id is not None:
->> '@
+>>     $anchorPattern = '^\s*if self\.causation_id is not None:\s*$'
 >>
 >>     $guard = @'
 >>         if self.producer != CORE_004_EVENT_PRODUCER:
@@ -338,96 +366,111 @@ PS D:\Homio> if ($t12Content -notmatch 'producer must be the canonical CORE-004 
 >>                 "producer must be the canonical CORE-004 producer."
 >>             )
 >>
+>>         if self.causation_id is not None:
 >> '@
 >>
->>     $anchorCount = [regex]::Matches(
->>         $t12Content,
->>         [regex]::Escape($anchor)
+>>     $count = [regex]::Matches(
+>>         $eventText,
+>>         $anchorPattern,
+>>         [System.Text.RegularExpressions.RegexOptions]::Multiline
 >>     ).Count
 >>
->>     if ($anchorCount -ne 1) {
->>         throw "T12 anchor expected once, found $anchorCount"
+>>     if ($count -ne 1) {
+>>         throw "T12 anchor expected once, found $count"
 >>     }
 >>
->>     $t12Content = $t12Content.Replace(
->>         $anchor,
->>         $guard + $anchor
+>>     $eventText = [regex]::Replace(
+>>         $eventText,
+>>         $anchorPattern,
+>>         $guard.TrimEnd(),
+>>         [System.Text.RegularExpressions.RegexOptions]::Multiline,
+>>         1
 >>     )
 >>
->>     Write-Utf8NoBom `
->>         -Path $Events `
->>         -Content $t12Content
->>
+>>     Write-Utf8 $Events $eventText
 >>     Write-Host "FIXED: T12 canonical producer guard" -ForegroundColor Green
+>> } else {
+>>     Write-Host "SKIP: T12 canonical producer guard (already exists)" -ForegroundColor Yellow
 >> }
-FIXED: T12 canonical producer guard
+SKIP: T12 canonical producer guard (already exists)
 PS D:\Homio>
 PS D:\Homio> # ============================================================
-PS D:\Homio> # 10. STATIC VERIFY BEFORE TESTING
+PS D:\Homio> # 10. HARD verification — no false PASS
 PS D:\Homio> # ============================================================
 PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== STATIC VERIFICATION ===" -ForegroundColor Cyan
+PS D:\Homio> Write-Host "`n=== HARD SOURCE VERIFICATION ===" -ForegroundColor Cyan
 
-=== STATIC VERIFICATION ===
+=== HARD SOURCE VERIFICATION ===
 PS D:\Homio>
-PS D:\Homio> foreach ($file in @(
->>     $Project,
->>     $Provenance,
->>     $Hierarchy,
->>     $Commercial,
->>     $Security,
->>     $Contract,
->>     $ACRL,
->>     $Events
->> )) {
->>     if (-not (Test-Path -LiteralPath $file -PathType Leaf)) {
->>         throw "Missing production file after repair: $file"
->>     }
+PS D:\Homio> Ensure-Contains `
+>>     -Path $Project `
+>>     -Pattern 'metadata:\s*Mapping\[str,\s*Any\]\s*=\s*field\(default_factory=dict\)' `
+>>     -Label "Project metadata default"
+VERIFIED: Project metadata default
+PS D:\Homio>
+PS D:\Homio> Ensure-Contains `
+>>     -Path $Provenance `
+>>     -Pattern 'metadata:\s*Mapping\[str,\s*Any\]\s*=\s*field\(default_factory=dict\)' `
+>>     -Label "Provenance metadata default"
+VERIFIED: Provenance metadata default
+PS D:\Homio>
+PS D:\Homio> Ensure-Contains `
+>>     -Path $Hierarchy `
+>>     -Pattern 'class HierarchyTenantViolation\(HierarchyValidationError\):' `
+>>     -Label "Hierarchy tenant subtype"
+VERIFIED: Hierarchy tenant subtype
+PS D:\Homio>
+PS D:\Homio> $commercialText = Read-Utf8 $Commercial
+PS D:\Homio> if ($commercialText -match '__dict__') {
+>>     throw "VERIFY FAILED: T07 commercial serialization still contains __dict__"
 >> }
+PS D:\Homio> Write-Host "VERIFIED: T07 commercial serialization has no __dict__" -ForegroundColor Green
+VERIFIED: T07 commercial serialization has no __dict__
 PS D:\Homio>
-PS D:\Homio> $badT07 = Select-String `
->>     -Path $Commercial `
->>     -Pattern "__dict__" `
->>     -SimpleMatch `
->>     -ErrorAction SilentlyContinue
-PS D:\Homio>
-PS D:\Homio> if ($badT07) {
->>     throw "T07 still contains __dict__"
+PS D:\Homio> $securityText = Read-Utf8 $Security
+PS D:\Homio> if ($securityText -match 'expires_at must be later than issued_at') {
+>>     throw "VERIFY FAILED: Security constructor temporal guard still present"
 >> }
-T07 still contains __dict__
-At line:2 char:5
-+     throw "T07 still contains __dict__"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (T07 still contains __dict__:String) [], RuntimeException
-    + FullyQualifiedErrorId : T07 still contains __dict__
-
+PS D:\Homio> Write-Host "VERIFIED: Security constructor temporal guard removed" -ForegroundColor Green
+VERIFIED: Security constructor temporal guard removed
 PS D:\Homio>
-PS D:\Homio> $badT11 = Select-String `
+PS D:\Homio> Ensure-Contains `
+>>     -Path $Contract `
+>>     -Pattern 'raise\s+InventorySchemaError\(\s*f"Unknown CORE-004 contract:' `
+>>     -Label "Unknown contract -> InventorySchemaError"
+VERIFIED: Unknown contract -> InventorySchemaError
+PS D:\Homio>
+PS D:\Homio> Ensure-Contains `
+>>     -Path $Contract `
+>>     -Pattern 'raise\s+InventorySerializationError\(\s*"Contract fingerprint mismatch\."' `
+>>     -Label "Fingerprint mismatch -> InventorySerializationError"
+VERIFIED: Fingerprint mismatch -> InventorySerializationError
+PS D:\Homio>
+PS D:\Homio> $acrlVerify = Read-Utf8 $ACRL
+PS D:\Homio> if ($acrlVerify -match 'self\.checkpoint\.__dict__') {
+>>     throw "VERIFY FAILED: T11 checkpoint __dict__ still present"
+>> }
+PS D:\Homio> Ensure-Contains `
 >>     -Path $ACRL `
->>     -Pattern "self.checkpoint.__dict__" `
->>     -SimpleMatch `
->>     -ErrorAction SilentlyContinue
+>>     -Pattern 'def _checkpoint_to_dict\(' `
+>>     -Label "T11 checkpoint serializer helper"
+VERIFIED: T11 checkpoint serializer helper
 PS D:\Homio>
-PS D:\Homio> if ($badT11) {
->>     throw "T11 still contains checkpoint.__dict__"
+PS D:\Homio> if ($acrlVerify -match 'Reconstruction identity does not match integration contract') {
+>>     throw "VERIFY FAILED: ACRL constructor identity guard still present"
 >> }
-T11 still contains checkpoint.__dict__
-At line:2 char:5
-+     throw "T11 still contains checkpoint.__dict__"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (T11 still contains checkpoint.__dict__:String) [], RuntimeException
-    + FullyQualifiedErrorId : T11 still contains checkpoint.__dict__
-
+PS D:\Homio> Write-Host "VERIFIED: ACRL reconstruction identity deferred" -ForegroundColor Green
+VERIFIED: ACRL reconstruction identity deferred
 PS D:\Homio>
-PS D:\Homio> $guard = Select-String `
+PS D:\Homio> Ensure-Contains `
 >>     -Path $Events `
->>     -Pattern "producer must be the canonical CORE-004 producer." `
->>     -SimpleMatch `
->>     -ErrorAction SilentlyContinue
+>>     -Pattern 'producer must be the canonical CORE-004 producer\.' `
+>>     -Label "T12 canonical producer guard"
+VERIFIED: T12 canonical producer guard
 PS D:\Homio>
-PS D:\Homio> if (-not $guard) {
->>     throw "T12 producer guard was not inserted"
->> }
+PS D:\Homio> # ============================================================
+PS D:\Homio> # 11. COMPILE ONLY AFTER HARD SOURCE VERIFY
+PS D:\Homio> # ============================================================
 PS D:\Homio>
 PS D:\Homio> python -m py_compile `
 >>     $Project `
@@ -443,40 +486,96 @@ PS D:\Homio> if ($LASTEXITCODE -ne 0) {
 >>     throw "CORE-004 production compile FAILED"
 >> }
 PS D:\Homio>
-PS D:\Homio> git diff --check
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_event_integration.py', LF will be replaced by CRLF the next time Git touches it
-PS D:\Homio>
-PS D:\Homio> Write-Host "CORE-004 STATIC + COMPILE = PASS" -ForegroundColor Green
-CORE-004 STATIC + COMPILE = PASS
-PS D:\Homio>
-PS D:\Homio> # ============================================================
-PS D:\Homio> # 11. Stage intended source changes only
-PS D:\Homio> # ============================================================
-PS D:\Homio>
-PS D:\Homio> git add -- `
->>     $Project `
->>     $Provenance `
->>     $Hierarchy `
->>     $Commercial `
->>     $Security `
->>     $Contract `
->>     $ACRL `
->>     $Events
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_event_integration.py', LF will be replaced by CRLF the next time Git touches it
-PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== CURRENT STATUS ===" -ForegroundColor Cyan
+PS D:\Homio> Write-Host "`nCORE-004 SOURCE REPAIR + HARD VERIFY + COMPILE = PASS" -ForegroundColor Green
 
-=== CURRENT STATUS ===
+CORE-004 SOURCE REPAIR + HARD VERIFY + COMPILE = PASS
+PS D:\Homio>
+PS D:\Homio> # Do not touch unrelated modified files.
+PS D:\Homio> git diff --check
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_acrl_contract.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_commercial_state.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_contract.py', LF will be replaced by CRLF the next time Git touches it
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_acrl_contract.py:443: trailing whitespace.
++
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_security.py:226: trailing whitespace.
++
+PS D:\Homio>
+PS D:\Homio> Write-Host "`n=== STATUS ===" -ForegroundColor Cyan
+
+=== STATUS ===
 PS D:\Homio> git status --short
 M  REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
 M  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/identity_tenant/test_tenant_isolation.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_acrl_contract.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_commercial_state.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_contract.py
 M  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_event_integration.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_hierarchy.py
 M  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_provenance.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/inventory_security.py
 M  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/project.py
 D  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_inventory_domain.py
 D  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/inventory/test_project_compatibility.py
-PS D:\Homio>
-PS D:\Homio> Write-Host "`nSOURCE REPAIR COMPLETE. DO NOT COMMIT YET." -ForegroundColor Yellow
+PS D:\Homio> ```
+`` : The term '``' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was
+included, verify that the path is correct and try again.
+At line:1 char:1
++ ```
++ ~~~
+    + CategoryInfo          : ObjectNotFound: (``:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
 
-SOURCE REPAIR COMPLETE. DO NOT COMMIT YET.
 PS D:\Homio>
+PS D:\Homio> **Is block ka important difference:** `expected exactly 0` par silently आगे नहीं जाएगा. Har source fix ke baad hard verification hai, isliye pichhle jaisa false `STATIC + COMPILE = PASS` nahi milega.
+**Is : The term '**Is' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path
+was included, verify that the path is correct and try again.
+At line:1 char:1
++ **Is block ka important difference:** `expected exactly 0` par silent ...
++ ~~~~
+    + CategoryInfo          : ObjectNotFound: (**Is:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> Iske baad, **sirf agar last line `CORE-004 SOURCE REPAIR + HARD VERIFY + COMPILE = PASS` aaye**, ye targeted regression chalao:
+Iske : The term 'Iske' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path
+was included, verify that the path is correct and try again.
+At line:1 char:1
++ Iske baad, **sirf agar last line `CORE-004 SOURCE REPAIR + HARD VERIF ...
++ ~~~~
+    + CategoryInfo          : ObjectNotFound: (Iske:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> ```powershell
+`powershell : The term '`powershell' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the
+name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ ```powershell
++ ~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (`powershell:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio> python -m pytest `
+>>   "D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_adversarial.py" `
+>>   "D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\test_core_004_contract_matrix.py" `
+>>   -q
+.............................................................                                                                                        [100%]
+61 passed in 0.27s
+PS D:\Homio> ```
+`` : The term '``' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was
+included, verify that the path is correct and try again.
+At line:1 char:1
++ ```
++ ~~~
+    + CategoryInfo          : ObjectNotFound: (``:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio>
+PS D:\Homio> Mujhe abhi **commit mat karna**. Pehle actual pytest result dekhna hai; wahi next repair ko exact banayega.
+Mujhe : The term 'Mujhe' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a
+path was included, verify that the path is correct and try again.
+At line:1 char:1
++ Mujhe abhi **commit mat karna**. Pehle actual pytest result dekhna ha ...
++ ~~~~~
+    + CategoryInfo          : ObjectNotFound: (Mujhe:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
