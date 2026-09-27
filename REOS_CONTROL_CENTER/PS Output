@@ -4,121 +4,159 @@ PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> Set-Location "D:\Homio"
 PS D:\Homio>
-PS D:\Homio> $root = "D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE"
-PS D:\Homio> $search = "$root\core\search_matching"
+PS D:\Homio> $search   = "D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching"
 PS D:\Homio> $contract = "$search\search_index_contract.py"
 PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 1. MOVE ANY CORE-005 BACKUP OUTSIDE TEST TREE ===" -ForegroundColor Cyan
+PS D:\Homio> Write-Host "`n=== 1. REPAIR SEARCH INDEX OPERATION ORDER ===" -ForegroundColor Cyan
 
-=== 1. MOVE ANY CORE-005 BACKUP OUTSIDE TEST TREE ===
-PS D:\Homio>
-PS D:\Homio> $backupRoot = "$root\_BACKUPS"
-PS D:\Homio> New-Item -ItemType Directory -Force -Path $backupRoot | Out-Null
-PS D:\Homio>
-PS D:\Homio> Get-ChildItem $search -Directory -Force |
->>     Where-Object { $_.Name -match "^(?:_|.*BACKUP|.*REPAIR|.*pre_core005)" } |
->>     ForEach-Object {
->>         $destination = Join-Path $backupRoot $_.Name
->>
->>         if (Test-Path $destination) {
->>             $destination = Join-Path `
->>                 $backupRoot `
->>                 ("{0}_{1}" -f $_.Name, (Get-Date -Format "yyyyMMdd_HHmmss"))
->>         }
->>
->>         Move-Item -Path $_.FullName -Destination $destination
->>         Write-Host "Moved: $($_.Name)"
->>     }
-Moved: __pycache__
-PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 2. FIX SEARCHINDEXOPERATION / INVENTORYINDEXOPERATION API NAME ===" -ForegroundColor Cyan
-
-=== 2. FIX SEARCHINDEXOPERATION / INVENTORYINDEXOPERATION API NAME ===
+=== 1. REPAIR SEARCH INDEX OPERATION ORDER ===
 PS D:\Homio>
 PS D:\Homio> $text = Get-Content $contract -Raw
 PS D:\Homio>
-PS D:\Homio> if ($text -notmatch "SearchIndexOperation") {
->>     throw "SearchIndexOperation was not found in search_index_contract.py. Do not patch blindly."
->> }
+PS D:\Homio> # Remove the misplaced compatibility block created by the previous repair.
+PS D:\Homio> $text = [regex]::Replace(
+>>     $text,
+>>     '(?ms)\r?\n?# Compatibility name used by the runtime Qdrant adapter\.\r?\n# This is an alias to the canonical search-index operation enum,\r?\n# not a second operation model\.\r?\nInventoryIndexOperation\s*=\s*SearchIndexOperation\r?\n',
+>>     "`r`n"
+>> )
 PS D:\Homio>
-PS D:\Homio> if ($text -notmatch "InventoryIndexOperation\s*=") {
->>
->>     $pattern = '(?m)^class SearchIndexOperation\b'
->>
->>     if ($text -notmatch $pattern) {
->>         throw "SearchIndexOperation class declaration not found."
+PS D:\Homio> # Remove any remaining standalone alias so we can insert exactly one.
+PS D:\Homio> $text = [regex]::Replace(
+>>     $text,
+>>     '(?m)^\s*InventoryIndexOperation\s*=\s*SearchIndexOperation\s*\r?$',
+>>     ''
+>> )
+PS D:\Homio>
+PS D:\Homio> $lines = [System.Collections.Generic.List[string]](
+>>     [System.IO.File]::ReadAllLines($contract)
+>> )
+PS D:\Homio>
+PS D:\Homio> $classIndex = -1
+PS D:\Homio>
+PS D:\Homio> for ($i = 0; $i -lt $lines.Count; $i++) {
+>>     if ($lines[$i] -match '^class SearchIndexOperation\b') {
+>>         $classIndex = $i
+>>         break
 >>     }
->>
->>     $alias = @'
->>
->> # Compatibility name used by the runtime Qdrant adapter.
->> # This is an alias to the canonical search-index operation enum,
->> # not a second operation model.
->> InventoryIndexOperation = SearchIndexOperation
->>
->> '@
->>
->>     $text = $text -replace $pattern, ($alias + 'class SearchIndexOperation')
->>     Set-Content -Path $contract -Value $text -Encoding UTF8
->>
->>     Write-Host "Added InventoryIndexOperation alias."
->> }
-PS D:\Homio> else {
->>     Write-Host "InventoryIndexOperation alias already exists."
->> }
-else : The term 'else' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path
-was included, verify that the path is correct and try again.
-At line:1 char:1
-+ else {
-+ ~~~~
-    + CategoryInfo          : ObjectNotFound: (else:String) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : CommandNotFoundException
-
-PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 3. VERIFY OPERATION API ===" -ForegroundColor Cyan
-
-=== 3. VERIFY OPERATION API ===
-PS D:\Homio>
-PS D:\Homio> $check = Get-Content $contract -Raw
-PS D:\Homio>
-PS D:\Homio> if ($check -notmatch "class SearchIndexOperation\b") {
->>     throw "Canonical SearchIndexOperation missing."
 >> }
 PS D:\Homio>
-PS D:\Homio> if ($check -notmatch "InventoryIndexOperation\s*=\s*SearchIndexOperation") {
->>     throw "InventoryIndexOperation compatibility alias missing."
+PS D:\Homio> if ($classIndex -lt 0) {
+>>     throw "class SearchIndexOperation not found."
 >> }
 PS D:\Homio>
-PS D:\Homio> Write-Host "Operation API PASS."
-Operation API PASS.
+PS D:\Homio> # Find the next top-level declaration after the enum.
+PS D:\Homio> $insertIndex = -1
 PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 4. CLEAN EOF DIFF ISSUE ===" -ForegroundColor Cyan
-
-=== 4. CLEAN EOF DIFF ISSUE ===
-PS D:\Homio>
-PS D:\Homio> $tenantTest = "$root\core\identity_tenant\test_tenant_isolation.py"
-PS D:\Homio>
-PS D:\Homio> $lines = [System.IO.File]::ReadAllLines($tenantTest)
-PS D:\Homio>
-PS D:\Homio> while (
->>     $lines.Length -gt 0 -and
->>     [string]::IsNullOrWhiteSpace($lines[$lines.Length - 1])
->> ) {
->>     $lines = $lines[0..($lines.Length - 2)]
+PS D:\Homio> for ($i = $classIndex + 1; $i -lt $lines.Count; $i++) {
+>>     $line = $lines[$i]
+>>
+>>     if (
+>>         $line.Length -gt 0 -and
+>>         $line[0] -ne ' ' -and
+>>         $line[0] -ne "`t" -and
+>>         (
+>>             $line -match '^class ' -or
+>>             $line -match '^@dataclass' -or
+>>             $line -match '^def ' -or
+>>             $line -match '^__all__'
+>>         )
+>>     ) {
+>>         $insertIndex = $i
+>>         break
+>>     }
 >> }
 PS D:\Homio>
-PS D:\Homio> [System.IO.File]::WriteAllText(
->>     $tenantTest,
->>     (($lines -join [Environment]::NewLine) + [Environment]::NewLine),
+PS D:\Homio> if ($insertIndex -lt 0) {
+>>     $insertIndex = $lines.Count
+>> }
+PS D:\Homio>
+PS D:\Homio> $aliasBlock = @(
+>>     "",
+>>     "# Compatibility name used by the runtime Qdrant adapter.",
+>>     "# Alias only; this does not create a second operation contract.",
+>>     "InventoryIndexOperation = SearchIndexOperation",
+>>     ""
+>> )
+PS D:\Homio>
+PS D:\Homio> for ($j = $aliasBlock.Count - 1; $j -ge 0; $j--) {
+>>     $lines.Insert($insertIndex, $aliasBlock[$j])
+>> }
+PS D:\Homio>
+PS D:\Homio> [System.IO.File]::WriteAllLines(
+>>     $contract,
+>>     $lines,
 >>     [System.Text.UTF8Encoding]::new($false)
 >> )
 PS D:\Homio>
-PS D:\Homio> Write-Host "EOF whitespace cleaned."
-EOF whitespace cleaned.
+PS D:\Homio> Write-Host "Alias moved after SearchIndexOperation definition."
+Alias moved after SearchIndexOperation definition.
 PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 5. COMPILE ===" -ForegroundColor Cyan
+PS D:\Homio> Write-Host "`n=== 2. VERIFY EXACT API ORDER ===" -ForegroundColor Cyan
 
-=== 5. COMPILE ===
+=== 2. VERIFY EXACT API ORDER ===
+PS D:\Homio>
+PS D:\Homio> $checkLines = [System.IO.File]::ReadAllLines($contract)
+PS D:\Homio>
+PS D:\Homio> $classIndex = -1
+PS D:\Homio> $aliasIndex = -1
+PS D:\Homio> $aliasCount = 0
+PS D:\Homio>
+PS D:\Homio> for ($i = 0; $i -lt $checkLines.Length; $i++) {
+>>     if ($checkLines[$i] -match '^class SearchIndexOperation\b') {
+>>         $classIndex = $i
+>>     }
+>>
+>>     if ($checkLines[$i] -match '^\s*InventoryIndexOperation\s*=\s*SearchIndexOperation\s*$') {
+>>         $aliasIndex = $i
+>>         $aliasCount++
+>>     }
+>> }
+PS D:\Homio>
+PS D:\Homio> if ($classIndex -lt 0) {
+>>     throw "SearchIndexOperation definition missing."
+>> }
+PS D:\Homio>
+PS D:\Homio> if ($aliasCount -ne 1) {
+>>     throw "Expected exactly one InventoryIndexOperation alias; found $aliasCount."
+>> }
+Expected exactly one InventoryIndexOperation alias; found 2.
+At line:2 char:5
++     throw "Expected exactly one InventoryIndexOperation alias; found  ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Expected exactl...alias; found 2.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Expected exactly one InventoryIndexOperation alias; found 2.
+
+PS D:\Homio>
+PS D:\Homio> if ($aliasIndex -le $classIndex) {
+>>     throw "InventoryIndexOperation alias is still before SearchIndexOperation."
+>> }
+PS D:\Homio>
+PS D:\Homio> Write-Host "Definition order PASS."
+Definition order PASS.
+PS D:\Homio>
+PS D:\Homio> Write-Host "`n=== 3. DIRECT IMPORT CONTRACT TEST ===" -ForegroundColor Cyan
+
+=== 3. DIRECT IMPORT CONTRACT TEST ===
+PS D:\Homio>
+PS D:\Homio> python -c "from AUTONOMY_ENGINE.core.search_matching.search_index_contract import SearchIndexOperation, InventoryIndexOperation; assert InventoryIndexOperation is SearchIndexOperation; assert {x.value for x in SearchIndexOperation} == {'UPSERT','DELETE'}; print('SEARCH INDEX OPERATION IMPORT PASS')"
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+ModuleNotFoundError: No module named 'AUTONOMY_ENGINE'
+PS D:\Homio>
+PS D:\Homio> if ($LASTEXITCODE -ne 0) {
+>>     throw "Search index operation import test failed."
+>> }
+Search index operation import test failed.
+At line:2 char:5
++     throw "Search index operation import test failed."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Search index op...rt test failed.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Search index operation import test failed.
+
+PS D:\Homio>
+PS D:\Homio> Write-Host "`n=== 4. COMPILE ===" -ForegroundColor Cyan
+
+=== 4. COMPILE ===
 PS D:\Homio>
 PS D:\Homio> python -m compileall -q $search
 PS D:\Homio>
@@ -129,9 +167,9 @@ PS D:\Homio>
 PS D:\Homio> Write-Host "Compile PASS."
 Compile PASS.
 PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 6. COLLECTION ===" -ForegroundColor Cyan
+PS D:\Homio> Write-Host "`n=== 5. COLLECTION ===" -ForegroundColor Cyan
 
-=== 6. COLLECTION ===
+=== 5. COLLECTION ===
 PS D:\Homio>
 PS D:\Homio> python -m pytest $search --collect-only -q
 
@@ -226,7 +264,7 @@ ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranki
 ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py - NameError: name 'SearchIndexOperation' is not defined
 ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py - NameError: name 'SearchIndexOperation' is not defined
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 9 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-no tests collected, 9 errors in 2.34s
+no tests collected, 9 errors in 2.09s
 PS D:\Homio>
 PS D:\Homio> if ($LASTEXITCODE -ne 0) {
 >>     throw "CORE-005 collection failed."
@@ -239,9 +277,9 @@ At line:2 char:5
     + FullyQualifiedErrorId : CORE-005 collection failed.
 
 PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 7. FULL CORE-005 TEST ===" -ForegroundColor Cyan
+PS D:\Homio> Write-Host "`n=== 6. FULL CORE-005 TEST ===" -ForegroundColor Cyan
 
-=== 7. FULL CORE-005 TEST ===
+=== 6. FULL CORE-005 TEST ===
 PS D:\Homio>
 PS D:\Homio> python -m pytest $search -q
 
@@ -336,7 +374,7 @@ ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranki
 ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py - NameError: name 'SearchIndexOperation' is not defined
 ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py - NameError: name 'SearchIndexOperation' is not defined
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 9 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-9 errors in 2.18s
+9 errors in 1.96s
 PS D:\Homio>
 PS D:\Homio> if ($LASTEXITCODE -ne 0) {
 >>     throw "CORE-005 full test failed."
@@ -349,9 +387,9 @@ At line:2 char:5
     + FullyQualifiedErrorId : CORE-005 full test failed.
 
 PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 8. DIFF CHECK ===" -ForegroundColor Cyan
+PS D:\Homio> Write-Host "`n=== 7. DIFF CHECK ===" -ForegroundColor Cyan
 
-=== 8. DIFF CHECK ===
+=== 7. DIFF CHECK ===
 PS D:\Homio>
 PS D:\Homio> git diff --check
 warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py', LF will be replaced by CRLF the next time Git touches it
@@ -365,9 +403,9 @@ PS D:\Homio> if ($LASTEXITCODE -ne 0) {
 >>     throw "git diff --check failed."
 >> }
 PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== 9. CORE-005 STATUS ===" -ForegroundColor Cyan
+PS D:\Homio> Write-Host "`n=== 8. FINAL STATUS ===" -ForegroundColor Cyan
 
-=== 9. CORE-005 STATUS ===
+=== 8. FINAL STATUS ===
 PS D:\Homio>
 PS D:\Homio> git status --short
  M REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
@@ -389,6 +427,6 @@ PS D:\Homio> git status --short
 ?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/_BACKUPS/
 ?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_index_contract.py
 PS D:\Homio>
-PS D:\Homio> Write-Host "`nCORE-005 REGRESSION GATE = PASS" -ForegroundColor Green
+PS D:\Homio> Write-Host "`nCORE-005 ACTUAL REGRESSION GATE = PASS" -ForegroundColor Green
 
-CORE-005 REGRESSION GATE = PASS
+CORE-005 ACTUAL REGRESSION GATE = PASS
