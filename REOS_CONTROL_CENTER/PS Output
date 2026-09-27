@@ -1,10 +1,24 @@
-match karana delet karane se jyada muskil ho raha hai
+fix nahi kar pa rahe ho tum
 
-=== CORE-005 COLLECTION ===
+
+PS D:\Homio> Write-Host "`n=== 5. COMPILE ===" -ForegroundColor Cyan
+
+=== 5. COMPILE ===
 PS D:\Homio>
-PS D:\Homio> python -m pytest `
->>     "D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching" `
->>     --collect-only -q
+PS D:\Homio> python -m compileall -q $search
+PS D:\Homio>
+PS D:\Homio> if ($LASTEXITCODE -ne 0) {
+>>     throw "CORE-005 compile failed."
+>> }
+PS D:\Homio>
+PS D:\Homio> Write-Host "Compile PASS."
+Compile PASS.
+PS D:\Homio>
+PS D:\Homio> Write-Host "`n=== 6. COLLECTION ===" -ForegroundColor Cyan
+
+=== 6. COLLECTION ===
+PS D:\Homio>
+PS D:\Homio> python -m pytest $search --collect-only -q
 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_valid_geo_point
 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_invalid_geo_point_rejected[91.0-73.8567]
 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py::test_invalid_geo_point_rejected[-91.0-73.8567]
@@ -42,6 +56,18 @@ REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_
 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_tenant_is_required
 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_input_candidates_are_not_mutated
 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py::test_result_preserves_downstream_inventory_identity
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_tenant_scope_is_mandatory
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_tenant_isolation_is_always_enforced
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_project_filter
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_inventory_type_filter
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_availability_filter
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_lifecycle_filter
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_inventory_code_filter
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_name_contains_is_case_insensitive
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_multiple_filters_are_combined
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_empty_filter_returns_only_tenant_records
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_result_order_is_deterministic
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py::test_filter_does_not_mutate_documents
 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_rank_orders_by_score
 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_lexical_signal_contributes_to_ranking
 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py::test_vector_signal_contributes_to_ranking
@@ -98,56 +124,6 @@ REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.
 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py::test_decision_exposes_all_boundary_dimensions
 
 ========================================================================= ERRORS ==========================================================================
-_________ ERROR collecting REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_hybrid_retrieval.py _________
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_hybrid_retrieval.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_hybrid_retrieval.py:7: in <module>
-    from AUTONOMY_ENGINE.core.search_matching.hybrid_retrieval import (
-E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE'
-_________ ERROR collecting REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_location_search.py __________
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_location_search.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_location_search.py:5: in <module>
-    from AUTONOMY_ENGINE.core.inventory.inventory import (
-E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE'
-_________ ERROR collecting REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_qdrant_indexing.py __________
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_qdrant_indexing.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_qdrant_indexing.py:7: in <module>
-    from AUTONOMY_ENGINE.core.inventory.inventory import (
-E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE'
-_________ ERROR collecting REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_search_core_t09.py __________
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_search_core_t09.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_search_core_t09.py:9: in <module>
-    from AUTONOMY_ENGINE.core.search_matching.hybrid_retrieval import (
-E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE'
-__________ ERROR collecting REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_search_rebuild.py __________
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_search_rebuild.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_search_rebuild.py:5: in <module>
-    from AUTONOMY_ENGINE.core.inventory.inventory import Inventory, InventoryType
-E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE'
 ___________________________ ERROR collecting REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py ____________________________
 ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py'.
 Hint: make sure your test modules/packages have valid Python names.
@@ -184,99 +160,31 @@ REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_core_t09.py
 REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\qdrant_indexing.py:10: in <module>
     from .search_index_contract import (
 E   ImportError: cannot import name 'InventoryIndexOperation' from 'AUTONOMY_ENGINE.core.search_matching.search_index_contract' (D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\search_index_contract.py)
-____________________________ ERROR collecting REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py _____________________________
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:5: in <module>
-    from AUTONOMY_ENGINE.core.inventory.inventory import (
-E   ImportError: cannot import name 'InventoryAvailability' from 'AUTONOMY_ENGINE.core.inventory.inventory' (D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py)
 ================================================================= short test summary info =================================================================
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_hybrid_retrieval.py
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_location_search.py
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_qdrant_indexing.py
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_search_core_t09.py
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_search_rebuild.py
 ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py
 ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py
 ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 9 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-91 tests collected, 9 errors in 2.26s
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+103 tests collected, 3 errors in 2.00s
 PS D:\Homio>
 PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw "CORE-005 test collection still fails."
+>>     throw "CORE-005 collection failed."
 >> }
-CORE-005 test collection still fails.
+CORE-005 collection failed.
 At line:2 char:5
-+     throw "CORE-005 test collection still fails."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (CORE-005 test collection still fails.:String) [], RuntimeException
-    + FullyQualifiedErrorId : CORE-005 test collection still fails.
++     throw "CORE-005 collection failed."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (CORE-005 collection failed.:String) [], RuntimeException
+    + FullyQualifiedErrorId : CORE-005 collection failed.
 
 PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== CORE-005 FULL TEST ===" -ForegroundColor Cyan
+PS D:\Homio> Write-Host "`n=== 7. FULL CORE-005 TEST ===" -ForegroundColor Cyan
 
-=== CORE-005 FULL TEST ===
+=== 7. FULL CORE-005 TEST ===
 PS D:\Homio>
-PS D:\Homio> python -m pytest `
->>     "D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching" `
->>     -q
+PS D:\Homio> python -m pytest $search -q
 
 ========================================================================= ERRORS ==========================================================================
-_________ ERROR collecting REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_hybrid_retrieval.py _________
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_hybrid_retrieval.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_hybrid_retrieval.py:7: in <module>
-    from AUTONOMY_ENGINE.core.search_matching.hybrid_retrieval import (
-E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE'
-_________ ERROR collecting REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_location_search.py __________
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_location_search.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_location_search.py:5: in <module>
-    from AUTONOMY_ENGINE.core.inventory.inventory import (
-E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE'
-_________ ERROR collecting REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_qdrant_indexing.py __________
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_qdrant_indexing.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_qdrant_indexing.py:7: in <module>
-    from AUTONOMY_ENGINE.core.inventory.inventory import (
-E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE'
-_________ ERROR collecting REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_search_core_t09.py __________
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_search_core_t09.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_search_core_t09.py:9: in <module>
-    from AUTONOMY_ENGINE.core.search_matching.hybrid_retrieval import (
-E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE'
-__________ ERROR collecting REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_search_rebuild.py __________
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_search_rebuild.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328\test_search_rebuild.py:5: in <module>
-    from AUTONOMY_ENGINE.core.inventory.inventory import Inventory, InventoryType
-E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE'
 ___________________________ ERROR collecting REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py ____________________________
 ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_hybrid_retrieval.py'.
 Hint: make sure your test modules/packages have valid Python names.
@@ -313,49 +221,34 @@ REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_core_t09.py
 REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\qdrant_indexing.py:10: in <module>
     from .search_index_contract import (
 E   ImportError: cannot import name 'InventoryIndexOperation' from 'AUTONOMY_ENGINE.core.search_matching.search_index_contract' (D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\search_index_contract.py)
-____________________________ ERROR collecting REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py _____________________________
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py:5: in <module>
-    from AUTONOMY_ENGINE.core.inventory.inventory import (
-E   ImportError: cannot import name 'InventoryAvailability' from 'AUTONOMY_ENGINE.core.inventory.inventory' (D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\inventory\inventory.py)
 ================================================================= short test summary info =================================================================
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_hybrid_retrieval.py
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_location_search.py
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_qdrant_indexing.py
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_search_core_t09.py
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_CORE005_TEST_REPAIR_20260927_204328/test_search_rebuild.py
 ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py
 ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py
 ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py
-ERROR REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 9 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-9 errors in 1.90s
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+3 errors in 1.86s
 PS D:\Homio>
 PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw "CORE-005 tests failed."
+>>     throw "CORE-005 full test failed."
 >> }
-CORE-005 tests failed.
+CORE-005 full test failed.
 At line:2 char:5
-+     throw "CORE-005 tests failed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (CORE-005 tests failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : CORE-005 tests failed.
++     throw "CORE-005 full test failed."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (CORE-005 full test failed.:String) [], RuntimeException
+    + FullyQualifiedErrorId : CORE-005 full test failed.
 
 PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== DIFF CHECK ===" -ForegroundColor Cyan
+PS D:\Homio> Write-Host "`n=== 8. DIFF CHECK ===" -ForegroundColor Cyan
 
-=== DIFF CHECK ===
+=== 8. DIFF CHECK ===
 PS D:\Homio>
 PS D:\Homio> git diff --check
 warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py', LF will be replaced by CRLF the next time Git touches it
 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/identity_tenant/test_tenant_isolation.py:324: new blank line at EOF.
 PS D:\Homio>
@@ -370,9 +263,27 @@ At line:2 char:5
     + FullyQualifiedErrorId : git diff --check failed.
 
 PS D:\Homio>
-PS D:\Homio> Write-Host "`nCORE-005 REPAIR + REGRESSION PASS" -ForegroundColor Green
+PS D:\Homio> Write-Host "`n=== CORE-005 CURRENT REPAIR VERIFICATION COMPLETE ===" -ForegroundColor Green
 
-CORE-005 REPAIR + REGRESSION PASS
-PS D:\Homio> Write-Host "Backup: $backup" -ForegroundColor DarkGray
-Backup: D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\_CORE005_TEST_REPAIR_20260927_204328
+=== CORE-005 CURRENT REPAIR VERIFICATION COMPLETE ===
+PS D:\Homio> git status --short
+ M REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/identity_tenant/test_tenant_isolation.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/hybrid_retrieval.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/location_search.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/matching.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_ranking.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_rebuild.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_visibility.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py
+?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/_BACKUPS/
+?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/_pre_core005_repair_20260927_203740/
+?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_index_contract.py
 PS D:\Homio>
