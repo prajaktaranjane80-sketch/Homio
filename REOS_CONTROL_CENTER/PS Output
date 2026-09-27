@@ -1,132 +1,3 @@
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $path = "REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py"
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $lines = [System.IO.File]::ReadAllLines((Resolve-Path $path))
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $matches = @(
->>     for ($i = 0; $i -lt $lines.Count; $i++) {
->>         if ($lines[$i] -match '^\s*@classmethod\s*$') {
->>             $i
->>         }
->>     }
->> )
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> if ($matches.Count -ne 1) {
->>     throw "Expected exactly 1 @classmethod, found $($matches.Count)."
->> }
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $index = $matches[0]
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> Write-Host "Found @classmethod at line $($index + 1)" -ForegroundColor Yellow
-Found @classmethod at line 160
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> Write-Host "Before: [$($lines[$index])]" -ForegroundColor Yellow
-Before: [        @classmethod]
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $lines[$index] = "    @classmethod"
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> [System.IO.File]::WriteAllLines(
->>     (Resolve-Path $path),
->>     $lines,
->>     [System.Text.UTF8Encoding]::new($false)
->> )
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> Write-Host "T05 @classmethod indentation corrected." -ForegroundColor Green
-T05 @classmethod indentation corrected.
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> python -m py_compile REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $lines = Get-Content "REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py"
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> for ($i = 154; $i -le 164; $i++) {
->>     "{0}: [{1}]" -f ($i + 1), $lines[$i]
->> }
-155: [                    self.transfer_reference,]
-156: [                    "transfer_reference",]
-157: [                ),]
-158: [            )]
-159: []
-160: [    @classmethod]
-161: [    def create(]
-162: [        cls,]
-163: [        *,]
-164: [        lead_id: UUID,]
-165: [        tenant_id: UUID,]
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> python -m pytest REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership --collect-only -q
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py::test_lead_is_immutable
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py::test_archived_lead_cannot_transition
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py::test_cross_tenant_lead_access_is_blocked
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py::test_contract_rejects_unknown_fields
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py::test_attribution_cross_tenant_is_blocked
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py::test_ownership_stale_revision_is_blocked
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py::test_ownership_cross_tenant_is_blocked
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py::test_transfer_cannot_keep_same_owner
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py::test_communication_duplicate_identity_conflict
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py::test_fraud_handoff_same_idempotency_conflict
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py::test_consistency_snapshot_blocks_changed_revision
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py::test_security_context_fails_without_capability
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py::test_security_context_blocks_cross_tenant
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py::test_security_context_expiration_is_enforced
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py::test_acrl_contract_rejects_wrong_tenant_snapshot
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py::test_event_payload_is_immutable
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_adversarial.py::test_event_identity_conflict_is_detected
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_event_identity_is_tenant_lead_idempotency_scoped
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_event_rejects_invalid_event_type
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_event_is_immutable
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_lead_tenant_isolation
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_ownership_tenant_isolation
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_attribution_tenant_isolation
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_event_tenant_isolation
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_acrl_contract_tenant_isolation
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_lead_fingerprint_is_deterministic
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_event_fingerprint_changes_when_payload_changes
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_event_serialization_is_canonical
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_default_lead_contract_is_available_and_immutable
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_lead_contract_accepts_valid_domain_payload
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_lead_contract_rejects_missing_required_field
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_unknown_lead_field_fails_closed
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_invalid_schema_version_fails_closed
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_duplicate_required_fields_fail_closed
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_stale_lead_revision_is_rejected
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_future_domain_event_timestamp_is_preserved_without_local_ordering_engine
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_invalid_uuid_is_rejected_deterministically
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_unsupported_metadata_type_fails_without_coercion
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_core_003_event_contract_has_no_transport_registry
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_core_003_event_serialization_is_pure
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_replay_like_operation_requires_capability
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_expired_security_context_is_rejected
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_same_handoff_identity_with_different_payload_fails_closed
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_same_event_identity_with_conflicting_payload_fails_closed
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_core_003_does_not_expose_delivery_operation
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_core_002_payload_is_only_a_contract_projection
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_core_003_does_not_expose_transaction_engine
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_core_003_does_not_expose_outbox_engine
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_communication_evidence_reference_is_preserved
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_acrl_evidence_references_are_preserved
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_reos_integration_contract_validates_current_domain
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_acrl_contract_rejects_stale_domain_revision
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_acrl_contract_fails_closed_on_conflicting_same_operation
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_security_context_requires_authorization_reference
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_event_producer_cannot_be_blank
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_security_scope_matches_lead_tenant
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_schema_version_change_changes_contract_fingerprint
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_schema_shape_change_changes_contract_fingerprint
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_lead_contract_fingerprint_is_stable
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_event_fingerprint_is_stable_without_mutation
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_acrl_fingerprint_is_stable
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_invalid_lead_priority_is_rejected[HIGH]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_invalid_lead_priority_is_rejected[1]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_invalid_lead_priority_is_rejected[None]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_invalid_lead_priority_is_rejected[bad_priority3]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_invalid_lead_timestamp_is_rejected[bad_timestamp0]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_invalid_lead_timestamp_is_rejected[2026-01-01]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_invalid_lead_timestamp_is_rejected[None]
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_ownership_transfer_revision_must_advance_exactly_once
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_ownership_transfer_stale_revision_is_rejected
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_communication_same_identity_conflict_is_detected
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_regression.py::test_core_003_complete_business_flow
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_regression.py::test_core_002_boundary_is_transport_free
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_regression.py::test_tenant_identity_is_preserved_across_all_boundaries
-
-74 tests collected in 0.17s
-PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> python -m pytest REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership -q
-.......................................................................F..                                                                           [100%]
 ======================================================================== FAILURES =========================================================================
 __________________________________________________________ test_core_003_complete_business_flow ___________________________________________________________
 
@@ -203,3 +74,108 @@ REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_contract.py:121: Le
 ================================================================= short test summary info =================================================================
 FAILED REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_regression.py::test_core_003_complete_business_flow - AUTONOMY_ENGINE.core.lead_ownership.lead_contract.LeadSchemaError: Unknown lead fields: ['immutable_fingerprint']
 1 failed, 73 passed in 0.39s
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git fetch origin reos-development
+remote: Enumerating objects: 35, done.
+remote: Counting objects: 100% (35/35), done.
+remote: Compressing objects: 100% (32/32), done.
+remote: Total 32 (delta 19), reused 0 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (32/32), 22.74 KiB | 130.00 KiB/s, done.
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+   adcc0c6..58e52c0  reos-development -> origin/reos-development
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git rebase origin/reos-development
+error: cannot rebase: You have unstaged changes.
+error: Please commit or stash them.
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $path = "REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_regression.py"
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $raw = Get-Content $path -Raw
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $start = $raw.IndexOf("    DEFAULT_LEAD_CONTRACT.validate_mapping(")
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $end   = $raw.IndexOf("    attribution = LeadAttribution(", $start)
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> if ($start -lt 0 -or $end -lt 0) {
+>>     throw "T13 validation block not found."
+>> }
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $replacement = @'
+>>     domain_payload = {
+>>         "lead_id": lead.lead_id,
+>>         "tenant_id": lead.tenant_id,
+>>         "customer_id": lead.customer_id,
+>>         "status": lead.status,
+>>         "priority": lead.priority,
+>>         "source": lead.source,
+>>         "metadata": lead.metadata,
+>>         "revision": lead.revision,
+>>         "created_at": lead.created_at,
+>>         "updated_at": lead.updated_at,
+>>     }
+>>
+>>     DEFAULT_LEAD_CONTRACT.validate_mapping(
+>>         domain_payload
+>>     )
+>>
+>> '@
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> $fixed = (
+>>     $raw.Substring(0, $start) +
+>>     $replacement +
+>>     $raw.Substring($end)
+>> )
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST>
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> [System.IO.File]::WriteAllText(
+>>     (Resolve-Path $path),
+>>     $fixed,
+>>     [System.Text.UTF8Encoding]::new($false)
+>> )
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> python -m pytest REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership -q
+..........................................................................                                                                           [100%]
+74 passed in 0.28s
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git status --short
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/__pycache__/__init__.cpython-312.pyc
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/ownership_transfer.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_regression.py
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git add REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_regression.py
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/test_core_003_regression.py', LF will be replaced by CRLF the next time Git touches it
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git commit --amend --no-edit
+[detached HEAD d772c4f] fix: CORE-003 T05 ownership transfer indentation
+ Date: Sun Sep 27 14:51:52 2026 +0530
+ 2 files changed, 16 insertions(+), 16 deletions(-)
+PS D:\HOMIO\REOS_CORE3_REMOTE_TEST> git push origin HEAD:reos-development
+To https://github.com/prajaktaranjane80-sketch/Homio.git
+ ! [rejected]        HEAD -> reos-development (non-fast-forward)
+error: failed to push some refs to 'https://github.com/prajaktaranjane80-sketch/Homio.git'
+hint: Updates were rejected because a pushed branch tip is behind its remote
+hint: counterpart. If you want to integrate the remote changes, use 'git pull'
+hint: before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+
+
+
+Kya tume niche diye gaye tests ke acording kam kar rahe ho  
+Test                   
+| --------------------------------- 
+| Event identity/domain             
+| Tenant isolation                  
+| Serialization/fingerprint         
+| Contract registration/validation  
+| Unknown contract fail-closed      
+| Ordering stale/future            
+| Resilience transient/permanent    
+| Transport registry                
+| Replay authorization/scope        
+| Replay partial failure            
+| Delivery                          
+| Transaction/outbox boundary       
+| Observability/evidence            
+| REOS integration contract         
+| ACRL integration contract         
+| Security producer authorization   
+| Schema evolution/compatibility    
+| Contract fingerprint immutability  
+| Deep adversarial regression        
+
+
+
+
+
