@@ -1,37 +1,34 @@
-"""CORE-004 Inventory Contract & Schema.
+"""
+CORE-004 T02 — Inventory Contract & Schema
 
-Part 02 of CORE-004.
+Owns:
+- project contract
+- property contract
+- unit contract
+- strict schema validation
+- schema versioning
+- contract compatibility
+- canonical serialization
+- contract fingerprinting
+- unknown/invalid contract-state rejection
 
-This module is the canonical contract boundary for inventory-domain
-serialization and validation.
+Does NOT own:
+- inventory identity
+- hierarchy mutation
+- lifecycle transitions
+- availability transitions
+- reservation handling
+- allocation handling
+- provenance
+- commercial state
+- concurrency coordination
+- authorization
+- event transport
+- REOS Control Center state
+- ACRL reconstruction
 
-Responsibilities
-----------------
-- Project contract validation
-- Property contract validation
-- Unit contract validation
-- Strict schema validation
-- Contract schema versioning
-- Contract compatibility checks
-- Deterministic serialization
-- Contract fingerprinting
-- Unknown/invalid state rejection
-
-Non-responsibilities
---------------------
-- No persistence
-- No state.json mutation
-- No repository mutation
-- No acquisition engine
-- No search engine
-- No lifecycle engine
-- No availability engine
-- No evidence/audit store
-- No event bus implementation
-- No authorization engine
-
-The module validates already-owned domain objects/payloads. It does not
-become a second source of domain truth.
+This module defines the external contract boundary around the canonical
+CORE-004 domain objects. It is not a second domain model.
 """
 
 from __future__ import annotations
@@ -41,31 +38,16 @@ from datetime import datetime
 from enum import Enum
 import hashlib
 import json
-import math
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping
 
-from .inventory import AvailabilityState, InventoryType, LifecycleState
-from .project import ProjectLifecycle, ProjectOperatingMode
-
-
-# ---------------------------------------------------------------------------
-# Contract constants
-# ---------------------------------------------------------------------------
-
-CURRENT_SCHEMA_VERSION = "1.0"
-SUPPORTED_SCHEMA_VERSIONS = frozenset({CURRENT_SCHEMA_VERSION})
-
-PROJECT_CONTRACT_NAME = "CORE-004.PROJECT"
-PROPERTY_CONTRACT_NAME = "CORE-004.PROPERTY"
-UNIT_CONTRACT_NAME = "CORE-004.UNIT"
-
-SUPPORTED_CONTRACTS = frozenset(
-    {
-        PROJECT_CONTRACT_NAME,
-        PROPERTY_CONTRACT_NAME,
-        UNIT_CONTRACT_NAME,
-    }
+from .inventory import (
+    AvailabilityState,
+    Inventory,
+    InventoryIdentity,
+    InventoryType,
+    LifecycleState,
 )
+from .project import Project
 
 
 # ---------------------------------------------------------------------------
@@ -74,582 +56,464 @@ SUPPORTED_CONTRACTS = frozenset(
 
 
 class InventoryContractError(ValueError):
-    """Base exception for CORE-004 contract violations."""
+    """Base CORE-004 contract error."""
 
 
-class ContractSchemaError(InventoryContractError):
-    """Raised when a payload violates the declared schema."""
+class InventorySchemaError(InventoryContractError):
+    """Raised when contract shape or field values are invalid."""
 
 
-class UnknownContractFieldError(ContractSchemaError):
-    """Raised when an unknown field is present in a strict contract."""
-
-    def __init__(self, path: str, field: str) -> None:
-        self.path = path
-        self.field = field
-        super().__init__(
-            f"Unknown contract field at {path}: {field!r}"
-        )
+class InventorySchemaVersionError(
+    InventoryContractError
+):
+    """Raised when a schema version is unsupported."""
 
 
-class MissingContractFieldError(ContractSchemaError):
-    """Raised when a required field is missing."""
-
-    def __init__(self, path: str, field: str) -> None:
-        self.path = path
-        self.field = field
-        super().__init__(
-            f"Missing required contract field at {path}: {field!r}"
-        )
+class InventoryContractCompatibilityError(
+    InventoryContractError
+):
+    """Raised when two contract definitions are incompatible."""
 
 
-class InvalidContractValueError(ContractSchemaError):
-    """Raised when a contract field contains an invalid value."""
-
-    def __init__(
-        self,
-        path: str,
-        expected: str,
-        actual: Any,
-    ) -> None:
-        self.path = path
-        self.expected = expected
-        self.actual = actual
-        super().__init__(
-            f"Invalid contract value at {path}: "
-            f"expected {expected}, got {actual!r}"
-        )
+class InventorySerializationError(
+    InventoryContractError
+):
+    """Raised when canonical serialization fails."""
 
 
-class UnsupportedSchemaVersionError(InventoryContractError):
-    """Raised when a schema version is not supported."""
-
-    def __init__(self, version: str) -> None:
-        self.version = version
-        super().__init__(
-            f"Unsupported CORE-004 schema version: {version!r}"
-        )
-
-
-class ContractCompatibilityError(InventoryContractError):
-    """Raised when two schema versions are incompatible."""
-
-
-class ContractSerializationError(InventoryContractError):
-    """Raised when deterministic contract serialization fails."""
-
-
-class ContractFingerprintMismatchError(InventoryContractError):
-    """Raised when a contract fingerprint does not match."""
+class InventoryContractFingerprintError(
+    InventoryContractError
+):
+    """Raised when a contract fingerprint is invalid."""
 
 
 # ---------------------------------------------------------------------------
-# Validation result
+# Schema identity
 # ---------------------------------------------------------------------------
 
 
-@dataclass(frozen=True, slots=True)
-class ContractValidationResult:
-    """Immutable result of a successful contract validation."""
+CORE_004_SCHEMA_VERSION = 1
 
-    contract_name: str
-    schema_version: str
-    contract_fingerprint: str
-    payload_fingerprint: str
+PROJECT_SCHEMA_NAME = "REOS.CORE-004.PROJECT"
+PROPERTY_SCHEMA_NAME = "REOS.CORE-004.PROPERTY"
+UNIT_SCHEMA_NAME = "REOS.CORE-004.UNIT"
 
-    @property
-    def valid(self) -> bool:
-        """Successful validation is represented explicitly."""
-        return True
-
-    def to_dict(self) -> dict[str, str | bool]:
-        """Return deterministic result data."""
-        return {
-            "contract_name": self.contract_name,
-            "schema_version": self.schema_version,
-            "contract_fingerprint": self.contract_fingerprint,
-            "payload_fingerprint": self.payload_fingerprint,
-            "valid": self.valid,
-        }
+SUPPORTED_SCHEMA_VERSIONS = frozenset(
+    {
+        CORE_004_SCHEMA_VERSION,
+    }
+)
 
 
 # ---------------------------------------------------------------------------
-# Contract specification
+# Canonical field contracts
+# ---------------------------------------------------------------------------
+
+
+PROJECT_FIELDS = (
+    "project_id",
+    "tenant_id",
+    "developer_id",
+    "project_code",
+    "name",
+    "metadata",
+    "identity_fingerprint",
+)
+
+
+INVENTORY_FIELDS = (
+    "identity",
+    "name",
+    "lifecycle",
+    "availability",
+    "created_at",
+    "updated_at",
+    "version",
+    "metadata",
+    "identity_fingerprint",
+)
+
+
+INVENTORY_IDENTITY_FIELDS = (
+    "inventory_id",
+    "tenant_id",
+    "inventory_type",
+    "developer_id",
+    "project_id",
+    "property_id",
+    "unit_id",
+)
+
+
+# ---------------------------------------------------------------------------
+# Immutable contract definition
 # ---------------------------------------------------------------------------
 
 
 @dataclass(frozen=True, slots=True)
-class ContractSpec:
-    """Immutable schema specification."""
+class InventoryContract:
+    """
+    Immutable description of one CORE-004 external contract.
 
-    name: str
-    version: str
-    required_fields: frozenset[str]
-    optional_fields: frozenset[str]
-    field_types: Mapping[str, str]
+    A contract is metadata about the accepted representation.
+    It does not contain runtime inventory state.
+    """
 
-    @property
-    def allowed_fields(self) -> frozenset[str]:
-        return self.required_fields | self.optional_fields
+    schema_name: str
+    schema_version: int
+    required_fields: tuple[str, ...]
+    expected_inventory_type: InventoryType | None = None
+    allow_additional_fields: bool = False
+
+    def __post_init__(self) -> None:
+        if not isinstance(
+            self.schema_name,
+            str,
+        ):
+            raise InventorySchemaError(
+                "schema_name must be a string."
+            )
+
+        if not self.schema_name.strip():
+            raise InventorySchemaError(
+                "schema_name cannot be empty."
+            )
+
+        if not isinstance(
+            self.schema_version,
+            int,
+        ):
+            raise InventorySchemaError(
+                "schema_version must be an integer."
+            )
+
+        if self.schema_version < 1:
+            raise InventorySchemaError(
+                "schema_version must be >= 1."
+            )
+
+        normalized = tuple(
+            dict.fromkeys(
+                self.required_fields
+            )
+        )
+
+        if normalized != self.required_fields:
+            raise InventorySchemaError(
+                "required_fields cannot contain duplicates."
+            )
+
+        if self.expected_inventory_type is not None:
+            if not isinstance(
+                self.expected_inventory_type,
+                InventoryType,
+            ):
+                raise InventorySchemaError(
+                    "expected_inventory_type must be "
+                    "InventoryType."
+                )
 
     @property
     def fingerprint(self) -> str:
-        """Fingerprint the schema definition, not a runtime payload."""
-        canonical = _canonical_json(
-            {
-                "name": self.name,
-                "version": self.version,
-                "required_fields": sorted(self.required_fields),
-                "optional_fields": sorted(self.optional_fields),
-                "field_types": dict(sorted(self.field_types.items())),
-            }
-        )
-        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        """
+        Deterministic fingerprint of the contract definition.
 
-
-# ---------------------------------------------------------------------------
-# Canonical schema definitions
-# ---------------------------------------------------------------------------
-
-
-_PROJECT_SPEC = ContractSpec(
-    name=PROJECT_CONTRACT_NAME,
-    version=CURRENT_SCHEMA_VERSION,
-    required_fields=frozenset(
-        {
-            "project_id",
-            "tenant_id",
-            "developer_id",
-            "project_code",
-            "name",
-            "lifecycle",
-            "location",
-            "operating_mode",
-            "created_at",
-            "updated_at",
-            "version",
-            "metadata",
-            "source_of_truth",
+        The fingerprint changes when:
+        - schema name changes
+        - schema version changes
+        - required fields change
+        - expected inventory type changes
+        - additional-field policy changes
+        """
+        payload = {
+            "schema_name": self.schema_name,
+            "schema_version": self.schema_version,
+            "required_fields": list(
+                self.required_fields
+            ),
+            "expected_inventory_type": (
+                self.expected_inventory_type.value
+                if self.expected_inventory_type
+                is not None
+                else None
+            ),
+            "allow_additional_fields": (
+                self.allow_additional_fields
+            ),
         }
-    ),
-    optional_fields=frozenset(),
-    field_types={
-        "project_id": "string",
-        "tenant_id": "string",
-        "developer_id": "string",
-        "project_code": "string",
-        "name": "string",
-        "lifecycle": "ProjectLifecycle",
-        "location": "ProjectLocation",
-        "operating_mode": "ProjectOperatingMode",
-        "created_at": "datetime",
-        "updated_at": "datetime",
-        "version": "positive_integer",
-        "metadata": "json_object",
-        "source_of_truth": "literal:project",
-    },
-)
 
+        return hashlib.sha256(
+            _canonical_json(
+                payload
+            ).encode("utf-8")
+        ).hexdigest()
 
-_IDENTITY_SPEC = ContractSpec(
-    name="CORE-004.INVENTORY_IDENTITY",
-    version=CURRENT_SCHEMA_VERSION,
-    required_fields=frozenset(
-        {
-            "inventory_id",
-            "tenant_id",
-            "inventory_type",
-            "developer_id",
-            "project_id",
-            "identity_key",
-            "fingerprint",
-        }
-    ),
-    optional_fields=frozenset(
-        {
-            "property_id",
-            "unit_id",
-        }
-    ),
-    field_types={
-        "inventory_id": "string",
-        "tenant_id": "string",
-        "inventory_type": "InventoryType",
-        "developer_id": "string",
-        "project_id": "string",
-        "property_id": "nullable_string",
-        "unit_id": "nullable_string",
-        "identity_key": "string",
-        "fingerprint": "sha256",
-    },
-)
+    def validate_mapping(
+        self,
+        payload: Mapping[str, Any],
+    ) -> None:
+        """
+        Validate exact contract shape.
 
-
-_INVENTORY_SPEC = ContractSpec(
-    name="CORE-004.INVENTORY",
-    version=CURRENT_SCHEMA_VERSION,
-    required_fields=frozenset(
-        {
-            "identity",
-            "name",
-            "lifecycle",
-            "availability",
-            "created_at",
-            "updated_at",
-            "version",
-            "metadata",
-        }
-    ),
-    optional_fields=frozenset(),
-    field_types={
-        "identity": "mapping",
-        "name": "string",
-        "lifecycle": "LifecycleState",
-        "availability": "AvailabilityState",
-        "created_at": "datetime",
-        "updated_at": "datetime",
-        "version": "positive_integer",
-        "metadata": "json_object",
-    },
-)
-
-
-# ---------------------------------------------------------------------------
-# Generic low-level helpers
-# ---------------------------------------------------------------------------
-
-
-def _canonical_json(value: Any) -> str:
-    """Serialize JSON-compatible data deterministically."""
-    try:
-        _assert_json_safe(value, "$")
-        return json.dumps(
-            value,
-            ensure_ascii=False,
-            sort_keys=True,
-            separators=(",", ":"),
-            allow_nan=False,
-        )
-    except (TypeError, ValueError) as exc:
-        raise ContractSerializationError(
-            f"Value cannot be deterministically serialized: {exc}"
-        ) from exc
-
-
-def _assert_json_safe(value: Any, path: str) -> None:
-    """Reject non-contract-safe runtime values."""
-    if value is None or isinstance(value, (str, bool, int)):
-        return
-
-    if isinstance(value, float):
-        if not math.isfinite(value):
-            raise InvalidContractValueError(
-                path,
-                "finite JSON number",
-                value,
+        Missing and unknown fields both fail closed.
+        """
+        if not isinstance(
+            payload,
+            Mapping,
+        ):
+            raise InventorySchemaError(
+                f"{self.schema_name} payload "
+                "must be a mapping."
             )
-        return
 
-    if isinstance(value, Mapping):
-        for key, child in value.items():
-            if not isinstance(key, str):
-                raise InvalidContractValueError(
-                    path,
-                    "string object keys",
-                    key,
-                )
-            _assert_json_safe(child, f"{path}.{key}")
-        return
-
-    if isinstance(value, Sequence) and not isinstance(
-        value,
-        (str, bytes, bytearray),
-    ):
-        for index, child in enumerate(value):
-            _assert_json_safe(child, f"{path}[{index}]")
-        return
-
-    raise InvalidContractValueError(
-        path,
-        "JSON-compatible value",
-        type(value).__name__,
-    )
-
-
-def _require_mapping(value: Any, path: str) -> Mapping[str, Any]:
-    if not isinstance(value, Mapping):
-        raise InvalidContractValueError(
-            path,
-            "mapping/object",
-            value,
+        actual = set(
+            payload.keys()
         )
-    return value
+
+        required = set(
+            self.required_fields
+        )
+
+        missing = required - actual
+
+        if missing:
+            raise InventorySchemaError(
+                f"{self.schema_name} missing required "
+                f"fields: {sorted(missing)}"
+            )
+
+        if not self.allow_additional_fields:
+            unknown = actual - required
+
+            if unknown:
+                raise InventorySchemaError(
+                    f"{self.schema_name} contains "
+                    f"unknown fields: {sorted(unknown)}"
+                )
+
+    def assert_compatible(
+        self,
+        other: "InventoryContract",
+    ) -> None:
+        """
+        Require exact contract compatibility.
+
+        CORE-004 fails closed instead of silently accepting a different
+        schema version or contract family.
+        """
+        if not isinstance(
+            other,
+            InventoryContract,
+        ):
+            raise InventoryContractCompatibilityError(
+                "other must be InventoryContract."
+            )
+
+        if self.schema_name != other.schema_name:
+            raise InventoryContractCompatibilityError(
+                "Contract families differ: "
+                f"{self.schema_name!r} != "
+                f"{other.schema_name!r}"
+            )
+
+        if (
+            self.schema_version
+            != other.schema_version
+        ):
+            raise InventoryContractCompatibilityError(
+                "Contract schema versions differ: "
+                f"{self.schema_version} != "
+                f"{other.schema_version}"
+            )
+
+        if (
+            self.required_fields
+            != other.required_fields
+        ):
+            raise InventoryContractCompatibilityError(
+                "Contract required-field definitions differ."
+            )
+
+        if (
+            self.expected_inventory_type
+            != other.expected_inventory_type
+        ):
+            raise InventoryContractCompatibilityError(
+                "Contract inventory-type constraints differ."
+            )
+
+        if (
+            self.allow_additional_fields
+            != other.allow_additional_fields
+        ):
+            raise InventoryContractCompatibilityError(
+                "Contract additional-field policy differs."
+            )
 
 
-def _require_string(value: Any, path: str) -> None:
-    if not isinstance(value, str):
-        raise InvalidContractValueError(
-            path,
-            "string",
-            value,
+# ---------------------------------------------------------------------------
+# Canonical contract definitions
+# ---------------------------------------------------------------------------
+
+
+PROJECT_CONTRACT = InventoryContract(
+    schema_name=PROJECT_SCHEMA_NAME,
+    schema_version=CORE_004_SCHEMA_VERSION,
+    required_fields=PROJECT_FIELDS,
+)
+
+
+PROPERTY_CONTRACT = InventoryContract(
+    schema_name=PROPERTY_SCHEMA_NAME,
+    schema_version=CORE_004_SCHEMA_VERSION,
+    required_fields=INVENTORY_FIELDS,
+    expected_inventory_type=InventoryType.PROPERTY,
+)
+
+
+UNIT_CONTRACT = InventoryContract(
+    schema_name=UNIT_SCHEMA_NAME,
+    schema_version=CORE_004_SCHEMA_VERSION,
+    required_fields=INVENTORY_FIELDS,
+    expected_inventory_type=InventoryType.UNIT,
+)
+
+
+# ---------------------------------------------------------------------------
+# Primitive validation
+# ---------------------------------------------------------------------------
+
+
+def _require_text(
+    value: Any,
+    field_name: str,
+) -> None:
+    if not isinstance(
+        value,
+        str,
+    ):
+        raise InventorySchemaError(
+            f"{field_name} must be string."
         )
 
     if not value.strip():
-        raise InvalidContractValueError(
-            path,
-            "non-empty string",
-            value,
+        raise InventorySchemaError(
+            f"{field_name} cannot be empty."
         )
 
 
-def _require_nullable_string(value: Any, path: str) -> None:
-    if value is None:
-        return
-    _require_string(value, path)
-
-
-def _require_positive_integer(value: Any, path: str) -> None:
-    if isinstance(value, bool) or not isinstance(value, int):
-        raise InvalidContractValueError(
-            path,
-            "positive integer",
-            value,
+def _require_positive_integer(
+    value: Any,
+    field_name: str,
+) -> None:
+    if isinstance(
+        value,
+        bool,
+    ):
+        raise InventorySchemaError(
+            f"{field_name} must be integer."
         )
 
-    if value <= 0:
-        raise InvalidContractValueError(
-            path,
-            "positive integer",
-            value,
+    if not isinstance(
+        value,
+        int,
+    ):
+        raise InventorySchemaError(
+            f"{field_name} must be integer."
+        )
+
+    if value < 1:
+        raise InventorySchemaError(
+            f"{field_name} must be >= 1."
         )
 
 
-def _require_datetime(value: Any, path: str) -> None:
-    if isinstance(value, datetime):
-        return
-
-    if not isinstance(value, str):
-        raise InvalidContractValueError(
-            path,
-            "ISO-8601 datetime string or datetime",
-            value,
+def _require_datetime(
+    value: Any,
+    field_name: str,
+) -> None:
+    if not isinstance(
+        value,
+        str,
+    ):
+        raise InventorySchemaError(
+            f"{field_name} must be ISO datetime string."
         )
 
     try:
-        datetime.fromisoformat(value.replace("Z", "+00:00"))
+        datetime.fromisoformat(
+            value.replace(
+                "Z",
+                "+00:00",
+            )
+        )
     except ValueError as exc:
-        raise InvalidContractValueError(
-            path,
-            "valid ISO-8601 datetime",
-            value,
+        raise InventorySchemaError(
+            f"{field_name} is not a valid ISO datetime."
         ) from exc
 
 
-def _require_enum_value(
+def _require_mapping(
+    value: Any,
+    field_name: str,
+) -> Mapping[str, Any]:
+    if not isinstance(
+        value,
+        Mapping,
+    ):
+        raise InventorySchemaError(
+            f"{field_name} must be mapping."
+        )
+
+    return value
+
+
+def _require_enum(
     value: Any,
     enum_type: type[Enum],
-    path: str,
+    field_name: str,
 ) -> None:
-    values = {member.value for member in enum_type}
+    allowed = {
+        member.value
+        for member in enum_type
+    }
 
-    if isinstance(value, enum_type):
+    if isinstance(
+        value,
+        enum_type,
+    ):
         return
 
-    if value not in values:
-        raise InvalidContractValueError(
-            path,
-            f"one of {sorted(values)}",
-            value,
+    if value not in allowed:
+        raise InventorySchemaError(
+            f"{field_name} contains invalid value "
+            f"{value!r}; allowed={sorted(allowed)}"
         )
 
 
-def _require_sha256(value: Any, path: str) -> None:
-    _require_string(value, path)
+def _require_sha256(
+    value: Any,
+    field_name: str,
+) -> None:
+    _require_text(
+        value,
+        field_name,
+    )
 
     if len(value) != 64:
-        raise InvalidContractValueError(
-            path,
-            "64-character SHA-256 hexadecimal digest",
-            value,
+        raise InventorySchemaError(
+            f"{field_name} must be SHA-256 hexadecimal."
         )
 
     try:
-        int(value, 16)
+        int(
+            value,
+            16,
+        )
     except ValueError as exc:
-        raise InvalidContractValueError(
-            path,
-            "64-character SHA-256 hexadecimal digest",
-            value,
+        raise InventorySchemaError(
+            f"{field_name} must be SHA-256 hexadecimal."
         ) from exc
-
-
-def _require_json_object(value: Any, path: str) -> None:
-    if not isinstance(value, Mapping):
-        raise InvalidContractValueError(
-            path,
-            "JSON object",
-            value,
-        )
-
-    _assert_json_safe(value, path)
-
-
-def _datetime_to_wire(value: Any, path: str) -> str:
-    _require_datetime(value, path)
-
-    if isinstance(value, datetime):
-        return value.isoformat()
-
-    return value
-
-
-def _enum_to_wire(value: Any) -> Any:
-    if isinstance(value, Enum):
-        return value.value
-    return value
-
-
-def _normalize_wire_value(value: Any) -> Any:
-    """Normalize known Python domain values into wire-safe JSON values."""
-    if isinstance(value, Enum):
-        return value.value
-
-    if isinstance(value, datetime):
-        return value.isoformat()
-
-    if isinstance(value, Mapping):
-        return {
-            str(key): _normalize_wire_value(child)
-            for key, child in value.items()
-        }
-
-    if isinstance(value, Sequence) and not isinstance(
-        value,
-        (str, bytes, bytearray),
-    ):
-        return [
-            _normalize_wire_value(child)
-            for child in value
-        ]
-
-    return value
-
-
-def _validate_exact_fields(
-    payload: Mapping[str, Any],
-    spec: ContractSpec,
-    path: str,
-) -> None:
-    actual_fields = set(payload.keys())
-
-    unknown = actual_fields - spec.allowed_fields
-    if unknown:
-        field = sorted(unknown)[0]
-        raise UnknownContractFieldError(
-            path,
-            field,
-        )
-
-    missing = spec.required_fields - actual_fields
-    if missing:
-        field = sorted(missing)[0]
-        raise MissingContractFieldError(
-            path,
-            field,
-        )
-
-
-def _fingerprint_payload(payload: Mapping[str, Any]) -> str:
-    canonical = _canonical_json(
-        _normalize_wire_value(payload)
-    )
-    return hashlib.sha256(
-        canonical.encode("utf-8")
-    ).hexdigest()
-
-
-# ---------------------------------------------------------------------------
-# Schema version
-# ---------------------------------------------------------------------------
-
-
-def validate_schema_version(version: Any) -> str:
-    """Validate and return a supported schema version."""
-    if not isinstance(version, str):
-        raise InvalidContractValueError(
-            "$.schema_version",
-            "string schema version",
-            version,
-        )
-
-    if version not in SUPPORTED_SCHEMA_VERSIONS:
-        raise UnsupportedSchemaVersionError(version)
-
-    return version
-
-
-def schema_major(version: str) -> int:
-    """Return the major version component."""
-    validate_schema_version(version)
-
-    try:
-        return int(version.split(".", 1)[0])
-    except (IndexError, ValueError) as exc:
-        raise UnsupportedSchemaVersionError(version) from exc
-
-
-def schema_minor(version: str) -> int:
-    """Return the minor version component."""
-    validate_schema_version(version)
-
-    try:
-        return int(version.split(".", 1)[1])
-    except (IndexError, ValueError) as exc:
-        raise UnsupportedSchemaVersionError(version) from exc
-
-
-# ---------------------------------------------------------------------------
-# Compatibility
-# ---------------------------------------------------------------------------
-
-
-def contracts_compatible(
-    source_version: str,
-    target_version: str,
-) -> bool:
-    """Return whether two CORE-004 schema versions are compatible.
-
-    Compatibility is intentionally conservative:
-    - versions must be supported
-    - major versions must match
-    - a newer target minor version may consume an older source version
-    """
-
-    validate_schema_version(source_version)
-    validate_schema_version(target_version)
-
-    if schema_major(source_version) != schema_major(target_version):
-        return False
-
-    return schema_minor(source_version) <= schema_minor(
-        target_version
-    )
-
-
-def require_contract_compatibility(
-    source_version: str,
-    target_version: str,
-) -> None:
-    """Fail closed when contract versions are incompatible."""
-    if not contracts_compatible(
-        source_version,
-        target_version,
-    ):
-        raise ContractCompatibilityError(
-            "CORE-004 contract versions are incompatible: "
-            f"source={source_version!r}, "
-            f"target={target_version!r}"
-        )
 
 
 # ---------------------------------------------------------------------------
@@ -657,150 +521,103 @@ def require_contract_compatibility(
 # ---------------------------------------------------------------------------
 
 
-def validate_project_contract(
-    payload: Mapping[str, Any],
-    *,
-    expected_schema_version: str = CURRENT_SCHEMA_VERSION,
-) -> ContractValidationResult:
-    """Validate the canonical CORE-004 Project wire contract."""
-    validate_schema_version(expected_schema_version)
-
-    payload = _require_mapping(payload, "$")
-
-    _validate_exact_fields(
-        payload,
-        _PROJECT_SPEC,
-        "$.project",
-    )
-
-    _require_string(payload["project_id"], "$.project_id")
-    _require_string(payload["tenant_id"], "$.tenant_id")
-    _require_string(payload["developer_id"], "$.developer_id")
-    _require_string(payload["project_code"], "$.project_code")
-    _require_string(payload["name"], "$.name")
-
-    _require_enum_value(
-        payload["lifecycle"],
-        ProjectLifecycle,
-        "$.lifecycle",
-    )
-
-    location = _require_mapping(
-        payload["location"],
-        "$.location",
-    )
-
-    _validate_project_location(location)
-
-    _require_enum_value(
-        payload["operating_mode"],
-        ProjectOperatingMode,
-        "$.operating_mode",
-    )
-
-    _require_datetime(
-        payload["created_at"],
-        "$.created_at",
-    )
-
-    _require_datetime(
-        payload["updated_at"],
-        "$.updated_at",
-    )
-
-    _require_positive_integer(
-        payload["version"],
-        "$.version",
-    )
-
-    _require_json_object(
-        payload["metadata"],
-        "$.metadata",
-    )
-
-    if payload["source_of_truth"] != "project":
-        raise InvalidContractValueError(
-            "$.source_of_truth",
-            "literal 'project'",
-            payload["source_of_truth"],
-        )
-
-    _assert_timestamp_order(
-        payload["created_at"],
-        payload["updated_at"],
-        "$.project",
-    )
-
-    normalized = _normalize_wire_value(payload)
-
-    return ContractValidationResult(
-        contract_name=PROJECT_CONTRACT_NAME,
-        schema_version=expected_schema_version,
-        contract_fingerprint=_PROJECT_SPEC.fingerprint,
-        payload_fingerprint=_fingerprint_payload(normalized),
-    )
-
-
-def _validate_project_location(
-    location: Mapping[str, Any],
+def validate_project(
+    project: Project,
 ) -> None:
-    allowed = {
-        "country_code",
-        "state_code",
-        "city",
-        "postal_code",
-        "address_line",
-    }
-
-    unknown = set(location) - allowed
-    if unknown:
-        field = sorted(unknown)[0]
-        raise UnknownContractFieldError(
-            "$.location",
-            field,
-        )
-
-    required = {
-        "country_code",
-        "city",
-    }
-
-    missing = required - set(location)
-    if missing:
-        field = sorted(missing)[0]
-        raise MissingContractFieldError(
-            "$.location",
-            field,
-        )
-
-    _require_string(
-        location["country_code"],
-        "$.location.country_code",
-    )
-
-    country_code = location["country_code"].upper()
-    if len(country_code) != 2 or not country_code.isalpha():
-        raise InvalidContractValueError(
-            "$.location.country_code",
-            "ISO-3166 alpha-2 country code",
-            location["country_code"],
-        )
-
-    _require_string(
-        location["city"],
-        "$.location.city",
-    )
-
-    for field in (
-        "state_code",
-        "postal_code",
-        "address_line",
+    """
+    Validate the canonical Project domain object.
+    """
+    if not isinstance(
+        project,
+        Project,
     ):
-        if field in location:
-            _require_nullable_string(
-                location[field],
-                f"$.location.{field}",
-            )
+        raise InventorySchemaError(
+            "project must be canonical CORE-004 Project."
+        )
+
+    payload = project.to_dict()
+
+    validate_project_mapping(
+        payload
+    )
+
+
+def validate_project_mapping(
+    payload: Mapping[str, Any],
+) -> None:
+    """
+    Validate serialized Project representation.
+    """
+    PROJECT_CONTRACT.validate_mapping(
+        payload
+    )
+
+    _require_text(
+        payload["project_id"],
+        "project_id",
+    )
+
+    _require_text(
+        payload["tenant_id"],
+        "tenant_id",
+    )
+
+    _require_text(
+        payload["developer_id"],
+        "developer_id",
+    )
+
+    _require_text(
+        payload["project_code"],
+        "project_code",
+    )
+
+    _require_text(
+        payload["name"],
+        "name",
+    )
+
+    if not isinstance(
+        payload["metadata"],
+        Mapping,
+    ):
+        raise InventorySchemaError(
+            "metadata must be mapping."
+        )
+
+    _require_sha256(
+        payload["identity_fingerprint"],
+        "identity_fingerprint",
+    )
+
+    expected = _project_identity_fingerprint(
+        payload
+    )
+
+    if (
+        payload["identity_fingerprint"]
+        != expected
+    ):
+        raise InventoryContractFingerprintError(
+            "Project identity fingerprint mismatch."
+        )
+
+
+def _project_identity_fingerprint(
+    payload: Mapping[str, Any],
+) -> str:
+    identity = {
+        "project_id": payload["project_id"],
+        "tenant_id": payload["tenant_id"],
+        "developer_id": payload["developer_id"],
+        "project_code": payload["project_code"],
+    }
+
+    return hashlib.sha256(
+        _canonical_json(
+            identity
+        ).encode("utf-8")
+    ).hexdigest()
 
 
 # ---------------------------------------------------------------------------
@@ -808,706 +625,924 @@ def _validate_project_location(
 # ---------------------------------------------------------------------------
 
 
-def validate_inventory_identity_contract(
-    payload: Mapping[str, Any],
+def validate_inventory_identity(
+    identity: InventoryIdentity,
+    *,
+    expected_inventory_type: InventoryType | None = None,
 ) -> None:
-    """Validate canonical inventory identity."""
-    payload = _require_mapping(payload, "$.identity")
+    """
+    Validate the canonical immutable InventoryIdentity.
 
-    _validate_exact_fields(
+    Hierarchy shape is checked here because it is part of the contract
+    representation, but hierarchy relationships themselves belong to
+    Part 03.
+    """
+    if not isinstance(
+        identity,
+        InventoryIdentity,
+    ):
+        raise InventorySchemaError(
+            "identity must be InventoryIdentity."
+        )
+
+    validate_inventory_identity_mapping(
+        identity.to_dict(),
+        expected_inventory_type=(
+            expected_inventory_type
+        ),
+        expected_fingerprint=identity.fingerprint,
+    )
+
+
+def validate_inventory_identity_mapping(
+    payload: Mapping[str, Any],
+    *,
+    expected_inventory_type: InventoryType | None = None,
+    expected_fingerprint: str | None = None,
+) -> None:
+    """
+    Validate the exact serialized identity contract.
+    """
+    if not isinstance(
         payload,
-        _IDENTITY_SPEC,
-        "$.identity",
+        Mapping,
+    ):
+        raise InventorySchemaError(
+            "identity must be mapping."
+        )
+
+    actual = set(
+        payload.keys()
     )
 
-    _require_string(
+    required = set(
+        INVENTORY_IDENTITY_FIELDS
+    )
+
+    missing = required - actual
+
+    if missing:
+        raise InventorySchemaError(
+            f"identity missing required fields: "
+            f"{sorted(missing)}"
+        )
+
+    unknown = actual - required
+
+    if unknown:
+        raise InventorySchemaError(
+            f"identity contains unknown fields: "
+            f"{sorted(unknown)}"
+        )
+
+    _require_text(
         payload["inventory_id"],
-        "$.identity.inventory_id",
+        "identity.inventory_id",
     )
 
-    _require_string(
+    _require_text(
         payload["tenant_id"],
-        "$.identity.tenant_id",
+        "identity.tenant_id",
     )
 
-    _require_enum_value(
+    _require_enum(
         payload["inventory_type"],
         InventoryType,
-        "$.identity.inventory_type",
+        "identity.inventory_type",
     )
 
-    _require_string(
+    _require_text(
         payload["developer_id"],
-        "$.identity.developer_id",
+        "identity.developer_id",
     )
 
-    _require_string(
+    _require_text(
         payload["project_id"],
-        "$.identity.project_id",
+        "identity.project_id",
     )
 
-    if "property_id" in payload:
-        _require_nullable_string(
-            payload["property_id"],
-            "$.identity.property_id",
+    property_id = payload["property_id"]
+    unit_id = payload["unit_id"]
+
+    if property_id is not None:
+        _require_text(
+            property_id,
+            "identity.property_id",
         )
 
-    if "unit_id" in payload:
-        _require_nullable_string(
-            payload["unit_id"],
-            "$.identity.unit_id",
+    if unit_id is not None:
+        _require_text(
+            unit_id,
+            "identity.unit_id",
         )
 
-    _require_string(
-        payload["identity_key"],
-        "$.identity.identity_key",
-    )
-
-    _require_sha256(
-        payload["fingerprint"],
-        "$.identity.fingerprint",
-    )
-
-    inventory_type = _enum_wire_value(
+    inventory_type = InventoryType(
         payload["inventory_type"]
     )
 
-    property_id = payload.get("property_id")
-    unit_id = payload.get("unit_id")
-
-    if inventory_type == InventoryType.DEVELOPMENT.value:
-        if property_id is not None or unit_id is not None:
-            raise InvalidContractValueError(
-                "$.identity",
-                "development identity without property_id/unit_id",
-                payload,
+    if expected_inventory_type is not None:
+        if (
+            inventory_type
+            is not expected_inventory_type
+        ):
+            raise InventorySchemaError(
+                "Inventory type does not match "
+                "contract: "
+                f"expected="
+                f"{expected_inventory_type.value}, "
+                f"actual="
+                f"{inventory_type.value}"
             )
 
-    elif inventory_type == InventoryType.PROPERTY.value:
+    _validate_identity_hierarchy(
+        inventory_type,
+        property_id,
+        unit_id,
+    )
+
+    if expected_fingerprint is not None:
+        actual_fingerprint = (
+            _inventory_identity_fingerprint(
+                payload
+            )
+        )
+
+        if (
+            actual_fingerprint
+            != expected_fingerprint
+        ):
+            raise InventoryContractFingerprintError(
+                "Inventory identity fingerprint "
+                "does not match canonical identity."
+            )
+
+
+def _validate_identity_hierarchy(
+    inventory_type: InventoryType,
+    property_id: str | None,
+    unit_id: str | None,
+) -> None:
+    if (
+        inventory_type
+        is InventoryType.DEVELOPMENT
+    ):
+        if (
+            property_id is not None
+            or unit_id is not None
+        ):
+            raise InventorySchemaError(
+                "DEVELOPMENT identity cannot contain "
+                "property_id or unit_id."
+            )
+
+    elif (
+        inventory_type
+        is InventoryType.PROPERTY
+    ):
         if property_id is None:
-            raise InvalidContractValueError(
-                "$.identity.property_id",
-                "property identity requires property_id",
-                property_id,
+            raise InventorySchemaError(
+                "PROPERTY identity requires property_id."
             )
 
         if unit_id is not None:
-            raise InvalidContractValueError(
-                "$.identity.unit_id",
-                "property identity must not contain unit_id",
-                unit_id,
+            raise InventorySchemaError(
+                "PROPERTY identity cannot contain unit_id."
             )
 
-    elif inventory_type == InventoryType.UNIT.value:
+    elif (
+        inventory_type
+        is InventoryType.UNIT
+    ):
         if property_id is None:
-            raise InvalidContractValueError(
-                "$.identity.property_id",
-                "unit identity requires property_id",
-                property_id,
+            raise InventorySchemaError(
+                "UNIT identity requires property_id."
             )
 
         if unit_id is None:
-            raise InvalidContractValueError(
-                "$.identity.unit_id",
-                "unit identity requires unit_id",
-                unit_id,
+            raise InventorySchemaError(
+                "UNIT identity requires unit_id."
             )
 
-    else:
-        raise InvalidContractValueError(
-            "$.identity.inventory_type",
-            "known InventoryType",
-            inventory_type,
-        )
 
-
-# ---------------------------------------------------------------------------
-# Inventory contract validation
-# ---------------------------------------------------------------------------
-
-
-def validate_inventory_contract(
+def _inventory_identity_fingerprint(
     payload: Mapping[str, Any],
-    *,
-    expected_inventory_type: InventoryType | str | None = None,
-) -> ContractValidationResult:
-    """Validate canonical inventory serialization data."""
-    payload = _require_mapping(payload, "$")
-
-    _validate_exact_fields(
-        payload,
-        _INVENTORY_SPEC,
-        "$.inventory",
-    )
-
-    validate_inventory_identity_contract(
-        payload["identity"]
-    )
-
-    _require_string(
-        payload["name"],
-        "$.name",
-    )
-
-    _require_enum_value(
-        payload["lifecycle"],
-        LifecycleState,
-        "$.lifecycle",
-    )
-
-    _require_enum_value(
-        payload["availability"],
-        AvailabilityState,
-        "$.availability",
-    )
-
-    _require_datetime(
-        payload["created_at"],
-        "$.created_at",
-    )
-
-    _require_datetime(
-        payload["updated_at"],
-        "$.updated_at",
-    )
-
-    _require_positive_integer(
-        payload["version"],
-        "$.version",
-    )
-
-    _require_json_object(
-        payload["metadata"],
-        "$.metadata",
-    )
-
-    _assert_timestamp_order(
-        payload["created_at"],
-        payload["updated_at"],
-        "$.inventory",
-    )
-
-    actual_inventory_type = _enum_wire_value(
-        payload["identity"]["inventory_type"]
-    )
-
-    if expected_inventory_type is not None:
-        expected = _enum_wire_value(expected_inventory_type)
-
-        if actual_inventory_type != expected:
-            raise InvalidContractValueError(
-                "$.identity.inventory_type",
-                f"inventory type {expected!r}",
-                actual_inventory_type,
-            )
-
-    _validate_state_combination(
-        lifecycle=_enum_wire_value(payload["lifecycle"]),
-        availability=_enum_wire_value(payload["availability"]),
-    )
-
-    normalized = _normalize_wire_value(payload)
-
-    contract_name = {
-        InventoryType.PROPERTY.value: PROPERTY_CONTRACT_NAME,
-        InventoryType.UNIT.value: UNIT_CONTRACT_NAME,
-    }.get(
-        actual_inventory_type,
-        "CORE-004.INVENTORY",
-    )
-
-    contract_fingerprint = _inventory_contract_fingerprint(
-        actual_inventory_type
-    )
-
-    return ContractValidationResult(
-        contract_name=contract_name,
-        schema_version=CURRENT_SCHEMA_VERSION,
-        contract_fingerprint=contract_fingerprint,
-        payload_fingerprint=_fingerprint_payload(normalized),
-    )
-
-
-def validate_property_contract(
-    payload: Mapping[str, Any],
-) -> ContractValidationResult:
-    """Validate a property inventory contract."""
-    return validate_inventory_contract(
-        payload,
-        expected_inventory_type=InventoryType.PROPERTY,
-    )
-
-
-def validate_unit_contract(
-    payload: Mapping[str, Any],
-) -> ContractValidationResult:
-    """Validate a unit inventory contract."""
-    return validate_inventory_contract(
-        payload,
-        expected_inventory_type=InventoryType.UNIT,
-    )
-
-
-def _inventory_contract_fingerprint(
-    inventory_type: str,
 ) -> str:
-    """Return a type-aware contract fingerprint."""
-    if inventory_type == InventoryType.PROPERTY.value:
-        contract = {
-            "contract": PROPERTY_CONTRACT_NAME,
-            "version": CURRENT_SCHEMA_VERSION,
-            "identity": _IDENTITY_SPEC.fingerprint,
-            "inventory": _INVENTORY_SPEC.fingerprint,
-            "required_type": InventoryType.PROPERTY.value,
-        }
-    elif inventory_type == InventoryType.UNIT.value:
-        contract = {
-            "contract": UNIT_CONTRACT_NAME,
-            "version": CURRENT_SCHEMA_VERSION,
-            "identity": _IDENTITY_SPEC.fingerprint,
-            "inventory": _INVENTORY_SPEC.fingerprint,
-            "required_type": InventoryType.UNIT.value,
-        }
-    else:
-        contract = {
-            "contract": "CORE-004.INVENTORY",
-            "version": CURRENT_SCHEMA_VERSION,
-            "identity": _IDENTITY_SPEC.fingerprint,
-            "inventory": _INVENTORY_SPEC.fingerprint,
-            "required_type": inventory_type,
-        }
-
-    canonical = _canonical_json(contract)
+    immutable_identity = {
+        "inventory_id": payload["inventory_id"],
+        "tenant_id": payload["tenant_id"],
+        "inventory_type": (
+            payload["inventory_type"]
+        ),
+        "developer_id": payload["developer_id"],
+        "project_id": payload["project_id"],
+        "property_id": payload["property_id"],
+        "unit_id": payload["unit_id"],
+    }
 
     return hashlib.sha256(
-        canonical.encode("utf-8")
+        _canonical_json(
+            immutable_identity
+        ).encode("utf-8")
     ).hexdigest()
 
 
 # ---------------------------------------------------------------------------
-# Cross-field state safety
+# Inventory / property / unit contract
 # ---------------------------------------------------------------------------
 
 
-def _validate_state_combination(
-    *,
-    lifecycle: str,
-    availability: str,
+def validate_inventory(
+    inventory: Inventory,
 ) -> None:
-    """Reject impossible lifecycle/availability combinations."""
-
-    valid_pairs = {
-        (
-            LifecycleState.DRAFT.value,
-            AvailabilityState.UNAVAILABLE.value,
-        ),
-        (
-            LifecycleState.ACTIVE.value,
-            AvailabilityState.AVAILABLE.value,
-        ),
-        (
-            LifecycleState.ACTIVE.value,
-            AvailabilityState.RESERVED.value,
-        ),
-        (
-            LifecycleState.ACTIVE.value,
-            AvailabilityState.BLOCKED.value,
-        ),
-        (
-            LifecycleState.ACTIVE.value,
-            AvailabilityState.ALLOCATED.value,
-        ),
-        (
-            LifecycleState.ACTIVE.value,
-            AvailabilityState.SOLD.value,
-        ),
-        (
-            LifecycleState.ACTIVE.value,
-            AvailabilityState.UNAVAILABLE.value,
-        ),
-        (
-            LifecycleState.RESERVED.value,
-            AvailabilityState.RESERVED.value,
-        ),
-        (
-            LifecycleState.BLOCKED.value,
-            AvailabilityState.BLOCKED.value,
-        ),
-        (
-            LifecycleState.SOLD.value,
-            AvailabilityState.SOLD.value,
-        ),
-        (
-            LifecycleState.UNAVAILABLE.value,
-            AvailabilityState.UNAVAILABLE.value,
-        ),
-        (
-            LifecycleState.ARCHIVED.value,
-            AvailabilityState.UNAVAILABLE.value,
-        ),
-    }
-
-    if (lifecycle, availability) not in valid_pairs:
-        raise InvalidContractValueError(
-            "$",
-            "valid lifecycle/availability state combination",
-            {
-                "lifecycle": lifecycle,
-                "availability": availability,
-            },
+    """
+    Validate generic canonical Inventory representation.
+    """
+    if not isinstance(
+        inventory,
+        Inventory,
+    ):
+        raise InventorySchemaError(
+            "inventory must be canonical CORE-004 Inventory."
         )
 
+    validate_inventory_mapping(
+        inventory.to_dict()
+    )
 
-# ---------------------------------------------------------------------------
-# Serialization contract
-# ---------------------------------------------------------------------------
+
+def validate_property(
+    inventory: Inventory,
+) -> None:
+    """
+    Validate canonical PROPERTY inventory.
+    """
+    if not isinstance(
+        inventory,
+        Inventory,
+    ):
+        raise InventorySchemaError(
+            "inventory must be canonical CORE-004 Inventory."
+        )
+
+    validate_inventory_mapping(
+        inventory.to_dict(),
+        expected_inventory_type=(
+            InventoryType.PROPERTY
+        ),
+    )
 
 
-def serialize_contract(
-    *,
-    contract_name: str,
+def validate_unit(
+    inventory: Inventory,
+) -> None:
+    """
+    Validate canonical UNIT inventory.
+    """
+    if not isinstance(
+        inventory,
+        Inventory,
+    ):
+        raise InventorySchemaError(
+            "inventory must be canonical CORE-004 Inventory."
+        )
+
+    validate_inventory_mapping(
+        inventory.to_dict(),
+        expected_inventory_type=(
+            InventoryType.UNIT
+        ),
+    )
+
+
+def validate_inventory_mapping(
     payload: Mapping[str, Any],
-    schema_version: str = CURRENT_SCHEMA_VERSION,
-) -> str:
-    """Serialize a validated contract into a deterministic envelope."""
-    if contract_name not in SUPPORTED_CONTRACTS:
-        raise InventoryContractError(
-            f"Unsupported CORE-004 contract: {contract_name!r}"
+    *,
+    expected_inventory_type: InventoryType | None = None,
+) -> None:
+    """
+    Validate exact serialized Inventory contract.
+
+    This method checks representation and immutable identity integrity.
+    Lifecycle transition semantics are intentionally left to Part 04.
+    Availability transition semantics are intentionally left to Part 05.
+    """
+    (
+        PROPERTY_CONTRACT
+        if expected_inventory_type
+        is InventoryType.PROPERTY
+        else (
+            UNIT_CONTRACT
+            if expected_inventory_type
+            is InventoryType.UNIT
+            else InventoryContract(
+                schema_name=(
+                    "REOS.CORE-004.INVENTORY"
+                ),
+                schema_version=(
+                    CORE_004_SCHEMA_VERSION
+                ),
+                required_fields=INVENTORY_FIELDS,
+            )
+        )
+    ).validate_mapping(
+        payload
+    )
+
+    identity = _require_mapping(
+        payload["identity"],
+        "identity",
+    )
+
+    validate_inventory_identity_mapping(
+        identity,
+        expected_inventory_type=(
+            expected_inventory_type
+        ),
+    )
+
+    _require_text(
+        payload["name"],
+        "name",
+    )
+
+    _require_enum(
+        payload["lifecycle"],
+        LifecycleState,
+        "lifecycle",
+    )
+
+    _require_enum(
+        payload["availability"],
+        AvailabilityState,
+        "availability",
+    )
+
+    _require_datetime(
+        payload["created_at"],
+        "created_at",
+    )
+
+    _require_datetime(
+        payload["updated_at"],
+        "updated_at",
+    )
+
+    _require_positive_integer(
+        payload["version"],
+        "version",
+    )
+
+    if not isinstance(
+        payload["metadata"],
+        Mapping,
+    ):
+        raise InventorySchemaError(
+            "metadata must be mapping."
         )
 
-    validate_schema_version(schema_version)
+    _require_sha256(
+        payload["identity_fingerprint"],
+        "identity_fingerprint",
+    )
 
-    payload = _require_mapping(payload, "$.payload")
+    expected_fingerprint = (
+        _inventory_identity_fingerprint(
+            identity
+        )
+    )
 
+    if (
+        payload["identity_fingerprint"]
+        != expected_fingerprint
+    ):
+        raise InventoryContractFingerprintError(
+            "Inventory identity fingerprint mismatch."
+        )
+
+    created = _parse_datetime(
+        payload["created_at"]
+    )
+
+    updated = _parse_datetime(
+        payload["updated_at"]
+    )
+
+    if updated < created:
+        raise InventorySchemaError(
+            "updated_at cannot be earlier "
+            "than created_at."
+        )
+
+
+# ---------------------------------------------------------------------------
+# Schema versioning
+# ---------------------------------------------------------------------------
+
+
+def validate_schema_version(
+    version: int,
+) -> None:
+    if not isinstance(
+        version,
+        int,
+    ):
+        raise InventorySchemaVersionError(
+            "schema_version must be integer."
+        )
+
+    if version not in SUPPORTED_SCHEMA_VERSIONS:
+        raise InventorySchemaVersionError(
+            f"Unsupported CORE-004 schema version: "
+            f"{version}"
+        )
+
+
+def schema_compatible(
+    left: InventoryContract,
+    right: InventoryContract,
+) -> bool:
+    """
+    Conservative compatibility rule.
+
+    The same contract family and exact schema version are compatible.
+    Everything else fails closed.
+    """
+    if not isinstance(
+        left,
+        InventoryContract,
+    ):
+        return False
+
+    if not isinstance(
+        right,
+        InventoryContract,
+    ):
+        return False
+
+    try:
+        validate_schema_version(
+            left.schema_version
+        )
+        validate_schema_version(
+            right.schema_version
+        )
+    except InventorySchemaVersionError:
+        return False
+
+    return (
+        left.schema_name
+        == right.schema_name
+        and left.schema_version
+        == right.schema_version
+        and left.required_fields
+        == right.required_fields
+        and left.expected_inventory_type
+        == right.expected_inventory_type
+        and left.allow_additional_fields
+        == right.allow_additional_fields
+    )
+
+
+def require_schema_compatibility(
+    left: InventoryContract,
+    right: InventoryContract,
+) -> None:
+    if not schema_compatible(
+        left,
+        right,
+    ):
+        raise InventoryContractCompatibilityError(
+            "CORE-004 contracts are incompatible."
+        )
+
+
+# ---------------------------------------------------------------------------
+# Canonical serialization
+# ---------------------------------------------------------------------------
+
+
+def project_payload(
+    project: Project,
+) -> dict[str, Any]:
+    """
+    Return the canonical serialized Project representation.
+    """
+    validate_project(
+        project
+    )
+
+    return project.to_dict()
+
+
+def property_payload(
+    inventory: Inventory,
+) -> dict[str, Any]:
+    """
+    Return the canonical serialized PROPERTY representation.
+    """
+    validate_property(
+        inventory
+    )
+
+    return inventory.to_dict()
+
+
+def unit_payload(
+    inventory: Inventory,
+) -> dict[str, Any]:
+    """
+    Return the canonical serialized UNIT representation.
+    """
+    validate_unit(
+        inventory
+    )
+
+    return inventory.to_dict()
+
+
+def serialize_project(
+    project: Project,
+) -> str:
+    payload = project_payload(
+        project
+    )
+
+    return _serialize(
+        PROJECT_CONTRACT,
+        payload,
+    )
+
+
+def serialize_property(
+    inventory: Inventory,
+) -> str:
+    payload = property_payload(
+        inventory
+    )
+
+    return _serialize(
+        PROPERTY_CONTRACT,
+        payload,
+    )
+
+
+def serialize_unit(
+    inventory: Inventory,
+) -> str:
+    payload = unit_payload(
+        inventory
+    )
+
+    return _serialize(
+        UNIT_CONTRACT,
+        payload,
+    )
+
+
+def _serialize(
+    contract: InventoryContract,
+    payload: Mapping[str, Any],
+) -> str:
     envelope = {
-        "schema_version": schema_version,
-        "contract_name": contract_name,
-        "contract_fingerprint": contract_fingerprint(
-            contract_name
-        ),
-        "payload": _normalize_wire_value(payload),
+        "schema_name": contract.schema_name,
+        "schema_version": contract.schema_version,
+        "contract_fingerprint": contract.fingerprint,
+        "payload": payload,
     }
 
     try:
-        return _canonical_json(envelope)
-    except ContractSerializationError:
-        raise
+        return _canonical_json(
+            envelope
+        )
+    except (
+        TypeError,
+        ValueError,
+        InventoryContractError,
+    ) as exc:
+        raise InventorySerializationError(
+            "CORE-004 contract serialization failed."
+        ) from exc
 
 
 def deserialize_contract(
     serialized: str,
 ) -> dict[str, Any]:
-    """Deserialize a contract envelope and fail closed on ambiguity."""
-    if not isinstance(serialized, str):
-        raise ContractSerializationError(
-            "Serialized contract must be a string."
+    """
+    Parse and validate the outer contract envelope.
+
+    This does not reconstruct a domain object.
+    Reconstruction belongs to Part 03 / Part 11.
+    """
+    if not isinstance(
+        serialized,
+        str,
+    ):
+        raise InventorySerializationError(
+            "serialized contract must be string."
         )
 
     try:
-        decoded = json.loads(serialized)
+        payload = json.loads(
+            serialized
+        )
     except json.JSONDecodeError as exc:
-        raise ContractSerializationError(
-            f"Invalid contract JSON: {exc}"
+        raise InventorySerializationError(
+            "serialized contract is invalid JSON."
         ) from exc
 
-    envelope = _require_mapping(decoded, "$")
+    if not isinstance(
+        payload,
+        dict,
+    ):
+        raise InventorySerializationError(
+            "serialized contract root must be object."
+        )
 
     required = {
+        "schema_name",
         "schema_version",
-        "contract_name",
         "contract_fingerprint",
         "payload",
     }
 
-    actual = set(envelope)
-    unknown = actual - required
-    if unknown:
-        field = sorted(unknown)[0]
-        raise UnknownContractFieldError(
-            "$",
-            field,
-        )
+    actual = set(
+        payload.keys()
+    )
 
     missing = required - actual
+
     if missing:
-        field = sorted(missing)[0]
-        raise MissingContractFieldError(
-            "$",
-            field,
+        raise InventorySerializationError(
+            "serialized contract missing fields: "
+            f"{sorted(missing)}"
         )
 
-    version = validate_schema_version(
-        envelope["schema_version"]
-    )
+    unknown = actual - required
 
-    contract_name = envelope["contract_name"]
-    if contract_name not in SUPPORTED_CONTRACTS:
-        raise InventoryContractError(
-            f"Unsupported CORE-004 contract: {contract_name!r}"
+    if unknown:
+        raise InventorySerializationError(
+            "serialized contract contains unknown fields: "
+            f"{sorted(unknown)}"
         )
 
-    expected_fingerprint = contract_fingerprint(
-        contract_name
+    schema_name = payload[
+        "schema_name"
+    ]
+
+    schema_version = payload[
+        "schema_version"
+    ]
+
+    validate_schema_version(
+        schema_version
     )
 
-    if envelope["contract_fingerprint"] != expected_fingerprint:
-        raise ContractFingerprintMismatchError(
-            "Contract fingerprint mismatch: "
-            f"expected {expected_fingerprint!r}, "
-            f"received {envelope['contract_fingerprint']!r}"
+    contract = contract_by_name(
+        schema_name
+    )
+
+    if (
+        payload["contract_fingerprint"]
+        != contract.fingerprint
+    ):
+        raise InventoryContractFingerprintError(
+            "Contract fingerprint mismatch."
         )
 
-    payload = _require_mapping(
-        envelope["payload"],
-        "$.payload",
-    )
+    if not isinstance(
+        payload["payload"],
+        dict,
+    ):
+        raise InventorySerializationError(
+            "serialized contract payload "
+            "must be object."
+        )
 
-    return {
-        "schema_version": version,
-        "contract_name": contract_name,
-        "contract_fingerprint": expected_fingerprint,
-        "payload": dict(payload),
-    }
+    return payload
 
 
 # ---------------------------------------------------------------------------
-# Contract fingerprint API
+# Fingerprint API
 # ---------------------------------------------------------------------------
 
 
-def contract_fingerprint(
-    contract_name: str,
+def project_contract_fingerprint() -> str:
+    return PROJECT_CONTRACT.fingerprint
+
+
+def property_contract_fingerprint() -> str:
+    return PROPERTY_CONTRACT.fingerprint
+
+
+def unit_contract_fingerprint() -> str:
+    return UNIT_CONTRACT.fingerprint
+
+
+def payload_fingerprint(
+    payload: Mapping[str, Any],
 ) -> str:
-    """Return deterministic fingerprint of the named contract."""
-    if contract_name == PROJECT_CONTRACT_NAME:
-        return _PROJECT_SPEC.fingerprint
+    """
+    Fingerprint the supplied payload.
 
-    if contract_name == PROPERTY_CONTRACT_NAME:
-        return _inventory_contract_fingerprint(
-            InventoryType.PROPERTY.value
+    This is intentionally different from the contract fingerprint.
+    """
+    if not isinstance(
+        payload,
+        Mapping,
+    ):
+        raise InventoryContractError(
+            "payload must be mapping."
         )
 
-    if contract_name == UNIT_CONTRACT_NAME:
-        return _inventory_contract_fingerprint(
-            InventoryType.UNIT.value
-        )
+    return hashlib.sha256(
+        _canonical_json(
+            payload
+        ).encode("utf-8")
+    ).hexdigest()
+
+
+# ---------------------------------------------------------------------------
+# Contract lookup
+# ---------------------------------------------------------------------------
+
+
+def contract_by_name(
+    schema_name: str,
+) -> InventoryContract:
+    if schema_name == PROJECT_SCHEMA_NAME:
+        return PROJECT_CONTRACT
+
+    if schema_name == PROPERTY_SCHEMA_NAME:
+        return PROPERTY_CONTRACT
+
+    if schema_name == UNIT_SCHEMA_NAME:
+        return UNIT_CONTRACT
 
     raise InventoryContractError(
-        f"Unsupported CORE-004 contract: {contract_name!r}"
+        f"Unknown CORE-004 contract: "
+        f"{schema_name!r}"
     )
 
 
-# ---------------------------------------------------------------------------
-# Domain-object adapters
-# ---------------------------------------------------------------------------
-
-
-def project_to_contract_payload(project: Any) -> dict[str, Any]:
-    """Convert the canonical Project domain object to contract payload."""
-    to_dict = getattr(project, "to_dict", None)
-
-    if not callable(to_dict):
-        raise InvalidContractValueError(
-            "$.project",
-            "canonical Project object with to_dict()",
-            type(project).__name__,
-        )
-
-    payload = to_dict()
-
-    validate_project_contract(payload)
-
-    return _normalize_wire_value(payload)
-
-
-def inventory_to_contract_payload(inventory: Any) -> dict[str, Any]:
-    """Convert the canonical Inventory domain object to contract payload."""
-    to_dict = getattr(inventory, "to_dict", None)
-
-    if not callable(to_dict):
-        raise InvalidContractValueError(
-            "$.inventory",
-            "canonical Inventory object with to_dict()",
-            type(inventory).__name__,
-        )
-
-    payload = to_dict()
-
-    validate_inventory_contract(payload)
-
-    return _normalize_wire_value(payload)
-
-
-# ---------------------------------------------------------------------------
-# Contract verification API
-# ---------------------------------------------------------------------------
-
-
-def verify_serialized_contract(
-    serialized: str,
-) -> ContractValidationResult:
-    """Deserialize and validate a serialized CORE-004 contract."""
-
-    envelope = deserialize_contract(serialized)
-
-    contract_name = envelope["contract_name"]
-    payload = envelope["payload"]
-
-    if contract_name == PROJECT_CONTRACT_NAME:
-        result = validate_project_contract(
-            payload,
-            expected_schema_version=envelope["schema_version"],
-        )
-
-    elif contract_name == PROPERTY_CONTRACT_NAME:
-        result = validate_property_contract(payload)
-
-    elif contract_name == UNIT_CONTRACT_NAME:
-        result = validate_unit_contract(payload)
-
-    else:
+def contract_for_inventory_type(
+    inventory_type: InventoryType,
+) -> InventoryContract:
+    if not isinstance(
+        inventory_type,
+        InventoryType,
+    ):
         raise InventoryContractError(
-            f"Unsupported CORE-004 contract: {contract_name!r}"
+            "inventory_type must be InventoryType."
         )
 
     if (
-        result.contract_fingerprint
-        != envelope["contract_fingerprint"]
+        inventory_type
+        is InventoryType.PROPERTY
     ):
-        raise ContractFingerprintMismatchError(
-            "Serialized contract fingerprint does not match "
-            "the validated contract."
-        )
+        return PROPERTY_CONTRACT
 
-    return result
+    if (
+        inventory_type
+        is InventoryType.UNIT
+    ):
+        return UNIT_CONTRACT
+
+    raise InventoryContractError(
+        "DEVELOPMENT inventory uses the Project "
+        "contract rather than a PROPERTY/UNIT "
+        "contract."
+    )
 
 
 # ---------------------------------------------------------------------------
-# Timestamp consistency
+# Canonical JSON helpers
 # ---------------------------------------------------------------------------
 
 
-def _assert_timestamp_order(
-    created_at: Any,
-    updated_at: Any,
-    path: str,
-) -> None:
-    """Ensure updated_at never precedes created_at."""
-    created = _parse_datetime(created_at, f"{path}.created_at")
-    updated = _parse_datetime(updated_at, f"{path}.updated_at")
-
-    if updated < created:
-        raise InvalidContractValueError(
-            path,
-            "updated_at >= created_at",
-            {
-                "created_at": created_at,
-                "updated_at": updated_at,
-            },
-        )
-
-
-def _parse_datetime(
+def _canonicalize(
     value: Any,
-    path: str,
-) -> datetime:
-    if isinstance(value, datetime):
+) -> Any:
+    if isinstance(
+        value,
+        Enum,
+    ):
+        return value.value
+
+    if isinstance(
+        value,
+        Mapping,
+    ):
+        result: dict[str, Any] = {}
+
+        for key, item in sorted(
+            value.items(),
+            key=lambda pair: str(pair[0]),
+        ):
+            result[str(key)] = _canonicalize(
+                item
+            )
+
+        return result
+
+    if isinstance(
+        value,
+        (list, tuple),
+    ):
+        return [
+            _canonicalize(item)
+            for item in value
+        ]
+
+    if (
+        value is None
+        or isinstance(
+            value,
+            (str, int, float, bool),
+        )
+    ):
         return value
 
-    _require_string(value, path)
+    raise InventorySerializationError(
+        "Unsupported value type during "
+        "canonical serialization: "
+        f"{type(value).__name__}"
+    )
 
+
+def _canonical_json(
+    value: Any,
+) -> str:
     try:
-        return datetime.fromisoformat(
-            value.replace("Z", "+00:00")
+        return json.dumps(
+            _canonicalize(value),
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
         )
-    except ValueError as exc:
-        raise InvalidContractValueError(
-            path,
-            "valid ISO-8601 datetime",
-            value,
+    except (
+        TypeError,
+        ValueError,
+    ) as exc:
+        raise InventorySerializationError(
+            "Value cannot be canonically serialized."
         ) from exc
 
 
-# ---------------------------------------------------------------------------
-# Enum wire helpers
-# ---------------------------------------------------------------------------
-
-
-def _enum_wire_value(value: Any) -> Any:
-    """Return enum values in canonical wire representation."""
-    if isinstance(value, Enum):
-        return value.value
-    return value
-
-
-# ---------------------------------------------------------------------------
-# Public contract metadata
-# ---------------------------------------------------------------------------
-
-
-def supported_contracts() -> tuple[str, ...]:
-    """Return supported contract names deterministically."""
-    return tuple(sorted(SUPPORTED_CONTRACTS))
-
-
-def supported_schema_versions() -> tuple[str, ...]:
-    """Return supported schema versions deterministically."""
-    return tuple(sorted(SUPPORTED_SCHEMA_VERSIONS))
-
-
-def contract_metadata(
-    contract_name: str,
-) -> dict[str, Any]:
-    """Return immutable-style metadata for a contract."""
-    if contract_name not in SUPPORTED_CONTRACTS:
-        raise InventoryContractError(
-            f"Unsupported CORE-004 contract: {contract_name!r}"
+def _parse_datetime(
+    value: str,
+) -> datetime:
+    try:
+        return datetime.fromisoformat(
+            value.replace(
+                "Z",
+                "+00:00",
+            )
         )
-
-    return {
-        "contract_name": contract_name,
-        "schema_version": CURRENT_SCHEMA_VERSION,
-        "contract_fingerprint": contract_fingerprint(
-            contract_name
-        ),
-    }
+    except ValueError as exc:
+        raise InventorySchemaError(
+            f"Invalid ISO datetime: {value!r}"
+        ) from exc
 
 
 __all__ = [
-    "CURRENT_SCHEMA_VERSION",
+    "CORE_004_SCHEMA_VERSION",
+    "PROJECT_SCHEMA_NAME",
+    "PROPERTY_SCHEMA_NAME",
+    "UNIT_SCHEMA_NAME",
     "SUPPORTED_SCHEMA_VERSIONS",
-    "PROJECT_CONTRACT_NAME",
-    "PROPERTY_CONTRACT_NAME",
-    "UNIT_CONTRACT_NAME",
-    "SUPPORTED_CONTRACTS",
     "InventoryContractError",
-    "ContractSchemaError",
-    "UnknownContractFieldError",
-    "MissingContractFieldError",
-    "InvalidContractValueError",
-    "UnsupportedSchemaVersionError",
-    "ContractCompatibilityError",
-    "ContractSerializationError",
-    "ContractFingerprintMismatchError",
-    "ContractValidationResult",
-    "ContractSpec",
+    "InventorySchemaError",
+    "InventorySchemaVersionError",
+    "InventoryContractCompatibilityError",
+    "InventorySerializationError",
+    "InventoryContractFingerprintError",
+    "InventoryContract",
+    "PROJECT_CONTRACT",
+    "PROPERTY_CONTRACT",
+    "UNIT_CONTRACT",
+    "validate_project",
+    "validate_project_mapping",
+    "validate_inventory_identity",
+    "validate_inventory_identity_mapping",
+    "validate_inventory",
+    "validate_property",
+    "validate_unit",
+    "validate_inventory_mapping",
     "validate_schema_version",
-    "schema_major",
-    "schema_minor",
-    "contracts_compatible",
-    "require_contract_compatibility",
-    "validate_project_contract",
-    "validate_inventory_identity_contract",
-    "validate_inventory_contract",
-    "validate_property_contract",
-    "validate_unit_contract",
-    "serialize_contract",
+    "schema_compatible",
+    "require_schema_compatibility",
+    "project_payload",
+    "property_payload",
+    "unit_payload",
+    "serialize_project",
+    "serialize_property",
+    "serialize_unit",
     "deserialize_contract",
-    "contract_fingerprint",
-    "project_to_contract_payload",
-    "inventory_to_contract_payload",
-    "verify_serialized_contract",
-    "supported_contracts",
-    "supported_schema_versions",
-    "contract_metadata",
+    "project_contract_fingerprint",
+    "property_contract_fingerprint",
+    "unit_contract_fingerprint",
+    "payload_fingerprint",
+    "contract_by_name",
+    "contract_for_inventory_type",
 ]
