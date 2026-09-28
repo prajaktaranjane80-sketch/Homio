@@ -1,93 +1,92 @@
-> AUTONOMY_ENGINE\core\deal.py:127:_NOMINAL_TRANSITIONS: dict[DealStatus, frozenset[DealStatus]] = {
-  AUTONOMY_ENGINE\core\deal.py:128:    DealStatus.QUALIFIED: frozenset({DealStatus.MATCHED}),
-  AUTONOMY_ENGINE\core\deal.py:129:    DealStatus.MATCHED: frozenset({DealStatus.VISIT_PENDING}),
-  AUTONOMY_ENGINE\core\deal.py:130:    DealStatus.VISIT_PENDING: frozenset({DealStatus.VISITED}),
-  AUTONOMY_ENGINE\core\deal.py:131:    DealStatus.VISITED: frozenset({DealStatus.OFFERED}),
-  AUTONOMY_ENGINE\core\deal.py:132:    DealStatus.OFFERED: frozenset(
-  AUTONOMY_ENGINE\core\deal.py:133:        {
-  AUTONOMY_ENGINE\core\deal.py:134:            DealStatus.NEGOTIATING,
-  AUTONOMY_ENGINE\core\deal.py:135:            DealStatus.BOOKING_PENDING,
-  AUTONOMY_ENGINE\core\deal.py:136:        }
-  AUTONOMY_ENGINE\core\deal.py:137:    ),
-  AUTONOMY_ENGINE\core\deal.py:138:    DealStatus.NEGOTIATING: frozenset(
-  AUTONOMY_ENGINE\core\deal.py:139:        {
-  AUTONOMY_ENGINE\core\deal.py:140:            DealStatus.OFFERED,
-  AUTONOMY_ENGINE\core\deal.py:141:            DealStatus.BOOKING_PENDING,
-  AUTONOMY_ENGINE\core\deal.py:142:        }
-  AUTONOMY_ENGINE\core\deal.py:143:    ),
-  AUTONOMY_ENGINE\core\deal.py:144:    DealStatus.BOOKING_PENDING: frozenset({DealStatus.BOOKED}),
-  AUTONOMY_ENGINE\core\deal.py:145:    DealStatus.BOOKED: frozenset({DealStatus.AGREEMENT_PENDING}),
-  AUTONOMY_ENGINE\core\deal.py:146:    DealStatus.AGREEMENT_PENDING: frozenset({DealStatus.AGREED}),
-  AUTONOMY_ENGINE\core\deal.py:147:    DealStatus.AGREED: frozenset({DealStatus.REGISTRATION_PENDING}),
-  AUTONOMY_ENGINE\core\deal.py:148:    DealStatus.REGISTRATION_PENDING: frozenset({DealStatus.REGISTERED}),
-  AUTONOMY_ENGINE\core\deal.py:149:    DealStatus.REGISTERED: frozenset({DealStatus.COMPLETION_PENDING}),
-  AUTONOMY_ENGINE\core\deal.py:150:    DealStatus.COMPLETION_PENDING: frozenset({DealStatus.COMPLETED}),
-  AUTONOMY_ENGINE\core\deal.py:151:    DealStatus.COMPLETED: frozenset(),
-  AUTONOMY_ENGINE\core\deal.py:152:    DealStatus.CANCELLED: frozenset(),
-  AUTONOMY_ENGINE\core\deal.py:153:    DealStatus.EXPIRED: frozenset(),
-  AUTONOMY_ENGINE\core\deal.py:154:    DealStatus.REJECTED: frozenset(),
-  AUTONOMY_ENGINE\core\deal.py:155:    DealStatus.DISPUTED: frozenset(),
-  AUTONOMY_ENGINE\core\deal.py:156:    DealStatus.FRAUD_BLOCKED: frozenset(),
-  AUTONOMY_ENGINE\core\deal.py:157:}
-  AUTONOMY_ENGINE\core\deal.py:158:
-  AUTONOMY_ENGINE\core\deal.py:159:
-  AUTONOMY_ENGINE\core\deal.py:160:_PRE_BOOKING_EXPIRY_STATES = frozenset(
-  AUTONOMY_ENGINE\core\deal.py:161:    {
-  AUTONOMY_ENGINE\core\deal.py:162:        DealStatus.QUALIFIED,
-  AUTONOMY_ENGINE\core\deal.py:163:        DealStatus.MATCHED,
-  AUTONOMY_ENGINE\core\deal.py:164:        DealStatus.VISIT_PENDING,
-  AUTONOMY_ENGINE\core\deal.py:165:        DealStatus.VISITED,
-  AUTONOMY_ENGINE\core\deal.py:166:        DealStatus.OFFERED,
-  AUTONOMY_ENGINE\core\deal.py:167:        DealStatus.NEGOTIATING,
-  AUTONOMY_ENGINE\core\deal.py:168:        DealStatus.BOOKING_PENDING,
-  AUTONOMY_ENGINE\core\deal.py:169:        DealStatus.AGREEMENT_PENDING,
-  AUTONOMY_ENGINE\core\deal.py:170:    }
-  AUTONOMY_ENGINE\core\deal.py:171:)
-  AUTONOMY_ENGINE\core\deal.py:172:
-> AUTONOMY_ENGINE\core\deal.py:1141:            _NOMINAL_TRANSITIONS.get(
-  AUTONOMY_ENGINE\core\deal.py:1142:                self.status,
-  AUTONOMY_ENGINE\core\deal.py:1143:                frozenset(),
-  AUTONOMY_ENGINE\core\deal.py:1144:            )
-  AUTONOMY_ENGINE\core\deal.py:1145:        )
-  AUTONOMY_ENGINE\core\deal.py:1146:
-  AUTONOMY_ENGINE\core\deal.py:1147:        if target == DealStatus.CANCELLED and self.status in _NON_TERMINAL_STATES:
-  AUTONOMY_ENGINE\core\deal.py:1148:            allowed.add(target)
-  AUTONOMY_ENGINE\core\deal.py:1149:
-  AUTONOMY_ENGINE\core\deal.py:1150:        if target == DealStatus.EXPIRED and self.status in _PRE_BOOKING_EXPIRY_STATES:
-  AUTONOMY_ENGINE\core\deal.py:1151:            allowed.add(target)
-  AUTONOMY_ENGINE\core\deal.py:1152:
-  AUTONOMY_ENGINE\core\deal.py:1153:        if target == DealStatus.REJECTED and self.status in _REJECTION_STATES:
-  AUTONOMY_ENGINE\core\deal.py:1154:            allowed.add(target)
-  AUTONOMY_ENGINE\core\deal.py:1155:
-  AUTONOMY_ENGINE\core\deal.py:1156:        if target == DealStatus.FRAUD_BLOCKED and self.status in _NON_TERMINAL_STATES:
-  AUTONOMY_ENGINE\core\deal.py:1157:            allowed.add(target)
-  AUTONOMY_ENGINE\core\deal.py:1158:
-  AUTONOMY_ENGINE\core\deal.py:1159:        if target == DealStatus.DISPUTED and self.status in _DISPUTE_STATES:
-  AUTONOMY_ENGINE\core\deal.py:1160:            allowed.add(target)
-  AUTONOMY_ENGINE\core\deal.py:1161:
-  AUTONOMY_ENGINE\core\deal.py:1162:        if target not in allowed:
-  AUTONOMY_ENGINE\core\deal.py:1163:            raise DealTransitionError(
-  AUTONOMY_ENGINE\core\deal.py:1164:                f"Invalid Deal transition: "
-  AUTONOMY_ENGINE\core\deal.py:1165:                f"{self.status.value} -> {target.value}."
-  AUTONOMY_ENGINE\core\deal.py:1166:            )
-  AUTONOMY_ENGINE\core\deal.py:1167:
-  AUTONOMY_ENGINE\core\deal.py:1168:        if target in {
-  AUTONOMY_ENGINE\core\deal.py:1169:            DealStatus.MATCHED,
-  AUTONOMY_ENGINE\core\deal.py:1170:            DealStatus.VISIT_PENDING,
-  AUTONOMY_ENGINE\core\deal.py:1171:            DealStatus.VISITED,
-  AUTONOMY_ENGINE\core\deal.py:1172:            DealStatus.OFFERED,
-  AUTONOMY_ENGINE\core\deal.py:1173:            DealStatus.NEGOTIATING,
-  AUTONOMY_ENGINE\core\deal.py:1174:            DealStatus.BOOKING_PENDING,
-  AUTONOMY_ENGINE\core\deal.py:1175:            DealStatus.BOOKED,
-  AUTONOMY_ENGINE\core\deal.py:1176:            DealStatus.AGREEMENT_PENDING,
-  AUTONOMY_ENGINE\core\deal.py:1177:            DealStatus.AGREED,
-  AUTONOMY_ENGINE\core\deal.py:1178:            DealStatus.REGISTRATION_PENDING,
-  AUTONOMY_ENGINE\core\deal.py:1179:            DealStatus.REGISTERED,
-  AUTONOMY_ENGINE\core\deal.py:1180:            DealStatus.COMPLETION_PENDING,
-  AUTONOMY_ENGINE\core\deal.py:1181:            DealStatus.COMPLETED,
-  AUTONOMY_ENGINE\core\deal.py:1182:        } and not self.opportunity_bound:
-  AUTONOMY_ENGINE\core\deal.py:1183:            raise DealTransitionError(
-  AUTONOMY_ENGINE\core\deal.py:1184:                f"{target.value} requires a fully bound "
-  AUTONOMY_ENGINE\core\deal.py:1185:                "builder/project/unit opportunity."
-  AUTONOMY_ENGINE\core\deal.py:1186:            )
-
+>> }
+ 760:         )
+ 761:
+ 762:         return replace(
+ 763:             self,
+ 764:             negotiation=updated_negotiation,
+ 765:             version=self.version + 1,
+ 766:             updated_at=at or _utc_now(),
+ 767:         )
+ 768:
+ 769:     @property
+ 770:     def last_transaction_milestone(self) -> DealTransactionMilestone | None:
+ 771:         return self.milestones[-1] if self.milestones else None
+ 772:
+ 773:     def advance_transaction_milestone(
+ 774:         self,
+ 775:         target: DealStatus,
+ 776:         *,
+ 777:         tenant_id: str,
+ 778:         expected_version: int,
+ 779:         reference_id: str | None = None,
+ 780:         at: str | None = None,
+ 781:     ) -> "Deal":
+ 782:         """Advance the canonical Deal lifecycle and append one milestone."""
+ 783:         self._assert_tenant(tenant_id)
+ 784:         self._assert_version(expected_version)
+ 785:
+ 786:         target = DealStatus(target)
+ 787:
+ 788:         transaction_statuses = {
+ 789:             DealStatus.BOOKING_PENDING,
+ 790:             DealStatus.BOOKED,
+ 791:             DealStatus.AGREEMENT_PENDING,
+ 792:             DealStatus.AGREED,
+ 793:             DealStatus.REGISTRATION_PENDING,
+ 794:             DealStatus.REGISTERED,
+ 795:             DealStatus.COMPLETION_PENDING,
+ 796:             DealStatus.COMPLETED,
+ 797:         }
+ 798:
+ 799:         if target not in transaction_statuses:
+ 800:             raise DealTransitionError(
+ 801:                 f"{target.value} is not a transaction milestone."
+ 802:             )
+ 803:
+ 804:         updated = self.transition(
+ 805:             target,
+ 806:             tenant_id=tenant_id,
+ 807:             expected_version=expected_version,
+ 808:             at=at,
+ 809:         )
+ 810:
+ 811:         timestamp = (
+ 812:             datetime.fromisoformat(updated.updated_at)
+ 813:             if isinstance(updated.updated_at, str)
+ 814:             else updated.updated_at
+ 815:         )
+ 816:
+ 817:         milestone = DealTransactionMilestone(
+ 818:             milestone_id=str(uuid4()),
+ 819:             deal_id=self.deal_id,
+ 820:             tenant_id=self.tenant_id,
+ 821:             from_status=self.status,
+ 822:             to_status=target,
+ 823:             sequence=len(self.milestones) + 1,
+ 824:             deal_version=updated.version,
+ 825:             occurred_at=timestamp,
+ 826:             reference_id=reference_id,
+ 827:         )
+ 828:
+ 829:         return replace(
+ 830:             updated,
+ 831:             milestones=self.milestones + (milestone,),
+ 832:         )
+ 833:
+ 834:
+ 835:     def attach_evidence(
+ 836:         self,
+ 837:         evidence_id: str,
+ 838:         *,
+ 839:         evidence_type: str,
+ 840:         reference: str,
+ 841:         tenant_id: str,
+ 842:         expected_version: int,
+ 843:         at: datetime | str | None = None,
+ 844:         metadata: Mapping[str, Any] | None = None,
+ 845:     ) -> "Deal":
+ 846:         from .deal_evidence_audit import (
+ 847:             DealEvidenceConflictError,
+ 848:             DealEvidenceReference,
+ 849:         )
+ 850:
