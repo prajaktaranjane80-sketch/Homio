@@ -1,95 +1,158 @@
-PS C:\Users\Sandip RanjanePatil> Set-Location "D:\Homio\REOS_CONTROL_CENTER"
-PS D:\Homio\REOS_CONTROL_CENTER> git ls-files | Select-String "AUTONOMY_ENGINE[/\\]core[/\\].*search|AUTONOMY_ENGINE[/\\]core[/\\].*matching"
-
-AUTONOMY_ENGINE/core/search_matching/__init__.py
-AUTONOMY_ENGINE/core/search_matching/search_filters.py
-AUTONOMY_ENGINE/core/search_matching/search_index_contract.py
-AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
+kya core 5 ka kam essi tarah huva hai jara dekho
 
 
-PS D:\Homio\REOS_CONTROL_CENTER> git ls-files | Select-String "AUTONOMY_ENGINE[/\\]core[/\\].*search|AUTONOMY_ENGINE[/\\]core[/\\].*matching"
+CORE-005 Search & Matching Core
+│
+├── 01 Search Domain
+│   ├── search request contract
+│   ├── search identity
+│   ├── query normalization
+│   ├── filter model
+│   ├── sort model
+│   ├── pagination model
+│   ├── result contract
+│   └── tenant context
+│
+├── 02 Search Index Contract
+│   ├── index schema
+│   ├── source-of-truth reference
+│   ├── indexed-field contract
+│   ├── schema version
+│   ├── index version
+│   ├── index fingerprint
+│   ├── rebuild contract
+│   └── stale-index detection
+│
+├── 03 Projection & Synchronization
+│   ├── source event consumption
+│   ├── projection update
+│   ├── projection version
+│   ├── synchronization boundary
+│   ├── eventual-consistency model
+│   ├── stale projection handling
+│   ├── rebuild/reindex
+│   └── no source-of-truth ownership
+│
+├── 04 Search Execution
+│   ├── query execution
+│   ├── filtering
+│   ├── sorting
+│   ├── pagination
+│   ├── result determinism
+│   ├── empty-result handling
+│   ├── invalid-query handling
+│   └── bounded query execution
+│
+├── 05 Matching Domain
+│   ├── matching request
+│   ├── candidate selection
+│   ├── matching criteria
+│   ├── compatibility rules
+│   ├── hard constraints
+│   ├── soft preferences
+│   ├── match explanation
+│   └── deterministic matching boundary
+│
+├── 06 Ranking & Relevance
+│   ├── relevance contract
+│   ├── ranking inputs
+│   ├── deterministic tie-breaking
+│   ├── ranking version
+│   ├── ranking explanation
+│   ├── feature provenance
+│   ├── ranking reproducibility
+│   └── no autonomous business decision authority
+│
+├── 07 Search/Match Consistency
+│   ├── source version tracking
+│   ├── projection lag detection
+│   ├── stale result detection
+│   ├── duplicate event handling
+│   ├── out-of-order update handling
+│   ├── deterministic rebuild
+│   └── eventual-consistency disclosure
+│
+├── 08 Security & Tenant Boundary
+│   ├── tenant isolation
+│   ├── query authorization boundary
+│   ├── result authorization boundary
+│   ├── cross-tenant index isolation
+│   ├── sensitive-field filtering
+│   ├── IDOR protection
+│   ├── data leakage prevention
+│   └── query abuse boundary
+│
+├── 09 Observability & Evidence
+│   ├── query correlation
+│   ├── source version
+│   ├── projection version
+│   ├── ranking version
+│   ├── match explanation
+│   ├── search evidence
+│   ├── index health evidence
+│   └── reproducibility metadata
+│
+├── 10 REOS Integration Contract
+│   ├── Control Center authority boundary
+│   ├── canonical-state non-ownership
+│   ├── execution compatibility
+│   ├── verification contract
+│   └── no autonomous project-state mutation
+│
+├── 11 ACRL Integration Contract
+│   ├── index reconstruction
+│   ├── projection reconstruction
+│   ├── schema discoverability
+│   ├── dependency discoverability
+│   ├── ranking-version discoverability
+│   ├── evidence discoverability
+│   ├── deterministic rebuild
+│   └── drift detection
+│
+├── 12 Runtime Adapter Boundary
+│   ├── search backend abstraction
+│   ├── index adapter
+│   ├── backend-independent contract
+│   ├── rebuild adapter
+│   └── no backend leakage into domain
+│
+└── 13 Contract + Adversarial Regression
+    ├── query contract tests
+    ├── tenant isolation tests
+    ├── result authorization tests
+    ├── stale projection tests
+    ├── duplicate event tests
+    ├── out-of-order tests
+    ├── deterministic ranking tests
+    ├── ranking reproducibility tests
+    ├── index rebuild tests
+    ├── data leakage tests
+    ├── serialization tests
+    ├── reconstruction tests
+    ├── REOS integration tests
+    ├── ACRL reconstruction tests
+    └── cross-core regression
 
-AUTONOMY_ENGINE/core/search_matching/__init__.py
-AUTONOMY_ENGINE/core/search_matching/search_filters.py
-AUTONOMY_ENGINE/core/search_matching/search_index_contract.py
-AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
+or ye sab tests huve hai 
 
-
-PS D:\Homio\REOS_CONTROL_CENTER> git log --all --oneline --name-status -- AUTONOMY_ENGINE/core | Select-String "search|matching|CORE-005"
-
-7e8766d feat(core-005): implement structured search filters
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
-b5a58b6 refactor(core-005): clean rebuild search matching foundation
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/__init__.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/hybrid_retrieval.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/location_search.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/matching.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_index_contract.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_ranking.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_rebuild.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_visibility.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py
-D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py
-68f4b48 On reos-development: pre-core-005-clean-rebuild
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_index_contract.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/__init__.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/hybrid_retrieval.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/location_search.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/matching.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_ranking.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_rebuild.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_visibility.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py
-
-
-PS D:\Homio\REOS_CONTROL_CENTER> Get-ChildItem AUTONOMY_ENGINE\core -Recurse -File | Where-Object { $_.Name -match "search|matching" } | Select-Object FullName,Length
-
-FullName                                                                                                                          Length
---------                                                                                                                          ------
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\location_search.py                                                8822
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\search_filters.py                                                 7810
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\search_index_contract.py                                         10698
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_location_search.py                                           8126
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py                                            5103
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\location_search.cpython-312.pyc                      11499
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\matching.cpython-312.pyc                             13887
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\search_filters.cpython-312.pyc                        8641
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\search_index_contract.cpython-312.pyc                12700
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\search_ranking.cpython-312.pyc                       12483
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\search_rebuild.cpython-312.pyc                       13073
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\search_visibility.cpython-312.pyc                     6372
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_location_search.cpython-312-pytest-9.1.1.pyc    18879
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_location_search.cpython-312.pyc                 10235
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_matching.cpython-312-pytest-9.1.1.pyc           30950
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_matching.cpython-312.pyc                        13426
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_core_t09.cpython-312-pytest-9.1.1.pyc    32828
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_core_t09.cpython-312.pyc                 19146
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_filters.cpython-312-pytest-9.1.1.pyc     11661
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_filters.cpython-312.pyc                   6377
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_ranking.cpython-312-pytest-9.1.1.pyc     17209
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_ranking.cpython-312.pyc                   9096
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_rebuild.cpython-312-pytest-9.1.1.pyc     36965
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_rebuild.cpython-312.pyc                  13959
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_visibility.cpython-312-pytest-9.1.1.pyc  18980
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_visibility.cpython-312.pyc                7590
-
+Test                   
+| --------------------------------- 
+| Event identity/domain             
+| Tenant isolation                  
+| Serialization/fingerprint         
+| Contract registration/validation  
+| Unknown contract fail-closed      
+| Ordering stale/future            
+| Resilience transient/permanent    
+| Transport registry                
+| Replay authorization/scope        
+| Replay partial failure            
+| Delivery                          
+| Transaction/outbox boundary       
+| Observability/evidence            
+| REOS integration contract         
+| ACRL integration contract         
+| Security producer authorization   
+| Schema evolution/compatibility    
+| Contract fingerprint immutability  
+| Deep adversarial regression        
