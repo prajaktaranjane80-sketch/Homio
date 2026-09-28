@@ -1,50 +1,58 @@
-PS D:\Homio\REOS_CONTROL_CENTER> Get-ChildItem AUTONOMY_ENGINE\core -Recurse -File |
->> Where-Object { $_.FullName -match "\\deal(_transaction)?\\" -or $_.Name -match "^deal" } |
->> Select-Object FullName,Length
-
-FullName                                                                                                                                     Length
---------                                                                                                                                     ------
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\apply_CORE-006_FINAL_UPGRADE.ps1                                            2996
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\CORE-006_FINAL_UPGRADE.txt                                                   850
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py                                                                       41
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_authorization.py                                                         55
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_concurrency.py                                                           53
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_consistency.py                                                           53
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                                                        56
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_external_contracts.py                                                    60
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_freeze.py                                                                48
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_integrity.py                                                             51
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_offer_negotiation.py                                                     59
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_ownership_integration.py                                                 63
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_events.py                                                    60
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_milestones.py                                                64
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_replay.py                                                    60
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_workflow.py                                                  62
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\manifest.json                                                                467
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal.py                                                                  46
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_evidence_audit.py                                                   61
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_final_hardening.py                                                  62
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_offer_negotiation.py                                                64
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_ownership_integration.py                                            68
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_parties.py                                                          54
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_transaction_events.py                                               65
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_transaction_milestones.py                                           69
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\__init__.py                                                                   43
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\__pycache__\test_deal.cpython-312-pytest-9.1.1.pyc                           343
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\__pycache__\test_deal_evidence_audit.cpython-312-pytest-9.1.1.pyc            373
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\__pycache__\test_deal_final_hardening.cpython-312-pytest-9.1.1.pyc           375
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\__pycache__\test_deal_offer_negotiation.cpython-312-pytest-9.1.1.pyc         379
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\__pycache__\test_deal_ownership_integration.cpython-312-pytest-9.1.1.pyc     387
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\__pycache__\test_deal_parties.cpython-312-pytest-9.1.1.pyc                   359
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\__pycache__\test_deal_transaction_events.cpython-312-pytest-9.1.1.pyc        381
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\__pycache__\test_deal_transaction_milestones.cpython-312-pytest-9.1.1.pyc    389
-D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\__pycache__\__init__.cpython-312.pyc                                         175
-
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "=== GIT STATUS ==="
-=== GIT STATUS ===
-PS D:\Homio\REOS_CONTROL_CENTER> git status --short
+PS D:\Homio\REOS_CONTROL_CENTER> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
+PS D:\HOMIO\REOS_CONTROL_CENTER> git rm -r AUTONOMY_ENGINE\core\deal_transaction
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/CORE-006_FINAL_UPGRADE.txt'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/__init__.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/apply_CORE-006_FINAL_UPGRADE.ps1'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_authorization.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_concurrency.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_consistency.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_external_contracts.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_freeze.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_integrity.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_milestones.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_workflow.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/manifest.json'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py'
+rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py'
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
+D  AUTONOMY_ENGINE/core/deal_transaction/CORE-006_FINAL_UPGRADE.txt
+D  AUTONOMY_ENGINE/core/deal_transaction/__init__.py
+D  AUTONOMY_ENGINE/core/deal_transaction/apply_CORE-006_FINAL_UPGRADE.ps1
+D  AUTONOMY_ENGINE/core/deal_transaction/deal.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_authorization.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_concurrency.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_consistency.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_external_contracts.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_freeze.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_integrity.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_milestones.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_workflow.py
+D  AUTONOMY_ENGINE/core/deal_transaction/manifest.json
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py
  M AUTONOMY_ENGINE/core/search_matching/projection_sync.py
  M AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
  M AUTONOMY_ENGINE/core/search_matching/reos_integration.py
@@ -52,34 +60,13 @@ PS D:\Homio\REOS_CONTROL_CENTER> git status --short
  M AUTONOMY_ENGINE/core/search_matching/search_domain.py
  M AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py
  M AUTONOMY_ENGINE/core/search_matching/test_matching.py
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "=== CORE-006 TRACKED FILES ==="
-=== CORE-006 TRACKED FILES ===
-PS D:\Homio\REOS_CONTROL_CENTER> git ls-files | Select-String "AUTONOMY_ENGINE[/\\]core[/\\].*deal"
-
-AUTONOMY_ENGINE/core/deal_transaction/CORE-006_FINAL_UPGRADE.txt
-AUTONOMY_ENGINE/core/deal_transaction/__init__.py
-AUTONOMY_ENGINE/core/deal_transaction/apply_CORE-006_FINAL_UPGRADE.ps1
-AUTONOMY_ENGINE/core/deal_transaction/deal.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_authorization.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_concurrency.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_consistency.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_external_contracts.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_freeze.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_integrity.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_milestones.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_workflow.py
-AUTONOMY_ENGINE/core/deal_transaction/manifest.json
-AUTONOMY_ENGINE/core/deal_transaction/test_deal.py
-AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py
-AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py
-AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py
-AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py
-AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py
-AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
-AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py
+PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --stat
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py', LF will be replaced by CRLF the next time Git touches it
+ .../core/search_matching/projection_sync.py        |  20 +-
+ .../core/search_matching/qdrant_indexing.py        |   9 +-
+ .../core/search_matching/reos_integration.py       |   2 +-
+ .../core/search_matching/search_consistency.py     |   6 +-
+ .../core/search_matching/search_domain.py          |  20 +-
+ .../search_matching/test_core005_regression.py     |  24 +-
+ .../core/search_matching/test_matching.py          | 620 +++++++--------------
+ 7 files changed, 259 insertions(+), 442 deletions(-)
