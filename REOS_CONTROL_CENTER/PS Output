@@ -1,3 +1,5 @@
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
+PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> $R = "AUTONOMY_ENGINE\core\CORE-006_RECOVERY"
 PS D:\HOMIO\REOS_CONTROL_CENTER> $Tool = "$R\py312-decompiler"
 PS D:\HOMIO\REOS_CONTROL_CENTER>
@@ -20,3 +22,36 @@ deal_transaction_milestones.py   2721
 deal_offer_negotiation.py        2721
 deal_evidence_audit.py           1118
 deal_ownership_integration.py     685
+
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $R = "AUTONOMY_ENGINE\core\CORE-006_RECOVERY"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $P = "$R\pycdc"
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> New-Item -ItemType Directory -Force $P | Out-Null
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Invoke-RestMethod `
+>>   "https://api.github.com/repos/error-inside/pycdc-prebuilt-binaries/releases/latest" |
+>>   Select-Object tag_name,assets |
+>>   ConvertTo-Json -Depth 5 |
+>>   Set-Content "$P\release.json"
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== PYCDC RELEASE ASSETS ===" -ForegroundColor Cyan
+=== PYCDC RELEASE ASSETS ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Content "$P\release.json" | Select-String "browser_download_url"
+
+                       "browser_download_url":
+"https://github.com/error-inside/pycdc-prebuilt-binaries/releases/download/v2026.03.27/pycdc-lin-arm64-bin.7z"
+                       "browser_download_url":
+"https://github.com/error-inside/pycdc-prebuilt-binaries/releases/download/v2026.03.27/pycdc-lin-_x86_64-bin.7z"
+                       "browser_download_url":
+"https://github.com/error-inside/pycdc-prebuilt-binaries/releases/download/v2026.03.27/pycdc-mac-arm64-bin.7z"
+                       "browser_download_url":
+"https://github.com/error-inside/pycdc-prebuilt-binaries/releases/download/v2026.03.27/pycdc-mac-x86_64-bin.7z"
+                       "browser_download_url":
+"https://github.com/error-inside/pycdc-prebuilt-binaries/releases/download/v2026.03.27/pycdc-win-arm64-bin.7z"
+                       "browser_download_url":
+"https://github.com/error-inside/pycdc-prebuilt-binaries/releases/download/v2026.03.27/pycdc-win-x86_32-bin.7z"
+                       "browser_download_url":
+"https://github.com/error-inside/pycdc-prebuilt-binaries/releases/download/v2026.03.27/pycdc-win-x86_64-bin.7z"
