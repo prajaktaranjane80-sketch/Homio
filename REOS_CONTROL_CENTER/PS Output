@@ -1,164 +1,138 @@
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $eventPath = "$SRC\deal_transaction_events.py"
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Content -Path $eventPath -Value $eventSource -Encoding UTF8
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 1. CURRENT GIT STATUS ===" -ForegroundColor Cyan
+
+=== 1. CURRENT GIT STATUS ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
+D  AUTONOMY_ENGINE/core/deal_transaction/CORE-006_FINAL_UPGRADE.txt
+D  AUTONOMY_ENGINE/core/deal_transaction/__init__.py
+D  AUTONOMY_ENGINE/core/deal_transaction/apply_CORE-006_FINAL_UPGRADE.ps1
+D  AUTONOMY_ENGINE/core/deal_transaction/deal.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_authorization.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_concurrency.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_consistency.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_external_contracts.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_freeze.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_integrity.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_milestones.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_workflow.py
+D  AUTONOMY_ENGINE/core/deal_transaction/manifest.json
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py
+ M AUTONOMY_ENGINE/core/search_matching/projection_sync.py
+ M AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
+ M AUTONOMY_ENGINE/core/search_matching/reos_integration.py
+ M AUTONOMY_ENGINE/core/search_matching/search_consistency.py
+ M AUTONOMY_ENGINE/core/search_matching/search_domain.py
+ M AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py
+ M AUTONOMY_ENGINE/core/search_matching/test_matching.py
+?? AUTONOMY_ENGINE/core/CORE-006_RECOVERY/
+?? AUTONOMY_ENGINE/core/deal_transaction/
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
-PS D:\HOMIO\REOS_CONTROL_CENTER> # 3. Compile recovery sources BEFORE canonical install
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== RECOVERY COMPILE ===" -ForegroundColor Yellow
-=== RECOVERY COMPILE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 2. STASHES ===" -ForegroundColor Cyan
+
+=== 2. STASHES ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git stash list --date=local
+stash@{Mon Sep 28 18:15:35 2026}: On reos-development: preserve local CORE005 before full remote reconcile
+stash@{Sun Sep 27 21:11:49 2026}: On reos-development: pre-core-005-clean-rebuild
+stash@{Sun Sep 27 19:35:54 2026}: On reos-development: pre-core004-origin-sync
+stash@{Fri Sep 25 17:55:24 2026}: On reos-development: BACKUP before CORE-001 remote sync 2026-09-25
+stash@{Fri Sep 25 11:48:13 2026}: On reos-development: SAFE-SYNC-BEFORE-CORE-LAYER-PUSH
+stash@{Tue Sep 22 21:32:28 2026}: On reos-development: TEMP before reos-development sync
+stash@{Tue Sep 8 20:27:06 2026}: On reos-development: preserve non-T15 local work
+stash@{Tue Sep 8 18:52:28 2026}: On reos-development: preserve non-T14 local work
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m py_compile `
->>     "$SRC\deal.py", `
->>     "$SRC\deal_offer_negotiation.py", `
->>     "$SRC\deal_transaction_milestones.py", `
->>     "$SRC\deal_evidence_audit.py", `
->>     "$SRC\deal_ownership_integration.py", `
->>     "$SRC\deal_transaction_events.py"
-  File "AUTONOMY_ENGINE\core\CORE-006_RECOVERY\SOURCE_PY\deal.py", line 25
-    DealDomainError = __build_class__(<function>, "DealDomainError", ValueError)
-                                      ^
-SyntaxError: invalid syntax
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 3. CORE-006 BACKUP FOLDER ===" -ForegroundColor Cyan
+
+=== 3. CORE-006 BACKUP FOLDER ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> $B = "REOS_LAYER_BACKUP_20260924_201807"
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "RECOVERY COMPILE FAILED"
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (Test-Path $B) {
+>>     Get-ChildItem $B -File |
+>>         Where-Object { $_.Name -match 'deal_transaction|test_deal' } |
+>>         Select-Object Name,Length,LastWriteTime |
+>>         Sort-Object Name
+>> } else {
+>>     Write-Host "BACKUP FOLDER NOT FOUND LOCALLY" -ForegroundColor Red
 >> }
-RECOVERY COMPILE FAILED
-At line:2 char:5
-+     throw "RECOVERY COMPILE FAILED"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (RECOVERY COMPILE FAILED:String) [], RuntimeException
-    + FullyQualifiedErrorId : RECOVERY COMPILE FAILED
+BACKUP FOLDER NOT FOUND LOCALLY
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 4. CURRENT BROKEN CANONICAL DEAL ===" -ForegroundColor Cyan
+
+=== 4. CURRENT BROKEN CANONICAL DEAL ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Item "AUTONOMY_ENGINE\core\deal_transaction\deal.py" -ErrorAction SilentlyContinue |
+>>     Select-Object FullName,Length,LastWriteTime
+
+FullName                                                                   Length LastWriteTime
+--------                                                                   ------ -------------
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py   3055 9/28/2026 7:49:26 PM
+
 
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "RECOVERY COMPILE = PASS" -ForegroundColor Green
-RECOVERY COMPILE = PASS
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
-PS D:\HOMIO\REOS_CONTROL_CENTER> # 4. Recreate canonical package
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
-PS D:\HOMIO\REOS_CONTROL_CENTER> New-Item -ItemType Directory -Force $CAN | Out-Null
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $init = @'
->> """REOS CORE-006 Deal & Transaction bounded domain."""
->> '@
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Content "$CAN\__init__.py" $init -Encoding UTF8
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($f in ($required + "deal_transaction_events.py")) {
->>     Copy-Item "$SRC\$f" "$CAN\$f" -Force
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (Test-Path "AUTONOMY_ENGINE\core\deal_transaction\deal.py") {
+>>     Get-Content "AUTONOMY_ENGINE\core\deal_transaction\deal.py" -TotalCount 45
 >> }
+annotations = annotations
+__import__('__future__')
+dataclass = dataclass
+field = field
+replace = replace
+__import__('dataclasses')
+datetime = datetime
+timezone = timezone
+__import__('datetime')
+DealOffer = DealOffer
+DealOfferStatus = DealOfferStatus
+DealNegotiation = DealNegotiation
+DealNegotiationStatus = DealNegotiationStatus
+__import__('deal_offer_negotiation')
+Enum = Enum
+__import__('enum')
+Any = Any
+__import__('typing')
+uuid4 = uuid4
+__import__('uuid')
+DealTransactionMilestone = DealTransactionMilestone
+__import__('deal_transaction_milestones')
+DealOwnershipBinding = DealOwnershipBinding
+__import__('deal_ownership_integration')
+DealDomainError = __build_class__(<function>, "DealDomainError", ValueError)
+DealTransitionError = __build_class__(<function>, "DealTransitionError", DealDomainError)
+DealTenantError = __build_class__(<function>, "DealTenantError", DealDomainError)
+DealConcurrencyError = __build_class__(<function>, "DealConcurrencyError", DealDomainError)
+DealReferenceConflictError = __build_class__(<function>, "DealReferenceConflictError", DealDomainError)
+DealValidationError = __build_class__(<function>, "DealValidationError", DealDomainError)
+DealPartyRole = __build_class__(<function>, "DealPartyRole", str, Enum)
+DealPartyRelationship = __build_class__(<function>, "DealPartyRelationship")()
+DealStatus = __build_class__(<function>, "DealStatus", str, Enum)
+DealHistoryEntry = __build_class__(<function>, "DealHistoryEntry")()
+_NOMINAL_TRANSITIONS = {DealStatus.DISPUTED: frozenset(), DealStatus.FRAUD_BLOCKED: frozenset()}
+"dict[DealStatus, frozenset[DealStatus]]"[__annotations__] = "_NOMINAL_TRANSITIONS"
+_PRE_BOOKING_EXPIRY_STATES = frozenset({DealStatus.QUALIFIED, DealStatus.MATCHED, DealStatus.VISIT_PENDING, DealStatus.VISITED, DealStatus.OFFERED, DealStatus.NEGOTIATING, DealStatus.BOOKING_PENDING, DealStatus.AGREEMENT_PENDING})
+_REJECTION_STATES = frozenset({DealStatus.QUALIFIED, DealStatus.MATCHED, DealStatus.VISIT_PENDING, DealStatus.VISITED, DealStatus.OFFERED, DealStatus.NEGOTIATING, DealStatus.BOOKING_PENDING, DealStatus.AGREEMENT_PENDING})
+_DISPUTE_STATES = frozenset({DealStatus.BOOKED, DealStatus.AGREEMENT_PENDING, DealStatus.AGREED, DealStatus.REGISTRATION_PENDING, DealStatus.REGISTERED, DealStatus.COMPLETION_PENDING})
+_NON_TERMINAL_STATES = frozenset({DealStatus.QUALIFIED, DealStatus.MATCHED, DealStatus.VISIT_PENDING, DealStatus.VISITED, DealStatus.OFFERED, DealStatus.NEGOTIATING, DealStatus.BOOKING_PENDING, DealStatus.BOOKED, DealStatus.AGREEMENT_PENDING, DealStatus.AGREED, DealStatus.REGISTRATION_PENDING, DealStatus.REGISTERED, DealStatus.COMPLETION_PENDING})
+_require_id = <function>
+_coerce_datetime = <function>
+Deal = __build_class__(<function>, "Deal")()
+__all__ = ("Deal", "DealOffer", "DealOfferStatus", "DealNegotiation", "DealNegotiationStatus", "DealStatus", "DealHistoryEntry", "DealDomainError", "DealTransitionError", "DealTenantError", "DealConcurrencyError", "DealReferenceConflictError", "DealValidationError")
+return
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
-PS D:\HOMIO\REOS_CONTROL_CENTER> # 5. Normalize local CORE-006 imports only
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
-PS D:\HOMIO\REOS_CONTROL_CENTER> $localModules = @(
->>     "deal",
->>     "deal_offer_negotiation",
->>     "deal_transaction_milestones",
->>     "deal_evidence_audit",
->>     "deal_ownership_integration",
->>     "deal_transaction_events"
->> )
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($f in Get-ChildItem $CAN -Filter "*.py") {
->>     if ($f.Name -eq "__init__.py") { continue }
->>
->>     $text = Get-Content $f.FullName -Raw
->>
->>     foreach ($m in $localModules) {
->>         $text = $text -replace `
->>             "(?m)^from\s+$m\s+import\s+", `
->>             "from .$m import "
->>
->>         $text = $text -replace `
->>             "(?m)^from\s+AUTONOMY_ENGINE\.core\.$m\s+import\s+", `
->>             "from .$m import "
->>     }
->>
->>     Set-Content $f.FullName $text -Encoding UTF8
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
-PS D:\HOMIO\REOS_CONTROL_CENTER> # 6. Canonical compile
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CANONICAL COMPILE ===" -ForegroundColor Yellow
-=== CANONICAL COMPILE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m py_compile `
->>     "$CAN\deal.py", `
->>     "$CAN\deal_offer_negotiation.py", `
->>     "$CAN\deal_transaction_milestones.py", `
->>     "$CAN\deal_evidence_audit.py", `
->>     "$CAN\deal_ownership_integration.py", `
->>     "$CAN\deal_transaction_events.py"
-  File "AUTONOMY_ENGINE\core\deal_transaction\deal.py", line 25
-    DealDomainError = __build_class__(<function>, "DealDomainError", ValueError)
-                                      ^
-SyntaxError: invalid syntax
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "CANONICAL COMPILE FAILED"
->> }
-CANONICAL COMPILE FAILED
-At line:2 char:5
-+     throw "CANONICAL COMPILE FAILED"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (CANONICAL COMPILE FAILED:String) [], RuntimeException
-    + FullyQualifiedErrorId : CANONICAL COMPILE FAILED
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 5. SAFE-SYNC STASH CONTENT ===" -ForegroundColor Cyan
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CANONICAL COMPILE = PASS" -ForegroundColor Green
-CANONICAL COMPILE = PASS
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
-PS D:\HOMIO\REOS_CONTROL_CENTER> # 7. Import smoke test
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
-PS D:\HOMIO\REOS_CONTROL_CENTER> $env:PYTHONPATH = (Get-Location).Path
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -c @"
->> from AUTONOMY_ENGINE.core.deal_transaction.deal import Deal
->> from AUTONOMY_ENGINE.core.deal_transaction.deal_offer_negotiation import DealOffer
->> from AUTONOMY_ENGINE.core.deal_transaction.deal_transaction_milestones import DealTransactionMilestone
->> from AUTONOMY_ENGINE.core.deal_transaction.deal_evidence_audit import DealEvidenceReference
->> from AUTONOMY_ENGINE.core.deal_transaction.deal_ownership_integration import DealOwnershipBinding
->> from AUTONOMY_ENGINE.core.deal_transaction.deal_transaction_events import DealTransactionEvent
->> print("CORE006 IMPORTS = PASS")
->> print("Deal =", Deal.__name__)
->> print("DealOffer =", DealOffer.__name__)
->> print("DealTransactionMilestone =", DealTransactionMilestone.__name__)
->> print("DealEvidenceReference =", DealEvidenceReference.__name__)
->> print("DealOwnershipBinding =", DealOwnershipBinding.__name__)
->> print("DealTransactionEvent =", DealTransactionEvent.__name__)
->> "@
-  File "<string>", line 7
-    print(CORE006
-         ^
-SyntaxError: '(' was never closed
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "CORE-006 IMPORT SMOKE TEST FAILED"
->> }
-CORE-006 IMPORT SMOKE TEST FAILED
-At line:2 char:5
-+     throw "CORE-006 IMPORT SMOKE TEST FAILED"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (CORE-006 IMPORT SMOKE TEST FAILED:String) [], RuntimeException
-    + FullyQualifiedErrorId : CORE-006 IMPORT SMOKE TEST FAILED
+=== 5. SAFE-SYNC STASH CONTENT ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git stash list | Select-String "SAFE-SYNC-BEFORE-CORE-LAYER-PUSH"
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CORE-006 CANONICAL FILES ===" -ForegroundColor Green
-=== CORE-006 CANONICAL FILES ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem $CAN -File |
->>     Select-Object Name,Length |
->>     Sort-Object Name
+stash@{4}: On reos-development: SAFE-SYNC-BEFORE-CORE-LAYER-PUSH
 
-Name                           Length
-----                           ------
-__init__.py                        59
-deal.py                          3055
-deal_evidence_audit.py           1123
-deal_offer_negotiation.py        2726
-deal_ownership_integration.py     690
-deal_transaction_events.py       6390
-deal_transaction_milestones.py   2726
