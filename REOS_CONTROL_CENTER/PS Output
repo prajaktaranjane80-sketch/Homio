@@ -1,62 +1,97 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> git stash list | Select-String "SAFE-SYNC-BEFORE-CORE-LAYER-PUSH"
-
-stash@{4}: On reos-development: SAFE-SYNC-BEFORE-CORE-LAYER-PUSH
-
-
 PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $S = "stash@{4}"
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== EXTERNAL CORE-006 BACKUP SEARCH ===" -ForegroundColor Cyan
+=== EXTERNAL CORE-006 BACKUP SEARCH ===
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== STASH PARENTS ===" -ForegroundColor Cyan
-=== STASH PARENTS ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git rev-parse "$S^1"
-aceb645e91834e788487a61ab161c7a70316ec8b
-PS D:\HOMIO\REOS_CONTROL_CENTER> git rev-parse "$S^2"
-a2a6484595560c0c65738e1c4614dcabcaf53249
-PS D:\HOMIO\REOS_CONTROL_CENTER> git rev-parse "$S^3" 2>$null
-47750b0a0e0b2f6dc2f23ca597d7630b93663703
+PS D:\HOMIO\REOS_CONTROL_CENTER> $roots = @(
+>>     "D:\HOMIO",
+>>     "D:\"
+>> )
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== STASH TRACKED CORE-006 FILES ===" -ForegroundColor Cyan
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem $roots -Directory -Recurse -Force -ErrorAction SilentlyContinue |
+>>     Where-Object {
+>>         $_.Name -like "REOS_LAYER_BACKUP_20260924_201807" -or
+>>         $_.Name -like "*CORE-006*RECOVERY*"
+>>     } |
+>>     Select-Object FullName
 
-=== STASH TRACKED CORE-006 FILES ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git ls-tree -r "$S" --name-only |
->>     Select-String "deal_transaction|test_deal"
-
-AUTONOMY_ENGINE/core/deal_transaction/CORE-006_FINAL_UPGRADE.txt
-AUTONOMY_ENGINE/core/deal_transaction/__init__.py
-AUTONOMY_ENGINE/core/deal_transaction/apply_CORE-006_FINAL_UPGRADE.ps1
-AUTONOMY_ENGINE/core/deal_transaction/deal.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_authorization.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_concurrency.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_consistency.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_external_contracts.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_freeze.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_integrity.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_milestones.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
-AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_workflow.py
-AUTONOMY_ENGINE/core/deal_transaction/test_deal.py
-AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py
-AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py
-AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py
-AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py
-AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py
-AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
-AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py
+FullName
+--------
+D:\HOMIO\REOS_LAYER_BACKUP_20260924_201807
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY
+D:\Homio\REOS_LAYER_BACKUP_20260924_201807
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY
 
 
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== STASH UNTRACKED/BACKUP PARENT ===" -ForegroundColor Cyan
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== ORIGINAL DEAL SOURCE FILE SEARCH ===" -ForegroundColor Cyan
 
-=== STASH UNTRACKED/BACKUP PARENT ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> $U = git rev-parse "$S^3" 2>$null
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -eq 0 -and $U) {
->>     git ls-tree -r "$U" --name-only |
->>         Select-String "REOS_LAYER_BACKUP_20260924_201807|deal_transaction|test_deal"
->> } else {
->>     Write-Host "NO THIRD STASH PARENT" -ForegroundColor Yellow
+=== ORIGINAL DEAL SOURCE FILE SEARCH ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem "D:\HOMIO" -File -Recurse -Force -ErrorAction SilentlyContinue |
+>>     Where-Object {
+>>         $_.Name -in @(
+>>             "deal.py",
+>>             "deal_transaction_events.py",
+>>             "deal_offer_negotiation.py",
+>>             "deal_transaction_milestones.py",
+>>             "deal_evidence_audit.py",
+>>             "deal_ownership_integration.py"
+>>         )
+>>     } |
+>>     Select-Object FullName,Length,LastWriteTime |
+>>     Sort-Object FullName
+
+FullName                                                                                                     Length LastWriteTime
+--------                                                                                                     ------ -------------
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY\SOURCE_PY\deal.py                          3050 9/28/2026 7:25:38 PM
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY\SOURCE_PY\deal_evidence_audit.py           1118 9/28/2026 7:25:49 PM
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY\SOURCE_PY\deal_offer_negotiation.py        2721 9/28/2026 7:25:40 PM
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY\SOURCE_PY\deal_ownership_integration.py     685 9/28/2026 7:25:49 PM
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY\SOURCE_PY\deal_transaction_events.py       6388 9/28/2026 7:49:25 PM
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY\SOURCE_PY\deal_transaction_milestones.py   2721 9/28/2026 7:25:48 PM
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py                                     3055 9/28/2026 7:49:26 PM
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                      1123 9/28/2026 7:49:26 PM
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_offer_negotiation.py                   2726 9/28/2026 7:49:26 PM
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_ownership_integration.py                690 9/28/2026 7:49:26 PM
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_events.py                  6390 9/28/2026 7:49:26 PM
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_milestones.py              2726 9/28/2026 7:49:26 PM
+
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== DANGLING GIT OBJECTS: SOURCE-TEXT SCAN ===" -ForegroundColor Cyan
+
+=== DANGLING GIT OBJECTS: SOURCE-TEXT SCAN ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $objects = git fsck --full --no-reflogs --unreachable 2>$null |
+>>     Where-Object { $_ -match '^unreachable blob ' } |
+>>     ForEach-Object { ($_ -split ' ')[2] }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $hits = @()
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($sha in $objects) {
+>>     try {
+>>         $raw = git cat-file -p $sha 2>$null
+>>
+>>         if (
+>>             $raw -match 'class\s+Deal\b' -or
+>>             $raw -match 'class\s+DealStatus\b' -or
+>>             $raw -match 'DealDomainError' -or
+>>             $raw -match 'DealOfferStatus'
+>>         ) {
+>>             $hits += [PSCustomObject]@{
+>>                 SHA    = $sha
+>>                 Length = $raw.Length
+>>                 Preview = ($raw -replace '\r?\n',' ').Substring(
+>>                     0,
+>>                     [Math]::Min(220, $raw.Length)
+>>                 )
+>>             }
+>>         }
+>>     } catch {}
 >> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $hits |
+>>     Sort-Object Length -Descending |
+>>     Format-Table -AutoSize
+PS D:\HOMIO\REOS_CONTROL_CENTER>
