@@ -9,8 +9,6 @@ another business/search engine.
 
 from __future__ import annotations
 
-import inspect
-
 import pytest
 
 from .acrl_integration import (
@@ -20,9 +18,9 @@ from .acrl_integration import (
 from .matching import (
     MatchingProfile,
     MatchingRecommendationPipeline,
+    MatchingTenantError,
 )
 from .projection_sync import (
-    ProjectionOperation,
     SearchProjectionSynchronizer,
 )
 from .reos_integration import (
@@ -75,6 +73,7 @@ from .search_security import (
     SearchAuthorizationContext,
     SearchSecurityBoundary,
     SearchSecurityPolicy,
+    SearchTenantIsolationError,
 )
 from .search_visibility import (
     SearchVisibilityPolicy,
@@ -86,7 +85,6 @@ CORE_005_MODULES = (
     "search_domain",
     "search_index_contract",
     "search_filters",
-    "location_search",
     "qdrant_indexing",
     "hybrid_retrieval",
     "search_execution",
@@ -100,7 +98,6 @@ CORE_005_MODULES = (
     "reos_integration",
     "acrl_integration",
     "runtime_adapter",
-    "search_rebuild",
 )
 
 
@@ -148,8 +145,10 @@ def test_core005_modules_have_no_obvious_duplicate_business_engines():
     for module_name in CORE_005_MODULES:
         path = root / f"{module_name}.py"
 
-        if not path.exists():
-            continue
+        assert path.exists(), (
+            f"Expected CORE-005 production module missing: "
+            f"{module_name}.py"
+        )
 
         source = path.read_text(
             encoding="utf-8-sig"
@@ -206,7 +205,9 @@ def test_security_blocks_cross_tenant_result():
         tenant_id="tenant-a"
     )
 
-    with pytest.raises(Exception):
+    with pytest.raises(
+        SearchTenantIsolationError
+    ):
         security.enforce_tenant_result_boundary(
             context,
             (
@@ -249,8 +250,10 @@ def test_visibility_preserves_tenant_boundary():
         policy=SearchVisibilityPolicy(),
     )
 
-    from .search_ranking import RankedSearchResult
-    from .search_ranking import RankingExplanation
+    from .search_ranking import (
+        RankedSearchResult,
+        RankingExplanation,
+    )
 
     ranking = RankedSearchResult(
         document=make_document(),
@@ -336,7 +339,9 @@ def test_matching_is_tenant_safe():
         tenant_id="tenant-a"
     )
 
-    with pytest.raises(Exception):
+    with pytest.raises(
+        MatchingTenantError
+    ):
         pipeline.match(
             profile,
             (
@@ -573,7 +578,6 @@ def test_core005_public_surface_is_modular():
         "search_domain.py",
         "search_index_contract.py",
         "search_filters.py",
-        "location_search.py",
         "qdrant_indexing.py",
         "hybrid_retrieval.py",
         "search_execution.py",
@@ -587,7 +591,6 @@ def test_core005_public_surface_is_modular():
         "reos_integration.py",
         "acrl_integration.py",
         "runtime_adapter.py",
-        "search_rebuild.py",
     }
 
     actual = {
@@ -596,4 +599,4 @@ def test_core005_public_surface_is_modular():
         if not path.name.startswith("test_")
     }
 
-    assert expected.issubset(actual)
+    assert actual == expected
