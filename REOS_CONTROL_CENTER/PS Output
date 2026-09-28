@@ -1,16 +1,13 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> $path = "D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py"
+=== PATCH RECOVERED T07 ===
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $text = Get-Content $path -Raw
+PS D:\HOMIO\REOS_CONTROL_CENTER> $text = Get-Content $RecoveryT07 -Raw
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # 1. last_transaction_milestone is a property, not a callable method.
 PS D:\HOMIO\REOS_CONTROL_CENTER> $text = $text.Replace(
 >>     "deal.last_transaction_milestone()",
 >>     "deal.last_transaction_milestone"
 >> )
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # 2. Make the fixture create its first authoritative transaction milestone
-PS D:\HOMIO\REOS_CONTROL_CENTER> # after reaching the valid OFFERED lifecycle state.
-PS D:\HOMIO\REOS_CONTROL_CENTER> $old = @'
+PS D:\HOMIO\REOS_CONTROL_CENTER> $oldFixture = @'
 >>     for target in (
 >>         DealStatus.MATCHED,
 >>         DealStatus.VISIT_PENDING,
@@ -26,7 +23,7 @@ PS D:\HOMIO\REOS_CONTROL_CENTER> $old = @'
 >>     return deal
 >> '@
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $new = @'
+PS D:\HOMIO\REOS_CONTROL_CENTER> $newFixture = @'
 >>     for target in (
 >>         DealStatus.MATCHED,
 >>         DealStatus.VISIT_PENDING,
@@ -46,28 +43,28 @@ PS D:\HOMIO\REOS_CONTROL_CENTER> $new = @'
 >>         expected_version=deal.version,
 >>         reference_id="booking-001",
 >>     )
->>
 >>     return deal
 >> '@
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $text.Contains($old)) {
->>     throw "Expected T07 make_deal fixture was not found. No edit made."
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $text.Contains($oldFixture)) {
+>>     throw "Expected T07 fixture not found. STOP - no blind replacement."
 >> }
-Expected T07 make_deal fixture was not found. No edit made.
+Expected T07 fixture not found. STOP - no blind replacement.
 At line:2 char:5
-+     throw "Expected T07 make_deal fixture was not found. No edit made ...
++     throw "Expected T07 fixture not found. STOP - no blind replacemen ...
 +     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Expected T07 ma.... No edit made.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Expected T07 make_deal fixture was not found. No edit made.
+    + CategoryInfo          : OperationStopped: (Expected T07 fi...nd replacement.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Expected T07 fixture not found. STOP - no blind replacement.
 
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $text = $text.Replace($old, $new)
+PS D:\HOMIO\REOS_CONTROL_CENTER> $text = $text.Replace($oldFixture, $newFixture)
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Content $path $text -Encoding UTF8
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Content $RecoveryT07 $text -Encoding UTF8
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== T07 ===" -ForegroundColor Cyan
-=== T07 ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest $path -q
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== T07 REAL TEST ===" -ForegroundColor Cyan
+=== T07 REAL TEST ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest $RecoveryT07 -q
 FFFFF                                                                                                                                                [100%]
 ======================================================================== FAILURES =========================================================================
 ___________________________________________________ test_event_is_derived_from_authoritative_milestone ____________________________________________________
@@ -128,7 +125,7 @@ AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\deal.py:804: i
     updated = self.transition(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = Deal(deal_id='b9584498-7733-4cf6-96c4-9da4babf4504', tenant_id='tenant-001', customer_id='customer-001', broker_id='br... source_of_truth='deal', offers=(), negotiation=None, milestones=(), ownership_binding=None, evidence=(), audit_log=())
+self = Deal(deal_id='46da268d-7e26-4b08-81f7-54484a1d62fc', tenant_id='tenant-001', customer_id='customer-001', broker_id='br... source_of_truth='deal', offers=(), negotiation=None, milestones=(), ownership_binding=None, evidence=(), audit_log=())
 target = <DealStatus.BOOKED: 'BOOKED'>, tenant_id = 'tenant-001', expected_version = 6, reason = None, at = None
 
     def transition(
@@ -187,21 +184,21 @@ FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_de
 FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_serialization_is_canonical - assert None is not None
 FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_multiple_milestones_create_distinct_ordered_events - AUTONOMY_ENGINE.core.deal.DealTransitionError: Invalid Deal transition: OFFERED -> BOOKED.
 5 failed in 0.18s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "T07 FAILED"
+>>     throw "T07 FAILED. Nothing will be committed."
 >> }
-T07 FAILED
+T07 FAILED. Nothing will be committed.
 At line:2 char:5
-+     throw "T07 FAILED"
-+     ~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (T07 FAILED:String) [], RuntimeException
-    + FullyQualifiedErrorId : T07 FAILED
++     throw "T07 FAILED. Nothing will be committed."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (T07 FAILED. Nothing will be committed.:String) [], RuntimeException
+    + FullyQualifiedErrorId : T07 FAILED. Nothing will be committed.
 
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== FULL CORE-006 RECOVERED REGRESSION ===" -ForegroundColor Cyan
-=== FULL CORE-006 RECOVERED REGRESSION ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest "D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV" -q
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== FULL RECOVERED CORE-006 ===" -ForegroundColor Cyan
+=== FULL RECOVERED CORE-006 ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest "$Root\AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV" -q
 ...........................................................................................FFFFF............                                         [100%]
 ======================================================================== FAILURES =========================================================================
 ___________________________________________________ test_event_is_derived_from_authoritative_milestone ____________________________________________________
@@ -262,7 +259,7 @@ AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\deal.py:804: i
     updated = self.transition(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = Deal(deal_id='76af22ee-0e08-4ed5-a393-8342ddb072fb', tenant_id='tenant-001', customer_id='customer-001', broker_id='br... source_of_truth='deal', offers=(), negotiation=None, milestones=(), ownership_binding=None, evidence=(), audit_log=())
+self = Deal(deal_id='096b6df8-32e3-46a1-a401-258540507bed', tenant_id='tenant-001', customer_id='customer-001', broker_id='br... source_of_truth='deal', offers=(), negotiation=None, milestones=(), ownership_binding=None, evidence=(), audit_log=())
 target = <DealStatus.BOOKED: 'BOOKED'>, tenant_id = 'tenant-001', expected_version = 6, reason = None, at = None
 
     def transition(
@@ -321,17 +318,333 @@ FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_de
 FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_serialization_is_canonical - assert None is not None
 FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_multiple_milestones_create_distinct_ordered_events - AUTONOMY_ENGINE.core.deal.DealTransitionError: Invalid Deal transition: OFFERED -> BOOKED.
 5 failed, 103 passed in 0.38s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "FULL CORE-006 FAILED"
+>>     throw "FULL CORE-006 FAILED. Nothing will be committed."
 >> }
-FULL CORE-006 FAILED
+FULL CORE-006 FAILED. Nothing will be committed.
 At line:2 char:5
-+     throw "FULL CORE-006 FAILED"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (FULL CORE-006 FAILED:String) [], RuntimeException
-    + FullyQualifiedErrorId : FULL CORE-006 FAILED
++     throw "FULL CORE-006 FAILED. Nothing will be committed."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FULL CORE-006 F...l be committed.:String) [], RuntimeException
+    + FullyQualifiedErrorId : FULL CORE-006 FAILED. Nothing will be committed.
 
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CORE-006 REAL REGRESSION PASS" -ForegroundColor Green
-CORE-006 REAL REGRESSION PASS
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== 108/108 RECOVERY VERIFIED ===" -ForegroundColor Green
+=== 108/108 RECOVERY VERIFIED ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== RESTORE VERIFIED CORE-006 INTO CANONICAL deal_transaction ===" -ForegroundColor Cyan
+=== RESTORE VERIFIED CORE-006 INTO CANONICAL deal_transaction ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Target = "$CanonicalCore\deal_transaction"
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Map = @{
+>>     "deal.py"                              = "deal.py"
+>>     "deal_authorization.py"                = "deal_authorization.py"
+>>     "deal_concurrency.py"                  = "deal_concurrency.py"
+>>     "deal_consistency.py"                  = "deal_consistency.py"
+>>     "deal_evidence_audit.py"               = "deal_evidence_audit.py"
+>>     "deal_external_contracts.py"           = "deal_external_contracts.py"
+>>     "deal_freeze.py"                       = "deal_freeze.py"
+>>     "deal_integrity.py"                    = "deal_integrity.py"
+>>     "deal_offer_negotiation.py"            = "deal_offer_negotiation.py"
+>>     "deal_ownership_integration.py"        = "deal_ownership_integration.py"
+>>     "deal_transaction_events.py"           = "deal_transaction_events.py"
+>>     "deal_transaction_milestones.py"       = "deal_transaction_milestones.py"
+>>     "deal_transaction_replay.py"           = "deal_transaction_replay.py"
+>>     "deal_transaction_workflow.py"         = "deal_transaction_workflow.py"
+>>     "test_deal.py"                         = "test_deal.py"
+>>     "test_deal_evidence_audit.py"          = "test_deal_evidence_audit.py"
+>>     "test_deal_final_hardening.py"         = "test_deal_final_hardening.py"
+>>     "test_deal_offer_negotiation.py"       = "test_deal_offer_negotiation.py"
+>>     "test_deal_ownership_integration.py"   = "test_deal_ownership_integration.py"
+>>     "test_deal_parties.py"                 = "test_deal_parties.py"
+>>     "test_deal_transaction_events.py"      = "test_deal_transaction_events.py"
+>>     "test_deal_transaction_milestones.py"  = "test_deal_transaction_milestones.py"
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($name in $Map.Keys) {
+>>     $src = Join-Path $RecoveryCore $name
+>>     $dst = Join-Path $Target $Map[$name]
+>>
+>>     if (-not (Test-Path $src)) {
+>>         throw "Verified recovery source missing: $src"
+>>     }
+>>
+>>     Copy-Item $src $dst -Force
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CANONICAL CORE-006 COMPILE ===" -ForegroundColor Cyan
+=== CANONICAL CORE-006 COMPILE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m compileall -q $Target
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "Canonical CORE-006 compile failed. Nothing will be committed."
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CANONICAL T07 ===" -ForegroundColor Cyan
+=== CANONICAL T07 ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest "$Target\test_deal_transaction_events.py" -q
+
+========================================================================= ERRORS ==========================================================================
+_________________________________ ERROR collecting AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py __________________________________
+ImportError while importing test module 'D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_transaction_events.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\core\deal_transaction\test_deal_transaction_events.py:4: in <module>
+    from AUTONOMY_ENGINE.core.deal import DealStatus
+E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE.core.deal'
+================================================================= short test summary info =================================================================
+ERROR AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 error in 0.18s
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "Canonical T07 failed. Nothing will be committed."
+>> }
+Canonical T07 failed. Nothing will be committed.
+At line:2 char:5
++     throw "Canonical T07 failed. Nothing will be committed."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Canonical T07 f...l be committed.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Canonical T07 failed. Nothing will be committed.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CANONICAL CORE-006 REGRESSION ===" -ForegroundColor Cyan
+=== CANONICAL CORE-006 REGRESSION ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest $Target -q
+
+========================================================================= ERRORS ==========================================================================
+___________________________________________ ERROR collecting AUTONOMY_ENGINE/core/deal_transaction/test_deal.py ___________________________________________
+ImportError while importing test module 'D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\core\deal_transaction\test_deal.py:7: in <module>
+    from AUTONOMY_ENGINE.core.deal import (
+E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE.core.deal'
+___________________________________ ERROR collecting AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py ___________________________________
+ImportError while importing test module 'D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_final_hardening.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\core\deal_transaction\test_deal_final_hardening.py:5: in <module>
+    from AUTONOMY_ENGINE.core.deal_transaction_events import DealTransactionEvent
+E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE.core.deal_transaction_events'
+__________________________________ ERROR collecting AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py __________________________________
+ImportError while importing test module 'D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_offer_negotiation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\core\deal_transaction\test_deal_offer_negotiation.py:7: in <module>
+    from AUTONOMY_ENGINE.core.deal import (
+E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE.core.deal'
+________________________________ ERROR collecting AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py ________________________________
+ImportError while importing test module 'D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_ownership_integration.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\core\deal_transaction\test_deal_ownership_integration.py:7: in <module>
+    from AUTONOMY_ENGINE.core.deal import (
+E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE.core.deal'
+_______________________________________ ERROR collecting AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py _______________________________________
+ImportError while importing test module 'D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_parties.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\core\deal_transaction\test_deal_parties.py:5: in <module>
+    from AUTONOMY_ENGINE.core.deal import (
+E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE.core.deal'
+_________________________________ ERROR collecting AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py __________________________________
+ImportError while importing test module 'D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_transaction_events.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\core\deal_transaction\test_deal_transaction_events.py:4: in <module>
+    from AUTONOMY_ENGINE.core.deal import DealStatus
+E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE.core.deal'
+_______________________________ ERROR collecting AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py ________________________________
+ImportError while importing test module 'D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_transaction_milestones.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\core\deal_transaction\test_deal_transaction_milestones.py:5: in <module>
+    from AUTONOMY_ENGINE.core.deal import Deal, DealStatus, DealTransitionError
+E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE.core.deal'
+================================================================= short test summary info =================================================================
+ERROR AUTONOMY_ENGINE/core/deal_transaction/test_deal.py
+ERROR AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py
+ERROR AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py
+ERROR AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py
+ERROR AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py
+ERROR AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
+ERROR AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 7 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+7 errors in 0.35s
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "Canonical CORE-006 regression failed. Nothing will be committed."
+>> }
+Canonical CORE-006 regression failed. Nothing will be committed.
+At line:2 char:5
++     throw "Canonical CORE-006 regression failed. Nothing will be comm ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Canonical CORE-...l be committed.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Canonical CORE-006 regression failed. Nothing will be committed.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== GIT DIFF CHECK ===" -ForegroundColor Cyan
+=== GIT DIFF CHECK ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py', LF will be replaced by CRLF the next time Git touches it
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/projection_sync.py:575: new blank line at EOF.
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py:512: new blank line at EOF.
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_consistency.py:528: new blank line at EOF.
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_domain.py:800: new blank line at EOF.
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "git diff --check failed."
+>> }
+git diff --check failed.
+At line:2 char:5
++     throw "git diff --check failed."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (git diff --check failed.:String) [], RuntimeException
+    + FullyQualifiedErrorId : git diff --check failed.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== STAGE ONLY CORE-006 ===" -ForegroundColor Cyan
+=== STAGE ONLY CORE-006 ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git add -- "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction"
+warning: could not open directory 'REOS_CONTROL_CENTER/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/': No such file or directory
+fatal: pathspec 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction' did not match any files
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== VERIFY STAGED SCOPE ===" -ForegroundColor Cyan
+=== VERIFY STAGED SCOPE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
+D  AUTONOMY_ENGINE/core/deal_transaction/CORE-006_FINAL_UPGRADE.txt
+D  AUTONOMY_ENGINE/core/deal_transaction/__init__.py
+D  AUTONOMY_ENGINE/core/deal_transaction/apply_CORE-006_FINAL_UPGRADE.ps1
+D  AUTONOMY_ENGINE/core/deal_transaction/deal.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_authorization.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_concurrency.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_consistency.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_external_contracts.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_freeze.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_integrity.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_milestones.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
+D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_workflow.py
+D  AUTONOMY_ENGINE/core/deal_transaction/manifest.json
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
+D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py
+ M AUTONOMY_ENGINE/core/search_matching/projection_sync.py
+ M AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
+ M AUTONOMY_ENGINE/core/search_matching/reos_integration.py
+ M AUTONOMY_ENGINE/core/search_matching/search_consistency.py
+ M AUTONOMY_ENGINE/core/search_matching/search_domain.py
+ M AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py
+ M AUTONOMY_ENGINE/core/search_matching/test_matching.py
+?? AUTONOMY_ENGINE/core/CORE-006_RECOVERY/
+?? AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/
+?? AUTONOMY_ENGINE/core/CORE-006_RESTORE_CANDIDATE/
+?? AUTONOMY_ENGINE/core/deal_transaction/
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== COMMIT CORE-006 ===" -ForegroundColor Cyan
+=== COMMIT CORE-006 ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git commit -m "fix: restore and harden CORE-006 transaction layer"
+[reos-development 7be5ed4] fix: restore and harden CORE-006 transaction layer
+ 26 files changed, 138 deletions(-)
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/CORE-006_FINAL_UPGRADE.txt
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/__init__.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/apply_CORE-006_FINAL_UPGRADE.ps1
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_authorization.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_concurrency.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_consistency.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_external_contracts.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_freeze.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_integrity.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_milestones.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_workflow.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/manifest.json
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "Commit failed."
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== PUSH reos-development ===" -ForegroundColor Cyan
+=== PUSH reos-development ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git push origin reos-development
+To https://github.com/prajaktaranjane80-sketch/Homio.git
+ ! [rejected]        reos-development -> reos-development (fetch first)
+error: failed to push some refs to 'https://github.com/prajaktaranjane80-sketch/Homio.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "Push failed."
+>> }
+Push failed.
+At line:2 char:5
++     throw "Push failed."
++     ~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Push failed.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Push failed.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "==============================================" -ForegroundColor Green
+==============================================
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CORE-006 FIXED + COMMITTED + PUSHED" -ForegroundColor Green
+CORE-006 FIXED + COMMITTED + PUSHED
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "==============================================" -ForegroundColor Green
+==============================================
+PS D:\HOMIO\REOS_CONTROL_CENTER>
