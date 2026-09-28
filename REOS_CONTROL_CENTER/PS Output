@@ -1,76 +1,240 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
+PS D:\Imperium Ai\imperium> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> $R = "AUTONOMY_ENGINE\core\CORE-006_RECOVERY"
-PS D:\HOMIO\REOS_CONTROL_CENTER> $P = "$R\pycdc"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> & "C:\Program Files\7-Zip\7z.exe" x `
->>   "$P\pycdc-win-x86_64-bin.7z" `
->>   "-o$P\BIN" `
->>   -y
-
-7-Zip 25.01 (x64) : Copyright (c) 1999-2025 Igor Pavlov : 2025-08-03
-
-Scanning the drive for archives:
-1 file, 184899 bytes (181 KiB)
-
-Extracting archive: AUTONOMY_ENGINE\core\CORE-006_RECOVERY\pycdc\pycdc-win-x86_64-bin.7z
---
-Path = AUTONOMY_ENGINE\core\CORE-006_RECOVERY\pycdc\pycdc-win-x86_64-bin.7z
-Type = 7z
-Physical Size = 184899
-Headers Size = 257
-Method = LZMA2:1536k BCJ
-Solid = +
-Blocks = 2
-
-Everything is Ok
-
-Folders: 1
-Files: 3
-Size:       1152216
-Compressed: 184899
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== PYCDC BINARY ===" -ForegroundColor Cyan
-=== PYCDC BINARY ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem "$P\BIN" -Recurse -File |
->>     Select-Object FullName,Length
-
-FullName                                                                                                      Length
---------                                                                                                      ------
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY\pycdc\BIN\pycdc-win-x86_64-bin\pycdas.exe 146432
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY\pycdc\BIN\pycdc-win-x86_64-bin\pycdc.exe  275968
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY\pycdc\BIN\pycdc-win-x86_64-bin\pycxx.lib  729816
-
-
 PS D:\HOMIO\REOS_CONTROL_CENTER> $Pyc = "$R\RAW\bff8e01520d1eb4b04d9a2e9e60a8c9df6b3c43e.pyc"
-PS D:\HOMIO\REOS_CONTROL_CENTER> $Out = "$R\SOURCE_PY\deal_transaction_events.py"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Dis = "$R\pycdc\deal_transaction_events.dis.txt"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Das = Get-ChildItem "$R\pycdc\BIN" -Recurse -Filter "pycdas.exe" |
+>>        Select-Object -First 1
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> & (Get-ChildItem "$P\BIN" -Recurse -Filter "pycdc.exe" | Select-Object -First 1).FullName `
->>   $Pyc `
->>   > $Out
-Unsupported opcode: MAKE_FUNCTION (122)
+PS D:\HOMIO\REOS_CONTROL_CENTER> & $Das.FullName $Pyc > $Dis
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== EVENT SOURCE RECOVERY ===" -ForegroundColor Green
-=== EVENT SOURCE RECOVERY ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Item $Out | Select-Object Name,Length
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== EVENT DISASSEMBLY ===" -ForegroundColor Cyan
+=== EVENT DISASSEMBLY ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Item $Dis | Select-Object Name,Length
 
-Name                       Length
-----                       ------
-deal_transaction_events.py   1500
+Name                            Length
+----                            ------
+deal_transaction_events.dis.txt 128420
 
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Content $Out -TotalCount 80
-# Source Generated with Decompyle++
-# File: bff8e01520d1eb4b04d9a2e9e60a8c9df6b3c43e.pyc (Python 3.13)
-
-__doc__ = 'REOS CORE-006 transaction event contract.\n\nDeal and transaction milestone remain authoritative. This module creates a\ncanonical, transport-neutral transaction event. Kafka, outbox, retries,\nconsumer groups and DLQ behavior belong to CORE-002.\n'
-from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import Any, Mapping
-import hashlib
-import json
-from deal_transaction_milestones import DealTransactionMilestone
-EVENT_SCHEMA_VERSION = '1.0'
-TRANSACTION_EVENT_TYPE = 'DEAL_TRANSACTION_MILESTONE_CHANGED'
-SOURCE_OF_TRUTH = 'deal_transaction_milestone'
-# WARNING: Decompyle incomplete
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Content $Dis -TotalCount 220
+bff8e01520d1eb4b04d9a2e9e60a8c9df6b3c43e.pyc (Python 3.13)
+[Code]
+    File Name: /mnt/data/CORE-006_FINAL_UPGRADE/deal_transaction_events.py
+    Object Name: <module>
+    Qualified Name: <module>
+    Arg Count: 0
+    Pos Only Arg Count: 0
+    KW Only Arg Count: 0
+    Stack Size: 5
+    Flags: 0x01000000 (CO_FUTURE_ANNOTATIONS)
+    [Names]
+        '__doc__'
+        '__future__'
+        'annotations'
+        'dataclasses'
+        'dataclass'
+        'field'
+        'typing'
+        'Any'
+        'Mapping'
+        'hashlib'
+        'json'
+        'deal_transaction_milestones'
+        'DealTransactionMilestone'
+        'ImportError'
+        'EVENT_SCHEMA_VERSION'
+        'TRANSACTION_EVENT_TYPE'
+        'SOURCE_OF_TRUTH'
+        'ValueError'
+        'DealTransactionEventError'
+        'DealTransactionEventScopeError'
+        'DealTransactionEventIntegrityError'
+        '_canonical_json'
+        '_payload_hash'
+        'DealTransactionEvent'
+        '__all__'
+    [Locals+Names]
+    [Constants]
+        'REOS CORE-006 transaction event contract.\n\nDeal and transaction milestone remain authoritative. This module creates a\ncanonical, transport-neutral transaction event. Kafka, outbox, retries,\nconsumer groups and DLQ behavior belong to CORE-002.\n'
+        0
+        (
+            'annotations'
+        )
+        (
+            'dataclass'
+            'field'
+        )
+        (
+            'Any'
+            'Mapping'
+        )
+        None
+        1
+        (
+            'DealTransactionMilestone'
+        )
+        '1.0'
+        'DEAL_TRANSACTION_MILESTONE_CHANGED'
+        'deal_transaction_milestone'
+        [Code]
+            File Name: /mnt/data/CORE-006_FINAL_UPGRADE/deal_transaction_events.py
+            Object Name: DealTransactionEventError
+            Qualified Name: DealTransactionEventError
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 1
+            Flags: 0x01000000 (CO_FUTURE_ANNOTATIONS)
+            [Names]
+                '__name__'
+                '__module__'
+                '__qualname__'
+                '__firstlineno__'
+                '__doc__'
+                '__static_attributes__'
+            [Locals+Names]
+            [Constants]
+                'DealTransactionEventError'
+                19
+                'Base transaction-event contract error.'
+                (
+                )
+                None
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_NAME                       0: __name__
+                4       STORE_NAME                      1: __module__
+                6       LOAD_CONST                      0: 'DealTransactionEventError'
+                8       STORE_NAME                      2: __qualname__
+                10      LOAD_CONST                      1: 19
+                12      STORE_NAME                      3: __firstlineno__
+                14      LOAD_CONST                      2: 'Base transaction-event contract error.'
+                16      STORE_NAME                      4: __doc__
+                18      LOAD_CONST                      3: ()
+                20      STORE_NAME                      5: __static_attributes__
+                22      RETURN_CONST                    4: None
+            [Exception Table]
+        'DealTransactionEventError'
+        [Code]
+            File Name: /mnt/data/CORE-006_FINAL_UPGRADE/deal_transaction_events.py
+            Object Name: DealTransactionEventScopeError
+            Qualified Name: DealTransactionEventScopeError
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 1
+            Flags: 0x01000000 (CO_FUTURE_ANNOTATIONS)
+            [Names]
+                '__name__'
+                '__module__'
+                '__qualname__'
+                '__firstlineno__'
+                '__doc__'
+                '__static_attributes__'
+            [Locals+Names]
+            [Constants]
+                'DealTransactionEventScopeError'
+                21
+                'Raised when event access crosses deal/tenant scope.'
+                (
+                )
+                None
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_NAME                       0: __name__
+                4       STORE_NAME                      1: __module__
+                6       LOAD_CONST                      0: 'DealTransactionEventScopeError'
+                8       STORE_NAME                      2: __qualname__
+                10      LOAD_CONST                      1: 21
+                12      STORE_NAME                      3: __firstlineno__
+                14      LOAD_CONST                      2: 'Raised when event access crosses deal/tenant scope.'
+                16      STORE_NAME                      4: __doc__
+                18      LOAD_CONST                      3: ()
+                20      STORE_NAME                      5: __static_attributes__
+                22      RETURN_CONST                    4: None
+            [Exception Table]
+        'DealTransactionEventScopeError'
+        [Code]
+            File Name: /mnt/data/CORE-006_FINAL_UPGRADE/deal_transaction_events.py
+            Object Name: DealTransactionEventIntegrityError
+            Qualified Name: DealTransactionEventIntegrityError
+            Arg Count: 0
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 1
+            Flags: 0x01000000 (CO_FUTURE_ANNOTATIONS)
+            [Names]
+                '__name__'
+                '__module__'
+                '__qualname__'
+                '__firstlineno__'
+                '__doc__'
+                '__static_attributes__'
+            [Locals+Names]
+            [Constants]
+                'DealTransactionEventIntegrityError'
+                23
+                'Raised for canonical event integrity violations.'
+                (
+                )
+                None
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_NAME                       0: __name__
+                4       STORE_NAME                      1: __module__
+                6       LOAD_CONST                      0: 'DealTransactionEventIntegrityError'
+                8       STORE_NAME                      2: __qualname__
+                10      LOAD_CONST                      1: 23
+                12      STORE_NAME                      3: __firstlineno__
+                14      LOAD_CONST                      2: 'Raised for canonical event integrity violations.'
+                16      STORE_NAME                      4: __doc__
+                18      LOAD_CONST                      3: ()
+                20      STORE_NAME                      5: __static_attributes__
+                22      RETURN_CONST                    4: None
+            [Exception Table]
+        'DealTransactionEventIntegrityError'
+        [Code]
+            File Name: /mnt/data/CORE-006_FINAL_UPGRADE/deal_transaction_events.py
+            Object Name: _canonical_json
+            Qualified Name: _canonical_json
+            Arg Count: 1
+            Pos Only Arg Count: 0
+            KW Only Arg Count: 0
+            Stack Size: 7
+            Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
+            [Names]
+                'json'
+                'dumps'
+            [Locals+Names]
+                'value'
+            [Constants]
+                None
+                False
+                True
+                (
+                    ','
+                    ':'
+                )
+                (
+                    'ensure_ascii'
+                    'sort_keys'
+                    'separators'
+                )
+            [Disassembly]
+                0       RESUME                          0
+                2       LOAD_GLOBAL                     0: json
+                12      LOAD_ATTR                       2: dumps
+                32      PUSH_NULL
+                34      LOAD_FAST                       0: value
+                36      LOAD_CONST                      1: False
+                38      LOAD_CONST                      2: True
+                40      LOAD_CONST                      3: (',', ':')
+                42      LOAD_CONST                      4: ('ensure_ascii', 'sort_keys', 'separators')
+                44      CALL_KW                         4
+                46      RETURN_VALUE
+            [Exception Table]
+        [Code]
+            File Name: /mnt/data/CORE-006_FINAL_UPGRADE/deal_transaction_events.py
+            Object Name: _payload_hash
+            Qualified Name: _payload_hash
