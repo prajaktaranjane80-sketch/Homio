@@ -1,57 +1,29 @@
 PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> $R = "AUTONOMY_ENGINE\core\CORE-006_RECOVERY"
-PS D:\HOMIO\REOS_CONTROL_CENTER> $Tool = "$R\py312-decompiler"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python "$Tool\decompile.py" `
->>   "$R\RAW\bff8e01520d1eb4b04d9a2e9e60a8c9df6b3c43e.pyc" `
->>   --linear `
->>   -o "$R\SOURCE_PY\deal_transaction_events.py"
-Error: tuple index out of range
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CORE-006 RECOVERED SOURCE ===" -ForegroundColor Green
-=== CORE-006 RECOVERED SOURCE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem "$R\SOURCE_PY" -File |
->>     Select-Object Name,Length |
->>     Sort-Object Length -Descending
-
-Name                           Length
-----                           ------
-deal.py                          3050
-deal_transaction_milestones.py   2721
-deal_offer_negotiation.py        2721
-deal_evidence_audit.py           1118
-deal_ownership_integration.py     685
-
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $R = "AUTONOMY_ENGINE\core\CORE-006_RECOVERY"
 PS D:\HOMIO\REOS_CONTROL_CENTER> $P = "$R\pycdc"
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> New-Item -ItemType Directory -Force $P | Out-Null
+PS D:\HOMIO\REOS_CONTROL_CENTER> Invoke-WebRequest `
+>>   "https://github.com/error-inside/pycdc-prebuilt-binaries/releases/download/v2026.03.27/pycdc-win-x86_64-bin.7z" `
+>>   -OutFile "$P\pycdc-win-x86_64-bin.7z"
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Invoke-RestMethod `
->>   "https://api.github.com/repos/error-inside/pycdc-prebuilt-binaries/releases/latest" |
->>   Select-Object tag_name,assets |
->>   ConvertTo-Json -Depth 5 |
->>   Set-Content "$P\release.json"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== PYCDC RELEASE ASSETS ===" -ForegroundColor Cyan
-=== PYCDC RELEASE ASSETS ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Content "$P\release.json" | Select-String "browser_download_url"
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== ARCHIVE ===" -ForegroundColor Cyan
+=== ARCHIVE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Item "$P\pycdc-win-x86_64-bin.7z" |
+>>     Select-Object Name,Length
 
-                       "browser_download_url":
-"https://github.com/error-inside/pycdc-prebuilt-binaries/releases/download/v2026.03.27/pycdc-lin-arm64-bin.7z"
-                       "browser_download_url":
-"https://github.com/error-inside/pycdc-prebuilt-binaries/releases/download/v2026.03.27/pycdc-lin-_x86_64-bin.7z"
-                       "browser_download_url":
-"https://github.com/error-inside/pycdc-prebuilt-binaries/releases/download/v2026.03.27/pycdc-mac-arm64-bin.7z"
-                       "browser_download_url":
-"https://github.com/error-inside/pycdc-prebuilt-binaries/releases/download/v2026.03.27/pycdc-mac-x86_64-bin.7z"
-                       "browser_download_url":
-"https://github.com/error-inside/pycdc-prebuilt-binaries/releases/download/v2026.03.27/pycdc-win-arm64-bin.7z"
-                       "browser_download_url":
-"https://github.com/error-inside/pycdc-prebuilt-binaries/releases/download/v2026.03.27/pycdc-win-x86_32-bin.7z"
-                       "browser_download_url":
-"https://github.com/error-inside/pycdc-prebuilt-binaries/releases/download/v2026.03.27/pycdc-win-x86_64-bin.7z"
+Name                    Length
+----                    ------
+pycdc-win-x86_64-bin.7z 184899
+
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== 7-ZIP LOCATE ===" -ForegroundColor Cyan
+=== 7-ZIP LOCATE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Command 7z -ErrorAction SilentlyContinue
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Command 7z.exe -ErrorAction SilentlyContinue
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (Test-Path "C:\Program Files\7-Zip\7z.exe") {
+>>     Write-Host "FOUND: C:\Program Files\7-Zip\7z.exe" -ForegroundColor Green
+>> }
+FOUND: C:\Program Files\7-Zip\7z.exe
