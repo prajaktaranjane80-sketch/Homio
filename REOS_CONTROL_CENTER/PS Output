@@ -1,3 +1,4 @@
+FFFFF                                                                                                                                                [100%]
 ======================================================================== FAILURES =========================================================================
 ___________________________________________________ test_event_is_derived_from_authoritative_milestone ____________________________________________________
 
@@ -105,8 +106,7 @@ FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_de
 FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_scope_is_tenant_and_deal_bound - NameError: name 'AT' is not defined
 FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_serialization_is_canonical - NameError: name 'AT' is not defined
 FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_multiple_milestones_create_distinct_ordered_events - NameError: name 'AT' is not defined
-5 failed in 0.24s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
+5 failed in 0.31s
 PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
 >>     throw "T07 EVENT REGRESSION FAILED"
 >> }
@@ -121,20 +121,16 @@ PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "T07 EVENT REGRESSION = PASS" -ForegroundColor Green
 T07 EVENT REGRESSION = PASS
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== CORE-006 COMPLETE RECOVERED REGRESSION ===" -ForegroundColor Cyan
-
-=== CORE-006 COMPLETE RECOVERED REGRESSION ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest `
->>     "$ENV\AUTONOMY_ENGINE\core\test_deal.py" `
->>     "$ENV\AUTONOMY_ENGINE\core\test_deal_parties.py" `
->>     "$ENV\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py" `
->>     "$ENV\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py" `
->>     "$ENV\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py" `
->>     "$ENV\AUTONOMY_ENGINE\core\test_deal_evidence_audit.py" `
->>     "$ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py" `
->>     "$ENV\AUTONOMY_ENGINE\core\test_deal_final_hardening.py" `
->>     -q
+>>  "$ENV\AUTONOMY_ENGINE\core\test_deal.py" `
+>>  "$ENV\AUTONOMY_ENGINE\core\test_deal_parties.py" `
+>>  "$ENV\AUTONOMY_ENGINE\core\test_deal_offer_negotiation.py" `
+>>  "$ENV\AUTONOMY_ENGINE\core\test_deal_transaction_milestones.py" `
+>>  "$ENV\AUTONOMY_ENGINE\core\test_deal_ownership_integration.py" `
+>>  "$ENV\AUTONOMY_ENGINE\core\test_deal_evidence_audit.py" `
+>>  "$ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py" `
+>>  "$ENV\AUTONOMY_ENGINE\core\test_deal_final_hardening.py" `
+>>  -q
 ..............................................................................................FFFFF.........                                         [100%]
 ======================================================================== FAILURES =========================================================================
 ___________________________________________________ test_event_is_derived_from_authoritative_milestone ____________________________________________________
@@ -243,7 +239,7 @@ FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_de
 FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_scope_is_tenant_and_deal_bound - NameError: name 'AT' is not defined
 FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_serialization_is_canonical - NameError: name 'AT' is not defined
 FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_multiple_milestones_create_distinct_ordered_events - NameError: name 'AT' is not defined
-5 failed, 103 passed in 1.28s
+5 failed, 103 passed in 0.51s
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
 >>     throw "CORE-006 COMPLETE RECOVERED REGRESSION FAILED"
@@ -258,4 +254,3 @@ At line:2 char:5
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CORE-006 COMPLETE RECOVERED REGRESSION = PASS" -ForegroundColor Green
 CORE-006 COMPLETE RECOVERED REGRESSION = PASS
-PS D:\HOMIO\REOS_CONTROL_CENTER>
