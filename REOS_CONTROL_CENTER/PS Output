@@ -1,29 +1,181 @@
-======================================================================== ERRORS ==========================================================================
-___________________ ERROR collecting AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py ____________________
-ImportError while importing test module 'D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:6: in <module>
-    from .deal_transaction_events import (
-E   ImportError: cannot import name 'transaction_event_from_milestone' from 'AUTONOMY_ENGINE.core.deal_transaction_events' (D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\deal_transaction_events.py)
-================================================================= short test summary info =================================================================
-ERROR AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-1 error in 0.32s
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "CORE-006 T07-T10 HARDENING REGRESSION FAILED"
->> }
-CORE-006 T07-T10 HARDENING REGRESSION FAILED
-At line:2 char:5
-+     throw "CORE-006 T07-T10 HARDENING REGRESSION FAILED"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (CORE-006 T07-T1...GRESSION FAILED:String) [], RuntimeException
-    + FullyQualifiedErrorId : CORE-006 T07-T10 HARDENING REGRESSION FAILED
+PS D:\HOMIO\REOS_CONTROL_CENTER> $B = "D:\HOMIO\REOS_LAYER_BACKUP_20260924_201807"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $E = "$B\deal_transaction_deal_transaction_events.py_old"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $T = "$B\deal_transaction_test_deal_transaction_events.py_old"
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== 1. BACKUP EVENT API ===" -ForegroundColor Cyan
+=== 1. BACKUP EVENT API ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Content $E |
+>>     Select-String "transaction_event_from_milestone|class DealTransactionEvent|__all__|from_milestone" -Context 3,5
+
+  EVENT_SCHEMA_VERSION = "1.0"
+  TRANSACTION_EVENT_TYPE = "DEAL_TRANSACTION_MILESTONE_CHANGED"
+  SOURCE_OF_TRUTH = "deal_transaction_milestone"
+> class DealTransactionEventError(ValueError):
+      """Base transaction-event contract error."""
+> class DealTransactionEventScopeError(DealTransactionEventError):
+      """Raised when event access crosses deal/tenant scope."""
+> class DealTransactionEventIntegrityError(DealTransactionEventError):
+      """Raised for canonical event integrity violations."""
+  def _canonical_json(value: Mapping[str, Any]) -> str:
+      return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+  def _payload_hash(value: Mapping[str, Any]) -> str:
+      return hashlib.sha256(_canonical_json(value).encode("utf-8")).hexdigest()
+  @dataclass(frozen=True)
+> class DealTransactionEvent:
+      event_id: str
+      event_type: str
+      deal_id: str
+      tenant_id: str
+      from_status: str
+              raise DealTransactionEventIntegrityError("payload_hash does not match canonical payload.")
+          object.__setattr__(self, "payload_hash", calculated)
+      @classmethod
+>     def from_milestone(cls, milestone: DealTransactionMilestone, *, correlation_id: str | None = None, causation_id: str | None = None) ->
+"DealTransactionEvent":
+          fs = getattr(milestone.from_status, "value", milestone.from_status)
+          ts = getattr(milestone.to_status, "value", milestone.to_status)
+          occurred = milestone.occurred_at.isoformat() if hasattr(milestone.occurred_at, "isoformat") else milestone.occurred_at
+          payload = {
+              "milestone_id": milestone.milestone_id,
+              "payload_hash": self.payload_hash,
+              "semantic_key": self.semantic_key,
+          }
+> __all__ = ["DealTransactionEvent", "DealTransactionEventError", "DealTransactionEventIntegrityError", "DealTransactionEventScopeError",
+"EVENT_SCHEMA_VERSION", "SOURCE_OF_TRUTH", "TRANSACTION_EVENT_TYPE"]
+
 
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CORE-006 T07-T10 HARDENING REGRESSION = PASS" -ForegroundColor Green
-CORE-006 T07-T10 HARDENING REGRESSION = PASS
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 2. BACKUP EVENT TEST IMPORT ===" -ForegroundColor Cyan
+
+=== 2. BACKUP EVENT TEST IMPORT ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Content $T |
+>>     Select-String "transaction_event_from_milestone|from .*deal_transaction_events" -Context 3,8
+
+  import pytest
+
+  from .deal import Deal
+> from .deal_transaction_events import (
+      DealTransactionEvent,
+      DealTransactionEventScopeError,
+>     transaction_event_from_milestone,
+  )
+
+
+  def make_deal() -> Deal:
+      deal = Deal.create(
+          tenant_id="tenant-001",
+          customer_id="customer-001",
+          broker_id="broker-001",
+
+      assert milestone is not None
+
+>     event = transaction_event_from_milestone(milestone)
+
+      with pytest.raises(DealTransactionEventScopeError):
+          event.assert_scope(
+              deal_id="different-deal",
+              tenant_id="tenant-001",
+          )
+
+      with pytest.raises(DealTransactionEventScopeError):
+
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 3. ALL CORE-006 BACKUP REFERENCES ===" -ForegroundColor Cyan
+
+=== 3. ALL CORE-006 BACKUP REFERENCES ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem $B -File |
+>>     Where-Object { $_.Name -match "deal_transaction.*\.py_old$" } |
+>>     Select-String -Pattern "transaction_event_from_milestone" -SimpleMatch -List |
+>>     Select-Object Path
+
+Path
+----
+D:\HOMIO\REOS_LAYER_BACKUP_20260924_201807\deal_transaction_test_deal_transaction_events.py_old
+
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 4. EVENT MODULE EXPORTS ===" -ForegroundColor Cyan
+
+=== 4. EVENT MODULE EXPORTS ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Content $E -Tail 45
+            event_id=milestone.milestone_id,
+            event_type=TRANSACTION_EVENT_TYPE,
+            deal_id=milestone.deal_id,
+            tenant_id=milestone.tenant_id,
+            from_status=fs,
+            to_status=ts,
+            deal_version=milestone.deal_version,
+            sequence=milestone.sequence,
+            occurred_at=occurred,
+            reference_id=milestone.reference_id,
+            correlation_id=correlation_id,
+            causation_id=causation_id,
+            idempotency_key=milestone.milestone_id,
+            payload=payload,
+        )
+    def assert_scope(self, *, deal_id: str, tenant_id: str) -> None:
+        if self.deal_id != deal_id:
+            raise DealTransactionEventScopeError("Transaction event belongs to a different deal.")
+        if self.tenant_id != tenant_id:
+            raise DealTransactionEventScopeError("Transaction event belongs to a different tenant.")
+    @property
+    def semantic_key(self) -> str:
+        return f"{self.deal_id}:{self.deal_version}:{self.sequence}:{self.event_id}"
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "event_id": self.event_id,
+            "event_type": self.event_type,
+            "schema_version": self.schema_version,
+            "source_of_truth": self.source_of_truth,
+            "deal_id": self.deal_id,
+            "tenant_id": self.tenant_id,
+            "from_status": self.from_status,
+            "to_status": self.to_status,
+            "deal_version": self.deal_version,
+            "sequence": self.sequence,
+            "occurred_at": self.occurred_at,
+            "reference_id": self.reference_id,
+            "correlation_id": self.correlation_id,
+            "causation_id": self.causation_id,
+            "idempotency_key": self.idempotency_key,
+            "payload": dict(self.payload),
+            "payload_hash": self.payload_hash,
+            "semantic_key": self.semantic_key,
+        }
+__all__ = ["DealTransactionEvent", "DealTransactionEventError", "DealTransactionEventIntegrityError", "DealTransactionEventScopeError", "EVENT_SCHEMA_VERSION", "SOURCE_OF_TRUTH", "TRANSACTION_EVENT_TYPE"]
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 5. TEST USAGE ===" -ForegroundColor Cyan
+
+=== 5. TEST USAGE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Content $T |
+>>     Select-String "transaction_event_from_milestone" -Context 2,10
+
+      DealTransactionEvent,
+      DealTransactionEventScopeError,
+>     transaction_event_from_milestone,
+  )
+
+
+  def make_deal() -> Deal:
+      deal = Deal.create(
+          tenant_id="tenant-001",
+          customer_id="customer-001",
+          broker_id="broker-001",
+          builder_id="builder-001",
+          project_id="project-001",
+      assert milestone is not None
+
+>     event = transaction_event_from_milestone(milestone)
+
+      with pytest.raises(DealTransactionEventScopeError):
+          event.assert_scope(
+              deal_id="different-deal",
+              tenant_id="tenant-001",
+          )
+
+      with pytest.raises(DealTransactionEventScopeError):
+          event.assert_scope(
+              deal_id=deal.deal_id,
