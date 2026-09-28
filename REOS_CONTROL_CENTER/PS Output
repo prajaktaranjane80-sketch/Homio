@@ -1,27 +1,43 @@
->> }
+PS D:\Homio\REOS_CONTROL_CENTER> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($sha in $Map.Keys) {
->>     $pyc = Join-Path $Raw "$sha.pyc"
->>     if (Test-Path $pyc) {
->>         Write-Host "=== DECOMPILE $($Map[$sha]) ===" -ForegroundColor Cyan
->>         python -m decompyle3 -o $Src $pyc
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Refactor = "80d6f276836bec3655535173c88e067d3c76bfbb"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Parent = (git rev-list --parents -n 1 $Refactor).Split()[1]
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CORE-006 ORIGINAL PARENT ===" -ForegroundColor Cyan
+=== CORE-006 ORIGINAL PARENT ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git show --no-patch --format="PARENT=%H`nDATE=%ci`nMESSAGE=%s" $Parent
+PARENT=d5f837e91bd5e69a16a37929a7245b82cec1dc0c
+DATE=2026-09-25 11:40:21 +0530
+MESSAGE=Update PS Output
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Recovery = "AUTONOMY_ENGINE\core\CORE-006_RECOVERY\ORIGINAL_SOURCE"
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (Test-Path $Recovery) {
+>>     Remove-Item $Recovery -Recurse -Force
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER> New-Item -ItemType Directory -Force -Path $Recovery | Out-Null
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Paths = git ls-tree -r --full-tree --name-only $Parent |
+>>     Where-Object {
+>>         $_ -match "^REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/.*deal.*\.py$" -or
+>>         $_ -match "^REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/.*deal.*\.bak$"
 >>     }
->> }
-=== DECOMPILE deal_evidence_audit.py ===
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\python.exe: No module named decompyle3.__main__; 'decompyle3' is a package and cannot be directly executed
-=== DECOMPILE deal_transaction_events.py ===
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\python.exe: No module named decompyle3.__main__; 'decompyle3' is a package and cannot be directly executed
-=== DECOMPILE deal_ownership_integration.py ===
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\python.exe: No module named decompyle3.__main__; 'decompyle3' is a package and cannot be directly executed
-=== DECOMPILE deal_offer_negotiation.py ===
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\python.exe: No module named decompyle3.__main__; 'decompyle3' is a package and cannot be directly executed
-=== DECOMPILE deal_transaction_milestones.py ===
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\python.exe: No module named decompyle3.__main__; 'decompyle3' is a package and cannot be directly executed
-=== DECOMPILE deal.py ===
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\python.exe: No module named decompyle3.__main__; 'decompyle3' is a package and cannot be directly executed
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== RECOVERED PYTHON ===" -ForegroundColor Green
-=== RECOVERED PYTHON ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem $Src -Recurse -File |
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== ORIGINAL CORE-006 FILES ===" -ForegroundColor Green
+=== ORIGINAL CORE-006 FILES ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Paths | ForEach-Object { Write-Host $_ }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($Path in $Paths) {
+>>     $Relative = $Path -replace "^REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/",""
+>>     $Dest = Join-Path $Recovery $Relative
+>>
+>>     New-Item -ItemType Directory -Force -Path (Split-Path $Dest) | Out-Null
+>>
+>>     git show "${Parent}:$Path" |
+>>         Set-Content -Path $Dest -Encoding UTF8
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== RECOVERED ORIGINAL SOURCE ===" -ForegroundColor Green
+=== RECOVERED ORIGINAL SOURCE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem $Recovery -Recurse -File |
 >>     Select-Object FullName,Length |
 >>     Sort-Object Length -Descending
