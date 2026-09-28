@@ -1,95 +1,340 @@
-PS D:\Homio\REOS_CONTROL_CENTER> git fetch origin reos-development
-remote: Enumerating objects: 7, done.
-remote: Counting objects: 100% (7/7), done.
-remote: Compressing objects: 100% (4/4), done.
-remote: Total 4 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (4/4), 1.64 KiB | 93.00 KiB/s, done.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   03b54ca..588ca71  reos-development -> origin/reos-development
-PS D:\Homio\REOS_CONTROL_CENTER> git stash push -u -m "preserve local CORE005 before full remote reconcile" -- AUTONOMY_ENGINE\core\search_matching
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/location_search.py', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/__init__.py', LF will be replaced by CRLF the next time Git touches it
-Saved working directory and index state On reos-development: preserve local CORE005 before full remote reconcile
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/__init__.py', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/location_search.py', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py', LF will be replaced by CRLF the next time Git touches it
-PS D:\Homio\REOS_CONTROL_CENTER> git merge --ff-only origin/reos-development
-Updating 7e8766d..588ca71
-Fast-forward
- .../core/search_matching/__init__.py               | 343 ++++++++-
- .../core/search_matching/acrl_integration.py       | 405 +++++++++++
- .../core/search_matching/hybrid_retrieval.py       | 727 +++++++++++++++++++
- .../core/search_matching/matching.py               | 663 +++++++++++++++++
- .../core/search_matching/projection_sync.py        | 561 +++++++++++++++
- .../core/search_matching/qdrant_indexing.py        | 507 +++++++++++++
- .../core/search_matching/reos_integration.py       | 481 +++++++++++++
- .../core/search_matching/runtime_adapter.py        | 453 ++++++++++++
- .../core/search_matching/search_consistency.py     | 528 ++++++++++++++
- .../core/search_matching/search_domain.py          | 794 +++++++++++++++++++++
- .../core/search_matching/search_execution.py       | 538 ++++++++++++++
- .../core/search_matching/search_index_contract.py  | 513 ++++++++++---
- .../core/search_matching/search_observability.py   | 457 ++++++++++++
- .../core/search_matching/search_ranking.py         | 638 +++++++++++++++++
- .../core/search_matching/search_security.py        | 604 ++++++++++++++++
- .../core/search_matching/search_visibility.py      | 501 +++++++++++++
- .../test_core005_adapter_isolation.py              | 176 +++++
- .../test_core005_deep_adversarial.py               | 298 ++++++++
- .../search_matching/test_core005_regression.py     | 602 ++++++++++++++++
- .../test_core005_reproducibility.py                | 197 +++++
- .../core/search_matching/test_hybrid_retrieval.py  | 350 +++++++++
- .../core/search_matching/test_matching.py          | 587 +++++++++++++++
- .../core/search_matching/test_qdrant_indexing.py   | 392 ++++++++++
- .../test_qdrant_indexing_adversarial.py            | 187 +++++
- .../core/search_matching/test_search_domain.py     | 328 +++++++++
- .../test_search_domain_adversarial.py              | 114 +++
- .../core/search_matching/test_search_visibility.py | 414 +++++++++++
- REOS_CONTROL_CENTER/PS Output                      | 651 ++---------------
- 28 files changed, 12294 insertions(+), 715 deletions(-)
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/acrl_integration.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/hybrid_retrieval.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/matching.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/projection_sync.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/reos_integration.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/runtime_adapter.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_consistency.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_domain.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_execution.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_observability.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_ranking.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_security.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_visibility.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_core005_adapter_isolation.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_core005_deep_adversarial.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_core005_reproducibility.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing_adversarial.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_domain.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_domain_adversarial.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py
-PS D:\Homio\REOS_CONTROL_CENTER> Get-ChildItem AUTONOMY_ENGINE\core\search_matching -Recurse -Directory -Filter __pycache__ | Remove-Item -Recurse -Force
-PS D:\Homio\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\search_matching -q
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CORE-005 test_matching.py REPLACED"
+CORE-005 test_matching.py REPLACED
+PS D:\Homio\REOS_CONTROL_CENTER> Get-Content AUTONOMY_ENGINE\core\search_matching\test_matching.py -TotalCount 20
+from __future__ import annotations
 
-========================================================================= ERRORS ==========================================================================
-_________________________________________ ERROR collecting AUTONOMY_ENGINE/core/search_matching/test_matching.py __________________________________________
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_matching.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AUTONOMY_ENGINE\core\search_matching\test_matching.py:10: in <module>
-    from AUTONOMY_ENGINE.core.search_matching.matching import (
-E   ImportError: cannot import name 'MatchingConfigurationError' from 'AUTONOMY_ENGINE.core.search_matching.matching' (D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\matching.py)
+import pytest
+
+from AUTONOMY_ENGINE.core.search_matching.matching import (
+    MatchExplanation,
+    MatchRecommendation,
+    MatchingCandidateError,
+    MatchingCriteriaError,
+    MatchingProfile,
+    MatchingRecommendationPipeline,
+    MatchingTenantError,
+)
+from AUTONOMY_ENGINE.core.search_matching.search_index_contract import (
+    InventoryIndexDocument,
+)
+
+
+def make_document(
+    *,
+PS D:\Homio\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\search_matching\test_matching.py -q
+....................                                                                                                                                 [100%]
+20 passed in 0.14s
+PS D:\Homio\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\search_matching -q
+............F................F..FF...................................................F.F...............FF........................................... [ 92%]
+............                                                                                                                                         [100%]
+======================================================================== FAILURES =========================================================================
+________________________________________ test_consistency_detects_future_then_stale_event_without_reordering_state ________________________________________
+
+    def test_consistency_detects_future_then_stale_event_without_reordering_state() -> None:
+        tracker = SearchConsistencyTracker()
+
+        first = ConsistencyEvent(
+            event_id="event-001",
+            tenant_id="tenant-a",
+            index_key="inv-001",
+            source_version=3,
+        )
+
+        older = ConsistencyEvent(
+            event_id="event-000",
+            tenant_id="tenant-a",
+            index_key="inv-001",
+            source_version=2,
+        )
+
+        assert (
+            tracker.observe_event(first)
+            is ConsistencyStatus.CURRENT
+        )
+
+        assert (
+            tracker.observe_event(older)
+            is ConsistencyStatus.OUT_OF_ORDER
+        )
+
+>       state = tracker.state(
+            "tenant-a",
+            "inv-001",
+        )
+E       TypeError: SearchConsistencyTracker.state() takes 1 positional argument but 3 were given
+
+AUTONOMY_ENGINE\core\search_matching\test_core005_deep_adversarial.py:226: TypeError
+______________________________________________________ test_projection_sync_rebuild_is_derived_only _______________________________________________________
+
+    def test_projection_sync_rebuild_is_derived_only():
+>       synchronizer = SearchProjectionSynchronizer()
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+AUTONOMY_ENGINE\core\search_matching\test_core005_regression.py:457:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+<string>:4: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = SearchProjectionSynchronizer(sink=None)
+
+    def __post_init__(self) -> None:
+>       self._versions: dict[
+        ^^^^^^^^^^^^^^
+            tuple[str, str],
+            ProjectionVersion,
+        ] = {}
+E       AttributeError: 'SearchProjectionSynchronizer' object has no attribute '_versions'
+
+AUTONOMY_ENGINE\core\search_matching\projection_sync.py:268: AttributeError
+________________________________________________ test_projection_modules_do_not_write_control_center_state ________________________________________________
+
+    def test_projection_modules_do_not_write_control_center_state():
+        from pathlib import Path
+
+        root = Path(__file__).resolve().parent
+
+        protected_markers = (
+            "state.json",
+            "save_state(",
+            "materialize_current_gate(",
+        )
+
+        inspected = (
+            "projection_sync.py",
+            "search_observability.py",
+            "reos_integration.py",
+            "acrl_integration.py",
+            "runtime_adapter.py",
+        )
+
+        for name in inspected:
+            source = (
+                root / name
+            ).read_text(
+                encoding="utf-8-sig"
+            )
+
+            for marker in protected_markers:
+>               assert marker not in source
+E               assert 'state.json' not in '"""\nCORE-0...tract",\n]\n'
+E
+E                 'state.json' is contained here:
+E
+E                   - mutate state.json
+E                   - choose the next Control Center task
+E                   - approve/freeze itself
+E                   - alter Control Center gates...
+E
+E                 ...Full output truncated (464 lines hidden), use '-vv' to show
+
+AUTONOMY_ENGINE\core\search_matching\test_core005_regression.py:569: AssertionError
+_________________________________________________________ test_core005_public_surface_is_modular __________________________________________________________
+
+    def test_core005_public_surface_is_modular():
+        from pathlib import Path
+
+        root = Path(__file__).resolve().parent
+
+        expected = {
+            "search_domain.py",
+            "search_index_contract.py",
+            "search_filters.py",
+            "qdrant_indexing.py",
+            "hybrid_retrieval.py",
+            "search_execution.py",
+            "projection_sync.py",
+            "search_ranking.py",
+            "search_visibility.py",
+            "search_security.py",
+            "matching.py",
+            "search_consistency.py",
+            "search_observability.py",
+            "reos_integration.py",
+            "acrl_integration.py",
+            "runtime_adapter.py",
+        }
+
+        actual = {
+            path.name
+            for path in root.glob("*.py")
+            if not path.name.startswith("test_")
+        }
+
+>       assert actual == expected
+E       AssertionError: assert {'__init__.py...xing.py', ...} == {'acrl_integr...tion.py', ...}
+E
+E         Extra items in the left set:
+E         '__init__.py'
+E         Use -v to get more diff
+
+AUTONOMY_ENGINE\core\search_matching\test_core005_regression.py:602: AssertionError
+________________________________________________________ test_expected_version_mismatch_is_blocked ________________________________________________________
+
+pipeline = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000001E414ACD550>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
+
+    def test_expected_version_mismatch_is_blocked(
+        pipeline: QdrantIndexingPipeline,
+    ) -> None:
+        with pytest.raises(QdrantVersionViolation):
+>           pipeline.build_point(
+                make_document(version=1),
+                [0.1, 0.2, 0.3, 0.4],
+                tenant_id="tenant-a",
+                expected_version=2,
+            )
+
+AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:279:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\search_matching\qdrant_indexing.py:300: in build_point
+    self._assert_expected_version(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000001E414ACD550>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
+document = InventoryIndexDocument(tenant_id='tenant-a', project_id='project-a', inventory_id='inventory-a', inventory_code='UNIT-...bb84718968b0b09cddcf79c4e834aa5000873621', operation=<SearchIndexOperation.UPSERT: 'UPSERT'>, payload=mappingproxy({}))
+expected_version = 2
+
+    def _assert_expected_version(
+        self,
+        document: InventoryIndexDocument,
+        expected_version: int | None,
+    ) -> None:
+        if expected_version is None:
+            return
+
+        if (
+            isinstance(expected_version, bool)
+            or not isinstance(expected_version, int)
+            or expected_version < 1
+        ):
+            raise QdrantVersionViolation(
+                "expected_version must be a positive integer."
+            )
+
+>       document.assert_version(expected_version)
+        ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'InventoryIndexDocument' object has no attribute 'assert_version'. Did you mean: 'index_version'?
+
+AUTONOMY_ENGINE\core\search_matching\qdrant_indexing.py:250: AttributeError
+___________________________________________________________ test_delete_removes_existing_point ____________________________________________________________
+
+pipeline = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000001E414ACEB40>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
+
+    def test_delete_removes_existing_point(
+        pipeline: QdrantIndexingPipeline,
+    ) -> None:
+        upsert_document = make_document(
+            version=1
+        )
+
+        point_id = pipeline.upsert(
+            upsert_document,
+            [0.1, 0.2, 0.3, 0.4],
+            tenant_id="tenant-a",
+        )
+
+        delete_document = make_document(
+            version=1,
+            operation=SearchIndexOperation.DELETE,
+        )
+
+>       deleted = pipeline.delete(
+            delete_document,
+            tenant_id="tenant-a",
+            expected_version=1,
+        )
+
+AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:317:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\search_matching\qdrant_indexing.py:452: in delete
+    self._assert_expected_version(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000001E414ACEB40>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
+document = InventoryIndexDocument(tenant_id='tenant-a', project_id='project-a', inventory_id='inventory-a', inventory_code='UNIT-...bb84718968b0b09cddcf79c4e834aa5000873621', operation=<SearchIndexOperation.DELETE: 'DELETE'>, payload=mappingproxy({}))
+expected_version = 1
+
+    def _assert_expected_version(
+        self,
+        document: InventoryIndexDocument,
+        expected_version: int | None,
+    ) -> None:
+        if expected_version is None:
+            return
+
+        if (
+            isinstance(expected_version, bool)
+            or not isinstance(expected_version, int)
+            or expected_version < 1
+        ):
+            raise QdrantVersionViolation(
+                "expected_version must be a positive integer."
+            )
+
+>       document.assert_version(expected_version)
+        ^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'InventoryIndexDocument' object has no attribute 'assert_version'. Did you mean: 'index_version'?
+
+AUTONOMY_ENGINE\core\search_matching\qdrant_indexing.py:250: AttributeError
+___________________________________________________________ test_tenant_context_requires_tenant ___________________________________________________________
+
+    def test_tenant_context_requires_tenant() -> None:
+        with pytest.raises(SearchTenantContextError):
+>           SearchTenantContext(tenant_id="   ")
+
+AUTONOMY_ENGINE\core\search_matching\test_search_domain.py:73:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+<string>:7: in __init__
+    ???
+AUTONOMY_ENGINE\core\search_matching\search_domain.py:210: in __post_init__
+    _required_text(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = '', field_name = 'tenant_id'
+
+    def _required_text(value: str, field_name: str) -> str:
+        if not isinstance(value, str):
+            raise SearchDomainError(
+                f"{field_name} must be a string."
+            )
+
+        value = value.strip()
+
+        if not value:
+>           raise SearchDomainError(
+                f"{field_name} cannot be empty."
+            )
+E           AUTONOMY_ENGINE.core.search_matching.search_domain.SearchDomainError: tenant_id cannot be empty.
+
+AUTONOMY_ENGINE\core\search_matching\search_domain.py:101: SearchDomainError
+__________________________________________________ test_tenant_context_normalizes_roles_and_capabilities __________________________________________________
+
+    def test_tenant_context_normalizes_roles_and_capabilities() -> None:
+        context = SearchTenantContext(
+            tenant_id="tenant-a",
+            actor_id="agent-001",
+            roles=("Broker", "broker", "Admin"),
+            capabilities=(
+                "search:read",
+                "search:read",
+            ),
+        )
+
+>       assert context.roles == ("Admin", "Broker", "broker")
+E       AssertionError: assert ('Admin', 'broker', 'Broker') == ('Admin', 'Broker', 'broker')
+E
+E         At index 1 diff: 'broker' != 'Broker'
+E         Use -v to get more diff
+
+AUTONOMY_ENGINE\core\search_matching\test_search_domain.py:87: AssertionError
 ================================================================= short test summary info =================================================================
-ERROR AUTONOMY_ENGINE/core/search_matching/test_matching.py
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-1 error in 4.22s
-PS D:\Homio\REOS_CONTROL_CENTER> python -m compileall -q AUTONOMY_ENGINE\core\search_matching
-PS D:\Homio\REOS_CONTROL_CENTER> python -c "import AUTONOMY_ENGINE.core.search_matching as m; print('CORE-005 IMPORT PASS')"
-CORE-005 IMPORT PASS
+FAILED AUTONOMY_ENGINE/core/search_matching/test_core005_deep_adversarial.py::test_consistency_detects_future_then_stale_event_without_reordering_state - TypeError: SearchConsistencyTracker.state() takes 1 positional argument but 3 were given
+FAILED AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py::test_projection_sync_rebuild_is_derived_only - AttributeError: 'SearchProjectionSynchronizer' object has no attribute '_versions'
+FAILED AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py::test_projection_modules_do_not_write_control_center_state - assert 'state.json' not in '"""\nCORE-0...tract",\n]\n'
+FAILED AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py::test_core005_public_surface_is_modular - AssertionError: assert {'__init__.py...xing.py', ...} == {'acrl_integr...tion.py', ...}
+FAILED AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_expected_version_mismatch_is_blocked - AttributeError: 'InventoryIndexDocument' object has no attribute 'assert_version'. Did you mean: 'index_version'?
+FAILED AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_delete_removes_existing_point - AttributeError: 'InventoryIndexDocument' object has no attribute 'assert_version'. Did you mean: 'index_version'?
+FAILED AUTONOMY_ENGINE/core/search_matching/test_search_domain.py::test_tenant_context_requires_tenant - AUTONOMY_ENGINE.core.search_matching.search_domain.SearchDomainError: tenant_id cannot be empty.
+FAILED AUTONOMY_ENGINE/core/search_matching/test_search_domain.py::test_tenant_context_normalizes_roles_and_capabilities - AssertionError: assert ('Admin', 'broker', 'Broker') == ('Admin', 'Broker', 'broker')
+8 failed, 152 passed in 2.01s
+PS D:\Homio\REOS_CONTROL_CENTER>
