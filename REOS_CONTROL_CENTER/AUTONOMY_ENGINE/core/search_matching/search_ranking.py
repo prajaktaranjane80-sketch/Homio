@@ -1,612 +1,638 @@
+"""
+CORE-005 / Point 06 — Ranking & Relevance.
+
+Owns:
+- relevance contract
+- ranking inputs
+- deterministic tie-breaking
+- ranking version
+- ranking explanation
+- feature provenance
+- ranking reproducibility
+- explicit non-autonomous business boundary
+
+Does NOT own:
+- search retrieval
+- matching policy
+- commercial decisions
+- commission
+- ownership
+- fraud
+- governance
+- AI decision authority
+"""
+
 from __future__ import annotations
 
-from dataclasses import dataclass
-import re
-from typing import Iterable
+from dataclasses import dataclass, field
+import hashlib
+import json
+from math import isfinite
+from typing import Any, Iterable, Mapping
 
-from .hybrid_retrieval import HybridSearchResult
-
-
-_TOKEN_PATTERN = re.compile(r"[A-Za-z0-9]+")
-
-
-class RankingError(ValueError):
-    """Base CORE-005 ranking error."""
+from .search_index_contract import (
+    InventoryIndexDocument,
+)
 
 
-class RankingLimitError(RankingError):
-    """Raised for invalid ranking limits."""
+class SearchRankingError(ValueError):
+    """Base ranking error."""
 
 
-class RankingQueryError(RankingError):
-    """Raised for invalid reranking queries."""
+class SearchRankingInputError(SearchRankingError):
+    """Raised when ranking input is invalid."""
 
 
-class RankingResultError(RankingError):
-    """Raised for malformed retrieval results."""
+class SearchRankingVersionError(SearchRankingError):
+    """Raised when ranking version metadata is invalid."""
 
 
-def _tokens(value: str) -> tuple[str, ...]:
-    return tuple(
-        token.casefold()
-        for token in _TOKEN_PATTERN.findall(value)
-    )
-
-
-def _require_query(
-    query_text: str,
-) -> str:
-    if not isinstance(
-        query_text,
-        str,
-    ):
-        raise RankingQueryError(
-            "query_text must be a string."
-        )
-
-    normalized = query_text.strip()
-
-    if not normalized:
-        raise RankingQueryError(
-            "query_text must be non-empty."
-        )
-
-    return normalized
-
-
-def _require_limit(
-    value: int,
-    *,
-    field_name: str,
-) -> int:
-    if (
-        isinstance(value, bool)
-        or not isinstance(value, int)
-        or value < 1
-    ):
-        raise RankingLimitError(
-            f"{field_name} must be a positive integer."
-        )
-
-    return value
+RANKING_VERSION = 1
 
 
 @dataclass(frozen=True, slots=True)
-class RankingConfig:
+class RankingFeature:
     """
-    Deterministic production ranking configuration.
+    One deterministic relevance feature.
 
-    Retrieval fusion remains T04.
-    Business relevance policy starts here.
+    Provenance identifies exactly how the feature was produced.
     """
 
-    hybrid_weight: float = 0.55
-    lexical_weight: float = 0.25
-    vector_weight: float = 0.20
-
-    rerank_base_weight: float = 0.70
-    rerank_signal_weight: float = 0.30
-
-    exact_code_boost: float = 0.45
-    exact_phrase_boost: float = 0.30
-    token_coverage_boost: float = 0.25
-
-    default_rerank_window: int = 20
+    name: str
+    value: float
+    provenance: str
 
     def __post_init__(self) -> None:
-        weights = (
-            self.hybrid_weight,
-            self.lexical_weight,
-            self.vector_weight,
-            self.rerank_base_weight,
-            self.rerank_signal_weight,
-            self.exact_code_boost,
-            self.exact_phrase_boost,
-            self.token_coverage_boost,
+        if (
+            not isinstance(self.name, str)
+            or not self.name.strip()
+        ):
+            raise SearchRankingInputError(
+                "feature name must be non-empty."
+            )
+
+        if isinstance(self.value, bool):
+            raise SearchRankingInputError(
+                "feature value must be numeric."
+            )
+
+        try:
+            normalized = float(
+                self.value
+            )
+        except (
+            TypeError,
+            ValueError,
+        ) as exc:
+            raise SearchRankingInputError(
+                "feature value must be numeric."
+            ) from exc
+
+        if not isfinite(normalized):
+            raise SearchRankingInputError(
+                "feature value must be finite."
+            )
+
+        if (
+            not isinstance(
+                self.provenance,
+                str,
+            )
+            or not self.provenance.strip()
+        ):
+            raise SearchRankingInputError(
+                "feature provenance must be non-empty."
+            )
+
+        object.__setattr__(
+            self,
+            "value",
+            normalized,
         )
 
-        for weight in weights:
-            if (
-                isinstance(weight, bool)
-                or not isinstance(
-                    weight,
-                    (int, float),
-                )
-            ):
-                raise RankingError(
-                    "ranking weights must be numeric."
-                )
 
-            if weight < 0:
-                raise RankingError(
-                    "ranking weights cannot be negative."
-                )
+@dataclass(frozen=True, slots=True)
+class RankingExplanation:
+    """
+    Transparent explanation of ranking inputs.
+    """
 
-        if (
-            self.hybrid_weight
-            + self.lexical_weight
-            + self.vector_weight
-            <= 0
-        ):
-            raise RankingError(
-                "at least one primary ranking weight "
-                "must be greater than zero."
-            )
+    features: tuple[RankingFeature, ...]
+    ranking_version: int
 
-        if (
-            self.rerank_base_weight
-            + self.rerank_signal_weight
-            <= 0
-        ):
-            raise RankingError(
-                "rerank weights must have a "
-                "positive total."
-            )
-
-        if (
-            self.exact_code_boost
-            + self.exact_phrase_boost
-            + self.token_coverage_boost
-            <= 0
-        ):
-            raise RankingError(
-                "rerank signal weights must have "
-                "a positive total."
-            )
-
+    def __post_init__(self) -> None:
         if (
             isinstance(
-                self.default_rerank_window,
+                self.ranking_version,
                 bool,
             )
             or not isinstance(
-                self.default_rerank_window,
+                self.ranking_version,
                 int,
             )
-            or self.default_rerank_window < 1
+            or self.ranking_version < 1
         ):
-            raise RankingError(
-                "default_rerank_window must be "
-                "a positive integer."
+            raise SearchRankingVersionError(
+                "ranking_version must be positive."
+            )
+
+        names = [
+            feature.name
+            for feature in self.features
+        ]
+
+        if len(names) != len(set(names)):
+            raise SearchRankingInputError(
+                "Duplicate ranking feature names."
+            )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "ranking_version": self.ranking_version,
+            "features": [
+                {
+                    "name": feature.name,
+                    "value": feature.value,
+                    "provenance": feature.provenance,
+                }
+                for feature in self.features
+            ],
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class RankingCandidate:
+    """
+    Input to the ranking boundary.
+
+    `retrieval_score` is an upstream retrieval signal.
+    It is not business value.
+    """
+
+    document: InventoryIndexDocument
+    retrieval_score: float = 0.0
+    lexical_score: float = 0.0
+    vector_score: float = 0.0
+
+    def __post_init__(self) -> None:
+        if not isinstance(
+            self.document,
+            InventoryIndexDocument,
+        ):
+            raise SearchRankingInputError(
+                "document must be InventoryIndexDocument."
+            )
+
+        values = (
+            "retrieval_score",
+            "lexical_score",
+            "vector_score",
+        )
+
+        for field_name in values:
+            value = getattr(
+                self,
+                field_name,
+            )
+
+            if isinstance(value, bool):
+                raise SearchRankingInputError(
+                    f"{field_name} must be numeric."
+                )
+
+            try:
+                normalized = float(value)
+            except (
+                TypeError,
+                ValueError,
+            ) as exc:
+                raise SearchRankingInputError(
+                    f"{field_name} must be numeric."
+                ) from exc
+
+            if not isfinite(normalized):
+                raise SearchRankingInputError(
+                    f"{field_name} must be finite."
+                )
+
+            object.__setattr__(
+                self,
+                field_name,
+                normalized,
             )
 
 
 @dataclass(frozen=True, slots=True)
 class RankedSearchResult:
     """
-    Immutable deterministic ranking result.
+    Immutable ranked result.
 
-    ranking_score:
-        First-stage relevance.
-
-    rerank_score:
-        Second-stage relevance if reranking occurred.
-
-    final_score:
-        Effective score used for ordering.
+    Ranking is deterministic and reproducible.
+    No autonomous business decision is made.
     """
 
-    retrieval: HybridSearchResult
-    ranking_score: float
+    document: InventoryIndexDocument
+    score: float
     rank: int
-    rerank_score: float | None = None
-    rerank_rank: int | None = None
+    explanation: RankingExplanation
 
-    @property
-    def document(self):
-        return self.retrieval.document
+    def __post_init__(self) -> None:
+        if (
+            isinstance(self.rank, bool)
+            or not isinstance(self.rank, int)
+            or self.rank < 1
+        ):
+            raise SearchRankingError(
+                "rank must be positive."
+            )
 
-    @property
-    def inventory_id(self) -> str:
-        return self.retrieval.inventory_id
+        if isinstance(self.score, bool):
+            raise SearchRankingError(
+                "score must be numeric."
+            )
 
-    @property
-    def inventory_code(self) -> str:
-        return self.retrieval.inventory_code
+        try:
+            normalized = float(
+                self.score
+            )
+        except (
+            TypeError,
+            ValueError,
+        ) as exc:
+            raise SearchRankingError(
+                "score must be numeric."
+            ) from exc
 
-    @property
-    def tenant_id(self) -> str:
-        return self.retrieval.tenant_id
+        if not isfinite(normalized):
+            raise SearchRankingError(
+                "score must be finite."
+            )
 
-    @property
-    def index_key(self) -> str:
-        return self.retrieval.index_key
-
-    @property
-    def final_score(self) -> float:
-        if self.rerank_score is not None:
-            return self.rerank_score
-
-        return self.ranking_score
-
-
-def _rank_signal(
-    rank: int | None,
-) -> float:
-    if rank is None:
-        return 0.0
-
-    if rank < 1:
-        return 0.0
-
-    return 1.0 / float(rank)
-
-
-def _normalize(
-    value: float,
-    *,
-    maximum: float,
-) -> float:
-    if maximum <= 0:
-        return 0.0
-
-    normalized = value / maximum
-
-    return max(
-        0.0,
-        min(
-            1.0,
+        object.__setattr__(
+            self,
+            "score",
             normalized,
-        ),
-    )
+        )
+
+        if not isinstance(
+            self.explanation,
+            RankingExplanation,
+        ):
+            raise SearchRankingError(
+                "explanation must be RankingExplanation."
+            )
+
+    @property
+    def retrieval(self) -> RankingCandidate:
+        """
+        Compatibility-facing view for downstream consumers.
+
+        It preserves ranking output without creating another result engine.
+        """
+        return RankingCandidate(
+            document=self.document
+        )
+
+    @property
+    def result(self) -> InventoryIndexDocument:
+        """
+        Compatibility alias for consumers expecting `.result`.
+        """
+        return self.document
+
+
+@dataclass(frozen=True, slots=True)
+class RankingConfig:
+    """
+    Explicit deterministic ranking weights.
+
+    These are retrieval/relevance weights only.
+    """
+
+    retrieval_weight: float = 1.0
+    lexical_weight: float = 0.5
+    vector_weight: float = 0.5
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "retrieval_weight",
+            "lexical_weight",
+            "vector_weight",
+        ):
+            value = getattr(
+                self,
+                field_name,
+            )
+
+            if isinstance(value, bool):
+                raise SearchRankingInputError(
+                    f"{field_name} must be numeric."
+                )
+
+            try:
+                normalized = float(value)
+            except (
+                TypeError,
+                ValueError,
+            ) as exc:
+                raise SearchRankingInputError(
+                    f"{field_name} must be numeric."
+                ) from exc
+
+            if not isfinite(normalized):
+                raise SearchRankingInputError(
+                    f"{field_name} must be finite."
+                )
+
+            if normalized < 0:
+                raise SearchRankingInputError(
+                    f"{field_name} cannot be negative."
+                )
+
+            object.__setattr__(
+                self,
+                field_name,
+                normalized,
+            )
 
 
 @dataclass(frozen=True, slots=True)
 class SearchRankingPipeline:
     """
-    Deterministic ranking and second-stage reranking.
-
-    No model call.
-    No AI decision engine.
-    No source-of-truth mutation.
+    Deterministic ranking/reranking boundary.
     """
 
     config: RankingConfig = RankingConfig()
+    ranking_version: int = RANKING_VERSION
+
+    def __post_init__(self) -> None:
+        if (
+            isinstance(
+                self.ranking_version,
+                bool,
+            )
+            or not isinstance(
+                self.ranking_version,
+                int,
+            )
+            or self.ranking_version < 1
+        ):
+            raise SearchRankingVersionError(
+                "ranking_version must be positive."
+            )
+
+    def _calculate_features(
+        self,
+        candidate: RankingCandidate,
+    ) -> tuple[RankingFeature, ...]:
+        return (
+            RankingFeature(
+                name="retrieval_score",
+                value=candidate.retrieval_score,
+                provenance="UPSTREAM_RETRIEVAL",
+            ),
+            RankingFeature(
+                name="lexical_score",
+                value=candidate.lexical_score,
+                provenance="LEXICAL_RETRIEVAL",
+            ),
+            RankingFeature(
+                name="vector_score",
+                value=candidate.vector_score,
+                provenance="VECTOR_RETRIEVAL",
+            ),
+        )
+
+    def _score(
+        self,
+        candidate: RankingCandidate,
+    ) -> float:
+        return (
+            candidate.retrieval_score
+            * self.config.retrieval_weight
+            + candidate.lexical_score
+            * self.config.lexical_weight
+            + candidate.vector_score
+            * self.config.vector_weight
+        )
 
     def rank(
         self,
-        results: Iterable[HybridSearchResult],
-        *,
-        limit: int | None = None,
+        candidates: Iterable[RankingCandidate],
     ) -> tuple[RankedSearchResult, ...]:
-        materialized = tuple(results)
-
-        for result in materialized:
-            if not isinstance(
-                result,
-                HybridSearchResult,
-            ):
-                raise RankingResultError(
-                    "rank expects HybridSearchResult values."
-                )
-
-        if limit is not None:
-            limit = _require_limit(
-                limit,
-                field_name="limit",
+        if isinstance(
+            candidates,
+            (str, bytes),
+        ):
+            raise SearchRankingInputError(
+                "candidates must be iterable."
             )
 
-        if not materialized:
-            return ()
+        materialized = list(candidates)
 
-        maximum_rrf = max(
-            (
-                result.rrf_score
-                for result in materialized
-            ),
-            default=0.0,
-        )
-
-        primary_weight_total = (
-            self.config.hybrid_weight
-            + self.config.lexical_weight
-            + self.config.vector_weight
-        )
-
+        seen: set[str] = set()
         scored: list[
             tuple[
-                HybridSearchResult,
+                RankingCandidate,
                 float,
+                RankingExplanation,
             ]
         ] = []
 
-        for result in materialized:
-            hybrid_component = _normalize(
-                result.rrf_score,
-                maximum=maximum_rrf,
+        for candidate in materialized:
+            if not isinstance(
+                candidate,
+                RankingCandidate,
+            ):
+                raise SearchRankingInputError(
+                    "candidates must contain RankingCandidate."
+                )
+
+            key = candidate.document.index_key
+
+            if key in seen:
+                raise SearchRankingInputError(
+                    "Duplicate ranking candidate identity."
+                )
+
+            seen.add(key)
+
+            features = self._calculate_features(
+                candidate
             )
 
-            lexical_component = _rank_signal(
-                result.lexical_rank
+            score = self._score(
+                candidate
             )
 
-            vector_component = _rank_signal(
-                result.vector_rank
+            explanation = RankingExplanation(
+                features=features,
+                ranking_version=self.ranking_version,
             )
-
-            score = (
-                (
-                    self.config.hybrid_weight
-                    * hybrid_component
-                )
-                + (
-                    self.config.lexical_weight
-                    * lexical_component
-                )
-                + (
-                    self.config.vector_weight
-                    * vector_component
-                )
-            ) / primary_weight_total
 
             scored.append(
                 (
-                    result,
+                    candidate,
                     score,
+                    explanation,
                 )
             )
 
         scored.sort(
             key=lambda item: (
                 -item[1],
-                -item[0].rrf_score,
-                item[0].index_key.casefold(),
+                item[0].document.index_key.casefold(),
             )
         )
 
-        if limit is not None:
-            scored = scored[:limit]
-
         return tuple(
             RankedSearchResult(
-                retrieval=result,
-                ranking_score=score,
-                rank=position,
+                document=candidate.document,
+                score=score,
+                rank=index,
+                explanation=explanation,
             )
-            for position, (
-                result,
+            for index, (
+                candidate,
                 score,
+                explanation,
             ) in enumerate(
                 scored,
                 start=1,
             )
         )
 
-    def _rerank_signal(
-        self,
-        result: RankedSearchResult,
-        *,
-        query_text: str,
-    ) -> float:
-        document = result.document
-
-        query = query_text.casefold()
-
-        inventory_code = (
-            document.inventory_code
-            .casefold()
-        )
-
-        name = document.name.casefold()
-
-        complete_text = (
-            f"{name} "
-            f"{inventory_code} "
-            f"{document.inventory_type} "
-            f"{document.lifecycle} "
-            f"{document.availability}"
-        ).casefold()
-
-        query_tokens = set(
-            _tokens(query_text)
-        )
-
-        document_tokens = set(
-            _tokens(complete_text)
-        )
-
-        exact_code = (
-            1.0
-            if (
-                query == inventory_code
-                or inventory_code in query
-            )
-            else 0.0
-        )
-
-        exact_phrase = (
-            1.0
-            if query in complete_text
-            else 0.0
-        )
-
-        token_coverage = 0.0
-
-        if query_tokens:
-            token_coverage = (
-                len(
-                    query_tokens.intersection(
-                        document_tokens
-                    )
-                )
-                / len(query_tokens)
-            )
-
-        signal_weight_total = (
-            self.config.exact_code_boost
-            + self.config.exact_phrase_boost
-            + self.config.token_coverage_boost
-        )
-
-        return (
-            (
-                self.config.exact_code_boost
-                * exact_code
-            )
-            + (
-                self.config.exact_phrase_boost
-                * exact_phrase
-            )
-            + (
-                self.config.token_coverage_boost
-                * token_coverage
-            )
-        ) / signal_weight_total
-
     def rerank(
         self,
-        ranked_results: Iterable[
+        results: Iterable[
             RankedSearchResult
         ],
         *,
-        query_text: str,
-        window: int | None = None,
+        exact_inventory_codes: Iterable[str] = (),
+        exact_phrase: str | None = None,
     ) -> tuple[RankedSearchResult, ...]:
-        query_text = _require_query(
-            query_text
+        """
+        Deterministic second-stage reranking.
+
+        Still retrieval relevance only.
+        """
+        exact_codes = {
+            str(value).casefold()
+            for value in exact_inventory_codes
+        }
+
+        phrase = (
+            exact_phrase.casefold().strip()
+            if exact_phrase is not None
+            else ""
         )
 
-        materialized = tuple(
-            ranked_results
-        )
-
-        for result in materialized:
-            if not isinstance(
-                result,
-                RankedSearchResult,
-            ):
-                raise RankingResultError(
-                    "rerank expects RankedSearchResult values."
-                )
-
-        if not materialized:
-            return ()
-
-        if window is None:
-            window = (
-                self.config.default_rerank_window
-            )
-
-        window = _require_limit(
-            window,
-            field_name="window",
-        )
-
-        actual_window = min(
-            window,
-            len(materialized),
-        )
-
-        base_weight_total = (
-            self.config.rerank_base_weight
-            + self.config.rerank_signal_weight
-        )
-
-        reranked_head: list[
+        adjusted: list[
             tuple[
                 RankedSearchResult,
-                float,
                 float,
             ]
         ] = []
 
-        for result in materialized[
-            :actual_window
-        ]:
-            signal = self._rerank_signal(
+        for result in results:
+            if not isinstance(
                 result,
-                query_text=query_text,
-            )
-
-            final_score = (
-                (
-                    self.config.rerank_base_weight
-                    * result.ranking_score
+                RankedSearchResult,
+            ):
+                raise SearchRankingInputError(
+                    "results must contain RankedSearchResult."
                 )
-                + (
-                    self.config.rerank_signal_weight
-                    * signal
-                )
-            ) / base_weight_total
 
-            reranked_head.append(
+            score = result.score
+
+            if (
+                result.document.inventory_code.casefold()
+                in exact_codes
+            ):
+                score += 10.0
+
+            if phrase:
+                if (
+                    phrase
+                    in result.document.name.casefold()
+                ):
+                    score += 5.0
+
+            adjusted.append(
                 (
                     result,
-                    final_score,
-                    signal,
+                    score,
                 )
             )
 
-        reranked_head.sort(
+        adjusted.sort(
             key=lambda item: (
                 -item[1],
-                -item[0].ranking_score,
-                item[0].index_key.casefold(),
+                item[0].document.index_key.casefold(),
             )
         )
-
-        output: list[
-            RankedSearchResult
-        ] = []
-
-        for result, final_score, signal in (
-            reranked_head
-        ):
-            output.append(
-                RankedSearchResult(
-                    retrieval=result.retrieval,
-                    ranking_score=result.ranking_score,
-                    rank=0,
-                    rerank_score=final_score,
-                    rerank_rank=0,
-                )
-            )
-
-        # Tail is deliberately not re-scored.
-        output.extend(
-            materialized[actual_window:]
-        )
-
-        normalized_output: list[
-            RankedSearchResult
-        ] = []
-
-        for position, result in enumerate(
-            output,
-            start=1,
-        ):
-            rerank_rank = (
-                position
-                if position <= actual_window
-                else None
-            )
-
-            normalized_output.append(
-                RankedSearchResult(
-                    retrieval=result.retrieval,
-                    ranking_score=result.ranking_score,
-                    rank=position,
-                    rerank_score=(
-                        result.rerank_score
-                        if position
-                        <= actual_window
-                        else None
-                    ),
-                    rerank_rank=rerank_rank,
-                )
-            )
 
         return tuple(
-            normalized_output
+            RankedSearchResult(
+                document=result.document,
+                score=score,
+                rank=index,
+                explanation=result.explanation,
+            )
+            for index, (
+                result,
+                score,
+            ) in enumerate(
+                adjusted,
+                start=1,
+            )
         )
+
+    def reproducibility_fingerprint(
+        self,
+        results: Iterable[
+            RankedSearchResult
+        ],
+    ) -> str:
+        canonical = []
+
+        for result in results:
+            canonical.append(
+                {
+                    "index_key": result.document.index_key,
+                    "score": result.score,
+                    "rank": result.rank,
+                    "ranking_version": (
+                        result.explanation.ranking_version
+                    ),
+                }
+            )
+
+        payload = {
+            "ranking_version": self.ranking_version,
+            "results": canonical,
+        }
+
+        encoded = json.dumps(
+            payload,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+
+        return hashlib.sha256(
+            encoded.encode("utf-8")
+        ).hexdigest()
 
 
 __all__ = [
+    "RANKING_VERSION",
+    "SearchRankingError",
+    "SearchRankingInputError",
+    "SearchRankingVersionError",
+    "RankingFeature",
+    "RankingExplanation",
+    "RankingCandidate",
     "RankedSearchResult",
-    "RankingError",
-    "RankingLimitError",
-    "RankingQueryError",
-    "RankingResultError",
     "RankingConfig",
     "SearchRankingPipeline",
 ]
