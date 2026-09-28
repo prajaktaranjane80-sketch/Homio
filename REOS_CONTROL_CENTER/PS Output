@@ -1,140 +1,98 @@
-CORE-006 Deal & Transaction Core
-│
-├── 01 Deal Domain
-│   ├── Deal identity
-│   ├── Deal aggregate
-│   ├── deal parties
-│   ├── deal type
-│   ├── deal lifecycle
-│   ├── deal state
-│   ├── tenant identity
-│   └── immutable identity semantics
-│
-├── 02 Deal Contract & Schema
-│   ├── deal contract
-│   ├── party relationship contract
-│   ├── lifecycle contract
-│   ├── schema validation
-│   ├── schema versioning
-│   ├── serialization
-│   ├── contract fingerprint
-│   └── invalid-state handling
-│
-├── 03 Deal Party & Relationship Boundary
-│   ├── buyer
-│   ├── seller/builder
-│   ├── broker
-│   ├── representative
-│   ├── participant role
-│   ├── relationship validity
-│   ├── participant lifecycle
-│   └── tenant relationship boundary
-│
-├── 04 Offer & Negotiation
-│   ├── offer identity
-│   ├── offer lifecycle
-│   ├── offer terms
-│   ├── counter-offer
-│   ├── acceptance/rejection
-│   ├── negotiation state
-│   ├── negotiation history
-│   ├── stale-offer protection
-│   └── immutable historical offers
-│
-├── 05 Booking & Transaction Milestones
-│   ├── booking identity
-│   ├── milestone identity
-│   ├── milestone sequence
-│   ├── milestone state
-│   ├── transition rules
-│   ├── evidence requirement
-│   ├── completion semantics
-│   └── historical immutability
-│
-├── 06 Deal Ownership Integration
-│   ├── ownership reference
-│   ├── ownership authority reference
-│   ├── deal-owner binding
-│   ├── ownership history reference
-│   ├── ownership conflict handling
-│   ├── stale ownership protection
-│   └── no second ownership engine
-│
-├── 07 Evidence & Audit Integration
-│   ├── evidence reference
-│   ├── evidence identity
-│   ├── evidence type
-│   ├── evidence timestamp
-│   ├── actor identity
-│   ├── transaction transition evidence
-│   ├── audit reference
-│   ├── integrity metadata
-│   └── no second evidence/audit store
-│
-├── 08 Transaction Consistency & Concurrency
-│   ├── aggregate consistency
-│   ├── optimistic versioning
-│   ├── stale command rejection
-│   ├── concurrent offer protection
-│   ├── concurrent milestone protection
-│   ├── duplicate command handling
-│   ├── idempotency
-│   └── deterministic conflict behavior
-│
-├── 09 Security & Tenant Boundary
-│   ├── tenant isolation
-│   ├── party authorization
-│   ├── offer authorization
-│   ├── transaction authorization
-│   ├── evidence access boundary
-│   ├── cross-tenant rejection
-│   ├── IDOR protection
-│   └── sensitive transaction-data boundary
-│
-├── 10 REOS Integration Contract
-│   ├── Control Center authority boundary
-│   ├── canonical-state non-ownership
-│   ├── execution compatibility
-│   ├── gate/task discoverability
-│   ├── verification contract
-│   └── no autonomous project-state mutation
-│
-├── 11 ACRL Integration Contract
-│   ├── deal reconstruction
-│   ├── negotiation reconstruction
-│   ├── milestone reconstruction
-│   ├── ownership-reference reconstruction
-│   ├── evidence discoverability
-│   ├── dependency discoverability
-│   ├── checkpoint/recovery compatibility
-│   └── deterministic reconstruction
-│
-├── 12 Transaction Event Integration
-│   ├── deal-created
-│   ├── deal-state-changed
-│   ├── offer-created
-│   ├── offer-state-changed
-│   ├── booking-state-changed
-│   ├── milestone-completed
-│   ├── ownership-reference-changed
-│   ├── evidence-attached
-│   └── CORE-002 event contract
-│
-└── 13 Contract + Adversarial Regression
-    ├── lifecycle tests
-    ├── party tests
-    ├── offer tests
-    ├── negotiation tests
-    ├── booking tests
-    ├── milestone tests
-    ├── ownership integration tests
-    ├── evidence tests
-    ├── stale-version tests
-    ├── concurrency tests
-    ├── duplicate command tests
-    ├── tenant isolation tests
-    ├── authorization tests
-    ├── reconstruction tests
-    ├── REOS integration tests
-    ├── ACRL reconstruction tests
-    └── cross-core regression
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CORE-006 HISTORICAL SOURCE RECOVERY ===" -ForegroundColor Cyan
+=== CORE-006 HISTORICAL SOURCE RECOVERY ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Recovery = "AUTONOMY_ENGINE\core\CORE-006_RECOVERY"
+PS D:\HOMIO\REOS_CONTROL_CENTER> New-Item -ItemType Directory -Force -Path $Recovery | Out-Null
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Commits = git fsck --full --no-reflogs --unreachable 2>$null |
+>>     Select-String "unreachable commit ([0-9a-f]{40})" |
+>>     ForEach-Object { $_.Matches.Groups[1].Value }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Found = @()
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($Commit in $Commits) {
+>>     $Hits = git grep -n -E "class Deal\b|class DealStatus\b|DealOwnershipBinding|DealEvidence" $Commit -- "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core" 2>$null
+>>     if ($LASTEXITCODE -eq 0 -and $Hits) {
+>>         $Found += [pscustomobject]@{
+>>             Commit = $Commit
+>>             Hits   = ($Hits | Select-Object -First 3) -join " | "
+>>         }
+>>     }
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== DEAL SOURCE COMMITS FOUND ===" -ForegroundColor Green
+=== DEAL SOURCE COMMITS FOUND ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Found | Format-Table -AutoSize
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $Found) {
+>>     throw "No historical CORE-006 source commit found."
+>> }
+No historical CORE-006 source commit found.
+At line:2 char:5
++     throw "No historical CORE-006 source commit found."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (No historical C...e commit found.:String) [], RuntimeException
+    + FullyQualifiedErrorId : No historical CORE-006 source commit found.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Best = $Found[0].Commit
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== SELECTED COMMIT ===" -ForegroundColor Cyan
+=== SELECTED COMMIT ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git show --no-patch --format="COMMIT=%H`nDATE=%ci`nMESSAGE=%s" $Best
+COMMIT=588ca71550bb10dab6479e4519defb0e940db81f
+DATE=2026-09-28 18:09:39 +0530
+MESSAGE=Update PS Output
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Paths = git ls-tree -r --name-only $Best |
+>>     Where-Object {
+>>         $_ -match "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/.*deal.*\.py$"
+>>     }
+usage: git ls-tree [<options>] <tree-ish> [<path>...]
+
+    -d                    only show trees
+    -r                    recurse into subtrees
+    -t                    show trees when recursing
+    -z                    terminate entries with NUL byte
+    -l, --long            include object size
+    --name-only           list only filenames
+    --name-status         list only filenames
+    --object-only         list only objects
+    --[no-]full-name      use full path names
+    --[no-]full-tree      list entire tree; not just current directory (implies --full-name)
+    --format <format>     format to use for the output
+    --[no-]abbrev[=<n>]   use <n> digits to display object names
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== RECOVERING ===" -ForegroundColor Cyan
+=== RECOVERING ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Paths | ForEach-Object { Write-Host $_ }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($Path in $Paths) {
+>>     $Relative = $Path -replace "^REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/",""
+>>     $Dest = Join-Path $Recovery $Relative
+>>
+>>     New-Item -ItemType Directory -Force -Path (Split-Path $Dest) | Out-Null
+>>
+>>     $Content = git show "${Best}:$Path" 2>$null
+>>     if ($LASTEXITCODE -eq 0 -and $Content) {
+>>         [System.IO.File]::WriteAllText(
+>>             $Dest,
+>>             ($Content -join [Environment]::NewLine),
+>>             [System.Text.UTF8Encoding]::new($false)
+>>         )
+>>     }
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== RECOVERED CORE-006 SOURCE ===" -ForegroundColor Green
+=== RECOVERED CORE-006 SOURCE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem $Recovery -Recurse -File |
+>>     Select-Object FullName,Length |
+>>     Sort-Object Length -Descending
+
+FullName                                                                                           Length
+--------                                                                                           ------
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY\deal.pyc                        86230
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY\deal_ownership_integration.pyc  35978
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY\deal_evidence_audit.pyc         19274
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY\deal_audit.pyc                  11108
