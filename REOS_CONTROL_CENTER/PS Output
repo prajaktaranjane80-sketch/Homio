@@ -1,498 +1,55 @@
-PS D:\Homio\REOS_CONTROL_CENTER> $files = @{}
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 1) PROJECTION: slots=True requires declared storage fields
-PS D:\Homio\REOS_CONTROL_CENTER> $p = "AUTONOMY_ENGINE\core\search_matching\projection_sync.py"
-PS D:\Homio\REOS_CONTROL_CENTER> $s = Get-Content $p -Raw
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $s.Contains("from dataclasses import dataclass`r`n")) { throw "projection_sync.py import anchor not found" }
-PS D:\Homio\REOS_CONTROL_CENTER> $s = $s.Replace(
->>     "from dataclasses import dataclass",
->>     "from dataclasses import dataclass, field",
->>     1
->> )
-Cannot find an overload for "Replace" and the argument count: "3".
-At line:1 char:1
-+ $s = $s.Replace(
-+ ~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [], MethodException
-    + FullyQualifiedErrorId : MethodCountCouldNotFindBest
-
-PS D:\Homio\REOS_CONTROL_CENTER> $old = @"
->>     sink: SearchProjectionSink | None = None
->>
->>     def __post_init__(self) -> None:
->> "@
-PS D:\Homio\REOS_CONTROL_CENTER> $new = @"
->>     sink: SearchProjectionSink | None = None
->>     _versions: dict[
->>         tuple[str, str],
->>         ProjectionVersion,
->>     ] = field(
->>         init=False,
->>         repr=False,
->>         default_factory=dict,
->>     )
->>     _processed_events: set[str] = field(
->>         init=False,
->>         repr=False,
->>         default_factory=set,
->>     )
->>
->>     def __post_init__(self) -> None:
->> "@
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $s.Contains($old)) { throw "projection_sync.py class anchor not found" }
-projection_sync.py class anchor not found
-At line:1 char:31
-+ ... Contains($old)) { throw "projection_sync.py class anchor not found" }
-+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (projection_sync...nchor not found:String) [], RuntimeException
-    + FullyQualifiedErrorId : projection_sync.py class anchor not found
-
-PS D:\Homio\REOS_CONTROL_CENTER> $s = $s.Replace($old,$new,1)
-Cannot find an overload for "Replace" and the argument count: "3".
-At line:1 char:1
-+ $s = $s.Replace($old,$new,1)
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [], MethodException
-    + FullyQualifiedErrorId : MethodCountCouldNotFindBest
-
-PS D:\Homio\REOS_CONTROL_CENTER> Set-Content $p $s -Encoding UTF8
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 2) CONSISTENCY: state() must support the public positional query contract
-PS D:\Homio\REOS_CONTROL_CENTER> $p = "AUTONOMY_ENGINE\core\search_matching\search_consistency.py"
-PS D:\Homio\REOS_CONTROL_CENTER> $s = Get-Content $p -Raw
-PS D:\Homio\REOS_CONTROL_CENTER> $old = @"
->>     def state(
->>         self,
->>         *,
->>         tenant_id: str,
->>         index_key: str,
->>     ) -> ConsistencyVersionState | None:
->> "@
-PS D:\Homio\REOS_CONTROL_CENTER> $new = @"
->>     def state(
->>         self,
->>         tenant_id: str,
->>         index_key: str,
->>     ) -> ConsistencyVersionState | None:
->> "@
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $s.Contains($old)) { throw "search_consistency.py state() anchor not found" }
-search_consistency.py state() anchor not found
-At line:1 char:31
-+ ... ins($old)) { throw "search_consistency.py state() anchor not found" }
-+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (search_consiste...nchor not found:String) [], RuntimeException
-    + FullyQualifiedErrorId : search_consistency.py state() anchor not found
-
-PS D:\Homio\REOS_CONTROL_CENTER> $s = $s.Replace($old,$new,1)
-Cannot find an overload for "Replace" and the argument count: "3".
-At line:1 char:1
-+ $s = $s.Replace($old,$new,1)
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [], MethodException
-    + FullyQualifiedErrorId : MethodCountCouldNotFindBest
-
-PS D:\Homio\REOS_CONTROL_CENTER> Set-Content $p $s -Encoding UTF8
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 3) QDRANT: keep Qdrant-specific exception boundary
-PS D:\Homio\REOS_CONTROL_CENTER> $p = "AUTONOMY_ENGINE\core\search_matching\qdrant_indexing.py"
-PS D:\Homio\REOS_CONTROL_CENTER> $s = Get-Content $p -Raw
-PS D:\Homio\REOS_CONTROL_CENTER> $old = "        document.assert_version(expected_version)"
-PS D:\Homio\REOS_CONTROL_CENTER> $new = @"
->>         if document.inventory_version != expected_version:
->>             raise QdrantVersionViolation(
->>                 "Document inventory_version does not match "
->>                 "expected_version."
->>             )
->> "@
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $s.Contains($old)) { throw "qdrant_indexing.py version anchor not found" }
-PS D:\Homio\REOS_CONTROL_CENTER> $s = $s.Replace($old,$new,1)
-Cannot find an overload for "Replace" and the argument count: "3".
-At line:1 char:1
-+ $s = $s.Replace($old,$new,1)
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [], MethodException
-    + FullyQualifiedErrorId : MethodCountCouldNotFindBest
-
-PS D:\Homio\REOS_CONTROL_CENTER> Set-Content $p $s -Encoding UTF8
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 4) SEARCH DOMAIN: canonical case-aware deterministic ordering
-PS D:\Homio\REOS_CONTROL_CENTER> $p = "AUTONOMY_ENGINE\core\search_matching\search_domain.py"
-PS D:\Homio\REOS_CONTROL_CENTER> $s = Get-Content $p -Raw
-PS D:\Homio\REOS_CONTROL_CENTER> $old = "            key=str.casefold,"
-PS D:\Homio\REOS_CONTROL_CENTER> $new = "            key=lambda value: (value.casefold(), value),"
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $s.Contains($old)) { throw "search_domain.py role sort anchor not found" }
-PS D:\Homio\REOS_CONTROL_CENTER> $s = $s.Replace($old,$new,1)
-Cannot find an overload for "Replace" and the argument count: "3".
-At line:1 char:1
-+ $s = $s.Replace($old,$new,1)
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [], MethodException
-    + FullyQualifiedErrorId : MethodCountCouldNotFindBest
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Tenant-specific error must remain specific at the domain boundary
-PS D:\Homio\REOS_CONTROL_CENTER> $old = @"
->>         object.__setattr__(
->>             self,
->>             "tenant_id",
->>             _required_text(
->>                 self.tenant_id,
->>                 "tenant_id",
->>             ),
->>         )
->> "@
-PS D:\Homio\REOS_CONTROL_CENTER> $new = @"
->>         if (
->>             not isinstance(self.tenant_id, str)
->>             or not self.tenant_id.strip()
->>         ):
->>             raise SearchTenantContextError(
->>                 "tenant_id cannot be empty."
->>             )
->>
->>         object.__setattr__(
->>             self,
->>             "tenant_id",
->>             self.tenant_id.strip(),
->>         )
->> "@
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $s.Contains($old)) { throw "search_domain.py tenant anchor not found" }
-search_domain.py tenant anchor not found
-At line:1 char:31
-+ ... .Contains($old)) { throw "search_domain.py tenant anchor not found" }
-+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (search_domain.py tenant anchor not found:String) [], RuntimeException
-    + FullyQualifiedErrorId : search_domain.py tenant anchor not found
-
-PS D:\Homio\REOS_CONTROL_CENTER> $s = $s.Replace($old,$new,1)
-Cannot find an overload for "Replace" and the argument count: "3".
-At line:1 char:1
-+ $s = $s.Replace($old,$new,1)
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [], MethodException
-    + FullyQualifiedErrorId : MethodCountCouldNotFindBest
-
-PS D:\Homio\REOS_CONTROL_CENTER> Set-Content $p $s -Encoding UTF8
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CORE-005 production contract fixes applied"
-CORE-005 production contract fixes applied
-PS D:\Homio\REOS_CONTROL_CENTER> Get-ChildItem AUTONOMY_ENGINE\core\search_matching -Recurse -Directory -Filter __pycache__ | Remove-Item -Recurse -Force
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\search_matching -q
-............F................F..FF...................................................F.F...............FF........................................... [ 92%]
-............                                                                                                                                         [100%]
-======================================================================== FAILURES =========================================================================
-________________________________________ test_consistency_detects_future_then_stale_event_without_reordering_state ________________________________________
-
-    def test_consistency_detects_future_then_stale_event_without_reordering_state() -> None:
-        tracker = SearchConsistencyTracker()
-
-        first = ConsistencyEvent(
-            event_id="event-001",
-            tenant_id="tenant-a",
-            index_key="inv-001",
-            source_version=3,
-        )
-
-        older = ConsistencyEvent(
-            event_id="event-000",
-            tenant_id="tenant-a",
-            index_key="inv-001",
-            source_version=2,
-        )
-
-        assert (
-            tracker.observe_event(first)
-            is ConsistencyStatus.CURRENT
-        )
-
-        assert (
-            tracker.observe_event(older)
-            is ConsistencyStatus.OUT_OF_ORDER
-        )
-
->       state = tracker.state(
-            "tenant-a",
-            "inv-001",
-        )
-E       TypeError: SearchConsistencyTracker.state() takes 1 positional argument but 3 were given
-
-AUTONOMY_ENGINE\core\search_matching\test_core005_deep_adversarial.py:226: TypeError
-______________________________________________________ test_projection_sync_rebuild_is_derived_only _______________________________________________________
-
-    def test_projection_sync_rebuild_is_derived_only():
->       synchronizer = SearchProjectionSynchronizer()
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-AUTONOMY_ENGINE\core\search_matching\test_core005_regression.py:457:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-<string>:4: in __init__
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = SearchProjectionSynchronizer(sink=None)
-
-    def __post_init__(self) -> None:
->       self._versions: dict[
-        ^^^^^^^^^^^^^^
-            tuple[str, str],
-            ProjectionVersion,
-        ] = {}
-E       AttributeError: 'SearchProjectionSynchronizer' object has no attribute '_versions'
-
-AUTONOMY_ENGINE\core\search_matching\projection_sync.py:268: AttributeError
 ________________________________________________ test_projection_modules_do_not_write_control_center_state ________________________________________________
-
-    def test_projection_modules_do_not_write_control_center_state():
-        from pathlib import Path
-
-        root = Path(__file__).resolve().parent
-
-        protected_markers = (
-            "state.json",
-            "save_state(",
-            "materialize_current_gate(",
-        )
-
-        inspected = (
-            "projection_sync.py",
-            "search_observability.py",
-            "reos_integration.py",
-            "acrl_integration.py",
-            "runtime_adapter.py",
-        )
-
-        for name in inspected:
-            source = (
-                root / name
-            ).read_text(
-                encoding="utf-8-sig"
-            )
-
-            for marker in protected_markers:
->               assert marker not in source
-E               assert 'state.json' not in '"""\nCORE-0...tract",\n]\n'
+AUTONOMY_ENGINE\core\search_matching\test_core005_regression.py:569: in test_projection_modules_do_not_write_control_center_state
+    assert marker not in source
+E   assert 'state.json' not in '"""\nCORE-0...tract",\n]\n'
 E
-E                 'state.json' is contained here:
+E     'state.json' is contained here:
+E       f writing state.json.
+E           """
 E
-E                   - mutate state.json
-E                   - choose the next Control Center task
-E                   - approve/freeze itself
-E                   - alter Control Center gates...
+E           profile: REOSCompatibilityProfile = (
+E               REOSCompatibilityProfile()...
 E
-E                 ...Full output truncated (464 lines hidden), use '-vv' to show
-
-AUTONOMY_ENGINE\core\search_matching\test_core005_regression.py:569: AssertionError
+E     ...Full output truncated (194 lines hidden), use '-vv' to show
 _________________________________________________________ test_core005_public_surface_is_modular __________________________________________________________
-
-    def test_core005_public_surface_is_modular():
-        from pathlib import Path
-
-        root = Path(__file__).resolve().parent
-
-        expected = {
-            "search_domain.py",
-            "search_index_contract.py",
-            "search_filters.py",
-            "qdrant_indexing.py",
-            "hybrid_retrieval.py",
-            "search_execution.py",
-            "projection_sync.py",
-            "search_ranking.py",
-            "search_visibility.py",
-            "search_security.py",
-            "matching.py",
-            "search_consistency.py",
-            "search_observability.py",
-            "reos_integration.py",
-            "acrl_integration.py",
-            "runtime_adapter.py",
-        }
-
-        actual = {
-            path.name
-            for path in root.glob("*.py")
-            if not path.name.startswith("test_")
-        }
-
->       assert actual == expected
-E       AssertionError: assert {'__init__.py...xing.py', ...} == {'acrl_integr...tion.py', ...}
+AUTONOMY_ENGINE\core\search_matching\test_core005_regression.py:602: in test_core005_public_surface_is_modular
+    assert actual == expected
+E   AssertionError: assert {'__init__.py...xing.py', ...} == {'acrl_integr...tion.py', ...}
 E
-E         Extra items in the left set:
-E         '__init__.py'
-E         Use -v to get more diff
-
-AUTONOMY_ENGINE\core\search_matching\test_core005_regression.py:602: AssertionError
-________________________________________________________ test_expected_version_mismatch_is_blocked ________________________________________________________
-
-pipeline = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000001BA5C48BB60>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
-
-    def test_expected_version_mismatch_is_blocked(
-        pipeline: QdrantIndexingPipeline,
-    ) -> None:
-        with pytest.raises(QdrantVersionViolation):
->           pipeline.build_point(
-                make_document(version=1),
-                [0.1, 0.2, 0.3, 0.4],
-                tenant_id="tenant-a",
-                expected_version=2,
-            )
-
-AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:279:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\search_matching\qdrant_indexing.py:300: in build_point
-    self._assert_expected_version(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000001BA5C48BB60>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
-document = InventoryIndexDocument(tenant_id='tenant-a', project_id='project-a', inventory_id='inventory-a', inventory_code='UNIT-...bb84718968b0b09cddcf79c4e834aa5000873621', operation=<SearchIndexOperation.UPSERT: 'UPSERT'>, payload=mappingproxy({}))
-expected_version = 2
-
-    def _assert_expected_version(
-        self,
-        document: InventoryIndexDocument,
-        expected_version: int | None,
-    ) -> None:
-        if expected_version is None:
-            return
-
-        if (
-            isinstance(expected_version, bool)
-            or not isinstance(expected_version, int)
-            or expected_version < 1
-        ):
-            raise QdrantVersionViolation(
-                "expected_version must be a positive integer."
-            )
-
->       document.assert_version(expected_version)
-        ^^^^^^^^^^^^^^^^^^^^^^^
-E       AttributeError: 'InventoryIndexDocument' object has no attribute 'assert_version'. Did you mean: 'index_version'?
-
-AUTONOMY_ENGINE\core\search_matching\qdrant_indexing.py:250: AttributeError
-___________________________________________________________ test_delete_removes_existing_point ____________________________________________________________
-
-pipeline = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000001BA74DE0560>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
-
-    def test_delete_removes_existing_point(
-        pipeline: QdrantIndexingPipeline,
-    ) -> None:
-        upsert_document = make_document(
-            version=1
-        )
-
-        point_id = pipeline.upsert(
-            upsert_document,
-            [0.1, 0.2, 0.3, 0.4],
-            tenant_id="tenant-a",
-        )
-
-        delete_document = make_document(
-            version=1,
-            operation=SearchIndexOperation.DELETE,
-        )
-
->       deleted = pipeline.delete(
-            delete_document,
-            tenant_id="tenant-a",
-            expected_version=1,
-        )
-
-AUTONOMY_ENGINE\core\search_matching\test_qdrant_indexing.py:317:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\search_matching\qdrant_indexing.py:452: in delete
-    self._assert_expected_version(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000001BA74DE0560>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
-document = InventoryIndexDocument(tenant_id='tenant-a', project_id='project-a', inventory_id='inventory-a', inventory_code='UNIT-...bb84718968b0b09cddcf79c4e834aa5000873621', operation=<SearchIndexOperation.DELETE: 'DELETE'>, payload=mappingproxy({}))
-expected_version = 1
-
-    def _assert_expected_version(
-        self,
-        document: InventoryIndexDocument,
-        expected_version: int | None,
-    ) -> None:
-        if expected_version is None:
-            return
-
-        if (
-            isinstance(expected_version, bool)
-            or not isinstance(expected_version, int)
-            or expected_version < 1
-        ):
-            raise QdrantVersionViolation(
-                "expected_version must be a positive integer."
-            )
-
->       document.assert_version(expected_version)
-        ^^^^^^^^^^^^^^^^^^^^^^^
-E       AttributeError: 'InventoryIndexDocument' object has no attribute 'assert_version'. Did you mean: 'index_version'?
-
-AUTONOMY_ENGINE\core\search_matching\qdrant_indexing.py:250: AttributeError
-___________________________________________________________ test_tenant_context_requires_tenant ___________________________________________________________
-
-    def test_tenant_context_requires_tenant() -> None:
-        with pytest.raises(SearchTenantContextError):
->           SearchTenantContext(tenant_id="   ")
-
-AUTONOMY_ENGINE\core\search_matching\test_search_domain.py:73:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-<string>:7: in __init__
-    ???
-AUTONOMY_ENGINE\core\search_matching\search_domain.py:210: in __post_init__
-    _required_text(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-value = '', field_name = 'tenant_id'
-
-    def _required_text(value: str, field_name: str) -> str:
-        if not isinstance(value, str):
-            raise SearchDomainError(
-                f"{field_name} must be a string."
-            )
-
-        value = value.strip()
-
-        if not value:
->           raise SearchDomainError(
-                f"{field_name} cannot be empty."
-            )
-E           AUTONOMY_ENGINE.core.search_matching.search_domain.SearchDomainError: tenant_id cannot be empty.
-
-AUTONOMY_ENGINE\core\search_matching\search_domain.py:101: SearchDomainError
-__________________________________________________ test_tenant_context_normalizes_roles_and_capabilities __________________________________________________
-
-    def test_tenant_context_normalizes_roles_and_capabilities() -> None:
-        context = SearchTenantContext(
-            tenant_id="tenant-a",
-            actor_id="agent-001",
-            roles=("Broker", "broker", "Admin"),
-            capabilities=(
-                "search:read",
-                "search:read",
-            ),
-        )
-
->       assert context.roles == ("Admin", "Broker", "broker")
-E       AssertionError: assert ('Admin', 'broker', 'Broker') == ('Admin', 'Broker', 'broker')
-E
-E         At index 1 diff: 'broker' != 'Broker'
-E         Use -v to get more diff
-
-AUTONOMY_ENGINE\core\search_matching\test_search_domain.py:87: AssertionError
+E     Extra items in the left set:
+E     '__init__.py'
+E     Use -v to get more diff
 ================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/search_matching/test_core005_deep_adversarial.py::test_consistency_detects_future_then_stale_event_without_reordering_state - TypeError: SearchConsistencyTracker.state() takes 1 positional argument but 3 were given
-FAILED AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py::test_projection_sync_rebuild_is_derived_only - AttributeError: 'SearchProjectionSynchronizer' object has no attribute '_versions'
 FAILED AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py::test_projection_modules_do_not_write_control_center_state - assert 'state.json' not in '"""\nCORE-0...tract",\n]\n'
 FAILED AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py::test_core005_public_surface_is_modular - AssertionError: assert {'__init__.py...xing.py', ...} == {'acrl_integr...tion.py', ...}
-FAILED AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_expected_version_mismatch_is_blocked - AttributeError: 'InventoryIndexDocument' object has no attribute 'assert_version'. Did you mean: 'index_version'?
-FAILED AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_delete_removes_existing_point - AttributeError: 'InventoryIndexDocument' object has no attribute 'assert_version'. Did you mean: 'index_version'?
-FAILED AUTONOMY_ENGINE/core/search_matching/test_search_domain.py::test_tenant_context_requires_tenant - AUTONOMY_ENGINE.core.search_matching.search_domain.SearchDomainError: tenant_id cannot be empty.
-FAILED AUTONOMY_ENGINE/core/search_matching/test_search_domain.py::test_tenant_context_normalizes_roles_and_capabilities - AssertionError: assert ('Admin', 'broker', 'Broker') == ('Admin', 'Broker', 'broker')
-8 failed, 152 passed in 2.85s
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> python -m compileall -q AUTONOMY_ENGINE\core\search_matching
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> python -c "import AUTONOMY_ENGINE.core.search_matching as m; print('CORE-005 IMPORT PASS')"
-CORE-005 IMPORT PASS
+2 failed, 158 passed in 1.91s
+PS D:\Homio\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\search_matching -q --tb=short 2>&1 | Select-Object -Last 40
+................................FF...................................... [ 45%]
+........................................................................ [ 90%]
+................                                                         [100%]
+================================== FAILURES ===================================
+__________ test_projection_modules_do_not_write_control_center_state __________
+AUTONOMY_ENGINE\core\search_matching\test_core005_regression.py:569: in test_projection_modules_do_not_write_control_center_state
+    assert marker not in source
+E   assert 'state.json' not in '"""\nCORE-0...tract",\n]\n'
+E
+E     'state.json' is contained here:
+E       f writing state.json.
+E           """
+E
+E           profile: REOSCompatibilityProfile = (
+E               REOSCompatibilityProfile()...
+E
+E     ...Full output truncated (194 lines hidden), use '-vv' to show
+___________________ test_core005_public_surface_is_modular ____________________
+AUTONOMY_ENGINE\core\search_matching\test_core005_regression.py:602: in test_core005_public_surface_is_modular
+    assert actual == expected
+E   AssertionError: assert {'__init__.py...xing.py', ...} == {'acrl_integr...tion.py', ...}
+E
+E     Extra items in the left set:
+E     '__init__.py'
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py::test_projection_modules_do_not_write_control_center_state
+FAILED AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py::test_core005_public_surface_is_modular
+2 failed, 158 passed in 1.56s
