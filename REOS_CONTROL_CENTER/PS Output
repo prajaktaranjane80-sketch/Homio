@@ -1,608 +1,91 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CORE-005 CLEAN FOUNDATION PUSH COMPLETE ===" -ForegroundColor Green
-=== CORE-005 CLEAN FOUNDATION PUSH COMPLETE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git log -1 --oneline
-b5a58b6 (HEAD -> reos-development, origin/reos-development) refactor(core-005): clean rebuild search matching foundation
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-StrictMode -Version Latest
-PS D:\HOMIO\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location "D:\HOMIO\REOS_CONTROL_CENTER"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $root = "AUTONOMY_ENGINE\core\search_matching"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # CORE-005 T01 — STRUCTURED SEARCH FILTERS
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> @'
->> """
->> CORE-005 T01 — Structured Search Filters.
->>
->> Filters only the derived CORE-005 InventoryIndexDocument projection.
->> Never mutates canonical CORE-004 Inventory.
->> """
->>
->> from __future__ import annotations
->>
->> from dataclasses import dataclass
->> from typing import Iterable
->>
->> from ..inventory.inventory import (
->>     AvailabilityState,
->>     InventoryType,
->>     LifecycleState,
->> )
->> from .search_index_contract import InventoryIndexDocument
->>
->>
->> class StructuredSearchFilterError(ValueError):
->>     """Base error for invalid structured search filters."""
->>
->>
->> class StructuredSearchTenantError(StructuredSearchFilterError):
->>     """Raised when tenant scope is missing or invalid."""
->>
->>
->> def _normalize_required(value: str, field_name: str) -> str:
->>     if not isinstance(value, str) or not value.strip():
->>         error = (
->>             StructuredSearchTenantError
->>             if field_name == "tenant_id"
->>             else StructuredSearchFilterError
->>         )
->>         raise error(
->>             f"{field_name} must be a non-empty string."
->>         )
->>
->>     return value.strip()
->>
->>
->> def _normalize_strings(
->>     values: Iterable[str],
->>     field_name: str,
->> ) -> tuple[str, ...]:
->>     if isinstance(values, (str, bytes)):
->>         raise StructuredSearchFilterError(
->>             f"{field_name} must be an iterable of strings."
->>         )
->>
->>     try:
->>         iterator = iter(values)
->>     except TypeError as exc:
->>         raise StructuredSearchFilterError(
->>             f"{field_name} must be iterable."
->>         ) from exc
->>
->>     normalized: list[str] = []
->>
->>     for value in iterator:
->>         normalized.append(
->>             _normalize_required(
->>                 value,
->>                 field_name,
->>             )
->>         )
->>
->>     return tuple(
->>         sorted(
->>             set(normalized),
->>             key=str.casefold,
->>         )
->>     )
->>
->>
->> def _normalize_enum_values(
->>     values,
->>     enum_type,
->>     field_name: str,
->> ):
->>     if isinstance(values, (str, bytes)):
->>         raise StructuredSearchFilterError(
->>             f"{field_name} must be an iterable of enum values."
->>         )
->>
->>     try:
->>         iterator = iter(values)
->>     except TypeError as exc:
->>         raise StructuredSearchFilterError(
->>             f"{field_name} must be iterable."
->>         ) from exc
->>
->>     normalized = []
->>
->>     for value in iterator:
->>         try:
->>             normalized.append(enum_type(value))
->>         except (TypeError, ValueError) as exc:
->>             raise StructuredSearchFilterError(
->>                 f"{field_name} contains invalid value: {value!r}."
->>             ) from exc
->>
->>     return tuple(
->>         sorted(
->>             set(normalized),
->>             key=lambda item: item.value,
->>         )
->>     )
->>
->>
->> @dataclass(frozen=True, slots=True)
->> class StructuredSearchFilter:
->>     """
->>     Immutable deterministic structured-search contract.
->>
->>     Mandatory boundary:
->>         tenant_id
->>
->>     Supported predicates:
->>         project
->>         inventory code
->>         inventory type
->>         lifecycle
->>         availability
->>         name substring
->>
->>     Does NOT own:
->>         location search
->>         vector retrieval
->>         ranking
->>         matching
->>         visibility policy ownership
->>         canonical inventory mutation
->>     """
->>
->>     tenant_id: str
->>     project_ids: tuple[str, ...] = ()
->>     inventory_codes: tuple[str, ...] = ()
->>     inventory_types: tuple[InventoryType, ...] = ()
->>     lifecycle_states: tuple[LifecycleState, ...] = ()
->>     availability_states: tuple[AvailabilityState, ...] = ()
->>     name_contains: str | None = None
->>
->>     def __post_init__(self) -> None:
->>         object.__setattr__(
->>             self,
->>             "tenant_id",
->>             _normalize_required(
->>                 self.tenant_id,
->>                 "tenant_id",
->>             ),
->>         )
->>
->>         object.__setattr__(
->>             self,
->>             "project_ids",
->>             _normalize_strings(
->>                 self.project_ids,
->>                 "project_ids",
->>             ),
->>         )
->>
->>         object.__setattr__(
->>             self,
->>             "inventory_codes",
->>             _normalize_strings(
->>                 self.inventory_codes,
->>                 "inventory_codes",
->>             ),
->>         )
->>
->>         object.__setattr__(
->>             self,
->>             "inventory_types",
->>             _normalize_enum_values(
->>                 self.inventory_types,
->>                 InventoryType,
->>                 "inventory_types",
->>             ),
->>         )
->>
->>         object.__setattr__(
->>             self,
->>             "lifecycle_states",
->>             _normalize_enum_values(
->>                 self.lifecycle_states,
->>                 LifecycleState,
->>                 "lifecycle_states",
->>             ),
->>         )
->>
->>         object.__setattr__(
->>             self,
->>             "availability_states",
->>             _normalize_enum_values(
->>                 self.availability_states,
->>                 AvailabilityState,
->>                 "availability_states",
->>             ),
->>         )
->>
->>         if self.name_contains is not None:
->>             object.__setattr__(
->>                 self,
->>                 "name_contains",
->>                 _normalize_required(
->>                     self.name_contains,
->>                     "name_contains",
->>                 ).casefold(),
->>             )
->>
->>     def matches(
->>         self,
->>         document: InventoryIndexDocument,
->>     ) -> bool:
->>         if not isinstance(
->>             document,
->>             InventoryIndexDocument,
->>         ):
->>             raise StructuredSearchFilterError(
->>                 "document must be InventoryIndexDocument."
->>             )
->>
->>         # Tenant boundary is always evaluated first.
->>         if document.tenant_id != self.tenant_id:
->>             return False
->>
->>         if (
->>             self.project_ids
->>             and document.project_id not in self.project_ids
->>         ):
->>             return False
->>
->>         if (
->>             self.inventory_codes
->>             and document.inventory_code
->>             not in self.inventory_codes
->>         ):
->>             return False
->>
->>         if self.inventory_types:
->>             allowed = {
->>                 item.value
->>                 for item in self.inventory_types
->>             }
->>
->>             if document.inventory_type not in allowed:
->>                 return False
->>
->>         if self.lifecycle_states:
->>             allowed = {
->>                 item.value
->>                 for item in self.lifecycle_states
->>             }
->>
->>             if document.lifecycle not in allowed:
->>                 return False
->>
->>         if self.availability_states:
->>             allowed = {
->>                 item.value
->>                 for item in self.availability_states
->>             }
->>
->>             if document.availability not in allowed:
->>                 return False
->>
->>         if (
->>             self.name_contains is not None
->>             and self.name_contains
->>             not in document.name.casefold()
->>         ):
->>             return False
->>
->>         return True
->>
->>     def apply(
->>         self,
->>         documents: Iterable[InventoryIndexDocument],
->>     ) -> tuple[InventoryIndexDocument, ...]:
->>         try:
->>             iterator = iter(documents)
->>         except TypeError as exc:
->>             raise StructuredSearchFilterError(
->>                 "documents must be iterable."
->>             ) from exc
->>
->>         matched = [
->>             document
->>             for document in iterator
->>             if self.matches(document)
->>         ]
->>
->>         # Search filtering must never become business ranking.
->>         matched.sort(
->>             key=lambda document:
->>                 document.index_key.casefold()
->>         )
->>
->>         return tuple(matched)
->>
->>
->> __all__ = [
->>     "StructuredSearchFilter",
->>     "StructuredSearchFilterError",
->>     "StructuredSearchTenantError",
->> ]
->> '@ | Set-Content "$root\search_filters.py" -Encoding UTF8
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # CORE-005 T01 — TESTS
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> @'
->> from __future__ import annotations
->>
->> import pytest
->>
->> from AUTONOMY_ENGINE.core.inventory.inventory import (
->>     AvailabilityState,
->>     InventoryType,
->>     LifecycleState,
->> )
->> from AUTONOMY_ENGINE.core.search_matching.search_filters import (
->>     StructuredSearchFilter,
->>     StructuredSearchFilterError,
->>     StructuredSearchTenantError,
->> )
->> from AUTONOMY_ENGINE.core.search_matching.search_index_contract import (
->>     InventoryIndexDocument,
->>     SearchIndexOperation,
->> )
->>
->>
->> def make_document(
->>     *,
->>     tenant_id: str = "tenant-a",
->>     project_id: str = "project-a",
->>     inventory_id: str = "inventory-a",
->>     inventory_code: str = "UNIT-101",
->>     inventory_type: str = "UNIT",
->>     lifecycle: str = "ACTIVE",
->>     availability: str = "AVAILABLE",
->>     name: str = "Skyline Residency",
->>     index_key: str | None = None,
->> ) -> InventoryIndexDocument:
->>     return InventoryIndexDocument(
->>         tenant_id=tenant_id,
->>         project_id=project_id,
->>         inventory_id=inventory_id,
->>         inventory_code=inventory_code,
->>         inventory_type=inventory_type,
->>         lifecycle=lifecycle,
->>         availability=availability,
->>         name=name,
->>         inventory_version=1,
->>         index_key=index_key or f"{tenant_id}:{inventory_id}",
->>         operation=SearchIndexOperation.UPSERT,
->>     )
->>
->>
->> def test_tenant_is_mandatory() -> None:
->>     with pytest.raises(StructuredSearchTenantError):
->>         StructuredSearchFilter(tenant_id="")
->>
->>
->> def test_invalid_enum_value_is_rejected() -> None:
->>     with pytest.raises(StructuredSearchFilterError):
->>         StructuredSearchFilter(
->>             tenant_id="tenant-a",
->>             inventory_types=("NOT_A_TYPE",),
->>         )
->>
->>
->> def test_single_string_collection_is_rejected() -> None:
->>     with pytest.raises(StructuredSearchFilterError):
->>         StructuredSearchFilter(
->>             tenant_id="tenant-a",
->>             project_ids="project-a",
->>         )
->>
->>
->> def test_tenant_boundary_is_enforced_first() -> None:
->>     document = make_document(
->>         tenant_id="tenant-b",
->>         project_id="project-a",
->>     )
->>
->>     search_filter = StructuredSearchFilter(
->>         tenant_id="tenant-a",
->>         project_ids=("project-a",),
->>     )
->>
->>     assert search_filter.matches(document) is False
->>
->>
->> def test_all_structured_predicates_can_match() -> None:
->>     document = make_document(
->>         tenant_id="tenant-a",
->>         project_id="project-a",
->>         inventory_code="UNIT-101",
->>         inventory_type=InventoryType.UNIT.value,
->>         lifecycle=LifecycleState.ACTIVE.value,
->>         availability=AvailabilityState.AVAILABLE.value,
->>         name="Skyline Luxury Residency",
->>     )
->>
->>     search_filter = StructuredSearchFilter(
->>         tenant_id="tenant-a",
->>         project_ids=("project-a",),
->>         inventory_codes=("UNIT-101",),
->>         inventory_types=(InventoryType.UNIT,),
->>         lifecycle_states=(LifecycleState.ACTIVE,),
->>         availability_states=(AvailabilityState.AVAILABLE,),
->>         name_contains="luxury",
->>     )
->>
->>     assert search_filter.matches(document) is True
->>
->>
->> def test_non_matching_project_is_rejected() -> None:
->>     document = make_document(
->>         project_id="project-b",
->>     )
->>
->>     search_filter = StructuredSearchFilter(
->>         tenant_id="tenant-a",
->>         project_ids=("project-a",),
->>     )
->>
->>     assert search_filter.matches(document) is False
->>
->>
->> def test_apply_is_deterministic() -> None:
->>     first = make_document(
->>         inventory_id="b",
->>         index_key="tenant-a:b",
->>     )
->>     second = make_document(
->>         inventory_id="a",
->>         index_key="tenant-a:a",
->>     )
->>
->>     search_filter = StructuredSearchFilter(
->>         tenant_id="tenant-a",
->>     )
->>
->>     result = search_filter.apply(
->>         [first, second]
->>     )
->>
->>     assert tuple(
->>         item.inventory_id
->>         for item in result
->>     ) == ("a", "b")
->>
->>
->> def test_apply_never_mutates_source_sequence() -> None:
->>     first = make_document(
->>         inventory_id="b",
->>         index_key="tenant-a:b",
->>     )
->>     second = make_document(
->>         inventory_id="a",
->>         index_key="tenant-a:a",
->>     )
->>
->>     source = [first, second]
->>
->>     search_filter = StructuredSearchFilter(
->>         tenant_id="tenant-a",
->>     )
->>
->>     result = search_filter.apply(source)
->>
->>     assert source == [first, second]
->>     assert result == (second, first)
->>
->>
->> def test_invalid_document_type_is_rejected() -> None:
->>     search_filter = StructuredSearchFilter(
->>         tenant_id="tenant-a",
->>     )
->>
->>     with pytest.raises(StructuredSearchFilterError):
->>         search_filter.matches(
->>             object()  # type: ignore[arg-type]
->>         )
->>
->>
->> def test_filter_is_immutable() -> None:
->>     search_filter = StructuredSearchFilter(
->>         tenant_id="tenant-a",
->>         project_ids=("project-a",),
->>     )
->>
->>     with pytest.raises(AttributeError):
->>         search_filter.tenant_id = "tenant-b"  # type: ignore[misc]
->>
->>
->> def test_empty_result_is_stable() -> None:
->>     search_filter = StructuredSearchFilter(
->>         tenant_id="tenant-a",
->>     )
->>
->>     assert search_filter.apply([]) == ()
->> '@ | Set-Content "$root\test_search_filters.py" -Encoding UTF8
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # VERIFY
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m compileall -q $root
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest "$root\test_search_filters.py" -q
-...........                                                                                                                                          [100%]
-11 passed in 0.08s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # STAGE ONLY THESE 2 FILES
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git add "$root\search_filters.py"
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py', LF will be replaced by CRLF the next time Git touches it
-PS D:\HOMIO\REOS_CONTROL_CENTER> git add "$root\test_search_filters.py"
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py', LF will be replaced by CRLF the next time Git touches it
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CORE-005 T01 STAGED FILES ===" -ForegroundColor Cyan
-=== CORE-005 T01 STAGED FILES ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --cached --name-only
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $expected = @(
->>     "AUTONOMY_ENGINE/core/search_matching/search_filters.py",
->>     "AUTONOMY_ENGINE/core/search_matching/test_search_filters.py"
->> )
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $actual = @(git diff --cached --name-only)
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (
->>     $actual.Count -ne 2 -or
->>     ($actual | Where-Object { $_ -notin $expected }).Count -ne 0
->> ) {
->>     throw "STOP: Unexpected staged paths detected."
->> }
-STOP: Unexpected staged paths detected.
-At line:5 char:5
-+     throw "STOP: Unexpected staged paths detected."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STOP: Unexpected staged paths detected.:String) [], RuntimeException
-    + FullyQualifiedErrorId : STOP: Unexpected staged paths detected.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # COMMIT + PUSH
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git commit -m "feat(core-005): implement structured search filters"
-[reos-development e31ebf2] feat(core-005): implement structured search filters
- 2 files changed, 500 insertions(+)
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git push origin reos-development
-To https://github.com/prajaktaranjane80-sketch/Homio.git
- ! [rejected]        reos-development -> reos-development (fetch first)
-error: failed to push some refs to 'https://github.com/prajaktaranjane80-sketch/Homio.git'
-hint: Updates were rejected because the remote contains work that you do not
-hint: have locally. This is usually caused by another repository pushing to
-hint: the same ref. If you want to integrate the remote changes, use
-hint: 'git pull' before pushing again.
-hint: See the 'Note about fast-forwards' in 'git push --help' for details.
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CORE-005 T01 PUSH COMPLETE ===" -ForegroundColor Green
-=== CORE-005 T01 PUSH COMPLETE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git log -1 --oneline
-e31ebf2 (HEAD -> reos-development) feat(core-005): implement structured search filters
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
+___________________________________________ ERROR collecting AUTONOMY_ENGINE/core/deal_transaction/test_deal.py ___________________________________________
+ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\core\deal_transaction\test_deal.py:1: in <module>
+    from .deal_transaction.test_deal import *
+E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE.core.deal_transaction.deal_transaction'
+___________________________________ ERROR collecting AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py ____________________________________
+ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_evidence_audit.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\core\deal_transaction\test_deal_evidence_audit.py:1: in <module>
+    from .deal_transaction.test_deal_evidence_audit import *
+E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE.core.deal_transaction.deal_transaction'
+___________________________________ ERROR collecting AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py ___________________________________
+ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_final_hardening.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\core\deal_transaction\test_deal_final_hardening.py:1: in <module>
+    from .deal_transaction.test_deal_final_hardening import *
+E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE.core.deal_transaction.deal_transaction'
+__________________________________ ERROR collecting AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py __________________________________
+ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_offer_negotiation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\core\deal_transaction\test_deal_offer_negotiation.py:1: in <module>
+    from .deal_transaction.test_deal_offer_negotiation import *
+E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE.core.deal_transaction.deal_transaction'
+________________________________ ERROR collecting AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py ________________________________
+ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_ownership_integration.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\core\deal_transaction\test_deal_ownership_integration.py:1: in <module>
+    from .deal_transaction.test_deal_ownership_integration import *
+E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE.core.deal_transaction.deal_transaction'
+_______________________________________ ERROR collecting AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py _______________________________________
+ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_parties.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\core\deal_transaction\test_deal_parties.py:1: in <module>
+    from .deal_transaction.test_deal_parties import *
+E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE.core.deal_transaction.deal_transaction'
+_________________________________ ERROR collecting AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py __________________________________
+ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_transaction_events.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\core\deal_transaction\test_deal_transaction_events.py:1: in <module>
+    from .deal_transaction.test_deal_transaction_events import *
+E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE.core.deal_transaction.deal_transaction'
+_______________________________ ERROR collecting AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py ________________________________
+ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_deal_transaction_milestones.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\core\deal_transaction\test_deal_transaction_milestones.py:1: in <module>
+    from .deal_transaction.test_deal_transaction_milestones import *
+E   ModuleNotFoundError: No module named 'AUTONOMY_ENGINE.core.deal_transaction.deal_transaction'
+================================================================= short test summary info =================================================================
+ERROR AUTONOMY_ENGINE/core/deal_transaction/test_deal.py
+ERROR AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py
+ERROR AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py
+ERROR AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py
+ERROR AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py
+ERROR AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py
+ERROR AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
+ERROR AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 8 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+8 errors in 1.33s
