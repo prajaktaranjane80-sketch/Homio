@@ -3,27 +3,74 @@ PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> $R = "AUTONOMY_ENGINE\core\CORE-006_RECOVERY"
 PS D:\HOMIO\REOS_CONTROL_CENTER> $P = "$R\pycdc"
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Invoke-WebRequest `
->>   "https://github.com/error-inside/pycdc-prebuilt-binaries/releases/download/v2026.03.27/pycdc-win-x86_64-bin.7z" `
->>   -OutFile "$P\pycdc-win-x86_64-bin.7z"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== ARCHIVE ===" -ForegroundColor Cyan
-=== ARCHIVE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Item "$P\pycdc-win-x86_64-bin.7z" |
->>     Select-Object Name,Length
+PS D:\HOMIO\REOS_CONTROL_CENTER> & "C:\Program Files\7-Zip\7z.exe" x `
+>>   "$P\pycdc-win-x86_64-bin.7z" `
+>>   "-o$P\BIN" `
+>>   -y
 
-Name                    Length
-----                    ------
-pycdc-win-x86_64-bin.7z 184899
+7-Zip 25.01 (x64) : Copyright (c) 1999-2025 Igor Pavlov : 2025-08-03
+
+Scanning the drive for archives:
+1 file, 184899 bytes (181 KiB)
+
+Extracting archive: AUTONOMY_ENGINE\core\CORE-006_RECOVERY\pycdc\pycdc-win-x86_64-bin.7z
+--
+Path = AUTONOMY_ENGINE\core\CORE-006_RECOVERY\pycdc\pycdc-win-x86_64-bin.7z
+Type = 7z
+Physical Size = 184899
+Headers Size = 257
+Method = LZMA2:1536k BCJ
+Solid = +
+Blocks = 2
+
+Everything is Ok
+
+Folders: 1
+Files: 3
+Size:       1152216
+Compressed: 184899
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== PYCDC BINARY ===" -ForegroundColor Cyan
+=== PYCDC BINARY ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem "$P\BIN" -Recurse -File |
+>>     Select-Object FullName,Length
+
+FullName                                                                                                      Length
+--------                                                                                                      ------
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY\pycdc\BIN\pycdc-win-x86_64-bin\pycdas.exe 146432
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY\pycdc\BIN\pycdc-win-x86_64-bin\pycdc.exe  275968
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_RECOVERY\pycdc\BIN\pycdc-win-x86_64-bin\pycxx.lib  729816
 
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== 7-ZIP LOCATE ===" -ForegroundColor Cyan
-=== 7-ZIP LOCATE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Pyc = "$R\RAW\bff8e01520d1eb4b04d9a2e9e60a8c9df6b3c43e.pyc"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Out = "$R\SOURCE_PY\deal_transaction_events.py"
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Command 7z -ErrorAction SilentlyContinue
-PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Command 7z.exe -ErrorAction SilentlyContinue
+PS D:\HOMIO\REOS_CONTROL_CENTER> & (Get-ChildItem "$P\BIN" -Recurse -Filter "pycdc.exe" | Select-Object -First 1).FullName `
+>>   $Pyc `
+>>   > $Out
+Unsupported opcode: MAKE_FUNCTION (122)
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (Test-Path "C:\Program Files\7-Zip\7z.exe") {
->>     Write-Host "FOUND: C:\Program Files\7-Zip\7z.exe" -ForegroundColor Green
->> }
-FOUND: C:\Program Files\7-Zip\7z.exe
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== EVENT SOURCE RECOVERY ===" -ForegroundColor Green
+=== EVENT SOURCE RECOVERY ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Item $Out | Select-Object Name,Length
+
+Name                       Length
+----                       ------
+deal_transaction_events.py   1500
+
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Content $Out -TotalCount 80
+# Source Generated with Decompyle++
+# File: bff8e01520d1eb4b04d9a2e9e60a8c9df6b3c43e.pyc (Python 3.13)
+
+__doc__ = 'REOS CORE-006 transaction event contract.\n\nDeal and transaction milestone remain authoritative. This module creates a\ncanonical, transport-neutral transaction event. Kafka, outbox, retries,\nconsumer groups and DLQ behavior belong to CORE-002.\n'
+from __future__ import annotations
+from dataclasses import dataclass, field
+from typing import Any, Mapping
+import hashlib
+import json
+from deal_transaction_milestones import DealTransactionMilestone
+EVENT_SCHEMA_VERSION = '1.0'
+TRANSACTION_EVENT_TYPE = 'DEAL_TRANSACTION_MILESTONE_CHANGED'
+SOURCE_OF_TRUTH = 'deal_transaction_milestone'
+# WARNING: Decompyle incomplete
