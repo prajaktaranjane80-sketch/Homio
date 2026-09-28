@@ -1,903 +1,164 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== DealTransactionEvent starts at line $start ===" -ForegroundColor Cyan
-=== DealTransactionEvent starts at line 259 ===
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $from = [Math]::Max(1, $start - 5)
-PS D:\HOMIO\REOS_CONTROL_CENTER> $to   = [Math]::Min($lines.Count, $start + 950)
+PS D:\HOMIO\REOS_CONTROL_CENTER> $eventPath = "$SRC\deal_transaction_events.py"
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Content -Path $eventPath -Value $eventSource -Encoding UTF8
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $lines[($from-1)..($to-1)]
-        (
-            'frozen'
-        )
-        [Code]
-            File Name: /mnt/data/CORE-006_FINAL_UPGRADE/deal_transaction_events.py
-            Object Name: DealTransactionEvent
-            Qualified Name: DealTransactionEvent
-            Arg Count: 0
-            Pos Only Arg Count: 0
-            KW Only Arg Count: 0
-            Stack Size: 4
-            Flags: 0x01000000 (CO_FUTURE_ANNOTATIONS)
-            [Names]
-                '__name__'
-                '__module__'
-                '__qualname__'
-                '__firstlineno__'
-                '__annotations__'
-                'reference_id'
-                'correlation_id'
-                'causation_id'
-                'idempotency_key'
-                'EVENT_SCHEMA_VERSION'
-                'schema_version'
-                'SOURCE_OF_TRUTH'
-                'source_of_truth'
-                'field'
-                'dict'
-                'payload'
-                'payload_hash'
-                '__post_init__'
-                'classmethod'
-                'from_milestone'
-                'assert_scope'
-                'property'
-                'semantic_key'
-                'to_dict'
-                '__static_attributes__'
-            [Locals+Names]
-            [Constants]
-                'DealTransactionEvent'
-                29
-                'str'
-                'event_id'
-                'event_type'
-                'deal_id'
-                'tenant_id'
-                'from_status'
-                'to_status'
-                'int'
-                'deal_version'
-                'sequence'
-                'occurred_at'
-                None
-                'str | None'
-                'reference_id'
-                'correlation_id'
-                'causation_id'
-                'idempotency_key'
-                'schema_version'
-                'source_of_truth'
-                (
-                    'default_factory'
-                )
-                'Mapping[str, Any]'
-                'payload'
-                ''
-                'payload_hash'
-                [Code]
-                    File Name: /mnt/data/CORE-006_FINAL_UPGRADE/deal_transaction_events.py
-                    Object Name: __post_init__
-                    Qualified Name: DealTransactionEvent.__post_init__
-                    Arg Count: 1
-                    Pos Only Arg Count: 0
-                    KW Only Arg Count: 0
-                    Stack Size: 5
-                    Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
-                    [Names]
-                        'getattr'
-                        'isinstance'
-                        'str'
-                        'strip'
-                        'DealTransactionEventError'
-                        'deal_version'
-                        'sequence'
-                        'event_type'
-                        'TRANSACTION_EVENT_TYPE'
-                        'source_of_truth'
-                        'SOURCE_OF_TRUTH'
-                        'DealTransactionEventIntegrityError'
-                        'idempotency_key'
-                        'event_id'
-                        'object'
-                        '__setattr__'
-                        '_payload_hash'
-                        'dict'
-                        'payload'
-                        'payload_hash'
-                    [Locals+Names]
-                        'self'
-                        'name'
-                        'value'
-                        'key'
-                        'calculated'
-                    [Constants]
-                        None
-                        (
-                            'event_id'
-                            'deal_id'
-                            'tenant_id'
-                            'from_status'
-                            'to_status'
-                            'occurred_at'
-                        )
-                        ' is required.'
-                        1
-                        'deal_version and sequence must be >= 1.'
-                        'Unsupported transaction event type.'
-                        'Transaction event source_of_truth is immutable.'
-                        'idempotency_key must equal event_id.'
-                        'idempotency_key'
-                        'payload_hash does not match canonical payload.'
-                        'payload_hash'
-                    [Disassembly]
-                        0       RESUME                          0
-                        2       LOAD_CONST                      1: ('event_id', 'deal_id', 'tenant_id', 'from_status', 'to_status', 'occurred_at')
-                        4       GET_ITER
-                        6       FOR_ITER                        70 (to 148)
-                        10      STORE_FAST                      1: name
-                        12      LOAD_GLOBAL                     1: NULL + getattr
-                        22      LOAD_FAST_LOAD_FAST             1: self, name
-                        24      CALL                            2
-                        32      STORE_FAST                      2: value
-                        34      LOAD_GLOBAL                     3: NULL + isinstance
-                        44      LOAD_FAST                       2: value
-                        46      LOAD_GLOBAL                     4: str
-                        56      CALL                            2
-                        64      TO_BOOL
-                        72      POP_JUMP_IF_FALSE               23 (to 120)
-                        76      LOAD_FAST                       2: value
-                        78      LOAD_ATTR                       7: strip
-                        98      CALL                            0
-                        106     TO_BOOL
-                        114     POP_JUMP_IF_FALSE               2 (to 120)
-                        118     JUMP_BACKWARD                   58 (to 4)
-                        122     LOAD_GLOBAL                     9: NULL + DealTransactionEventError
-                        132     LOAD_FAST                       1: name
-                        134     FORMAT_SIMPLE
-                        136     LOAD_CONST                      2: ' is required.'
-                        138     BUILD_STRING                    2
-                        140     CALL                            1
-                        148     RAISE_VARARGS                   1
-                        150     END_FOR
-                        152     POP_TOP
-                        154     LOAD_FAST                       0: self
-                        156     LOAD_ATTR                       10: deal_version
-                        176     LOAD_CONST                      3: 1
-                        178     COMPARE_OP                      18 (<)
-                        182     POP_JUMP_IF_TRUE                16 (to 216)
-                        186     LOAD_FAST                       0: self
-                        188     LOAD_ATTR                       12: sequence
-                        208     LOAD_CONST                      3: 1
-                        210     COMPARE_OP                      18 (<)
-                        214     POP_JUMP_IF_FALSE               11 (to 238)
-                        218     LOAD_GLOBAL                     9: NULL + DealTransactionEventError
-                        228     LOAD_CONST                      4: 'deal_version and sequence must be >= 1.'
-                        230     CALL                            1
-                        238     RAISE_VARARGS                   1
-                        240     LOAD_FAST                       0: self
-                        242     LOAD_ATTR                       14: event_type
-                        262     LOAD_GLOBAL                     16: TRANSACTION_EVENT_TYPE
-                        272     COMPARE_OP                      119 (!=)
-                        276     POP_JUMP_IF_FALSE               11 (to 300)
-                        280     LOAD_GLOBAL                     9: NULL + DealTransactionEventError
-                        290     LOAD_CONST                      5: 'Unsupported transaction event type.'
-                        292     CALL                            1
-                        300     RAISE_VARARGS                   1
-                        302     LOAD_FAST                       0: self
-                        304     LOAD_ATTR                       18: source_of_truth
-                        324     LOAD_GLOBAL                     20: SOURCE_OF_TRUTH
-                        334     COMPARE_OP                      119 (!=)
-                        338     POP_JUMP_IF_FALSE               11 (to 362)
-                        342     LOAD_GLOBAL                     23: NULL + DealTransactionEventIntegrityError
-                        352     LOAD_CONST                      6: 'Transaction event source_of_truth is immutable.'
-                        354     CALL                            1
-                        362     RAISE_VARARGS                   1
-                        364     LOAD_FAST                       0: self
-                        366     LOAD_ATTR                       24: idempotency_key
-                        386     COPY                            1
-                        388     TO_BOOL
-                        396     POP_JUMP_IF_TRUE                12 (to 422)
-                        400     POP_TOP
-                        402     LOAD_FAST                       0: self
-                        404     LOAD_ATTR                       26: event_id
-                        424     STORE_FAST                      3: key
-                        426     LOAD_FAST_LOAD_FAST             48: key, self
-                        428     LOAD_ATTR                       26: event_id
-                        448     COMPARE_OP                      119 (!=)
-                        452     POP_JUMP_IF_FALSE               11 (to 476)
-                        456     LOAD_GLOBAL                     23: NULL + DealTransactionEventIntegrityError
-                        466     LOAD_CONST                      7: 'idempotency_key must equal event_id.'
-                        468     CALL                            1
-                        476     RAISE_VARARGS                   1
-                        478     LOAD_GLOBAL                     28: object
-                        488     LOAD_ATTR                       31: __setattr__
-                        508     LOAD_FAST                       0: self
-                        510     LOAD_CONST                      8: 'idempotency_key'
-                        512     LOAD_FAST                       3: key
-                        514     CALL                            3
-                        522     POP_TOP
-                        524     LOAD_GLOBAL                     33: NULL + _payload_hash
-                        534     LOAD_GLOBAL                     35: NULL + dict
-                        544     LOAD_FAST                       0: self
-                        546     LOAD_ATTR                       36: payload
-                        566     CALL                            1
-                        574     CALL                            1
-                        582     STORE_FAST                      4: calculated
-                        584     LOAD_FAST                       0: self
-                        586     LOAD_ATTR                       38: payload_hash
-                        606     TO_BOOL
-                        614     POP_JUMP_IF_FALSE               27 (to 670)
-                        618     LOAD_FAST                       0: self
-                        620     LOAD_ATTR                       38: payload_hash
-                        640     LOAD_FAST                       4: calculated
-                        642     COMPARE_OP                      119 (!=)
-                        646     POP_JUMP_IF_FALSE               11 (to 670)
-                        650     LOAD_GLOBAL                     23: NULL + DealTransactionEventIntegrityError
-                        660     LOAD_CONST                      9: 'payload_hash does not match canonical payload.'
-                        662     CALL                            1
-                        670     RAISE_VARARGS                   1
-                        672     LOAD_GLOBAL                     28: object
-                        682     LOAD_ATTR                       31: __setattr__
-                        702     LOAD_FAST                       0: self
-                        704     LOAD_CONST                      10: 'payload_hash'
-                        706     LOAD_FAST                       4: calculated
-                        708     CALL                            3
-                        716     POP_TOP
-                        718     RETURN_CONST                    0: None
-                    [Exception Table]
-                (
-                    'correlation_id'
-                    'causation_id'
-                )
-                [Code]
-                    File Name: /mnt/data/CORE-006_FINAL_UPGRADE/deal_transaction_events.py
-                    Object Name: from_milestone
-                    Qualified Name: DealTransactionEvent.from_milestone
-                    Arg Count: 2
-                    Pos Only Arg Count: 0
-                    KW Only Arg Count: 2
-                    Stack Size: 17
-                    Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
-                    [Names]
-                        'getattr'
-                        'from_status'
-                        'to_status'
-                        'hasattr'
-                        'occurred_at'
-                        'isoformat'
-                        'milestone_id'
-                        'deal_id'
-                        'tenant_id'
-                        'deal_version'
-                        'sequence'
-                        'reference_id'
-                        'TRANSACTION_EVENT_TYPE'
-                    [Locals+Names]
-                        'cls'
-                        'milestone'
-                        'correlation_id'
-                        'causation_id'
-                        'fs'
-                        'ts'
-                        'occurred'
-                        'payload'
-                    [Constants]
-                        None
-                        'value'
-                        'isoformat'
-                        (
-                            'milestone_id'
-                            'deal_id'
-                            'tenant_id'
-                            'from_status'
-                            'to_status'
-                            'deal_version'
-                            'sequence'
-                            'occurred_at'
-                            'reference_id'
-                        )
-                        (
-                            'event_id'
-                            'event_type'
-                            'deal_id'
-                            'tenant_id'
-                            'from_status'
-                            'to_status'
-                            'deal_version'
-                            'sequence'
-                            'occurred_at'
-                            'reference_id'
-                            'correlation_id'
-                            'causation_id'
-                            'idempotency_key'
-                            'payload'
-                        )
-                    [Disassembly]
-                        0       RESUME                          0
-                        2       LOAD_GLOBAL                     1: NULL + getattr
-                        12      LOAD_FAST                       1: milestone
-                        14      LOAD_ATTR                       2: from_status
-                        34      LOAD_CONST                      1: 'value'
-                        36      LOAD_FAST                       1: milestone
-                        38      LOAD_ATTR                       2: from_status
-                        58      CALL                            3
-                        66      STORE_FAST                      4: fs
-                        68      LOAD_GLOBAL                     1: NULL + getattr
-                        78      LOAD_FAST                       1: milestone
-                        80      LOAD_ATTR                       4: to_status
-                        100     LOAD_CONST                      1: 'value'
-                        102     LOAD_FAST                       1: milestone
-                        104     LOAD_ATTR                       4: to_status
-                        124     CALL                            3
-                        132     STORE_FAST                      5: ts
-                        134     LOAD_GLOBAL                     7: NULL + hasattr
-                        144     LOAD_FAST                       1: milestone
-                        146     LOAD_ATTR                       8: occurred_at
-                        166     LOAD_CONST                      2: 'isoformat'
-                        168     CALL                            2
-                        176     TO_BOOL
-                        184     POP_JUMP_IF_FALSE               26 (to 238)
-                        188     LOAD_FAST                       1: milestone
-                        190     LOAD_ATTR                       8: occurred_at
-                        210     LOAD_ATTR                       11: isoformat
-                        230     CALL                            0
-                        238     JUMP_FORWARD                    11 (to 262)
-                        240     LOAD_FAST                       1: milestone
-                        242     LOAD_ATTR                       8: occurred_at
-                        262     STORE_FAST                      6: occurred
-                        264     LOAD_FAST                       1: milestone
-                        266     LOAD_ATTR                       12: milestone_id
-                        286     LOAD_FAST                       1: milestone
-                        288     LOAD_ATTR                       14: deal_id
-                        308     LOAD_FAST                       1: milestone
-                        310     LOAD_ATTR                       16: tenant_id
-                        330     LOAD_FAST                       4: fs
-                        332     LOAD_FAST                       5: ts
-                        334     LOAD_FAST                       1: milestone
-                        336     LOAD_ATTR                       18: deal_version
-                        356     LOAD_FAST                       1: milestone
-                        358     LOAD_ATTR                       20: sequence
-                        378     LOAD_FAST                       6: occurred
-                        380     LOAD_FAST                       1: milestone
-                        382     LOAD_ATTR                       22: reference_id
-                        402     LOAD_CONST                      3: ('milestone_id', 'deal_id', 'tenant_id', 'from_status', 'to_status', 'deal_version', 'sequence', 'occurred_at', 'reference_id')
-                        404     BUILD_CONST_KEY_MAP             9
-                        406     STORE_FAST                      7: payload
-                        408     LOAD_FAST                       0: cls
-                        410     PUSH_NULL
-                        412     LOAD_FAST                       1: milestone
-                        414     LOAD_ATTR                       12: milestone_id
-                        434     LOAD_GLOBAL                     24: TRANSACTION_EVENT_TYPE
-                        444     LOAD_FAST                       1: milestone
-                        446     LOAD_ATTR                       14: deal_id
-                        466     LOAD_FAST                       1: milestone
-                        468     LOAD_ATTR                       16: tenant_id
-                        488     LOAD_FAST                       4: fs
-                        490     LOAD_FAST                       5: ts
-                        492     LOAD_FAST                       1: milestone
-                        494     LOAD_ATTR                       18: deal_version
-                        514     LOAD_FAST                       1: milestone
-                        516     LOAD_ATTR                       20: sequence
-                        536     LOAD_FAST                       6: occurred
-                        538     LOAD_FAST                       1: milestone
-                        540     LOAD_ATTR                       22: reference_id
-                        560     LOAD_FAST                       2: correlation_id
-                        562     LOAD_FAST                       3: causation_id
-                        564     LOAD_FAST                       1: milestone
-                        566     LOAD_ATTR                       12: milestone_id
-                        586     LOAD_FAST                       7: payload
-                        588     LOAD_CONST                      4: ('event_id', 'event_type', 'deal_id', 'tenant_id', 'from_status', 'to_status', 'deal_version', 'sequence', 'occurred_at', 'reference_id', 'correlation_id', 'causation_id', 'idempotency_key', 'payload')
-                        590     CALL_KW                         14
-                        592     RETURN_VALUE
-                    [Exception Table]
-                [Code]
-                    File Name: /mnt/data/CORE-006_FINAL_UPGRADE/deal_transaction_events.py
-                    Object Name: assert_scope
-                    Qualified Name: DealTransactionEvent.assert_scope
-                    Arg Count: 1
-                    Pos Only Arg Count: 0
-                    KW Only Arg Count: 2
-                    Stack Size: 3
-                    Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
-                    [Names]
-                        'deal_id'
-                        'DealTransactionEventScopeError'
-                        'tenant_id'
-                    [Locals+Names]
-                        'self'
-                        'deal_id'
-                        'tenant_id'
-                    [Constants]
-                        None
-                        'Transaction event belongs to a different deal.'
-                        'Transaction event belongs to a different tenant.'
-                    [Disassembly]
-                        0       RESUME                          0
-                        2       LOAD_FAST                       0: self
-                        4       LOAD_ATTR                       0: deal_id
-                        24      LOAD_FAST                       1: deal_id
-                        26      COMPARE_OP                      119 (!=)
-                        30      POP_JUMP_IF_FALSE               11 (to 54)
-                        34      LOAD_GLOBAL                     3: NULL + DealTransactionEventScopeError
-                        44      LOAD_CONST                      1: 'Transaction event belongs to a different deal.'
-                        46      CALL                            1
-                        54      RAISE_VARARGS                   1
-                        56      LOAD_FAST                       0: self
-                        58      LOAD_ATTR                       4: tenant_id
-                        78      LOAD_FAST                       2: tenant_id
-                        80      COMPARE_OP                      119 (!=)
-                        84      POP_JUMP_IF_FALSE               11 (to 108)
-                        88      LOAD_GLOBAL                     3: NULL + DealTransactionEventScopeError
-                        98      LOAD_CONST                      2: 'Transaction event belongs to a different tenant.'
-                        100     CALL                            1
-                        108     RAISE_VARARGS                   1
-                        110     RETURN_CONST                    0: None
-                    [Exception Table]
-                [Code]
-                    File Name: /mnt/data/CORE-006_FINAL_UPGRADE/deal_transaction_events.py
-                    Object Name: semantic_key
-                    Qualified Name: DealTransactionEvent.semantic_key
-                    Arg Count: 1
-                    Pos Only Arg Count: 0
-                    KW Only Arg Count: 0
-                    Stack Size: 7
-                    Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
-                    [Names]
-                        'deal_id'
-                        'deal_version'
-                        'sequence'
-                        'event_id'
-                    [Locals+Names]
-                        'self'
-                    [Constants]
-                        None
-                        ':'
-                    [Disassembly]
-                        0       RESUME                          0
-                        2       LOAD_FAST                       0: self
-                        4       LOAD_ATTR                       0: deal_id
-                        24      FORMAT_SIMPLE
-                        26      LOAD_CONST                      1: ':'
-                        28      LOAD_FAST                       0: self
-                        30      LOAD_ATTR                       2: deal_version
-                        50      FORMAT_SIMPLE
-                        52      LOAD_CONST                      1: ':'
-                        54      LOAD_FAST                       0: self
-                        56      LOAD_ATTR                       4: sequence
-                        76      FORMAT_SIMPLE
-                        78      LOAD_CONST                      1: ':'
-                        80      LOAD_FAST                       0: self
-                        82      LOAD_ATTR                       6: event_id
-                        102     FORMAT_SIMPLE
-                        104     BUILD_STRING                    7
-                        106     RETURN_VALUE
-                    [Exception Table]
-                [Code]
-                    File Name: /mnt/data/CORE-006_FINAL_UPGRADE/deal_transaction_events.py
-                    Object Name: to_dict
-                    Qualified Name: DealTransactionEvent.to_dict
-                    Arg Count: 1
-                    Pos Only Arg Count: 0
-                    KW Only Arg Count: 0
-                    Stack Size: 5
-                    Flags: 0x01000003 (CO_OPTIMIZED | CO_NEWLOCALS | CO_FUTURE_ANNOTATIONS)
-                    [Names]
-                        'event_id'
-                        'event_type'
-                        'schema_version'
-                        'source_of_truth'
-                        'deal_id'
-                        'tenant_id'
-                        'from_status'
-                        'to_status'
-                        'deal_version'
-                        'sequence'
-                        'occurred_at'
-                        'reference_id'
-                        'correlation_id'
-                        'causation_id'
-                        'idempotency_key'
-                        'dict'
-                        'payload'
-                        'payload_hash'
-                        'semantic_key'
-                    [Locals+Names]
-                        'self'
-                    [Constants]
-                        None
-                        'event_id'
-                        'event_type'
-                        'schema_version'
-                        'source_of_truth'
-                        'deal_id'
-                        'tenant_id'
-                        'from_status'
-                        'to_status'
-                        'deal_version'
-                        'sequence'
-                        'occurred_at'
-                        'reference_id'
-                        'correlation_id'
-                        'causation_id'
-                        'idempotency_key'
-                        'payload'
-                        'payload_hash'
-                        'semantic_key'
-                    [Disassembly]
-                        0       RESUME                          0
-                        2       BUILD_MAP                       0
-                        4       LOAD_CONST                      1: 'event_id'
-                        6       LOAD_FAST                       0: self
-                        8       LOAD_ATTR                       0: event_id
-                        28      MAP_ADD                         1
-                        30      LOAD_CONST                      2: 'event_type'
-                        32      LOAD_FAST                       0: self
-                        34      LOAD_ATTR                       2: event_type
-                        54      MAP_ADD                         1
-                        56      LOAD_CONST                      3: 'schema_version'
-                        58      LOAD_FAST                       0: self
-                        60      LOAD_ATTR                       4: schema_version
-                        80      MAP_ADD                         1
-                        82      LOAD_CONST                      4: 'source_of_truth'
-                        84      LOAD_FAST                       0: self
-                        86      LOAD_ATTR                       6: source_of_truth
-                        106     MAP_ADD                         1
-                        108     LOAD_CONST                      5: 'deal_id'
-                        110     LOAD_FAST                       0: self
-                        112     LOAD_ATTR                       8: deal_id
-                        132     MAP_ADD                         1
-                        134     LOAD_CONST                      6: 'tenant_id'
-                        136     LOAD_FAST                       0: self
-                        138     LOAD_ATTR                       10: tenant_id
-                        158     MAP_ADD                         1
-                        160     LOAD_CONST                      7: 'from_status'
-                        162     LOAD_FAST                       0: self
-                        164     LOAD_ATTR                       12: from_status
-                        184     MAP_ADD                         1
-                        186     LOAD_CONST                      8: 'to_status'
-                        188     LOAD_FAST                       0: self
-                        190     LOAD_ATTR                       14: to_status
-                        210     MAP_ADD                         1
-                        212     LOAD_CONST                      9: 'deal_version'
-                        214     LOAD_FAST                       0: self
-                        216     LOAD_ATTR                       16: deal_version
-                        236     MAP_ADD                         1
-                        238     LOAD_CONST                      10: 'sequence'
-                        240     LOAD_FAST                       0: self
-                        242     LOAD_ATTR                       18: sequence
-                        262     MAP_ADD                         1
-                        264     LOAD_CONST                      11: 'occurred_at'
-                        266     LOAD_FAST                       0: self
-                        268     LOAD_ATTR                       20: occurred_at
-                        288     MAP_ADD                         1
-                        290     LOAD_CONST                      12: 'reference_id'
-                        292     LOAD_FAST                       0: self
-                        294     LOAD_ATTR                       22: reference_id
-                        314     MAP_ADD                         1
-                        316     LOAD_CONST                      13: 'correlation_id'
-                        318     LOAD_FAST                       0: self
-                        320     LOAD_ATTR                       24: correlation_id
-                        340     MAP_ADD                         1
-                        342     LOAD_CONST                      14: 'causation_id'
-                        344     LOAD_FAST                       0: self
-                        346     LOAD_ATTR                       26: causation_id
-                        366     MAP_ADD                         1
-                        368     LOAD_CONST                      15: 'idempotency_key'
-                        370     LOAD_FAST                       0: self
-                        372     LOAD_ATTR                       28: idempotency_key
-                        392     MAP_ADD                         1
-                        394     LOAD_CONST                      16: 'payload'
-                        396     LOAD_GLOBAL                     31: NULL + dict
-                        406     LOAD_FAST                       0: self
-                        408     LOAD_ATTR                       32: payload
-                        428     CALL                            1
-                        436     MAP_ADD                         1
-                        438     LOAD_CONST                      17: 'payload_hash'
-                        440     LOAD_FAST                       0: self
-                        442     LOAD_ATTR                       34: payload_hash
-                        462     MAP_ADD                         1
-                        464     LOAD_CONST                      18: 'semantic_key'
-                        466     LOAD_FAST                       0: self
-                        468     LOAD_ATTR                       36: semantic_key
-                        488     BUILD_MAP                       1
-                        490     DICT_UPDATE                     1
-                        492     RETURN_VALUE
-                    [Exception Table]
-                (
-                )
-                (
-                    'return'
-                    'None'
-                )
-                (
-                    'milestone'
-                    'DealTransactionMilestone'
-                    'correlation_id'
-                    'str | None'
-                    'causation_id'
-                    'str | None'
-                    'return'
-                    "'DealTransactionEvent'"
-                )
-                (
-                    'deal_id'
-                    'str'
-                    'tenant_id'
-                    'str'
-                    'return'
-                    'None'
-                )
-                (
-                    'return'
-                    'str'
-                )
-                (
-                    'return'
-                    'dict[str, Any]'
-                )
-            [Disassembly]
-                0       RESUME                          0
-                2       LOAD_NAME                       0: __name__
-                4       STORE_NAME                      1: __module__
-                6       LOAD_CONST                      0: 'DealTransactionEvent'
-                8       STORE_NAME                      2: __qualname__
-                10      LOAD_CONST                      1: 29
-                12      STORE_NAME                      3: __firstlineno__
-                14      SETUP_ANNOTATIONS
-                16      LOAD_CONST                      2: 'str'
-                18      LOAD_NAME                       4: __annotations__
-                20      LOAD_CONST                      3: 'event_id'
-                22      STORE_SUBSCR
-                26      LOAD_CONST                      2: 'str'
-                28      LOAD_NAME                       4: __annotations__
-                30      LOAD_CONST                      4: 'event_type'
-                32      STORE_SUBSCR
-                36      LOAD_CONST                      2: 'str'
-                38      LOAD_NAME                       4: __annotations__
-                40      LOAD_CONST                      5: 'deal_id'
-                42      STORE_SUBSCR
-                46      LOAD_CONST                      2: 'str'
-                48      LOAD_NAME                       4: __annotations__
-                50      LOAD_CONST                      6: 'tenant_id'
-                52      STORE_SUBSCR
-                56      LOAD_CONST                      2: 'str'
-                58      LOAD_NAME                       4: __annotations__
-                60      LOAD_CONST                      7: 'from_status'
-                62      STORE_SUBSCR
-                66      LOAD_CONST                      2: 'str'
-                68      LOAD_NAME                       4: __annotations__
-                70      LOAD_CONST                      8: 'to_status'
-                72      STORE_SUBSCR
-                76      LOAD_CONST                      9: 'int'
-                78      LOAD_NAME                       4: __annotations__
-                80      LOAD_CONST                      10: 'deal_version'
-                82      STORE_SUBSCR
-                86      LOAD_CONST                      9: 'int'
-                88      LOAD_NAME                       4: __annotations__
-                90      LOAD_CONST                      11: 'sequence'
-                92      STORE_SUBSCR
-                96      LOAD_CONST                      2: 'str'
-                98      LOAD_NAME                       4: __annotations__
-                100     LOAD_CONST                      12: 'occurred_at'
-                102     STORE_SUBSCR
-                106     LOAD_CONST                      13: None
-                108     STORE_NAME                      5: reference_id
-                110     LOAD_CONST                      14: 'str | None'
-                112     LOAD_NAME                       4: __annotations__
-                114     LOAD_CONST                      15: 'reference_id'
-                116     STORE_SUBSCR
-                120     LOAD_CONST                      13: None
-                122     STORE_NAME                      6: correlation_id
-                124     LOAD_CONST                      14: 'str | None'
-                126     LOAD_NAME                       4: __annotations__
-                128     LOAD_CONST                      16: 'correlation_id'
-                130     STORE_SUBSCR
-                134     LOAD_CONST                      13: None
-                136     STORE_NAME                      7: causation_id
-                138     LOAD_CONST                      14: 'str | None'
-                140     LOAD_NAME                       4: __annotations__
-                142     LOAD_CONST                      17: 'causation_id'
-                144     STORE_SUBSCR
-                148     LOAD_CONST                      13: None
-                150     STORE_NAME                      8: idempotency_key
-                152     LOAD_CONST                      14: 'str | None'
-                154     LOAD_NAME                       4: __annotations__
-                156     LOAD_CONST                      18: 'idempotency_key'
-                158     STORE_SUBSCR
-                162     LOAD_NAME                       9: EVENT_SCHEMA_VERSION
-                164     STORE_NAME                      10: schema_version
-                166     LOAD_CONST                      2: 'str'
-                168     LOAD_NAME                       4: __annotations__
-                170     LOAD_CONST                      19: 'schema_version'
-                172     STORE_SUBSCR
-                176     LOAD_NAME                       11: SOURCE_OF_TRUTH
-                178     STORE_NAME                      12: source_of_truth
-                180     LOAD_CONST                      2: 'str'
-                182     LOAD_NAME                       4: __annotations__
-                184     LOAD_CONST                      20: 'source_of_truth'
-                186     STORE_SUBSCR
-                190     LOAD_NAME                       13: field
-                192     PUSH_NULL
-                194     LOAD_NAME                       14: dict
-                196     LOAD_CONST                      21: ('default_factory',)
-                198     CALL_KW                         1
-                200     STORE_NAME                      15: payload
-                202     LOAD_CONST                      22: 'Mapping[str, Any]'
-                204     LOAD_NAME                       4: __annotations__
-                206     LOAD_CONST                      23: 'payload'
-                208     STORE_SUBSCR
-                212     LOAD_CONST                      24: ''
-                214     STORE_NAME                      16: payload_hash
-                216     LOAD_CONST                      2: 'str'
-                218     LOAD_NAME                       4: __annotations__
-                220     LOAD_CONST                      25: 'payload_hash'
-                222     STORE_SUBSCR
-                226     LOAD_CONST                      33: ('return', 'None')
-                228     LOAD_CONST                      26: <CODE> __post_init__
-                230     MAKE_FUNCTION
-                232     SET_FUNCTION_ATTRIBUTE          4 (MAKE_FUNCTION_ANNOTATIONS)
-                234     STORE_NAME                      17: __post_init__
-                236     LOAD_NAME                       18: classmethod
-                238     LOAD_CONST                      13: None
-                240     LOAD_CONST                      13: None
-                242     LOAD_CONST                      27: ('correlation_id', 'causation_id')
-                244     BUILD_CONST_KEY_MAP             2
-                246     LOAD_CONST                      34: ('milestone', 'DealTransactionMilestone', 'correlation_id', 'str | None', 'causation_id', 'str | None', 'return', "'DealTransactionEvent'")
-                248     LOAD_CONST                      28: <CODE> from_milestone
-                250     MAKE_FUNCTION
-                252     SET_FUNCTION_ATTRIBUTE          4 (MAKE_FUNCTION_ANNOTATIONS)
-                254     SET_FUNCTION_ATTRIBUTE          2 (MAKE_FUNCTION_KWDEFAULTS)
-                256     CALL                            0
-                264     STORE_NAME                      19: from_milestone
-                266     LOAD_CONST                      35: ('deal_id', 'str', 'tenant_id', 'str', 'return', 'None')
-                268     LOAD_CONST                      29: <CODE> assert_scope
-                270     MAKE_FUNCTION
-                272     SET_FUNCTION_ATTRIBUTE          4 (MAKE_FUNCTION_ANNOTATIONS)
-                274     STORE_NAME                      20: assert_scope
-                276     LOAD_NAME                       21: property
-                278     LOAD_CONST                      36: ('return', 'str')
-                280     LOAD_CONST                      30: <CODE> semantic_key
-                282     MAKE_FUNCTION
-                284     SET_FUNCTION_ATTRIBUTE          4 (MAKE_FUNCTION_ANNOTATIONS)
-                286     CALL                            0
-                294     STORE_NAME                      22: semantic_key
-                296     LOAD_CONST                      37: ('return', 'dict[str, Any]')
-                298     LOAD_CONST                      31: <CODE> to_dict
-                300     MAKE_FUNCTION
-                302     SET_FUNCTION_ATTRIBUTE          4 (MAKE_FUNCTION_ANNOTATIONS)
-                304     STORE_NAME                      23: to_dict
-                306     LOAD_CONST                      32: ()
-                308     STORE_NAME                      24: __static_attributes__
-                310     RETURN_CONST                    13: None
-            [Exception Table]
-        'DealTransactionEvent'
-        (
-            'DealTransactionEvent'
-            'DealTransactionEventError'
-            'DealTransactionEventIntegrityError'
-            'DealTransactionEventScopeError'
-            'EVENT_SCHEMA_VERSION'
-            'SOURCE_OF_TRUTH'
-            'TRANSACTION_EVENT_TYPE'
-        )
-        (
-            'value'
-            'Mapping[str, Any]'
-            'return'
-            'str'
-        )
-    [Disassembly]
-        0       RESUME                          0
-        2       LOAD_CONST                      0: 'REOS CORE-006 transaction event contract.\n\nDeal and transaction milestone remain authoritative. This module creates a\ncanonical, transport-neutral transaction event. Kafka, outbox, retries,\nconsumer groups and DLQ behavior belong to CORE-002.\n'
-        4       STORE_NAME                      0: __doc__
-        6       LOAD_CONST                      1: 0
-        8       LOAD_CONST                      2: ('annotations',)
-        10      IMPORT_NAME                     1: __future__
-        12      IMPORT_FROM                     2: annotations
-        14      STORE_NAME                      2: annotations
-        16      POP_TOP
-        18      LOAD_CONST                      1: 0
-        20      LOAD_CONST                      3: ('dataclass', 'field')
-        22      IMPORT_NAME                     3: dataclasses
-        24      IMPORT_FROM                     4: dataclass
-        26      STORE_NAME                      4: dataclass
-        28      IMPORT_FROM                     5: field
-        30      STORE_NAME                      5: field
-        32      POP_TOP
-        34      LOAD_CONST                      1: 0
-        36      LOAD_CONST                      4: ('Any', 'Mapping')
-        38      IMPORT_NAME                     6: typing
-        40      IMPORT_FROM                     7: Any
-        42      STORE_NAME                      7: Any
-        44      IMPORT_FROM                     8: Mapping
-        46      STORE_NAME                      8: Mapping
-        48      POP_TOP
-        50      LOAD_CONST                      1: 0
-        52      LOAD_CONST                      5: None
-        54      IMPORT_NAME                     9: hashlib
-        56      STORE_NAME                      9: hashlib
-        58      LOAD_CONST                      1: 0
-        60      LOAD_CONST                      5: None
-        62      IMPORT_NAME                     10: json
-        64      STORE_NAME                      10: json
-        66      NOP
-        68      LOAD_CONST                      6: 1
-        70      LOAD_CONST                      7: ('DealTransactionMilestone',)
-        72      IMPORT_NAME                     11: deal_transaction_milestones
-        74      IMPORT_FROM                     12: DealTransactionMilestone
-        76      STORE_NAME                      12: DealTransactionMilestone
-        78      POP_TOP
-        80      LOAD_CONST                      8: '1.0'
-        82      STORE_NAME                      14: EVENT_SCHEMA_VERSION
-        84      LOAD_CONST                      9: 'DEAL_TRANSACTION_MILESTONE_CHANGED'
-        86      STORE_NAME                      15: TRANSACTION_EVENT_TYPE
-        88      LOAD_CONST                      10: 'deal_transaction_milestone'
-        90      STORE_NAME                      16: SOURCE_OF_TRUTH
-        92      LOAD_BUILD_CLASS
-        94      PUSH_NULL
-        96      LOAD_CONST                      11: <CODE> DealTransactionEventError
-        98      MAKE_FUNCTION
-        100     LOAD_CONST                      12: 'DealTransactionEventError'
-        102     LOAD_NAME                       17: ValueError
-        104     CALL                            3
-        112     STORE_NAME                      18: DealTransactionEventError
-        114     LOAD_BUILD_CLASS
-        116     PUSH_NULL
-        118     LOAD_CONST                      13: <CODE> DealTransactionEventScopeError
-        120     MAKE_FUNCTION
-        122     LOAD_CONST                      14: 'DealTransactionEventScopeError'
-        124     LOAD_NAME                       18: DealTransactionEventError
-        126     CALL                            3
-        134     STORE_NAME                      19: DealTransactionEventScopeError
-        136     LOAD_BUILD_CLASS
-        138     PUSH_NULL
-        140     LOAD_CONST                      15: <CODE> DealTransactionEventIntegrityError
-        142     MAKE_FUNCTION
-        144     LOAD_CONST                      16: 'DealTransactionEventIntegrityError'
-        146     LOAD_NAME                       18: DealTransactionEventError
-        148     CALL                            3
-        156     STORE_NAME                      20: DealTransactionEventIntegrityError
-        158     LOAD_CONST                      24: ('value', 'Mapping[str, Any]', 'return', 'str')
-        160     LOAD_CONST                      17: <CODE> _canonical_json
-        162     MAKE_FUNCTION
-        164     SET_FUNCTION_ATTRIBUTE          4 (MAKE_FUNCTION_ANNOTATIONS)
-        166     STORE_NAME                      21: _canonical_json
-        168     LOAD_CONST                      24: ('value', 'Mapping[str, Any]', 'return', 'str')
-        170     LOAD_CONST                      18: <CODE> _payload_hash
-        172     MAKE_FUNCTION
-        174     SET_FUNCTION_ATTRIBUTE          4 (MAKE_FUNCTION_ANNOTATIONS)
-        176     STORE_NAME                      22: _payload_hash
-        178     LOAD_NAME                       4: dataclass
-        180     PUSH_NULL
-        182     LOAD_CONST                      19: True
-        184     LOAD_CONST                      20: ('frozen',)
-        186     CALL_KW                         1
-        188     LOAD_BUILD_CLASS
-        190     PUSH_NULL
-        192     LOAD_CONST                      21: <CODE> DealTransactionEvent
-        194     MAKE_FUNCTION
-        196     LOAD_CONST                      22: 'DealTransactionEvent'
-        198     CALL                            2
-        206     CALL                            0
-        214     STORE_NAME                      23: DealTransactionEvent
-        216     BUILD_LIST                      0
-        218     LOAD_CONST                      23: ('DealTransactionEvent', 'DealTransactionEventError', 'DealTransactionEventIntegrityError', 'DealTransactionEventScopeError', 'EVENT_SCHEMA_VERSION', 'SOURCE_OF_TRUTH', 'TRANSACTION_EVENT_TYPE')
-        220     LIST_EXTEND                     1
-        222     STORE_NAME                      24: __all__
-        224     RETURN_CONST                    5: None
-        226     PUSH_EXC_INFO
-        228     LOAD_NAME                       13: ImportError
-        230     CHECK_EXC_MATCH
-        232     POP_JUMP_IF_FALSE               5 (to 244)
-        236     POP_TOP
-        238     LOAD_NAME                       7: Any
-        240     STORE_NAME                      12: DealTransactionMilestone
-        242     POP_EXCEPT
-        244     JUMP_BACKWARD_NO_INTERRUPT      83 (to 80)
-        246     RERAISE                         0
-        248     COPY                            3
-        250     POP_EXCEPT
-        252     RERAISE                         1
-    [Exception Table]
-        68 to 80 -> 226 [0]
-        226 to 242 -> 248 [1] lasti
-        246 to 248 -> 248 [1] lasti
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 3. Compile recovery sources BEFORE canonical install
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== RECOVERY COMPILE ===" -ForegroundColor Yellow
+=== RECOVERY COMPILE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m py_compile `
+>>     "$SRC\deal.py", `
+>>     "$SRC\deal_offer_negotiation.py", `
+>>     "$SRC\deal_transaction_milestones.py", `
+>>     "$SRC\deal_evidence_audit.py", `
+>>     "$SRC\deal_ownership_integration.py", `
+>>     "$SRC\deal_transaction_events.py"
+  File "AUTONOMY_ENGINE\core\CORE-006_RECOVERY\SOURCE_PY\deal.py", line 25
+    DealDomainError = __build_class__(<function>, "DealDomainError", ValueError)
+                                      ^
+SyntaxError: invalid syntax
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "RECOVERY COMPILE FAILED"
+>> }
+RECOVERY COMPILE FAILED
+At line:2 char:5
++     throw "RECOVERY COMPILE FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (RECOVERY COMPILE FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : RECOVERY COMPILE FAILED
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "RECOVERY COMPILE = PASS" -ForegroundColor Green
+RECOVERY COMPILE = PASS
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 4. Recreate canonical package
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> New-Item -ItemType Directory -Force $CAN | Out-Null
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $init = @'
+>> """REOS CORE-006 Deal & Transaction bounded domain."""
+>> '@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Content "$CAN\__init__.py" $init -Encoding UTF8
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($f in ($required + "deal_transaction_events.py")) {
+>>     Copy-Item "$SRC\$f" "$CAN\$f" -Force
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 5. Normalize local CORE-006 imports only
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> $localModules = @(
+>>     "deal",
+>>     "deal_offer_negotiation",
+>>     "deal_transaction_milestones",
+>>     "deal_evidence_audit",
+>>     "deal_ownership_integration",
+>>     "deal_transaction_events"
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($f in Get-ChildItem $CAN -Filter "*.py") {
+>>     if ($f.Name -eq "__init__.py") { continue }
+>>
+>>     $text = Get-Content $f.FullName -Raw
+>>
+>>     foreach ($m in $localModules) {
+>>         $text = $text -replace `
+>>             "(?m)^from\s+$m\s+import\s+", `
+>>             "from .$m import "
+>>
+>>         $text = $text -replace `
+>>             "(?m)^from\s+AUTONOMY_ENGINE\.core\.$m\s+import\s+", `
+>>             "from .$m import "
+>>     }
+>>
+>>     Set-Content $f.FullName $text -Encoding UTF8
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 6. Canonical compile
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CANONICAL COMPILE ===" -ForegroundColor Yellow
+=== CANONICAL COMPILE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m py_compile `
+>>     "$CAN\deal.py", `
+>>     "$CAN\deal_offer_negotiation.py", `
+>>     "$CAN\deal_transaction_milestones.py", `
+>>     "$CAN\deal_evidence_audit.py", `
+>>     "$CAN\deal_ownership_integration.py", `
+>>     "$CAN\deal_transaction_events.py"
+  File "AUTONOMY_ENGINE\core\deal_transaction\deal.py", line 25
+    DealDomainError = __build_class__(<function>, "DealDomainError", ValueError)
+                                      ^
+SyntaxError: invalid syntax
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "CANONICAL COMPILE FAILED"
+>> }
+CANONICAL COMPILE FAILED
+At line:2 char:5
++     throw "CANONICAL COMPILE FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (CANONICAL COMPILE FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : CANONICAL COMPILE FAILED
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CANONICAL COMPILE = PASS" -ForegroundColor Green
+CANONICAL COMPILE = PASS
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 7. Import smoke test
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> $env:PYTHONPATH = (Get-Location).Path
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -c @"
+>> from AUTONOMY_ENGINE.core.deal_transaction.deal import Deal
+>> from AUTONOMY_ENGINE.core.deal_transaction.deal_offer_negotiation import DealOffer
+>> from AUTONOMY_ENGINE.core.deal_transaction.deal_transaction_milestones import DealTransactionMilestone
+>> from AUTONOMY_ENGINE.core.deal_transaction.deal_evidence_audit import DealEvidenceReference
+>> from AUTONOMY_ENGINE.core.deal_transaction.deal_ownership_integration import DealOwnershipBinding
+>> from AUTONOMY_ENGINE.core.deal_transaction.deal_transaction_events import DealTransactionEvent
+>> print("CORE006 IMPORTS = PASS")
+>> print("Deal =", Deal.__name__)
+>> print("DealOffer =", DealOffer.__name__)
+>> print("DealTransactionMilestone =", DealTransactionMilestone.__name__)
+>> print("DealEvidenceReference =", DealEvidenceReference.__name__)
+>> print("DealOwnershipBinding =", DealOwnershipBinding.__name__)
+>> print("DealTransactionEvent =", DealTransactionEvent.__name__)
+>> "@
+  File "<string>", line 7
+    print(CORE006
+         ^
+SyntaxError: '(' was never closed
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "CORE-006 IMPORT SMOKE TEST FAILED"
+>> }
+CORE-006 IMPORT SMOKE TEST FAILED
+At line:2 char:5
++     throw "CORE-006 IMPORT SMOKE TEST FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (CORE-006 IMPORT SMOKE TEST FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : CORE-006 IMPORT SMOKE TEST FAILED
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CORE-006 CANONICAL FILES ===" -ForegroundColor Green
+=== CORE-006 CANONICAL FILES ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem $CAN -File |
+>>     Select-Object Name,Length |
+>>     Sort-Object Name
+
+Name                           Length
+----                           ------
+__init__.py                        59
+deal.py                          3055
+deal_evidence_audit.py           1123
+deal_offer_negotiation.py        2726
+deal_ownership_integration.py     690
+deal_transaction_events.py       6390
+deal_transaction_milestones.py   2726
