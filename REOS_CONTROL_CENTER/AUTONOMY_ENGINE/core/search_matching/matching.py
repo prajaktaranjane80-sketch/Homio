@@ -1,691 +1,663 @@
+"""
+CORE-005 / Point 05 — Matching Domain.
+
+Owns:
+- matching request contract
+- candidate selection
+- hard constraints
+- soft preferences
+- compatibility rules
+- match explanation
+- deterministic matching boundary
+
+Does NOT own:
+- search execution
+- ranking
+- ownership
+- commission
+- fraud
+- governance
+- AI business decisions
+- source-of-truth mutation
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-import re
-from typing import Iterable
+from typing import Iterable, Mapping
 
-from .search_ranking import RankedSearchResult
-
-
-_TOKEN_PATTERN = re.compile(r"[A-Za-z0-9]+")
-
-
-class MatchingError(ValueError):
-    """Base CORE-005 matching error."""
+from ..inventory.inventory import (
+    AvailabilityState,
+    InventoryType,
+)
+from .search_index_contract import InventoryIndexDocument
 
 
-class MatchingTenantError(MatchingError):
-    """Raised when a candidate crosses the tenant boundary."""
+class MatchingDomainError(ValueError):
+    """Base matching-domain error."""
 
 
-class MatchingConfigurationError(MatchingError):
-    """Raised when a matching profile is invalid."""
+class MatchingTenantError(MatchingDomainError):
+    """Raised for tenant-boundary violations."""
 
 
-class MatchingLimitError(MatchingError):
-    """Raised when a matching limit is invalid."""
+class MatchingCriteriaError(MatchingDomainError):
+    """Raised for invalid matching criteria."""
 
 
-class MatchingCandidateError(MatchingError):
-    """Raised when a matching candidate is malformed."""
+class MatchingCandidateError(MatchingDomainError):
+    """Raised for invalid matching candidates."""
 
 
-def _normalize_text(
+def _required_text(
     value: str,
-    *,
     field_name: str,
 ) -> str:
     if not isinstance(value, str):
-        raise MatchingConfigurationError(
+        raise MatchingCriteriaError(
             f"{field_name} must be a string."
         )
 
     normalized = value.strip()
 
     if not normalized:
-        raise MatchingConfigurationError(
+        raise MatchingCriteriaError(
             f"{field_name} cannot be empty."
         )
 
     return normalized
 
 
-def _normalize_set(
+def _normalize_strings(
     values: Iterable[str],
-    *,
     field_name: str,
-) -> frozenset[str]:
+) -> tuple[str, ...]:
     if isinstance(values, (str, bytes)):
-        raise MatchingConfigurationError(
-            f"{field_name} must be an iterable."
+        raise MatchingCriteriaError(
+            f"{field_name} must be iterable."
         )
 
     try:
-        normalized = frozenset(
-            _normalize_text(
-                value,
-                field_name=field_name,
-            ).casefold()
-            for value in values
-        )
+        iterator = iter(values)
     except TypeError as exc:
-        raise MatchingConfigurationError(
+        raise MatchingCriteriaError(
             f"{field_name} must be iterable."
         ) from exc
 
-    return normalized
+    normalized = {
+        _required_text(value, field_name)
+        for value in iterator
+    }
 
-
-def _tokens(value: str) -> frozenset[str]:
-    return frozenset(
-        token.casefold()
-        for token in _TOKEN_PATTERN.findall(
-            value
+    return tuple(
+        sorted(
+            normalized,
+            key=str.casefold,
         )
     )
 
 
-def _require_positive_limit(
-    value: int,
-) -> int:
-    if (
-        isinstance(value, bool)
-        or not isinstance(value, int)
-        or value < 1
-    ):
-        raise MatchingLimitError(
-            "limit must be a positive integer."
+def _normalize_enum_values(
+    values,
+    enum_type,
+    field_name: str,
+):
+    if isinstance(values, (str, bytes)):
+        raise MatchingCriteriaError(
+            f"{field_name} must be iterable."
         )
 
-    return value
+    try:
+        iterator = iter(values)
+    except TypeError as exc:
+        raise MatchingCriteriaError(
+            f"{field_name} must be iterable."
+        ) from exc
 
+    normalized = set()
 
-def _rank_relevance(
-    rank: int,
-) -> float:
-    if (
-        isinstance(rank, bool)
-        or not isinstance(rank, int)
-        or rank < 1
-    ):
-        raise MatchingCandidateError(
-            "candidate rank must be a positive integer."
+    for value in iterator:
+        try:
+            normalized.add(
+                enum_type(value)
+            )
+        except (TypeError, ValueError) as exc:
+            raise MatchingCriteriaError(
+                f"{field_name} contains invalid "
+                f"value: {value!r}."
+            ) from exc
+
+    return tuple(
+        sorted(
+            normalized,
+            key=lambda item: item.value,
         )
-
-    return 1.0 / float(rank)
+    )
 
 
 @dataclass(frozen=True, slots=True)
 class MatchingProfile:
     """
-    Immutable recommendation profile.
+    Immutable matching criteria.
 
-    Hard constraints:
-        required_inventory_types
-        required_project_ids
-        required_availability
-        excluded_keywords
-
-    Soft preferences:
-        preferred_inventory_types
-        preferred_project_ids
-        preferred_availability
-        preferred_inventory_codes
-        preferred_keywords
-
-    Matching remains deterministic and explainable.
-    It never makes an irreversible business decision.
+    Hard constraints must be satisfied.
+    Soft preferences contribute only to the explanation/score.
     """
 
     tenant_id: str
 
-    required_inventory_types: frozenset[str] = field(
-        default_factory=frozenset
-    )
-    required_project_ids: frozenset[str] = field(
-        default_factory=frozenset
-    )
-    required_availability: frozenset[str] = field(
-        default_factory=frozenset
-    )
+    required_inventory_types: tuple[
+        InventoryType, ...
+    ] = ()
 
-    preferred_inventory_types: frozenset[str] = field(
-        default_factory=frozenset
-    )
-    preferred_project_ids: frozenset[str] = field(
-        default_factory=frozenset
-    )
-    preferred_availability: frozenset[str] = field(
-        default_factory=frozenset
-    )
-    preferred_inventory_codes: frozenset[str] = field(
-        default_factory=frozenset
-    )
-    preferred_keywords: frozenset[str] = field(
-        default_factory=frozenset
-    )
+    required_project_ids: tuple[
+        str, ...
+    ] = ()
 
-    excluded_keywords: frozenset[str] = field(
-        default_factory=frozenset
-    )
+    required_availability: tuple[
+        AvailabilityState, ...
+    ] = ()
 
-    search_weight: float = 0.60
-    preference_weight: float = 0.40
+    excluded_keywords: tuple[
+        str, ...
+    ] = ()
 
-    limit: int = 20
+    preferred_inventory_types: tuple[
+        InventoryType, ...
+    ] = ()
+
+    preferred_project_ids: tuple[
+        str, ...
+    ] = ()
+
+    preferred_availability: tuple[
+        AvailabilityState, ...
+    ] = ()
+
+    preferred_inventory_codes: tuple[
+        str, ...
+    ] = ()
+
+    preferred_keywords: tuple[
+        str, ...
+    ] = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(
             self,
             "tenant_id",
-            _normalize_text(
+            _required_text(
                 self.tenant_id,
-                field_name="tenant_id",
+                "tenant_id",
             ),
         )
 
-        for field_name in (
+        object.__setattr__(
+            self,
             "required_inventory_types",
-            "required_project_ids",
-            "required_availability",
-            "preferred_inventory_types",
-            "preferred_project_ids",
-            "preferred_availability",
-            "preferred_inventory_codes",
-            "preferred_keywords",
-            "excluded_keywords",
-        ):
-            object.__setattr__(
-                self,
-                field_name,
-                _normalize_set(
-                    getattr(self, field_name),
-                    field_name=field_name,
-                ),
-            )
-
-        if (
-            isinstance(
-                self.search_weight,
-                bool,
-            )
-            or not isinstance(
-                self.search_weight,
-                (int, float),
-            )
-            or self.search_weight < 0
-        ):
-            raise MatchingConfigurationError(
-                "search_weight must be "
-                "a non-negative number."
-            )
-
-        if (
-            isinstance(
-                self.preference_weight,
-                bool,
-            )
-            or not isinstance(
-                self.preference_weight,
-                (int, float),
-            )
-            or self.preference_weight < 0
-        ):
-            raise MatchingConfigurationError(
-                "preference_weight must be "
-                "a non-negative number."
-            )
-
-        if (
-            self.search_weight
-            + self.preference_weight
-            <= 0
-        ):
-            raise MatchingConfigurationError(
-                "At least one matching weight "
-                "must be greater than zero."
-            )
+            _normalize_enum_values(
+                self.required_inventory_types,
+                InventoryType,
+                "required_inventory_types",
+            ),
+        )
 
         object.__setattr__(
             self,
-            "limit",
-            _require_positive_limit(
-                self.limit
+            "required_project_ids",
+            _normalize_strings(
+                self.required_project_ids,
+                "required_project_ids",
+            ),
+        )
+
+        object.__setattr__(
+            self,
+            "required_availability",
+            _normalize_enum_values(
+                self.required_availability,
+                AvailabilityState,
+                "required_availability",
+            ),
+        )
+
+        object.__setattr__(
+            self,
+            "excluded_keywords",
+            _normalize_strings(
+                self.excluded_keywords,
+                "excluded_keywords",
+            ),
+        )
+
+        object.__setattr__(
+            self,
+            "preferred_inventory_types",
+            _normalize_enum_values(
+                self.preferred_inventory_types,
+                InventoryType,
+                "preferred_inventory_types",
+            ),
+        )
+
+        object.__setattr__(
+            self,
+            "preferred_project_ids",
+            _normalize_strings(
+                self.preferred_project_ids,
+                "preferred_project_ids",
+            ),
+        )
+
+        object.__setattr__(
+            self,
+            "preferred_availability",
+            _normalize_enum_values(
+                self.preferred_availability,
+                AvailabilityState,
+                "preferred_availability",
+            ),
+        )
+
+        object.__setattr__(
+            self,
+            "preferred_inventory_codes",
+            _normalize_strings(
+                self.preferred_inventory_codes,
+                "preferred_inventory_codes",
+            ),
+        )
+
+        object.__setattr__(
+            self,
+            "preferred_keywords",
+            _normalize_strings(
+                self.preferred_keywords,
+                "preferred_keywords",
             ),
         )
 
 
 @dataclass(frozen=True, slots=True)
 class MatchExplanation:
-    """Immutable explanation of deterministic matching signals."""
+    """
+    Transparent deterministic explanation.
 
-    search_relevance: float
-    preference_score: float
-    matched_signals: tuple[str, ...]
-    rejected_signals: tuple[str, ...]
+    This is explanatory metadata, not an autonomous business decision.
+    """
+
+    hard_constraints_passed: tuple[str, ...]
+    soft_preferences_matched: tuple[str, ...]
+    soft_preferences_missed: tuple[str, ...]
+    excluded_reasons: tuple[str, ...] = ()
+
+    @property
+    def hard_constraint_count(self) -> int:
+        return len(self.hard_constraints_passed)
+
+    @property
+    def preference_match_count(self) -> int:
+        return len(self.soft_preferences_matched)
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "hard_constraints_passed": list(
+                self.hard_constraints_passed
+            ),
+            "soft_preferences_matched": list(
+                self.soft_preferences_matched
+            ),
+            "soft_preferences_missed": list(
+                self.soft_preferences_missed
+            ),
+            "excluded_reasons": list(
+                self.excluded_reasons
+            ),
+        }
 
 
 @dataclass(frozen=True, slots=True)
 class MatchRecommendation:
-    """Final deterministic recommendation candidate."""
+    """
+    Deterministic matching result.
 
-    candidate: RankedSearchResult
-    match_score: float
-    search_relevance: float
-    preference_score: float
-    rank: int
+    The result remains advisory/explanatory.
+    No business action is triggered.
+    """
+
+    document: InventoryIndexDocument
+    score: float
     explanation: MatchExplanation
 
-    @property
-    def document(self):
-        return self.candidate.document
+    def __post_init__(self) -> None:
+        if not isinstance(
+            self.document,
+            InventoryIndexDocument,
+        ):
+            raise MatchingCandidateError(
+                "document must be InventoryIndexDocument."
+            )
 
-    @property
-    def inventory_id(self) -> str:
-        return self.candidate.inventory_id
-
-    @property
-    def inventory_code(self) -> str:
-        return self.candidate.inventory_code
+        if not isinstance(self.score, (int, float)):
+            raise MatchingDomainError(
+                "score must be numeric."
+            )
 
     @property
     def tenant_id(self) -> str:
-        return self.candidate.tenant_id
+        return self.document.tenant_id
 
     @property
-    def project_id(self) -> str:
-        return self.document.project_id
+    def inventory_id(self) -> str:
+        return self.document.inventory_id
+
+    @property
+    def index_key(self) -> str:
+        return self.document.index_key
 
 
-def _extract_candidate_document(
-    candidate: RankedSearchResult,
-):
-    if not isinstance(
-        candidate,
-        RankedSearchResult,
-    ):
-        raise MatchingCandidateError(
-            "candidate must be RankedSearchResult."
+def _document_text(
+    document: InventoryIndexDocument,
+) -> str:
+    return " ".join(
+        (
+            document.name,
+            document.inventory_code,
+            document.inventory_type,
+            document.project_id,
+            document.lifecycle,
+            document.availability,
         )
-
-    document = candidate.document
-
-    required = (
-        "tenant_id",
-        "project_id",
-        "inventory_id",
-        "inventory_code",
-        "inventory_type",
-        "name",
-        "availability",
-        "index_key",
-    )
-
-    for field_name in required:
-        if not hasattr(
-            document,
-            field_name,
-        ):
-            raise MatchingCandidateError(
-                f"candidate document is missing "
-                f"{field_name}."
-            )
-
-    return document
-
-
-def _hard_constraints_pass(
-    document,
-    profile: MatchingProfile,
-) -> tuple[bool, tuple[str, ...]]:
-    rejected: list[str] = []
-
-    inventory_type = str(
-        document.inventory_type
     ).casefold()
-
-    project_id = str(
-        document.project_id
-    ).casefold()
-
-    availability = str(
-        document.availability
-    ).casefold()
-
-    name_tokens = _tokens(
-        str(document.name)
-    )
-
-    inventory_code = str(
-        document.inventory_code
-    ).casefold()
-
-    if (
-        profile.required_inventory_types
-        and inventory_type
-        not in profile.required_inventory_types
-    ):
-        rejected.append(
-            "required_inventory_type"
-        )
-
-    if (
-        profile.required_project_ids
-        and project_id
-        not in profile.required_project_ids
-    ):
-        rejected.append(
-            "required_project_id"
-        )
-
-    if (
-        profile.required_availability
-        and availability
-        not in profile.required_availability
-    ):
-        rejected.append(
-            "required_availability"
-        )
-
-    if (
-        profile.excluded_keywords
-        and name_tokens.intersection(
-            profile.excluded_keywords
-        )
-    ):
-        rejected.append(
-            "excluded_keyword"
-        )
-
-    if (
-        profile.excluded_keywords
-        and any(
-            keyword
-            in inventory_code
-            for keyword
-            in profile.excluded_keywords
-        )
-    ):
-        rejected.append(
-            "excluded_inventory_code"
-        )
-
-    return (
-        not rejected,
-        tuple(rejected),
-    )
-
-
-def _preference_score(
-    document,
-    profile: MatchingProfile,
-) -> tuple[
-    float,
-    tuple[str, ...],
-]:
-    matched: list[str] = []
-    score = 0.0
-    maximum = 0.0
-
-    inventory_type = str(
-        document.inventory_type
-    ).casefold()
-
-    project_id = str(
-        document.project_id
-    ).casefold()
-
-    availability = str(
-        document.availability
-    ).casefold()
-
-    inventory_code = str(
-        document.inventory_code
-    ).casefold()
-
-    name_tokens = _tokens(
-        str(document.name)
-    )
-
-    if profile.preferred_inventory_types:
-        maximum += 1.0
-
-        if (
-            inventory_type
-            in profile.preferred_inventory_types
-        ):
-            score += 1.0
-            matched.append(
-                "preferred_inventory_type"
-            )
-
-    if profile.preferred_project_ids:
-        maximum += 1.0
-
-        if (
-            project_id
-            in profile.preferred_project_ids
-        ):
-            score += 1.0
-            matched.append(
-                "preferred_project"
-            )
-
-    if profile.preferred_availability:
-        maximum += 1.0
-
-        if (
-            availability
-            in profile.preferred_availability
-        ):
-            score += 1.0
-            matched.append(
-                "preferred_availability"
-            )
-
-    if profile.preferred_inventory_codes:
-        maximum += 1.0
-
-        if (
-            inventory_code
-            in profile.preferred_inventory_codes
-        ):
-            score += 1.0
-            matched.append(
-                "preferred_inventory_code"
-            )
-
-    if profile.preferred_keywords:
-        maximum += 1.0
-
-        keyword_coverage = (
-            len(
-                name_tokens.intersection(
-                    profile.preferred_keywords
-                )
-            )
-            / len(
-                profile.preferred_keywords
-            )
-        )
-
-        if keyword_coverage > 0:
-            score += keyword_coverage
-            matched.append(
-                "preferred_keywords"
-            )
-
-    if maximum <= 0:
-        return (
-            0.0,
-            tuple(),
-        )
-
-    return (
-        score / maximum,
-        tuple(
-            sorted(
-                matched
-            )
-        ),
-    )
 
 
 @dataclass(frozen=True, slots=True)
 class MatchingRecommendationPipeline:
     """
-    Deterministic matching/recommendation layer.
+    Deterministic matching pipeline.
 
-    Inputs:
-        T05 ranked search candidates.
+    Hard constraints eliminate candidates.
+    Soft preferences score remaining candidates.
 
-    Outputs:
-        explainable match recommendations.
-
-    Does not:
-        mutate inventory
-        modify ownership
-        authorize users
-        calculate commission
-        invoke AI decisions
+    The final ordering is deterministic by:
+        score DESC
+        index_key ASC
     """
+
+    def _tenant_guard(
+        self,
+        profile: MatchingProfile,
+        document: InventoryIndexDocument,
+    ) -> None:
+        if document.tenant_id != profile.tenant_id:
+            raise MatchingTenantError(
+                "Matching candidate belongs to another tenant."
+            )
+
+    def _evaluate(
+        self,
+        profile: MatchingProfile,
+        document: InventoryIndexDocument,
+    ) -> MatchRecommendation | None:
+        self._tenant_guard(
+            profile,
+            document,
+        )
+
+        passed: list[str] = []
+        matched: list[str] = []
+        missed: list[str] = []
+        excluded: list[str] = []
+
+        inventory_type = InventoryType(
+            document.inventory_type
+        )
+
+        availability = AvailabilityState(
+            document.availability
+        )
+
+        # Hard constraint: inventory type.
+        if profile.required_inventory_types:
+            if (
+                inventory_type
+                not in profile.required_inventory_types
+            ):
+                excluded.append(
+                    "required_inventory_type_mismatch"
+                )
+            else:
+                passed.append(
+                    "required_inventory_type"
+                )
+
+        # Hard constraint: project.
+        if profile.required_project_ids:
+            if (
+                document.project_id
+                not in profile.required_project_ids
+            ):
+                excluded.append(
+                    "required_project_mismatch"
+                )
+            else:
+                passed.append(
+                    "required_project"
+                )
+
+        # Hard constraint: availability.
+        if profile.required_availability:
+            if (
+                availability
+                not in profile.required_availability
+            ):
+                excluded.append(
+                    "required_availability_mismatch"
+                )
+            else:
+                passed.append(
+                    "required_availability"
+                )
+
+        # Hard constraint: excluded keywords.
+        text = _document_text(document)
+
+        for keyword in profile.excluded_keywords:
+            if keyword.casefold() in text:
+                excluded.append(
+                    f"excluded_keyword:{keyword}"
+                )
+
+        if excluded:
+            return None
+
+        score = 0.0
+
+        if profile.required_inventory_types:
+            score += 1.0
+
+        if profile.required_project_ids:
+            score += 1.0
+
+        if profile.required_availability:
+            score += 1.0
+
+        # Soft inventory-type preference.
+        if profile.preferred_inventory_types:
+            if (
+                inventory_type
+                in profile.preferred_inventory_types
+            ):
+                score += 2.0
+                matched.append(
+                    "preferred_inventory_type"
+                )
+            else:
+                missed.append(
+                    "preferred_inventory_type"
+                )
+
+        # Soft project preference.
+        if profile.preferred_project_ids:
+            if (
+                document.project_id
+                in profile.preferred_project_ids
+            ):
+                score += 2.0
+                matched.append(
+                    "preferred_project"
+                )
+            else:
+                missed.append(
+                    "preferred_project"
+                )
+
+        # Soft availability preference.
+        if profile.preferred_availability:
+            if (
+                availability
+                in profile.preferred_availability
+            ):
+                score += 2.0
+                matched.append(
+                    "preferred_availability"
+                )
+            else:
+                missed.append(
+                    "preferred_availability"
+                )
+
+        # Soft inventory-code preference.
+        if profile.preferred_inventory_codes:
+            if (
+                document.inventory_code
+                in profile.preferred_inventory_codes
+            ):
+                score += 3.0
+                matched.append(
+                    "preferred_inventory_code"
+                )
+            else:
+                missed.append(
+                    "preferred_inventory_code"
+                )
+
+        # Soft keyword preference.
+        if profile.preferred_keywords:
+            keyword_matches = [
+                keyword
+                for keyword
+                in profile.preferred_keywords
+                if keyword.casefold() in text
+            ]
+
+            if keyword_matches:
+                score += (
+                    1.0
+                    * len(keyword_matches)
+                )
+
+                matched.append(
+                    "preferred_keywords"
+                )
+            else:
+                missed.append(
+                    "preferred_keywords"
+                )
+
+        explanation = MatchExplanation(
+            hard_constraints_passed=tuple(
+                passed
+            ),
+            soft_preferences_matched=tuple(
+                matched
+            ),
+            soft_preferences_missed=tuple(
+                missed
+            ),
+            excluded_reasons=(),
+        )
+
+        return MatchRecommendation(
+            document=document,
+            score=score,
+            explanation=explanation,
+        )
 
     def match(
         self,
-        candidates: Iterable[
-            RankedSearchResult
-        ],
-        *,
         profile: MatchingProfile,
-    ) -> tuple[
-        MatchRecommendation,
-        ...,
-    ]:
+        candidates: Iterable[
+            InventoryIndexDocument
+        ],
+    ) -> tuple[MatchRecommendation, ...]:
         if not isinstance(
             profile,
             MatchingProfile,
         ):
-            raise MatchingConfigurationError(
+            raise MatchingCriteriaError(
                 "profile must be MatchingProfile."
             )
 
-        materialized = tuple(
-            candidates
-        )
+        if isinstance(
+            candidates,
+            (str, bytes),
+        ):
+            raise MatchingCandidateError(
+                "candidates must be iterable."
+            )
 
-        recommendations: list[
+        materialized = list(candidates)
+
+        seen: set[str] = set()
+        results: list[
             MatchRecommendation
         ] = []
 
-        for candidate in materialized:
-            document = _extract_candidate_document(
-                candidate
-            )
-
-            # Defense-in-depth: tenant must never cross here.
-            if (
-                document.tenant_id
-                != profile.tenant_id
+        for document in materialized:
+            if not isinstance(
+                document,
+                InventoryIndexDocument,
             ):
-                raise MatchingTenantError(
-                    "Matching candidate belongs to "
-                    "another tenant."
+                raise MatchingCandidateError(
+                    "candidates must contain "
+                    "InventoryIndexDocument values."
                 )
 
-            hard_pass, rejected = (
-                _hard_constraints_pass(
-                    document,
-                    profile,
+            if document.index_key in seen:
+                raise MatchingCandidateError(
+                    "Duplicate candidate identity detected."
                 )
+
+            seen.add(
+                document.index_key
             )
 
-            if not hard_pass:
-                continue
-
-            search_relevance = _rank_relevance(
-                candidate.rank
+            result = self._evaluate(
+                profile,
+                document,
             )
 
-            preference_score, matched = (
-                _preference_score(
-                    document,
-                    profile,
-                )
-            )
+            if result is not None:
+                results.append(result)
 
-            total_weight = (
-                profile.search_weight
-                + profile.preference_weight
-            )
-
-            match_score = (
-                (
-                    profile.search_weight
-                    * search_relevance
-                )
-                + (
-                    profile.preference_weight
-                    * preference_score
-                )
-            ) / total_weight
-
-            recommendations.append(
-                MatchRecommendation(
-                    candidate=candidate,
-                    match_score=match_score,
-                    search_relevance=search_relevance,
-                    preference_score=preference_score,
-                    rank=0,
-                    explanation=MatchExplanation(
-                        search_relevance=search_relevance,
-                        preference_score=preference_score,
-                        matched_signals=tuple(
-                            sorted(
-                                matched
-                            )
-                        ),
-                        rejected_signals=rejected,
-                    ),
-                )
-            )
-
-        recommendations.sort(
-            key=lambda item: (
-                -item.match_score,
-                -item.preference_score,
-                -item.search_relevance,
-                item.document.index_key.casefold(),
+        results.sort(
+            key=lambda result: (
+                -result.score,
+                result.index_key.casefold(),
             )
         )
 
-        limited = recommendations[
-            :profile.limit
-        ]
-
-        return tuple(
-            MatchRecommendation(
-                candidate=item.candidate,
-                match_score=item.match_score,
-                search_relevance=item.search_relevance,
-                preference_score=item.preference_score,
-                rank=position,
-                explanation=item.explanation,
-            )
-            for position, item in enumerate(
-                limited,
-                start=1,
-            )
-        )
+        return tuple(results)
 
 
 __all__ = [
+    "MatchingDomainError",
+    "MatchingTenantError",
+    "MatchingCriteriaError",
+    "MatchingCandidateError",
+    "MatchingProfile",
     "MatchExplanation",
     "MatchRecommendation",
-    "MatchingCandidateError",
-    "MatchingConfigurationError",
-    "MatchingError",
-    "MatchingLimitError",
-    "MatchingProfile",
     "MatchingRecommendationPipeline",
-    "MatchingTenantError",
 ]
