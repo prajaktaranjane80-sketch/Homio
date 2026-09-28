@@ -1,43 +1,52 @@
-PS D:\Homio\REOS_CONTROL_CENTER> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -c "import decompyle3; from decompyle3.main import decompile_file; print('decompyle3=',decompyle3.__file__)"
+decompyle3= C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\decompyle3\__init__.py
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $Refactor = "80d6f276836bec3655535173c88e067d3c76bfbb"
-PS D:\HOMIO\REOS_CONTROL_CENTER> $Parent = (git rev-list --parents -n 1 $Refactor).Split()[1]
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CORE-006 ORIGINAL PARENT ===" -ForegroundColor Cyan
-=== CORE-006 ORIGINAL PARENT ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git show --no-patch --format="PARENT=%H`nDATE=%ci`nMESSAGE=%s" $Parent
-PARENT=d5f837e91bd5e69a16a37929a7245b82cec1dc0c
-DATE=2026-09-25 11:40:21 +0530
-MESSAGE=Update PS Output
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $Recovery = "AUTONOMY_ENGINE\core\CORE-006_RECOVERY\ORIGINAL_SOURCE"
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (Test-Path $Recovery) {
->>     Remove-Item $Recovery -Recurse -Force
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Map = [ordered]@{
+>>     "3a343f9801ac509cc5510c47deed6db6a1fa8bc6" = "deal.py"
+>>     "40b874860ce5a22416a4ce193c5bac03a2be50a9" = "deal_offer_negotiation.py"
+>>     "bb877339cce528c8578141bb4e816946dcd0c833" = "deal_transaction_milestones.py"
+>>     "b7c6914cf36f472dce987821c4b41a5c149a8e64" = "deal_ownership_integration.py"
+>>     "2298b6d754c221625a48beee9627a779812415aa" = "deal_evidence_audit.py"
+>>     "bff8e01520d1eb4b04d9a2e9e60a8c9df6b3c43e" = "deal_transaction_events.py"
 >> }
-PS D:\HOMIO\REOS_CONTROL_CENTER> New-Item -ItemType Directory -Force -Path $Recovery | Out-Null
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $Paths = git ls-tree -r --full-tree --name-only $Parent |
->>     Where-Object {
->>         $_ -match "^REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/.*deal.*\.py$" -or
->>         $_ -match "^REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/.*deal.*\.bak$"
+PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($sha in $Map.Keys) {
+>>     $pyc = Join-Path $Raw "$sha.pyc"
+>>     $out = Join-Path $Src $Map[$sha]
+>>
+>>     if (-not (Test-Path $pyc)) {
+>>         throw "Missing recovery blob: $sha"
 >>     }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== ORIGINAL CORE-006 FILES ===" -ForegroundColor Green
-=== ORIGINAL CORE-006 FILES ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> $Paths | ForEach-Object { Write-Host $_ }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($Path in $Paths) {
->>     $Relative = $Path -replace "^REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/",""
->>     $Dest = Join-Path $Recovery $Relative
 >>
->>     New-Item -ItemType Directory -Force -Path (Split-Path $Dest) | Out-Null
+>>     Write-Host "=== RECOVER $($Map[$sha]) ===" -ForegroundColor Cyan
 >>
->>     git show "${Parent}:$Path" |
->>         Set-Content -Path $Dest -Encoding UTF8
+>>     python -c "from decompyle3.main import decompile_file; import sys; decompile_file(sys.argv[1], sys.argv[2])" $pyc $out
+>>
+>>     if ($LASTEXITCODE -ne 0) {
+>>         throw "Decompilation failed: $($Map[$sha])"
+>>     }
 >> }
+=== RECOVER deal.py ===
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\decompyle3\main.py", line 239, in decompile_file
+    decompile(
+  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\decompyle3\main.py", line 107, in decompile
+    write(
+  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\decompyle3\main.py", line 98, in write
+    real_out.write(s)
+    ^^^^^^^^^^^^^^
+AttributeError: 'str' object has no attribute 'write'
+Decompilation failed: deal.py
+At line:14 char:9
++         throw "Decompilation failed: $($Map[$sha])"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Decompilation failed: deal.py:String) [], RuntimeException
+    + FullyQualifiedErrorId : Decompilation failed: deal.py
+
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== RECOVERED ORIGINAL SOURCE ===" -ForegroundColor Green
-=== RECOVERED ORIGINAL SOURCE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem $Recovery -Recurse -File |
->>     Select-Object FullName,Length |
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CORE-006 SOURCE RECOVERED ===" -ForegroundColor Green
+=== CORE-006 SOURCE RECOVERED ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem $Src -File |
+>>     Select-Object Name,Length |
 >>     Sort-Object Length -Descending
