@@ -1,138 +1,62 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 1. CURRENT GIT STATUS ===" -ForegroundColor Cyan
-
-=== 1. CURRENT GIT STATUS ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
-D  AUTONOMY_ENGINE/core/deal_transaction/CORE-006_FINAL_UPGRADE.txt
-D  AUTONOMY_ENGINE/core/deal_transaction/__init__.py
-D  AUTONOMY_ENGINE/core/deal_transaction/apply_CORE-006_FINAL_UPGRADE.ps1
-D  AUTONOMY_ENGINE/core/deal_transaction/deal.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_authorization.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_concurrency.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_consistency.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_external_contracts.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_freeze.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_integrity.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_milestones.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_workflow.py
-D  AUTONOMY_ENGINE/core/deal_transaction/manifest.json
-D  AUTONOMY_ENGINE/core/deal_transaction/test_deal.py
-D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py
-D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py
-D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py
-D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py
-D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py
-D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
-D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py
- M AUTONOMY_ENGINE/core/search_matching/projection_sync.py
- M AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
- M AUTONOMY_ENGINE/core/search_matching/reos_integration.py
- M AUTONOMY_ENGINE/core/search_matching/search_consistency.py
- M AUTONOMY_ENGINE/core/search_matching/search_domain.py
- M AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py
- M AUTONOMY_ENGINE/core/search_matching/test_matching.py
-?? AUTONOMY_ENGINE/core/CORE-006_RECOVERY/
-?? AUTONOMY_ENGINE/core/deal_transaction/
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 2. STASHES ===" -ForegroundColor Cyan
-
-=== 2. STASHES ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git stash list --date=local
-stash@{Mon Sep 28 18:15:35 2026}: On reos-development: preserve local CORE005 before full remote reconcile
-stash@{Sun Sep 27 21:11:49 2026}: On reos-development: pre-core-005-clean-rebuild
-stash@{Sun Sep 27 19:35:54 2026}: On reos-development: pre-core004-origin-sync
-stash@{Fri Sep 25 17:55:24 2026}: On reos-development: BACKUP before CORE-001 remote sync 2026-09-25
-stash@{Fri Sep 25 11:48:13 2026}: On reos-development: SAFE-SYNC-BEFORE-CORE-LAYER-PUSH
-stash@{Tue Sep 22 21:32:28 2026}: On reos-development: TEMP before reos-development sync
-stash@{Tue Sep 8 20:27:06 2026}: On reos-development: preserve non-T15 local work
-stash@{Tue Sep 8 18:52:28 2026}: On reos-development: preserve non-T14 local work
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 3. CORE-006 BACKUP FOLDER ===" -ForegroundColor Cyan
-
-=== 3. CORE-006 BACKUP FOLDER ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> $B = "REOS_LAYER_BACKUP_20260924_201807"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (Test-Path $B) {
->>     Get-ChildItem $B -File |
->>         Where-Object { $_.Name -match 'deal_transaction|test_deal' } |
->>         Select-Object Name,Length,LastWriteTime |
->>         Sort-Object Name
->> } else {
->>     Write-Host "BACKUP FOLDER NOT FOUND LOCALLY" -ForegroundColor Red
->> }
-BACKUP FOLDER NOT FOUND LOCALLY
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 4. CURRENT BROKEN CANONICAL DEAL ===" -ForegroundColor Cyan
-
-=== 4. CURRENT BROKEN CANONICAL DEAL ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Item "AUTONOMY_ENGINE\core\deal_transaction\deal.py" -ErrorAction SilentlyContinue |
->>     Select-Object FullName,Length,LastWriteTime
-
-FullName                                                                   Length LastWriteTime
---------                                                                   ------ -------------
-D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py   3055 9/28/2026 7:49:26 PM
-
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (Test-Path "AUTONOMY_ENGINE\core\deal_transaction\deal.py") {
->>     Get-Content "AUTONOMY_ENGINE\core\deal_transaction\deal.py" -TotalCount 45
->> }
-annotations = annotations
-__import__('__future__')
-dataclass = dataclass
-field = field
-replace = replace
-__import__('dataclasses')
-datetime = datetime
-timezone = timezone
-__import__('datetime')
-DealOffer = DealOffer
-DealOfferStatus = DealOfferStatus
-DealNegotiation = DealNegotiation
-DealNegotiationStatus = DealNegotiationStatus
-__import__('deal_offer_negotiation')
-Enum = Enum
-__import__('enum')
-Any = Any
-__import__('typing')
-uuid4 = uuid4
-__import__('uuid')
-DealTransactionMilestone = DealTransactionMilestone
-__import__('deal_transaction_milestones')
-DealOwnershipBinding = DealOwnershipBinding
-__import__('deal_ownership_integration')
-DealDomainError = __build_class__(<function>, "DealDomainError", ValueError)
-DealTransitionError = __build_class__(<function>, "DealTransitionError", DealDomainError)
-DealTenantError = __build_class__(<function>, "DealTenantError", DealDomainError)
-DealConcurrencyError = __build_class__(<function>, "DealConcurrencyError", DealDomainError)
-DealReferenceConflictError = __build_class__(<function>, "DealReferenceConflictError", DealDomainError)
-DealValidationError = __build_class__(<function>, "DealValidationError", DealDomainError)
-DealPartyRole = __build_class__(<function>, "DealPartyRole", str, Enum)
-DealPartyRelationship = __build_class__(<function>, "DealPartyRelationship")()
-DealStatus = __build_class__(<function>, "DealStatus", str, Enum)
-DealHistoryEntry = __build_class__(<function>, "DealHistoryEntry")()
-_NOMINAL_TRANSITIONS = {DealStatus.DISPUTED: frozenset(), DealStatus.FRAUD_BLOCKED: frozenset()}
-"dict[DealStatus, frozenset[DealStatus]]"[__annotations__] = "_NOMINAL_TRANSITIONS"
-_PRE_BOOKING_EXPIRY_STATES = frozenset({DealStatus.QUALIFIED, DealStatus.MATCHED, DealStatus.VISIT_PENDING, DealStatus.VISITED, DealStatus.OFFERED, DealStatus.NEGOTIATING, DealStatus.BOOKING_PENDING, DealStatus.AGREEMENT_PENDING})
-_REJECTION_STATES = frozenset({DealStatus.QUALIFIED, DealStatus.MATCHED, DealStatus.VISIT_PENDING, DealStatus.VISITED, DealStatus.OFFERED, DealStatus.NEGOTIATING, DealStatus.BOOKING_PENDING, DealStatus.AGREEMENT_PENDING})
-_DISPUTE_STATES = frozenset({DealStatus.BOOKED, DealStatus.AGREEMENT_PENDING, DealStatus.AGREED, DealStatus.REGISTRATION_PENDING, DealStatus.REGISTERED, DealStatus.COMPLETION_PENDING})
-_NON_TERMINAL_STATES = frozenset({DealStatus.QUALIFIED, DealStatus.MATCHED, DealStatus.VISIT_PENDING, DealStatus.VISITED, DealStatus.OFFERED, DealStatus.NEGOTIATING, DealStatus.BOOKING_PENDING, DealStatus.BOOKED, DealStatus.AGREEMENT_PENDING, DealStatus.AGREED, DealStatus.REGISTRATION_PENDING, DealStatus.REGISTERED, DealStatus.COMPLETION_PENDING})
-_require_id = <function>
-_coerce_datetime = <function>
-Deal = __build_class__(<function>, "Deal")()
-__all__ = ("Deal", "DealOffer", "DealOfferStatus", "DealNegotiation", "DealNegotiationStatus", "DealStatus", "DealHistoryEntry", "DealDomainError", "DealTransitionError", "DealTenantError", "DealConcurrencyError", "DealReferenceConflictError", "DealValidationError")
-return
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 5. SAFE-SYNC STASH CONTENT ===" -ForegroundColor Cyan
-
-=== 5. SAFE-SYNC STASH CONTENT ===
 PS D:\HOMIO\REOS_CONTROL_CENTER> git stash list | Select-String "SAFE-SYNC-BEFORE-CORE-LAYER-PUSH"
 
 stash@{4}: On reos-development: SAFE-SYNC-BEFORE-CORE-LAYER-PUSH
 
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $S = "stash@{4}"
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== STASH PARENTS ===" -ForegroundColor Cyan
+=== STASH PARENTS ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git rev-parse "$S^1"
+aceb645e91834e788487a61ab161c7a70316ec8b
+PS D:\HOMIO\REOS_CONTROL_CENTER> git rev-parse "$S^2"
+a2a6484595560c0c65738e1c4614dcabcaf53249
+PS D:\HOMIO\REOS_CONTROL_CENTER> git rev-parse "$S^3" 2>$null
+47750b0a0e0b2f6dc2f23ca597d7630b93663703
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== STASH TRACKED CORE-006 FILES ===" -ForegroundColor Cyan
+
+=== STASH TRACKED CORE-006 FILES ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git ls-tree -r "$S" --name-only |
+>>     Select-String "deal_transaction|test_deal"
+
+AUTONOMY_ENGINE/core/deal_transaction/CORE-006_FINAL_UPGRADE.txt
+AUTONOMY_ENGINE/core/deal_transaction/__init__.py
+AUTONOMY_ENGINE/core/deal_transaction/apply_CORE-006_FINAL_UPGRADE.ps1
+AUTONOMY_ENGINE/core/deal_transaction/deal.py
+AUTONOMY_ENGINE/core/deal_transaction/deal_authorization.py
+AUTONOMY_ENGINE/core/deal_transaction/deal_concurrency.py
+AUTONOMY_ENGINE/core/deal_transaction/deal_consistency.py
+AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
+AUTONOMY_ENGINE/core/deal_transaction/deal_external_contracts.py
+AUTONOMY_ENGINE/core/deal_transaction/deal_freeze.py
+AUTONOMY_ENGINE/core/deal_transaction/deal_integrity.py
+AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py
+AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py
+AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
+AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_milestones.py
+AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
+AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_workflow.py
+AUTONOMY_ENGINE/core/deal_transaction/test_deal.py
+AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py
+AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py
+AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py
+AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py
+AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py
+AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
+AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py
+
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== STASH UNTRACKED/BACKUP PARENT ===" -ForegroundColor Cyan
+
+=== STASH UNTRACKED/BACKUP PARENT ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> $U = git rev-parse "$S^3" 2>$null
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -eq 0 -and $U) {
+>>     git ls-tree -r "$U" --name-only |
+>>         Select-String "REOS_LAYER_BACKUP_20260924_201807|deal_transaction|test_deal"
+>> } else {
+>>     Write-Host "NO THIRD STASH PARENT" -ForegroundColor Yellow
+>> }
