@@ -1,52 +1,62 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -c "import decompyle3; from decompyle3.main import decompile_file; print('decompyle3=',decompyle3.__file__)"
-decompyle3= C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\decompyle3\__init__.py
+PS C:\Users\Sandip RanjanePatil> Set-Location "D:\Homio\REOS_CONTROL_CENTER"
+PS D:\Homio\REOS_CONTROL_CENTER> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $Map = [ordered]@{
->>     "3a343f9801ac509cc5510c47deed6db6a1fa8bc6" = "deal.py"
->>     "40b874860ce5a22416a4ce193c5bac03a2be50a9" = "deal_offer_negotiation.py"
->>     "bb877339cce528c8578141bb4e816946dcd0c833" = "deal_transaction_milestones.py"
->>     "b7c6914cf36f472dce987821c4b41a5c149a8e64" = "deal_ownership_integration.py"
->>     "2298b6d754c221625a48beee9627a779812415aa" = "deal_evidence_audit.py"
->>     "bff8e01520d1eb4b04d9a2e9e60a8c9df6b3c43e" = "deal_transaction_events.py"
->> }
+PS D:\HOMIO\REOS_CONTROL_CENTER> $R = "AUTONOMY_ENGINE\core\CORE-006_RECOVERY"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Raw = "$R\RAW"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Src = "$R\SOURCE_PY"
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($sha in $Map.Keys) {
->>     $pyc = Join-Path $Raw "$sha.pyc"
->>     $out = Join-Path $Src $Map[$sha]
+PS D:\HOMIO\REOS_CONTROL_CENTER> Remove-Item $Src -Recurse -Force -ErrorAction SilentlyContinue
+PS D:\HOMIO\REOS_CONTROL_CENTER> New-Item -ItemType Directory -Force -Path $Src | Out-Null
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> @'
+>> from pathlib import Path
+>> from decompyle3.main import decompile_file
 >>
->>     if (-not (Test-Path $pyc)) {
->>         throw "Missing recovery blob: $sha"
->>     }
+>> raw = Path(r"AUTONOMY_ENGINE/core/CORE-006_RECOVERY/RAW")
+>> src = Path(r"AUTONOMY_ENGINE/core/CORE-006_RECOVERY/SOURCE_PY")
 >>
->>     Write-Host "=== RECOVER $($Map[$sha]) ===" -ForegroundColor Cyan
->>
->>     python -c "from decompyle3.main import decompile_file; import sys; decompile_file(sys.argv[1], sys.argv[2])" $pyc $out
->>
->>     if ($LASTEXITCODE -ne 0) {
->>         throw "Decompilation failed: $($Map[$sha])"
->>     }
+>> mapping = {
+>>     "3a343f9801ac509cc5510c47deed6db6a1fa8bc6": "deal.py",
+>>     "40b874860ce5a22416a4ce193c5bac03a2be50a9": "deal_offer_negotiation.py",
+>>     "bb877339cce528c8578141bb4e816946dcd0c833": "deal_transaction_milestones.py",
+>>     "b7c6914cf36f472dce987821c4b41a5c149a8e64": "deal_ownership_integration.py",
+>>     "2298b6d754c221625a48beee9627a779812415aa": "deal_evidence_audit.py",
+>>     "bff8e01520d1eb4b04d9a2e9e60a8c9df6b3c43e": "deal_transaction_events.py",
 >> }
+>>
+>> for sha, name in mapping.items():
+>>     pyc = raw / f"{sha}.pyc"
+>>     out = src / name
+>>
+>>     print(f"=== RECOVER {name} ===")
+>>
+>>     if not pyc.exists():
+>>         raise SystemExit(f"MISSING: {pyc}")
+>>
+>>     try:
+>>         with out.open("w", encoding="utf-8", newline="\n") as fh:
+>>             decompile_file(str(pyc), fh)
+>>     except Exception as exc:
+>>         if out.exists():
+>>             out.unlink()
+>>         raise SystemExit(f"FAILED {name}: {type(exc).__name__}: {exc}")
+>>
+>>     if not out.exists() or out.stat().st_size < 100:
+>>         raise SystemExit(f"INVALID OUTPUT: {name}")
+>>
+>>     print(f"OK {name} {out.stat().st_size} bytes")
+>>
+>> print("=== ALL CORE-006 RECOVERED ===")
+>> '@ | Set-Content "$R\decompile_core006.py" -Encoding UTF8
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python "$R\decompile_core006.py"
 === RECOVER deal.py ===
-Traceback (most recent call last):
-  File "<string>", line 1, in <module>
-  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\decompyle3\main.py", line 239, in decompile_file
-    decompile(
-  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\decompyle3\main.py", line 107, in decompile
-    write(
-  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\site-packages\decompyle3\main.py", line 98, in write
-    real_out.write(s)
-    ^^^^^^^^^^^^^^
-AttributeError: 'str' object has no attribute 'write'
-Decompilation failed: deal.py
-At line:14 char:9
-+         throw "Decompilation failed: $($Map[$sha])"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Decompilation failed: deal.py:String) [], RuntimeException
-    + FullyQualifiedErrorId : Decompilation failed: deal.py
-
+FAILED deal.py: RuntimeError: Unsupported Python version, 3.12.0, for decompilation
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CORE-006 SOURCE RECOVERED ===" -ForegroundColor Green
-=== CORE-006 SOURCE RECOVERED ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== SOURCE FILES ===" -ForegroundColor Green
+=== SOURCE FILES ===
 PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem $Src -File |
 >>     Select-Object Name,Length |
 >>     Sort-Object Length -Descending
