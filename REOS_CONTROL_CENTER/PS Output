@@ -1,3 +1,72 @@
+PS D:\HOMIO\REOS_CONTROL_CENTER> $path = "D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py"
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $text = Get-Content $path -Raw
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 1. last_transaction_milestone is a property, not a callable method.
+PS D:\HOMIO\REOS_CONTROL_CENTER> $text = $text.Replace(
+>>     "deal.last_transaction_milestone()",
+>>     "deal.last_transaction_milestone"
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 2. Make the fixture create its first authoritative transaction milestone
+PS D:\HOMIO\REOS_CONTROL_CENTER> # after reaching the valid OFFERED lifecycle state.
+PS D:\HOMIO\REOS_CONTROL_CENTER> $old = @'
+>>     for target in (
+>>         DealStatus.MATCHED,
+>>         DealStatus.VISIT_PENDING,
+>>         DealStatus.VISITED,
+>>         DealStatus.OFFERED,
+>>     ):
+>>         deal = deal.transition(
+>>             target,
+>>             tenant_id="tenant-001",
+>>             expected_version=deal.version,
+>>             at=AT,
+>>         )
+>>     return deal
+>> '@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $new = @'
+>>     for target in (
+>>         DealStatus.MATCHED,
+>>         DealStatus.VISIT_PENDING,
+>>         DealStatus.VISITED,
+>>         DealStatus.OFFERED,
+>>     ):
+>>         deal = deal.transition(
+>>             target,
+>>             tenant_id="tenant-001",
+>>             expected_version=deal.version,
+>>             at=AT,
+>>         )
+>>
+>>     deal = deal.advance_transaction_milestone(
+>>         target="BOOKING_PENDING",
+>>         tenant_id="tenant-001",
+>>         expected_version=deal.version,
+>>         reference_id="booking-001",
+>>     )
+>>
+>>     return deal
+>> '@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $text.Contains($old)) {
+>>     throw "Expected T07 make_deal fixture was not found. No edit made."
+>> }
+Expected T07 make_deal fixture was not found. No edit made.
+At line:2 char:5
++     throw "Expected T07 make_deal fixture was not found. No edit made ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Expected T07 ma.... No edit made.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Expected T07 make_deal fixture was not found. No edit made.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $text = $text.Replace($old, $new)
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Content $path $text -Encoding UTF8
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== T07 ===" -ForegroundColor Cyan
+=== T07 ===
 PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest $path -q
 FFFFF                                                                                                                                                [100%]
 ======================================================================== FAILURES =========================================================================
@@ -5,38 +74,42 @@ ___________________________________________________ test_event_is_derived_from_a
 
     def test_event_is_derived_from_authoritative_milestone() -> None:
         deal = make_deal()
->       milestone = deal.last_transaction_milestone()
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E       TypeError: 'NoneType' object is not callable
+        milestone = deal.last_transaction_milestone
 
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:46: TypeError
+>       assert milestone is not None
+E       assert None is not None
+
+AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:48: AssertionError
 ________________________________________________________ test_event_identity_is_stable_for_replay _________________________________________________________
 
     def test_event_identity_is_stable_for_replay() -> None:
         deal = make_deal()
->       milestone = deal.last_transaction_milestone()
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E       TypeError: 'NoneType' object is not callable
+        milestone = deal.last_transaction_milestone
 
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:64: TypeError
+>       assert milestone is not None
+E       assert None is not None
+
+AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:66: AssertionError
 ________________________________________________________ test_event_scope_is_tenant_and_deal_bound ________________________________________________________
 
     def test_event_scope_is_tenant_and_deal_bound() -> None:
         deal = make_deal()
->       milestone = deal.last_transaction_milestone()
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E       TypeError: 'NoneType' object is not callable
+        milestone = deal.last_transaction_milestone
 
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:78: TypeError
+>       assert milestone is not None
+E       assert None is not None
+
+AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:80: AssertionError
 __________________________________________________________ test_event_serialization_is_canonical __________________________________________________________
 
     def test_event_serialization_is_canonical() -> None:
         deal = make_deal()
->       milestone = deal.last_transaction_milestone()
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E       TypeError: 'NoneType' object is not callable
+        milestone = deal.last_transaction_milestone
 
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:99: TypeError
+>       assert milestone is not None
+E       assert None is not None
+
+AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:101: AssertionError
 _________________________________________________ test_multiple_milestones_create_distinct_ordered_events _________________________________________________
 
     def test_multiple_milestones_create_distinct_ordered_events() -> None:
@@ -55,7 +128,7 @@ AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\deal.py:804: i
     updated = self.transition(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = Deal(deal_id='4bf54f8f-1204-44a1-8587-5685a8c162e5', tenant_id='tenant-001', customer_id='customer-001', broker_id='br... source_of_truth='deal', offers=(), negotiation=None, milestones=(), ownership_binding=None, evidence=(), audit_log=())
+self = Deal(deal_id='b9584498-7733-4cf6-96c4-9da4babf4504', tenant_id='tenant-001', customer_id='customer-001', broker_id='br... source_of_truth='deal', offers=(), negotiation=None, milestones=(), ownership_binding=None, evidence=(), audit_log=())
 target = <DealStatus.BOOKED: 'BOOKED'>, tenant_id = 'tenant-001', expected_version = 6, reason = None, at = None
 
     def transition(
@@ -108,10 +181,10 @@ E           AUTONOMY_ENGINE.core.deal.DealTransitionError: Invalid Deal transiti
 
 AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\deal.py:1163: DealTransitionError
 ================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_is_derived_from_authoritative_milestone - TypeError: 'NoneType' object is not callable
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_identity_is_stable_for_replay - TypeError: 'NoneType' object is not callable
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_scope_is_tenant_and_deal_bound - TypeError: 'NoneType' object is not callable
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_serialization_is_canonical - TypeError: 'NoneType' object is not callable
+FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_is_derived_from_authoritative_milestone - assert None is not None
+FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_identity_is_stable_for_replay - assert None is not None
+FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_scope_is_tenant_and_deal_bound - assert None is not None
+FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_serialization_is_canonical - assert None is not None
 FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_multiple_milestones_create_distinct_ordered_events - AUTONOMY_ENGINE.core.deal.DealTransitionError: Invalid Deal transition: OFFERED -> BOOKED.
 5 failed in 0.18s
 PS D:\HOMIO\REOS_CONTROL_CENTER>
@@ -135,38 +208,42 @@ ___________________________________________________ test_event_is_derived_from_a
 
     def test_event_is_derived_from_authoritative_milestone() -> None:
         deal = make_deal()
->       milestone = deal.last_transaction_milestone()
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E       TypeError: 'NoneType' object is not callable
+        milestone = deal.last_transaction_milestone
 
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:46: TypeError
+>       assert milestone is not None
+E       assert None is not None
+
+AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:48: AssertionError
 ________________________________________________________ test_event_identity_is_stable_for_replay _________________________________________________________
 
     def test_event_identity_is_stable_for_replay() -> None:
         deal = make_deal()
->       milestone = deal.last_transaction_milestone()
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E       TypeError: 'NoneType' object is not callable
+        milestone = deal.last_transaction_milestone
 
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:64: TypeError
+>       assert milestone is not None
+E       assert None is not None
+
+AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:66: AssertionError
 ________________________________________________________ test_event_scope_is_tenant_and_deal_bound ________________________________________________________
 
     def test_event_scope_is_tenant_and_deal_bound() -> None:
         deal = make_deal()
->       milestone = deal.last_transaction_milestone()
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E       TypeError: 'NoneType' object is not callable
+        milestone = deal.last_transaction_milestone
 
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:78: TypeError
+>       assert milestone is not None
+E       assert None is not None
+
+AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:80: AssertionError
 __________________________________________________________ test_event_serialization_is_canonical __________________________________________________________
 
     def test_event_serialization_is_canonical() -> None:
         deal = make_deal()
->       milestone = deal.last_transaction_milestone()
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E       TypeError: 'NoneType' object is not callable
+        milestone = deal.last_transaction_milestone
 
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:99: TypeError
+>       assert milestone is not None
+E       assert None is not None
+
+AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:101: AssertionError
 _________________________________________________ test_multiple_milestones_create_distinct_ordered_events _________________________________________________
 
     def test_multiple_milestones_create_distinct_ordered_events() -> None:
@@ -185,7 +262,7 @@ AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\deal.py:804: i
     updated = self.transition(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = Deal(deal_id='93912ddb-130a-4cd9-9a56-47f632e315ec', tenant_id='tenant-001', customer_id='customer-001', broker_id='br... source_of_truth='deal', offers=(), negotiation=None, milestones=(), ownership_binding=None, evidence=(), audit_log=())
+self = Deal(deal_id='76af22ee-0e08-4ed5-a393-8342ddb072fb', tenant_id='tenant-001', customer_id='customer-001', broker_id='br... source_of_truth='deal', offers=(), negotiation=None, milestones=(), ownership_binding=None, evidence=(), audit_log=())
 target = <DealStatus.BOOKED: 'BOOKED'>, tenant_id = 'tenant-001', expected_version = 6, reason = None, at = None
 
     def transition(
@@ -238,22 +315,22 @@ E           AUTONOMY_ENGINE.core.deal.DealTransitionError: Invalid Deal transiti
 
 AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\deal.py:1163: DealTransitionError
 ================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_is_derived_from_authoritative_milestone - TypeError: 'NoneType' object is not callable
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_identity_is_stable_for_replay - TypeError: 'NoneType' object is not callable
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_scope_is_tenant_and_deal_bound - TypeError: 'NoneType' object is not callable
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_serialization_is_canonical - TypeError: 'NoneType' object is not callable
+FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_is_derived_from_authoritative_milestone - assert None is not None
+FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_identity_is_stable_for_replay - assert None is not None
+FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_scope_is_tenant_and_deal_bound - assert None is not None
+FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_serialization_is_canonical - assert None is not None
 FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_multiple_milestones_create_distinct_ordered_events - AUTONOMY_ENGINE.core.deal.DealTransitionError: Invalid Deal transition: OFFERED -> BOOKED.
 5 failed, 103 passed in 0.38s
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "FULL CORE-006 REGRESSION FAILED"
+>>     throw "FULL CORE-006 FAILED"
 >> }
-FULL CORE-006 REGRESSION FAILED
+FULL CORE-006 FAILED
 At line:2 char:5
-+     throw "FULL CORE-006 REGRESSION FAILED"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (FULL CORE-006 REGRESSION FAILED:String) [], RuntimeException
-    + FullyQualifiedErrorId : FULL CORE-006 REGRESSION FAILED
++     throw "FULL CORE-006 FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FULL CORE-006 FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : FULL CORE-006 FAILED
 
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CORE-006 REAL REGRESSION PASS" -ForegroundColor Green
