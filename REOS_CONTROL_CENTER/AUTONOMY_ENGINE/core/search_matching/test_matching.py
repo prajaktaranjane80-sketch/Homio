@@ -1,587 +1,424 @@
+@'
 from __future__ import annotations
-
-from types import SimpleNamespace
 
 import pytest
 
-from AUTONOMY_ENGINE.core.search_matching.hybrid_retrieval import (
-    HybridSearchResult,
-)
 from AUTONOMY_ENGINE.core.search_matching.matching import (
+    MatchExplanation,
     MatchRecommendation,
     MatchingCandidateError,
-    MatchingConfigurationError,
-    MatchingLimitError,
+    MatchingCriteriaError,
     MatchingProfile,
     MatchingRecommendationPipeline,
     MatchingTenantError,
 )
-from AUTONOMY_ENGINE.core.search_matching.search_ranking import (
-    RankedSearchResult,
+from AUTONOMY_ENGINE.core.search_matching.search_index_contract import (
+    InventoryIndexDocument,
 )
 
 
-def make_candidate(
+def make_document(
     *,
-    index_key: str,
+    index_key: str = "idx-001",
     tenant_id: str = "tenant-a",
     project_id: str = "project-a",
+    inventory_id: str = "inventory-001",
     inventory_code: str = "UNIT-001",
     inventory_type: str = "UNIT",
-    name: str = "Premium Two Bedroom",
+    lifecycle: str = "ACTIVE",
     availability: str = "AVAILABLE",
-    rank: int = 1,
-) -> RankedSearchResult:
-    document = SimpleNamespace(
-        index_key=index_key,
+    name: str = "Premium Two Bedroom",
+    inventory_version: int = 1,
+) -> InventoryIndexDocument:
+    return InventoryIndexDocument(
         tenant_id=tenant_id,
         project_id=project_id,
-        inventory_id=(
-            f"inventory-{index_key}"
-        ),
+        inventory_id=inventory_id,
         inventory_code=inventory_code,
         inventory_type=inventory_type,
-        name=name,
+        lifecycle=lifecycle,
         availability=availability,
-    )
-
-    retrieval = HybridSearchResult(
-        document=document,
-        rrf_score=0.5,
-        lexical_rank=1,
-        vector_rank=1,
-        lexical_score=1.0,
-        vector_score=1.0,
-    )
-
-    return RankedSearchResult(
-        retrieval=retrieval,
-        ranking_score=0.8,
-        rank=rank,
+        name=name,
+        inventory_version=inventory_version,
+        index_key=index_key,
     )
 
 
 @pytest.fixture
-def pipeline():
+def pipeline() -> MatchingRecommendationPipeline:
     return MatchingRecommendationPipeline()
 
 
-def test_basic_matching_returns_recommendation(
-    pipeline,
-) -> None:
+def test_basic_matching_returns_recommendation(pipeline) -> None:
     results = pipeline.match(
-        (
-            make_candidate(
-                index_key="idx-001"
-            ),
-        ),
-        profile=MatchingProfile(
-            tenant_id="tenant-a"
-        ),
+        MatchingProfile(tenant_id="tenant-a"),
+        (make_document(),),
     )
 
     assert len(results) == 1
-    assert isinstance(
-        results[0],
-        MatchRecommendation,
-    )
-    assert (
-        results[0].inventory_code
-        == "UNIT-001"
-    )
-    assert results[0].rank == 1
+    assert isinstance(results[0], MatchRecommendation)
+    assert results[0].index_key == "idx-001"
+    assert results[0].tenant_id == "tenant-a"
 
 
-def test_matching_is_tenant_safe(
-    pipeline,
-) -> None:
-    with pytest.raises(
-        MatchingTenantError
-    ):
+def test_matching_is_tenant_safe(pipeline) -> None:
+    with pytest.raises(MatchingTenantError):
         pipeline.match(
+            MatchingProfile(tenant_id="tenant-a"),
             (
-                make_candidate(
-                    index_key="foreign",
+                make_document(
                     tenant_id="tenant-b",
                 ),
-            ),
-            profile=MatchingProfile(
-                tenant_id="tenant-a"
             ),
         )
 
 
-def test_required_inventory_type_is_enforced(
-    pipeline,
-) -> None:
+def test_required_inventory_type_is_enforced(pipeline) -> None:
     results = pipeline.match(
+        MatchingProfile(
+            tenant_id="tenant-a",
+            required_inventory_types=("UNIT",),
+        ),
         (
-            make_candidate(
-                index_key="residential",
+            make_document(
+                index_key="unit",
                 inventory_type="UNIT",
             ),
-            make_candidate(
+            make_document(
                 index_key="property",
-                inventory_type="PROPERTY",
+                inventory_id="inventory-002",
                 inventory_code="PROPERTY-001",
-            ),
-        ),
-        profile=MatchingProfile(
-            tenant_id="tenant-a",
-            required_inventory_types=frozenset(
-                {"UNIT"}
+                inventory_type="PROPERTY",
             ),
         ),
     )
 
-    assert [
-        item.inventory_code
-        for item in results
-    ] == ["UNIT-001"]
+    assert [item.index_key for item in results] == ["unit"]
+    assert "required_inventory_type" in (
+        results[0].explanation.hard_constraints_passed
+    )
 
 
-def test_required_project_is_enforced(
-    pipeline,
-) -> None:
+def test_required_project_is_enforced(pipeline) -> None:
     results = pipeline.match(
+        MatchingProfile(
+            tenant_id="tenant-a",
+            required_project_ids=("project-a",),
+        ),
         (
-            make_candidate(
+            make_document(
                 index_key="project-a",
                 project_id="project-a",
             ),
-            make_candidate(
+            make_document(
                 index_key="project-b",
-                project_id="project-b",
+                inventory_id="inventory-002",
                 inventory_code="UNIT-002",
-            ),
-        ),
-        profile=MatchingProfile(
-            tenant_id="tenant-a",
-            required_project_ids=frozenset(
-                {"project-a"}
+                project_id="project-b",
             ),
         ),
     )
 
-    assert len(results) == 1
-    assert (
-        results[0].project_id
-        == "project-a"
-    )
+    assert [item.index_key for item in results] == ["project-a"]
 
 
-def test_required_availability_is_enforced(
-    pipeline,
-) -> None:
+def test_required_availability_is_enforced(pipeline) -> None:
     results = pipeline.match(
+        MatchingProfile(
+            tenant_id="tenant-a",
+            required_availability=("AVAILABLE",),
+        ),
         (
-            make_candidate(
+            make_document(
                 index_key="available",
                 availability="AVAILABLE",
             ),
-            make_candidate(
+            make_document(
                 index_key="sold",
+                inventory_id="inventory-002",
                 inventory_code="UNIT-002",
                 availability="SOLD",
             ),
         ),
-        profile=MatchingProfile(
-            tenant_id="tenant-a",
-            required_availability=frozenset(
-                {"AVAILABLE"}
-            ),
-        ),
     )
 
-    assert len(results) == 1
-    assert (
-        results[0].document.availability
-        == "AVAILABLE"
-    )
+    assert [item.index_key for item in results] == ["available"]
 
 
-def test_excluded_keyword_is_hard_block(
-    pipeline,
-) -> None:
+def test_excluded_keyword_is_hard_block(pipeline) -> None:
     results = pipeline.match(
+        MatchingProfile(
+            tenant_id="tenant-a",
+            excluded_keywords=("studio",),
+        ),
         (
-            make_candidate(
+            make_document(
                 index_key="good",
                 name="Premium Two Bedroom",
             ),
-            make_candidate(
+            make_document(
                 index_key="blocked",
+                inventory_id="inventory-002",
                 inventory_code="UNIT-002",
                 name="Premium Studio",
             ),
         ),
-        profile=MatchingProfile(
-            tenant_id="tenant-a",
-            excluded_keywords=frozenset(
-                {"studio"}
-            ),
-        ),
     )
 
-    assert len(results) == 1
-    assert (
-        results[0].document.index_key
-        == "good"
-    )
+    assert [item.index_key for item in results] == ["good"]
 
 
-def test_preferred_inventory_type_improves_score(
-    pipeline,
-) -> None:
+def test_preferred_inventory_type_changes_score(pipeline) -> None:
     results = pipeline.match(
+        MatchingProfile(
+            tenant_id="tenant-a",
+            preferred_inventory_types=("UNIT",),
+        ),
         (
-            make_candidate(
+            make_document(
                 index_key="unit",
                 inventory_type="UNIT",
-                rank=1,
             ),
-            make_candidate(
+            make_document(
                 index_key="property",
-                inventory_type="PROPERTY",
+                inventory_id="inventory-002",
                 inventory_code="PROPERTY-001",
-                rank=1,
+                inventory_type="PROPERTY",
             ),
         ),
-        profile=MatchingProfile(
-            tenant_id="tenant-a",
-            preferred_inventory_types=frozenset(
-                {"UNIT"}
-            ),
-            search_weight=0.5,
-            preference_weight=0.5,
-        ),
     )
 
-    assert (
-        results[0].document.inventory_type
-        == "UNIT"
-    )
-
-    assert (
-        "preferred_inventory_type"
-        in results[0]
-        .explanation
-        .matched_signals
+    assert results[0].index_key == "unit"
+    assert results[0].score > results[1].score
+    assert "preferred_inventory_type" in (
+        results[0].explanation.soft_preferences_matched
     )
 
 
-def test_preferred_project_improves_score(
-    pipeline,
-) -> None:
+def test_preferred_project_is_explainable(pipeline) -> None:
     results = pipeline.match(
+        MatchingProfile(
+            tenant_id="tenant-a",
+            preferred_project_ids=("project-b",),
+        ),
         (
-            make_candidate(
+            make_document(
                 index_key="target",
                 project_id="project-b",
-                rank=1,
             ),
-            make_candidate(
+            make_document(
                 index_key="other",
-                project_id="project-a",
+                inventory_id="inventory-002",
                 inventory_code="UNIT-002",
-                rank=1,
+                project_id="project-a",
             ),
-        ),
-        profile=MatchingProfile(
-            tenant_id="tenant-a",
-            preferred_project_ids=frozenset(
-                {"project-b"}
-            ),
-            search_weight=0.5,
-            preference_weight=0.5,
         ),
     )
 
-    assert (
-        results[0].project_id
-        == "project-b"
+    assert results[0].index_key == "target"
+    assert "preferred_project" in (
+        results[0].explanation.soft_preferences_matched
     )
 
 
-def test_preferred_availability_is_explainable(
-    pipeline,
-) -> None:
+def test_preferred_availability_is_explainable(pipeline) -> None:
     results = pipeline.match(
+        MatchingProfile(
+            tenant_id="tenant-a",
+            preferred_availability=("RESERVED",),
+        ),
         (
-            make_candidate(
-                index_key="reserved",
+            make_document(
                 availability="RESERVED",
             ),
         ),
-        profile=MatchingProfile(
-            tenant_id="tenant-a",
-            preferred_availability=frozenset(
-                {"RESERVED"}
-            ),
-        ),
     )
 
-    assert (
-        "preferred_availability"
-        in results[0]
-        .explanation
-        .matched_signals
+    assert "preferred_availability" in (
+        results[0].explanation.soft_preferences_matched
     )
 
 
-def test_preferred_inventory_code_is_supported(
-    pipeline,
-) -> None:
+def test_preferred_inventory_code_is_supported(pipeline) -> None:
     results = pipeline.match(
+        MatchingProfile(
+            tenant_id="tenant-a",
+            preferred_inventory_codes=("UNIT-777",),
+        ),
         (
-            make_candidate(
+            make_document(
                 index_key="target",
                 inventory_code="UNIT-777",
             ),
-            make_candidate(
+            make_document(
                 index_key="other",
+                inventory_id="inventory-002",
                 inventory_code="UNIT-001",
-                rank=1,
             ),
-        ),
-        profile=MatchingProfile(
-            tenant_id="tenant-a",
-            preferred_inventory_codes=frozenset(
-                {"unit-777"}
-            ),
-            search_weight=0.5,
-            preference_weight=0.5,
         ),
     )
 
-    assert (
-        results[0].inventory_code
-        == "UNIT-777"
+    assert results[0].index_key == "target"
+    assert "preferred_inventory_code" in (
+        results[0].explanation.soft_preferences_matched
     )
 
 
-def test_keyword_preference_is_supported(
-    pipeline,
-) -> None:
+def test_keyword_preference_is_supported(pipeline) -> None:
     results = pipeline.match(
+        MatchingProfile(
+            tenant_id="tenant-a",
+            preferred_keywords=("premium", "bedroom"),
+        ),
         (
-            make_candidate(
+            make_document(
                 index_key="premium",
                 name="Premium Two Bedroom",
             ),
-            make_candidate(
+            make_document(
                 index_key="standard",
+                inventory_id="inventory-002",
                 inventory_code="UNIT-002",
                 name="Standard Apartment",
             ),
         ),
-        profile=MatchingProfile(
-            tenant_id="tenant-a",
-            preferred_keywords=frozenset(
-                {"premium", "bedroom"}
-            ),
-            search_weight=0.5,
-            preference_weight=0.5,
-        ),
     )
 
-    assert (
-        results[0].document.index_key
-        == "premium"
+    assert results[0].index_key == "premium"
+    assert "preferred_keywords" in (
+        results[0].explanation.soft_preferences_matched
     )
 
 
-def test_search_rank_is_a_stable_signal(
-    pipeline,
-) -> None:
-    results = pipeline.match(
-        (
-            make_candidate(
-                index_key="first",
-                rank=1,
-            ),
-            make_candidate(
-                index_key="second",
-                inventory_code="UNIT-002",
-                rank=2,
-            ),
-        ),
-        profile=MatchingProfile(
-            tenant_id="tenant-a"
-        ),
-    )
-
-    assert (
-        results[0]
-        .search_relevance
-        >
-        results[1]
-        .search_relevance
-    )
-
-
-def test_limit_is_enforced(
-    pipeline,
-) -> None:
-    candidates = tuple(
-        make_candidate(
-            index_key=f"idx-{index}",
-            inventory_code=(
-                f"UNIT-{index}"
-            ),
-            rank=index,
-        )
-        for index in range(1, 6)
-    )
-
-    results = pipeline.match(
-        candidates,
-        profile=MatchingProfile(
-            tenant_id="tenant-a",
-            limit=2,
-        ),
-    )
-
-    assert len(results) == 2
-    assert [
-        item.rank
-        for item in results
-    ] == [1, 2]
-
-
-def test_recommendation_order_is_deterministic(
-    pipeline,
-) -> None:
+def test_recommendation_order_is_deterministic(pipeline) -> None:
     candidates = (
-        make_candidate(
-            index_key="idx-a",
-            rank=1,
-        ),
-        make_candidate(
+        make_document(
             index_key="idx-b",
             inventory_code="UNIT-002",
-            rank=1,
         ),
-        make_candidate(
-            index_key="idx-c",
+        make_document(
+            index_key="idx-a",
+            inventory_id="inventory-002",
             inventory_code="UNIT-003",
-            rank=2,
         ),
-    )
-
-    profile = MatchingProfile(
-        tenant_id="tenant-a"
+        make_document(
+            index_key="idx-c",
+            inventory_id="inventory-003",
+            inventory_code="UNIT-004",
+        ),
     )
 
     first = pipeline.match(
+        MatchingProfile(tenant_id="tenant-a"),
         candidates,
-        profile=profile,
     )
-
     second = pipeline.match(
+        MatchingProfile(tenant_id="tenant-a"),
         candidates,
-        profile=profile,
     )
 
-    assert [
-        item.document.index_key
-        for item in first
-    ] == [
-        item.document.index_key
-        for item in second
+    assert first == second
+    assert [item.index_key for item in first] == [
+        "idx-a",
+        "idx-b",
+        "idx-c",
     ]
 
 
-def test_empty_candidates_are_safe(
-    pipeline,
-) -> None:
-    results = pipeline.match(
-        (),
-        profile=MatchingProfile(
-            tenant_id="tenant-a"
-        ),
+def test_empty_candidates_are_safe(pipeline) -> None:
+    assert (
+        pipeline.match(
+            MatchingProfile(tenant_id="tenant-a"),
+            (),
+        )
+        == ()
     )
 
-    assert results == ()
+
+def test_blank_tenant_is_rejected() -> None:
+    with pytest.raises(MatchingCriteriaError):
+        MatchingProfile(tenant_id="   ")
 
 
-def test_profile_weights_must_have_positive_total(
-) -> None:
-    with pytest.raises(
-        MatchingConfigurationError
-    ):
+def test_invalid_inventory_type_is_rejected() -> None:
+    with pytest.raises(MatchingCriteriaError):
         MatchingProfile(
             tenant_id="tenant-a",
-            search_weight=0.0,
-            preference_weight=0.0,
+            required_inventory_types=("NOT_A_REAL_TYPE",),
         )
 
 
-def test_negative_weight_is_rejected() -> None:
-    with pytest.raises(
-        MatchingConfigurationError
-    ):
-        MatchingProfile(
-            tenant_id="tenant-a",
-            search_weight=-1.0,
+def test_invalid_profile_type_is_rejected(pipeline) -> None:
+    with pytest.raises(MatchingCriteriaError):
+        pipeline.match(
+            object(),  # type: ignore[arg-type]
+            (),
         )
 
 
-def test_limit_must_be_positive() -> None:
-    with pytest.raises(
-        MatchingLimitError
-    ):
-        MatchingProfile(
-            tenant_id="tenant-a",
-            limit=0,
+def test_invalid_candidate_type_is_rejected(pipeline) -> None:
+    with pytest.raises(MatchingCandidateError):
+        pipeline.match(
+            MatchingProfile(tenant_id="tenant-a"),
+            (object(),),  # type: ignore[arg-type]
         )
 
 
-def test_tenant_is_required() -> None:
-    with pytest.raises(
-        MatchingConfigurationError
-    ):
-        MatchingProfile(
-            tenant_id="   "
+def test_duplicate_candidate_identity_is_rejected(pipeline) -> None:
+    document = make_document()
+
+    with pytest.raises(MatchingCandidateError):
+        pipeline.match(
+            MatchingProfile(tenant_id="tenant-a"),
+            (document, document),
         )
 
 
-def test_input_candidates_are_not_mutated(
-    pipeline,
-) -> None:
-    candidates = (
-        make_candidate(
-            index_key="idx-a",
-            rank=1,
-        ),
-        make_candidate(
-            index_key="idx-b",
-            inventory_code="UNIT-002",
-            rank=2,
-        ),
+def test_source_documents_are_not_mutated(pipeline) -> None:
+    first = make_document()
+    second = make_document(
+        index_key="idx-002",
+        inventory_id="inventory-002",
+        inventory_code="UNIT-002",
     )
+    candidates = (first, second)
 
-    before = candidates
+    before = (
+        first,
+        second,
+    )
 
     pipeline.match(
+        MatchingProfile(tenant_id="tenant-a"),
         candidates,
-        profile=MatchingProfile(
-            tenant_id="tenant-a"
-        ),
     )
 
-    assert candidates == before
+    after = (
+        first,
+        second,
+    )
+
+    assert after == before
 
 
-def test_invalid_candidate_type_is_rejected(
-    pipeline,
-) -> None:
-    with pytest.raises(
-        MatchingCandidateError
-    ):
-        pipeline.match(
-            (object(),),  # type: ignore[arg-type]
-            profile=MatchingProfile(
-                tenant_id="tenant-a"
-            ),
-        )
+def test_explanation_is_transparent(pipeline) -> None:
+    result = pipeline.match(
+        MatchingProfile(
+            tenant_id="tenant-a",
+            required_inventory_types=("UNIT",),
+            preferred_keywords=("premium",),
+        ),
+        (make_document(),),
+    )[0]
+
+    assert isinstance(result.explanation, MatchExplanation)
+    payload = result.explanation.to_dict()
+
+    assert payload["hard_constraints_passed"] == [
+        "required_inventory_type"
+    ]
+    assert "preferred_keywords" in (
+        payload["soft_preferences_matched"]
+    )
+    assert payload["excluded_reasons"] == []
+'@ | Set-Content -Encoding UTF8 AUTONOMY_ENGINE\core\search_matching\test_matching.py
