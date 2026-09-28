@@ -1,29 +1,183 @@
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CORE-005 test_matching.py REPLACED"
-CORE-005 test_matching.py REPLACED
-PS D:\Homio\REOS_CONTROL_CENTER> Get-Content AUTONOMY_ENGINE\core\search_matching\test_matching.py -TotalCount 20
-from __future__ import annotations
+PS D:\Homio\REOS_CONTROL_CENTER> $files = @{}
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 1) PROJECTION: slots=True requires declared storage fields
+PS D:\Homio\REOS_CONTROL_CENTER> $p = "AUTONOMY_ENGINE\core\search_matching\projection_sync.py"
+PS D:\Homio\REOS_CONTROL_CENTER> $s = Get-Content $p -Raw
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $s.Contains("from dataclasses import dataclass`r`n")) { throw "projection_sync.py import anchor not found" }
+PS D:\Homio\REOS_CONTROL_CENTER> $s = $s.Replace(
+>>     "from dataclasses import dataclass",
+>>     "from dataclasses import dataclass, field",
+>>     1
+>> )
+Cannot find an overload for "Replace" and the argument count: "3".
+At line:1 char:1
++ $s = $s.Replace(
++ ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], MethodException
+    + FullyQualifiedErrorId : MethodCountCouldNotFindBest
 
-import pytest
+PS D:\Homio\REOS_CONTROL_CENTER> $old = @"
+>>     sink: SearchProjectionSink | None = None
+>>
+>>     def __post_init__(self) -> None:
+>> "@
+PS D:\Homio\REOS_CONTROL_CENTER> $new = @"
+>>     sink: SearchProjectionSink | None = None
+>>     _versions: dict[
+>>         tuple[str, str],
+>>         ProjectionVersion,
+>>     ] = field(
+>>         init=False,
+>>         repr=False,
+>>         default_factory=dict,
+>>     )
+>>     _processed_events: set[str] = field(
+>>         init=False,
+>>         repr=False,
+>>         default_factory=set,
+>>     )
+>>
+>>     def __post_init__(self) -> None:
+>> "@
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $s.Contains($old)) { throw "projection_sync.py class anchor not found" }
+projection_sync.py class anchor not found
+At line:1 char:31
++ ... Contains($old)) { throw "projection_sync.py class anchor not found" }
++                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (projection_sync...nchor not found:String) [], RuntimeException
+    + FullyQualifiedErrorId : projection_sync.py class anchor not found
 
-from AUTONOMY_ENGINE.core.search_matching.matching import (
-    MatchExplanation,
-    MatchRecommendation,
-    MatchingCandidateError,
-    MatchingCriteriaError,
-    MatchingProfile,
-    MatchingRecommendationPipeline,
-    MatchingTenantError,
-)
-from AUTONOMY_ENGINE.core.search_matching.search_index_contract import (
-    InventoryIndexDocument,
-)
+PS D:\Homio\REOS_CONTROL_CENTER> $s = $s.Replace($old,$new,1)
+Cannot find an overload for "Replace" and the argument count: "3".
+At line:1 char:1
++ $s = $s.Replace($old,$new,1)
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], MethodException
+    + FullyQualifiedErrorId : MethodCountCouldNotFindBest
 
+PS D:\Homio\REOS_CONTROL_CENTER> Set-Content $p $s -Encoding UTF8
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 2) CONSISTENCY: state() must support the public positional query contract
+PS D:\Homio\REOS_CONTROL_CENTER> $p = "AUTONOMY_ENGINE\core\search_matching\search_consistency.py"
+PS D:\Homio\REOS_CONTROL_CENTER> $s = Get-Content $p -Raw
+PS D:\Homio\REOS_CONTROL_CENTER> $old = @"
+>>     def state(
+>>         self,
+>>         *,
+>>         tenant_id: str,
+>>         index_key: str,
+>>     ) -> ConsistencyVersionState | None:
+>> "@
+PS D:\Homio\REOS_CONTROL_CENTER> $new = @"
+>>     def state(
+>>         self,
+>>         tenant_id: str,
+>>         index_key: str,
+>>     ) -> ConsistencyVersionState | None:
+>> "@
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $s.Contains($old)) { throw "search_consistency.py state() anchor not found" }
+search_consistency.py state() anchor not found
+At line:1 char:31
++ ... ins($old)) { throw "search_consistency.py state() anchor not found" }
++                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (search_consiste...nchor not found:String) [], RuntimeException
+    + FullyQualifiedErrorId : search_consistency.py state() anchor not found
 
-def make_document(
-    *,
-PS D:\Homio\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\search_matching\test_matching.py -q
-....................                                                                                                                                 [100%]
-20 passed in 0.14s
+PS D:\Homio\REOS_CONTROL_CENTER> $s = $s.Replace($old,$new,1)
+Cannot find an overload for "Replace" and the argument count: "3".
+At line:1 char:1
++ $s = $s.Replace($old,$new,1)
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], MethodException
+    + FullyQualifiedErrorId : MethodCountCouldNotFindBest
+
+PS D:\Homio\REOS_CONTROL_CENTER> Set-Content $p $s -Encoding UTF8
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 3) QDRANT: keep Qdrant-specific exception boundary
+PS D:\Homio\REOS_CONTROL_CENTER> $p = "AUTONOMY_ENGINE\core\search_matching\qdrant_indexing.py"
+PS D:\Homio\REOS_CONTROL_CENTER> $s = Get-Content $p -Raw
+PS D:\Homio\REOS_CONTROL_CENTER> $old = "        document.assert_version(expected_version)"
+PS D:\Homio\REOS_CONTROL_CENTER> $new = @"
+>>         if document.inventory_version != expected_version:
+>>             raise QdrantVersionViolation(
+>>                 "Document inventory_version does not match "
+>>                 "expected_version."
+>>             )
+>> "@
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $s.Contains($old)) { throw "qdrant_indexing.py version anchor not found" }
+PS D:\Homio\REOS_CONTROL_CENTER> $s = $s.Replace($old,$new,1)
+Cannot find an overload for "Replace" and the argument count: "3".
+At line:1 char:1
++ $s = $s.Replace($old,$new,1)
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], MethodException
+    + FullyQualifiedErrorId : MethodCountCouldNotFindBest
+
+PS D:\Homio\REOS_CONTROL_CENTER> Set-Content $p $s -Encoding UTF8
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 4) SEARCH DOMAIN: canonical case-aware deterministic ordering
+PS D:\Homio\REOS_CONTROL_CENTER> $p = "AUTONOMY_ENGINE\core\search_matching\search_domain.py"
+PS D:\Homio\REOS_CONTROL_CENTER> $s = Get-Content $p -Raw
+PS D:\Homio\REOS_CONTROL_CENTER> $old = "            key=str.casefold,"
+PS D:\Homio\REOS_CONTROL_CENTER> $new = "            key=lambda value: (value.casefold(), value),"
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $s.Contains($old)) { throw "search_domain.py role sort anchor not found" }
+PS D:\Homio\REOS_CONTROL_CENTER> $s = $s.Replace($old,$new,1)
+Cannot find an overload for "Replace" and the argument count: "3".
+At line:1 char:1
++ $s = $s.Replace($old,$new,1)
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], MethodException
+    + FullyQualifiedErrorId : MethodCountCouldNotFindBest
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Tenant-specific error must remain specific at the domain boundary
+PS D:\Homio\REOS_CONTROL_CENTER> $old = @"
+>>         object.__setattr__(
+>>             self,
+>>             "tenant_id",
+>>             _required_text(
+>>                 self.tenant_id,
+>>                 "tenant_id",
+>>             ),
+>>         )
+>> "@
+PS D:\Homio\REOS_CONTROL_CENTER> $new = @"
+>>         if (
+>>             not isinstance(self.tenant_id, str)
+>>             or not self.tenant_id.strip()
+>>         ):
+>>             raise SearchTenantContextError(
+>>                 "tenant_id cannot be empty."
+>>             )
+>>
+>>         object.__setattr__(
+>>             self,
+>>             "tenant_id",
+>>             self.tenant_id.strip(),
+>>         )
+>> "@
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $s.Contains($old)) { throw "search_domain.py tenant anchor not found" }
+search_domain.py tenant anchor not found
+At line:1 char:31
++ ... .Contains($old)) { throw "search_domain.py tenant anchor not found" }
++                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (search_domain.py tenant anchor not found:String) [], RuntimeException
+    + FullyQualifiedErrorId : search_domain.py tenant anchor not found
+
+PS D:\Homio\REOS_CONTROL_CENTER> $s = $s.Replace($old,$new,1)
+Cannot find an overload for "Replace" and the argument count: "3".
+At line:1 char:1
++ $s = $s.Replace($old,$new,1)
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], MethodException
+    + FullyQualifiedErrorId : MethodCountCouldNotFindBest
+
+PS D:\Homio\REOS_CONTROL_CENTER> Set-Content $p $s -Encoding UTF8
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CORE-005 production contract fixes applied"
+CORE-005 production contract fixes applied
+PS D:\Homio\REOS_CONTROL_CENTER> Get-ChildItem AUTONOMY_ENGINE\core\search_matching -Recurse -Directory -Filter __pycache__ | Remove-Item -Recurse -Force
+PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\search_matching -q
 ............F................F..FF...................................................F.F...............FF........................................... [ 92%]
 ............                                                                                                                                         [100%]
@@ -171,7 +325,7 @@ E         Use -v to get more diff
 AUTONOMY_ENGINE\core\search_matching\test_core005_regression.py:602: AssertionError
 ________________________________________________________ test_expected_version_mismatch_is_blocked ________________________________________________________
 
-pipeline = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000001E414ACD550>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
+pipeline = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000001BA5C48BB60>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
 
     def test_expected_version_mismatch_is_blocked(
         pipeline: QdrantIndexingPipeline,
@@ -190,7 +344,7 @@ AUTONOMY_ENGINE\core\search_matching\qdrant_indexing.py:300: in build_point
     self._assert_expected_version(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000001E414ACD550>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
+self = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000001BA5C48BB60>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
 document = InventoryIndexDocument(tenant_id='tenant-a', project_id='project-a', inventory_id='inventory-a', inventory_code='UNIT-...bb84718968b0b09cddcf79c4e834aa5000873621', operation=<SearchIndexOperation.UPSERT: 'UPSERT'>, payload=mappingproxy({}))
 expected_version = 2
 
@@ -218,7 +372,7 @@ E       AttributeError: 'InventoryIndexDocument' object has no attribute 'assert
 AUTONOMY_ENGINE\core\search_matching\qdrant_indexing.py:250: AttributeError
 ___________________________________________________________ test_delete_removes_existing_point ____________________________________________________________
 
-pipeline = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000001E414ACEB40>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
+pipeline = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000001BA74DE0560>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
 
     def test_delete_removes_existing_point(
         pipeline: QdrantIndexingPipeline,
@@ -250,7 +404,7 @@ AUTONOMY_ENGINE\core\search_matching\qdrant_indexing.py:452: in delete
     self._assert_expected_version(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000001E414ACEB40>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
+self = QdrantIndexingPipeline(client=<qdrant_client.qdrant_client.QdrantClient object at 0x000001BA74DE0560>, config=QdrantIndexingConfig(collection_name='test_inventory_vectors', vector_size=4, distance=<Distance.COSINE: 'Cosine'>))
 document = InventoryIndexDocument(tenant_id='tenant-a', project_id='project-a', inventory_id='inventory-a', inventory_code='UNIT-...bb84718968b0b09cddcf79c4e834aa5000873621', operation=<SearchIndexOperation.DELETE: 'DELETE'>, payload=mappingproxy({}))
 expected_version = 1
 
@@ -336,5 +490,9 @@ FAILED AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_expect
 FAILED AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py::test_delete_removes_existing_point - AttributeError: 'InventoryIndexDocument' object has no attribute 'assert_version'. Did you mean: 'index_version'?
 FAILED AUTONOMY_ENGINE/core/search_matching/test_search_domain.py::test_tenant_context_requires_tenant - AUTONOMY_ENGINE.core.search_matching.search_domain.SearchDomainError: tenant_id cannot be empty.
 FAILED AUTONOMY_ENGINE/core/search_matching/test_search_domain.py::test_tenant_context_normalizes_roles_and_capabilities - AssertionError: assert ('Admin', 'broker', 'Broker') == ('Admin', 'Broker', 'broker')
-8 failed, 152 passed in 2.01s
+8 failed, 152 passed in 2.85s
 PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> python -m compileall -q AUTONOMY_ENGINE\core\search_matching
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> python -c "import AUTONOMY_ENGINE.core.search_matching as m; print('CORE-005 IMPORT PASS')"
+CORE-005 IMPORT PASS
