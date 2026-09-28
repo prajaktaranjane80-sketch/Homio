@@ -1,72 +1,178 @@
-PS D:\Homio\REOS_CONTROL_CENTER> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
-PS D:\HOMIO\REOS_CONTROL_CENTER> git rm -r AUTONOMY_ENGINE\core\deal_transaction
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/CORE-006_FINAL_UPGRADE.txt'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/__init__.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/apply_CORE-006_FINAL_UPGRADE.ps1'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_authorization.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_concurrency.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_consistency.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_external_contracts.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_freeze.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_integrity.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_milestones.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_workflow.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/manifest.json'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py'
-rm 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py'
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
-D  AUTONOMY_ENGINE/core/deal_transaction/CORE-006_FINAL_UPGRADE.txt
-D  AUTONOMY_ENGINE/core/deal_transaction/__init__.py
-D  AUTONOMY_ENGINE/core/deal_transaction/apply_CORE-006_FINAL_UPGRADE.ps1
-D  AUTONOMY_ENGINE/core/deal_transaction/deal.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_authorization.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_concurrency.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_consistency.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_external_contracts.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_freeze.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_integrity.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_milestones.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
-D  AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_workflow.py
-D  AUTONOMY_ENGINE/core/deal_transaction/manifest.json
-D  AUTONOMY_ENGINE/core/deal_transaction/test_deal.py
-D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py
-D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py
-D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py
-D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py
-D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py
-D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
-D  AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py
- M AUTONOMY_ENGINE/core/search_matching/projection_sync.py
- M AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
- M AUTONOMY_ENGINE/core/search_matching/reos_integration.py
- M AUTONOMY_ENGINE/core/search_matching/search_consistency.py
- M AUTONOMY_ENGINE/core/search_matching/search_domain.py
- M AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py
- M AUTONOMY_ENGINE/core/search_matching/test_matching.py
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --stat
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py', LF will be replaced by CRLF the next time Git touches it
- .../core/search_matching/projection_sync.py        |  20 +-
- .../core/search_matching/qdrant_indexing.py        |   9 +-
- .../core/search_matching/reos_integration.py       |   2 +-
- .../core/search_matching/search_consistency.py     |   6 +-
- .../core/search_matching/search_domain.py          |  20 +-
- .../search_matching/test_core005_regression.py     |  24 +-
- .../core/search_matching/test_matching.py          | 620 +++++++--------------
- 7 files changed, 259 insertions(+), 442 deletions(-)
+S D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== REAL CORE-006 IMPLEMENTATION RECOVERY ==="
+=== REAL CORE-006 IMPLEMENTATION RECOVERY ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem AUTONOMY_ENGINE -Recurse -File -Filter *.py |
+>> Select-String -Pattern "class Deal\b|class DealStatus\b|def advance_transaction_milestone\b|def bind_opportunity\b|DealOwnershipBinding|DealEvidence" |
+>> Select-Object Path,LineNumber,Line |
+>> Format-Table -AutoSize
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== ALL DEAL PYTHON FILES BY SIZE ==="
+=== ALL DEAL PYTHON FILES BY SIZE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem AUTONOMY_ENGINE -Recurse -File -Filter *.py |
+>> Where-Object { $_.FullName -match "deal" } |
+>> Select-Object FullName,Length |
+>> Sort-Object Length -Descending
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== GIT RECOVERY OBJECTS ==="
+=== GIT RECOVERY OBJECTS ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git fsck --full --no-reflogs --unreachable 2>$null |
+>> Select-String "commit|blob" |
+>> Select-Object -First 150
+
+unreachable blob 59007f77d871ad3044d422daeeaa5aa27e8dc586
+unreachable blob 7e00c5dc0bbdc4d7467202c1566322277122081d
+unreachable blob 8b00cab952577cd5a75c6602f5fcf7bf0311e84e
+unreachable blob 9100ff4b4bc104a2faa7d8add3e092c133855463
+unreachable blob e80003568b0cc254f4c1326d942718a389c45b24
+unreachable blob 0b8112ff6f00cf59e342f68584a9cd1b1d7e24a6
+unreachable blob 12816ec423f16e93e2ca355557dd53a07a45e96c
+unreachable blob 24012f3d2c3be413de3afdb072f7388cb6dcfe31
+unreachable blob 5281cb87dfbcf8f975b4a6bf909349497988ca9f
+unreachable blob 9001624c538cc7f195760419e1d406961b89a25d
+unreachable blob 308267bd4f35d1372b19c4fbc57a7e2f0aef62b9
+unreachable blob 3b82075e25fe529fbc1ada28d0567b6694bb0c31
+unreachable blob 7e023cb3acd023e63cca7d2fc3d121f53588225f
+unreachable blob 4003757ee4d1bd55cecbbc72af0256ac4b265af4
+unreachable blob 8c83cd6f646ac66a1bac56730e2bd682419a3d66
+unreachable blob ea034c36eb3f18f6483c9dfabda2187282e7bd40
+unreachable blob fc03fe89871d88bccac8b02506d10a21c8f28bb4
+unreachable blob 13043b9a1eb5097367b38bbc87a305c7fc09b178
+unreachable blob 3704d3e57cd5ff5c3eac1f60cf1f55b416b23161
+unreachable blob 3a84768357731071ff5b87f77c625912bfd88bd3
+unreachable blob 9a84934648b93e297263aeda9f705890b0cf459f
+unreachable blob 07052c530878e8805854627b7cc64d5b1da44c72
+unreachable blob 0885d4d35f4499f40ff51360f031f0d248001797
+unreachable blob 0d0691f9cec7c7cc92ed5b91458b477c027ddabf
+unreachable blob 2f066ef87f094a12374c33017992a70af62e140b
+unreachable blob 4206a396422886e21c33f5acd81329dcee711ef6
+unreachable blob 53068759ffbf4dfb58a4f612177edcc90e44bfc8
+unreachable blob b206392dca20fe2204228d3646c61ca7dbb10d2f
+unreachable blob bf06d725b28a80c8eed725872a67959becd654b8
+unreachable blob de86ad64d8792ad4d0bd56fdcf3f34a14827e67f
+unreachable blob 028758ef16a659015595e462d3445617c09f7a85
+unreachable blob 1a8793e08d11c729a48607b24a6b4c3025450225
+unreachable blob 3f078179abd9a05edd3bf0cb9880ce7b4735c08f
+unreachable blob bb877339cce528c8578141bb4e816946dcd0c833
+unreachable blob bc07ecf48e5f59e2f18d95448afec6c870865c52
+unreachable blob d887ce2315362c51acc70db4df18eb35832bb0ee
+unreachable blob e1876f7cf4cfe1ced3e0855009550d4d11029d3c
+unreachable blob ed8769bb5068634c322b2c33a0d0f5e31d4e6c31
+unreachable blob ff8771e1e49afebbf608ce9d3e141947abd86bdd
+unreachable blob 4708eb2337b47074b7ca1fdb09cb76ad867a25cc
+unreachable blob 6788b5b2611632bf2e3c5ce4e489b2b481364fcd
+unreachable blob ad0898bc1321da5490bb2afe424d926b78ca8697
+unreachable blob d908a781ad814ef3dfbf4bd9a961f491ba0985fa
+unreachable blob f28887bac330778836f63a9dfffcf2311cf93927
+unreachable blob 2f0934c7646f8c6b69300373ce39be73833fe74d
+unreachable blob 5589b92b479a2e486a6573a0d2b93c963f49a1ff
+unreachable blob 7a894f4fdd4f4856a0ea8853cfff2d4f15aee70e
+unreachable blob af89925f4064ebb4546ee483e42cc5481cb1477d
+unreachable blob f209f4f1f73f15765b8278b8d73214deed5bf9da
+unreachable commit 648aa24ba150c4b869604aed11af41c9778d9fde
+unreachable blob 750a34ef668cec4726172a4c04545f5b22a74f2d
+unreachable blob 900aeae19f816db919c05e88df4a47cead0f8360
+unreachable blob 938a434726c2dcdd2af598555fbecf2adc2dce09
+unreachable blob 990af799c3f4b1e968c0a34b36d6c54bb58fdcea
+unreachable blob e10a028e4881bd6e9c82e05cc89fcbf35599b2a2
+unreachable blob 530ba11367ca67daf5dcae1c4d7ab6848e22efb2
+unreachable blob 978b475479126bc50a315b96d63a9db7148b57e4
+unreachable blob 9c8b7f5547bc544cacba89d663e52b14ea782013
+unreachable blob 750c4ea7f775bdd0e80149deb7624d11d9d4f71e
+unreachable blob c98c0b8d73f2510761b52edfec63505728fcfa70
+unreachable blob d28c2b399c4c285952cf6124a4be089777308090
+unreachable blob 088d151fc9a9a1f7db10629f7122f44c9db4335e
+unreachable blob 1f0d6a3433f32b4567fb99f6fb0667fcc25f215e
+unreachable blob ac8dd889300d0b7334b8f79f1222d1b841a22f88
+unreachable blob cd0d2b0272381d35250678941267f17a853fb798
+unreachable blob 268e2d942fe65f6c3ecbbb7525091b07072f7f20
+unreachable blob 3c0e0772d3dbb6c997a305d1bffe0c91d559a22f
+unreachable blob 758ef686d5d1b2fada0428411de1664f75feee42
+unreachable blob e78e25078a1247af28e7371281d7c1e034a7e661
+unreachable blob f78e19962abba212c9f928eeebec17a0a1d346aa
+unreachable blob 210f1655f743ac13e2dccb1d256cbff457c2dea6
+unreachable blob 2a8f70ac8fb631ee32cd6cd20fe3f10e5fe92bce
+unreachable blob 2b0ff9c248e42bf5ac1c04981318850f457a2aac
+unreachable blob a28f6519f1969601a23c7aabff1b802d6eeeb669
+unreachable blob ab8fb517f245a023baa2c4c4a357f689be850b12
+unreachable blob 07103eb4cf76d94306ea94b017d701b6aaba03a1
+unreachable blob 4190252f1a90a8327bf13438469618f3c0281e45
+unreachable blob 6610c86248cb18cc6382f80625e72af4c6f809eb
+unreachable blob 901083afa6c70b9f0f55bc976630a56ac64f817d
+unreachable blob 9d903ea9ebc408760bfcebc6c53b86780bcf43bc
+unreachable blob c290ab563b99c2af0af7f05f7616533fbf243405
+unreachable blob ca1054979c98185ca4c1ab53a1b0e9c4e1b5c1dd
+unreachable blob d2106f621c8e83eff998963001c2c8b7c8ace496
+unreachable blob d890965f285e4d66794936f4bf5ca02f35b65701
+unreachable blob 3511904e1958aa4a5e15f4575fa2bc7e5ffca425
+unreachable blob c01148ae75e06b5826279ccd9467ab6a2ca62f54
+unreachable blob ce11aa81ea4a615642e8d0ef3d756a6dbebb6463
+unreachable blob f3112e968279b36d8a40e0a6c302f1825223d0f9
+unreachable blob 20129cf495436a30e1628f7d41f14ed948da6453
+unreachable blob 3d92d0819fe5ac5e9e46151a2ad159ba234a5a09
+unreachable blob 7692383161de663bd31550a0c278688ee6d9ad46
+unreachable blob ce12e738a2f6e079d193530dc8d6ae831a60e31f
+unreachable blob e992a46e49fe8845e898234c89dc8c5315ccc773
+unreachable blob 219346543dec1b30d6a29c0d7569456e2f515a2a
+unreachable blob 26938df644cad8ead86411a69226f6f58a9c0d67
+unreachable blob 6a9338a284c60402627aa309ae7cb2afa31b497d
+unreachable blob be9333442d4db68ccc011e6263612cf620b71e78
+unreachable blob 2094ba169a8f9b82a631bf71d9f64f69d34e508d
+unreachable blob 29147900e8dca8d4e36cfc9cab4542b37223858b
+unreachable blob 4614fadba9410913f593c9c306e5f48b7fa7ab63
+unreachable blob 9994c81f7a50c9282e6bc6117e64d9653a21a7f4
+unreachable blob cf948f9215513e9f5075260768b8503e84316a21
+unreachable blob eb949a0f93da62d32ec04070bf1b86c12bb9a7f6
+unreachable blob 0395b4ec75d3d5b52f0e35279fbdcb6379961331
+unreachable blob 2295ef18818a5ba4169457b6b2bad1e0a619f5b9
+unreachable blob 4415f1671e1344651334b85e4880d73cf595ca70
+unreachable blob 6e1508ec87f52b2e0fcc530acfa9ecbeac446d49
+unreachable blob 89955286ca4e48186c975a8bf769db10ea0a3a6c
+unreachable blob aa1590c94fccc4562744862258f056c4940a214e
+unreachable blob 1c96b12f45a8fd913d61d7ea172a6fc9d43d87a7
+unreachable blob 20966cd0786c4750274cba5fa8f88bfbfa61ab08
+unreachable blob 33960ec304ec0624ae7656270acc0c632a90e1ba
+unreachable blob 371681a40b6c2c0ea824a59eb0892965a4df019e
+unreachable blob 69165f115baee590f5561c6f077b6e1577d96a76
+unreachable blob 9597ecb7ab8180e4d38552cf9452fcfe6c121f9e
+unreachable blob a5978214dcfc13b04b23412a18b756ee833f55b7
+unreachable blob f91733364b21d7a670c9e07ce2f1214f5ed4f474
+unreachable blob 2298b6d754c221625a48beee9627a779812415aa
+unreachable blob 5418424651360ff13db0b1aab373452bc2e51ee4
+unreachable blob 65983e691ced556cf5189b42dc39aa5abba3fbf4
+unreachable blob 7898dcc2a5942d129c9d37edc6579c77298b836d
+unreachable blob 97981b8da8dcd9914994e4d4e8444e069a4f9fe5
+unreachable blob a998b2f217e0912876ea2c97f3819499d925651c
+unreachable blob c4989bd43f45d839d051c811e2632756d95c7c13
+unreachable blob dd18f1d48768a3f534350ca4ffe59a4513097192
+unreachable blob 03994ec6c9a992f6eac47831ea2101f2ae4a00ac
+unreachable blob 749976cc5d4ee5e19007dc663fb58283836543ca
+unreachable blob 9219b65375987abd7753190c37a4dd617ac136f9
+unreachable blob be99f014472227d0550dbf50624533e87bc7e24c
+unreachable blob ec99944199dae99ca29bdc542dcbe27ea36e991e
+unreachable blob f219322a033701618b3bb2854e05e28969ddc428
+unreachable blob b91a05849bc13e2d2341832a3a590456977fdbb6
+unreachable blob 049bc069cb7d3bbc94f8531b61bf9951f616a574
+unreachable blob 1b9b782d7bf5140362cff460a6ec8bd5d73bb243
+unreachable blob 669bf8dba1047970f9118247e917a32db9aa079b
+unreachable blob 109c82dbf50eba1b88a844dae168574fb035e263
+unreachable blob 299cafc0cad6420bf57f071f3c39ab93e2020768
+unreachable blob 2c9c89186ed499332a7c4107b83b3e143ee23d63
+unreachable blob 6c9cdb871243b6f1b08e702b92b4af515e9104f0
+unreachable commit 6e1c2d061f3eea38c74e16116f93e67be862c9cd
+unreachable blob 8c1c3479c553771df94b902812e36b50bdad09b0
+unreachable blob 9b1c17df79c1e09aee5f4ba099d3042360eec8c0
+unreachable blob a49ce9f25d1183eb46b950f34b06ca419a6f7b27
+unreachable blob b41c8b06256f900b3979c3922398aa48272908f3
+unreachable blob b69cc9d1550745eccaa437e0fe47119b68e8ff2e
+unreachable blob df1c735cfc05d122015e9be5842abd07c0ca9b53
+unreachable blob e21c6fee913555829127cb310eb240da8e237200
+unreachable blob e21c48fc751a3ae48a074110f7647be08c1caadb
+unreachable blob 211d0784d1bd7cac883833212a5ffa20e63261de
+unreachable blob 899dfc2def2ee3a5a24ba67f6e3016b32005b4bd
+
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== DEAL PATH HISTORY ==="
+=== DEAL PATH HISTORY ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git log --all --full-history --name-status -- "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/*deal*" |
+>> Select-Object -First 200
