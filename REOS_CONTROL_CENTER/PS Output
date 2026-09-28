@@ -1,35 +1,95 @@
-PS D:\Homio\REOS_CONTROL_CENTER> git rev-parse 7efcf29651ac26095c347587e178a51b5909673b^
-f5087986b7d19669a360bf48634844fce0d007a2
-PS D:\Homio\REOS_CONTROL_CENTER> git diff-tree --no-commit-id --name-status -r 7efcf29651ac26095c347587e178a51b5909673b | Select-String "deal"
+PS C:\Users\Sandip RanjanePatil> Set-Location "D:\Homio\REOS_CONTROL_CENTER"
+PS D:\Homio\REOS_CONTROL_CENTER> git ls-files | Select-String "AUTONOMY_ENGINE[/\\]core[/\\].*search|AUTONOMY_ENGINE[/\\]core[/\\].*matching"
 
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal.py.before-T06-rollback
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/CORE-006_FINAL_UPGRADE.txt
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/__init__.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/apply_CORE-006_FINAL_UPGRADE.ps1
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_authorization.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_concurrency.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_consistency.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_external_contracts.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_freeze.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_integrity.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_milestones.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_workflow.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
-A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py
+AUTONOMY_ENGINE/core/search_matching/__init__.py
+AUTONOMY_ENGINE/core/search_matching/search_filters.py
+AUTONOMY_ENGINE/core/search_matching/search_index_contract.py
+AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
 
 
-PS D:\Homio\REOS_CONTROL_CENTER> git ls-tree -r --name-only 7efcf29651ac26095c347587e178a51b5909673b^ | Select-String "deal.*\.py$"
-PS D:\Homio\REOS_CONTROL_CENTER> git log --follow --name-status --oneline 7efcf29651ac26095c347587e178a51b5909673b^ -- AUTONOMY_ENGINE/core/deal.py
-PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> git ls-files | Select-String "AUTONOMY_ENGINE[/\\]core[/\\].*search|AUTONOMY_ENGINE[/\\]core[/\\].*matching"
+
+AUTONOMY_ENGINE/core/search_matching/__init__.py
+AUTONOMY_ENGINE/core/search_matching/search_filters.py
+AUTONOMY_ENGINE/core/search_matching/search_index_contract.py
+AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
+
+
+PS D:\Homio\REOS_CONTROL_CENTER> git log --all --oneline --name-status -- AUTONOMY_ENGINE/core | Select-String "search|matching|CORE-005"
+
+7e8766d feat(core-005): implement structured search filters
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
+b5a58b6 refactor(core-005): clean rebuild search matching foundation
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/__init__.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/hybrid_retrieval.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/location_search.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/matching.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_index_contract.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_ranking.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_rebuild.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_visibility.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py
+D       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py
+68f4b48 On reos-development: pre-core-005-clean-rebuild
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_index_contract.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/__init__.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/hybrid_retrieval.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/location_search.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/matching.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_filters.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_ranking.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_rebuild.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_visibility.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_hybrid_retrieval.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_location_search.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_qdrant_indexing.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_core_t09.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_filters.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_ranking.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_rebuild.py
+A       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_search_visibility.py
+
+
+PS D:\Homio\REOS_CONTROL_CENTER> Get-ChildItem AUTONOMY_ENGINE\core -Recurse -File | Where-Object { $_.Name -match "search|matching" } | Select-Object FullName,Length
+
+FullName                                                                                                                          Length
+--------                                                                                                                          ------
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\location_search.py                                                8822
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\search_filters.py                                                 7810
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\search_index_contract.py                                         10698
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_location_search.py                                           8126
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\test_search_filters.py                                            5103
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\location_search.cpython-312.pyc                      11499
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\matching.cpython-312.pyc                             13887
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\search_filters.cpython-312.pyc                        8641
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\search_index_contract.cpython-312.pyc                12700
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\search_ranking.cpython-312.pyc                       12483
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\search_rebuild.cpython-312.pyc                       13073
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\search_visibility.cpython-312.pyc                     6372
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_location_search.cpython-312-pytest-9.1.1.pyc    18879
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_location_search.cpython-312.pyc                 10235
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_matching.cpython-312-pytest-9.1.1.pyc           30950
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_matching.cpython-312.pyc                        13426
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_core_t09.cpython-312-pytest-9.1.1.pyc    32828
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_core_t09.cpython-312.pyc                 19146
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_filters.cpython-312-pytest-9.1.1.pyc     11661
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_filters.cpython-312.pyc                   6377
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_ranking.cpython-312-pytest-9.1.1.pyc     17209
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_ranking.cpython-312.pyc                   9096
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_rebuild.cpython-312-pytest-9.1.1.pyc     36965
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_rebuild.cpython-312.pyc                  13959
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_visibility.cpython-312-pytest-9.1.1.pyc  18980
+D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\search_matching\__pycache__\test_search_visibility.cpython-312.pyc                7590
+
