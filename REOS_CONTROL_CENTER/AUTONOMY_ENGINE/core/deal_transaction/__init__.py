@@ -53,9 +53,25 @@ from .deal_acrl_integration import (
     verify_acrl_bundle,
 )
 from .deal_transaction_events import (
+    CORE002_SCHEMA_NAME,
+    CORE002_SCHEMA_VERSION,
+    CORE002_EVENT_VERSION,
+    CORE006_PRODUCER,
+    DealTransactionEventError,
+    DealTransactionEventScopeError,
+    DealTransactionEventConflictError,
     DealTransactionEvent,
     DealTransactionEventType,
+    transaction_event_from_deal_created,
+    transaction_event_from_deal_state,
+    transaction_event_from_offer_created,
+    transaction_event_from_offer_state,
+    transaction_event_from_negotiation_state,
     transaction_event_from_milestone,
+    transaction_event_from_ownership,
+    transaction_event_from_evidence,
+    transaction_event_from_audit,
+    build_core002_event_contracts,
 )
 
 __all__ = [
