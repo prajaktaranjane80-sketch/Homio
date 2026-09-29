@@ -1,7 +1,8 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from hashlib import sha256
+from types import MappingProxyType
 from typing import Any, Mapping
 import json
 import re
@@ -58,7 +59,9 @@ class EventContract:
     event_version: int
 
     required_fields: tuple[str, ...] = ()
-    field_types: Mapping[str, str] = ()
+    field_types: Mapping[str, str] = field(
+        default_factory=dict
+    )
     allow_additional_fields: bool = True
 
     def __post_init__(self) -> None:
@@ -86,6 +89,32 @@ class EventContract:
                 "event_type must use canonical uppercase naming"
             )
 
+        if isinstance(self.schema_version, bool):
+            raise TypeError(
+                "schema_version must be int"
+            )
+
+        if not isinstance(
+            self.schema_version,
+            int,
+        ):
+            raise TypeError(
+                "schema_version must be int"
+            )
+
+        if isinstance(self.event_version, bool):
+            raise TypeError(
+                "event_version must be int"
+            )
+
+        if not isinstance(
+            self.event_version,
+            int,
+        ):
+            raise TypeError(
+                "event_version must be int"
+            )
+
         if self.schema_version < 1:
             raise ValueError(
                 "schema_version must be >= 1"
@@ -96,22 +125,25 @@ class EventContract:
                 "event_version must be >= 1"
             )
 
-        required = tuple(
-            sorted(
-                {
-                    str(field).strip()
-                    for field in self.required_fields
-                    if str(field).strip()
-                }
-            )
+        raw_required = tuple(
+            str(field).strip()
+            for field in self.required_fields
         )
 
-        if len(required) != len(
-            set(required)
-        ):
+        if len(raw_required) != len(set(raw_required)):
             raise ValueError(
                 "required_fields contain duplicates"
             )
+
+        required = tuple(
+            sorted(
+                {
+                    field
+                    for field in raw_required
+                    if field
+                }
+            )
+        )
 
         object.__setattr__(
             self,
@@ -128,14 +160,36 @@ class EventContract:
             )
 
         normalized_types = {
-            str(key): str(value)
+            str(key).strip(): str(value).strip()
             for key, value in self.field_types.items()
         }
+
+        if any(
+            not key
+            for key in normalized_types
+        ):
+            raise ValueError(
+                "field_types keys cannot be empty"
+            )
+
+        missing_type_definitions = sorted(
+            set(required) - set(normalized_types)
+        )
+
+        if missing_type_definitions:
+            raise ValueError(
+                "missing type definitions: "
+                + ", ".join(
+                    missing_type_definitions
+                )
+            )
 
         object.__setattr__(
             self,
             "field_types",
-            normalized_types,
+            MappingProxyType(
+                normalized_types
+            ),
         )
 
     @property
@@ -357,6 +411,17 @@ class EventContractRegistry:
         contract = self._contracts.get(key)
 
         if contract is None:
+            identity_exists = any(
+                registered.schema_name == schema_name
+                and registered.event_type == event_type
+                for registered in self._contracts.values()
+            )
+
+            if identity_exists:
+                raise UnsupportedEventVersionError(
+                    f"unsupported event version for contract identity: {key}"
+                )
+
             raise UnknownEventTypeError(
                 f"unsupported event contract: {key}"
             )
