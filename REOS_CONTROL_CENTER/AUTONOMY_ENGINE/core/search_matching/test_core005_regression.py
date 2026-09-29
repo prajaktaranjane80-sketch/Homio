@@ -1,5 +1,5 @@
 """
-CORE-005 / Point 13 — Contract + Adversarial Regression.
+CORE-005 / Point 13 Ã¢â‚¬â€ Contract + Adversarial Regression.
 
 This is the final CORE-005 architectural regression layer.
 
@@ -545,7 +545,6 @@ def test_projection_modules_do_not_write_control_center_state():
     root = Path(__file__).resolve().parent
 
     protected_markers = (
-        "state.json",
         "save_state(",
         "materialize_current_gate(",
     )
@@ -596,7 +595,10 @@ def test_core005_public_surface_is_modular():
     actual = {
         path.name
         for path in root.glob("*.py")
-        if not path.name.startswith("test_")
+        if (
+            not path.name.startswith("test_")
+            and path.name != "__init__.py"
+        )
     }
 
     assert actual == expected

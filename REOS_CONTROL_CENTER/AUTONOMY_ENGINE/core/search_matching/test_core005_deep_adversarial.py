@@ -1,5 +1,5 @@
 """
-CORE-005 hardening — deep adversarial boundary regression.
+CORE-005 hardening â€” deep adversarial boundary regression.
 
 Tests only. No production behavior is introduced here.
 """
@@ -224,8 +224,8 @@ def test_consistency_detects_future_then_stale_event_without_reordering_state() 
     )
 
     state = tracker.state(
-        "tenant-a",
-        "inv-001",
+        tenant_id="tenant-a",
+        index_key="inv-001",
     )
 
     assert state is not None

@@ -247,7 +247,11 @@ class QdrantIndexingPipeline:
                 "expected_version must be a positive integer."
             )
 
-        document.assert_version(expected_version)
+        if document.inventory_version != expected_version:
+            raise QdrantVersionViolation(
+                "Expected document version does not match "
+                "inventory version."
+            )
 
     def _assert_stored_version_allows_write(
         self,

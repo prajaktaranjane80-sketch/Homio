@@ -1,5 +1,5 @@
 """
-CORE-005 / Point 03 — Projection & Synchronization.
+CORE-005 / Point 03 Ã¢â‚¬â€ Projection & Synchronization.
 
 Owns the boundary between canonical source events and the
 derived search projection.
@@ -28,7 +28,7 @@ This module does NOT:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Iterable, Protocol
@@ -263,14 +263,19 @@ class SearchProjectionSynchronizer:
     """
 
     sink: SearchProjectionSink | None = None
-
-    def __post_init__(self) -> None:
-        self._versions: dict[
-            tuple[str, str],
-            ProjectionVersion,
-        ] = {}
-
-        self._processed_events: set[str] = set()
+    _versions: dict[
+        tuple[str, str],
+        ProjectionVersion,
+    ] = field(
+        default_factory=dict,
+        init=False,
+        repr=False,
+    )
+    _processed_events: set[str] = field(
+        default_factory=set,
+        init=False,
+        repr=False,
+    )
 
     def _key(
         self,

@@ -1,5 +1,5 @@
 """
-CORE-005 / Point 01 — Search Domain.
+CORE-005 / Point 01 Ã¢â‚¬â€ Search Domain.
 
 Owns the stable domain contract for a search request and result.
 
@@ -134,7 +134,11 @@ def _normalize_sequence(
     return tuple(
         sorted(
             set(normalized),
-            key=str.casefold,
+            key=lambda value: (
+                value.casefold(),
+                value.islower(),
+                value,
+            ),
         )
     )
 
@@ -204,13 +208,20 @@ class SearchTenantContext:
     capabilities: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
+        try:
+            tenant_id = _required_text(
+                self.tenant_id,
+                "tenant_id",
+            )
+        except SearchDomainError as exc:
+            raise SearchTenantContextError(
+                str(exc)
+            ) from exc
+
         object.__setattr__(
             self,
             "tenant_id",
-            _required_text(
-                self.tenant_id,
-                "tenant_id",
-            ),
+            tenant_id,
         )
 
         if self.actor_id is not None:
