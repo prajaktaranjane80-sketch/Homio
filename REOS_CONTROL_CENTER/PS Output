@@ -1,29 +1,96 @@
-Write-Host "=== T03 FIXTURE DEFINITIONS ==="
+>> }
+132: def context(
+133:     *,
+134:     trust_score: TrustScore | None = None,
+135:     fraud_assessment: FraudAssessment | None = None,
+136:     tenant_id: str = TENANT,
+137:     subject_id: str = SUBJECT,
+138: ) -> RiskEvaluationContext:
+139:     return RiskEvaluationContext(
+140:         tenant_id=tenant_id,
+141:         subject_id=subject_id,
+142:         action_id=ACTION,
+143:         trust_score=trust_score,
+144:         fraud_assessment=fraud_assessment,
+145:     )
+146:
+147:
+148: def test_default_ruleset_is_versioned() -> None:
+149:     ruleset = RiskRuleSet.default()
+150:
+151:     assert ruleset.version == "1.0"
+152:     assert ruleset.fingerprint
+153:     assert len(ruleset.rules) == 4
+154:
+155:
+156: def test_default_ruleset_is_deterministic() -> None:
+157:     first = RiskRuleSet.default()
+158:     second = RiskRuleSet.default()
+159:
+160:     assert first.fingerprint == second.fingerprint
+161:
+162:
+163: def test_duplicate_rule_ids_are_rejected() -> None:
+164:     rule = RiskRule(
+165:         rule_id="R-001",
+166:         version="1.0",
+167:         kind=RiskRuleKind.FRAUD_TRIPWIRE,
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
 
-$i=1
-(Get-Content "AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py") |
-ForEach-Object {
-    if ($_ -match '^\s*def (context|make_fraud_assessment|make_finding)\(' -or
-        $_ -match '^\s*def test_') {
-        "{0}: {1}" -f $i,$_
-    }
-    $i++
-}
-
-Write-Host ""
-Write-Host "=== T03 FIXTURE CONTEXT ==="
-
-$lines=Get-Content "AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py"
-
-$matches=Select-String -Path "AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py" `
-    -Pattern "def context\(|def make_fraud_assessment\(|tenant_id=|subject_id="
-
-foreach ($m in $matches) {
-    $start=[Math]::Max(1,$m.LineNumber-5)
-    $end=[Math]::Min($lines.Count,$m.LineNumber+18)
-    Write-Host ""
-    Write-Host "--- lines $start-$end ---"
-    for($n=$start;$n -le $end;$n++) {
-        "{0}: {1}" -f $n,$lines[$n-1]
-    }
-}
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== make_fraud_assessment() ==="
+=== make_fraud_assessment() ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $fraud = Select-String -Path "AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py" -Pattern "def make_fraud_assessment\("
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $fraud) { throw "make_fraud_assessment() not found" }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $start = $fraud[0].LineNumber
+PS D:\HOMIO\REOS_CONTROL_CENTER> for ($i=$start; $i -le $start+45; $i++) {
+>>     "{0}: {1}" -f $i,$lines[$i-1]
+>> }
+104: def make_fraud_assessment(
+105:     *,
+106:     tripwire: bool,
+107:     finding: FraudFinding | None = None,
+108: ) -> FraudAssessment:
+109:     findings = (
+110:         (finding,)
+111:         if finding is not None
+112:         else ()
+113:     )
+114:
+115:     return FraudAssessment(
+116:         assessment_id=uuid4(),
+117:         tenant_id=UUID(
+118:             "11111111-1111-1111-1111-111111111111"
+119:         ),
+120:         subject_id=UUID(
+121:             "33333333-3333-3333-3333-333333333333"
+122:         ),
+123:         correlation_id="fraud-assessment-001",
+124:         model_version="1.0",
+125:         policy_fingerprint="fraud-policy-fp",
+126:         findings=findings,
+127:         tripwire_raised=tripwire,
+128:         generated_at=NOW,
+129:     )
+130:
+131:
+132: def context(
+133:     *,
+134:     trust_score: TrustScore | None = None,
+135:     fraud_assessment: FraudAssessment | None = None,
+136:     tenant_id: str = TENANT,
+137:     subject_id: str = SUBJECT,
+138: ) -> RiskEvaluationContext:
+139:     return RiskEvaluationContext(
+140:         tenant_id=tenant_id,
+141:         subject_id=subject_id,
+142:         action_id=ACTION,
+143:         trust_score=trust_score,
+144:         fraud_assessment=fraud_assessment,
+145:     )
+146:
+147:
+148: def test_default_ruleset_is_versioned() -> None:
+149:     ruleset = RiskRuleSet.default()
