@@ -1,398 +1,1750 @@
-=== STATE JSON ACTUAL DIFF ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff -- data/state.json
-diff --git a/REOS_CONTROL_CENTER/data/state.json b/REOS_CONTROL_CENTER/data/state.json
-index a875bbe..39e980e 100644
---- a/REOS_CONTROL_CENTER/data/state.json
-+++ b/REOS_CONTROL_CENTER/data/state.json
-@@ -3,7 +3,7 @@
-     "product": "HOMIO / REOS",
-     "version": "3.4",
-     "schema_version": 3,
--    "updated_at": "2026-09-24T10:18:20+05:30",
-+    "updated_at": "2026-09-29T21:29:05+05:30",
-     "control_center_version": "6.0"
-   },
-   "constitution": {
-@@ -2003,14 +2003,109 @@
-         "id": "CORE-006-T05",
-         "note": "Deal ownership integration complete; T05 focused tests 12 passed; AUTONOMY_ENGINE/core full regression 440 passed."
-       }
-+    },
-+    {
-+      "id": "23045198-18fa-4ded-8c13-bb3fc769ce34",
-+      "time": "2026-09-29T19:00:47+05:30",
-+      "type": "CRITERIA_BULK_VERIFIED",
-+      "payload": {
-+        "gate": "CORE-006"
-+      }
-+    },
-+    {
-+      "id": "e55d09ef-0e35-4e89-852f-a8a9a4f6f655",
-+      "time": "2026-09-29T20:28:40+05:30",
-+      "type": "CRITERIA_BULK_VERIFIED",
-+      "payload": {
-+        "gate": "CORE-006"
-+      }
-+    },
-+    {
-+      "id": "0919788c-e3c0-4a4d-baf1-82a675deed77",
-+      "time": "2026-09-29T20:30:24+05:30",
-+      "type": "SUBTASK_COMPLETED",
-+      "payload": {
-+        "id": "CORE-006-T06",
-+        "note": "Evidence and audit integration implemented and regression-verified; full repository 2209 tests passed, with no failures."
-+      }
-+    },
-+    {
-+      "id": "8e55ec6d-20d1-4865-9582-db1b702920a8",
-+      "time": "2026-09-29T20:54:07+05:30",
-+      "type": "SUBTASK_COMPLETED",
-+      "payload": {
-+        "id": "CORE-006-T07",
-+        "note": "T07 transaction event workflows completed. CORE-006 T07 targeted suite: 17 passed. CORE-006 deal_transaction regression: 582 passed. T07 test coverage committed and pushed to reos-development."
-+      }
-+    },
-+    {
-+      "id": "a4e1fbe1-f89d-406b-92e6-397c48d26636",
-+      "time": "2026-09-29T20:58:35+05:30",
-+      "type": "SUBTASK_COMPLETED",
-+      "payload": {
-+        "id": "CORE-006-T08",
-+        "note": "Consistency and concurrency verification completed. Dedicated T08 suite: 34 passed in 0.23s. Full CORE-006 deal_transaction regression: 74 passed in 0.36s. T08 test coverage committed and pushed to reos-development."
-+      }
-+    },
-+    {
-+      "id": "67ba240d-35f2-41fa-9256-c0c0211239d7",
-+      "time": "2026-09-29T21:01:31+05:30",
-+      "type": "SUBTASK_COMPLETED",
-+      "payload": {
-+        "id": "CORE-006-T09",
-+        "note": "Security and authorization review completed. Dedicated T09 suite: 77 passed in 0.31s. Full CORE-006 deal_transaction regression: 151 passed in 0.52s."
-+      }
-+    },
-+    {
-+      "id": "86aead75-be24-4e56-a407-b814f53c96a6",
-+      "time": "2026-09-29T21:03:17+05:30",
-+      "type": "GATE_VALIDATED",
-+      "payload": {
-+        "gate": "CORE-006"
-+      }
-+    },
-+    {
-+      "id": "9488d473-1f8a-41e3-a6ab-4e85514bf25f",
-+      "time": "2026-09-29T21:03:37+05:30",
-+      "type": "GATE_AUTO_MATERIALIZED",
-+      "payload": {
-+        "gate": "CORE-007"
-+      }
-+    },
-+    {
-+      "id": "45444757-9799-48e9-8647-cde0fac43d13",
-+      "time": "2026-09-29T21:03:37+05:30",
-+      "type": "GATE_APPROVED_AND_FROZEN",
-+      "payload": {
-+        "gate": "CORE-006",
-+        "next_gate": "CORE-007"
-+      }
-+    },
-+    {
-+      "id": "7a4e351d-0d39-413c-b43c-2d86256b9ad1",
-+      "time": "2026-09-29T21:09:06+05:30",
-+      "type": "SUBTASK_COMPLETED",
-+      "payload": {
-+        "id": "CORE-007-T01",
-+        "note": "Trust score foundation implemented under ARCH-015. Dedicated T01 suite: 37 passed in 0.18s. Full AUTONOMY_ENGINE/core regression: 730 passed in 4.94s. T01 implementation and tests committed/pushed."
-+      }
-+    },
-+    {
-+      "id": "850bc9ea-a192-4484-844d-86e0047d8ff7",
-+      "time": "2026-09-29T21:29:05+05:30",
-+      "type": "SUBTASK_COMPLETED",
-+      "payload": {
-+        "id": "CORE-007-T02",
-+        "note": "Fraud detection integration implemented under ARCH-016. Dedicated T02 suite: 23 passed. Trust/Fraud package regression: 60 passed. Full AUTONOMY_ENGINE/core regression: 753 passed. T01 production and tests verified untouched. T02 committed and pushed; local and remote synchronized at ebdd671."
-+      }
-     }
-   ],
-   "integrity": {
--    "sha256": "79a8f1d12b44b04140562f9b885fae4760854e72b34932218250b1f429afe9a3"
-+    "sha256": "39abe3264be3cc2a73964d4aee5351f80242f53aeeb5f0c2e033fb6f5ac35fc6"
-   },
-   "execution": {
--    "current_gate": "CORE-006",
--    "current_task": "CORE-006-T06: Implement evidence and audit integration.",
-+    "current_gate": "CORE-007",
-+    "current_task": "CORE-007-T03: Implement risk rule evaluation.",
-     "status": "CONTROL_CENTER_DRIVEN",
-     "next_step_source": "execution_plan.authoritative_sequence",
-     "current_acceptance_criteria": [
-@@ -2027,7 +2122,7 @@
-       "Define mode activation, suspension and transition rules.",
-       "No overlap or duplicate responsibility with existing engines."
-     ],
--    "current_subtask": "CORE-006-T06"
-+    "current_subtask": "CORE-007-T03"
-   },
-   "execution_plan": {
-     "plan_version": "1.0",
-@@ -2105,13 +2200,13 @@
-         "id": "PLAN-012",
-         "gate": "CORE-006",
-         "name": "Deal & Transaction Core",
--        "status": "CURRENT"
-+        "status": "COMPLETE"
-       },
-       {
-         "id": "PLAN-013",
-         "gate": "CORE-007",
-         "name": "Trust, Fraud & Governance Core",
--        "status": "FUTURE"
-+        "status": "CURRENT"
-       },
-       {
-         "id": "PLAN-014",
-@@ -3694,8 +3789,8 @@
-       "id": "CORE-006",
-       "name": "Deal & Transaction Core",
-       "objective": "Implement protected deal lifecycle and transaction state.",
--      "status": "CURRENT",
--      "current_subtask": "CORE-006-T06",
-+      "status": "APPROVED",
-+      "current_subtask": "CORE-006-T10",
-       "subtasks": [
-         {
-           "id": "CORE-006-T01",
-@@ -3741,31 +3836,40 @@
-           "id": "CORE-006-T06",
-           "title": "Implement evidence and audit integration",
-           "priority": "HIGH",
--          "status": "CURRENT"
-+          "status": "DONE",
-+          "completed_at": "2026-09-29T20:30:24+05:30",
-+          "note": "Evidence and audit integration implemented and regression-verified; full repository 2209 tests passed, with no failures."
-         },
-         {
-           "id": "CORE-006-T07",
-           "title": "Implement transaction event workflows",
-           "priority": "HIGH",
--          "status": "PENDING"
-+          "status": "DONE",
-+          "completed_at": "2026-09-29T20:54:07+05:30",
-+          "note": "T07 transaction event workflows completed. CORE-006 T07 targeted suite: 17 passed. CORE-006 deal_transaction regression: 582 passed. T07 test coverage committed and pushed to reos-development."
-         },
-         {
-           "id": "CORE-006-T08",
-           "title": "Run consistency and concurrency tests",
-           "priority": "CRITICAL",
--          "status": "PENDING"
-+          "status": "DONE",
-+          "completed_at": "2026-09-29T20:58:35+05:30",
-+          "note": "Consistency and concurrency verification completed. Dedicated T08 suite: 34 passed in 0.23s. Full CORE-006 deal_transaction regression: 74 passed in 0.36s. T08 test coverage committed and pushed to reos-development."
-         },
-         {
-           "id": "CORE-006-T09",
-           "title": "Run security and authorization review",
-           "priority": "CRITICAL",
--          "status": "PENDING"
-+          "status": "DONE",
-+          "completed_at": "2026-09-29T21:01:31+05:30",
-+          "note": "Security and authorization review completed. Dedicated T09 suite: 77 passed in 0.31s. Full CORE-006 deal_transaction regression: 151 passed in 0.52s."
-         },
-         {
-           "id": "CORE-006-T10",
-           "title": "Freeze deal and transaction core",
-           "priority": "CRITICAL",
--          "status": "PENDING"
-+          "status": "DONE",
-+          "completed_at": "2026-09-29T21:03:37+05:30"
-         }
-       ],
-       "acceptance_criteria": [
-@@ -3780,48 +3884,175 @@
-         {
-           "id": "CORE-006-AC01",
-           "criterion": "Deal state has one authoritative owner.",
-+          "status": "VERIFIED",
-+          "evidence": "Final review completed by current gate execution.",
-+          "verified_at": "2026-09-29T20:28:40+05:30"
-+        },
-+        {
-+          "id": "CORE-006-AC02",
-+          "criterion": "Lead, inventory and ownership relationships are traceable.",
-+          "status": "VERIFIED",
-+          "evidence": "Final review completed by current gate execution.",
-+          "verified_at": "2026-09-29T20:28:40+05:30"
-+        },
-+        {
-+          "id": "CORE-006-AC03",
-+          "criterion": "Critical transaction transitions are auditable.",
-+          "status": "VERIFIED",
-+          "evidence": "Final review completed by current gate execution.",
-+          "verified_at": "2026-09-29T20:28:40+05:30"
-+        },
-+        {
-+          "id": "CORE-006-AC04",
-+          "criterion": "Concurrent updates are safe.",
-+          "status": "VERIFIED",
-+          "evidence": "Final review completed by current gate execution.",
-+          "verified_at": "2026-09-29T20:28:40+05:30"
-+        },
-+        {
-+          "id": "CORE-006-AC05",
-+          "criterion": "Evidence and events preserve historical truth.",
-+          "status": "VERIFIED",
-+          "evidence": "Final review completed by current gate execution.",
-+          "verified_at": "2026-09-29T20:28:40+05:30"
-+        },
-+        {
-+          "id": "CORE-006-AC06",
-+          "criterion": "Authorization and tenant isolation pass.",
-+          "status": "VERIFIED",
-+          "evidence": "Final review completed by current gate execution.",
-+          "verified_at": "2026-09-29T20:28:40+05:30"
-+        }
-+      ],
-+      "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
-+      "created_at": "2026-09-23T20:44:54+05:30"
-+    },
-+    "CORE-007": {
-+      "id": "CORE-007",
-+      "name": "Trust, Fraud & Governance Core",
-+      "objective": "Implement platform trust, fraud and business governance controls.",
-+      "status": "CURRENT",
-+      "current_subtask": "CORE-007-T03",
-+      "subtasks": [
-+        {
-+          "id": "CORE-007-T01",
-+          "title": "Implement trust score foundation",
-+          "priority": "CRITICAL",
-+          "status": "DONE",
-+          "completed_at": "2026-09-29T21:09:06+05:30",
-+          "note": "Trust score foundation implemented under ARCH-015. Dedicated T01 suite: 37 passed in 0.18s. Full AUTONOMY_ENGINE/core regression: 730 passed in 4.94s. T01 implementation and tests committed/pushed."
-+        },
-+        {
-+          "id": "CORE-007-T02",
-+          "title": "Implement fraud detection integration",
-+          "priority": "CRITICAL",
-+          "status": "DONE",
-+          "completed_at": "2026-09-29T21:29:05+05:30",
-+          "note": "Fraud detection integration implemented under ARCH-016. Dedicated T02 suite: 23 passed. Trust/Fraud package regression: 60 passed. Full AUTONOMY_ENGINE/core regression: 753 passed. T01 production and tests verified untouched. T02 committed and pushed; local and remote synchronized at ebdd671."
-+        },
-+        {
-+          "id": "CORE-007-T03",
-+          "title": "Implement risk rule evaluation",
-+          "priority": "CRITICAL",
-+          "status": "CURRENT"
-+        },
-+        {
-+          "id": "CORE-007-T04",
-+          "title": "Implement governance policy engine",
-+          "priority": "CRITICAL",
-+          "status": "PENDING"
-+        },
-+        {
-+          "id": "CORE-007-T05",
-+          "title": "Implement approval and exception workflows",
-+          "priority": "CRITICAL",
-+          "status": "PENDING"
-+        },
-+        {
-+          "id": "CORE-007-T06",
-+          "title": "Implement security and evidence integration",
-+          "priority": "HIGH",
-+          "status": "PENDING"
-+        },
-+        {
-+          "id": "CORE-007-T07",
-+          "title": "Implement dispute and escalation hooks",
-+          "priority": "HIGH",
-+          "status": "PENDING"
-+        },
-+        {
-+          "id": "CORE-007-T08",
-+          "title": "Run adversarial and false-positive review",
-+          "priority": "CRITICAL",
-+          "status": "PENDING"
-+        },
-+        {
-+          "id": "CORE-007-T09",
-+          "title": "Run policy conflict and tenant isolation tests",
-+          "priority": "CRITICAL",
-+          "status": "PENDING"
-+        },
-+        {
-+          "id": "CORE-007-T10",
-+          "title": "Freeze trust fraud and governance core",
-+          "priority": "CRITICAL",
-+          "status": "PENDING"
-+        }
-+      ],
-+      "acceptance_criteria": [
-+        "Trust and fraud responsibilities are distinct.",
-+        "Governance policies are versioned and auditable.",
-+        "High-risk actions require appropriate approval.",
-+        "Exceptions are controlled and expire.",
-+        "Cross-tenant and privilege boundaries are enforced.",
-+        "False-positive and conflict cases are tested."
-+      ],
-+      "criteria_state": [
-+        {
-+          "id": "CORE-007-AC01",
-+          "criterion": "Trust and fraud responsibilities are distinct.",
-           "status": "PENDING",
-           "evidence": null,
-           "verified_at": null
-         },
-         {
--          "id": "CORE-006-AC02",
--          "criterion": "Lead, inventory and ownership relationships are traceable.",
-+          "id": "CORE-007-AC02",
-+          "criterion": "Governance policies are versioned and auditable.",
-           "status": "PENDING",
-           "evidence": null,
-           "verified_at": null
-         },
-         {
--          "id": "CORE-006-AC03",
--          "criterion": "Critical transaction transitions are auditable.",
-+          "id": "CORE-007-AC03",
-+          "criterion": "High-risk actions require appropriate approval.",
-           "status": "PENDING",
-           "evidence": null,
-           "verified_at": null
-         },
-         {
--          "id": "CORE-006-AC04",
--          "criterion": "Concurrent updates are safe.",
-+          "id": "CORE-007-AC04",
-+          "criterion": "Exceptions are controlled and expire.",
-           "status": "PENDING",
-           "evidence": null,
-           "verified_at": null
-         },
-         {
--          "id": "CORE-006-AC05",
--          "criterion": "Evidence and events preserve historical truth.",
-+          "id": "CORE-007-AC05",
-+          "criterion": "Cross-tenant and privilege boundaries are enforced.",
-           "status": "PENDING",
-           "evidence": null,
-           "verified_at": null
-         },
-         {
--          "id": "CORE-006-AC06",
--          "criterion": "Authorization and tenant isolation pass.",
-+          "id": "CORE-007-AC06",
-+          "criterion": "False-positive and conflict cases are tested.",
-           "status": "PENDING",
-           "evidence": null,
-           "verified_at": null
-         }
-       ],
-       "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
--      "created_at": "2026-09-23T20:44:54+05:30"
-+      "created_at": "2026-09-29T21:03:37+05:30"
-     }
-   },
-   "autonomous_engine": {
-(END)
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== CORE-007-T03 SOURCE ===" -ForegroundColor Cyan
+
+=== CORE-007-T03 SOURCE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Content AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py
+"""CORE-007 T03 â€” Risk Rule Evaluation.
+
+ARCH-017/018 bounded risk-rule evaluation boundary.
+
+This module:
+- evaluates deterministic business-risk rules,
+- consumes CORE-007 T01 trust-score output,
+- consumes CORE-007 T02 fraud-assessment output,
+- preserves tenant and subject scope,
+- produces an immutable risk assessment.
+
+This module does NOT:
+- authorize or deny actions,
+- require approval,
+- execute governance policies,
+- own exceptions,
+- own trust scoring,
+- own fraud detection,
+- publish events,
+- own Control Center state,
+- replace AUTONOMY_ENGINE/core/risk_engine.py.
+
+The existing core/risk_engine.py is an autonomy/execution risk engine.
+This module is the CORE-007 business-risk rule evaluator.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from enum import Enum, IntEnum
+import hashlib
+import json
+from uuid import UUID, uuid4
+
+from .fraud_detection import (
+    FraudAssessment,
+    FraudFindingCode,
+    FraudSeverity,
+)
+from .trust_score import TrustScore
+
+
+RISK_RULE_SCHEMA_VERSION = 1
+RISK_RULE_MODEL_VERSION = "1.0"
+
+
+class RiskRuleError(Exception):
+    """Base CORE-007 risk-rule error."""
+
+
+class RiskRuleValidationError(RiskRuleError):
+    """Invalid risk-rule input."""
+
+
+class RiskRuleScopeError(RiskRuleError):
+    """Cross-tenant or subject-scope violation."""
+
+
+class RiskRuleConflictError(RiskRuleError):
+    """Conflicting risk-assessment identity."""
+
+
+class RiskLevel(IntEnum):
+    LOW = 0
+    MEDIUM = 1
+    HIGH = 2
+    CRITICAL = 3
+
+
+class RiskRuleKind(str, Enum):
+    TRUST_SCORE_AT_MOST = "TRUST_SCORE_AT_MOST"
+    FRAUD_TRIPWIRE = "FRAUD_TRIPWIRE"
+    FRAUD_SEVERITY_AT_LEAST = "FRAUD_SEVERITY_AT_LEAST"
+    FRAUD_FINDING_CODE = "FRAUD_FINDING_CODE"
+
+
+def _text(value: str, field_name: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise RiskRuleValidationError(
+            f"{field_name} must be non-empty text"
+        )
+    return value.strip()
+
+
+def _uuid(value: UUID, field_name: str) -> UUID:
+    if not isinstance(value, UUID):
+        raise RiskRuleValidationError(
+            f"{field_name} must be UUID"
+        )
+    return value
+
+
+def _time(value: datetime, field_name: str) -> datetime:
+    if not isinstance(value, datetime):
+        raise RiskRuleValidationError(
+            f"{field_name} must be datetime"
+        )
+
+    if value.tzinfo is None or value.utcoffset() is None:
+        raise RiskRuleValidationError(
+            f"{field_name} must be timezone-aware"
+        )
+
+    return value.astimezone(timezone.utc)
+
+
+def _references(values: tuple[str, ...]) -> tuple[str, ...]:
+    if not values:
+        raise RiskRuleValidationError(
+            "evidence_references must not be empty"
+        )
+
+    normalized = tuple(
+        dict.fromkeys(
+            _text(value, "evidence_reference")
+            for value in values
+        )
+    )
+
+    if not normalized:
+        raise RiskRuleValidationError(
+            "evidence_references must not be empty"
+        )
+
+    return normalized
+
+
+def _fingerprint(payload: object) -> str:
+    canonical = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+    return hashlib.sha256(
+        canonical.encode("utf-8")
+    ).hexdigest()
+
+
+def _fraud_severity_rank(
+    severity: FraudSeverity,
+) -> int:
+    return {
+        FraudSeverity.INFORMATIONAL: 0,
+        FraudSeverity.REVIEW: 1,
+        FraudSeverity.HIGH: 2,
+        FraudSeverity.CRITICAL: 3,
+    }[severity]
+
+
+def _score_level(score: int) -> RiskLevel:
+    if score >= 90:
+        return RiskLevel.CRITICAL
+    if score >= 60:
+        return RiskLevel.HIGH
+    if score >= 30:
+        return RiskLevel.MEDIUM
+    return RiskLevel.LOW
+
+
+@dataclass(frozen=True, slots=True)
+class RiskRule:
+    """Immutable deterministic business-risk rule."""
+
+    rule_id: str
+    version: str
+    kind: RiskRuleKind
+    level: RiskLevel
+    score_weight: int
+    threshold: int | None = None
+    fraud_severity: FraudSeverity | None = None
+    finding_code: FraudFindingCode | None = None
+    enabled: bool = True
+    description: str = ""
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "rule_id",
+            _text(self.rule_id, "rule_id"),
+        )
+        object.__setattr__(
+            self,
+            "version",
+            _text(self.version, "version"),
+        )
+
+        if not isinstance(
+            self.kind,
+            RiskRuleKind,
+        ):
+            raise RiskRuleValidationError(
+                "kind must be RiskRuleKind"
+            )
+
+        if not isinstance(
+            self.level,
+            RiskLevel,
+        ):
+            raise RiskRuleValidationError(
+                "level must be RiskLevel"
+            )
+
+        if (
+            isinstance(self.score_weight, bool)
+            or not isinstance(self.score_weight, int)
+            or self.score_weight < 0
+        ):
+            raise RiskRuleValidationError(
+                "score_weight must be integer >= 0"
+            )
+
+        if self.threshold is not None:
+            if (
+                isinstance(self.threshold, bool)
+                or not isinstance(self.threshold, int)
+                or not 0 <= self.threshold <= 100
+            ):
+                raise RiskRuleValidationError(
+                    "threshold must be integer between 0 and 100"
+                )
+
+        if self.fraud_severity is not None and not isinstance(
+            self.fraud_severity,
+            FraudSeverity,
+        ):
+            raise RiskRuleValidationError(
+                "fraud_severity must be FraudSeverity"
+            )
+
+        if self.finding_code is not None and not isinstance(
+            self.finding_code,
+            FraudFindingCode,
+        ):
+            raise RiskRuleValidationError(
+                "finding_code must be FraudFindingCode"
+            )
+
+        object.__setattr__(
+            self,
+            "description",
+            (
+                self.description.strip()
+                if isinstance(self.description, str)
+                else ""
+            ),
+        )
+
+        self._validate_parameters()
+
+    def _validate_parameters(self) -> None:
+        if self.kind == RiskRuleKind.TRUST_SCORE_AT_MOST:
+            if self.threshold is None:
+                raise RiskRuleValidationError(
+                    "TRUST_SCORE_AT_MOST requires threshold"
+                )
+
+        if self.kind == RiskRuleKind.FRAUD_SEVERITY_AT_LEAST:
+            if self.fraud_severity is None:
+                raise RiskRuleValidationError(
+                    "FRAUD_SEVERITY_AT_LEAST requires fraud_severity"
+                )
+
+        if self.kind == RiskRuleKind.FRAUD_FINDING_CODE:
+            if self.finding_code is None:
+                raise RiskRuleValidationError(
+                    "FRAUD_FINDING_CODE requires finding_code"
+                )
+
+        if self.kind == RiskRuleKind.FRAUD_TRIPWIRE:
+            if (
+                self.threshold is not None
+                or self.fraud_severity is not None
+                or self.finding_code is not None
+            ):
+                raise RiskRuleValidationError(
+                    "FRAUD_TRIPWIRE does not accept rule parameters"
+                )
+
+    @property
+    def fingerprint(self) -> str:
+        return _fingerprint(
+            {
+                "rule_id": self.rule_id,
+                "version": self.version,
+                "kind": self.kind.value,
+                "level": self.level.name,
+                "score_weight": self.score_weight,
+                "threshold": self.threshold,
+                "fraud_severity": (
+                    self.fraud_severity.value
+                    if self.fraud_severity
+                    else None
+                ),
+                "finding_code": (
+                    self.finding_code.value
+                    if self.finding_code
+                    else None
+                ),
+                "enabled": self.enabled,
+                "description": self.description,
+            }
+        )
+
+    def matches(
+        self,
+        context: "RiskEvaluationContext",
+    ) -> tuple[bool, tuple[str, ...]]:
+        """Return (matched, evidence references)."""
+
+        if not self.enabled:
+            return False, ()
+
+        if self.kind == RiskRuleKind.TRUST_SCORE_AT_MOST:
+            if context.trust_score is None:
+                return False, ()
+
+            score = context.trust_score.score
+
+            if score <= self.threshold:
+                return True, (
+                    f"trust-score:{context.trust_score.model_fingerprint}",
+                )
+
+            return False, ()
+
+        if self.kind == RiskRuleKind.FRAUD_TRIPWIRE:
+            if context.fraud_assessment is None:
+                return False, ()
+
+            if not context.fraud_assessment.tripwire_raised:
+                return False, ()
+
+            references = []
+            for finding in context.fraud_assessment.findings:
+                references.extend(
+                    finding.evidence_references
+                )
+
+            return True, tuple(
+                dict.fromkeys(references)
+            )
+
+        if self.kind == RiskRuleKind.FRAUD_SEVERITY_AT_LEAST:
+            if context.fraud_assessment is None:
+                return False, ()
+
+            minimum = _fraud_severity_rank(
+                self.fraud_severity
+            )
+
+            references: list[str] = []
+
+            for finding in context.fraud_assessment.findings:
+                if _fraud_severity_rank(
+                    finding.severity
+                ) >= minimum:
+                    references.extend(
+                        finding.evidence_references
+                    )
+
+            if references:
+                return True, tuple(
+                    dict.fromkeys(references)
+                )
+
+            return False, ()
+
+        if self.kind == RiskRuleKind.FRAUD_FINDING_CODE:
+            if context.fraud_assessment is None:
+                return False, ()
+
+            references: list[str] = []
+
+            for finding in context.fraud_assessment.findings:
+                if finding.code == self.finding_code:
+                    references.extend(
+                        finding.evidence_references
+                    )
+
+            if references:
+                return True, tuple(
+                    dict.fromkeys(references)
+                )
+
+            return False, ()
+
+        raise RiskRuleValidationError(
+            f"Unsupported rule kind: {self.kind}"
+        )
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "rule_id": self.rule_id,
+            "version": self.version,
+            "kind": self.kind.value,
+            "level": self.level.name,
+            "score_weight": self.score_weight,
+            "threshold": self.threshold,
+            "fraud_severity": (
+                self.fraud_severity.value
+                if self.fraud_severity
+                else None
+            ),
+            "finding_code": (
+                self.finding_code.value
+                if self.finding_code
+                else None
+            ),
+            "enabled": self.enabled,
+            "description": self.description,
+            "fingerprint": self.fingerprint,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class RiskRuleSet:
+    """Versioned immutable rule registry."""
+
+    version: str
+    rules: tuple[RiskRule, ...]
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "version",
+            _text(self.version, "version"),
+        )
+
+        if not isinstance(self.rules, tuple):
+            raise RiskRuleValidationError(
+                "rules must be tuple"
+            )
+
+        identities: set[str] = set()
+
+        for rule in self.rules:
+            if not isinstance(rule, RiskRule):
+                raise RiskRuleValidationError(
+                    "rules must contain RiskRule"
+                )
+
+            if rule.rule_id in identities:
+                raise RiskRuleValidationError(
+                    f"Duplicate risk rule: {rule.rule_id}"
+                )
+
+            identities.add(rule.rule_id)
+
+    @classmethod
+    def default(cls) -> "RiskRuleSet":
+        return cls(
+            version="1.0",
+            rules=(
+                RiskRule(
+                    rule_id="RISK-TRUST-LOW",
+                    version="1.0",
+                    kind=RiskRuleKind.TRUST_SCORE_AT_MOST,
+                    level=RiskLevel.HIGH,
+                    score_weight=60,
+                    threshold=40,
+                    description=(
+                        "Low trust score creates elevated business risk."
+                    ),
+                ),
+                RiskRule(
+                    rule_id="RISK-FRAUD-TRIPWIRE",
+                    version="1.0",
+                    kind=RiskRuleKind.FRAUD_TRIPWIRE,
+                    level=RiskLevel.CRITICAL,
+                    score_weight=100,
+                    description=(
+                        "Fraud tripwire evidence creates critical risk."
+                    ),
+                ),
+                RiskRule(
+                    rule_id="RISK-FRAUD-HIGH",
+                    version="1.0",
+                    kind=RiskRuleKind.FRAUD_SEVERITY_AT_LEAST,
+                    level=RiskLevel.HIGH,
+                    score_weight=70,
+                    fraud_severity=FraudSeverity.HIGH,
+                    description=(
+                        "High or critical fraud findings create "
+                        "elevated business risk."
+                    ),
+                ),
+                RiskRule(
+                    rule_id="RISK-EVIDENCE-CONFLICT",
+                    version="1.0",
+                    kind=RiskRuleKind.FRAUD_FINDING_CODE,
+                    level=RiskLevel.CRITICAL,
+                    score_weight=90,
+                    finding_code=(
+                        FraudFindingCode.HANDOFF_EVIDENCE_CONFLICT
+                    ),
+                    description=(
+                        "Conflicting evidence requires critical review."
+                    ),
+                ),
+            ),
+        )
+
+    @property
+    def fingerprint(self) -> str:
+        return _fingerprint(
+            {
+                "version": self.version,
+                "rules": tuple(
+                    rule.fingerprint
+                    for rule in sorted(
+                        self.rules,
+                        key=lambda item: item.rule_id,
+                    )
+                    if rule.enabled
+                ),
+            }
+        )
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "version": self.version,
+            "rules": [
+                rule.to_dict()
+                for rule in sorted(
+                    self.rules,
+                    key=lambda item: item.rule_id,
+                )
+            ],
+            "fingerprint": self.fingerprint,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class RiskEvaluationContext:
+    """Tenant-scoped inputs for business-risk evaluation."""
+
+    tenant_id: str
+    subject_id: str
+    action_id: str
+    trust_score: TrustScore | None = None
+    fraud_assessment: FraudAssessment | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "tenant_id",
+            _text(self.tenant_id, "tenant_id"),
+        )
+        object.__setattr__(
+            self,
+            "subject_id",
+            _text(self.subject_id, "subject_id"),
+        )
+        object.__setattr__(
+            self,
+            "action_id",
+            _text(self.action_id, "action_id"),
+        )
+
+        if self.trust_score is not None:
+            if not isinstance(
+                self.trust_score,
+                TrustScore,
+            ):
+                raise RiskRuleValidationError(
+                    "trust_score must be TrustScore"
+                )
+
+            if self.trust_score.source_of_truth != "trust_score":
+                raise RiskRuleValidationError(
+                    "Invalid TrustScore source_of_truth"
+                )
+
+            self.trust_score.assert_scope(
+                tenant_id=self.tenant_id,
+                subject_id=self.subject_id,
+            )
+
+        if self.fraud_assessment is not None:
+            if not isinstance(
+                self.fraud_assessment,
+                FraudAssessment,
+            ):
+                raise RiskRuleValidationError(
+                    "fraud_assessment must be FraudAssessment"
+                )
+
+            if (
+                self.fraud_assessment.source_of_truth
+                != "fraud_detection"
+            ):
+                raise RiskRuleValidationError(
+                    "Invalid FraudAssessment source_of_truth"
+                )
+
+            if (
+                str(self.fraud_assessment.tenant_id)
+                != str(self.tenant_id)
+                or str(self.fraud_assessment.subject_id)
+                != str(self.subject_id)
+            ):
+                raise RiskRuleScopeError(
+                    "FraudAssessment crosses tenant or subject scope"
+                )
+
+    @property
+    def input_fingerprint(self) -> str:
+        return _fingerprint(
+            {
+                "tenant_id": self.tenant_id,
+                "subject_id": self.subject_id,
+                "action_id": self.action_id,
+                "trust_score": (
+                    self.trust_score.to_dict()
+                    if self.trust_score
+                    else None
+                ),
+                "fraud_assessment": (
+                    self.fraud_assessment.to_dict()
+                    if self.fraud_assessment
+                    else None
+                ),
+            }
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class RiskRuleFinding:
+    """Immutable evidence-linked rule match."""
+
+    rule_id: str
+    rule_version: str
+    level: RiskLevel
+    score_delta: int
+    reason: str
+    evidence_references: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "rule_id",
+            _text(self.rule_id, "rule_id"),
+        )
+        object.__setattr__(
+            self,
+            "rule_version",
+            _text(self.rule_version, "rule_version"),
+        )
+
+        if not isinstance(self.level, RiskLevel):
+            raise RiskRuleValidationError(
+                "level must be RiskLevel"
+            )
+
+        if (
+            isinstance(self.score_delta, bool)
+            or not isinstance(self.score_delta, int)
+            or self.score_delta < 0
+        ):
+            raise RiskRuleValidationError(
+                "score_delta must be integer >= 0"
+            )
+
+        object.__setattr__(
+            self,
+            "reason",
+            _text(self.reason, "reason"),
+        )
+
+        object.__setattr__(
+            self,
+            "evidence_references",
+            _references(self.evidence_references),
+        )
+
+    @property
+    def fingerprint(self) -> str:
+        return _fingerprint(
+            {
+                "rule_id": self.rule_id,
+                "rule_version": self.rule_version,
+                "level": self.level.name,
+                "score_delta": self.score_delta,
+                "reason": self.reason,
+                "evidence_references": (
+                    self.evidence_references
+                ),
+            }
+        )
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "rule_id": self.rule_id,
+            "rule_version": self.rule_version,
+            "level": self.level.name,
+            "score_delta": self.score_delta,
+            "reason": self.reason,
+            "evidence_references": list(
+                self.evidence_references
+            ),
+            "fingerprint": self.fingerprint,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class RiskAssessment:
+    """Immutable business-risk evaluation result."""
+
+    assessment_id: UUID
+    tenant_id: str
+    subject_id: str
+    action_id: str
+    rule_set_version: str
+    rule_set_fingerprint: str
+    total_score: int
+    level: RiskLevel
+    matched_rule_ids: tuple[str, ...]
+    findings: tuple[RiskRuleFinding, ...]
+    evaluated_at: datetime
+    schema_version: int = RISK_RULE_SCHEMA_VERSION
+    model_version: str = RISK_RULE_MODEL_VERSION
+    source_of_truth: str = "risk_rule_evaluation"
+
+    def __post_init__(self) -> None:
+        _uuid(self.assessment_id, "assessment_id")
+        object.__setattr__(
+            self,
+            "tenant_id",
+            _text(self.tenant_id, "tenant_id"),
+        )
+        object.__setattr__(
+            self,
+            "subject_id",
+            _text(self.subject_id, "subject_id"),
+        )
+        object.__setattr__(
+            self,
+            "action_id",
+            _text(self.action_id, "action_id"),
+        )
+        object.__setattr__(
+            self,
+            "rule_set_version",
+            _text(
+                self.rule_set_version,
+                "rule_set_version",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "rule_set_fingerprint",
+            _text(
+                self.rule_set_fingerprint,
+                "rule_set_fingerprint",
+            ),
+        )
+
+        if (
+            isinstance(self.total_score, bool)
+            or not isinstance(self.total_score, int)
+            or not 0 <= self.total_score <= 100
+        ):
+            raise RiskRuleValidationError(
+                "total_score must be integer between 0 and 100"
+            )
+
+        if not isinstance(self.level, RiskLevel):
+            raise RiskRuleValidationError(
+                "level must be RiskLevel"
+            )
+
+        matched = tuple(
+            _text(rule_id, "matched_rule_id")
+            for rule_id in self.matched_rule_ids
+        )
+
+        object.__setattr__(
+            self,
+            "matched_rule_ids",
+            tuple(sorted(set(matched))),
+        )
+
+        if not isinstance(self.findings, tuple):
+            raise RiskRuleValidationError(
+                "findings must be tuple"
+            )
+
+        for finding in self.findings:
+            if not isinstance(
+                finding,
+                RiskRuleFinding,
+            ):
+                raise RiskRuleValidationError(
+                    "findings must contain RiskRuleFinding"
+                )
+
+        object.__setattr__(
+            self,
+            "evaluated_at",
+            _time(self.evaluated_at, "evaluated_at"),
+        )
+
+        if self.schema_version != RISK_RULE_SCHEMA_VERSION:
+            raise RiskRuleValidationError(
+                "Unsupported risk-rule schema version"
+            )
+
+        if self.source_of_truth != "risk_rule_evaluation":
+            raise RiskRuleValidationError(
+                "Invalid risk-rule source_of_truth"
+            )
+
+        if (
+            any(
+                finding.rule_id
+                not in self.matched_rule_ids
+                for finding in self.findings
+            )
+        ):
+            raise RiskRuleValidationError(
+                "Finding rule IDs must be in matched_rule_ids"
+            )
+
+    @property
+    def identity_key(self) -> tuple[str, str, str]:
+        return (
+            self.tenant_id,
+            self.subject_id,
+            self.action_id,
+        )
+
+    @property
+    def fingerprint(self) -> str:
+        return _fingerprint(
+            {
+                "tenant_id": self.tenant_id,
+                "subject_id": self.subject_id,
+                "action_id": self.action_id,
+                "rule_set_version": self.rule_set_version,
+                "rule_set_fingerprint": (
+                    self.rule_set_fingerprint
+                ),
+                "total_score": self.total_score,
+                "level": self.level.name,
+                "matched_rule_ids": self.matched_rule_ids,
+                "findings": tuple(
+                    finding.fingerprint
+                    for finding in self.findings
+                ),
+                "schema_version": self.schema_version,
+                "model_version": self.model_version,
+                "source_of_truth": self.source_of_truth,
+            }
+        )
+
+    def assert_compatible(
+        self,
+        other: "RiskAssessment",
+    ) -> None:
+        if not isinstance(
+            other,
+            RiskAssessment,
+        ):
+            raise RiskRuleValidationError(
+                "other must be RiskAssessment"
+            )
+
+        if self.identity_key != other.identity_key:
+            raise RiskRuleConflictError(
+                "Risk assessment identities differ"
+            )
+
+        if self.fingerprint != other.fingerprint:
+            raise RiskRuleConflictError(
+                "Same risk assessment identity has conflicting data"
+            )
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "assessment_id": str(self.assessment_id),
+            "tenant_id": self.tenant_id,
+            "subject_id": self.subject_id,
+            "action_id": self.action_id,
+            "rule_set_version": self.rule_set_version,
+            "rule_set_fingerprint": (
+                self.rule_set_fingerprint
+            ),
+            "total_score": self.total_score,
+            "level": self.level.name,
+            "matched_rule_ids": list(
+                self.matched_rule_ids
+            ),
+            "findings": [
+                finding.to_dict()
+                for finding in self.findings
+            ],
+            "evaluated_at": self.evaluated_at.isoformat(),
+            "schema_version": self.schema_version,
+            "model_version": self.model_version,
+            "source_of_truth": self.source_of_truth,
+            "fingerprint": self.fingerprint,
+        }
+
+
+class RiskRuleEngine:
+    """Deterministic CORE-007 risk-rule evaluator."""
+
+    def evaluate(
+        self,
+        *,
+        context: RiskEvaluationContext,
+        ruleset: RiskRuleSet | None = None,
+        assessment_id: UUID | None = None,
+        evaluated_at: datetime | None = None,
+    ) -> RiskAssessment:
+        if not isinstance(
+            context,
+            RiskEvaluationContext,
+        ):
+            raise RiskRuleValidationError(
+                "context must be RiskEvaluationContext"
+            )
+
+        ruleset = ruleset or RiskRuleSet.default()
+
+        if not isinstance(
+            ruleset,
+            RiskRuleSet,
+        ):
+            raise RiskRuleValidationError(
+                "ruleset must be RiskRuleSet"
+            )
+
+        findings: list[RiskRuleFinding] = []
+
+        for rule in sorted(
+            ruleset.rules,
+            key=lambda item: item.rule_id,
+        ):
+            matched, evidence = rule.matches(context)
+
+            if not matched:
+                continue
+
+            findings.append(
+                RiskRuleFinding(
+                    rule_id=rule.rule_id,
+                    rule_version=rule.version,
+                    level=rule.level,
+                    score_delta=rule.score_weight,
+                    reason=rule.description
+                    or (
+                        f"Risk rule matched: "
+                        f"{rule.rule_id}"
+                    ),
+                    evidence_references=evidence,
+                )
+            )
+
+        findings = sorted(
+            findings,
+            key=lambda item: (
+                item.rule_id,
+                item.rule_version,
+                item.level.value,
+                item.evidence_references,
+            ),
+        )
+
+        raw_score = sum(
+            finding.score_delta
+            for finding in findings
+        )
+
+        total_score = min(
+            100,
+            raw_score,
+        )
+
+        level = _score_level(total_score)
+
+        for finding in findings:
+            if finding.level > level:
+                level = finding.level
+
+        matched_rule_ids = tuple(
+            finding.rule_id
+            for finding in findings
+        )
+
+        return RiskAssessment(
+            assessment_id=(
+                assessment_id or uuid4()
+            ),
+            tenant_id=context.tenant_id,
+            subject_id=context.subject_id,
+            action_id=context.action_id,
+            rule_set_version=ruleset.version,
+            rule_set_fingerprint=ruleset.fingerprint,
+            total_score=total_score,
+            level=level,
+            matched_rule_ids=matched_rule_ids,
+            findings=tuple(findings),
+            evaluated_at=(
+                evaluated_at
+                or datetime.now(timezone.utc)
+            ),
+        )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== CORE-007-T03 TEST ===" -ForegroundColor Cyan
+
+=== CORE-007-T03 TEST ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-Content AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from uuid import UUID, uuid4
+
+import pytest
+
+from .fraud_detection import (
+    FraudAssessment,
+    FraudFinding,
+    FraudFindingCode,
+    FraudSeverity,
+)
+from .risk_rules import (
+    RISK_RULE_MODEL_VERSION,
+    RiskAssessment,
+    RiskEvaluationContext,
+    RiskLevel,
+    RiskRule,
+    RiskRuleConflictError,
+    RiskRuleEngine,
+    RiskRuleKind,
+    RiskRuleSet,
+    RiskRuleValidationError,
+)
+from .trust_score import (
+    TrustScore,
+    TrustScoreContribution,
+)
+
+
+TENANT = "tenant-001"
+OTHER_TENANT = "tenant-002"
+SUBJECT = "lead-001"
+OTHER_SUBJECT = "lead-002"
+ACTION = "route-lead"
+
+NOW = datetime(
+    2026,
+    9,
+    29,
+    15,
+    0,
+    tzinfo=timezone.utc,
+)
+
+TRUST_CONTRIBUTION = TrustScoreContribution(
+    signal_id="signal-001",
+    category="integrity",
+    value=40,
+    weight_bps=10000,
+)
+
+TRUST_SCORE_LOW = TrustScore(
+    tenant_id=TENANT,
+    subject_id=SUBJECT,
+    score=40,
+    model_version="1.0",
+    model_fingerprint="model-fp-001",
+    signal_ids=("signal-001",),
+    signal_fingerprints=("signal-fp-001",),
+    contributions=(TRUST_CONTRIBUTION,),
+    total_weight_bps=10000,
+    computed_at=NOW,
+)
+
+TRUST_SCORE_HIGH = TrustScore(
+    tenant_id=TENANT,
+    subject_id=SUBJECT,
+    score=85,
+    model_version="1.0",
+    model_fingerprint="model-fp-001",
+    signal_ids=("signal-001",),
+    signal_fingerprints=("signal-fp-001",),
+    contributions=(TRUST_CONTRIBUTION,),
+    total_weight_bps=10000,
+    computed_at=NOW,
+)
+
+
+def make_finding(
+    *,
+    code: FraudFindingCode,
+    severity: FraudSeverity,
+    evidence: str,
+) -> FraudFinding:
+    return FraudFinding(
+        finding_id=uuid4(),
+        tenant_id=UUID(
+            "11111111-1111-1111-1111-111111111111"
+        ),
+        subject_id=UUID(
+            "33333333-3333-3333-3333-333333333333"
+        ),
+        code=code,
+        severity=severity,
+        message=f"fraud:{code.value}",
+        evidence_references=(evidence,),
+        source_references=("source:fraud",),
+        observed_at=NOW,
+    )
+
+
+def make_fraud_assessment(
+    *,
+    tripwire: bool,
+    finding: FraudFinding | None = None,
+) -> FraudAssessment:
+    findings = (
+        (finding,)
+        if finding is not None
+        else ()
+    )
+
+    return FraudAssessment(
+        assessment_id=uuid4(),
+        tenant_id=UUID(
+            "11111111-1111-1111-1111-111111111111"
+        ),
+        subject_id=UUID(
+            "33333333-3333-3333-3333-333333333333"
+        ),
+        correlation_id="fraud-assessment-001",
+        model_version="1.0",
+        policy_fingerprint="fraud-policy-fp",
+        findings=findings,
+        tripwire_raised=tripwire,
+        generated_at=NOW,
+    )
+
+
+def context(
+    *,
+    trust_score: TrustScore | None = None,
+    fraud_assessment: FraudAssessment | None = None,
+    tenant_id: str = TENANT,
+    subject_id: str = SUBJECT,
+) -> RiskEvaluationContext:
+    return RiskEvaluationContext(
+        tenant_id=tenant_id,
+        subject_id=subject_id,
+        action_id=ACTION,
+        trust_score=trust_score,
+        fraud_assessment=fraud_assessment,
+    )
+
+
+def test_default_ruleset_is_versioned() -> None:
+    ruleset = RiskRuleSet.default()
+
+    assert ruleset.version == "1.0"
+    assert ruleset.fingerprint
+    assert len(ruleset.rules) == 4
+
+
+def test_default_ruleset_is_deterministic() -> None:
+    first = RiskRuleSet.default()
+    second = RiskRuleSet.default()
+
+    assert first.fingerprint == second.fingerprint
+
+
+def test_duplicate_rule_ids_are_rejected() -> None:
+    rule = RiskRule(
+        rule_id="R-001",
+        version="1.0",
+        kind=RiskRuleKind.FRAUD_TRIPWIRE,
+        level=RiskLevel.HIGH,
+        score_weight=50,
+    )
+
+    with pytest.raises(RiskRuleValidationError):
+        RiskRuleSet(
+            version="1.0",
+            rules=(rule, rule),
+        )
+
+
+def test_trust_rule_requires_threshold() -> None:
+    with pytest.raises(RiskRuleValidationError):
+        RiskRule(
+            rule_id="R-TRUST",
+            version="1.0",
+            kind=RiskRuleKind.TRUST_SCORE_AT_MOST,
+            level=RiskLevel.HIGH,
+            score_weight=50,
+        )
+
+
+def test_fraud_severity_rule_requires_severity() -> None:
+    with pytest.raises(RiskRuleValidationError):
+        RiskRule(
+            rule_id="R-FRAUD",
+            version="1.0",
+            kind=RiskRuleKind.FRAUD_SEVERITY_AT_LEAST,
+            level=RiskLevel.HIGH,
+            score_weight=50,
+        )
+
+
+def test_fraud_code_rule_requires_code() -> None:
+    with pytest.raises(RiskRuleValidationError):
+        RiskRule(
+            rule_id="R-CODE",
+            version="1.0",
+            kind=RiskRuleKind.FRAUD_FINDING_CODE,
+            level=RiskLevel.HIGH,
+            score_weight=50,
+        )
+
+
+def test_clean_context_is_low_risk() -> None:
+    result = RiskRuleEngine().evaluate(
+        context=context(),
+        evaluated_at=NOW,
+    )
+
+    assert result.total_score == 0
+    assert result.level == RiskLevel.LOW
+    assert result.findings == ()
+    assert result.matched_rule_ids == ()
+
+
+def test_low_trust_matches_high_risk_rule() -> None:
+    result = RiskRuleEngine().evaluate(
+        context=context(
+            trust_score=TRUST_SCORE_LOW,
+        ),
+        evaluated_at=NOW,
+    )
+
+    assert result.total_score == 60
+    assert result.level == RiskLevel.HIGH
+    assert "RISK-TRUST-LOW" in result.matched_rule_ids
+
+
+def test_high_trust_does_not_match_low_trust_rule() -> None:
+    result = RiskRuleEngine().evaluate(
+        context=context(
+            trust_score=TRUST_SCORE_HIGH,
+        ),
+        evaluated_at=NOW,
+    )
+
+    assert result.total_score == 0
+    assert result.level == RiskLevel.LOW
+
+
+def test_fraud_tripwire_is_critical() -> None:
+    fraud = make_fraud_assessment(
+        tripwire=True,
+        finding=make_finding(
+            code=FraudFindingCode.GPS_MOCK_LOCATION,
+            severity=FraudSeverity.CRITICAL,
+            evidence="evidence:mock",
+        ),
+    )
+
+    result = RiskRuleEngine().evaluate(
+        context=context(
+            fraud_assessment=fraud,
+        ),
+        evaluated_at=NOW,
+    )
+
+    assert result.level == RiskLevel.CRITICAL
+    assert result.total_score == 100
+    assert "RISK-FRAUD-TRIPWIRE" in result.matched_rule_ids
+
+
+def test_high_fraud_severity_matches() -> None:
+    fraud = make_fraud_assessment(
+        tripwire=False,
+        finding=make_finding(
+            code=FraudFindingCode.GPS_PROXY_DETECTED,
+            severity=FraudSeverity.HIGH,
+            evidence="evidence:proxy",
+        ),
+    )
+
+    result = RiskRuleEngine().evaluate(
+        context=context(
+            fraud_assessment=fraud,
+        ),
+        evaluated_at=NOW,
+    )
+
+    assert result.level == RiskLevel.HIGH
+    assert result.total_score == 70
+    assert "RISK-FRAUD-HIGH" in result.matched_rule_ids
+
+
+def test_review_fraud_does_not_match_high_severity_rule() -> None:
+    fraud = make_fraud_assessment(
+        tripwire=False,
+        finding=make_finding(
+            code=FraudFindingCode.HANDOFF_DUPLICATE_LEAD,
+            severity=FraudSeverity.REVIEW,
+            evidence="evidence:review",
+        ),
+    )
+
+    result = RiskRuleEngine().evaluate(
+        context=context(
+            fraud_assessment=fraud,
+        ),
+        evaluated_at=NOW,
+    )
+
+    assert result.total_score == 0
+    assert result.level == RiskLevel.LOW
+
+
+def test_evidence_conflict_gets_critical_rule() -> None:
+    fraud = make_fraud_assessment(
+        tripwire=False,
+        finding=make_finding(
+            code=FraudFindingCode.HANDOFF_EVIDENCE_CONFLICT,
+            severity=FraudSeverity.REVIEW,
+            evidence="evidence:conflict",
+        ),
+    )
+
+    result = RiskRuleEngine().evaluate(
+        context=context(
+            fraud_assessment=fraud,
+        ),
+        evaluated_at=NOW,
+    )
+
+    assert result.level == RiskLevel.CRITICAL
+    assert "RISK-EVIDENCE-CONFLICT" in result.matched_rule_ids
+
+
+def test_multiple_matches_are_accumulated_and_capped() -> None:
+    fraud = make_fraud_assessment(
+        tripwire=True,
+        finding=make_finding(
+            code=FraudFindingCode.HANDOFF_EVIDENCE_CONFLICT,
+            severity=FraudSeverity.CRITICAL,
+            evidence="evidence:conflict",
+        ),
+    )
+
+    result = RiskRuleEngine().evaluate(
+        context=context(
+            trust_score=TRUST_SCORE_LOW,
+            fraud_assessment=fraud,
+        ),
+        evaluated_at=NOW,
+    )
+
+    assert result.total_score == 100
+    assert result.level == RiskLevel.CRITICAL
+    assert set(result.matched_rule_ids) == {
+        "RISK-EVIDENCE-CONFLICT",
+        "RISK-FRAUD-HIGH",
+        "RISK-FRAUD-TRIPWIRE",
+        "RISK-TRUST-LOW",
+    }
+
+
+def test_rule_order_does_not_change_result() -> None:
+    ruleset = RiskRuleSet(
+        version="1.0",
+        rules=tuple(
+            reversed(
+                RiskRuleSet.default().rules
+            )
+        ),
+    )
+
+    first = RiskRuleEngine().evaluate(
+        context=context(
+            trust_score=TRUST_SCORE_LOW,
+        ),
+        ruleset=RiskRuleSet.default(),
+        evaluated_at=NOW,
+    )
+
+    second = RiskRuleEngine().evaluate(
+        context=context(
+            trust_score=TRUST_SCORE_LOW,
+        ),
+        ruleset=ruleset,
+        evaluated_at=NOW,
+    )
+
+    assert first.fingerprint == second.fingerprint
+
+
+def test_tenant_scope_is_enforced_for_trust_score() -> None:
+    with pytest.raises(Exception):
+        RiskEvaluationContext(
+            tenant_id=OTHER_TENANT,
+            subject_id=SUBJECT,
+            action_id=ACTION,
+            trust_score=TRUST_SCORE_LOW,
+        )
+
+
+def test_subject_scope_is_enforced_for_trust_score() -> None:
+    with pytest.raises(Exception):
+        RiskEvaluationContext(
+            tenant_id=TENANT,
+            subject_id=OTHER_SUBJECT,
+            action_id=ACTION,
+            trust_score=TRUST_SCORE_LOW,
+        )
+
+
+def test_fraud_assessment_scope_is_enforced() -> None:
+    fraud = make_fraud_assessment(
+        tripwire=True,
+        finding=make_finding(
+            code=FraudFindingCode.GPS_MOCK_LOCATION,
+            severity=FraudSeverity.CRITICAL,
+            evidence="evidence:mock",
+        ),
+    )
+
+    with pytest.raises(Exception):
+        RiskEvaluationContext(
+            tenant_id=OTHER_TENANT,
+            subject_id=SUBJECT,
+            action_id=ACTION,
+            fraud_assessment=fraud,
+        )
+
+
+def test_invalid_trust_score_source_is_rejected() -> None:
+    invalid = TrustScore(
+        tenant_id=TENANT,
+        subject_id=SUBJECT,
+        score=40,
+        model_version="1.0",
+        model_fingerprint="model-fp-001",
+        signal_ids=("signal-001",),
+        signal_fingerprints=("signal-fp-001",),
+        contributions=(TRUST_CONTRIBUTION,),
+        total_weight_bps=10000,
+        computed_at=NOW,
+        source_of_truth="fraud_detection",
+    )
+
+    with pytest.raises(RiskRuleValidationError):
+        RiskEvaluationContext(
+            tenant_id=TENANT,
+            subject_id=SUBJECT,
+            action_id=ACTION,
+            trust_score=invalid,
+        )
+
+
+def test_assessment_is_immutable_and_serializable() -> None:
+    result = RiskRuleEngine().evaluate(
+        context=context(
+            trust_score=TRUST_SCORE_LOW,
+        ),
+        evaluated_at=NOW,
+    )
+
+    assert isinstance(result, RiskAssessment)
+
+    payload = result.to_dict()
+
+    assert payload["source_of_truth"] == (
+        "risk_rule_evaluation"
+    )
+    assert payload["level"] == "HIGH"
+    assert "fingerprint" in payload
+
+    with pytest.raises(AttributeError):
+        result.level = RiskLevel.CRITICAL  # type: ignore[misc]
+
+
+def test_risk_boundary_does_not_make_authorization_decisions() -> None:
+    result = RiskRuleEngine().evaluate(
+        context=context(
+            trust_score=TRUST_SCORE_LOW,
+        ),
+        evaluated_at=NOW,
+    )
+
+    payload = result.to_dict()
+
+    assert "allowed" not in payload
+    assert "requires_approval" not in payload
+    assert "authorization" not in payload
+    assert "policy_decision" not in payload
+    assert "approval" not in payload
+
+
+def test_model_version_is_explicit() -> None:
+    result = RiskRuleEngine().evaluate(
+        context=context(),
+        evaluated_at=NOW,
+    )
+
+    assert result.model_version == RISK_RULE_MODEL_VERSION
+
+
+def test_evidence_is_preserved_in_rule_finding() -> None:
+    fraud = make_fraud_assessment(
+        tripwire=True,
+        finding=make_finding(
+            code=FraudFindingCode.GPS_MOCK_LOCATION,
+            severity=FraudSeverity.CRITICAL,
+            evidence="evidence:gps-001",
+        ),
+    )
+
+    result = RiskRuleEngine().evaluate(
+        context=context(
+            fraud_assessment=fraud,
+        ),
+        evaluated_at=NOW,
+    )
+
+    assert result.findings
+
+    evidence = {
+        reference
+        for finding in result.findings
+        for reference in finding.evidence_references
+    }
+
+    assert "evidence:gps-001" in evidence
+
+
+def test_compatible_assessments_ignore_runtime_ids_and_timestamps() -> None:
+    engine = RiskRuleEngine()
+
+    first = engine.evaluate(
+        context=context(
+            trust_score=TRUST_SCORE_LOW,
+        ),
+        assessment_id=UUID(
+            "44444444-4444-4444-4444-444444444444"
+        ),
+        evaluated_at=NOW,
+    )
+
+    second = engine.evaluate(
+        context=context(
+            trust_score=TRUST_SCORE_LOW,
+        ),
+        assessment_id=UUID(
+            "55555555-5555-5555-5555-555555555555"
+        ),
+        evaluated_at=(
+            NOW.replace(
+                second=30,
+            )
+        ),
+    )
+
+    first.assert_compatible(second)
+
+
+def test_conflicting_assessment_is_rejected() -> None:
+    engine = RiskRuleEngine()
+
+    first = engine.evaluate(
+        context=context(
+            trust_score=TRUST_SCORE_LOW,
+        ),
+        evaluated_at=NOW,
+    )
+
+    second = engine.evaluate(
+        context=context(
+            trust_score=TRUST_SCORE_HIGH,
+        ),
+        evaluated_at=NOW,
+    )
+
+    with pytest.raises(RiskRuleConflictError):
+        first.assert_compatible(second)
+
+
+def test_custom_rule_set_is_supported() -> None:
+    custom = RiskRuleSet(
+        version="1.1",
+        rules=(
+            RiskRule(
+                rule_id="CUSTOM-TRUST",
+                version="1.1",
+                kind=RiskRuleKind.TRUST_SCORE_AT_MOST,
+                level=RiskLevel.CRITICAL,
+                score_weight=95,
+                threshold=50,
+                description="Custom critical trust threshold",
+            ),
+        ),
+    )
+
+    result = RiskRuleEngine().evaluate(
+        context=context(
+            trust_score=TRUST_SCORE_LOW,
+        ),
+        ruleset=custom,
+        evaluated_at=NOW,
+    )
+
+    assert result.rule_set_version == "1.1"
+    assert result.level == RiskLevel.CRITICAL
+    assert result.total_score == 95
+
+
+def test_disabled_rule_does_not_match() -> None:
+    disabled = RiskRule(
+        rule_id="DISABLED",
+        version="1.0",
+        kind=RiskRuleKind.TRUST_SCORE_AT_MOST,
+        level=RiskLevel.CRITICAL,
+        score_weight=100,
+        threshold=100,
+        enabled=False,
+    )
+
+    result = RiskRuleEngine().evaluate(
+        context=context(
+            trust_score=TRUST_SCORE_LOW,
+        ),
+        ruleset=RiskRuleSet(
+            version="1.0",
+            rules=(disabled,),
+        ),
+        evaluated_at=NOW,
+    )
+
+    assert result.findings == ()
+    assert result.total_score == 0
+
+
+def test_action_id_is_part_of_assessment_identity() -> None:
+    first = RiskRuleEngine().evaluate(
+        context=context(
+            trust_score=TRUST_SCORE_LOW,
+        ),
+        evaluated_at=NOW,
+    )
+
+    second = RiskRuleEngine().evaluate(
+        context=RiskEvaluationContext(
+            tenant_id=TENANT,
+            subject_id=SUBJECT,
+            action_id="different-action",
+            trust_score=TRUST_SCORE_LOW,
+        ),
+        evaluated_at=NOW,
+    )
+
+    with pytest.raises(RiskRuleConflictError):
+        first.assert_compatible(second)
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== CORE-007-T03 TEST RESULT ===" -ForegroundColor Yellow
+
+=== CORE-007-T03 TEST RESULT ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py -q --tb=short
+.........FFFFF........F.....                                                                                                                         [100%]
+======================================================================== FAILURES =========================================================================
+_____________________________________________________________ test_fraud_tripwire_is_critical _____________________________________________________________
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:260: in test_fraud_tripwire_is_critical
+    context=context(
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
+    return RiskEvaluationContext(
+<string>:8: in __init__
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
+    raise RiskRuleScopeError(
+E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
+____________________________________________________________ test_high_fraud_severity_matches _____________________________________________________________
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:282: in test_high_fraud_severity_matches
+    context=context(
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
+    return RiskEvaluationContext(
+<string>:8: in __init__
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
+    raise RiskRuleScopeError(
+E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
+___________________________________________________ test_review_fraud_does_not_match_high_severity_rule ___________________________________________________
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:304: in test_review_fraud_does_not_match_high_severity_rule
+    context=context(
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
+    return RiskEvaluationContext(
+<string>:8: in __init__
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
+    raise RiskRuleScopeError(
+E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
+________________________________________________________ test_evidence_conflict_gets_critical_rule ________________________________________________________
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:325: in test_evidence_conflict_gets_critical_rule
+    context=context(
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
+    return RiskEvaluationContext(
+<string>:8: in __init__
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
+    raise RiskRuleScopeError(
+E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
+____________________________________________________ test_multiple_matches_are_accumulated_and_capped _____________________________________________________
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:346: in test_multiple_matches_are_accumulated_and_capped
+    context=context(
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
+    return RiskEvaluationContext(
+<string>:8: in __init__
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
+    raise RiskRuleScopeError(
+E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
+_______________________________________________________ test_evidence_is_preserved_in_rule_finding ________________________________________________________
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:514: in test_evidence_is_preserved_in_rule_finding
+    context=context(
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
+    return RiskEvaluationContext(
+<string>:8: in __init__
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
+    raise RiskRuleScopeError(
+E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
+================================================================= short test summary info =================================================================
+FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_fraud_tripwire_is_critical - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
+FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_high_fraud_severity_matches - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
+FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_review_fraud_does_not_match_high_severity_rule - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
+FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_evidence_conflict_gets_critical_rule - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
+FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_multiple_matches_are_accumulated_and_capped - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
+FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_evidence_is_preserved_in_rule_finding - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
+6 failed, 22 passed in 0.42s
