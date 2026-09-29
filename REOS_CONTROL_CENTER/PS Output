@@ -1,71 +1,110 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
-remote: Enumerating objects: 7, done.
-remote: Counting objects: 100% (7/7), done.
-remote: Compressing objects: 100% (4/4), done.
-remote: Total 4 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (4/4), 1.58 KiB | 47.00 KiB/s, done.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   20d9c0f..213156c  reos-development -> origin/reos-development
+PS D:\HOMIO\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git checkout origin/reos-development -- `
->> AUTONOMY_ENGINE\core\deal_transaction\deal.py `
->> AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_consistency.py `
->> AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06.py
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -c "import inspect; from AUTONOMY_ENGINE.core.deal_transaction.deal import Deal; print('CREATE_OFFER=', inspect.signature(Deal.create_offer)); print('START_NEGOTIATION=', inspect.signature(Deal.start_negotiation)); print('ATTACH_EVIDENCE=', inspect.signature(Deal.attach_evidence))"
-CREATE_OFFER= (self, offer_id: 'str | None' = None, *, tenant_id: 'str', expected_version: 'int', terms: 'Mapping[str, Any] | None' = None, supersedes_offer_id: 'str | None' = None, at: 'Any' = None) -> "'Deal'"
-START_NEGOTIATION= (self, negotiation_id: 'str | None' = None, *, tenant_id: 'str', expected_version: 'int', offer_id: 'str | None' = None, at: 'Any' = None) -> "'Deal'"
-ATTACH_EVIDENCE= (self, evidence_id: 'str | None' = None, *, tenant_id: 'str', expected_version: 'int', evidence_type: 'str', reference: 'str', actor_id: 'str | None' = None, metadata: 'Mapping[str, Any] | None' = None, at: 'Any' = None) -> "'Deal'"
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m compileall AUTONOMY_ENGINE\core\deal_transaction -q
+PS D:\HOMIO\REOS_CONTROL_CENTER> $repo   = "prajaktaranjane80-sketch/Homio"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $branch = "reos-development"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $path   = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py"
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest `
->> AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06.py `
->> AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06_adversarial.py -q
-...F...................                                                                                                                              [100%]
-======================================================================== FAILURES =========================================================================
-___________________________________________________________ test_offer_negotiation_booking_path ___________________________________________________________
+PS D:\HOMIO\REOS_CONTROL_CENTER> $file = gh api "repos/$repo/contents/$path?ref=$branch" | ConvertFrom-Json
+gh: Not Found (HTTP 404)
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $current = [Text.Encoding]::UTF8.GetString(
+>>     [Convert]::FromBase64String(
+>>         ($file.content -replace "\s","")
+>>     )
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $old = @'
+>>         if target is DealNegotiationStatus.AGREED:
+>>             new_status = DealStatus.OFFERED
+>>
+>>         elif target is DealNegotiationStatus.REJECTED:
+>>             new_status = DealStatus.REJECTED
+>> '@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $new = @'
+>>         if target is DealNegotiationStatus.AGREED:
+>>             new_status = DealStatus.BOOKING_PENDING
+>>
+>>         elif target is DealNegotiationStatus.REJECTED:
+>>             new_status = DealStatus.REJECTED
+>> '@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $method = @'
+>>     def close_negotiation(
+>>         self,
+>>         *,
+>>         tenant_id: str,
+>>         expected_version: int,
+>>         accepted: bool,
+>>         at: Any = None,
+>>     ) -> "Deal":
+>>         if not isinstance(accepted, bool):
+>>             raise DealValidationError(
+>>                 "accepted must be a boolean."
+>>             )
+>>
+>>         target = (
+>>             DealNegotiationStatus.AGREED
+>>             if accepted
+>>             else DealNegotiationStatus.REJECTED
+>>         )
+>>
+>>         return self.transition_negotiation(
+>>             target,
+>>             tenant_id=tenant_id,
+>>             expected_version=expected_version,
+>>             at=at,
+>>         )
+>>
+>> '@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $anchor = "    def advance_transaction_milestone("
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($current.Contains("def close_negotiation(")) {
+>>     throw "close_negotiation already exists. ABORTED."
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $current.Contains($old)) {
+>>     throw "Expected negotiation mapping not found. ABORTED."
+>> }
+Expected negotiation mapping not found. ABORTED.
+At line:2 char:5
++     throw "Expected negotiation mapping not found. ABORTED."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Expected negoti...found. ABORTED.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Expected negotiation mapping not found. ABORTED.
 
-    def test_offer_negotiation_booking_path() -> None:
-        current = walk_to(
-            make_deal(),
-            DealStatus.MATCHED,
-            DealStatus.VISIT_PENDING,
-            DealStatus.VISITED,
-        )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $current.Contains($anchor)) {
+>>     throw "Insertion anchor not found. ABORTED."
+>> }
+Insertion anchor not found. ABORTED.
+At line:2 char:5
++     throw "Insertion anchor not found. ABORTED."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Insertion anchor not found. ABORTED.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Insertion anchor not found. ABORTED.
 
-        current = current.create_offer(
-            "o1",
-            tenant_id="t1",
-            expected_version=current.version,
-            at=AT,
-        )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $updated = $current.Replace($old,$new)
+PS D:\HOMIO\REOS_CONTROL_CENTER> $updated = $updated.Replace($anchor,$method + $anchor)
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $b64 = [Convert]::ToBase64String(
+>>     [Text.Encoding]::UTF8.GetBytes($updated)
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $result = gh api `
+>>     -X PUT `
+>>     "repos/$repo/contents/$path" `
+>>     -f message="Fix CORE-006 negotiation closure path" `
+>>     -f content="$b64" `
+>>     -f sha="$($file.sha)" `
+>>     -f branch="$branch" | ConvertFrom-Json
+gh: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py does not match  (HTTP 409)
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
 
-        current = current.submit_offer(
-            "o1",
-            tenant_id="t1",
-            expected_version=current.version,
-            at=AT,
-        )
-
-        assert current.status is DealStatus.OFFERED
-
-        current = current.start_negotiation(
-            "n1",
-            tenant_id="t1",
-            expected_version=current.version,
-            at=AT,
-        )
-
->       current = current.close_negotiation(
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^
-            tenant_id="t1",
-            expected_version=current.version,
-            accepted=True,
-            at=AT,
-        )
-E       AttributeError: 'Deal' object has no attribute 'close_negotiation'. Did you mean: 'start_negotiation'?
-
-AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06.py:137: AttributeError
-================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_offer_negotiation_booking_path - AttributeError: 'Deal' object has no attribute 'close_negotiation'. Did you mean: 'start_negotiation'?
-1 failed, 22 passed in 0.27s
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE COMMIT =" $result.commit.sha
+REMOTE COMMIT =
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE FILE SHA =" $result.content.sha
+REMOTE FILE SHA =
