@@ -1,287 +1,15 @@
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) { exit 1 }
+
+[process exited with code 1 (0x00000001)]
+You can now close this terminal with Ctrl+D, or press Enter to restart.
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
 PS C:\Users\Sandip RanjanePatil> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== CORE-006 T10 FINAL HARDENING ===" -ForegroundColor Cyan
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== CONTROL CENTER STATE CHECK ===" -ForegroundColor Cyan
 
-=== CORE-006 T10 FINAL HARDENING ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
-remote: Enumerating objects: 7, done.
-remote: Counting objects: 100% (7/7), done.
-remote: Compressing objects: 100% (4/4), done.
-remote: Total 4 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (4/4), 2.14 KiB | 99.00 KiB/s, done.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   9989070..df07745  reos-development -> origin/reos-development
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) { exit 1 }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git checkout reos-development
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/__init__.cpython-312.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/__init__.cpython-312.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_reconstruction.cpython-312.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312-pytest-9.1.1.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/gate_subtask_continuity.cpython-312.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/test_gate_subtask_continuity.cpython-312-pytest-9.1.1.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/gate_subtask_continuity.py
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/__init__.cpython-312.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/task_dependency_reconstruction.py
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/__init__.cpython-312.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/test_checkpoint_continuity.py
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/__init__.cpython-312.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/new_chat_bootstrap.cpython-312.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/test_new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/context_compression.cpython-312.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/test_context_compression.cpython-312-pytest-9.1.1.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_guard.cpython-312.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_t12_integration.cpython-312-pytest-9.1.1.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312-pytest-9.1.1.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_metrics.cpython-312-pytest-9.1.1.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_adversarial.cpython-312-pytest-9.1.1.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_contract.cpython-312-pytest-9.1.1.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_integration.cpython-312-pytest-9.1.1.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/dependency_graph.cpython-312.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/__init__.cpython-312.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/__pycache__/__init__.cpython-312.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/__init__.py
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/execution/__pycache__/mutation_adapter.cpython-312.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/execution/__pycache__/production_executor.cpython-312.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/orchestration/__pycache__/execution_coordinator.cpython-312.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_controller_autonomy_integration_adversarial.cpython-312-pytest-9.1.1.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_execution_coordinator_adversarial.cpython-312-pytest-9.1.1.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_execution_pipeline_adversarial.cpython-312-pytest-9.1.1.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_mutation_adapter_adversarial.cpython-312-pytest-9.1.1.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/__pycache__/test_production_executor_adversarial.cpython-312-pytest-9.1.1.pyc
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_controller_autonomy_integration_adversarial.py
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/tests/test_l1_l2_acceptance.py
-M       REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt
-M       REOS_CONTROL_CENTER/data/state.json
-M       REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt
-Already on 'reos-development'
-Your branch is behind 'origin/reos-development' by 1 commit, and can be fast-forwarded.
-  (use "git pull" to update your local branch)
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) { exit 1 }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git pull --ff-only origin reos-development
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-Updating 9989070..df07745
-Fast-forward
- REOS_CONTROL_CENTER/PS Output | 288 +++++++++++-------------------------------
- 1 file changed, 71 insertions(+), 217 deletions(-)
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) { exit 1 }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 1. CORE-006 FULL REGRESSION ===" -ForegroundColor Yellow
-
-=== 1. CORE-006 FULL REGRESSION ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\deal_transaction -q --tb=short
-.................................................................................................................................................... [ 98%]
-...                                                                                                                                                  [100%]
-151 passed in 0.52s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     Write-Host "STOP: CORE-006 regression failed. T10 NOT validated." -ForegroundColor Red
->>     exit 1
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 2. CORE-006 COMPILE CHECK ===" -ForegroundColor Yellow
-
-=== 2. CORE-006 COMPILE CHECK ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m compileall -q AUTONOMY_ENGINE\core\deal_transaction
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     Write-Host "STOP: CORE-006 compile check failed." -ForegroundColor Red
->>     exit 1
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 3. CORE-006 TEST COLLECTION ===" -ForegroundColor Yellow
-
-=== 3. CORE-006 TEST COLLECTION ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\deal_transaction --collect-only -q
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_create_and_full_lifecycle
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_match_requires_bound_inventory_reference
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_tenant_and_version_guards
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_offer_negotiation_booking_path
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_milestone_is_append_only
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_milestone_is_immutable
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_ownership_is_external_authority_reference
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_evidence_is_idempotent_and_conflict_safe
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_audit_is_idempotent_and_conflict_safe
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_external_contract_is_scope_bound
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_serialization_is_canonical
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py::test_aggregate_version_and_lifecycle_history_are_distinct
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py::test_evidence_mutation_does_not_corrupt_lifecycle_history
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py::test_audit_mutation_does_not_corrupt_lifecycle_history
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py::test_ownership_is_reference_only
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py::test_consistency_rejects_cross_tenant_deal
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py::test_authorization_is_default_deny
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py::test_authorization_respects_tenant_boundary
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py::test_reos_contract_cannot_mutate_control_center_state
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py::test_acrl_bundle_is_reconstructable_and_tenant_bound
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py::test_transaction_event_is_derived_from_milestone
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py::test_state_event_is_deterministic
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py::test_milestone_scope_is_tenant_and_deal_bound
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t07_events.py::test_t07_event_types_cover_required_transaction_workflows
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t07_events.py::test_t07_deal_created_event_is_deterministic
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t07_events.py::test_t07_deal_state_event_maps_transaction_state
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t07_events.py::test_t07_offer_created_and_state_events
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t07_events.py::test_t07_negotiation_event
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t07_events.py::test_t07_milestone_event
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t07_events.py::test_t07_ownership_event
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t07_events.py::test_t07_evidence_event
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t07_events.py::test_t07_audit_event
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t07_events.py::test_t07_event_is_core002_compatible
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t07_events.py::test_t07_core002_contracts_cover_every_event_type
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t07_events.py::test_t07_event_identity_is_idempotent
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t07_events.py::test_t07_conflicting_same_identity_is_rejected
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t07_events.py::test_t07_tenant_scope_is_enforced
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t07_events.py::test_t07_payload_is_immutable
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t07_events.py::test_t07_event_serialization_contains_integrity_fields
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t07_events.py::test_t07_event_does_not_own_transport_or_bus
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_fresh_deal_is_consistent
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_lifecycle_state_and_history_remain_consistent
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_tenant_scope_mismatch_is_invalid
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_history_must_start_at_version_one
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_duplicate_party_relationship_is_invalid
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_cross_deal_offer_is_invalid
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_cross_tenant_offer_is_invalid
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_duplicate_offer_identity_is_invalid
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_negotiation_requires_existing_active_offer
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_milestone_sequence_must_be_contiguous
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_milestone_versions_must_increase
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_current_status_must_match_latest_milestone
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_stale_transition_is_rejected
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_wrong_tenant_is_rejected_before_mutation
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_optimistic_concurrency_is_monotonic
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_failed_concurrent_update_does_not_mutate_snapshot
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_immutable_snapshot_survives_parallel_mutations
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_parallel_mutations_have_independent_results
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_all_mutating_operations_expose_expected_version[bind_opportunity]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_all_mutating_operations_expose_expected_version[bind_party]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_all_mutating_operations_expose_expected_version[transition]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_all_mutating_operations_expose_expected_version[create_offer]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_all_mutating_operations_expose_expected_version[submit_offer]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_all_mutating_operations_expose_expected_version[start_negotiation]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_all_mutating_operations_expose_expected_version[transition_negotiation]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_all_mutating_operations_expose_expected_version[close_negotiation]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_all_mutating_operations_expose_expected_version[advance_transaction_milestone]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_all_mutating_operations_expose_expected_version[bind_ownership]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_all_mutating_operations_expose_expected_version[attach_evidence]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_all_mutating_operations_expose_expected_version[record_audit]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_consistency_result_is_immutable
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_consistency_require_valid_returns_same_result
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_invalid_consistency_result_cannot_be_required
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t08_consistency_concurrency.py::test_no_mutation_occurs_during_consistency_validation
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_is_default_deny[DEAL_READ]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_is_default_deny[DEAL_TRANSITION]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_is_default_deny[DEAL_PARTY]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_is_default_deny[DEAL_OFFER]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_is_default_deny[DEAL_NEGOTIATE]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_is_default_deny[DEAL_BOOK]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_is_default_deny[DEAL_AGREEMENT]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_is_default_deny[DEAL_REGISTRATION]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_is_default_deny[DEAL_COMPLETE]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_is_default_deny[DEAL_CANCEL]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_is_default_deny[DEAL_DISPUTE]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_is_default_deny[DEAL_EVIDENCE_ATTACH]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_requires_its_exact_permission[DEAL_READ]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_requires_its_exact_permission[DEAL_TRANSITION]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_requires_its_exact_permission[DEAL_PARTY]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_requires_its_exact_permission[DEAL_OFFER]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_requires_its_exact_permission[DEAL_NEGOTIATE]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_requires_its_exact_permission[DEAL_BOOK]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_requires_its_exact_permission[DEAL_AGREEMENT]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_requires_its_exact_permission[DEAL_REGISTRATION]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_requires_its_exact_permission[DEAL_COMPLETE]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_requires_its_exact_permission[DEAL_CANCEL]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_requires_its_exact_permission[DEAL_DISPUTE]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_every_operation_requires_its_exact_permission[DEAL_EVIDENCE_ATTACH]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_wildcard_permission_cannot_escalate[DEAL_READ]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_wildcard_permission_cannot_escalate[DEAL_TRANSITION]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_wildcard_permission_cannot_escalate[DEAL_PARTY]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_wildcard_permission_cannot_escalate[DEAL_OFFER]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_wildcard_permission_cannot_escalate[DEAL_NEGOTIATE]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_wildcard_permission_cannot_escalate[DEAL_BOOK]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_wildcard_permission_cannot_escalate[DEAL_AGREEMENT]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_wildcard_permission_cannot_escalate[DEAL_REGISTRATION]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_wildcard_permission_cannot_escalate[DEAL_COMPLETE]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_wildcard_permission_cannot_escalate[DEAL_CANCEL]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_wildcard_permission_cannot_escalate[DEAL_DISPUTE]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_wildcard_permission_cannot_escalate[DEAL_EVIDENCE_ATTACH]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_cross_tenant_is_denied_even_with_permission
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_cross_tenant_is_denied_even_with_high_risk_approval
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_blank_subject_is_denied[]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_blank_subject_is_denied[ ]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_blank_subject_is_denied[   ]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_non_string_subject_is_denied
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_high_risk_operation_requires_explicit_approval[DEAL_BOOK-APPROVAL_DEAL_BOOKING]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_high_risk_operation_requires_explicit_approval[DEAL_AGREEMENT-APPROVAL_DEAL_AGREEMENT]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_high_risk_operation_requires_explicit_approval[DEAL_REGISTRATION-APPROVAL_DEAL_REGISTRATION]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_high_risk_operation_requires_explicit_approval[DEAL_COMPLETE-APPROVAL_DEAL_COMPLETION]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_high_risk_operation_requires_explicit_approval[DEAL_DISPUTE-APPROVAL_DEAL_DISPUTE]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_wrong_approval_does_not_authorize_sensitive_operation[DEAL_BOOK-APPROVAL_DEAL_BOOKING]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_wrong_approval_does_not_authorize_sensitive_operation[DEAL_AGREEMENT-APPROVAL_DEAL_AGREEMENT]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_wrong_approval_does_not_authorize_sensitive_operation[DEAL_REGISTRATION-APPROVAL_DEAL_REGISTRATION]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_wrong_approval_does_not_authorize_sensitive_operation[DEAL_COMPLETE-APPROVAL_DEAL_COMPLETION]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_wrong_approval_does_not_authorize_sensitive_operation[DEAL_DISPUTE-APPROVAL_DEAL_DISPUTE]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_approval_without_permission_does_not_authorize[DEAL_BOOK-APPROVAL_DEAL_BOOKING]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_approval_without_permission_does_not_authorize[DEAL_AGREEMENT-APPROVAL_DEAL_AGREEMENT]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_approval_without_permission_does_not_authorize[DEAL_REGISTRATION-APPROVAL_DEAL_REGISTRATION]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_approval_without_permission_does_not_authorize[DEAL_COMPLETE-APPROVAL_DEAL_COMPLETION]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_approval_without_permission_does_not_authorize[DEAL_DISPUTE-APPROVAL_DEAL_DISPUTE]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_booking_requires_booking_pending_state
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_booking_allowed_only_after_booking_pending
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_completion_requires_completion_pending_state
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_completion_allowed_only_after_completion_pending
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_non_sensitive_operations_need_no_approval[DEAL_READ]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_non_sensitive_operations_need_no_approval[DEAL_TRANSITION]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_non_sensitive_operations_need_no_approval[DEAL_PARTY]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_non_sensitive_operations_need_no_approval[DEAL_OFFER]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_non_sensitive_operations_need_no_approval[DEAL_NEGOTIATE]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_non_sensitive_operations_need_no_approval[DEAL_CANCEL]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_non_sensitive_operations_need_no_approval[DEAL_EVIDENCE_ATTACH]
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_authorization_accepts_enum_value_string
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_invalid_operation_is_rejected
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_attributes_do_not_grant_privilege
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_extra_permissions_do_not_bypass_approval
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_decision_is_immutable
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_authorization_does_not_mutate_deal
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_required_permission_is_operation_derived
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_tenant_boundary_has_priority_over_permission_checks
-AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py::test_authorization_context_uses_frozen_permission_and_approval_sets
-
-151 tests collected in 0.19s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     Write-Host "STOP: CORE-006 test collection failed." -ForegroundColor Red
->>     exit 1
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 4. CORE-006 PACKAGE IMPORT ===" -ForegroundColor Yellow
-
-=== 4. CORE-006 PACKAGE IMPORT ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -c "from AUTONOMY_ENGINE.core.deal_transaction import Deal, DealStatus, DealContract, DealTransactionEvent, DealAuthorizationContext, validate_deal_consistency; print('CORE-006 IMPORT PASS')"
-CORE-006 IMPORT PASS
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     Write-Host "STOP: CORE-006 import integrity failed." -ForegroundColor Red
->>     exit 1
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 5. CONTROL CENTER CURRENT STATE ===" -ForegroundColor Yellow
-
-=== 5. CONTROL CENTER CURRENT STATE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
+=== CONTROL CENTER STATE CHECK ===
 PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py status
 HOMIO / REOS CONTROL CENTER v7.0
 ========================================================================
@@ -295,23 +23,71 @@ Subtasks: 10 Criteria: 6
 Approved: 38 Pending: 1
 State: D:\Homio\REOS_CONTROL_CENTER\data\state.json
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     Write-Host "STOP: Control Center status failed." -ForegroundColor Red
->>     exit 1
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 6. REGISTER CORE-006 ACCEPTANCE EVIDENCE ===" -ForegroundColor Yellow
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== GIT STATUS ===" -ForegroundColor Yellow
 
-=== 6. REGISTER CORE-006 ACCEPTANCE EVIDENCE ===
+=== GIT STATUS ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
+ M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_reconstruction.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/gate_subtask_continuity.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/test_gate_subtask_continuity.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/gate_subtask_continuity.py
+ M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/task_dependency_reconstruction.py
+ M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/test_checkpoint_continuity.py
+ M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/new_chat_bootstrap.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/test_new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/context_compression.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/test_context_compression.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py
+ M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py
+ M AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_guard.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_t12_integration.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_metrics.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_adversarial.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_contract.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_integration.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/dependency_graph.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/core/trust_fraud_governance/__init__.py
+ M AUTONOMY_ENGINE/execution/__pycache__/mutation_adapter.cpython-312.pyc
+ M AUTONOMY_ENGINE/execution/__pycache__/production_executor.cpython-312.pyc
+ M AUTONOMY_ENGINE/orchestration/__pycache__/execution_coordinator.cpython-312.pyc
+ M AUTONOMY_ENGINE/tests/__pycache__/test_controller_autonomy_integration_adversarial.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/tests/__pycache__/test_execution_coordinator_adversarial.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/tests/__pycache__/test_execution_pipeline_adversarial.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/tests/__pycache__/test_mutation_adapter_adversarial.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/tests/__pycache__/test_production_executor_adversarial.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/tests/test_controller_autonomy_integration_adversarial.py
+ M AUTONOMY_ENGINE/tests/test_l1_l2_acceptance.py
+ M REOS_NEXT_CHAT.txt
+ M data/state.json
+ M packets/NEW_CHAT_PACKET.txt
+?? AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-20260929_203458.bak
+?? AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-sync-20260929_204442.bak
+?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
+?? AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py
+?? snapshots/state_20260929_190047_321090.json
+?? snapshots/state_20260929_202840_417870.json
+?? snapshots/state_20260929_203024_561461.json
+?? snapshots/state_20260929_205407_688934.json
+?? snapshots/state_20260929_205835_799742.json
+?? snapshots/state_20260929_210131_376828.json
+?? snapshots/state_20260929_210317_077045.json
+?? snapshots/state_20260929_210337_134750.json
+?? snapshots/state_20260929_210337_147255.json
+?? snapshots/state_20260929_210906_554909.json
+?? snapshots/state_20260929_212905_421537.json
+?? ../REOS_LAYER_BACKUP_ACRL_REPAIR_20260929_182814/
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py verify-criterion CORE-006-AC01 "CORE-006 deal.py is the authoritative deal-state owner; full CORE-006 regression passed 151 tests."
-usage: reos_control_center.py verify-criterion [-h] --evidence EVIDENCE id
-reos_control_center.py verify-criterion: error: the following arguments are required: --evidence
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) { exit 1 }
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== STATE DIFF ===" -ForegroundColor Yellow
 
-[process exited with code 1 (0x00000001)]
-You can now close this terminal with Ctrl+D, or press Enter to restart.
-Windows PowerShell
-Copyright (C) Microsoft Corporation. All rights reserved.
+=== STATE DIFF ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git diff -- REOS_CONTROL_CENTER/data/state.json
+PS D:\HOMIO\REOS_CONTROL_CENTER>
