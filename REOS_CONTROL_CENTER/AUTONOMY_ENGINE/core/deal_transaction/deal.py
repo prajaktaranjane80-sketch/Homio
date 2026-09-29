@@ -144,19 +144,23 @@ class Deal:
 
         previous_version = 0
 
-        for entry in self.history:
-            if entry.version != previous_version + 1:
-                raise DealValidationError(
-                    "Deal history versions must be contiguous."
-                )
-            previous_version = entry.version
-
-        if self.history and (
-            self.history[-1].version != self.version
-        ):
+        if self.history and self.history[0].version != 1:
             raise DealValidationError(
-                "Latest history version must equal Deal version."
+                "Lifecycle history must start at version 1."
             )
+
+        for entry in self.history:
+            if entry.version < 1 or entry.version > self.version:
+                raise DealValidationError(
+                    "Deal history versions must be ordered and cannot exceed Deal version."
+                )
+
+            if entry.version <= previous_version:
+                raise DealValidationError(
+                    "Deal history versions must be strictly increasing."
+                )
+
+            previous_version = entry.version
 
         relationship_keys = set()
 
@@ -570,10 +574,10 @@ class Deal:
 
     def create_offer(
         self,
+        offer_id: str | None = None,
         *,
         tenant_id: str,
         expected_version: int,
-        offer_id: str | None = None,
         terms: Mapping[str, Any] | None = None,
         supersedes_offer_id: str | None = None,
         at: Any = None,
@@ -706,10 +710,10 @@ class Deal:
 
     def start_negotiation(
         self,
+        negotiation_id: str | None = None,
         *,
         tenant_id: str,
         expected_version: int,
-        negotiation_id: str | None = None,
         offer_id: str | None = None,
         at: Any = None,
     ) -> "Deal":
@@ -939,12 +943,12 @@ class Deal:
 
     def attach_evidence(
         self,
+        evidence_id: str | None = None,
         *,
         tenant_id: str,
         expected_version: int,
         evidence_type: str,
         reference: str,
-        evidence_id: str | None = None,
         actor_id: str | None = None,
         metadata: Mapping[str, Any] | None = None,
         at: Any = None,
