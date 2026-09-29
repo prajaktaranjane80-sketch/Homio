@@ -1,229 +1,116 @@
-PS C:\Users\Sandip RanjanePatil> Set-Location "D:\Homio\REOS_CONTROL_CENTER"
-PS D:\Homio\REOS_CONTROL_CENTER> cd D:\HOMIO\REOS_CONTROL_CENTER
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $Root = "D:\HOMIO\REOS_CONTROL_CENTER"
-PS D:\HOMIO\REOS_CONTROL_CENTER> $WT   = Join-Path $env:TEMP "HOMIO_CORE006_T06_HISTORY_FIX"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
-remote: Enumerating objects: 7, done.
-remote: Counting objects: 100% (7/7), done.
-remote: Compressing objects: 100% (4/4), done.
-remote: Total 4 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (4/4), 2.79 KiB | 110.00 KiB/s, done.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   1618be3..2adb74b  reos-development -> origin/reos-development
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (Test-Path $WT) {
->>     git worktree remove --force $WT
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git worktree add --detach $WT origin/reos-development
-Preparing worktree (detached HEAD 2adb74b)
-error: unable to create file REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/repository_discovery/__pycache__/test_repository_discovery.cpython-312-pytest-9.1.1.pyc: Filename too long
-fatal: Could not reset index file to revision 'HEAD'.
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location $WT
-Set-Location : Cannot find path 'C:\Users\SANDIP~1\AppData\Local\Temp\HOMIO_CORE006_T06_HISTORY_FIX' because it does not exist.
-At line:1 char:1
-+ Set-Location $WT
-+ ~~~~~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (C:\Users\SANDIP...T06_HISTORY_FIX:String) [Set-Location], ItemNotFoundException
-    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.SetLocationCommand
+PS D:\Homio\REOS_CONTROL_CENTER> gh auth status
+github.com
+  ✓ Logged in to github.com account sandyranjane-hash (keyring)
+  - Active account: true
+  - Git operations protocol: https
+  - Token: gho_************************************
+  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $File = "REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $text = [System.IO.File]::ReadAllText(
->>     (Join-Path $WT $File),
->>     [System.Text.UTF8Encoding]::new($false)
->> )
-Exception calling "ReadAllText" with "2" argument(s): "Could not find a part of the path 'C:\Users\Sandip
-RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_HISTORY_FIX\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py'."
-At line:1 char:1
-+ $text = [System.IO.File]::ReadAllText(
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [], MethodInvocationException
-    + FullyQualifiedErrorId : DirectoryNotFoundException
+  ✓ Logged in to github.com account prajaktaranjane80-sketch (keyring)
+  - Active account: false
+  - Git operations protocol: https
+  - Token: gho_************************************
+  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
+PS D:\Homio\REOS_CONTROL_CENTER> gh repo view prajaktaranjane80-sketch/Homio
+prajaktaranjane80-sketch/Homio
+HOMIO — Global AI-Powered Real Estate Operating System (REOS) for autonomous real estate operations, lead ownership, inventory, transactions, governance, trust, risk, communication, and intelligent agent-driven execution.
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $old = @'
->>         previous_version = 0
->>
->>         for entry in self.history:
->>             if entry.version != previous_version + 1:
->>                 raise DealValidationError(
->>                     "Deal history versions must be contiguous."
->>                 )
->>             previous_version = entry.version
->>
->>         if self.history and (
->>             self.history[-1].version != self.version
->>         ):
->>             raise DealValidationError(
->>                 "Latest history version must equal Deal version."
->>             )
->>
->>         relationship_keys = set()
+
+   Homio REOS (Android)
+
+  HOMIO — Global AI-Powered Real Estate Operating System (REOS) built with Kotlin and Jetpack Compose.
+
+  ## Key Features & Architecture
+
+  • Control Center & Executive KPIs: Real-time monitoring of active leads, genuine qualification ratios, inventory
+  units, protected commission ledger, system trust index, and state hash verification.
+  • Architecture Gates (ARCH-001 – ARCH-039): Interactive state machine tracking all 39 architecture milestones,
+  subtask execution, acceptance criteria validation, and state sealing.
+  • Lead Engine & Attribution: First-touch cryptographic attribution (SHA-256), AI-powered genuine score evaluation
+  (0–100), and anti-bypass builder notification.
+  • Developer Inventory & Deal Protection: Live unit status tracking (available, blocked, sold), developer portfolio
+  management, and commission bond agreements with dispute protection.
+  • Evidence Ledger & Security Tripwires: Immutable logs for geofenced site visit OTPs, digital consent mandates,
+  automated tripwire circuit breakers, and autonomous agent roles.
+
+  ## Tech Stack
+
+  • Language: Kotlin 2.0
+  • UI Toolkit: Jetpack Compose & Material 3
+  • Architecture: MVVM with Kotlin Coroutines & Reactive StateFlow
+  • Platform: Android SDK 35+ / Material You Dynamic Theming
+
+
+
+View this repository on GitHub: https://github.com/prajaktaranjane80-sketch/Homio
+PS D:\Homio\REOS_CONTROL_CENTER> gh api "repos/prajaktaranjane80-sketch/Homio/contents/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py?ref=reos-development" --jq ".sha"
+757dd597e3339b31c3c78fc47aa18228f6fdf7aa
+PS D:\Homio\REOS_CONTROL_CENTER> $sha = gh api "repos/prajaktaranjane80-sketch/Homio/contents/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py?ref=reos-development" --jq ".sha"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> gh api -X DELETE `
+>>   "repos/prajaktaranjane80-sketch/Homio/contents/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py" `
+>>   -f message="chore: remove CORE-006 file" `
+>>   -f sha="$sha" `
+>>   -f branch="reos-development"
+{
+  "message": "Not Found",
+  "documentation_url": "https://docs.github.com/rest/repos/contents#delete-a-file",
+  "status": "404"
+}
+gh: Not Found (HTTP 404)
+PS D:\Homio\REOS_CONTROL_CENTER> $content = @'
+>> PASTE COMPLETE FILE CONTENT HERE
 >> '@
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $new = @'
->>         previous_version = 0
->>
->>         for entry in self.history:
->>             if entry.version <= previous_version:
->>                 raise DealValidationError(
->>                     "Deal history versions must be strictly increasing."
->>                 )
->>
->>             if entry.version > self.version:
->>                 raise DealValidationError(
->>                     "Deal history version cannot exceed Deal version."
->>                 )
->>
->>             previous_version = entry.version
->>
->>         if self.history and (
->>             self.history[-1].version > self.version
->>         ):
->>             raise DealValidationError(
->>                 "Latest history version cannot exceed Deal version."
->>             )
->>
->>         relationship_keys = set()
->> '@
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $text.Contains($old)) {
->>     throw "EXPECTED CORE-006 T06 HISTORY BLOCK NOT FOUND - STOP. NO CHANGE."
->> }
-You cannot call a method on a null-valued expression.
-At line:1 char:5
-+ if (-not $text.Contains($old)) {
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
-    + FullyQualifiedErrorId : InvokeMethodOnNull
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $bytes = [System.Text.Encoding]::UTF8.GetBytes($content)
+PS D:\Homio\REOS_CONTROL_CENTER> $base64 = [Convert]::ToBase64String($bytes)
+PS D:\Homio\REOS_CONTROL_CENTER> $path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $sha = gh api `
+>>   "repos/prajaktaranjane80-sketch/Homio/contents/$path`?ref=reos-development" `
+>>   --jq ".sha"
+PS D:\Homio\REOS_CONTROL_CENTER> gh auth status
+github.com
+  ✓ Logged in to github.com account sandyranjane-hash (keyring)
+  - Active account: true
+  - Git operations protocol: https
+  - Token: gho_************************************
+  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $text = $text.Replace($old, $new)
-You cannot call a method on a null-valued expression.
-At line:1 char:1
-+ $text = $text.Replace($old, $new)
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
-    + FullyQualifiedErrorId : InvokeMethodOnNull
+  ✓ Logged in to github.com account prajaktaranjane80-sketch (keyring)
+  - Active account: false
+  - Git operations protocol: https
+  - Token: gho_************************************
+  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
+PS D:\Homio\REOS_CONTROL_CENTER> gh repo view prajaktaranjane80-sketch/Homio
+prajaktaranjane80-sketch/Homio
+HOMIO — Global AI-Powered Real Estate Operating System (REOS) for autonomous real estate operations, lead ownership, inventory, transactions, governance, trust, risk, communication, and intelligent agent-driven execution.
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> [System.IO.File]::WriteAllText(
->>     (Join-Path $WT $File),
->>     $text,
->>     [System.Text.UTF8Encoding]::new($false)
->> )
-Exception calling "WriteAllText" with "3" argument(s): "Could not find a part of the path 'C:\Users\Sandip
-RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_HISTORY_FIX\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py'."
-At line:1 char:1
-+ [System.IO.File]::WriteAllText(
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [], MethodInvocationException
-    + FullyQualifiedErrorId : DirectoryNotFoundException
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== GIT PATCH CREATED ===" -ForegroundColor Cyan
-=== GIT PATCH CREATED ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff -- $File
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== DIFF CHECK ===" -ForegroundColor Cyan
-=== DIFF CHECK ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check -- $File
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "DIFF CHECK FAILED - NO COMMIT."
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== T06 ADVERSARIAL TEST ===" -ForegroundColor Cyan
-=== T06 ADVERSARIAL TEST ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest `
->>     REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py `
->>     REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py -q
+   Homio REOS (Android)
 
-no tests ran in 0.00s
-ERROR: file or directory not found: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py
+  HOMIO — Global AI-Powered Real Estate Operating System (REOS) built with Kotlin and Jetpack Compose.
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "T06 TEST FAILED - NO COMMIT."
->> }
-T06 TEST FAILED - NO COMMIT.
-At line:2 char:5
-+     throw "T06 TEST FAILED - NO COMMIT."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (T06 TEST FAILED - NO COMMIT.:String) [], RuntimeException
-    + FullyQualifiedErrorId : T06 TEST FAILED - NO COMMIT.
+  ## Key Features & Architecture
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== STAGE ONLY DEAL.PY ===" -ForegroundColor Cyan
-=== STAGE ONLY DEAL.PY ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git add -- $File
-warning: could not open directory 'REOS_CONTROL_CENTER/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/': No such file or directory
-fatal: pathspec 'REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py' did not match any files
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== COMMIT TO GIT ===" -ForegroundColor Cyan
-=== COMMIT TO GIT ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git commit -m "fix: align CORE-006 lifecycle history with aggregate versioning"
-On branch reos-development
-Your branch is behind 'origin/reos-development' by 32 commits, and can be fast-forwarded.
-  (use "git pull" to update your local branch)
+  • Control Center & Executive KPIs: Real-time monitoring of active leads, genuine qualification ratios, inventory
+  units, protected commission ledger, system trust index, and state hash verification.
+  • Architecture Gates (ARCH-001 – ARCH-039): Interactive state machine tracking all 39 architecture milestones,
+  subtask execution, acceptance criteria validation, and state sealing.
+  • Lead Engine & Attribution: First-touch cryptographic attribution (SHA-256), AI-powered genuine score evaluation
+  (0–100), and anti-bypass builder notification.
+  • Developer Inventory & Deal Protection: Live unit status tracking (available, blocked, sold), developer portfolio
+  management, and commission bond agreements with dispute protection.
+  • Evidence Ledger & Security Tripwires: Immutable logs for geofenced site visit OTPs, digital consent mandates,
+  automated tripwire circuit breakers, and autonomous agent roles.
 
-nothing to commit, working tree clean
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "COMMIT FAILED - NO PUSH."
->> }
-COMMIT FAILED - NO PUSH.
-At line:2 char:5
-+     throw "COMMIT FAILED - NO PUSH."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (COMMIT FAILED - NO PUSH.:String) [], RuntimeException
-    + FullyQualifiedErrorId : COMMIT FAILED - NO PUSH.
+  ## Tech Stack
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== PUSH TO reos-development ===" -ForegroundColor Cyan
-=== PUSH TO reos-development ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git push origin HEAD:reos-development
-To https://github.com/prajaktaranjane80-sketch/Homio.git
- ! [rejected]        HEAD -> reos-development (non-fast-forward)
-error: failed to push some refs to 'https://github.com/prajaktaranjane80-sketch/Homio.git'
-hint: Updates were rejected because the tip of your current branch is behind
-hint: its remote counterpart. If you want to integrate the remote changes,
-hint: use 'git pull' before pushing again.
-hint: See the 'Note about fast-forwards' in 'git push --help' for details.
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "PUSH FAILED."
->> }
-PUSH FAILED.
-At line:2 char:5
-+     throw "PUSH FAILED."
-+     ~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (PUSH FAILED.:String) [], RuntimeException
-    + FullyQualifiedErrorId : PUSH FAILED.
+  • Language: Kotlin 2.0
+  • UI Toolkit: Jetpack Compose & Material 3
+  • Architecture: MVVM with Kotlin Coroutines & Reactive StateFlow
+  • Platform: Android SDK 35+ / Material You Dynamic Theming
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location $Root
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git worktree remove --force $WT
-fatal: 'C:\Users\SANDIP~1\AppData\Local\Temp\HOMIO_CORE006_T06_HISTORY_FIX' is not a working tree
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "============================================" -ForegroundColor Green
-============================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CORE-006 T06 HISTORY FIX PUSHED SUCCESSFULLY" -ForegroundColor Green
-CORE-006 T06 HISTORY FIX PUSHED SUCCESSFULLY
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "============================================" -ForegroundColor Green
-============================================
-PS D:\HOMIO\REOS_CONTROL_CENTER>
+
+
+View this repository on GitHub: https://github.com/prajaktaranjane80-sketch/Homio
