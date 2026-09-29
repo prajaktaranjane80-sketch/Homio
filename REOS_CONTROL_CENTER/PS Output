@@ -1,45 +1,18 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> $ErrorActionPreference="Stop"
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location "D:\HOMIO\REOS_CONTROL_CENTER"
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $file = "AUTONOMY_ENGINE\core\deal_transaction\test_core006_t09_security_authorization.py"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== VERIFY T09 TEST ==="
-=== VERIFY T09 TEST ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not (Test-Path $file)) {
->>     throw "T09 test file not found."
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check -- $file
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== COMMIT T09 TEST ONLY ==="
-=== COMMIT T09 TEST ONLY ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git add -- $file
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py', LF will be replaced by CRLF the next time Git touches it
-PS D:\HOMIO\REOS_CONTROL_CENTER> git commit -m "test(core006): add T09 security authorization coverage"
-[reos-development b8d9d34] test(core006): add T09 security authorization coverage
- 1 file changed, 589 insertions(+)
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_core006_t09_security_authorization.py
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "T09 commit failed."
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== PRESERVE OTHER WORK ==="
-=== PRESERVE OTHER WORK ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git stash push -u -m "PRESERVE-WORK-BEFORE-CORE006-T09-PUSH"
-Saved working directory and index state On reos-development: PRESERVE-WORK-BEFORE-CORE006-T09-PUSH
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== SYNC REMOTE ==="
-=== SYNC REMOTE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== FETCH REMOTE ==="
+=== FETCH REMOTE ===
 PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
 remote: Enumerating objects: 7, done.
 remote: Counting objects: 100% (7/7), done.
 remote: Compressing objects: 100% (4/4), done.
 remote: Total 4 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (4/4), 1.29 KiB | 82.00 KiB/s, done.
+Unpacking objects: 100% (4/4), 2.58 KiB | 220.00 KiB/s, done.
 From https://github.com/prajaktaranjane80-sketch/Homio
  * branch            reos-development -> FETCH_HEAD
-   08f4b49..1e5cd26  reos-development -> origin/reos-development
+   be04b5b..62fe070  reos-development -> origin/reos-development
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== REBASE ==="
+=== REBASE ===
 PS D:\HOMIO\REOS_CONTROL_CENTER> git rebase origin/reos-development
 Successfully rebased and updated refs/heads/reos-development.
 PS D:\HOMIO\REOS_CONTROL_CENTER>
@@ -48,22 +21,22 @@ PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
 >>     throw "Rebase failed. Do not reset."
 >> }
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== PUSH T09 ==="
-=== PUSH T09 ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== PUSH T01 ==="
+=== PUSH T01 ===
 PS D:\HOMIO\REOS_CONTROL_CENTER> git push origin reos-development
-Enumerating objects: 12, done.
-Counting objects: 100% (12/12), done.
+Enumerating objects: 13, done.
+Counting objects: 100% (13/13), done.
 Delta compression using up to 12 threads
-Compressing objects: 100% (7/7), done.
-Writing objects: 100% (7/7), 2.67 KiB | 2.67 MiB/s, done.
-Total 7 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
-remote: Resolving deltas: 100% (5/5), completed with 5 local objects.
+Compressing objects: 100% (9/9), done.
+Writing objects: 100% (9/9), 6.91 KiB | 2.30 MiB/s, done.
+Total 9 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (5/5), completed with 4 local objects.
 To https://github.com/prajaktaranjane80-sketch/Homio.git
-   1e5cd26..be04b5b  reos-development -> reos-development
+   62fe070..f0c6f40  reos-development -> reos-development
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
 >>     git status
->>     throw "T09 push failed."
+>>     throw "T01 push failed."
 >> }
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== RESTORE OTHER WORK ==="
@@ -126,48 +99,56 @@ Untracked files:
         snapshots/state_20260929_203024_561461.json
         snapshots/state_20260929_205407_688934.json
         snapshots/state_20260929_205835_799742.json
+        snapshots/state_20260929_210131_376828.json
+        snapshots/state_20260929_210317_077045.json
+        snapshots/state_20260929_210337_134750.json
+        snapshots/state_20260929_210337_147255.json
         ../REOS_LAYER_BACKUP_ACRL_REPAIR_20260929_182814/
 
 no changes added to commit (use "git add" and/or "git commit -a")
-Dropped refs/stash@{0} (ae3fcb5551e1838744544d83ec4df3946b6bd018)
+Dropped refs/stash@{0} (61abbee8c4fc5860aa7214f14691bfc90b2b3192)
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
 >>     git status
 >>     throw "Stash restore conflict. Do not reset."
 >> }
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== COMPLETE T09 ==="
-=== COMPLETE T09 ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py complete-subtask CORE-006-T09 --note "Security and authorization review completed. Dedicated T09 suite: 77 passed in 0.31s. Full CORE-006 deal_transaction regression: 151 passed in 0.52s."
-COMPLETED: CORE-006-T09
-NEXT: CORE-006: Validate acceptance criteria.
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== COMPLETE CORE-007-T01 ==="
+=== COMPLETE CORE-007-T01 ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py complete-subtask CORE-007-T01 --note "Trust score foundation implemented under ARCH-015. Dedicated T01 suite: 37 passed in 0.18s. Full AUTONOMY_ENGINE/core regression: 730 passed in 4.94s. T01 implementation and tests committed/pushed."
+COMPLETED: CORE-007-T01
+NEXT: CORE-007-T02: Implement fraud detection integration.
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "CORE-006-T09 completion failed."
+>>     throw "CORE-007-T01 completion failed."
 >> }
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== GATE STATUS ==="
-=== GATE STATUS ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== NEXT GATE STATE ==="
+=== NEXT GATE STATE ===
 PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py gate
-GATE: Deal & Transaction Core
-STATUS: READY_FOR_VALIDATION
-CURRENT SUBTASK: CORE-006-T09
+GATE: Trust, Fraud & Governance Core
+STATUS: CURRENT
+CURRENT SUBTASK: CORE-007-T02
 SUBTASKS:
-CORE-006-T01 | Implement deal domain and lifecycle | DONE | CRITICAL
-CORE-006-T02 | Implement deal party relationships | DONE | CRITICAL
-CORE-006-T03 | Implement offer and negotiation state | DONE | HIGH
-CORE-006-T04 | Implement booking and transaction milestones | DONE | CRITICAL
-CORE-006-T05 | Implement deal ownership integration | DONE | CRITICAL
-CORE-006-T06 | Implement evidence and audit integration | DONE | HIGH
-CORE-006-T07 | Implement transaction event workflows | DONE | HIGH
-CORE-006-T08 | Run consistency and concurrency tests | DONE | CRITICAL
-CORE-006-T09 | Run security and authorization review | DONE | CRITICAL
-CORE-006-T10 | Freeze deal and transaction core | PENDING | CRITICAL
+CORE-007-T01 | Implement trust score foundation | DONE | CRITICAL
+CORE-007-T02 | Implement fraud detection integration | CURRENT | CRITICAL
+CORE-007-T03 | Implement risk rule evaluation | PENDING | CRITICAL
+CORE-007-T04 | Implement governance policy engine | PENDING | CRITICAL
+CORE-007-T05 | Implement approval and exception workflows | PENDING | CRITICAL
+CORE-007-T06 | Implement security and evidence integration | PENDING | HIGH
+CORE-007-T07 | Implement dispute and escalation hooks | PENDING | HIGH
+CORE-007-T08 | Run adversarial and false-positive review | PENDING | CRITICAL
+CORE-007-T09 | Run policy conflict and tenant isolation tests | PENDING | CRITICAL
+CORE-007-T10 | Freeze trust fraud and governance core | PENDING | CRITICAL
 ACCEPTANCE CRITERIA:
-CORE-006-AC01 | VERIFIED | Deal state has one authoritative owner.
-CORE-006-AC02 | VERIFIED | Lead, inventory and ownership relationships are traceable.
-CORE-006-AC03 | VERIFIED | Critical transaction transitions are auditable.
-CORE-006-AC04 | VERIFIED | Concurrent updates are safe.
-CORE-006-AC05 | VERIFIED | Evidence and events preserve historical truth.
-CORE-006-AC06 | VERIFIED | Authorization and tenant isolation pass.
+CORE-007-AC01 | PENDING | Trust and fraud responsibilities are distinct.
+CORE-007-AC02 | PENDING | Governance policies are versioned and auditable.
+CORE-007-AC03 | PENDING | High-risk actions require appropriate approval.
+CORE-007-AC04 | PENDING | Exceptions are controlled and expire.
+CORE-007-AC05 | PENDING | Cross-tenant and privilege boundaries are enforced.
+CORE-007-AC06 | PENDING | False-positive and conflict cases are tested.
 PS D:\HOMIO\REOS_CONTROL_CENTER>
