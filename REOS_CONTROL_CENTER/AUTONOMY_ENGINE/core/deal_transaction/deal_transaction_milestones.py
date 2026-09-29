@@ -1,117 +1,100 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Any, TYPE_CHECKING
+from typing import Any
+from uuid import uuid4
 
-if TYPE_CHECKING:
-    from .deal import DealStatus
+from .deal_contract import DealStatus, utc_datetime
 
 
-class DealMilestoneError(ValueError):
+class DealMilestoneTransitionError(ValueError):
     pass
 
 
-class DealMilestoneTenantError(DealMilestoneError):
-    pass
-
-
-class DealMilestoneConcurrencyError(DealMilestoneError):
-    pass
-
-
-class DealMilestoneTransitionError(DealMilestoneError):
-    pass
-
-
-_TRANSACTION_STATUS_VALUES = frozenset(
-    {
-        "BOOKING_PENDING",
-        "BOOKED",
-        "AGREEMENT_PENDING",
-        "AGREED",
-        "REGISTRATION_PENDING",
-        "REGISTERED",
-        "COMPLETION_PENDING",
-        "COMPLETED",
-    }
-)
+TRANSACTION_STATUSES = frozenset({
+    DealStatus.BOOKING_PENDING,
+    DealStatus.BOOKED,
+    DealStatus.AGREEMENT_PENDING,
+    DealStatus.AGREED,
+    DealStatus.REGISTRATION_PENDING,
+    DealStatus.REGISTERED,
+    DealStatus.COMPLETION_PENDING,
+    DealStatus.COMPLETED,
+})
 
 
 @dataclass(frozen=True)
 class DealTransactionMilestone:
-    """Immutable transaction milestone owned by the Deal aggregate."""
-
     milestone_id: str
     deal_id: str
     tenant_id: str
-    from_status: "DealStatus"
-    to_status: "DealStatus"
+    from_status: DealStatus
+    to_status: DealStatus
     sequence: int
     deal_version: int
     occurred_at: datetime
     reference_id: str | None = None
+    evidence_required: bool = True
 
     def __post_init__(self) -> None:
-        from .deal import DealStatus
-
-        for name in (
-            "milestone_id",
-            "deal_id",
-            "tenant_id",
-        ):
-            value = getattr(self, name)
-            if (
-                not isinstance(value, str)
-                or not value.strip()
-            ):
-                raise DealMilestoneError(
-                    f"{name} is required."
-                )
-
-        if (
-            isinstance(self.sequence, bool)
-            or not isinstance(self.sequence, int)
-            or self.sequence < 1
-        ):
-            raise DealMilestoneError(
-                "sequence must be an integer >= 1."
-            )
-
-        if (
-            isinstance(self.deal_version, bool)
-            or not isinstance(self.deal_version, int)
-            or self.deal_version < 1
-        ):
-            raise DealMilestoneError(
-                "deal_version must be an integer >= 1."
-            )
-
-        if (
-            not isinstance(self.occurred_at, datetime)
-            or self.occurred_at.tzinfo is None
-        ):
-            raise DealMilestoneError(
-                "occurred_at must be timezone-aware."
-            )
-
-        from_status = DealStatus(self.from_status)
-        to_status = DealStatus(self.to_status)
-
-        if to_status.value not in _TRANSACTION_STATUS_VALUES:
+        if self.sequence < 1:
             raise DealMilestoneTransitionError(
-                f"{to_status.value} is not a transaction milestone."
+                "sequence must be >= 1."
+            )
+
+        if self.deal_version < 1:
+            raise DealMilestoneTransitionError(
+                "deal_version must be >= 1."
             )
 
         object.__setattr__(
             self,
             "from_status",
-            from_status,
+            DealStatus(self.from_status),
         )
+
         object.__setattr__(
             self,
             "to_status",
-            to_status,
+            DealStatus(self.to_status),
+        )
+
+        object.__setattr__(
+            self,
+            "occurred_at",
+            utc_datetime(self.occurred_at),
+        )
+
+        if self.to_status not in TRANSACTION_STATUSES:
+            raise DealMilestoneTransitionError(
+                "Target is not a transaction status."
+            )
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        deal_id: str,
+        tenant_id: str,
+        from_status: DealStatus,
+        to_status: DealStatus,
+        sequence: int,
+        deal_version: int,
+        reference_id: str | None = None,
+        occurred_at: Any = None,
+        evidence_required: bool = True,
+    ) -> "DealTransactionMilestone":
+        return cls(
+            milestone_id=str(uuid4()),
+            deal_id=deal_id,
+            tenant_id=tenant_id,
+            from_status=from_status,
+            to_status=to_status,
+            sequence=sequence,
+            deal_version=deal_version,
+            occurred_at=utc_datetime(occurred_at),
+            reference_id=reference_id,
+            evidence_required=evidence_required,
         )
 
     def assert_scope(
@@ -120,14 +103,12 @@ class DealTransactionMilestone:
         deal_id: str,
         tenant_id: str,
     ) -> None:
-        if self.deal_id != deal_id:
-            raise DealMilestoneTenantError(
-                "Milestone belongs to a different deal."
-            )
-
-        if self.tenant_id != tenant_id:
-            raise DealMilestoneTenantError(
-                "Milestone belongs to a different tenant."
+        if (
+            self.deal_id != deal_id
+            or self.tenant_id != tenant_id
+        ):
+            raise DealMilestoneTransitionError(
+                "Milestone crosses Deal or tenant scope."
             )
 
     def to_dict(self) -> dict[str, Any]:
@@ -141,13 +122,5 @@ class DealTransactionMilestone:
             "deal_version": self.deal_version,
             "occurred_at": self.occurred_at.isoformat(),
             "reference_id": self.reference_id,
+            "evidence_required": self.evidence_required,
         }
-
-
-__all__ = [
-    "DealTransactionMilestone",
-    "DealMilestoneConcurrencyError",
-    "DealMilestoneError",
-    "DealMilestoneTenantError",
-    "DealMilestoneTransitionError",
-]
