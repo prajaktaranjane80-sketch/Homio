@@ -1,318 +1,103 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== T01 FINAL EVIDENCE ==="
-=== T01 FINAL EVIDENCE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "T01 TARGETED: PASS"
-T01 TARGETED: PASS
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "FULL CORE: PASS"
-FULL CORE: PASS
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE SYNC: PASS"
-REMOTE SYNC: PASS
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "COMMIT: f0c6f40"
-COMMIT: f0c6f40
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "========================================"
-========================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location "D:\HOMIO\REOS_CONTROL_CENTER"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== SAFE BRANCH SYNC: LOCAL -> REMOTE ==="
-=== SAFE BRANCH SYNC: LOCAL -> REMOTE ===
+Exception calling "WriteAllText" with "3" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py'."
+At line:1 char:1
++ [System.IO.File]::WriteAllText($fraudPath, $fraud, $utf8)
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> [System.IO.File]::WriteAllText($testPath, $tests, $utf8)
+Exception calling "WriteAllText" with "3" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t02_fraud_detection.py'."
+At line:1 char:1
++ [System.IO.File]::WriteAllText($testPath, $tests, $utf8)
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> [System.IO.File]::WriteAllText($initPath, $init, $utf8)
+Exception calling "WriteAllText" with "3" argument(s): "Could not find a part of the path 'C:\Users\Sandip
+RanjanePatil\AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py'."
+At line:1 char:1
++ [System.IO.File]::WriteAllText($initPath, $init, $utf8)
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : DirectoryNotFoundException
+
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "1. CURRENT WORK:"
-1. CURRENT WORK:
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
- M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_reconstruction.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/gate_subtask_continuity.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/test_gate_subtask_continuity.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/gate_subtask_continuity.py
- M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/task_dependency_reconstruction.py
- M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/test_checkpoint_continuity.py
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/new_chat_bootstrap.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/test_new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/context_compression.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/test_context_compression.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py
- M AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_guard.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_t12_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_metrics.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_contract.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/dependency_graph.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/execution/__pycache__/mutation_adapter.cpython-312.pyc
- M AUTONOMY_ENGINE/execution/__pycache__/production_executor.cpython-312.pyc
- M AUTONOMY_ENGINE/orchestration/__pycache__/execution_coordinator.cpython-312.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_controller_autonomy_integration_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_execution_coordinator_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_execution_pipeline_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_mutation_adapter_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_production_executor_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/test_controller_autonomy_integration_adversarial.py
- M AUTONOMY_ENGINE/tests/test_l1_l2_acceptance.py
- M REOS_NEXT_CHAT.txt
- M data/state.json
- M packets/NEW_CHAT_PACKET.txt
-?? AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-20260929_203458.bak
-?? AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-sync-20260929_204442.bak
-?? snapshots/state_20260929_190047_321090.json
-?? snapshots/state_20260929_202840_417870.json
-?? snapshots/state_20260929_203024_561461.json
-?? snapshots/state_20260929_205407_688934.json
-?? snapshots/state_20260929_205835_799742.json
-?? snapshots/state_20260929_210131_376828.json
-?? snapshots/state_20260929_210317_077045.json
-?? snapshots/state_20260929_210337_134750.json
-?? snapshots/state_20260929_210337_147255.json
-?? snapshots/state_20260929_210906_554909.json
-?? ../REOS_LAYER_BACKUP_ACRL_REPAIR_20260929_182814/
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $stashCreated = $false
-PS D:\HOMIO\REOS_CONTROL_CENTER> $before = git status --porcelain
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($before) {
->>     Write-Host ""
->>     Write-Host "2. PRESERVE CURRENT WORK:"
->>     git stash push -u -m "PRESERVE-WORK-BEFORE-REMOTE-PSOUTPUT-SYNC"
->>     if ($LASTEXITCODE -ne 0) {
->>         throw "FAIL: Could not preserve current work."
->>     }
->>     $stashCreated = $true
->> }
-
-2. PRESERVE CURRENT WORK:
-Saved working directory and index state On reos-development: PRESERVE-WORK-BEFORE-REMOTE-PSOUTPUT-SYNC
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "FILES WRITTEN:"
+FILES WRITTEN:
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host $fraudPath
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host $testPath
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t02_fraud_detection.py
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host $initPath
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "3. FETCH REMOTE:"
-3. FETCH REMOTE:
-PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
-remote: Enumerating objects: 7, done.
-remote: Counting objects: 100% (7/7), done.
-remote: Compressing objects: 100% (4/4), done.
-remote: Total 4 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (4/4), 1.82 KiB | 68.00 KiB/s, done.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   798048b..e875e2b  reos-development -> origin/reos-development
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== DIFF CHECK ==="
+=== DIFF CHECK ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check -- $fraudPath $testPath $initPath
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== T02 TARGETED TESTS ==="
+=== T02 TARGETED TESTS ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest $testPath -q --tb=short
+
+no tests ran in 0.01s
+ERROR: file or directory not found: AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t02_fraud_detection.py
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "FAIL: git fetch failed."
+>>     throw "FAIL: CORE-007-T02 targeted tests."
 >> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $localBefore = git rev-parse HEAD
-PS D:\HOMIO\REOS_CONTROL_CENTER> $remoteNow = git rev-parse origin/reos-development
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "LOCAL : $localBefore"
-LOCAL : f0c6f4021e277651d6718abf47284d88550ad2a2
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE: $remoteNow"
-REMOTE: e875e2ba3c0c51318ebfef65149d61bb0e453473
+FAIL: CORE-007-T02 targeted tests.
+At line:2 char:5
++     throw "FAIL: CORE-007-T02 targeted tests."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FAIL: CORE-007-T02 targeted tests.:String) [], RuntimeException
+    + FullyQualifiedErrorId : FAIL: CORE-007-T02 targeted tests.
+
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "4. VERIFY REMOTE IS AHEAD OF LOCAL:"
-4. VERIFY REMOTE IS AHEAD OF LOCAL:
-PS D:\HOMIO\REOS_CONTROL_CENTER> git merge-base --is-ancestor HEAD origin/reos-development
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== TRUST/FRAUD GOVERNANCE PACKAGE REGRESSION ==="
+=== TRUST/FRAUD GOVERNANCE PACKAGE REGRESSION ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\trust_fraud_governance -q --tb=short
+.....................................                                                                                                                [100%]
+37 passed in 0.16s
+PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "FAIL: Remote/local history is not a simple fast-forward. STOP."
+>>     throw "FAIL: trust_fraud_governance regression."
 >> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "PASS: safe fast-forward possible"
-PASS: safe fast-forward possible
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "5. FAST-FORWARD LOCAL BRANCH:"
-5. FAST-FORWARD LOCAL BRANCH:
-PS D:\HOMIO\REOS_CONTROL_CENTER> git merge --ff-only origin/reos-development
-Updating f0c6f40..e875e2b
-Fast-forward
- REOS_CONTROL_CENTER/PS Output | 243 ++++++++++++++++--------------------------
- 1 file changed, 94 insertions(+), 149 deletions(-)
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== FULL CORE REGRESSION ==="
+=== FULL CORE REGRESSION ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core -q --tb=short
+.................................................................................................................................................... [ 20%]
+.................................................................................................................................................... [ 40%]
+.................................................................................................................................................... [ 60%]
+.................................................................................................................................................... [ 81%]
+..........................................................................................................................................           [100%]
+730 passed in 4.38s
+PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "FAIL: Fast-forward failed. No reset performed."
+>>     throw "FAIL: Full AUTONOMY_ENGINE/core regression."
 >> }
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "6. RESTORE CURRENT WORK:"
-6. RESTORE CURRENT WORK:
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($stashCreated) {
->>     git stash pop
->>     if ($LASTEXITCODE -ne 0) {
->>         Write-Host "WARNING: stash restore reported conflict/state issue."
->>         Write-Host "The stash was NOT forcibly deleted. Do not reset or clean."
->>         throw "STOP: Resolve only the reported restore issue."
->>     }
->>     Write-Host "PASS: Current work restored"
->> } else {
->>     Write-Host "No stash was required."
->> }
-On branch reos-development
-Your branch is up to date with 'origin/reos-development'.
-
-Changes not staged for commit:
-  (use "git add <file>..." to update what will be committed)
-  (use "git restore <file>..." to discard changes in working directory)
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/__init__.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/__init__.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_reconstruction.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/gate_subtask_continuity.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/test_gate_subtask_continuity.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/gate_subtask_continuity.py
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/__init__.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/task_dependency_reconstruction.py
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/__init__.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/test_checkpoint_continuity.py
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/__init__.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/new_chat_bootstrap.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/test_new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/context_compression.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/test_context_compression.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_guard.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_t12_integration.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_metrics.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_adversarial.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_contract.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_integration.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/dependency_graph.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/__init__.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/__pycache__/__init__.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/execution/__pycache__/mutation_adapter.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/execution/__pycache__/production_executor.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/orchestration/__pycache__/execution_coordinator.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/tests/__pycache__/test_controller_autonomy_integration_adversarial.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/tests/__pycache__/test_execution_coordinator_adversarial.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/tests/__pycache__/test_execution_pipeline_adversarial.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/tests/__pycache__/test_mutation_adapter_adversarial.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/tests/__pycache__/test_production_executor_adversarial.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/tests/test_controller_autonomy_integration_adversarial.py
-        modified:   AUTONOMY_ENGINE/tests/test_l1_l2_acceptance.py
-        modified:   REOS_NEXT_CHAT.txt
-        modified:   data/state.json
-        modified:   packets/NEW_CHAT_PACKET.txt
-
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-        AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-20260929_203458.bak
-        AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-sync-20260929_204442.bak
-        snapshots/state_20260929_190047_321090.json
-        snapshots/state_20260929_202840_417870.json
-        snapshots/state_20260929_203024_561461.json
-        snapshots/state_20260929_205407_688934.json
-        snapshots/state_20260929_205835_799742.json
-        snapshots/state_20260929_210131_376828.json
-        snapshots/state_20260929_210317_077045.json
-        snapshots/state_20260929_210337_134750.json
-        snapshots/state_20260929_210337_147255.json
-        snapshots/state_20260929_210906_554909.json
-        ../REOS_LAYER_BACKUP_ACRL_REPAIR_20260929_182814/
-
-no changes added to commit (use "git add" and/or "git commit -a")
-Dropped refs/stash@{0} (cc7bdf2c4f0c0011ad538683bbf045947ff8eba4)
-PASS: Current work restored
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "7. FINAL BRANCH CHECK:"
-7. FINAL BRANCH CHECK:
-PS D:\HOMIO\REOS_CONTROL_CENTER> $localFinal = git rev-parse HEAD
-PS D:\HOMIO\REOS_CONTROL_CENTER> $remoteFinal = git rev-parse origin/reos-development
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "LOCAL : $localFinal"
-LOCAL : e875e2ba3c0c51318ebfef65149d61bb0e453473
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE: $remoteFinal"
-REMOTE: e875e2ba3c0c51318ebfef65149d61bb0e453473
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($localFinal -ne $remoteFinal) {
->>     throw "FAIL: Local and remote commits still differ."
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "PASS: LOCAL == REMOTE"
-PASS: LOCAL == REMOTE
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "8. FINAL WORKING TREE:"
-8. FINAL WORKING TREE:
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
- M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_reconstruction.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/gate_subtask_continuity.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/test_gate_subtask_continuity.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/gate_subtask_continuity.py
- M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/task_dependency_reconstruction.py
- M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/test_checkpoint_continuity.py
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/new_chat_bootstrap.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/test_new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/context_compression.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/test_context_compression.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py
- M AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_guard.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_t12_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_metrics.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_contract.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/dependency_graph.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/execution/__pycache__/mutation_adapter.cpython-312.pyc
- M AUTONOMY_ENGINE/execution/__pycache__/production_executor.cpython-312.pyc
- M AUTONOMY_ENGINE/orchestration/__pycache__/execution_coordinator.cpython-312.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_controller_autonomy_integration_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_execution_coordinator_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_execution_pipeline_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_mutation_adapter_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_production_executor_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/test_controller_autonomy_integration_adversarial.py
- M AUTONOMY_ENGINE/tests/test_l1_l2_acceptance.py
- M REOS_NEXT_CHAT.txt
- M data/state.json
- M packets/NEW_CHAT_PACKET.txt
-?? AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-20260929_203458.bak
-?? AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-sync-20260929_204442.bak
-?? snapshots/state_20260929_190047_321090.json
-?? snapshots/state_20260929_202840_417870.json
-?? snapshots/state_20260929_203024_561461.json
-?? snapshots/state_20260929_205407_688934.json
-?? snapshots/state_20260929_205835_799742.json
-?? snapshots/state_20260929_210131_376828.json
-?? snapshots/state_20260929_210317_077045.json
-?? snapshots/state_20260929_210337_134750.json
-?? snapshots/state_20260929_210337_147255.json
-?? snapshots/state_20260929_210906_554909.json
-?? ../REOS_LAYER_BACKUP_ACRL_REPAIR_20260929_182814/
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=========================================="
-==========================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "SYNC COMPLETE"
-SYNC COMPLETE
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE COMMIT: $remoteFinal"
-REMOTE COMMIT: e875e2ba3c0c51318ebfef65149d61bb0e453473
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "T01 CODE WAS NOT MODIFIED"
-T01 CODE WAS NOT MODIFIED
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=========================================="
-==========================================
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=============================================="
+==============================================
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CORE-007-T02 IMPLEMENTATION + REGRESSION PASS"
+CORE-007-T02 IMPLEMENTATION + REGRESSION PASS
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "DO NOT COMPLETE/COMMIT T02 YET"
+DO NOT COMPLETE/COMMIT T02 YET
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=============================================="
+==============================================
