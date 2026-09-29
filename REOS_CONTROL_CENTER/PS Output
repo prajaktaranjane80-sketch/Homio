@@ -1,74 +1,140 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
-remote: Enumerating objects: 81, done.
-remote: Counting objects: 100% (81/81), done.
-remote: Compressing objects: 100% (76/76), done.
-remote: Total 76 (delta 63), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (76/76), 14.53 KiB | 29.00 KiB/s, done.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   d8822f7..fc149ff  reos-development -> origin/reos-development
-PS D:\HOMIO\REOS_CONTROL_CENTER> git checkout reos-development
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/projection_sync.py
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/reos_integration.py
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_consistency.py
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_domain.py
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py
-M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py
-M       REOS_CONTROL_CENTER/PS Output
-Already on 'reos-development'
-Your branch is behind 'origin/reos-development' by 13 commits, and can be fast-forwarded.
-  (use "git pull" to update your local branch)
-PS D:\HOMIO\REOS_CONTROL_CENTER> git pull --ff-only origin reos-development
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-Updating d8822f7..fc149ff
-error: Your local changes to the following files would be overwritten by merge:
-        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/projection_sync.py
-        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
-        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/reos_integration.py
-        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_consistency.py
-        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_domain.py
-        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py
-        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py
-Please commit your changes or stash them before you merge.
-Aborting
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git revert fc149ff48774fc280831a3e2c117ce64ac91ff76 --no-edit
-On branch reos-development
-Your branch is behind 'origin/reos-development' by 13 commits, and can be fast-forwarded.
-  (use "git pull" to update your local branch)
-
-Changes not staged for commit:
-  (use "git add <file>..." to update what will be committed)
-  (use "git restore <file>..." to discard changes in working directory)
-        modified:   REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/projection_sync.py
-        modified:   REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
-        modified:   REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/reos_integration.py
-        modified:   REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_consistency.py
-        modified:   REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_domain.py
-        modified:   REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py
-        modified:   REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py
-        modified:   REOS_CONTROL_CENTER/PS Output
-
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/CORE-006_RECOVERY/
-        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/
-        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/CORE-006_RESTORE_CANDIDATE/
-        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/CORE-006_CANONICAL_INSTALL.ps1
-        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/INSTALL.txt
-        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/REOS_CONTROL_CENTER/
-        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_core006_final_regression.py
-
-no changes added to commit (use "git add" and/or "git commit -a")
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git push origin reos-development
-To https://github.com/prajaktaranjane80-sketch/Homio.git
- ! [rejected]        reos-development -> reos-development (non-fast-forward)
-error: failed to push some refs to 'https://github.com/prajaktaranjane80-sketch/Homio.git'
-hint: Updates were rejected because the tip of your current branch is behind
-hint: its remote counterpart. If you want to integrate the remote changes,
-hint: use 'git pull' before pushing again.
-hint: See the 'Note about fast-forwards' in 'git push --help' for details.
-PS D:\HOMIO\REOS_CONTROL_CENTER>
+CORE-006 Deal & Transaction Core
+│
+├── 01 Deal Domain
+│   ├── Deal identity
+│   ├── Deal aggregate
+│   ├── deal parties
+│   ├── deal type
+│   ├── deal lifecycle
+│   ├── deal state
+│   ├── tenant identity
+│   └── immutable identity semantics
+│
+├── 02 Deal Contract & Schema
+│   ├── deal contract
+│   ├── party relationship contract
+│   ├── lifecycle contract
+│   ├── schema validation
+│   ├── schema versioning
+│   ├── serialization
+│   ├── contract fingerprint
+│   └── invalid-state handling
+│
+├── 03 Deal Party & Relationship Boundary
+│   ├── buyer
+│   ├── seller/builder
+│   ├── broker
+│   ├── representative
+│   ├── participant role
+│   ├── relationship validity
+│   ├── participant lifecycle
+│   └── tenant relationship boundary
+│
+├── 04 Offer & Negotiation
+│   ├── offer identity
+│   ├── offer lifecycle
+│   ├── offer terms
+│   ├── counter-offer
+│   ├── acceptance/rejection
+│   ├── negotiation state
+│   ├── negotiation history
+│   ├── stale-offer protection
+│   └── immutable historical offers
+│
+├── 05 Booking & Transaction Milestones
+│   ├── booking identity
+│   ├── milestone identity
+│   ├── milestone sequence
+│   ├── milestone state
+│   ├── transition rules
+│   ├── evidence requirement
+│   ├── completion semantics
+│   └── historical immutability
+│
+├── 06 Deal Ownership Integration
+│   ├── ownership reference
+│   ├── ownership authority reference
+│   ├── deal-owner binding
+│   ├── ownership history reference
+│   ├── ownership conflict handling
+│   ├── stale ownership protection
+│   └── no second ownership engine
+│
+├── 07 Evidence & Audit Integration
+│   ├── evidence reference
+│   ├── evidence identity
+│   ├── evidence type
+│   ├── evidence timestamp
+│   ├── actor identity
+│   ├── transaction transition evidence
+│   ├── audit reference
+│   ├── integrity metadata
+│   └── no second evidence/audit store
+│
+├── 08 Transaction Consistency & Concurrency
+│   ├── aggregate consistency
+│   ├── optimistic versioning
+│   ├── stale command rejection
+│   ├── concurrent offer protection
+│   ├── concurrent milestone protection
+│   ├── duplicate command handling
+│   ├── idempotency
+│   └── deterministic conflict behavior
+│
+├── 09 Security & Tenant Boundary
+│   ├── tenant isolation
+│   ├── party authorization
+│   ├── offer authorization
+│   ├── transaction authorization
+│   ├── evidence access boundary
+│   ├── cross-tenant rejection
+│   ├── IDOR protection
+│   └── sensitive transaction-data boundary
+│
+├── 10 REOS Integration Contract
+│   ├── Control Center authority boundary
+│   ├── canonical-state non-ownership
+│   ├── execution compatibility
+│   ├── gate/task discoverability
+│   ├── verification contract
+│   └── no autonomous project-state mutation
+│
+├── 11 ACRL Integration Contract
+│   ├── deal reconstruction
+│   ├── negotiation reconstruction
+│   ├── milestone reconstruction
+│   ├── ownership-reference reconstruction
+│   ├── evidence discoverability
+│   ├── dependency discoverability
+│   ├── checkpoint/recovery compatibility
+│   └── deterministic reconstruction
+│
+├── 12 Transaction Event Integration
+│   ├── deal-created
+│   ├── deal-state-changed
+│   ├── offer-created
+│   ├── offer-state-changed
+│   ├── booking-state-changed
+│   ├── milestone-completed
+│   ├── ownership-reference-changed
+│   ├── evidence-attached
+│   └── CORE-002 event contract
+│
+└── 13 Contract + Adversarial Regression
+    ├── lifecycle tests
+    ├── party tests
+    ├── offer tests
+    ├── negotiation tests
+    ├── booking tests
+    ├── milestone tests
+    ├── ownership integration tests
+    ├── evidence tests
+    ├── stale-version tests
+    ├── concurrency tests
+    ├── duplicate command tests
+    ├── tenant isolation tests
+    ├── authorization tests
+    ├── reconstruction tests
+    ├── REOS integration tests
+    ├── ACRL reconstruction tests
+    └── cross-core regression
