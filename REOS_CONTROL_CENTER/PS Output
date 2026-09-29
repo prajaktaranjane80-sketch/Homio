@@ -1,213 +1,146 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "T08 Part-2 regression failed."
->> }
-T08 Part-2 regression failed.
-At line:2 char:5
-+     throw "T08 Part-2 regression failed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (T08 Part-2 regression failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : T08 Part-2 regression failed.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== PART-2 VERIFIED ===" -ForegroundColor Green
-=== PART-2 VERIFIED ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short -- $t08a $t08b
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location "D:\HOMIO\REOS_CONTROL_CENTER"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ((git branch --show-current) -ne "reos-development") {
->>     throw "Wrong branch."
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $t08a = "AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py"
-PS D:\HOMIO\REOS_CONTROL_CENTER> $t08b = "AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_part08_context_compression_acceptance.py"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> function Repair-T08ExecutionFixture {
->>     param(
->>         [string]$Path,
->>         [bool]$NeedsCurrentTask,
->>         [bool]$NeedsCurrentSubtaskStatus
->>     )
->>
->>     $lines = Get-Content $Path
->>     $insideExecution = $false
->>
->>     for ($i = 0; $i -lt $lines.Count; $i++) {
->>
->>         if ($lines[$i] -match '^\s*execution_state=Projection\(') {
->>             $insideExecution = $true
->>             continue
->>         }
->>
->>         if ($insideExecution -and $lines[$i] -match '^\s*\}\s*\),\s*$') {
->>             $insideExecution = $false
->>             continue
->>         }
->>
->>         if ($insideExecution -and $lines[$i] -match '"current_gate": "CORE-005"') {
->>
->>             $insert = @()
->>
->>             if ($NeedsCurrentTask) {
->>                 $insert += '                "current_task": "CORE-005-T01",'
->>             }
->>
->>             if ($NeedsCurrentSubtaskStatus) {
->>                 $insert += '                "current_subtask_status": "CURRENT",'
->>             }
->>
->>             if ($insert.Count -gt 0) {
->>                 $before = $lines[0..$i]
->>                 $after = @()
->>
->>                 if (($i + 1) -lt $lines.Count) {
->>                     $after = $lines[($i + 1)..($lines.Count - 1)]
->>                 }
->>
->>                 $lines = @($before) + $insert + @($after)
->>
->>                 $i += $insert.Count
->>             }
->>
->>             break
->>         }
->>     }
->>
->>     Set-Content -Path $Path -Value $lines -Encoding UTF8
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Repair-T08ExecutionFixture `
->>     -Path $t08a `
->>     -NeedsCurrentTask $true `
->>     -NeedsCurrentSubtaskStatus $true
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Repair-T08ExecutionFixture `
->>     -Path $t08b `
->>     -NeedsCurrentTask $false `
->>     -NeedsCurrentSubtaskStatus $true
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== VERIFY T08-A EXECUTION BLOCK ===" -ForegroundColor Cyan
-=== VERIFY T08-A EXECUTION BLOCK ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Select-String -Path $t08a -Pattern `
->>     'execution_state=Projection|current_gate|current_task|current_subtask|current_subtask_status|status' |
->>     Select-Object -First 8
-
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:43:            "current_gate": "CORE-005",
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:44:            "current_subtask": "CORE-005-T01",
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:45:            "status": "CONTROL_CENTER_DRIVEN",
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:62:                "status": "LOCKED",
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:66:        execution_state=Projection(
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:68:                "current_gate": "CORE-005",
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:69:                "current_task": "CORE-005-T01",
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:70:                "current_subtask_status": "CURRENT",
-
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== VERIFY T08-B EXECUTION BLOCK ===" -ForegroundColor Cyan
-=== VERIFY T08-B EXECUTION BLOCK ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Select-String -Path $t08b -Pattern `
->>     'execution_state=Projection|current_gate|current_task|current_subtask|current_subtask_status|status' |
->>     Select-Object -First 10
-
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_part08_context_compression_acceptance.py:41:            "current_gate": "CORE-005",
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_part08_context_compression_acceptance.py:42:            "current_subtask": "CORE-005-T01",
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_part08_context_compression_acceptance.py:43:            "status": "CONTROL_CENTER_DRIVEN",
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_part08_context_compression_acceptance.py:63:                "status": "LOCKED",
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_part08_context_compression_acceptance.py:74:        execution_state=Projection(
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_part08_context_compression_acceptance.py:76:                "current_gate": "CORE-005",
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_part08_context_compression_acceptance.py:77:                "current_subtask_status":
-"CURRENT",
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_part08_context_compression_acceptance.py:78:                "current_task": "CORE-005-T01",
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_part08_context_compression_acceptance.py:79:                "current_subtask": "CORE-005-T01",
-AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_part08_context_compression_acceptance.py:80:                "status": "CONTROL_CENTER_DRIVEN",
-
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== PYTHON SYNTAX ===" -ForegroundColor Cyan
-=== PYTHON SYNTAX ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m py_compile $t08a $t08b
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "T08 fixture syntax failed."
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== T08 DIFF CHECK ===" -ForegroundColor Cyan
-=== T08 DIFF CHECK ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/gate_subtask_continuity.py', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/task_dependency_reconstruction.py', LF will be replaced by CRLF the next time Git touches it
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py:315: trailing whitespace.
-+    )
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "git diff --check failed."
->> }
-git diff --check failed.
-At line:2 char:5
-+     throw "git diff --check failed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (git diff --check failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : git diff --check failed.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== T08 DIFF ===" -ForegroundColor Cyan
-=== T08 DIFF ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff -- $t08a $t08b
-diff --git a/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py
-index e09585c..d685a4e 100644
---- a/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py
-+++ b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py
-@@ -1,4 +1,4 @@
--"""ACRL T08 — Context Compression tests."""
-+﻿"""ACRL T08 Ã¢â‚¬â€<U+009D> Context Compression tests."""
-
- from __future__ import annotations
-
-@@ -66,6 +66,8 @@ def make_bootstrap():
-         execution_state=Projection(
-             {
-                 "current_gate": "CORE-005",
-+                "current_task": "CORE-005-T01",
-+                "current_subtask_status": "CURRENT",
-                 "current_subtask": "CORE-005-T01",
-                 "status": "CONTROL_CENTER_DRIVEN",
-             }
-@@ -310,4 +312,4 @@ def test_compression_version_is_present() -> None:
-     assert (
-         context.compression_version
-         == "T08-1.0"
--    )
-\ No newline at end of file
-+    )
-diff --git a/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py
-index 029cdcb..40afed2 100644
---- a/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py
-+++ b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py
-@@ -1,4 +1,4 @@
--"""ACRL T08 — PART 08 Context Compression acceptance tests."""
-+﻿"""ACRL T08 Ã¢â‚¬â€<U+009D> PART 08 Context Compression acceptance tests."""
-
- from __future__ import annotations
-
-@@ -74,6 +74,7 @@ def make_bootstrap():
-         execution_state=Projection(
-             {
-                 "current_gate": "CORE-005",
-+                "current_subtask_status": "CURRENT",
-                 "current_task": "CORE-005-T01",
-                 "current_subtask": "CORE-005-T01",
-                 "status": "CONTROL_CENTER_DRIVEN",
-(END)
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression -q --maxfail=10 --tb=short
+FFFFFFFFFF
+======================================================================== FAILURES =========================================================================
+_______________________________________________________________ test_context_is_compressed ________________________________________________________________
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:96: in test_context_is_compressed
+    context = make_compressed()
+              ^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:91: in make_compressed
+    make_bootstrap()
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:83: in make_bootstrap
+    return engine.build(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447: in build
+    execution = self._validate_execution(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:326: in _validate_execution
+    raise BootstrapAuthorityError(
+E   AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+_______________________________________________________________ test_authority_is_preserved _______________________________________________________________
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:105: in test_authority_is_preserved
+    context = make_compressed()
+              ^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:91: in make_compressed
+    make_bootstrap()
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:83: in make_bootstrap
+    return engine.build(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447: in build
+    execution = self._validate_execution(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:326: in _validate_execution
+    raise BootstrapAuthorityError(
+E   AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+___________________________________________________________ test_project_identity_is_preserved ____________________________________________________________
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:114: in test_project_identity_is_preserved
+    context = make_compressed()
+              ^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:91: in make_compressed
+    make_bootstrap()
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:83: in make_bootstrap
+    return engine.build(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447: in build
+    execution = self._validate_execution(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:326: in _validate_execution
+    raise BootstrapAuthorityError(
+E   AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+___________________________________________________________ test_architecture_lock_is_preserved ___________________________________________________________
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:123: in test_architecture_lock_is_preserved
+    context = make_compressed()
+              ^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:91: in make_compressed
+    make_bootstrap()
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:83: in make_bootstrap
+    return engine.build(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447: in build
+    execution = self._validate_execution(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:326: in _validate_execution
+    raise BootstrapAuthorityError(
+E   AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+____________________________________________________________ test_execution_state_is_preserved ____________________________________________________________
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:132: in test_execution_state_is_preserved
+    context = make_compressed()
+              ^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:91: in make_compressed
+    make_bootstrap()
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:83: in make_bootstrap
+    return engine.build(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447: in build
+    execution = self._validate_execution(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:326: in _validate_execution
+    raise BootstrapAuthorityError(
+E   AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+____________________________________________________________ test_gate_continuity_is_preserved ____________________________________________________________
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:146: in test_gate_continuity_is_preserved
+    context = make_compressed()
+              ^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:91: in make_compressed
+    make_bootstrap()
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:83: in make_bootstrap
+    return engine.build(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447: in build
+    execution = self._validate_execution(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:326: in _validate_execution
+    raise BootstrapAuthorityError(
+E   AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+_________________________________________________________ test_dependency_authority_is_preserved __________________________________________________________
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:155: in test_dependency_authority_is_preserved
+    context = make_compressed()
+              ^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:91: in make_compressed
+    make_bootstrap()
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:83: in make_bootstrap
+    return engine.build(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447: in build
+    execution = self._validate_execution(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:326: in _validate_execution
+    raise BootstrapAuthorityError(
+E   AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+______________________________________________________________ test_checkpoint_is_preserved _______________________________________________________________
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:164: in test_checkpoint_is_preserved
+    context = make_compressed()
+              ^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:91: in make_compressed
+    make_bootstrap()
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:83: in make_bootstrap
+    return engine.build(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447: in build
+    execution = self._validate_execution(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:326: in _validate_execution
+    raise BootstrapAuthorityError(
+E   AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+________________________________________________________________ test_resume_mode_is_safe _________________________________________________________________
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:173: in test_resume_mode_is_safe
+    context = make_compressed()
+              ^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:91: in make_compressed
+    make_bootstrap()
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:83: in make_bootstrap
+    return engine.build(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447: in build
+    execution = self._validate_execution(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:326: in _validate_execution
+    raise BootstrapAuthorityError(
+E   AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+___________________________________________________________ test_required_sections_are_recorded ___________________________________________________________
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:182: in test_required_sections_are_recorded
+    context = make_compressed()
+              ^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:91: in make_compressed
+    make_bootstrap()
+AUTONOMY_ENGINE\continuity\acrl\T08_Context_Compression\test_context_compression.py:83: in make_bootstrap
+    return engine.build(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447: in build
+    execution = self._validate_execution(
+AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:326: in _validate_execution
+    raise BootstrapAuthorityError(
+E   AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+================================================================= short test summary info =================================================================
+FAILED AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py::test_context_is_compressed - AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+FAILED AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py::test_authority_is_preserved - AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+FAILED AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py::test_project_identity_is_preserved - AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+FAILED AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py::test_architecture_lock_is_preserved - AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+FAILED AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py::test_execution_state_is_preserved - AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+FAILED AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py::test_gate_continuity_is_preserved - AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+FAILED AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py::test_dependency_authority_is_preserved - AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+FAILED AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py::test_checkpoint_is_preserved - AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+FAILED AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py::test_resume_mode_is_safe - AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+FAILED AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py::test_required_sections_are_recorded - AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_task
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 10 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+10 failed in 0.34s
