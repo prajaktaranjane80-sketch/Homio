@@ -1,4 +1,4 @@
-"""CORE-006 Deal & Transaction bounded context."""
+"""HOMIO / REOS CORE-006 Deal & Transaction Core (T01-T06)."""
 
 from .deal import (
     Deal,
@@ -24,10 +24,17 @@ from .deal_evidence_audit import (
 )
 from .deal_offer_negotiation import (
     DealNegotiation,
+    DealNegotiationConcurrencyError,
+    DealNegotiationError,
     DealNegotiationStatus,
+    DealNegotiationTenantError,
+    DealNegotiationTransitionError,
     DealOffer,
-    DealOfferNegotiationError,
+    DealOfferConcurrencyError,
+    DealOfferError,
     DealOfferStatus,
+    DealOfferTenantError,
+    DealOfferTransitionError,
 )
 from .deal_ownership_integration import (
     DealOwnershipBinding,
@@ -36,46 +43,11 @@ from .deal_ownership_integration import (
     DealOwnershipValidationError,
 )
 from .deal_transaction_milestones import (
+    DealMilestoneConcurrencyError,
+    DealMilestoneError,
+    DealMilestoneTenantError,
+    DealMilestoneTransitionError,
     DealTransactionMilestone,
-    DealTransactionMilestoneError,
-)
-from .deal_external_contracts import (
-    DealExternalAuthority,
-    DealExternalContractError,
-    DealExternalReference,
 )
 
-__all__ = [
-    "Deal",
-    "DealConcurrencyError",
-    "DealDomainError",
-    "DealHistoryEntry",
-    "DealPartyRelationship",
-    "DealPartyRole",
-    "DealReferenceConflictError",
-    "DealStatus",
-    "DealTenantError",
-    "DealTransitionError",
-    "DealValidationError",
-    "DealAuditConflictError",
-    "DealAuditEntry",
-    "DealAuditScopeError",
-    "DealEvidenceAuditError",
-    "DealEvidenceConflictError",
-    "DealEvidenceReference",
-    "DealEvidenceScopeError",
-    "DealNegotiation",
-    "DealNegotiationStatus",
-    "DealOffer",
-    "DealOfferNegotiationError",
-    "DealOfferStatus",
-    "DealOwnershipBinding",
-    "DealOwnershipError",
-    "DealOwnershipTenantError",
-    "DealOwnershipValidationError",
-    "DealTransactionMilestone",
-    "DealTransactionMilestoneError",
-    "DealExternalAuthority",
-    "DealExternalContractError",
-    "DealExternalReference",
-]
+__all__ = [name for name in globals() if name.startswith("Deal")]
