@@ -6,21 +6,19 @@ from typing import Any
 
 
 class DealOwnershipError(ValueError):
-    """Base CORE-006 ownership integration error."""
+    pass
 
 
-class DealOwnershipValidationError(DealOwnershipError):
-    """Invalid ownership reference."""
+class DealOwnershipConflictError(DealOwnershipError):
+    pass
 
 
 class DealOwnershipTenantError(DealOwnershipError):
-    """Ownership reference crosses tenant scope."""
+    pass
 
 
 @dataclass(frozen=True)
 class DealOwnershipBinding:
-    """Immutable reference to ARCH-011's authoritative ownership record."""
-
     binding_id: str
     deal_id: str
     tenant_id: str
@@ -29,6 +27,7 @@ class DealOwnershipBinding:
     owner_id: str
     bound_at: datetime
     authority: str = "ARCH-011"
+    authority_version: str = "1.0"
 
     def __post_init__(self) -> None:
         for name in (
@@ -40,21 +39,19 @@ class DealOwnershipBinding:
             "owner_id",
         ):
             value = getattr(self, name)
+
             if not isinstance(value, str) or not value.strip():
-                raise DealOwnershipValidationError(
+                raise DealOwnershipError(
                     f"{name} is required."
                 )
 
         if self.authority != "ARCH-011":
-            raise DealOwnershipValidationError(
-                "Deal ownership authority must remain ARCH-011."
+            raise DealOwnershipError(
+                "Ownership authority must remain ARCH-011."
             )
 
-        if (
-            not isinstance(self.bound_at, datetime)
-            or self.bound_at.tzinfo is None
-        ):
-            raise DealOwnershipValidationError(
+        if self.bound_at.tzinfo is None:
+            raise DealOwnershipError(
                 "bound_at must be timezone-aware."
             )
 
@@ -66,10 +63,18 @@ class DealOwnershipBinding:
             f"{self.ownership_record_id}"
         )
 
-    def assert_tenant(self, tenant_id: str) -> None:
-        if tenant_id != self.tenant_id:
+    def assert_scope(
+        self,
+        *,
+        deal_id: str,
+        tenant_id: str,
+    ) -> None:
+        if (
+            self.deal_id != deal_id
+            or self.tenant_id != tenant_id
+        ):
             raise DealOwnershipTenantError(
-                "Ownership binding belongs to a different tenant."
+                "Ownership binding crosses Deal scope."
             )
 
     def to_dict(self) -> dict[str, Any]:
@@ -82,13 +87,6 @@ class DealOwnershipBinding:
             "owner_id": self.owner_id,
             "bound_at": self.bound_at.isoformat(),
             "authority": self.authority,
+            "authority_version": self.authority_version,
             "reference_key": self.reference_key,
         }
-
-
-__all__ = [
-    "DealOwnershipBinding",
-    "DealOwnershipError",
-    "DealOwnershipTenantError",
-    "DealOwnershipValidationError",
-]
