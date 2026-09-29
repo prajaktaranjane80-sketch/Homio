@@ -6,25 +6,20 @@ from typing import Any
 
 
 class DealOwnershipError(ValueError):
-    pass
+    """Base CORE-006 ownership integration error."""
 
 
 class DealOwnershipValidationError(DealOwnershipError):
-    pass
+    """Invalid ownership reference."""
 
 
 class DealOwnershipTenantError(DealOwnershipError):
-    pass
+    """Ownership reference crosses tenant scope."""
 
 
 @dataclass(frozen=True)
 class DealOwnershipBinding:
-    """
-    Immutable reference to the authoritative ownership engine.
-
-    Authority remains ARCH-011.
-    CORE-006 never recreates ownership logic.
-    """
+    """Immutable reference to ARCH-011's authoritative ownership record."""
 
     binding_id: str
     deal_id: str
@@ -45,7 +40,6 @@ class DealOwnershipBinding:
             "owner_id",
         ):
             value = getattr(self, name)
-
             if not isinstance(value, str) or not value.strip():
                 raise DealOwnershipValidationError(
                     f"{name} is required."
@@ -53,18 +47,15 @@ class DealOwnershipBinding:
 
         if self.authority != "ARCH-011":
             raise DealOwnershipValidationError(
-                "Ownership authority must remain ARCH-011."
+                "Deal ownership authority must remain ARCH-011."
             )
 
-        if self.bound_at.tzinfo is None:
+        if (
+            not isinstance(self.bound_at, datetime)
+            or self.bound_at.tzinfo is None
+        ):
             raise DealOwnershipValidationError(
                 "bound_at must be timezone-aware."
-            )
-
-    def assert_tenant(self, tenant_id: str) -> None:
-        if tenant_id != self.tenant_id:
-            raise DealOwnershipTenantError(
-                "Ownership binding belongs to a different tenant."
             )
 
     @property
@@ -74,6 +65,12 @@ class DealOwnershipBinding:
             f"{self.deal_id}:"
             f"{self.ownership_record_id}"
         )
+
+    def assert_tenant(self, tenant_id: str) -> None:
+        if tenant_id != self.tenant_id:
+            raise DealOwnershipTenantError(
+                "Ownership binding belongs to a different tenant."
+            )
 
     def to_dict(self) -> dict[str, Any]:
         return {
