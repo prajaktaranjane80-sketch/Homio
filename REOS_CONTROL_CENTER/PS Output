@@ -1,140 +1,184 @@
-CORE-006 Deal & Transaction Core
-│
-├── 01 Deal Domain
-│   ├── Deal identity
-│   ├── Deal aggregate
-│   ├── deal parties
-│   ├── deal type
-│   ├── deal lifecycle
-│   ├── deal state
-│   ├── tenant identity
-│   └── immutable identity semantics
-│
-├── 02 Deal Contract & Schema
-│   ├── deal contract
-│   ├── party relationship contract
-│   ├── lifecycle contract
-│   ├── schema validation
-│   ├── schema versioning
-│   ├── serialization
-│   ├── contract fingerprint
-│   └── invalid-state handling
-│
-├── 03 Deal Party & Relationship Boundary
-│   ├── buyer
-│   ├── seller/builder
-│   ├── broker
-│   ├── representative
-│   ├── participant role
-│   ├── relationship validity
-│   ├── participant lifecycle
-│   └── tenant relationship boundary
-│
-├── 04 Offer & Negotiation
-│   ├── offer identity
-│   ├── offer lifecycle
-│   ├── offer terms
-│   ├── counter-offer
-│   ├── acceptance/rejection
-│   ├── negotiation state
-│   ├── negotiation history
-│   ├── stale-offer protection
-│   └── immutable historical offers
-│
-├── 05 Booking & Transaction Milestones
-│   ├── booking identity
-│   ├── milestone identity
-│   ├── milestone sequence
-│   ├── milestone state
-│   ├── transition rules
-│   ├── evidence requirement
-│   ├── completion semantics
-│   └── historical immutability
-│
-├── 06 Deal Ownership Integration
-│   ├── ownership reference
-│   ├── ownership authority reference
-│   ├── deal-owner binding
-│   ├── ownership history reference
-│   ├── ownership conflict handling
-│   ├── stale ownership protection
-│   └── no second ownership engine
-│
-├── 07 Evidence & Audit Integration
-│   ├── evidence reference
-│   ├── evidence identity
-│   ├── evidence type
-│   ├── evidence timestamp
-│   ├── actor identity
-│   ├── transaction transition evidence
-│   ├── audit reference
-│   ├── integrity metadata
-│   └── no second evidence/audit store
-│
-├── 08 Transaction Consistency & Concurrency
-│   ├── aggregate consistency
-│   ├── optimistic versioning
-│   ├── stale command rejection
-│   ├── concurrent offer protection
-│   ├── concurrent milestone protection
-│   ├── duplicate command handling
-│   ├── idempotency
-│   └── deterministic conflict behavior
-│
-├── 09 Security & Tenant Boundary
-│   ├── tenant isolation
-│   ├── party authorization
-│   ├── offer authorization
-│   ├── transaction authorization
-│   ├── evidence access boundary
-│   ├── cross-tenant rejection
-│   ├── IDOR protection
-│   └── sensitive transaction-data boundary
-│
-├── 10 REOS Integration Contract
-│   ├── Control Center authority boundary
-│   ├── canonical-state non-ownership
-│   ├── execution compatibility
-│   ├── gate/task discoverability
-│   ├── verification contract
-│   └── no autonomous project-state mutation
-│
-├── 11 ACRL Integration Contract
-│   ├── deal reconstruction
-│   ├── negotiation reconstruction
-│   ├── milestone reconstruction
-│   ├── ownership-reference reconstruction
-│   ├── evidence discoverability
-│   ├── dependency discoverability
-│   ├── checkpoint/recovery compatibility
-│   └── deterministic reconstruction
-│
-├── 12 Transaction Event Integration
-│   ├── deal-created
-│   ├── deal-state-changed
-│   ├── offer-created
-│   ├── offer-state-changed
-│   ├── booking-state-changed
-│   ├── milestone-completed
-│   ├── ownership-reference-changed
-│   ├── evidence-attached
-│   └── CORE-002 event contract
-│
-└── 13 Contract + Adversarial Regression
-    ├── lifecycle tests
-    ├── party tests
-    ├── offer tests
-    ├── negotiation tests
-    ├── booking tests
-    ├── milestone tests
-    ├── ownership integration tests
-    ├── evidence tests
-    ├── stale-version tests
-    ├── concurrency tests
-    ├── duplicate command tests
-    ├── tenant isolation tests
-    ├── authorization tests
-    ├── reconstruction tests
-    ├── REOS integration tests
-    ├── ACRL reconstruction tests
-    └── cross-core regression
+PS C:\Users\Sandip RanjanePatil> Set-Location "D:\Homio\REOS_CONTROL_CENTER"
+PS D:\Homio\REOS_CONTROL_CENTER> cd D:\HOMIO\REOS_CONTROL_CENTER
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Root = "D:\HOMIO\REOS_CONTROL_CENTER"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $WT   = Join-Path $env:TEMP "HOMIO_CORE006_T06_PATCH"
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
+remote: Enumerating objects: 205, done.
+remote: Counting objects: 100% (205/205), done.
+remote: Compressing objects: 100% (199/199), done.
+remote: Total 200 (delta 153), reused 0 (delta 0), pack-reused 0 (from 0)
+Receiving objects: 100% (200/200), 68.15 KiB | 3.59 MiB/s, done.
+Resolving deltas: 100% (153/153), completed with 4 local objects.
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+   85bf0f3..1618be3  reos-development -> origin/reos-development
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (Test-Path $WT) {
+>>     git worktree remove --force $WT
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git worktree add --detach $WT origin/reos-development
+Preparing worktree (detached HEAD 1618be3)
+Updating files: 100% (1694/1694), done.
+HEAD is now at 1618be3 Create test_core006_t01_t06_adversarial.py
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location $WT
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> $Patch = @'
+>> diff --git a/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py
+>> --- a/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py
+>> +++ b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py
+>> @@ -111,16 +111,19 @@ class Deal:
+>>          previous_version = 0
+>>
+>>          for entry in self.history:
+>> -            if entry.version != previous_version + 1:
+>> +            if entry.version <= previous_version:
+>>                  raise DealValidationError(
+>> -                    "Deal history versions must be contiguous."
+>> +                    "Deal history versions must be strictly increasing."
+>>                  )
+>> +
+>> +            if entry.version > self.version:
+>> +                raise DealValidationError(
+>> +                    "Deal history version cannot exceed Deal version."
+>> +                )
+>> +
+>>              previous_version = entry.version
+>>
+>> -        if self.history and (
+>> -            self.history[-1].version != self.version
+>> -        ):
+>> +        if self.history and self.history[-1].version > self.version:
+>>              raise DealValidationError(
+>> -                "Latest history version must equal Deal version."
+>> +                "Latest history version cannot exceed Deal version."
+>>              )
+>>
+>>          relationship_keys = set()
+>> '@
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> $PatchPath = Join-Path $env:TEMP "CORE006_T06_HISTORY.patch"
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> [System.IO.File]::WriteAllText(
+>>     $PatchPath,
+>>     $Patch,
+>>     (New-Object System.Text.UTF8Encoding($false))
+>> )
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> Write-Host "=== PATCH CHECK ===" -ForegroundColor Cyan
+=== PATCH CHECK ===
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> git apply --check $PatchPath
+error: corrupt patch at C:/Users/SANDIP~1/AppData/Local/Temp/CORE006_T06_HISTORY.patch:31
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> if ($LASTEXITCODE -ne 0) {
+>>     throw "PATCH CHECK FAILED - NO CHANGE APPLIED."
+>> }
+PATCH CHECK FAILED - NO CHANGE APPLIED.
+At line:2 char:5
++     throw "PATCH CHECK FAILED - NO CHANGE APPLIED."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (PATCH CHECK FAILED - NO CHANGE APPLIED.:String) [], RuntimeException
+    + FullyQualifiedErrorId : PATCH CHECK FAILED - NO CHANGE APPLIED.
+
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> Write-Host "=== APPLY PATCH ===" -ForegroundColor Cyan
+=== APPLY PATCH ===
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> git apply $PatchPath
+error: corrupt patch at C:/Users/SANDIP~1/AppData/Local/Temp/CORE006_T06_HISTORY.patch:31
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> if ($LASTEXITCODE -ne 0) {
+>>     throw "PATCH APPLY FAILED - NO COMMIT."
+>> }
+PATCH APPLY FAILED - NO COMMIT.
+At line:2 char:5
++     throw "PATCH APPLY FAILED - NO COMMIT."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (PATCH APPLY FAILED - NO COMMIT.:String) [], RuntimeException
+    + FullyQualifiedErrorId : PATCH APPLY FAILED - NO COMMIT.
+
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> Write-Host "=== DIFF CHECK ===" -ForegroundColor Cyan
+=== DIFF CHECK ===
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> git diff --check -- `
+>>     REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> if ($LASTEXITCODE -ne 0) {
+>>     throw "DIFF CHECK FAILED - NO COMMIT."
+>> }
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> Write-Host "=== T06 ADVERSARIAL TEST ===" -ForegroundColor Cyan
+=== T06 ADVERSARIAL TEST ===
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> python -m pytest `
+>>     AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py -q
+
+no tests ran in 0.01s
+ERROR: file or directory not found: AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py
+
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> if ($LASTEXITCODE -ne 0) {
+>>     throw "T06 ADVERSARIAL TEST FAILED - NO COMMIT."
+>> }
+T06 ADVERSARIAL TEST FAILED - NO COMMIT.
+At line:2 char:5
++     throw "T06 ADVERSARIAL TEST FAILED - NO COMMIT."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (T06 ADVERSARIAL TEST FAILED - NO COMMIT.:String) [], RuntimeException
+    + FullyQualifiedErrorId : T06 ADVERSARIAL TEST FAILED - NO COMMIT.
+
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> Write-Host "=== STAGE ONLY PATCHED FILE ===" -ForegroundColor Cyan
+=== STAGE ONLY PATCHED FILE ===
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> git add -- `
+>>     REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> git status --short
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> Write-Host "=== COMMIT ===" -ForegroundColor Cyan
+=== COMMIT ===
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> git commit -m "fix: align CORE-006 lifecycle history with aggregate versioning"
+Not currently on any branch.
+nothing to commit, working tree clean
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> if ($LASTEXITCODE -ne 0) {
+>>     throw "COMMIT FAILED."
+>> }
+COMMIT FAILED.
+At line:2 char:5
++     throw "COMMIT FAILED."
++     ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (COMMIT FAILED.:String) [], RuntimeException
+    + FullyQualifiedErrorId : COMMIT FAILED.
+
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> Write-Host "=== PUSH ===" -ForegroundColor Cyan
+=== PUSH ===
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> git push origin HEAD:reos-development
+Everything up-to-date
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> if ($LASTEXITCODE -ne 0) {
+>>     throw "PUSH FAILED."
+>> }
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH>
+PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE006_T06_PATCH> Set-Location $Root
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git worktree remove --force $WT
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Remove-Item $PatchPath -Force -ErrorAction SilentlyContinue
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "========================================" -ForegroundColor Green
+========================================
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CORE-006 T06 PATCH + TEST + PUSH DONE" -ForegroundColor Green
+CORE-006 T06 PATCH + TEST + PUSH DONE
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "========================================" -ForegroundColor Green
+========================================
+PS D:\HOMIO\REOS_CONTROL_CENTER>
