@@ -8,23 +8,23 @@ from uuid import uuid4
 
 
 class DealEvidenceAuditError(ValueError):
-    pass
+    """Base evidence/audit integration error."""
 
 
 class DealEvidenceConflictError(DealEvidenceAuditError):
-    pass
+    """Evidence identity was reused with different immutable data."""
 
 
 class DealAuditConflictError(DealEvidenceAuditError):
-    pass
+    """Audit identity was reused with different immutable data."""
 
 
 class DealEvidenceScopeError(DealEvidenceAuditError):
-    pass
+    """Evidence crosses Deal/tenant scope."""
 
 
 class DealAuditScopeError(DealEvidenceAuditError):
-    pass
+    """Audit crosses Deal/tenant scope."""
 
 
 def _text(value: Any, name: str) -> str:
@@ -35,40 +35,43 @@ def _text(value: Any, name: str) -> str:
     return value.strip()
 
 
-def _timestamp(
-    value: datetime | str | None,
-) -> str:
+def _timestamp(value: datetime | str | None) -> str:
     if value is None:
-        value = datetime.now(timezone.utc)
+        dt = datetime.now(timezone.utc)
+    elif isinstance(value, datetime):
+        dt = value
     elif isinstance(value, str):
         try:
-            value = datetime.fromisoformat(
+            dt = datetime.fromisoformat(
                 value.replace("Z", "+00:00")
             )
         except ValueError as exc:
             raise DealEvidenceAuditError(
                 "Invalid ISO-8601 timestamp."
             ) from exc
+    else:
+        raise DealEvidenceAuditError(
+            "Timestamp must be datetime, string, or None."
+        )
 
-    if value.tzinfo is None:
-        value = value.replace(tzinfo=timezone.utc)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
 
-    return value.astimezone(timezone.utc).isoformat()
+    return dt.astimezone(timezone.utc).isoformat()
 
 
 def _freeze(
-    value: Mapping[str, Any] | None,
+    mapping: Mapping[str, Any] | None,
 ) -> Mapping[str, Any]:
-    return MappingProxyType(dict(value or {}))
+    return MappingProxyType(dict(mapping or {}))
 
 
 @dataclass(frozen=True)
 class DealEvidenceReference:
     """
-    Reference only.
+    Immutable reference to ARCH-014 evidence.
 
-    ARCH-014 remains evidence authority.
-    CORE-006 stores traceability, not evidence storage.
+    CORE-006 never becomes the evidence authority.
     """
 
     evidence_id: str
@@ -92,11 +95,15 @@ class DealEvidenceReference:
             "evidence_type",
             "reference",
         ):
-            _text(getattr(self, name), name)
+            object.__setattr__(
+                self,
+                name,
+                _text(getattr(self, name), name),
+            )
 
         if (
-            not isinstance(self.version, int)
-            or isinstance(self.version, bool)
+            isinstance(self.version, bool)
+            or not isinstance(self.version, int)
             or self.version < 1
         ):
             raise DealEvidenceAuditError(
@@ -118,34 +125,35 @@ class DealEvidenceReference:
     def create(
         cls,
         *,
-        evidence_id: str | None = None,
         deal_id: str,
         tenant_id: str,
         evidence_type: str,
         reference: str,
-        created_at: str | None = None,
-        at: datetime | str | None = None,
+        evidence_id: str | None = None,
         version: int = 1,
         deal_version: int | None = None,
+        created_at: str | None = None,
+        at: datetime | str | None = None,
         metadata: Mapping[str, Any] | None = None,
     ) -> "DealEvidenceReference":
-        effective_version = (
-            deal_version
-            if deal_version is not None
-            else version
-        )
+        if deal_version is not None:
+            if version != 1 and version != deal_version:
+                raise DealEvidenceAuditError(
+                    "version and deal_version disagree."
+                )
+            version = deal_version
 
         return cls(
-            evidence_id or str(uuid4()),
-            deal_id,
-            tenant_id,
-            evidence_type,
-            reference,
-            _timestamp(
+            evidence_id=evidence_id or str(uuid4()),
+            deal_id=deal_id,
+            tenant_id=tenant_id,
+            evidence_type=evidence_type,
+            reference=reference,
+            created_at=_timestamp(
                 at if at is not None else created_at
             ),
-            effective_version,
-            metadata or {},
+            version=version,
+            metadata=metadata,
         )
 
     @property
@@ -196,9 +204,9 @@ class DealEvidenceReference:
 @dataclass(frozen=True)
 class DealAuditEntry:
     """
-    Deal-local historical reference.
+    Immutable Deal-local audit reference.
 
-    This does not replace platform governance/audit authority.
+    It does not replace the platform governance/audit authority.
     """
 
     audit_id: str
@@ -224,11 +232,15 @@ class DealAuditEntry:
             "actor_id",
             "outcome",
         ):
-            _text(getattr(self, name), name)
+            object.__setattr__(
+                self,
+                name,
+                _text(getattr(self, name), name),
+            )
 
         if (
-            not isinstance(self.version, int)
-            or isinstance(self.version, bool)
+            isinstance(self.version, bool)
+            or not isinstance(self.version, int)
             or self.version < 1
         ):
             raise DealEvidenceAuditError(
@@ -250,11 +262,11 @@ class DealAuditEntry:
     def create(
         cls,
         *,
-        audit_id: str | None = None,
         deal_id: str,
         tenant_id: str,
         action: str,
         actor_id: str,
+        audit_id: str | None = None,
         created_at: str | None = None,
         at: datetime | str | None = None,
         details: Mapping[str, Any] | None = None,
@@ -272,30 +284,31 @@ class DealAuditEntry:
                 "details and metadata disagree."
             )
 
+        if deal_version is not None:
+            if version != 1 and version != deal_version:
+                raise DealEvidenceAuditError(
+                    "version and deal_version disagree."
+                )
+            version = deal_version
+
         effective_details = (
             details
             if details is not None
             else metadata
         )
 
-        effective_version = (
-            deal_version
-            if deal_version is not None
-            else version
-        )
-
         return cls(
-            audit_id or str(uuid4()),
-            deal_id,
-            tenant_id,
-            action,
-            actor_id,
-            _timestamp(
+            audit_id=audit_id or str(uuid4()),
+            deal_id=deal_id,
+            tenant_id=tenant_id,
+            action=action,
+            actor_id=actor_id,
+            created_at=_timestamp(
                 at if at is not None else created_at
             ),
-            effective_details or {},
-            effective_version,
-            outcome,
+            details=effective_details,
+            version=version,
+            outcome=outcome,
         )
 
     @property
