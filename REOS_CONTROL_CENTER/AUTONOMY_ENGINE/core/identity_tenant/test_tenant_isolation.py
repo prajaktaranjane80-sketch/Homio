@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+﻿from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 import pytest
@@ -21,19 +21,18 @@ from .tenant_isolation import (
 )
 
 
-def _tenant(
-    *,
-    tenant_id=None,
-    status=TenantStatus.ACTIVE,
-):
+def _tenant(*, tenant_id=None, status=TenantStatus.ACTIVE):
     tenant_id = tenant_id or uuid4()
+    owner = uuid4()
 
     tenant = Tenant.create(
-        slug=f"tenant-{str(tenant_id)[:8]}",
-        name="Test Tenant",
         tenant_kind=TenantKind.BROKERAGE,
         operating_mode=OperatingMode.OWNED_INTERNATIONAL_BROKERAGE,
-        isolation_profile=IsolationProfile.STRICT,
+        display_name="Test Tenant",
+        slug=f"tenant-{str(tenant_id)[:8]}",
+        owner_identity_id=owner,
+        primary_admin_identity_id=owner,
+        isolation_profile=IsolationProfile.TENANT_DEDICATED,
     )
 
     if tenant.tenant_id != tenant_id:
@@ -47,11 +46,30 @@ def _tenant(
             }
         )
 
-    if tenant.status is not status:
-        tenant = tenant.with_status(status)
+    if status is TenantStatus.PROVISIONING:
+        return tenant
 
-    return tenant
+    tenant = tenant.transition_to(TenantStatus.PENDING_ACTIVATION)
+    tenant = tenant.transition_to(TenantStatus.ACTIVE)
 
+    if status is TenantStatus.ACTIVE:
+        return tenant
+
+    if status is TenantStatus.RESTRICTED:
+        return tenant.transition_to(TenantStatus.RESTRICTED)
+
+    if status is TenantStatus.SUSPENDED:
+        return tenant.transition_to(TenantStatus.SUSPENDED)
+
+    if status is TenantStatus.ARCHIVED:
+        return (
+            tenant
+            .transition_to(TenantStatus.DEACTIVATING)
+            .transition_to(TenantStatus.DEACTIVATED)
+            .transition_to(TenantStatus.ARCHIVED)
+        )
+
+    raise ValueError(f"Unsupported test tenant status: {status}")
 
 def _context(tenant):
     return TenantContext(
@@ -76,7 +94,7 @@ def _membership(
         tenant_id=tenant_id,
         organization_id=organization_id,
         identity_id=identity_id or uuid4(),
-    ).transition(MembershipStatus.PENDING).transition(
+    ).transition_to(MembershipStatus.PENDING).transition_to(
         MembershipStatus.ACTIVE
     )
 
@@ -205,7 +223,7 @@ def test_revoked_membership_denies():
     membership = _membership(
         tenant.tenant_id,
         uuid4(),
-    ).transition(MembershipStatus.REVOKED)
+    ).transition_to(MembershipStatus.REVOKED)
 
     result = TenantIsolationBoundary().verify(
         tenant_context=_context(tenant),
@@ -227,7 +245,7 @@ def test_expired_membership_denies():
         identity_id=uuid4(),
         valid_from=now - timedelta(hours=2),
         valid_until=now - timedelta(hours=1),
-    ).transition(MembershipStatus.PENDING).transition(
+    ).transition_to(MembershipStatus.PENDING).transition_to(
         MembershipStatus.ACTIVE
     )
 
@@ -297,3 +315,8 @@ def test_valid_membership_and_resource_allow():
     assert result.tenant_id == tenant.tenant_id
     assert result.organization_id == organization_id
     assert result.membership_id == membership.membership_id
+
+
+
+
+
