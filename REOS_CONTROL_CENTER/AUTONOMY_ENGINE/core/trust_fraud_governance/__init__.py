@@ -1,5 +1,21 @@
-"""CORE-007 Trust Score foundation (ARCH-015)."""
+"""CORE-007 Trust, Fraud & Governance package."""
 
+from .fraud_detection import (
+    FRAUD_DETECTION_MODEL_VERSION,
+    FRAUD_DETECTION_SCHEMA_VERSION,
+    FraudAssessment,
+    FraudDetectionConflictError,
+    FraudDetectionEngine,
+    FraudDetectionError,
+    FraudDetectionPolicy,
+    FraudDetectionScopeError,
+    FraudDetectionValidationError,
+    FraudFinding,
+    FraudFindingCode,
+    FraudSeverity,
+    LeadSubmissionObservation,
+    VisitTelemetryObservation,
+)
 from .trust_score import (
     TRUST_SCORE_MAX,
     TRUST_SCORE_MIN,
@@ -19,6 +35,20 @@ from .trust_score import (
 )
 
 __all__ = [
+    "FRAUD_DETECTION_MODEL_VERSION",
+    "FRAUD_DETECTION_SCHEMA_VERSION",
+    "FraudAssessment",
+    "FraudDetectionConflictError",
+    "FraudDetectionEngine",
+    "FraudDetectionError",
+    "FraudDetectionPolicy",
+    "FraudDetectionScopeError",
+    "FraudDetectionValidationError",
+    "FraudFinding",
+    "FraudFindingCode",
+    "FraudSeverity",
+    "LeadSubmissionObservation",
+    "VisitTelemetryObservation",
     "TRUST_SCORE_MAX",
     "TRUST_SCORE_MIN",
     "TRUST_SCORE_MODEL_VERSION",
