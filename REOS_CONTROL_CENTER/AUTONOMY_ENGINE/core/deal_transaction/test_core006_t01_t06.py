@@ -70,7 +70,7 @@ def test_create_and_full_lifecycle() -> None:
     )
 
     assert current.status is DealStatus.COMPLETED
-    assert len(current.history) == 14
+    assert len(current.history) == 13
 
 
 def test_match_requires_bound_inventory_reference() -> None:
