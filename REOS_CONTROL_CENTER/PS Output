@@ -1,44 +1,32 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> [System.IO.File]::WriteAllText(
->>     "D:\HOMIO\REOS_CONTROL_CENTER\$p",
->>     $s,
->>     (New-Object System.Text.UTF8Encoding($false))
->> )
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # =========================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # VERIFY
-PS D:\HOMIO\REOS_CONTROL_CENTER> # =========================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --stat
- .../__pycache__/__init__.cpython-312.pyc            | Bin 500 -> 1287 bytes
- .../__pycache__/__init__.cpython-312.pyc            | Bin 1071 -> 1437 bytes
- .../state_reconstruction.cpython-312.pyc            | Bin 11711 -> 13904 bytes
- ...tate_reconstruction.cpython-312-pytest-9.1.1.pyc | Bin 16842 -> 34703 bytes
- .../gate_subtask_continuity.cpython-312.pyc         | Bin 12803 -> 12964 bytes
- ..._subtask_continuity.cpython-312-pytest-9.1.1.pyc | Bin 15747 -> 18439 bytes
- .../gate_subtask_continuity.py                      |   2 +-
- .../__pycache__/__init__.cpython-312.pyc            | Bin 1243 -> 1666 bytes
- .../task_dependency_reconstruction.py               |   2 +-
- .../__pycache__/__init__.cpython-312.pyc            | Bin 250 -> 1090 bytes
- .../test_checkpoint_continuity.py                   |   4 ++--
- .../__pycache__/__init__.cpython-312.pyc            | Bin 252 -> 544 bytes
- .../__pycache__/new_chat_bootstrap.cpython-312.pyc  | Bin 13929 -> 17120 bytes
- ..._new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc | Bin 17637 -> 26778 bytes
- .../__pycache__/context_compression.cpython-312.pyc | Bin 12885 -> 13320 bytes
- ...context_compression.cpython-312-pytest-9.1.1.pyc | Bin 20524 -> 20524 bytes
- .../test_context_compression.py                     |   2 +-
- .../__pycache__/recovery_guard.cpython-312.pyc      | Bin 13471 -> 13787 bytes
- ...est_t12_integration.cpython-312-pytest-9.1.1.pyc | Bin 54737 -> 55165 bytes
- ...troller_integration.cpython-312-pytest-9.1.1.pyc | Bin 64919 -> 64946 bytes
- ..._controller_metrics.cpython-312-pytest-9.1.1.pyc | Bin 44649 -> 44676 bytes
- ...est_t13_adversarial.cpython-312-pytest-9.1.1.pyc | Bin 11653 -> 11680 bytes
- .../test_t13_contract.cpython-312-pytest-9.1.1.pyc  | Bin 19992 -> 20019 bytes
- ...est_t13_integration.cpython-312-pytest-9.1.1.pyc | Bin 23609 -> 23636 bytes
- .../__pycache__/dependency_graph.cpython-312.pyc    | Bin 4485 -> 4533 bytes
- .../__pycache__/__init__.cpython-312.pyc            | Bin 616 -> 863 bytes
- .../acrl/__pycache__/__init__.cpython-312.pyc       | Bin 465 -> 975 bytes
- 27 files changed, 5 insertions(+), 5 deletions(-)
-PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
+ M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_reconstruction.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/gate_subtask_continuity.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/test_gate_subtask_continuity.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/gate_subtask_continuity.py
+ M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/task_dependency_reconstruction.py
+ M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/test_checkpoint_continuity.py
+ M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/new_chat_bootstrap.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/test_new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/context_compression.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/test_context_compression.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py
+ M AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_guard.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_t12_integration.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_metrics.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_adversarial.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_contract.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_integration.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/dependency_graph.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/__pycache__/__init__.cpython-312.pyc
+?? ../REOS_LAYER_BACKUP_ACRL_REPAIR_20260929_182814/
 PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\continuity\acrl -q
 ...............................................................................................FF....................................F.............. [ 12%]
 ..........................................................FFFFFFFFFFFFFFFF.FFFFFFFFFFFFFFFFF........................................................ [ 24%]
@@ -52,7 +40,7 @@ PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\continuity\acr
 ======================================================================== FAILURES =========================================================================
 ________________________________________________________ test_completed_subtask_cannot_be_current _________________________________________________________
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T04_Gate_Subtask_Continuity.gate_subtask_continuity.GateSubtaskContinuityReader object at 0x000001E79C12D580>
+self = <AUTONOMY_ENGINE.continuity.acrl.T04_Gate_Subtask_Continuity.gate_subtask_continuity.GateSubtaskContinuityReader object at 0x000002550065D550>
 
     def reconstruct(self) -> GateSubtaskContinuity:
         """Reconstruct authoritative gate/subtask continuity."""
@@ -66,7 +54,7 @@ self = <AUTONOMY_ENGINE.continuity.acrl.T04_Gate_Subtask_Continuity.gate_subtask
 AUTONOMY_ENGINE\continuity\acrl\T04_Gate_Subtask_Continuity\gate_subtask_continuity.py:207:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T03_State_Reconstruction.state_reconstruction.ExecutionStateReconstructor object at 0x000001E79C12DAC0>
+self = <AUTONOMY_ENGINE.continuity.acrl.T03_State_Reconstruction.state_reconstruction.ExecutionStateReconstructor object at 0x000002550065D8E0>
 
     def reconstruct(self) -> ExecutionStateSnapshot:
         """Build an immutable snapshot from canonical state.json only."""
@@ -202,7 +190,7 @@ AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\state_reconstruction.py
 
 The above exception was the direct cause of the following exception:
 
-tmp_path = WindowsPath('C:/Users/Sandip RanjanePatil/AppData/Local/Temp/pytest-of-Sandip RanjanePatil/pytest-373/test_completed_subtask_cannot_0')
+tmp_path = WindowsPath('C:/Users/Sandip RanjanePatil/AppData/Local/Temp/pytest-of-Sandip RanjanePatil/pytest-375/test_completed_subtask_cannot_0')
 
     def test_completed_subtask_cannot_be_current(
         tmp_path: Path,
@@ -219,7 +207,7 @@ tmp_path = WindowsPath('C:/Users/Sandip RanjanePatil/AppData/Local/Temp/pytest-o
 AUTONOMY_ENGINE\continuity\acrl\T04_Gate_Subtask_Continuity\test_gate_subtask_continuity.py:151:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T04_Gate_Subtask_Continuity.gate_subtask_continuity.GateSubtaskContinuityReader object at 0x000001E79C12D580>
+self = <AUTONOMY_ENGINE.continuity.acrl.T04_Gate_Subtask_Continuity.gate_subtask_continuity.GateSubtaskContinuityReader object at 0x000002550065D550>
 
     def reconstruct(self) -> GateSubtaskContinuity:
         """Reconstruct authoritative gate/subtask continuity."""
@@ -237,7 +225,7 @@ E           AUTONOMY_ENGINE.continuity.acrl.T04_Gate_Subtask_Continuity.gate_sub
 AUTONOMY_ENGINE\continuity\acrl\T04_Gate_Subtask_Continuity\gate_subtask_continuity.py:209: GateContinuitySourceError
 _________________________________________________________ test_current_subtask_must_exist_in_gate _________________________________________________________
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T04_Gate_Subtask_Continuity.gate_subtask_continuity.GateSubtaskContinuityReader object at 0x000001E79C0D1A00>
+self = <AUTONOMY_ENGINE.continuity.acrl.T04_Gate_Subtask_Continuity.gate_subtask_continuity.GateSubtaskContinuityReader object at 0x00000255005FD940>
 
     def reconstruct(self) -> GateSubtaskContinuity:
         """Reconstruct authoritative gate/subtask continuity."""
@@ -251,7 +239,7 @@ self = <AUTONOMY_ENGINE.continuity.acrl.T04_Gate_Subtask_Continuity.gate_subtask
 AUTONOMY_ENGINE\continuity\acrl\T04_Gate_Subtask_Continuity\gate_subtask_continuity.py:207:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T03_State_Reconstruction.state_reconstruction.ExecutionStateReconstructor object at 0x000001E79C0D0740>
+self = <AUTONOMY_ENGINE.continuity.acrl.T03_State_Reconstruction.state_reconstruction.ExecutionStateReconstructor object at 0x00000255005FE570>
 
     def reconstruct(self) -> ExecutionStateSnapshot:
         """Build an immutable snapshot from canonical state.json only."""
@@ -382,7 +370,7 @@ AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\state_reconstruction.py
 
 The above exception was the direct cause of the following exception:
 
-tmp_path = WindowsPath('C:/Users/Sandip RanjanePatil/AppData/Local/Temp/pytest-of-Sandip RanjanePatil/pytest-373/test_current_subtask_must_exis0')
+tmp_path = WindowsPath('C:/Users/Sandip RanjanePatil/AppData/Local/Temp/pytest-of-Sandip RanjanePatil/pytest-375/test_current_subtask_must_exis0')
 
     def test_current_subtask_must_exist_in_gate(
         tmp_path: Path,
@@ -399,7 +387,7 @@ tmp_path = WindowsPath('C:/Users/Sandip RanjanePatil/AppData/Local/Temp/pytest-o
 AUTONOMY_ENGINE\continuity\acrl\T04_Gate_Subtask_Continuity\test_gate_subtask_continuity.py:164:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T04_Gate_Subtask_Continuity.gate_subtask_continuity.GateSubtaskContinuityReader object at 0x000001E79C0D1A00>
+self = <AUTONOMY_ENGINE.continuity.acrl.T04_Gate_Subtask_Continuity.gate_subtask_continuity.GateSubtaskContinuityReader object at 0x00000255005FD940>
 
     def reconstruct(self) -> GateSubtaskContinuity:
         """Reconstruct authoritative gate/subtask continuity."""
@@ -417,7 +405,7 @@ E           AUTONOMY_ENGINE.continuity.acrl.T04_Gate_Subtask_Continuity.gate_sub
 AUTONOMY_ENGINE\continuity\acrl\T04_Gate_Subtask_Continuity\gate_subtask_continuity.py:209: GateContinuitySourceError
 ________________________________________________________ test_current_completed_subtask_is_invalid ________________________________________________________
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T05_Dependency_Authority_Map.task_dependency_reconstruction.TaskDependencyReconstructor object at 0x000001E79C0D0950>
+self = <AUTONOMY_ENGINE.continuity.acrl.T05_Dependency_Authority_Map.task_dependency_reconstruction.TaskDependencyReconstructor object at 0x000002550065C560>
 
     def reconstruct(self) -> TaskDependencyResolution:
         """Resolve the current valid work unit from canonical state."""
@@ -431,7 +419,7 @@ self = <AUTONOMY_ENGINE.continuity.acrl.T05_Dependency_Authority_Map.task_depend
 AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\task_dependency_reconstruction.py:424:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T03_State_Reconstruction.state_reconstruction.ExecutionStateReconstructor object at 0x000001E79C0D1B50>
+self = <AUTONOMY_ENGINE.continuity.acrl.T03_State_Reconstruction.state_reconstruction.ExecutionStateReconstructor object at 0x000002550065ED20>
 
     def reconstruct(self) -> ExecutionStateSnapshot:
         """Build an immutable snapshot from canonical state.json only."""
@@ -567,7 +555,7 @@ AUTONOMY_ENGINE\continuity\acrl\T03_State_Reconstruction\state_reconstruction.py
 
 The above exception was the direct cause of the following exception:
 
-tmp_path = WindowsPath('C:/Users/Sandip RanjanePatil/AppData/Local/Temp/pytest-of-Sandip RanjanePatil/pytest-373/test_current_completed_subtask0')
+tmp_path = WindowsPath('C:/Users/Sandip RanjanePatil/AppData/Local/Temp/pytest-of-Sandip RanjanePatil/pytest-375/test_current_completed_subtask0')
 
     def test_current_completed_subtask_is_invalid(
         tmp_path: Path,
@@ -588,7 +576,7 @@ tmp_path = WindowsPath('C:/Users/Sandip RanjanePatil/AppData/Local/Temp/pytest-o
 AUTONOMY_ENGINE\continuity\acrl\T05_Dependency_Authority_Map\test_task_dependency_reconstruction.py:220:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T05_Dependency_Authority_Map.task_dependency_reconstruction.TaskDependencyReconstructor object at 0x000001E79C0D0950>
+self = <AUTONOMY_ENGINE.continuity.acrl.T05_Dependency_Authority_Map.task_dependency_reconstruction.TaskDependencyReconstructor object at 0x000002550065C560>
 
     def reconstruct(self) -> TaskDependencyResolution:
         """Resolve the current valid work unit from canonical state."""
@@ -620,7 +608,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C12EF00>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000002550065D8E0>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -658,7 +646,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C190920>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x00000255006FC230>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -696,7 +684,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C191970>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x00000255006FCFE0>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -734,7 +722,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C12F380>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x00000255006FE000>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -772,7 +760,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C0D2B40>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000002550065D460>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -810,7 +798,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C190EC0>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x00000255006FEE70>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -848,7 +836,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C193830>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x00000255006FC0E0>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -886,7 +874,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C2647A0>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x0000025500794080>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -924,7 +912,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C2657F0>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x0000025500794E00>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -962,7 +950,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C193DD0>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x0000025500794890>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -1000,7 +988,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79B5378F0>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x00000255006FE750>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -1038,7 +1026,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79B56C710>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x00000255006FCCE0>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -1076,7 +1064,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C193FB0>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000002550065E060>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -1114,7 +1102,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C191AF0>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x0000025500794F20>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -1152,7 +1140,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C0D0380>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x0000025500796FC0>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -1190,7 +1178,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C12EC60>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x0000025500734110>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -1228,7 +1216,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C0D2B70>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000002557FB21040>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -1266,7 +1254,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C192540>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000002557F9BC2F0>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -1304,7 +1292,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79B56C680>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x0000025500796090>
 execution_state = {'current_gate': 'CORE-005', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN'}
 
     def _validate_execution(
@@ -1342,7 +1330,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79B537BF0>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x00000255007943B0>
 execution_state = {'current_gate': 'CORE-005', 'current_task': 'CORE-005-T01', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN', ...}
 
     def _validate_execution(
@@ -1380,7 +1368,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C267890>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000002550065E2A0>
 execution_state = {'current_gate': 'CORE-005', 'current_task': 'CORE-005-T01', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN', ...}
 
     def _validate_execution(
@@ -1418,7 +1406,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C264D10>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000002550065C8F0>
 execution_state = {'current_gate': 'CORE-005', 'current_task': 'CORE-005-T01', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN', ...}
 
     def _validate_execution(
@@ -1456,7 +1444,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79B56C4D0>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000002550065D160>
 execution_state = {'current_gate': 'CORE-005', 'current_task': 'CORE-005-T01', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN', ...}
 
     def _validate_execution(
@@ -1494,7 +1482,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C1927E0>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x0000025500795670>
 execution_state = {'current_gate': 'CORE-005', 'current_task': 'CORE-005-T01', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN', ...}
 
     def _validate_execution(
@@ -1532,7 +1520,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C0D2540>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000002557F9BE9F0>
 execution_state = {'current_gate': 'CORE-005', 'current_task': 'CORE-005-T01', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN', ...}
 
     def _validate_execution(
@@ -1570,7 +1558,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C267A40>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000002557F987890>
 execution_state = {'current_gate': 'CORE-005', 'current_task': 'CORE-005-T01', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN', ...}
 
     def _validate_execution(
@@ -1608,7 +1596,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C1F02C0>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x00000255006FD7F0>
 execution_state = {'current_gate': 'CORE-005', 'current_task': 'CORE-005-T01', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN', ...}
 
     def _validate_execution(
@@ -1646,7 +1634,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C1F13A0>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x00000255006FD100>
 execution_state = {'current_gate': 'CORE-005', 'current_task': 'CORE-005-T01', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN', ...}
 
     def _validate_execution(
@@ -1684,7 +1672,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C267C20>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x00000255006FE6C0>
 execution_state = {'current_gate': 'CORE-005', 'current_task': 'CORE-005-T01', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN', ...}
 
     def _validate_execution(
@@ -1722,7 +1710,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C1930B0>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000002557FC326F0>
 execution_state = {'current_gate': 'CORE-005', 'current_task': 'CORE-005-T01', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN', ...}
 
     def _validate_execution(
@@ -1760,7 +1748,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79B56D1C0>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x00000255007942C0>
 execution_state = {'current_gate': 'CORE-005', 'current_task': 'CORE-005-T01', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN', ...}
 
     def _validate_execution(
@@ -1798,7 +1786,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C1F1C40>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000002550065C9B0>
 execution_state = {'current_gate': 'CORE-005', 'current_task': 'CORE-005-T01', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN', ...}
 
     def _validate_execution(
@@ -1836,7 +1824,7 @@ AUTONOMY_ENGINE\continuity\acrl\T07_New_Chat_Bootstrap\new_chat_bootstrap.py:447
     execution = self._validate_execution(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x000001E79C1F3590>
+self = <AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.NewChatBootstrapEngine object at 0x0000025500735DC0>
 execution_state = {'current_gate': 'CORE-005', 'current_task': 'CORE-005-T01', 'current_subtask': 'CORE-005-T01', 'status': 'CONTROL_CENTER_DRIVEN', ...}
 
     def _validate_execution(
@@ -1895,4 +1883,40 @@ FAILED AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_conte
 FAILED AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py::test_tampered_compressed_context_fails_closed - AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_subta...
 FAILED AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py::test_missing_authoritative_section_fails_closed - AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_subta...
 FAILED AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py::test_unsafe_resume_mode_fails_closed - AUTONOMY_ENGINE.continuity.acrl.T07_New_Chat_Bootstrap.new_chat_bootstrap.BootstrapAuthorityError: Missing authoritative execution field: current_subta...
-36 failed, 1162 passed in 10.98s
+36 failed, 1162 passed in 12.18s
+PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/gate_subtask_continuity.py:383: new blank line at EOF.
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/task_dependency_reconstruction.py:746: new blank line at EOF.
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py:313: trailing whitespace.
++    )
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
+ M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_reconstruction.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/gate_subtask_continuity.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/test_gate_subtask_continuity.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/gate_subtask_continuity.py
+ M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/task_dependency_reconstruction.py
+ M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/test_checkpoint_continuity.py
+ M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/new_chat_bootstrap.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/test_new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/context_compression.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/test_context_compression.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py
+ M AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_guard.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_t12_integration.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_metrics.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_adversarial.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_contract.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_integration.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/dependency_graph.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/__pycache__/__init__.cpython-312.pyc
+?? ../REOS_LAYER_BACKUP_ACRL_REPAIR_20260929_182814/
+PS D:\HOMIO\REOS_CONTROL_CENTER> git log -1 --oneline
+8ae16c5 (HEAD -> reos-development, origin/reos-development) Update PS Output
