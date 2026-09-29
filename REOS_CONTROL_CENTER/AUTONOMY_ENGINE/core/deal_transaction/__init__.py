@@ -1,53 +1,104 @@
-"""HOMIO / REOS CORE-006 Deal & Transaction Core (T01-T06)."""
-
 from .deal import (
     Deal,
     DealConcurrencyError,
     DealDomainError,
-    DealHistoryEntry,
-    DealPartyRelationship,
-    DealPartyRole,
     DealReferenceConflictError,
-    DealStatus,
     DealTenantError,
     DealTransitionError,
     DealValidationError,
 )
-from .deal_evidence_audit import (
-    DealAuditConflictError,
-    DealAuditEntry,
-    DealAuditScopeError,
-    DealEvidenceAuditError,
-    DealEvidenceConflictError,
-    DealEvidenceReference,
-    DealEvidenceScopeError,
+from .deal_contract import (
+    DEAL_CONTRACT_SCHEMA_VERSION,
+    DealContract,
+    DealHistoryEntry,
+    DealStatus,
 )
+from .deal_parties import DealPartyLifecycle, DealPartyRelationship, DealPartyRole
 from .deal_offer_negotiation import (
     DealNegotiation,
-    DealNegotiationConcurrencyError,
-    DealNegotiationError,
     DealNegotiationStatus,
-    DealNegotiationTenantError,
-    DealNegotiationTransitionError,
     DealOffer,
-    DealOfferConcurrencyError,
-    DealOfferError,
     DealOfferStatus,
-    DealOfferTenantError,
-    DealOfferTransitionError,
-)
-from .deal_ownership_integration import (
-    DealOwnershipBinding,
-    DealOwnershipError,
-    DealOwnershipTenantError,
-    DealOwnershipValidationError,
 )
 from .deal_transaction_milestones import (
-    DealMilestoneConcurrencyError,
-    DealMilestoneError,
-    DealMilestoneTenantError,
     DealMilestoneTransitionError,
     DealTransactionMilestone,
 )
+from .deal_ownership_integration import (
+    DealOwnershipBinding,
+    DealOwnershipConflictError,
+)
+from .deal_evidence_audit import (
+    DealAuditEntry,
+    DealAuditConflictError,
+    DealEvidenceAuditError,
+    DealEvidenceConflictError,
+    DealEvidenceReference,
+)
+from .deal_transaction_consistency import (
+    DealConsistencyResult,
+    DealConsistencyViolation,
+    validate_deal_consistency,
+)
+from .deal_security import (
+    DealAuthorizationContext,
+    DealAuthorizationDecision,
+    DealOperation,
+    authorize_deal_operation,
+)
+from .deal_reos_integration import DealREOSContract, build_reos_contract
+from .deal_acrl_integration import (
+    DealACRLBundle,
+    build_acrl_bundle,
+    verify_acrl_bundle,
+)
+from .deal_transaction_events import (
+    DealTransactionEvent,
+    DealTransactionEventType,
+    transaction_event_from_milestone,
+)
 
-__all__ = [name for name in globals() if name.startswith("Deal")]
+__all__ = [
+    "Deal",
+    "DealDomainError",
+    "DealTransitionError",
+    "DealTenantError",
+    "DealConcurrencyError",
+    "DealReferenceConflictError",
+    "DealValidationError",
+    "DEAL_CONTRACT_SCHEMA_VERSION",
+    "DealContract",
+    "DealHistoryEntry",
+    "DealStatus",
+    "DealPartyLifecycle",
+    "DealPartyRelationship",
+    "DealPartyRole",
+    "DealNegotiation",
+    "DealNegotiationStatus",
+    "DealOffer",
+    "DealOfferStatus",
+    "DealMilestoneTransitionError",
+    "DealTransactionMilestone",
+    "DealOwnershipBinding",
+    "DealOwnershipConflictError",
+    "DealAuditEntry",
+    "DealAuditConflictError",
+    "DealEvidenceAuditError",
+    "DealEvidenceConflictError",
+    "DealEvidenceReference",
+    "DealConsistencyResult",
+    "DealConsistencyViolation",
+    "validate_deal_consistency",
+    "DealAuthorizationContext",
+    "DealAuthorizationDecision",
+    "DealOperation",
+    "authorize_deal_operation",
+    "DealREOSContract",
+    "build_reos_contract",
+    "DealACRLBundle",
+    "build_acrl_bundle",
+    "verify_acrl_bundle",
+    "DealTransactionEvent",
+    "DealTransactionEventType",
+    "transaction_event_from_milestone",
+]
