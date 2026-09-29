@@ -92,12 +92,31 @@ def validate_deal_consistency(
 
     previous_version = 0
 
+    if history and history[0].version != 1:
+        violations.append(
+            DealConsistencyViolation(
+                "HISTORY_ORDER",
+                "Lifecycle history must start at version 1.",
+                "history",
+            )
+        )
+
     for entry in history:
-        if entry.version != previous_version + 1:
+        if entry.version < 1 or entry.version > deal.version:
             violations.append(
                 DealConsistencyViolation(
                     "HISTORY_ORDER",
-                    "Deal history versions are not contiguous.",
+                    "Lifecycle history versions must be ordered and cannot exceed Deal version.",
+                    "history",
+                )
+            )
+            break
+
+        if entry.version <= previous_version:
+            violations.append(
+                DealConsistencyViolation(
+                    "HISTORY_ORDER",
+                    "Lifecycle history versions must be strictly increasing.",
                     "history",
                 )
             )
@@ -105,11 +124,11 @@ def validate_deal_consistency(
 
         previous_version = entry.version
 
-    if history and history[-1].version != deal.version:
+    if history and history[-1].version > deal.version:
         violations.append(
             DealConsistencyViolation(
                 "HISTORY_HEAD",
-                "Latest history version does not equal Deal version.",
+                "Latest history version cannot exceed Deal version.",
                 "history",
             )
         )
