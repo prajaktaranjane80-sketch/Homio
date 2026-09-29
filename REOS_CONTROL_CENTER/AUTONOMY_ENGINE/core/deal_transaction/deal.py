@@ -821,7 +821,7 @@ class Deal:
         new_status = self.status
 
         if target is DealNegotiationStatus.AGREED:
-            new_status = DealStatus.OFFERED
+            new_status = DealStatus.BOOKING_PENDING
 
         elif target is DealNegotiationStatus.REJECTED:
             new_status = DealStatus.REJECTED
@@ -851,6 +851,31 @@ class Deal:
             history=history,
         )
 
+    def close_negotiation(
+        self,
+        *,
+        tenant_id: str,
+        expected_version: int,
+        accepted: bool,
+        at: Any = None,
+    ) -> "Deal":
+        if not isinstance(accepted, bool):
+            raise DealValidationError(
+                "accepted must be a boolean."
+            )
+
+        target = (
+            DealNegotiationStatus.AGREED
+            if accepted
+            else DealNegotiationStatus.REJECTED
+        )
+
+        return self.transition_negotiation(
+            target,
+            tenant_id=tenant_id,
+            expected_version=expected_version,
+            at=at,
+        )
     def advance_transaction_milestone(
         self,
         target: DealStatus | str,
