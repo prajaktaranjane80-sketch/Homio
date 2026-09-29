@@ -1,121 +1,4 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== FETCH REMOTE ==="
-=== FETCH REMOTE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
-remote: Enumerating objects: 7, done.
-remote: Counting objects: 100% (7/7), done.
-remote: Compressing objects: 100% (4/4), done.
-remote: Total 4 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (4/4), 2.58 KiB | 220.00 KiB/s, done.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   be04b5b..62fe070  reos-development -> origin/reos-development
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== REBASE ==="
-=== REBASE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git rebase origin/reos-development
-Successfully rebased and updated refs/heads/reos-development.
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     git status
->>     throw "Rebase failed. Do not reset."
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== PUSH T01 ==="
-=== PUSH T01 ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git push origin reos-development
-Enumerating objects: 13, done.
-Counting objects: 100% (13/13), done.
-Delta compression using up to 12 threads
-Compressing objects: 100% (9/9), done.
-Writing objects: 100% (9/9), 6.91 KiB | 2.30 MiB/s, done.
-Total 9 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
-remote: Resolving deltas: 100% (5/5), completed with 4 local objects.
-To https://github.com/prajaktaranjane80-sketch/Homio.git
-   62fe070..f0c6f40  reos-development -> reos-development
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     git status
->>     throw "T01 push failed."
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== RESTORE OTHER WORK ==="
-=== RESTORE OTHER WORK ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git stash pop
-On branch reos-development
-Your branch is up to date with 'origin/reos-development'.
-
-Changes not staged for commit:
-  (use "git add <file>..." to update what will be committed)
-  (use "git restore <file>..." to discard changes in working directory)
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/__init__.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/__init__.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_reconstruction.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/gate_subtask_continuity.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/test_gate_subtask_continuity.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/gate_subtask_continuity.py
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/__init__.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/task_dependency_reconstruction.py
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/__init__.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/test_checkpoint_continuity.py
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/__init__.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/new_chat_bootstrap.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/test_new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/context_compression.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/test_context_compression.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_guard.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_t12_integration.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_metrics.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_adversarial.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_contract.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_integration.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/dependency_graph.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/__init__.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/continuity/acrl/__pycache__/__init__.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/execution/__pycache__/mutation_adapter.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/execution/__pycache__/production_executor.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/orchestration/__pycache__/execution_coordinator.cpython-312.pyc
-        modified:   AUTONOMY_ENGINE/tests/__pycache__/test_controller_autonomy_integration_adversarial.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/tests/__pycache__/test_execution_coordinator_adversarial.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/tests/__pycache__/test_execution_pipeline_adversarial.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/tests/__pycache__/test_mutation_adapter_adversarial.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/tests/__pycache__/test_production_executor_adversarial.cpython-312-pytest-9.1.1.pyc
-        modified:   AUTONOMY_ENGINE/tests/test_controller_autonomy_integration_adversarial.py
-        modified:   AUTONOMY_ENGINE/tests/test_l1_l2_acceptance.py
-        modified:   REOS_NEXT_CHAT.txt
-        modified:   data/state.json
-        modified:   packets/NEW_CHAT_PACKET.txt
-
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-        AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-20260929_203458.bak
-        AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-sync-20260929_204442.bak
-        snapshots/state_20260929_190047_321090.json
-        snapshots/state_20260929_202840_417870.json
-        snapshots/state_20260929_203024_561461.json
-        snapshots/state_20260929_205407_688934.json
-        snapshots/state_20260929_205835_799742.json
-        snapshots/state_20260929_210131_376828.json
-        snapshots/state_20260929_210317_077045.json
-        snapshots/state_20260929_210337_134750.json
-        snapshots/state_20260929_210337_147255.json
-        ../REOS_LAYER_BACKUP_ACRL_REPAIR_20260929_182814/
-
-no changes added to commit (use "git add" and/or "git commit -a")
-Dropped refs/stash@{0} (61abbee8c4fc5860aa7214f14691bfc90b2b3192)
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     git status
->>     throw "Stash restore conflict. Do not reset."
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== COMPLETE CORE-007-T01 ==="
+S D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== COMPLETE CORE-007-T01 ==="
 === COMPLETE CORE-007-T01 ===
 PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py complete-subtask CORE-007-T01 --note "Trust score foundation implemented under ARCH-015. Dedicated T01 suite: 37 passed in 0.18s. Full AUTONOMY_ENGINE/core regression: 730 passed in 4.94s. T01 implementation and tests committed/pushed."
 COMPLETED: CORE-007-T01
@@ -151,4 +34,85 @@ CORE-007-AC03 | PENDING | High-risk actions require appropriate approval.
 CORE-007-AC04 | PENDING | Exceptions are controlled and expire.
 CORE-007-AC05 | PENDING | Cross-tenant and privilege boundaries are enforced.
 CORE-007-AC06 | PENDING | False-positive and conflict cases are tested.
+PS D:\HOMIO\REOS_CONTROL_CENTER> $ErrorActionPreference="Stop"
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location "D:\HOMIO\REOS_CONTROL_CENTER"
 PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CORE-007-T01 POST-PUSH VERIFICATION ==="
+=== CORE-007-T01 POST-PUSH VERIFICATION ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE/LOCAL SYNC:"
+REMOTE/LOCAL SYNC:
+PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
+remote: Enumerating objects: 7, done.
+remote: Counting objects: 100% (7/7), done.
+remote: Compressing objects: 100% (4/4), done.
+remote: Total 4 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (4/4), 2.00 KiB | 127.00 KiB/s, done.
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+   f0c6f40..798048b  reos-development -> origin/reos-development
+PS D:\HOMIO\REOS_CONTROL_CENTER> $local = git rev-parse HEAD
+PS D:\HOMIO\REOS_CONTROL_CENTER> $remote = git rev-parse origin/reos-development
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "LOCAL : $local"
+LOCAL : f0c6f4021e277651d6718abf47284d88550ad2a2
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE: $remote"
+REMOTE: 798048bc0c81ffb90f542a4d5fdab6ee5a2c9a41
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($local -ne $remote) {
+>>     throw "FAIL: Local and remote branches differ."
+>> }
+FAIL: Local and remote branches differ.
+At line:2 char:5
++     throw "FAIL: Local and remote branches differ."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FAIL: Local and remote branches differ.:String) [], RuntimeException
+    + FullyQualifiedErrorId : FAIL: Local and remote branches differ.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "PASS: branch synchronized"
+PASS: branch synchronized
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "T01 TARGETED:"
+T01 TARGETED:
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t01_trust_score.py -q --tb=short
+.....................................                                                                                                                [100%]
+37 passed in 0.20s
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "FAIL: CORE-007-T01 targeted regression."
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "FULL CORE REGRESSION:"
+FULL CORE REGRESSION:
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core -q --tb=short
+.................................................................................................................................................... [ 20%]
+.................................................................................................................................................... [ 40%]
+.................................................................................................................................................... [ 60%]
+.................................................................................................................................................... [ 81%]
+..........................................................................................................................................           [100%]
+730 passed in 4.05s
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "FAIL: Full AUTONOMY_ENGINE/core regression."
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== T01 FINAL EVIDENCE ==="
+=== T01 FINAL EVIDENCE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "T01 TARGETED: PASS"
+T01 TARGETED: PASS
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "FULL CORE: PASS"
+FULL CORE: PASS
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE SYNC: PASS"
+REMOTE SYNC: PASS
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "COMMIT: f0c6f40"
+COMMIT: f0c6f40
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "========================================"
+========================================
