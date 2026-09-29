@@ -1,82 +1,23 @@
-PS C:\Users\Sandip RanjanePatil> $ErrorActionPreference="Stop"
-PS C:\Users\Sandip RanjanePatil> Set-Location "D:\HOMIO\REOS_CONTROL_CENTER"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CURRENT COMMIT ==="
-=== CURRENT COMMIT ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git log -1 --oneline
-84f8b86 (HEAD -> reos-development) test(core006): add T07 transaction event integration coverage
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CURRENT BRANCH ==="
-=== CURRENT BRANCH ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git branch --show-current
-reos-development
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== PRESERVE ALL CURRENT UNCOMMITTED WORK ==="
-=== PRESERVE ALL CURRENT UNCOMMITTED WORK ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git stash push -u -m "PRESERVE-WORK-BEFORE-CORE006-T07-REBASE"
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/gate_subtask_continuity.py', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/task_dependency_reconstruction.py', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py', LF will be replaced by CRLF the next time Git touches it
-Saved working directory and index state On reos-development: PRESERVE-WORK-BEFORE-CORE006-T07-REBASE
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     Write-Host "FAIL: Could not create preservation stash."
->>     exit 1
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== FETCH REMOTE ==="
-=== FETCH REMOTE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
-remote: Enumerating objects: 7, done.
-remote: Counting objects: 100% (7/7), done.
-remote: Compressing objects: 100% (4/4), done.
-remote: Total 4 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (4/4), 1.93 KiB | 131.00 KiB/s, done.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   c4ef65f..70496a2  reos-development -> origin/reos-development
-Enumerating objects: 567, done.
-Counting objects: 100% (563/563), done.
-Delta compression using up to 12 threads
-Compressing objects: 100% (552/552), done.
-Writing objects: 100% (563/563), done.
-Total 563 (delta 298), reused 0 (delta 0), pack-reused 0 (from 0)
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== REBASE T07 COMMIT ==="
-=== REBASE T07 COMMIT ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git rebase origin/reos-development
-Successfully rebased and updated refs/heads/reos-development.
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     Write-Host ""
->>     Write-Host "FAIL: Rebase conflict."
->>     Write-Host "DO NOT reset anything."
->>     git status
->>     exit 1
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== PUSH REBASED T07 COMMIT ==="
-=== PUSH REBASED T07 COMMIT ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== PUSH T08 ==="
+=== PUSH T08 ===
 PS D:\HOMIO\REOS_CONTROL_CENTER> git push origin reos-development
 Enumerating objects: 12, done.
 Counting objects: 100% (12/12), done.
 Delta compression using up to 12 threads
-Compressing objects: 100% (7/7), done.
-Writing objects: 100% (7/7), 2.78 KiB | 158.00 KiB/s, done.
-Total 7 (delta 5), reused 1 (delta 0), pack-reused 0 (from 0)
+Compressing objects: 100% (5/5), done.
+Writing objects: 100% (7/7), 3.03 KiB | 1.01 MiB/s, done.
+Total 7 (delta 5), reused 3 (delta 2), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (5/5), completed with 5 local objects.
 To https://github.com/prajaktaranjane80-sketch/Homio.git
-   70496a2..0bfc408  reos-development -> reos-development
+   93078e0..08f4b49  reos-development -> reos-development
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     Write-Host "FAIL: Push failed."
 >>     git status
->>     exit 1
+>>     throw "T08 push failed."
 >> }
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== RESTORE PRESERVED WORK ==="
-=== RESTORE PRESERVED WORK ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== RESTORE OTHER WORK ==="
+=== RESTORE OTHER WORK ===
 PS D:\HOMIO\REOS_CONTROL_CENTER> git stash pop
 On branch reos-development
 Your branch is up to date with 'origin/reos-development'.
@@ -133,78 +74,23 @@ Untracked files:
         snapshots/state_20260929_190047_321090.json
         snapshots/state_20260929_202840_417870.json
         snapshots/state_20260929_203024_561461.json
+        snapshots/state_20260929_205407_688934.json
         ../REOS_LAYER_BACKUP_ACRL_REPAIR_20260929_182814/
 
 no changes added to commit (use "git add" and/or "git commit -a")
-Dropped refs/stash@{0} (6e5aa1c05bdee707df399a8ed3e4a161e7061567)
+Dropped refs/stash@{0} (d12c99791ecb2b3cbfa434333a7f73d06b1a556c)
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     Write-Host ""
->>     Write-Host "WARNING: Stash restore produced a conflict."
->>     Write-Host "DO NOT reset or discard anything."
 >>     git status
->>     exit 1
+>>     throw "Stash restore conflict. Do not reset."
 >> }
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== FINAL STATUS ==="
-=== FINAL STATUS ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short --branch
-## reos-development...origin/reos-development
- M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_reconstruction.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/gate_subtask_continuity.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/test_gate_subtask_continuity.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/gate_subtask_continuity.py
- M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/task_dependency_reconstruction.py
- M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/test_checkpoint_continuity.py
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/new_chat_bootstrap.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/test_new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/context_compression.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/test_context_compression.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_context_compression.py
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/test_part08_context_compression_acceptance.py
- M AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_guard.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_t12_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_metrics.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_contract.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/dependency_graph.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/execution/__pycache__/mutation_adapter.cpython-312.pyc
- M AUTONOMY_ENGINE/execution/__pycache__/production_executor.cpython-312.pyc
- M AUTONOMY_ENGINE/orchestration/__pycache__/execution_coordinator.cpython-312.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_controller_autonomy_integration_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_execution_coordinator_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_execution_pipeline_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_mutation_adapter_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_production_executor_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/test_controller_autonomy_integration_adversarial.py
- M AUTONOMY_ENGINE/tests/test_l1_l2_acceptance.py
- M REOS_NEXT_CHAT.txt
- M data/state.json
- M packets/NEW_CHAT_PACKET.txt
-?? AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-20260929_203458.bak
-?? AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-sync-20260929_204442.bak
-?? snapshots/state_20260929_190047_321090.json
-?? snapshots/state_20260929_202840_417870.json
-?? snapshots/state_20260929_203024_561461.json
-?? ../REOS_LAYER_BACKUP_ACRL_REPAIR_20260929_182814/
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "========================================"
+========================================
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CORE-006 T08 TEST COMMITTED + PUSHED"
+CORE-006 T08 TEST COMMITTED + PUSHED
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "========================================"
+========================================
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "========================================"
-========================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "T07 COMMIT PUSH + WORK RESTORE COMPLETE"
-T07 COMMIT PUSH + WORK RESTORE COMPLETE
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "========================================"
-========================================
