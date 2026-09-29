@@ -1,79 +1,57 @@
-PS D:\Homio\REOS_CONTROL_CENTER> gh auth switch --user prajaktaranjane80-sketch
-✓ Switched active account for github.com to prajaktaranjane80-sketch
-PS D:\Homio\REOS_CONTROL_CENTER> gh auth status
-github.com
-  ✓ Logged in to github.com account prajaktaranjane80-sketch (keyring)
-  - Active account: true
-  - Git operations protocol: https
-  - Token: gho_************************************
-  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
+ REOS_CONTROL_CENTER/PS Output                      |  149 +--
+ 50 files changed, 4012 insertions(+), 4864 deletions(-)
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_authorization.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_concurrency.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_consistency.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_evidence_audit.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_external_contracts.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_freeze.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_integrity.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_offer_negotiation.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_ownership_integration.py
+ create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/__init__.py
+ create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py
+ create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_acrl_integration.py
+ create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_contract.py
+ create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
+ create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_external_contracts.py
+ create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py
+ create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_parties.py
+ create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_reos_integration.py
+ create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_security.py
+ create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_consistency.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_replay.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_workflow.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/manifest.json
+ create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py
+ create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_evidence_audit.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_final_hardening.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_offer_negotiation.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_ownership_integration.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_parties.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_events.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/test_deal_transaction_milestones.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction_events.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction_milestones.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction_replay.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction_workflow.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_deal.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_deal_evidence_audit.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_deal_final_hardening.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_deal_offer_negotiation.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_deal_ownership_integration.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_deal_parties.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_deal_transaction_events.py
+ delete mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_deal_transaction_milestones.py
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== POST-SYNC ===" -ForegroundColor Green
 
-  ✓ Logged in to github.com account sandyranjane-hash (keyring)
-  - Active account: false
-  - Git operations protocol: https
-  - Token: gho_************************************
-  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
-PS D:\Homio\REOS_CONTROL_CENTER> gh api "repos/prajaktaranjane80-sketch/Homio" --jq ".full_name"
-prajaktaranjane80-sketch/Homio
-PS D:\Homio\REOS_CONTROL_CENTER> $path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $sha = gh api `
->>   "repos/prajaktaranjane80-sketch/Homio/contents/$path?ref=reos-development" `
->>   --jq ".sha"
-gh: Not Found (HTTP 404)
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> gh api --method DELETE `
->>   "repos/prajaktaranjane80-sketch/Homio/contents/$path" `
->>   -f "message=chore: remove CORE-006 file" `
->>   -f "sha=$sha" `
->>   -f "branch=reos-development"
-{
-  "message": "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py does not match {message:Not Found,documentation_url:https://docs.github.com/rest/repos/contents#get-repository-content,status:404}",
-  "documentation_url": "https://docs.github.com/rest/repos/contents#delete-a-file",
-  "status": "409"
-}
-gh: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py does not match {message:Not Found,documentation_url:https://docs.github.com/rest/repos/contents#get-repository-content,status:404} (HTTP 409)
-PS D:\Homio\REOS_CONTROL_CENTER> $path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $content = @'
->> PASTE COMPLETE FILE CONTENT HERE
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $base64 = [Convert]::ToBase64String(
->>     [System.Text.Encoding]::UTF8.GetBytes($content)
->> )
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $sha = gh api `
->>   "repos/prajaktaranjane80-sketch/Homio/contents/$path?ref=reos-development" `
->>   --jq ".sha"
-gh: Not Found (HTTP 404)
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> gh api --method PUT `
->>   "repos/prajaktaranjane80-sketch/Homio/contents/$path" `
->>   -f "message=feat: update CORE-006 deal aggregate" `
->>   -f "content=$base64" `
->>   -f "sha=$sha" `
->>   -f "branch=reos-development"
-{
-  "message": "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py does not match {message:Not Found,documentation_url:https://docs.github.com/rest/repos/contents#get-repository-content,status:404}",
-  "documentation_url": "https://docs.github.com/rest/repos/contents#create-or-update-file-contents",
-  "status": "409"
-}
-gh: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal.py does not match {message:Not Found,documentation_url:https://docs.github.com/rest/repos/contents#get-repository-content,status:404} (HTTP 409)
-PS D:\Homio\REOS_CONTROL_CENTER> gh auth switch --user prajaktaranjane80-sketch
-✓ Switched active account for github.com to prajaktaranjane80-sketch
-PS D:\Homio\REOS_CONTROL_CENTER> gh auth status
-github.com
-  ✓ Logged in to github.com account prajaktaranjane80-sketch (keyring)
-  - Active account: true
-  - Git operations protocol: https
-  - Token: gho_************************************
-  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
-
-  ✓ Logged in to github.com account sandyranjane-hash (keyring)
-  - Active account: false
-  - Git operations protocol: https
-  - Token: gho_************************************
-  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
-PS D:\Homio\REOS_CONTROL_CENTER> gh api "repos/prajaktaranjane80-sketch/Homio" --jq ".full_name"
-prajaktaranjane80-sketch/Homio
+=== POST-SYNC ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
+PS D:\HOMIO\REOS_CONTROL_CENTER> git rev-parse HEAD
+7d87b44e55d9c7f34648208947cd045b9c6ea35b
+PS D:\HOMIO\REOS_CONTROL_CENTER> git log -1 --oneline --decorate
+7d87b44 (HEAD -> reos-development, origin/reos-development) Update PS Output
