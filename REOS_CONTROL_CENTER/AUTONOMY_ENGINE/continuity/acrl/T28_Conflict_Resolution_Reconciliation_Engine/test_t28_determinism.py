@@ -1,5 +1,5 @@
-from reconciliation_engine import reconcile_conflicts
-from reconciliation_models import ReconciliationPolicy
+from .reconciliation_engine import reconcile_conflicts
+from .reconciliation_models import ReconciliationPolicy
 
 
 def test_empty_reconciliation_is_deterministic():
