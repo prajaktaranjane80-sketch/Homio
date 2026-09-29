@@ -1,4 +1,3 @@
-@'
 from __future__ import annotations
 
 import pytest
@@ -421,4 +420,3 @@ def test_explanation_is_transparent(pipeline) -> None:
         payload["soft_preferences_matched"]
     )
     assert payload["excluded_reasons"] == []
-'@ | Set-Content -Encoding UTF8 AUTONOMY_ENGINE\core\search_matching\test_matching.py
