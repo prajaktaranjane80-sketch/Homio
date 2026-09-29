@@ -1,0 +1,349 @@
+{
+  "contract": {
+    "name": "REOS Membership, Roles & Permission Model Contract",
+    "version": "1.0.0",
+    "domain": "CORE-001",
+    "subtask": "CORE-001-T03",
+    "status": "ACTIVE"
+  },
+  "entities": {
+    "AttributeConstraint": {
+      "fields": [
+        "attribute_key",
+        "operator",
+        "expected_values"
+      ]
+    },
+    "RelationshipRequirement": {
+      "fields": [
+        "relation_type",
+        "target_type",
+        "target_id",
+        "required"
+      ]
+    },
+    "Organization": {
+      "fields": [
+        "organization_id",
+        "tenant_id",
+        "display_name",
+        "slug",
+        "status",
+        "parent_organization_id",
+        "revision",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    "Permission": {
+      "fields": [
+        "permission_id",
+        "key",
+        "display_name",
+        "description",
+        "resource",
+        "action",
+        "business_capability",
+        "sensitivity",
+        "required_assurance",
+        "revision"
+      ]
+    },
+    "Scope": {
+      "fields": [
+        "scope_id",
+        "tenant_id",
+        "scope_kind",
+        "organization_id",
+        "resource_type",
+        "resource_ids",
+        "constraints",
+        "revision"
+      ]
+    },
+    "Relationship": {
+      "fields": [
+        "relationship_id",
+        "tenant_id",
+        "subject_identity_id",
+        "relation_type",
+        "target_type",
+        "target_id",
+        "status",
+        "valid_from",
+        "valid_until",
+        "revision"
+      ]
+    },
+    "Entitlement": {
+      "fields": [
+        "entitlement_id",
+        "tenant_id",
+        "key",
+        "display_name",
+        "description",
+        "permission_ids",
+        "scope_ids",
+        "relationship_requirements",
+        "attribute_constraints",
+        "required_assurance",
+        "status",
+        "valid_from",
+        "valid_until",
+        "revision"
+      ]
+    },
+    "Role": {
+      "fields": [
+        "role_id",
+        "tenant_id",
+        "organization_id",
+        "role_kind",
+        "key",
+        "display_name",
+        "description",
+        "permission_ids",
+        "entitlement_ids",
+        "scope_ids",
+        "relationship_requirements",
+        "attribute_constraints",
+        "required_assurance",
+        "revision",
+        "active"
+      ]
+    },
+    "Membership": {
+      "fields": [
+        "membership_id",
+        "tenant_id",
+        "organization_id",
+        "identity_id",
+        "status",
+        "role_ids",
+        "entitlement_ids",
+        "scope_ids",
+        "relationship_ids",
+        "attribute_constraints",
+        "required_assurance",
+        "valid_from",
+        "valid_until",
+        "invited_at",
+        "joined_at",
+        "revision",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    "MembershipResolutionResult": {
+      "fields": [
+        "status",
+        "membership_id",
+        "tenant_id",
+        "organization_id",
+        "identity_id",
+        "membership_revision",
+        "membership",
+        "reason"
+      ]
+    }
+  },
+  "enums": {
+    "OrganizationStatus": {
+      "values": [
+        "ACTIVE",
+        "RESTRICTED",
+        "SUSPENDED",
+        "DEACTIVATED"
+      ]
+    },
+    "MembershipStatus": {
+      "values": [
+        "INVITED",
+        "PENDING",
+        "ACTIVE",
+        "RESTRICTED",
+        "SUSPENDED",
+        "REVOKED",
+        "EXPIRED"
+      ]
+    },
+    "RoleKind": {
+      "values": [
+        "SYSTEM",
+        "TENANT",
+        "ORGANIZATION"
+      ]
+    },
+    "PermissionSensitivity": {
+      "values": [
+        "NORMAL",
+        "SENSITIVE",
+        "CRITICAL"
+      ]
+    },
+    "ScopeKind": {
+      "values": [
+        "TENANT",
+        "ORGANIZATION",
+        "RESOURCE",
+        "RESOURCE_SET"
+      ]
+    },
+    "RelationshipStatus": {
+      "values": [
+        "ACTIVE",
+        "REVOKED"
+      ]
+    },
+    "RelationType": {
+      "values": [
+        "OWNER",
+        "MEMBER_OF",
+        "MANAGES",
+        "ASSIGNED_TO",
+        "BROKER_OF",
+        "BUILDER_OF",
+        "PARTNER_OF",
+        "DELEGATED_TO"
+      ]
+    },
+    "ConstraintOperator": {
+      "values": [
+        "EQUALS",
+        "NOT_EQUALS",
+        "IN",
+        "NOT_IN",
+        "EXISTS",
+        "NOT_EXISTS"
+      ]
+    },
+    "AssuranceLevel": {
+      "values": [
+        "BASIC",
+        "STANDARD",
+        "STRONG",
+        "HIGH"
+      ]
+    },
+    "EntitlementStatus": {
+      "values": [
+        "ACTIVE",
+        "SUSPENDED",
+        "REVOKED"
+      ]
+    },
+    "MembershipResolutionStatus": {
+      "values": [
+        "RESOLVED",
+        "NOT_FOUND",
+        "INACTIVE",
+        "EXPIRED"
+      ]
+    }
+  },
+  "lifecycle": {
+    "membership_status_transitions": {
+      "INVITED": [
+        "PENDING",
+        "REVOKED"
+      ],
+      "PENDING": [
+        "ACTIVE",
+        "REVOKED"
+      ],
+      "ACTIVE": [
+        "EXPIRED",
+        "RESTRICTED",
+        "REVOKED",
+        "SUSPENDED"
+      ],
+      "RESTRICTED": [
+        "ACTIVE",
+        "EXPIRED",
+        "REVOKED",
+        "SUSPENDED"
+      ],
+      "SUSPENDED": [
+        "ACTIVE",
+        "EXPIRED",
+        "RESTRICTED",
+        "REVOKED"
+      ],
+      "REVOKED": [],
+      "EXPIRED": []
+    },
+    "terminal_membership_states": [
+      "REVOKED",
+      "EXPIRED"
+    ],
+    "organization_deactivated_is_terminal": true
+  },
+  "authorization_model": {
+    "rbac": "roles bind reusable permission sets and entitlements",
+    "abac": "attribute constraints are declarative prerequisites",
+    "relationship": "relationship requirements are declarative prerequisites",
+    "contextual": "assurance, validity windows, scope and tenant context are explicit prerequisites",
+    "decision_boundary": "T03 stores grants and prerequisites; it does not decide authorization"
+  },
+  "scope_rules": [
+    "every scope is tenant-bound",
+    "organization scope requires organization_id",
+    "resource scope requires resource_type and exactly one resource_id",
+    "resource_set scope requires resource_type and at least one resource_id",
+    "cross-tenant scope reference is rejected"
+  ],
+  "isolation_rules": [
+    "membership tenant must equal organization tenant",
+    "tenant-scoped role must match membership tenant",
+    "organization role must match membership organization",
+    "tenant-scoped entitlement must match membership tenant",
+    "relationship reference must match membership tenant"
+  ],
+  "ux_rules": [
+    "permission exposes business_capability and display_name",
+    "role exposes display_name and description",
+    "entitlement exposes business-language display_name and description",
+    "raw permission keys are machine identifiers, not user-facing authority language"
+  ],
+  "security_invariants": [
+    "membership_identity_is_immutable",
+    "membership_tenant_is_immutable",
+    "membership_organization_is_immutable",
+    "membership_revision_is_monotonic",
+    "same_membership_revision_cannot_represent_different_state",
+    "membership_validity_is_time_bounded_when_configured",
+    "revoked_membership_is_terminal",
+    "expired_membership_is_terminal",
+    "tenant_bound_scope_cannot_cross_tenant",
+    "organization_role_cannot_cross_organization",
+    "tenant_role_cannot_cross_tenant",
+    "tenant_entitlement_cannot_cross_tenant",
+    "relationship_reference_cannot_cross_tenant",
+    "no_credentials_or_tokens_in_T03_models",
+    "no_authorization_decision_engine_in_T03"
+  ],
+  "source_of_truth_boundary": {
+    "Organization": "canonical tenant-scoped organization record",
+    "Permission": "canonical atomic capability definition",
+    "Role": "canonical reusable business role and grant bundle",
+    "Entitlement": "canonical business capability bundle with prerequisites",
+    "Scope": "canonical tenant-bound scope definition",
+    "Relationship": "canonical tenant-scoped relationship fact reference",
+    "Membership": "canonical identity-to-organization grant record",
+    "MembershipDirectory": "deterministic structural lookup and reference validation boundary",
+    "excluded_from_T03": [
+      "authentication_credentials",
+      "sessions",
+      "tenant_isolation_engine",
+      "authorization_decision_engine",
+      "audit_storage",
+      "event_persistence",
+      "policy_evaluator",
+      "AI_decision_engine"
+    ]
+  },
+  "hard_rules": [
+    "NO_VALID_MEMBERSHIP",
+    "DENY"
+  ]
+}
