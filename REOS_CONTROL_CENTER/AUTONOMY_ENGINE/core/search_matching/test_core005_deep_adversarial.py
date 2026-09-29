@@ -1,5 +1,5 @@
 """
-CORE-005 hardening â€” deep adversarial boundary regression.
+CORE-005 hardening — deep adversarial boundary regression.
 
 Tests only. No production behavior is introduced here.
 """
