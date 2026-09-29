@@ -449,4 +449,675 @@ PS D:\HOMIO\REOS_CONTROL_CENTER> gh api `
   "ref": "refs/heads/reos-development",
   "sha": "9e5f14f112dcd3b96a9a82e0ab896ef0ae4e58fc"
 }
+PS D:\HOMIO\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
 PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Repo   = "prajaktaranjane80-sketch/Homio"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Branch = "reos-development"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Base   = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction"
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> function Invoke-GhJson {
+>>     param(
+>>         [Parameter(Mandatory=$true)]
+>>         [string[]]$Arguments,
+>>
+>>         [Parameter(Mandatory=$false)]
+>>         $Payload
+>>     )
+>>
+>>     if ($null -ne $Payload) {
+>>         $json = $Payload | ConvertTo-Json -Depth 20 -Compress
+>>         $raw = $json | & gh api @Arguments --input - 2>&1
+>>     }
+>>     else {
+>>         $raw = & gh api @Arguments 2>&1
+>>     }
+>>
+>>     if ($LASTEXITCODE -ne 0) {
+>>         throw "gh api failed:`n$($raw -join "`n")"
+>>     }
+>>
+>>     return ($raw -join "`n") | ConvertFrom-Json
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> function Normalize-LF {
+>>     param([string]$Text)
+>>     return ($Text -replace "`r`n", "`n")
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> function Replace-ExactOnce {
+>>     param(
+>>         [Parameter(Mandatory=$true)]
+>>         [string]$Text,
+>>
+>>         [Parameter(Mandatory=$true)]
+>>         [string]$Old,
+>>
+>>         [Parameter(Mandatory=$true)]
+>>         [string]$New,
+>>
+>>         [Parameter(Mandatory=$true)]
+>>         [string]$Label
+>>     )
+>>
+>>     $t = Normalize-LF $Text
+>>     $o = Normalize-LF $Old
+>>     $n = Normalize-LF $New
+>>
+>>     $count = [regex]::Matches($t, [regex]::Escape($o)).Count
+>>
+>>     if ($count -ne 1) {
+>>         throw "STOP: [$Label] exact block count = $count, expected 1."
+>>     }
+>>
+>>     return $t.Replace($o, $n)
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CORE-006 ATOMIC REMOTE PATCH ===" -ForegroundColor Cyan
+=== CORE-006 ATOMIC REMOTE PATCH ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 1. Lock current branch HEAD
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Ref = Invoke-GhJson @(
+>>     "repos/$Repo/git/ref/heads/$Branch"
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $BaseCommit = $Ref.object.sha
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $CommitObj = Invoke-GhJson @(
+>>     "repos/$Repo/git/commits/$BaseCommit"
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $BaseTree = $CommitObj.tree.sha
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "Base commit : $BaseCommit"
+Base commit : b944758291b60e01986df7542399e6451ff03dae
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "Base tree   : $BaseTree"
+Base tree   : 3a1e097ece371c2a9145bb4fea08796aa4595288
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 2. Remote file paths
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> $DealPath         = "$Base/deal.py"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $ConsistencyPath  = "$Base/deal_transaction_consistency.py"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $TestPath         = "$Base/test_core006_t01_t06.py"
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 3. Fetch exact remote files
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> $DealRemote = Invoke-GhJson @(
+>>     "repos/$Repo/contents/$DealPath`?ref=$Branch"
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $ConsistencyRemote = Invoke-GhJson @(
+>>     "repos/$Repo/contents/$ConsistencyPath`?ref=$Branch"
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $TestRemote = Invoke-GhJson @(
+>>     "repos/$Repo/contents/$TestPath`?ref=$Branch"
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $DealText = [Text.Encoding]::UTF8.GetString(
+>>     [Convert]::FromBase64String(($DealRemote.content -replace "\s",""))
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $ConsistencyText = [Text.Encoding]::UTF8.GetString(
+>>     [Convert]::FromBase64String(($ConsistencyRemote.content -replace "\s",""))
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $TestText = [Text.Encoding]::UTF8.GetString(
+>>     [Convert]::FromBase64String(($TestRemote.content -replace "\s",""))
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "Fetched:"
+Fetched:
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "  deal.py                         SHA $($DealRemote.sha)"
+  deal.py                         SHA 757dd597e3339b31c3c78fc47aa18228f6fdf7aa
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "  deal_transaction_consistency.py SHA $($ConsistencyRemote.sha)"
+  deal_transaction_consistency.py SHA af9526bcf3c568240c4a767926b4604b5e65ecf5
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "  test_core006_t01_t06.py         SHA $($TestRemote.sha)"
+  test_core006_t01_t06.py         SHA 8b6440559b878532a43b67887bc62ad3916c90bd
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 4. PATCH deal.py IN MEMORY ONLY
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $OldDealValidation = @'
+>> previous_version = 0
+>>
+>> for entry in self.history:
+>>     if entry.version != previous_version + 1:
+>>         raise DealValidationError(
+>>             "Deal history versions must be contiguous."
+>>         )
+>>     previous_version = entry.version
+>>
+>> if self.history and (
+>>     self.history[-1].version != self.version
+>> ):
+>>     raise DealValidationError(
+>>         "Latest history version must equal Deal version."
+>>     )
+>> '@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $NewDealValidation = @'
+>> previous_version = 0
+>>
+>> for entry in self.history:
+>>     if entry.version < 1 or entry.version > self.version:
+>>         raise DealValidationError(
+>>             "Deal history versions must be ordered and cannot exceed Deal version."
+>>         )
+>>
+>>     if entry.version <= previous_version:
+>>         raise DealValidationError(
+>>             "Deal history versions must be strictly increasing."
+>>         )
+>>
+>>     previous_version = entry.version
+>> '@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $DealText = Replace-ExactOnce `
+>>     -Text $DealText `
+>>     -Old $OldDealValidation `
+>>     -New $NewDealValidation `
+>>     -Label "deal.py history validation"
+STOP: [deal.py history validation] exact block count = 0, expected 1.
+At line:23 char:9
++         throw "STOP: [$Label] exact block count = $count, expected 1. ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STOP: [deal.py ... 0, expected 1.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: [deal.py history validation] exact block count = 0, expected 1.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $OldCreateOffer = @'
+>> def create_offer(
+>>     self,
+>>     *,
+>>     tenant_id: str,
+>>     expected_version: int,
+>>     offer_id: str | None = None,
+>>     terms: Mapping[str, Any] | None = None,
+>>     supersedes_offer_id: str | None = None,
+>>     at: Any = None,
+>> )
+>> '@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $NewCreateOffer = @'
+>> def create_offer(
+>>     self,
+>>     offer_id: str | None = None,
+>>     *,
+>>     tenant_id: str,
+>>     expected_version: int,
+>>     terms: Mapping[str, Any] | None = None,
+>>     supersedes_offer_id: str | None = None,
+>>     at: Any = None,
+>> )
+>> '@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $DealText = Replace-ExactOnce `
+>>     -Text $DealText `
+>>     -Old $OldCreateOffer `
+>>     -New $NewCreateOffer `
+>>     -Label "deal.py create_offer signature"
+STOP: [deal.py create_offer signature] exact block count = 0, expected 1.
+At line:23 char:9
++         throw "STOP: [$Label] exact block count = $count, expected 1. ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STOP: [deal.py ... 0, expected 1.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: [deal.py create_offer signature] exact block count = 0, expected 1.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $OldStartNegotiation = @'
+>> def start_negotiation(
+>>     self,
+>>     *,
+>>     tenant_id: str,
+>>     expected_version: int,
+>>     negotiation_id: str | None = None,
+>>     offer_id: str | None = None,
+>>     at: Any = None,
+>> )
+>> '@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $NewStartNegotiation = @'
+>> def start_negotiation(
+>>     self,
+>>     negotiation_id: str | None = None,
+>>     *,
+>>     tenant_id: str,
+>>     expected_version: int,
+>>     offer_id: str | None = None,
+>>     at: Any = None,
+>> )
+>> '@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $DealText = Replace-ExactOnce `
+>>     -Text $DealText `
+>>     -Old $OldStartNegotiation `
+>>     -New $NewStartNegotiation `
+>>     -Label "deal.py start_negotiation signature"
+STOP: [deal.py start_negotiation signature] exact block count = 0, expected 1.
+At line:23 char:9
++         throw "STOP: [$Label] exact block count = $count, expected 1. ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STOP: [deal.py ... 0, expected 1.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: [deal.py start_negotiation signature] exact block count = 0, expected 1.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $OldAttachEvidence = @'
+>> def attach_evidence(
+>>     self,
+>>     *,
+>>     tenant_id: str,
+>>     expected_version: int,
+>>     evidence_type: str,
+>>     reference: str,
+>>     evidence_id: str | None = None,
+>>     actor_id: str | None = None,
+>>     metadata: Mapping[str, Any] | None = None,
+>>     at: Any = None,
+>> )
+>> '@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $NewAttachEvidence = @'
+>> def attach_evidence(
+>>     self,
+>>     evidence_id: str | None = None,
+>>     *,
+>>     tenant_id: str,
+>>     expected_version: int,
+>>     evidence_type: str,
+>>     reference: str,
+>>     actor_id: str | None = None,
+>>     metadata: Mapping[str, Any] | None = None,
+>>     at: Any = None,
+>> )
+>> '@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $DealText = Replace-ExactOnce `
+>>     -Text $DealText `
+>>     -Old $OldAttachEvidence `
+>>     -New $NewAttachEvidence `
+>>     -Label "deal.py attach_evidence signature"
+STOP: [deal.py attach_evidence signature] exact block count = 0, expected 1.
+At line:23 char:9
++         throw "STOP: [$Label] exact block count = $count, expected 1. ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STOP: [deal.py ... 0, expected 1.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: [deal.py attach_evidence signature] exact block count = 0, expected 1.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 5. PATCH consistency IN MEMORY ONLY
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $OldConsistencyHistory = @'
+>> previous_version = 0
+>>
+>> for entry in history:
+>>     if entry.version != previous_version + 1:
+>>         violations.append(
+>>             DealConsistencyViolation(
+>>                 "HISTORY_ORDER",
+>>                 "Deal history versions are not contiguous.",
+>>                 "history",
+>>             )
+>>         )
+>>         break
+>>
+>>     previous_version = entry.version
+>>
+>> if history and history[-1].version != deal.version:
+>>     violations.append(
+>>         DealConsistencyViolation(
+>>             "HISTORY_HEAD",
+>>             "Latest history version does not equal Deal version.",
+>>             "history",
+>>         )
+>>     )
+>> '@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $NewConsistencyHistory = @'
+>> previous_version = 0
+>>
+>> for entry in history:
+>>     if entry.version < 1 or entry.version > deal.version:
+>>         violations.append(
+>>             DealConsistencyViolation(
+>>                 "HISTORY_ORDER",
+>>                 "Lifecycle history versions must be ordered and cannot exceed Deal version.",
+>>                 "history",
+>>             )
+>>         )
+>>         break
+>>
+>>     if entry.version <= previous_version:
+>>         violations.append(
+>>             DealConsistencyViolation(
+>>                 "HISTORY_ORDER",
+>>                 "Lifecycle history versions must be strictly increasing.",
+>>                 "history",
+>>             )
+>>         )
+>>         break
+>>
+>>     previous_version = entry.version
+>>
+>> if history and history[-1].version > deal.version:
+>>     violations.append(
+>>         DealConsistencyViolation(
+>>             "HISTORY_HEAD",
+>>             "Latest history version cannot exceed Deal version.",
+>>             "history",
+>>         )
+>>     )
+>> '@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $ConsistencyText = Replace-ExactOnce `
+>>     -Text $ConsistencyText `
+>>     -Old $OldConsistencyHistory `
+>>     -New $NewConsistencyHistory `
+>>     -Label "consistency history validation"
+STOP: [consistency history validation] exact block count = 0, expected 1.
+At line:23 char:9
++         throw "STOP: [$Label] exact block count = $count, expected 1. ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STOP: [consiste... 0, expected 1.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: [consistency history validation] exact block count = 0, expected 1.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 6. PATCH ONLY THE BAD TEST EXPECTATION
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $OldTest = 'assert len(current.history) == 14'
+PS D:\HOMIO\REOS_CONTROL_CENTER> $NewTest = 'assert len(current.history) == 13'
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $TestText = Replace-ExactOnce `
+>>     -Text $TestText `
+>>     -Old $OldTest `
+>>     -New $NewTest `
+>>     -Label "test lifecycle history count"
+STOP: [test lifecycle history count] exact block count = 0, expected 1.
+At line:23 char:9
++         throw "STOP: [$Label] exact block count = $count, expected 1. ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STOP: [test lif... 0, expected 1.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: [test lifecycle history count] exact block count = 0, expected 1.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 7. FINAL IN-MEMORY SAFETY ASSERTIONS
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($DealText -notmatch 'history versions must be strictly increasing') {
+>>     throw "STOP: deal.py strict history validation not present."
+>> }
+STOP: deal.py strict history validation not present.
+At line:2 char:5
++     throw "STOP: deal.py strict history validation not present."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STOP: deal.py s...on not present.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: deal.py strict history validation not present.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($DealText -match 'Deal history versions must be contiguous') {
+>>     throw "STOP: obsolete contiguous history validation still present in deal.py."
+>> }
+STOP: obsolete contiguous history validation still present in deal.py.
+At line:2 char:5
++     throw "STOP: obsolete contiguous history validation still present ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STOP: obsolete ...ent in deal.py.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: obsolete contiguous history validation still present in deal.py.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($DealText -match 'Latest history version must equal Deal version') {
+>>     throw "STOP: obsolete history-head equality still present in deal.py."
+>> }
+STOP: obsolete history-head equality still present in deal.py.
+At line:2 char:5
++     throw "STOP: obsolete history-head equality still present in deal ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STOP: obsolete ...ent in deal.py.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: obsolete history-head equality still present in deal.py.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($ConsistencyText -match 'Deal history versions are not contiguous') {
+>>     throw "STOP: obsolete contiguous consistency rule still present."
+>> }
+STOP: obsolete contiguous consistency rule still present.
+At line:2 char:5
++     throw "STOP: obsolete contiguous consistency rule still present."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STOP: obsolete ... still present.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: obsolete contiguous consistency rule still present.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($ConsistencyText -match 'Latest history version does not equal Deal version') {
+>>     throw "STOP: obsolete HISTORY_HEAD equality rule still present."
+>> }
+STOP: obsolete HISTORY_HEAD equality rule still present.
+At line:2 char:5
++     throw "STOP: obsolete HISTORY_HEAD equality rule still present."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STOP: obsolete ... still present.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: obsolete HISTORY_HEAD equality rule still present.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($TestText -notmatch 'assert len\(current\.history\) == 13') {
+>>     throw "STOP: test assertion was not changed to 13."
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "ALL 3 FILES PATCHED IN MEMORY AND VALIDATED." -ForegroundColor Green
+ALL 3 FILES PATCHED IN MEMORY AND VALIDATED.
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 8. ONLY NOW create blobs
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $DealBlob = Invoke-GhJson `
+>>     -Arguments @("repos/$Repo/git/blobs") `
+>>     -Payload @{
+>>         content  = $DealText
+>>         encoding = "utf-8"
+>>     }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $ConsistencyBlob = Invoke-GhJson `
+>>     -Arguments @("repos/$Repo/git/blobs") `
+>>     -Payload @{
+>>         content  = $ConsistencyText
+>>         encoding = "utf-8"
+>>     }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $TestBlob = Invoke-GhJson `
+>>     -Arguments @("repos/$Repo/git/blobs") `
+>>     -Payload @{
+>>         content  = $TestText
+>>         encoding = "utf-8"
+>>     }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "Blobs created." -ForegroundColor Green
+Blobs created.
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "  deal.py                         $($DealBlob.sha)"
+  deal.py                         757dd597e3339b31c3c78fc47aa18228f6fdf7aa
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "  deal_transaction_consistency.py $($ConsistencyBlob.sha)"
+  deal_transaction_consistency.py af9526bcf3c568240c4a767926b4604b5e65ecf5
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "  test_core006_t01_t06.py         $($TestBlob.sha)"
+  test_core006_t01_t06.py         8b6440559b878532a43b67887bc62ad3916c90bd
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 9. One tree
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $TreePayload = @{
+>>     base_tree = $BaseTree
+>>     tree = @(
+>>         @{
+>>             path = $DealPath
+>>             mode = "100644"
+>>             type = "blob"
+>>             sha  = $DealBlob.sha
+>>         },
+>>         @{
+>>             path = $ConsistencyPath
+>>             mode = "100644"
+>>             type = "blob"
+>>             sha  = $ConsistencyBlob.sha
+>>         },
+>>         @{
+>>             path = $TestPath
+>>             mode = "100644"
+>>             type = "blob"
+>>             sha  = $TestBlob.sha
+>>         }
+>>     )
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Tree = Invoke-GhJson `
+>>     -Arguments @("repos/$Repo/git/trees") `
+>>     -Payload $TreePayload
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "Tree created: $($Tree.sha)"
+Tree created: 3a1e097ece371c2a9145bb4fea08796aa4595288
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 10. One commit
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $CommitPayload = @{
+>>     message = "fix(core-006): separate aggregate version from lifecycle history"
+>>     tree    = $Tree.sha
+>>     parents = @($BaseCommit)
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $NewCommit = Invoke-GhJson `
+>>     -Arguments @("repos/$Repo/git/commits") `
+>>     -Payload $CommitPayload
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "Commit created: $($NewCommit.sha)" -ForegroundColor Green
+Commit created: 0c79c466abadee68fa2b2d13542a98a5d0f663f1
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 11. Race protection: branch must still point to original HEAD
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $RefCheck = Invoke-GhJson @(
+>>     "repos/$Repo/git/ref/heads/$Branch"
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($RefCheck.object.sha -ne $BaseCommit) {
+>>     throw "STOP: branch moved during operation. Nothing was force-updated."
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 12. Atomic branch update, force = false
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $RefPayload = @{
+>>     sha   = $NewCommit.sha
+>>     force = $false
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $UpdatedRef = Invoke-GhJson `
+>>     -Arguments @(
+>>         "repos/$Repo/git/refs/heads/$Branch"
+>>     ) `
+>>     -Payload $RefPayload `
+>>     -Method PATCH
+Invoke-GhJson : A parameter cannot be found that matches parameter name 'Method'.
+At line:6 char:5
++     -Method PATCH
++     ~~~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [Invoke-GhJson], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : NamedParameterNotFound,Invoke-GhJson
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "Branch updated: $($UpdatedRef.object.sha)" -ForegroundColor Green
+Branch updated:
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 13. FINAL REMOTE VERIFICATION
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $FinalRef = Invoke-GhJson @(
+>>     "repos/$Repo/git/ref/heads/$Branch"
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($FinalRef.object.sha -ne $NewCommit.sha) {
+>>     throw "STOP: branch verification failed."
+>> }
+STOP: branch verification failed.
+At line:2 char:5
++     throw "STOP: branch verification failed."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STOP: branch verification failed.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: branch verification failed.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $FinalDeal = Invoke-GhJson @(
+>>     "repos/$Repo/contents/$DealPath`?ref=$Branch"
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $FinalConsistency = Invoke-GhJson @(
+>>     "repos/$Repo/contents/$ConsistencyPath`?ref=$Branch"
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $FinalTest = Invoke-GhJson @(
+>>     "repos/$Repo/contents/$TestPath`?ref=$Branch"
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($FinalDeal.sha -ne $DealBlob.sha) {
+>>     throw "STOP: deal.py SHA verification failed."
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($FinalConsistency.sha -ne $ConsistencyBlob.sha) {
+>>     throw "STOP: consistency file SHA verification failed."
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($FinalTest.sha -ne $TestBlob.sha) {
+>>     throw "STOP: test file SHA verification failed."
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "============================================" -ForegroundColor Green
+============================================
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CORE-006 REMOTE PATCH SUCCESS" -ForegroundColor Green
+CORE-006 REMOTE PATCH SUCCESS
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "============================================" -ForegroundColor Green
+============================================
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "Branch : $Branch"
+Branch : reos-development
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "Commit : $($FinalRef.object.sha)"
+Commit : b944758291b60e01986df7542399e6451ff03dae
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "deal.py SHA                         : $($FinalDeal.sha)"
+deal.py SHA                         : 757dd597e3339b31c3c78fc47aa18228f6fdf7aa
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "deal_transaction_consistency.py SHA : $($FinalConsistency.sha)"
+deal_transaction_consistency.py SHA : af9526bcf3c568240c4a767926b4604b5e65ecf5
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "test_core006_t01_t06.py SHA         : $($FinalTest.sha)"
+test_core006_t01_t06.py SHA         : 8b6440559b878532a43b67887bc62ad3916c90bd
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "No local source files were edited."
+No local source files were edited.
