@@ -315,8 +315,3 @@ def test_valid_membership_and_resource_allow():
     assert result.tenant_id == tenant.tenant_id
     assert result.organization_id == organization_id
     assert result.membership_id == membership.membership_id
-
-
-
-
-
