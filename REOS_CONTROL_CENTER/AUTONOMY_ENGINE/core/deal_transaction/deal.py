@@ -1,19 +1,46 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import datetime
 from typing import Any, Mapping
 from uuid import uuid4
 
+from .deal_contract import (
+    DEAL_CONTRACT_SCHEMA_VERSION,
+    DISPUTE_STATES,
+    EXPIRY_STATES,
+    NOMINAL_TRANSITIONS,
+    REJECTION_STATES,
+    TERMINAL_STATES,
+    DealContract,
+    DealHistoryEntry,
+    DealStatus,
+    utc_datetime,
+)
+from .deal_evidence_audit import (
+    DealAuditConflictError,
+    DealAuditEntry,
+    DealEvidenceConflictError,
+    DealEvidenceReference,
+)
 from .deal_offer_negotiation import (
     DealNegotiation,
     DealNegotiationStatus,
     DealOffer,
     DealOfferStatus,
 )
-from .deal_ownership_integration import DealOwnershipBinding
-from .deal_transaction_milestones import DealTransactionMilestone
+from .deal_ownership_integration import (
+    DealOwnershipBinding,
+    DealOwnershipConflictError,
+)
+from .deal_parties import (
+    DealPartyRelationship,
+    DealPartyRole,
+)
+from .deal_transaction_milestones import (
+    DealTransactionMilestone,
+    TRANSACTION_STATUSES,
+)
 
 
 class DealDomainError(ValueError):
@@ -40,255 +67,16 @@ class DealValidationError(DealDomainError):
     pass
 
 
-class DealPartyRole(str, Enum):
-    CUSTOMER = "CUSTOMER"
-    BROKER = "BROKER"
-    BUILDER = "BUILDER"
-
-
-class DealStatus(str, Enum):
-    QUALIFIED = "QUALIFIED"
-    MATCHED = "MATCHED"
-    VISIT_PENDING = "VISIT_PENDING"
-    VISITED = "VISITED"
-    OFFERED = "OFFERED"
-    NEGOTIATING = "NEGOTIATING"
-    BOOKING_PENDING = "BOOKING_PENDING"
-    BOOKED = "BOOKED"
-    AGREEMENT_PENDING = "AGREEMENT_PENDING"
-    AGREED = "AGREED"
-    REGISTRATION_PENDING = "REGISTRATION_PENDING"
-    REGISTERED = "REGISTERED"
-    COMPLETION_PENDING = "COMPLETION_PENDING"
-    COMPLETED = "COMPLETED"
-
-    CANCELLED = "CANCELLED"
-    EXPIRED = "EXPIRED"
-    REJECTED = "REJECTED"
-    DISPUTED = "DISPUTED"
-    FRAUD_BLOCKED = "FRAUD_BLOCKED"
-
-
-@dataclass(frozen=True)
-class DealPartyRelationship:
-    deal_id: str
-    tenant_id: str
-    role: DealPartyRole
-    party_id: str
-
-    def __post_init__(self) -> None:
-        for name in (
-            "deal_id",
-            "tenant_id",
-            "party_id",
-        ):
-            value = getattr(self, name)
-            if (
-                not isinstance(value, str)
-                or not value.strip()
-            ):
-                raise DealValidationError(
-                    f"{name} is required."
-                )
-
-        object.__setattr__(
-            self,
-            "role",
-            DealPartyRole(self.role),
-        )
-
-    @property
-    def relationship_key(self) -> str:
-        return (
-            f"{self.tenant_id}:"
-            f"{self.deal_id}:"
-            f"{self.role.value}"
-        )
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "relationship_key": self.relationship_key,
-            "deal_id": self.deal_id,
-            "tenant_id": self.tenant_id,
-            "role": self.role.value,
-            "party_id": self.party_id,
-        }
-
-
-@dataclass(frozen=True)
-class DealHistoryEntry:
-    history_id: str
-    from_status: DealStatus | None
-    to_status: DealStatus
-    version: int
-    changed_at: datetime
-    reason: str | None = None
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "history_id": self.history_id,
-            "from_status": (
-                self.from_status.value
-                if self.from_status
-                else None
-            ),
-            "to_status": self.to_status.value,
-            "version": self.version,
-            "changed_at": self.changed_at.isoformat(),
-            "reason": self.reason,
-        }
-
-
-_NOMINAL: dict[
-    DealStatus,
-    frozenset[DealStatus],
-] = {
-    DealStatus.QUALIFIED: frozenset({
-        DealStatus.MATCHED,
-    }),
-    DealStatus.MATCHED: frozenset({
-        DealStatus.VISIT_PENDING,
-    }),
-    DealStatus.VISIT_PENDING: frozenset({
-        DealStatus.VISITED,
-    }),
-    DealStatus.VISITED: frozenset({
-        DealStatus.OFFERED,
-    }),
-    DealStatus.OFFERED: frozenset({
-        DealStatus.NEGOTIATING,
-        DealStatus.BOOKING_PENDING,
-    }),
-    DealStatus.NEGOTIATING: frozenset({
-        DealStatus.OFFERED,
-        DealStatus.BOOKING_PENDING,
-    }),
-    DealStatus.BOOKING_PENDING: frozenset({
-        DealStatus.BOOKED,
-    }),
-    DealStatus.BOOKED: frozenset({
-        DealStatus.AGREEMENT_PENDING,
-    }),
-    DealStatus.AGREEMENT_PENDING: frozenset({
-        DealStatus.AGREED,
-    }),
-    DealStatus.AGREED: frozenset({
-        DealStatus.REGISTRATION_PENDING,
-    }),
-    DealStatus.REGISTRATION_PENDING: frozenset({
-        DealStatus.REGISTERED,
-    }),
-    DealStatus.REGISTERED: frozenset({
-        DealStatus.COMPLETION_PENDING,
-    }),
-    DealStatus.COMPLETION_PENDING: frozenset({
-        DealStatus.COMPLETED,
-    }),
-    DealStatus.COMPLETED: frozenset(),
-    DealStatus.CANCELLED: frozenset(),
-    DealStatus.EXPIRED: frozenset(),
-    DealStatus.REJECTED: frozenset(),
-    DealStatus.DISPUTED: frozenset(),
-    DealStatus.FRAUD_BLOCKED: frozenset(),
-}
-
-
-_PRE_BOOKING_EXPIRY = frozenset({
-    DealStatus.QUALIFIED,
-    DealStatus.MATCHED,
-    DealStatus.VISIT_PENDING,
-    DealStatus.VISITED,
-    DealStatus.OFFERED,
-    DealStatus.NEGOTIATING,
-    DealStatus.BOOKING_PENDING,
-    DealStatus.AGREEMENT_PENDING,
-})
-
-_REJECTION_STATES = _PRE_BOOKING_EXPIRY
-
-_DISPUTE_STATES = frozenset({
-    DealStatus.BOOKED,
-    DealStatus.AGREEMENT_PENDING,
-    DealStatus.AGREED,
-    DealStatus.REGISTRATION_PENDING,
-    DealStatus.REGISTERED,
-    DealStatus.COMPLETION_PENDING,
-})
-
-_NON_TERMINAL = (
-    frozenset(_NOMINAL)
-    - {
-        DealStatus.COMPLETED,
-        DealStatus.CANCELLED,
-        DealStatus.EXPIRED,
-        DealStatus.REJECTED,
-        DealStatus.DISPUTED,
-        DealStatus.FRAUD_BLOCKED,
-    }
-)
-
-
-def _utc_now() -> datetime:
-    return datetime.now(timezone.utc)
-
-
-def _require_id(
-    value: str,
-    name: str,
-) -> str:
+def _require_id(value: str, field_name: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise DealValidationError(
-            f"{name} must be a non-empty string."
+            f"{field_name} must be a non-empty string."
         )
     return value.strip()
 
 
-def _dt(
-    value: datetime | str | None,
-) -> datetime:
-    if value is None:
-        value = _utc_now()
-    elif isinstance(value, str):
-        try:
-            value = datetime.fromisoformat(
-                value.replace("Z", "+00:00")
-            )
-        except ValueError as exc:
-            raise DealValidationError(
-                "Invalid ISO-8601 timestamp."
-            ) from exc
-
-    if not isinstance(value, datetime):
-        raise DealValidationError(
-            "Timestamp must be datetime, string, or None."
-        )
-
-    if value.tzinfo is None:
-        value = value.replace(
-            tzinfo=timezone.utc
-        )
-
-    return value.astimezone(timezone.utc)
-
-
 @dataclass(frozen=True)
 class Deal:
-    """
-    Canonical CORE-006 Deal aggregate.
-
-    Deal is the single authoritative owner of:
-    - Deal identity
-    - lifecycle state
-    - aggregate version
-    - parties
-    - opportunity binding
-    - offer/negotiation state
-    - transaction milestones
-    - ownership reference
-    - evidence references
-    - Deal-local audit references
-    """
-
     deal_id: str
     tenant_id: str
     customer_id: str
@@ -304,30 +92,19 @@ class Deal:
     created_at: datetime
     updated_at: datetime
 
-    history: tuple[DealHistoryEntry, ...]
+    history: tuple[DealHistoryEntry, ...] = ()
 
     source_of_truth: str = "deal"
-
-    offers: tuple[DealOffer, ...] = (
-        field(default_factory=tuple)
-    )
+    offers: tuple[DealOffer, ...] = ()
     negotiation: DealNegotiation | None = None
+    milestones: tuple[DealTransactionMilestone, ...] = ()
+    ownership_binding: DealOwnershipBinding | None = None
+    evidence: tuple[DealEvidenceReference, ...] = ()
+    audit_log: tuple[DealAuditEntry, ...] = ()
+    participants: tuple[DealPartyRelationship, ...] = ()
 
-    milestones: tuple[
-        DealTransactionMilestone,
-        ...,
-    ] = field(default_factory=tuple)
-
-    ownership_binding: (
-        DealOwnershipBinding | None
-    ) = None
-
-    evidence: tuple[Any, ...] = field(
-        default_factory=tuple
-    )
-
-    audit_log: tuple[Any, ...] = field(
-        default_factory=tuple
+    contract_schema_version: str = (
+        DEAL_CONTRACT_SCHEMA_VERSION
     )
 
     def __post_init__(self) -> None:
@@ -337,14 +114,7 @@ class Deal:
             "customer_id",
             "broker_id",
         ):
-            object.__setattr__(
-                self,
-                name,
-                _require_id(
-                    getattr(self, name),
-                    name,
-                ),
-            )
+            _require_id(getattr(self, name), name)
 
         for name in (
             "builder_id",
@@ -352,20 +122,18 @@ class Deal:
             "unit_id",
         ):
             value = getattr(self, name)
-            if value is not None:
-                object.__setattr__(
-                    self,
-                    name,
-                    _require_id(value, name),
-                )
 
-        if (
-            isinstance(self.version, bool)
-            or not isinstance(self.version, int)
-            or self.version < 1
-        ):
+            if value is not None:
+                _require_id(value, name)
+
+        if self.version < 1:
             raise DealValidationError(
-                "version must be an integer >= 1."
+                "version must be >= 1."
+            )
+
+        if self.source_of_truth != "deal":
+            raise DealValidationError(
+                "Deal source_of_truth must remain 'deal'."
             )
 
         object.__setattr__(
@@ -374,26 +142,37 @@ class Deal:
             DealStatus(self.status),
         )
 
-        object.__setattr__(
-            self,
-            "source_of_truth",
-            _require_id(
-                self.source_of_truth,
-                "source_of_truth",
-            ),
-        )
+        previous_version = 0
 
-        if self.source_of_truth != "deal":
-            raise DealValidationError(
-                "Deal source_of_truth must remain 'deal'."
-            )
+        for entry in self.history:
+            if entry.version != previous_version + 1:
+                raise DealValidationError(
+                    "Deal history versions must be contiguous."
+                )
+            previous_version = entry.version
 
-        if (
-            self.created_at.tzinfo is None
-            or self.updated_at.tzinfo is None
+        if self.history and (
+            self.history[-1].version != self.version
         ):
             raise DealValidationError(
-                "Deal timestamps must be timezone-aware."
+                "Latest history version must equal Deal version."
+            )
+
+        relationship_keys = set()
+
+        for participant in self.participants:
+            participant.assert_scope(
+                deal_id=self.deal_id,
+                tenant_id=self.tenant_id,
+            )
+
+            if participant.relationship_key in relationship_keys:
+                raise DealValidationError(
+                    "Duplicate participant relationship."
+                )
+
+            relationship_keys.add(
+                participant.relationship_key
             )
 
     @classmethod
@@ -407,12 +186,82 @@ class Deal:
         project_id: str | None = None,
         unit_id: str | None = None,
         deal_id: str | None = None,
-        at: datetime | str | None = None,
+        at: Any = None,
     ) -> "Deal":
-        timestamp = _dt(at)
+        timestamp = utc_datetime(at)
+        identifier = deal_id or str(uuid4())
 
-        deal = cls(
-            deal_id=deal_id or str(uuid4()),
+        tenant_id = _require_id(
+            tenant_id,
+            "tenant_id",
+        )
+
+        customer_id = _require_id(
+            customer_id,
+            "customer_id",
+        )
+
+        broker_id = _require_id(
+            broker_id,
+            "broker_id",
+        )
+
+        builder_id = (
+            _require_id(builder_id, "builder_id")
+            if builder_id is not None
+            else None
+        )
+
+        project_id = (
+            _require_id(project_id, "project_id")
+            if project_id is not None
+            else None
+        )
+
+        unit_id = (
+            _require_id(unit_id, "unit_id")
+            if unit_id is not None
+            else None
+        )
+
+        history = (
+            DealHistoryEntry(
+                history_id=str(uuid4()),
+                from_status=None,
+                to_status=DealStatus.QUALIFIED,
+                version=1,
+                changed_at=timestamp,
+                reason="DEAL_CREATED",
+            ),
+        )
+
+        participants = (
+            DealPartyRelationship(
+                deal_id=identifier,
+                tenant_id=tenant_id,
+                role=DealPartyRole.BUYER,
+                party_id=customer_id,
+            ),
+            DealPartyRelationship(
+                deal_id=identifier,
+                tenant_id=tenant_id,
+                role=DealPartyRole.BROKER,
+                party_id=broker_id,
+            ),
+        )
+
+        if builder_id is not None:
+            participants += (
+                DealPartyRelationship(
+                    deal_id=identifier,
+                    tenant_id=tenant_id,
+                    role=DealPartyRole.BUILDER,
+                    party_id=builder_id,
+                ),
+            )
+
+        return cls(
+            deal_id=identifier,
             tenant_id=tenant_id,
             customer_id=customer_id,
             broker_id=broker_id,
@@ -423,31 +272,17 @@ class Deal:
             version=1,
             created_at=timestamp,
             updated_at=timestamp,
-            history=(),
-        )
-
-        return replace(
-            deal,
-            history=(
-                DealHistoryEntry(
-                    history_id=str(uuid4()),
-                    from_status=None,
-                    to_status=(
-                        DealStatus.QUALIFIED
-                    ),
-                    version=1,
-                    changed_at=timestamp,
-                    reason="DEAL_CREATED",
-                ),
-            ),
+            history=history,
+            participants=participants,
         )
 
     @property
     def identity_key(self) -> str:
-        return (
-            f"{self.tenant_id}:"
-            f"{self.deal_id}"
-        )
+        return f"{self.tenant_id}:{self.deal_id}"
+
+    @property
+    def is_terminal(self) -> bool:
+        return self.status in TERMINAL_STATES
 
     @property
     def opportunity_bound(self) -> bool:
@@ -461,36 +296,21 @@ class Deal:
         )
 
     @property
-    def party_relationships(
-        self,
-    ) -> tuple[
-        DealPartyRelationship,
-        ...,
-    ]:
-        items = [
-            (
-                DealPartyRole.CUSTOMER,
-                self.customer_id,
-            ),
-            (
-                DealPartyRole.BROKER,
-                self.broker_id,
-            ),
-            (
-                DealPartyRole.BUILDER,
-                self.builder_id,
-            ),
-        ]
+    def current_offer(self) -> DealOffer | None:
+        return (
+            self.offers[-1]
+            if self.offers
+            else None
+        )
 
-        return tuple(
-            DealPartyRelationship(
-                self.deal_id,
-                self.tenant_id,
-                role,
-                party_id,
-            )
-            for role, party_id in items
-            if party_id is not None
+    @property
+    def last_transaction_milestone(
+        self,
+    ) -> DealTransactionMilestone | None:
+        return (
+            self.milestones[-1]
+            if self.milestones
+            else None
         )
 
     def party_for(
@@ -499,64 +319,37 @@ class Deal:
     ) -> str | None:
         role = DealPartyRole(role)
 
-        for item in self.party_relationships:
-            if item.role is role:
-                return item.party_id
+        for relationship in self.participants:
+            if relationship.role is role:
+                return relationship.party_id
 
         return None
 
-    @property
-    def current_offer(
-        self,
-    ) -> DealOffer | None:
-        return (
-            self.offers[-1]
-            if self.offers
-            else None
-        )
-
-    @property
-    def is_terminal(self) -> bool:
-        return (
-            self.status
-            not in _NON_TERMINAL
-        )
-
-    def _tenant(
+    def _assert_tenant(
         self,
         tenant_id: str,
     ) -> None:
         if tenant_id != self.tenant_id:
             raise DealTenantError(
-                "Deal operation belongs "
-                "to a different tenant."
+                "Deal tenant mismatch."
             )
 
-    def _version(
+    def _assert_version(
         self,
-        expected_version: int | None,
+        expected_version: int,
     ) -> None:
-        if expected_version is None:
-            return
-
         if (
             isinstance(expected_version, bool)
-            or not isinstance(
-                expected_version,
-                int,
-            )
+            or not isinstance(expected_version, int)
             or expected_version < 1
         ):
             raise DealConcurrencyError(
-                "expected_version must be "
-                "an integer >= 1."
+                "expected_version must be an integer >= 1."
             )
 
         if expected_version != self.version:
             raise DealConcurrencyError(
-                f"Deal version is stale; "
-                f"expected {expected_version}, "
-                f"current {self.version}."
+                "Deal version is stale."
             )
 
     def bind_opportunity(
@@ -567,41 +360,120 @@ class Deal:
         unit_id: str,
         tenant_id: str,
         expected_version: int,
-        at: datetime | str | None = None,
+        at: Any = None,
     ) -> "Deal":
-        self._tenant(tenant_id)
-        self._version(expected_version)
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
 
-        values = tuple(
-            _require_id(value, name)
-            for value, name in (
-                (builder_id, "builder_id"),
-                (project_id, "project_id"),
-                (unit_id, "unit_id"),
-            )
+        builder_id = _require_id(
+            builder_id,
+            "builder_id",
+        )
+        project_id = _require_id(
+            project_id,
+            "project_id",
+        )
+        unit_id = _require_id(
+            unit_id,
+            "unit_id",
         )
 
         if self.opportunity_bound:
-            if (
+            existing = (
                 self.builder_id,
                 self.project_id,
                 self.unit_id,
-            ) == values:
+            )
+
+            requested = (
+                builder_id,
+                project_id,
+                unit_id,
+            )
+
+            if existing == requested:
                 return self
 
             raise DealReferenceConflictError(
-                "Deal opportunity binding already exists."
+                "Opportunity substitution is forbidden."
             )
 
-        timestamp = _dt(at)
+        timestamp = utc_datetime(at)
+
+        participants = tuple(
+            p
+            for p in self.participants
+            if p.role is not DealPartyRole.BUILDER
+        )
+
+        participants += (
+            DealPartyRelationship(
+                deal_id=self.deal_id,
+                tenant_id=self.tenant_id,
+                role=DealPartyRole.BUILDER,
+                party_id=builder_id,
+            ),
+        )
 
         return replace(
             self,
-            builder_id=values[0],
-            project_id=values[1],
-            unit_id=values[2],
+            builder_id=builder_id,
+            project_id=project_id,
+            unit_id=unit_id,
             version=self.version + 1,
             updated_at=timestamp,
+            participants=participants,
+        )
+
+    def bind_party(
+        self,
+        *,
+        role: DealPartyRole,
+        party_id: str,
+        tenant_id: str,
+        expected_version: int,
+        metadata: Mapping[str, Any] | None = None,
+    ) -> "Deal":
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
+
+        role = DealPartyRole(role)
+        party_id = _require_id(
+            party_id,
+            "party_id",
+        )
+
+        existing = next(
+            (
+                item
+                for item in self.participants
+                if item.role is role
+            ),
+            None,
+        )
+
+        if existing:
+            if existing.party_id == party_id:
+                return self
+
+            raise DealReferenceConflictError(
+                "Existing party cannot be silently replaced."
+            )
+
+        relationship = DealPartyRelationship(
+            deal_id=self.deal_id,
+            tenant_id=self.tenant_id,
+            role=role,
+            party_id=party_id,
+            metadata=dict(metadata or {}),
+        )
+
+        return replace(
+            self,
+            participants=(
+                self.participants + (relationship,)
+            ),
+            version=self.version + 1,
         )
 
     def transition(
@@ -609,122 +481,109 @@ class Deal:
         target: DealStatus | str,
         *,
         tenant_id: str,
-        expected_version: int | None = None,
+        expected_version: int,
         reason: str | None = None,
-        at: datetime | str | None = None,
+        at: Any = None,
     ) -> "Deal":
-        self._tenant(tenant_id)
-        self._version(expected_version)
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
 
         target = DealStatus(target)
 
-        if target == self.status:
+        if self.is_terminal:
             raise DealTransitionError(
-                "Deal cannot transition "
-                "to its current status."
+                "Terminal Deal cannot transition."
+            )
+
+        if target is self.status:
+            raise DealTransitionError(
+                "Deal cannot transition to its current status."
             )
 
         allowed = set(
-            _NOMINAL[self.status]
+            NOMINAL_TRANSITIONS.get(
+                self.status,
+                frozenset(),
+            )
         )
 
+        if target is DealStatus.CANCELLED:
+            allowed.add(target)
+
         if (
-            target == DealStatus.CANCELLED
-            and self.status
-            in _NON_TERMINAL
+            target is DealStatus.EXPIRED
+            and self.status in EXPIRY_STATES
         ):
             allowed.add(target)
 
         if (
-            target == DealStatus.EXPIRED
-            and self.status
-            in _PRE_BOOKING_EXPIRY
+            target is DealStatus.REJECTED
+            and self.status in REJECTION_STATES
         ):
             allowed.add(target)
 
         if (
-            target == DealStatus.REJECTED
-            and self.status
-            in _REJECTION_STATES
+            target is DealStatus.DISPUTED
+            and self.status in DISPUTE_STATES
         ):
             allowed.add(target)
 
-        if (
-            target
-            == DealStatus.FRAUD_BLOCKED
-            and self.status
-            in _NON_TERMINAL
-        ):
-            allowed.add(target)
-
-        if (
-            target == DealStatus.DISPUTED
-            and self.status
-            in _DISPUTE_STATES
-        ):
+        if target is DealStatus.FRAUD_BLOCKED:
             allowed.add(target)
 
         if target not in allowed:
             raise DealTransitionError(
-                "Invalid Deal transition: "
+                f"Invalid Deal transition: "
                 f"{self.status.value} -> "
-                f"{target.value}."
+                f"{target.value}"
             )
 
         if (
-            target
-            in (
-                _NON_TERMINAL
-                | {
-                    DealStatus.COMPLETED
-                }
-            )
+            target is DealStatus.MATCHED
             and not self.opportunity_bound
         ):
             raise DealTransitionError(
-                f"{target.value} requires a "
-                "fully bound "
-                "builder/project/unit "
-                "opportunity."
+                "Deal must have a bound opportunity before MATCHED."
             )
 
-        timestamp = _dt(at)
+        timestamp = utc_datetime(at)
+        new_version = self.version + 1
 
-        entry = DealHistoryEntry(
-            history_id=str(uuid4()),
-            from_status=self.status,
-            to_status=target,
-            version=self.version + 1,
-            changed_at=timestamp,
-            reason=reason,
+        history = self.history + (
+            DealHistoryEntry(
+                history_id=str(uuid4()),
+                from_status=self.status,
+                to_status=target,
+                version=new_version,
+                changed_at=timestamp,
+                reason=reason,
+            ),
         )
 
         return replace(
             self,
             status=target,
-            version=self.version + 1,
+            version=new_version,
             updated_at=timestamp,
-            history=(
-                self.history
-                + (entry,)
-            ),
+            history=history,
         )
 
     def create_offer(
         self,
-        offer_id: str,
         *,
         tenant_id: str,
         expected_version: int,
+        offer_id: str | None = None,
+        terms: Mapping[str, Any] | None = None,
         supersedes_offer_id: str | None = None,
-        at: datetime | None = None,
+        at: Any = None,
     ) -> "Deal":
-        self._tenant(tenant_id)
-        self._version(expected_version)
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
 
         if self.is_terminal:
             raise DealReferenceConflictError(
-                "Terminal deals cannot create offers."
+                "Terminal Deal cannot create an offer."
             )
 
         if not self.opportunity_bound:
@@ -732,55 +591,51 @@ class Deal:
                 "Offer requires a bound opportunity."
             )
 
-        if self.status not in (
+        if self.status not in {
             DealStatus.VISITED,
             DealStatus.OFFERED,
             DealStatus.NEGOTIATING,
-        ):
+        }:
             raise DealTransitionError(
-                "Offers require VISITED, "
-                "OFFERED or NEGOTIATING state."
+                "Offer requires VISITED, OFFERED or NEGOTIATING."
             )
 
-        if any(
-            item.offer_id == offer_id
-            for item in self.offers
-        ):
-            return self
-
-        if (
-            supersedes_offer_id is not None
-            and not any(
-                item.offer_id
-                == supersedes_offer_id
+        if supersedes_offer_id is not None:
+            if not any(
+                item.offer_id == supersedes_offer_id
                 for item in self.offers
-            )
-        ):
-            raise DealReferenceConflictError(
-                "supersedes_offer_id must "
-                "reference an existing offer."
+            ):
+                raise DealReferenceConflictError(
+                    "supersedes_offer_id must reference an existing offer."
+                )
+
+        if offer_id is not None:
+            existing = next(
+                (
+                    item
+                    for item in self.offers
+                    if item.offer_id == offer_id
+                ),
+                None,
             )
 
-        timestamp = at or _utc_now()
+            if existing is not None:
+                return self
 
         offer = DealOffer.create(
             offer_id=offer_id,
             deal_id=self.deal_id,
             tenant_id=self.tenant_id,
-            at=timestamp,
-            supersedes_offer_id=(
-                supersedes_offer_id
-            ),
+            at=at,
+            terms=terms,
+            supersedes_offer_id=supersedes_offer_id,
         )
 
         return replace(
             self,
-            offers=(
-                self.offers
-                + (offer,)
-            ),
+            offers=self.offers + (offer,),
             version=self.version + 1,
-            updated_at=timestamp,
+            updated_at=utc_datetime(at),
         )
 
     def submit_offer(
@@ -789,17 +644,16 @@ class Deal:
         *,
         tenant_id: str,
         expected_version: int,
-        at: datetime | None = None,
+        at: Any = None,
     ) -> "Deal":
-        self._tenant(tenant_id)
-        self._version(expected_version)
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
 
         index = next(
             (
                 i
-                for i, item
-                in enumerate(self.offers)
-                if item.offer_id == offer_id
+                for i, offer in enumerate(self.offers)
+                if offer.offer_id == offer_id
             ),
             None,
         )
@@ -811,10 +665,7 @@ class Deal:
 
         offer = self.offers[index]
 
-        if (
-            offer.status
-            is DealOfferStatus.SUBMITTED
-        ):
+        if offer.status is DealOfferStatus.SUBMITTED:
             return self
 
         updated_offer = offer.transition(
@@ -827,136 +678,116 @@ class Deal:
         offers = list(self.offers)
         offers[index] = updated_offer
 
-        timestamp = at or _utc_now()
-
-        if self.status not in (
-            DealStatus.VISITED,
-            DealStatus.OFFERED,
-            DealStatus.NEGOTIATING,
-        ):
-            raise DealTransitionError(
-                "Offer submission requires "
-                "VISITED, OFFERED or "
-                "NEGOTIATING state."
-            )
-
-        target = (
-            DealStatus.OFFERED
-            if self.status
-            is DealStatus.VISITED
-            else self.status
-        )
-
+        target_status = self.status
         history = self.history
+        new_version = self.version + 1
 
-        if target is not self.status:
+        if self.status is DealStatus.VISITED:
+            target_status = DealStatus.OFFERED
             history += (
                 DealHistoryEntry(
                     history_id=str(uuid4()),
                     from_status=self.status,
-                    to_status=target,
-                    version=self.version + 1,
-                    changed_at=timestamp,
+                    to_status=target_status,
+                    version=new_version,
+                    changed_at=utc_datetime(at),
                     reason="OFFER_SUBMITTED",
                 ),
             )
 
         return replace(
             self,
-            status=target,
+            status=target_status,
             offers=tuple(offers),
-            version=self.version + 1,
-            updated_at=timestamp,
+            version=new_version,
+            updated_at=utc_datetime(at),
             history=history,
         )
 
     def start_negotiation(
         self,
-        negotiation_id: str,
         *,
         tenant_id: str,
         expected_version: int,
+        negotiation_id: str | None = None,
         offer_id: str | None = None,
-        at: datetime | None = None,
+        at: Any = None,
     ) -> "Deal":
-        self._tenant(tenant_id)
-        self._version(expected_version)
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
 
         if self.status is not DealStatus.OFFERED:
             raise DealTransitionError(
-                "Negotiation can only start "
-                "from OFFERED."
+                "Negotiation can only start from OFFERED."
             )
 
         if self.negotiation is not None:
             if (
-                self.negotiation.negotiation_id
+                negotiation_id is not None
+                and self.negotiation.negotiation_id
                 == negotiation_id
             ):
                 return self
 
             raise DealReferenceConflictError(
-                "Deal already has a negotiation reference."
+                "Deal already has a negotiation."
             )
 
-        active = (
+        active_offer = (
             self.current_offer
             if offer_id is None
             else next(
                 (
-                    item
-                    for item in self.offers
-                    if item.offer_id
-                    == offer_id
+                    offer
+                    for offer in self.offers
+                    if offer.offer_id == offer_id
                 ),
                 None,
             )
         )
 
-        if active is None:
+        if active_offer is None:
             raise DealReferenceConflictError(
-                "Negotiation requires "
-                "an existing offer."
+                "Negotiation requires an existing offer."
             )
 
-        if (
-            active.status
-            is not DealOfferStatus.SUBMITTED
-        ):
+        if active_offer.status not in {
+            DealOfferStatus.SUBMITTED,
+            DealOfferStatus.COUNTERED,
+        }:
             raise DealTransitionError(
-                "Negotiation requires "
-                "a SUBMITTED offer."
+                "Negotiation requires a submitted/countered offer."
             )
-
-        timestamp = at or _utc_now()
 
         negotiation = DealNegotiation.create(
             negotiation_id=negotiation_id,
             deal_id=self.deal_id,
             tenant_id=self.tenant_id,
-            active_offer_id=active.offer_id,
-            at=timestamp,
+            active_offer_id=active_offer.offer_id,
+            at=at,
         )
 
-        entry = DealHistoryEntry(
-            history_id=str(uuid4()),
-            from_status=self.status,
-            to_status=DealStatus.NEGOTIATING,
-            version=self.version + 1,
-            changed_at=timestamp,
-            reason="NEGOTIATION_STARTED",
+        timestamp = utc_datetime(at)
+        new_version = self.version + 1
+
+        history = self.history + (
+            DealHistoryEntry(
+                history_id=str(uuid4()),
+                from_status=self.status,
+                to_status=DealStatus.NEGOTIATING,
+                version=new_version,
+                changed_at=timestamp,
+                reason="NEGOTIATION_STARTED",
+            ),
         )
 
         return replace(
             self,
             status=DealStatus.NEGOTIATING,
             negotiation=negotiation,
-            version=self.version + 1,
+            version=new_version,
             updated_at=timestamp,
-            history=(
-                self.history
-                + (entry,)
-            ),
+            history=history,
         )
 
     def transition_negotiation(
@@ -965,34 +796,55 @@ class Deal:
         *,
         tenant_id: str,
         expected_version: int,
-        at: datetime | None = None,
+        at: Any = None,
     ) -> "Deal":
-        self._tenant(tenant_id)
-        self._version(expected_version)
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
 
         if self.negotiation is None:
             raise DealReferenceConflictError(
-                "Deal has no negotiation reference."
+                "Deal has no negotiation."
             )
 
-        updated = (
-            self.negotiation.transition(
-                target,
-                tenant_id=tenant_id,
-                expected_version=(
-                    self.negotiation.version
-                ),
-                at=at,
-            )
+        negotiation = self.negotiation.transition(
+            target,
+            tenant_id=tenant_id,
+            expected_version=self.negotiation.version,
+            at=at,
         )
 
-        timestamp = at or _utc_now()
+        timestamp = utc_datetime(at)
+        new_status = self.status
+
+        if target is DealNegotiationStatus.AGREED:
+            new_status = DealStatus.OFFERED
+
+        elif target is DealNegotiationStatus.REJECTED:
+            new_status = DealStatus.REJECTED
+
+        history = self.history
+
+        if new_status is not self.status:
+            history += (
+                DealHistoryEntry(
+                    history_id=str(uuid4()),
+                    from_status=self.status,
+                    to_status=new_status,
+                    version=self.version + 1,
+                    changed_at=timestamp,
+                    reason=(
+                        f"NEGOTIATION_{target.value}"
+                    ),
+                ),
+            )
 
         return replace(
             self,
-            negotiation=updated,
+            negotiation=negotiation,
+            status=new_status,
             version=self.version + 1,
             updated_at=timestamp,
+            history=history,
         )
 
     def advance_transaction_milestone(
@@ -1002,69 +854,40 @@ class Deal:
         tenant_id: str,
         expected_version: int,
         reference_id: str | None = None,
-        at: datetime | str | None = None,
-        reason: str | None = None,
+        evidence_required: bool = True,
+        at: Any = None,
     ) -> "Deal":
-        self._tenant(tenant_id)
-        self._version(expected_version)
-
         target = DealStatus(target)
 
-        milestone_targets = {
-            DealStatus.BOOKING_PENDING,
-            DealStatus.BOOKED,
-            DealStatus.AGREEMENT_PENDING,
-            DealStatus.AGREED,
-            DealStatus.REGISTRATION_PENDING,
-            DealStatus.REGISTERED,
-            DealStatus.COMPLETION_PENDING,
-            DealStatus.COMPLETED,
-        }
-
-        if target not in milestone_targets:
+        if target not in TRANSACTION_STATUSES:
             raise DealTransitionError(
-                f"{target.value} is not "
-                "a transaction milestone target."
+                "Target is not a transaction milestone status."
             )
-
-        timestamp = _dt(at)
 
         updated = self.transition(
             target,
             tenant_id=tenant_id,
-            expected_version=self.version,
-            reason=(
-                reason
-                or f"TRANSACTION_MILESTONE:"
-                f"{target.value}"
-            ),
-            at=timestamp,
+            expected_version=expected_version,
+            reason="TRANSACTION_MILESTONE",
+            at=at,
         )
 
-        milestone = (
-            DealTransactionMilestone(
-                milestone_id=str(uuid4()),
-                deal_id=self.deal_id,
-                tenant_id=self.tenant_id,
-                from_status=self.status,
-                to_status=target,
-                sequence=(
-                    len(self.milestones)
-                    + 1
-                ),
-                deal_version=(
-                    updated.version
-                ),
-                occurred_at=timestamp,
-                reference_id=reference_id,
-            )
+        milestone = DealTransactionMilestone.create(
+            deal_id=self.deal_id,
+            tenant_id=self.tenant_id,
+            from_status=self.status,
+            to_status=target,
+            sequence=len(self.milestones) + 1,
+            deal_version=updated.version,
+            reference_id=reference_id,
+            evidence_required=evidence_required,
+            occurred_at=updated.updated_at,
         )
 
         return replace(
             updated,
-            milestones=(
-                self.milestones
-                + (milestone,)
+            milestones=self.milestones + (
+                milestone,
             ),
         )
 
@@ -1077,208 +900,144 @@ class Deal:
         owner_id: str,
         tenant_id: str,
         expected_version: int,
-        at: datetime | None = None,
+        at: Any = None,
     ) -> "Deal":
-        self._tenant(tenant_id)
-        self._version(expected_version)
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
 
         if self.is_terminal:
             raise DealReferenceConflictError(
-                "Terminal deals cannot "
-                "change ownership binding."
+                "Terminal Deal cannot change ownership."
             )
-
-        if self.ownership_binding is not None:
-            current = self.ownership_binding
-
-            if (
-                current.ownership_record_id
-                == ownership_record_id
-                and current.lead_id == lead_id
-                and current.owner_id == owner_id
-            ):
-                return self
-
-            raise DealReferenceConflictError(
-                "Deal ownership binding already exists; "
-                "substitution is forbidden."
-            )
-
-        timestamp = at or _utc_now()
 
         binding = DealOwnershipBinding(
             binding_id=binding_id,
             deal_id=self.deal_id,
             tenant_id=self.tenant_id,
             lead_id=lead_id,
-            ownership_record_id=(
-                ownership_record_id
-            ),
+            ownership_record_id=ownership_record_id,
             owner_id=owner_id,
-            bound_at=timestamp,
+            bound_at=utc_datetime(at),
         )
+
+        if self.ownership_binding is not None:
+            current = self.ownership_binding
+
+            if current.to_dict() == binding.to_dict():
+                return self
+
+            raise DealOwnershipConflictError(
+                "Ownership substitution is forbidden."
+            )
 
         return replace(
             self,
             ownership_binding=binding,
             version=self.version + 1,
-            updated_at=timestamp,
+            updated_at=utc_datetime(at),
         )
 
     def attach_evidence(
         self,
-        evidence_id: str,
         *,
-        evidence_type: str,
-        reference: str,
         tenant_id: str,
         expected_version: int,
-        at: datetime | str | None = None,
+        evidence_type: str,
+        reference: str,
+        evidence_id: str | None = None,
+        actor_id: str | None = None,
         metadata: Mapping[str, Any] | None = None,
+        at: Any = None,
     ) -> "Deal":
-        from .deal_evidence_audit import (
-            DealEvidenceConflictError,
-            DealEvidenceReference,
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
+
+        candidate = DealEvidenceReference.create(
+            evidence_id=evidence_id,
+            deal_id=self.deal_id,
+            tenant_id=self.tenant_id,
+            evidence_type=evidence_type,
+            reference=reference,
+            deal_version=self.version + 1,
+            actor_id=actor_id,
+            metadata=metadata,
+            at=at,
         )
 
-        self._tenant(tenant_id)
-        self._version(expected_version)
+        if evidence_id is not None:
+            for existing in self.evidence:
+                if existing.evidence_id != evidence_id:
+                    continue
 
-        candidate = (
-            evidence_id,
-            self.deal_id,
-            tenant_id,
-            evidence_type,
-            reference,
-            dict(metadata or {}),
-        )
+                if existing.semantic_key() == candidate.semantic_key():
+                    return self
 
-        for existing in self.evidence:
-            if (
-                existing.evidence_id
-                != evidence_id
-            ):
-                continue
-
-            if (
-                existing.semantic_key()
-                == candidate
-            ):
-                return self
-
-            raise DealEvidenceConflictError(
-                f"Evidence id {evidence_id!r} "
-                "is already bound with different "
-                "immutable data."
-            )
-
-        new_version = self.version + 1
-
-        evidence = (
-            DealEvidenceReference.create(
-                evidence_id=evidence_id,
-                deal_id=self.deal_id,
-                tenant_id=self.tenant_id,
-                evidence_type=evidence_type,
-                reference=reference,
-                deal_version=new_version,
-                at=at,
-                metadata=metadata,
-            )
-        )
-
-        timestamp = _dt(at)
+                raise DealEvidenceConflictError(
+                    "Evidence identity already exists with different data."
+                )
 
         return replace(
             self,
-            version=new_version,
-            updated_at=timestamp,
-            evidence=(
-                self.evidence
-                + (evidence,)
+            evidence=self.evidence + (
+                candidate,
             ),
+            version=self.version + 1,
+            updated_at=utc_datetime(at),
         )
 
     def record_audit(
         self,
         *,
-        action: str,
-        actor_id: str,
         tenant_id: str,
         expected_version: int,
+        action: str,
+        actor_id: str,
         audit_id: str | None = None,
         outcome: str = "RECORDED",
-        at: datetime | str | None = None,
         metadata: Mapping[str, Any] | None = None,
+        at: Any = None,
     ) -> "Deal":
-        from .deal_evidence_audit import (
-            DealAuditConflictError,
-            DealAuditEntry,
+        self._assert_tenant(tenant_id)
+        self._assert_version(expected_version)
+
+        candidate = DealAuditEntry.create(
+            audit_id=audit_id,
+            deal_id=self.deal_id,
+            tenant_id=self.tenant_id,
+            action=action,
+            actor_id=actor_id,
+            deal_version=self.version + 1,
+            outcome=outcome,
+            metadata=metadata,
+            at=at,
         )
 
-        self._tenant(tenant_id)
-        self._version(expected_version)
-
         for existing in self.audit_log:
-            if (
-                audit_id is None
-                or existing.audit_id
-                != audit_id
-            ):
+            if existing.audit_id != candidate.audit_id:
                 continue
 
-            candidate = (
-                audit_id,
-                self.deal_id,
-                tenant_id,
-                action,
-                actor_id,
-                outcome,
-                dict(metadata or {}),
-            )
-
-            if (
-                existing.semantic_key()
-                == candidate
-            ):
+            if existing.semantic_key() == candidate.semantic_key():
                 return self
 
             raise DealAuditConflictError(
-                f"Audit id {audit_id!r} "
-                "is already recorded with "
-                "different immutable data."
+                "Audit identity already exists with different data."
             )
-
-        new_version = self.version + 1
-
-        audit = DealAuditEntry.create(
-            audit_id=audit_id,
-            deal_id=self.deal_id,
-            tenant_id=tenant_id,
-            action=action,
-            actor_id=actor_id,
-            deal_version=new_version,
-            outcome=outcome,
-            at=at,
-            metadata=metadata,
-        )
-
-        timestamp = _dt(at)
 
         return replace(
             self,
-            version=new_version,
-            updated_at=timestamp,
-            audit_log=(
-                self.audit_log
-                + (audit,)
+            audit_log=self.audit_log + (
+                candidate,
             ),
+            version=self.version + 1,
+            updated_at=utc_datetime(at),
         )
 
     def to_dict(
         self,
+        *,
+        include_contract: bool = True,
     ) -> dict[str, Any]:
-        return {
+        payload = {
             "deal_id": self.deal_id,
             "identity_key": self.identity_key,
             "tenant_id": self.tenant_id,
@@ -1291,29 +1050,34 @@ class Deal:
             "version": self.version,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
-            "history": [
-                item.to_dict()
-                for item in self.history
-            ],
-            "source_of_truth": (
-                self.source_of_truth
+            "source_of_truth": self.source_of_truth,
+            "contract_schema_version": (
+                self.contract_schema_version
             ),
+            "history": [
+                entry.to_dict()
+                for entry in self.history
+            ],
+            "participants": [
+                participant.to_dict()
+                for participant in self.participants
+            ],
             "offers": [
-                item.to_dict()
-                for item in self.offers
+                offer.to_dict()
+                for offer in self.offers
             ],
             "negotiation": (
                 self.negotiation.to_dict()
-                if self.negotiation
+                if self.negotiation is not None
                 else None
             ),
             "milestones": [
-                item.to_dict()
-                for item in self.milestones
+                milestone.to_dict()
+                for milestone in self.milestones
             ],
             "ownership_binding": (
                 self.ownership_binding.to_dict()
-                if self.ownership_binding
+                if self.ownership_binding is not None
                 else None
             ),
             "evidence": [
@@ -1326,17 +1090,9 @@ class Deal:
             ],
         }
 
+        if include_contract:
+            payload["contract"] = (
+                DealContract.from_deal(self).to_dict()
+            )
 
-__all__ = [
-    "Deal",
-    "DealConcurrencyError",
-    "DealDomainError",
-    "DealHistoryEntry",
-    "DealPartyRelationship",
-    "DealPartyRole",
-    "DealReferenceConflictError",
-    "DealStatus",
-    "DealTenantError",
-    "DealTransitionError",
-    "DealValidationError",
-]
+        return payload
