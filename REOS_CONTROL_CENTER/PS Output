@@ -1,48 +1,28 @@
-IMPORT= D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py
-CREATE_OFFER= (self, *, tenant_id: 'str', expected_version: 'int', offer_id: 'str | None' = None, terms: 'Mapping[str, Any] | None' = None, supersedes_offer_id: 'str | None' = None, at: 'Any' = None) -> "'Deal'"
-START_NEGOTIATION= (self, *, tenant_id: 'str', expected_version: 'int', negotiation_id: 'str | None' = None, offer_id: 'str | None' = None, at: 'Any' = None) -> "'Deal'"
-ATTACH_EVIDENCE= (self, *, tenant_id: 'str', expected_version: 'int', evidence_type: 'str', reference: 'str', evidence_id: 'str | None' = None, actor_id: 'str | None' = None, metadata: 'Mapping[str, Any] | None' = None, at: 'Any' = None) -> "'Deal'"
 PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
-remote: Enumerating objects: 26, done.
-remote: Counting objects: 100% (26/26), done.
-remote: Compressing objects: 100% (18/18), done.
-remote: Total 18 (delta 14), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (18/18), 6.27 KiB | 86.00 KiB/s, done.
+remote: Enumerating objects: 7, done.
+remote: Counting objects: 100% (7/7), done.
+remote: Compressing objects: 100% (4/4), done.
+remote: Total 4 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (4/4), 1.58 KiB | 47.00 KiB/s, done.
 From https://github.com/prajaktaranjane80-sketch/Homio
  * branch            reos-development -> FETCH_HEAD
-   0c198a7..20d9c0f  reos-development -> origin/reos-development
+   20d9c0f..213156c  reos-development -> origin/reos-development
 PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git checkout origin/reos-development -- `
+>> AUTONOMY_ENGINE\core\deal_transaction\deal.py `
+>> AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_consistency.py `
+>> AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06.py
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -c "import inspect; from AUTONOMY_ENGINE.core.deal_transaction.deal import Deal; print('CREATE_OFFER=', inspect.signature(Deal.create_offer)); print('START_NEGOTIATION=', inspect.signature(Deal.start_negotiation)); print('ATTACH_EVIDENCE=', inspect.signature(Deal.attach_evidence))"
+CREATE_OFFER= (self, offer_id: 'str | None' = None, *, tenant_id: 'str', expected_version: 'int', terms: 'Mapping[str, Any] | None' = None, supersedes_offer_id: 'str | None' = None, at: 'Any' = None) -> "'Deal'"
+START_NEGOTIATION= (self, negotiation_id: 'str | None' = None, *, tenant_id: 'str', expected_version: 'int', offer_id: 'str | None' = None, at: 'Any' = None) -> "'Deal'"
+ATTACH_EVIDENCE= (self, evidence_id: 'str | None' = None, *, tenant_id: 'str', expected_version: 'int', evidence_type: 'str', reference: 'str', actor_id: 'str | None' = None, metadata: 'Mapping[str, Any] | None' = None, at: 'Any' = None) -> "'Deal'"
 PS D:\HOMIO\REOS_CONTROL_CENTER> python -m compileall AUTONOMY_ENGINE\core\deal_transaction -q
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06.py AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06_adversarial.py -q
-F..F..FFF..FFFF........                                                                                                                              [100%]
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest `
+>> AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06.py `
+>> AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06_adversarial.py -q
+...F...................                                                                                                                              [100%]
 ======================================================================== FAILURES =========================================================================
-_____________________________________________________________ test_create_and_full_lifecycle ______________________________________________________________
-
-    def test_create_and_full_lifecycle() -> None:
-        current = walk_to(
-            make_deal(),
-            DealStatus.MATCHED,
-            DealStatus.VISIT_PENDING,
-            DealStatus.VISITED,
-            DealStatus.OFFERED,
-            DealStatus.BOOKING_PENDING,
-            DealStatus.BOOKED,
-            DealStatus.AGREEMENT_PENDING,
-            DealStatus.AGREED,
-            DealStatus.REGISTRATION_PENDING,
-            DealStatus.REGISTERED,
-            DealStatus.COMPLETION_PENDING,
-            DealStatus.COMPLETED,
-        )
-
-        assert current.status is DealStatus.COMPLETED
->       assert len(current.history) == 14
-E       AssertionError: assert 13 == 14
-E        +  where 13 = len((DealHistoryEntry(history_id='dab4335c-e9d9-42d5-a537-ad8ebd6dd859', from_status=None, to_status=<DealStatus.QUALIFIED...PENDING'>, version=6, changed_at=datetime.datetime(2026, 9, 29, 6, 0, tzinfo=datetime.timezone.utc), reason=None), ...))
-E        +    where (DealHistoryEntry(history_id='dab4335c-e9d9-42d5-a537-ad8ebd6dd859', from_status=None, to_status=<DealStatus.QUALIFIED...PENDING'>, version=6, changed_at=datetime.datetime(2026, 9, 29, 6, 0, tzinfo=datetime.timezone.utc), reason=None), ...) = Deal(deal_id='d1', tenant_id='t1', customer_id='c1', broker_id='b1', builder_id='bu1', project_id='p1', unit_id='u1', ... relationship_version=1, lifecycle=<DealPartyLifecycle.ACTIVE: 'ACTIVE'>, metadata={})), contract_schema_version='1.0').history
-
-AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06.py:73: AssertionError
 ___________________________________________________________ test_offer_negotiation_booking_path ___________________________________________________________
 
     def test_offer_negotiation_booking_path() -> None:
@@ -53,523 +33,39 @@ ___________________________________________________________ test_offer_negotiati
             DealStatus.VISITED,
         )
 
->       current = current.create_offer(
+        current = current.create_offer(
             "o1",
             tenant_id="t1",
             expected_version=current.version,
             at=AT,
         )
-E       TypeError: Deal.create_offer() takes 1 positional argument but 2 positional arguments (and 3 keyword-only arguments) were given
 
-AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06.py:114: TypeError
-_____________________________________________________ test_ownership_is_external_authority_reference ______________________________________________________
-
-    def test_ownership_is_external_authority_reference() -> None:
-        current = make_deal()
-
->       updated = current.bind_ownership(
-            binding_id="bind-1",
-            lead_id="lead-1",
-            ownership_record_id="own-1",
-            owner_id="owner-1",
+        current = current.submit_offer(
+            "o1",
             tenant_id="t1",
             expected_version=current.version,
             at=AT,
         )
 
-AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06.py:202:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\deal_transaction\deal.py:933: in bind_ownership
-    return replace(
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\dataclasses.py:1588: in replace
-    return obj.__class__(**changes)
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-<string>:24: in __init__
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+        assert current.status is DealStatus.OFFERED
 
-self = Deal(deal_id='d1', tenant_id='t1', customer_id='c1', broker_id='b1', builder_id='bu1', project_id='p1', unit_id='u1', ... relationship_version=1, lifecycle=<DealPartyLifecycle.ACTIVE: 'ACTIVE'>, metadata={})), contract_schema_version='1.0')
-
-    def __post_init__(self) -> None:
-        for name in (
-            "deal_id",
-            "tenant_id",
-            "customer_id",
-            "broker_id",
-        ):
-            _require_id(getattr(self, name), name)
-
-        for name in (
-            "builder_id",
-            "project_id",
-            "unit_id",
-        ):
-            value = getattr(self, name)
-
-            if value is not None:
-                _require_id(value, name)
-
-        if self.version < 1:
-            raise DealValidationError(
-                "version must be >= 1."
-            )
-
-        if self.source_of_truth != "deal":
-            raise DealValidationError(
-                "Deal source_of_truth must remain 'deal'."
-            )
-
-        object.__setattr__(
-            self,
-            "status",
-            DealStatus(self.status),
-        )
-
-        previous_version = 0
-
-        for entry in self.history:
-            if entry.version != previous_version + 1:
-                raise DealValidationError(
-                    "Deal history versions must be contiguous."
-                )
-            previous_version = entry.version
-
-        if self.history and (
-            self.history[-1].version != self.version
-        ):
->           raise DealValidationError(
-                "Latest history version must equal Deal version."
-            )
-E           AUTONOMY_ENGINE.core.deal_transaction.deal.DealValidationError: Latest history version must equal Deal version.
-
-AUTONOMY_ENGINE\core\deal_transaction\deal.py:157: DealValidationError
-______________________________________________________ test_evidence_is_idempotent_and_conflict_safe ______________________________________________________
-
-    def test_evidence_is_idempotent_and_conflict_safe() -> None:
-        current = make_deal()
-
->       updated = current.attach_evidence(
-            "e1",
-            evidence_type="ORIGIN",
-            reference="ref://1",
-            tenant_id="t1",
-            expected_version=current.version,
-            at=AT,
-        )
-E       TypeError: Deal.attach_evidence() takes 1 positional argument but 2 positional arguments (and 5 keyword-only arguments) were given
-
-AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06.py:219: TypeError
-_______________________________________________________ test_audit_is_idempotent_and_conflict_safe ________________________________________________________
-
-    def test_audit_is_idempotent_and_conflict_safe() -> None:
-        current = make_deal()
-
->       updated = current.record_audit(
-            audit_id="a1",
-            action="CREATED",
-            actor_id="u1",
+        current = current.start_negotiation(
+            "n1",
             tenant_id="t1",
             expected_version=current.version,
             at=AT,
         )
 
-AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06.py:255:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\deal_transaction\deal.py:1026: in record_audit
-    return replace(
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\dataclasses.py:1588: in replace
-    return obj.__class__(**changes)
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-<string>:24: in __init__
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = Deal(deal_id='d1', tenant_id='t1', customer_id='c1', broker_id='b1', builder_id='bu1', project_id='p1', unit_id='u1', ... relationship_version=1, lifecycle=<DealPartyLifecycle.ACTIVE: 'ACTIVE'>, metadata={})), contract_schema_version='1.0')
-
-    def __post_init__(self) -> None:
-        for name in (
-            "deal_id",
-            "tenant_id",
-            "customer_id",
-            "broker_id",
-        ):
-            _require_id(getattr(self, name), name)
-
-        for name in (
-            "builder_id",
-            "project_id",
-            "unit_id",
-        ):
-            value = getattr(self, name)
-
-            if value is not None:
-                _require_id(value, name)
-
-        if self.version < 1:
-            raise DealValidationError(
-                "version must be >= 1."
-            )
-
-        if self.source_of_truth != "deal":
-            raise DealValidationError(
-                "Deal source_of_truth must remain 'deal'."
-            )
-
-        object.__setattr__(
-            self,
-            "status",
-            DealStatus(self.status),
-        )
-
-        previous_version = 0
-
-        for entry in self.history:
-            if entry.version != previous_version + 1:
-                raise DealValidationError(
-                    "Deal history versions must be contiguous."
-                )
-            previous_version = entry.version
-
-        if self.history and (
-            self.history[-1].version != self.version
-        ):
->           raise DealValidationError(
-                "Latest history version must equal Deal version."
-            )
-E           AUTONOMY_ENGINE.core.deal_transaction.deal.DealValidationError: Latest history version must equal Deal version.
-
-AUTONOMY_ENGINE\core\deal_transaction\deal.py:157: DealValidationError
-________________________________________________ test_aggregate_version_and_lifecycle_history_are_distinct ________________________________________________
-
-    def test_aggregate_version_and_lifecycle_history_are_distinct() -> None:
-        deal = make_deal()
-
->       updated = deal.bind_ownership(
-            binding_id="binding-001",
-            lead_id="lead-001",
-            ownership_record_id="ownership-001",
-            owner_id="owner-001",
-            tenant_id="tenant-001",
-            expected_version=deal.version,
+>       current = current.close_negotiation(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+            tenant_id="t1",
+            expected_version=current.version,
+            accepted=True,
             at=AT,
         )
+E       AttributeError: 'Deal' object has no attribute 'close_negotiation'. Did you mean: 'start_negotiation'?
 
-AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06_adversarial.py:67:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\deal_transaction\deal.py:933: in bind_ownership
-    return replace(
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\dataclasses.py:1588: in replace
-    return obj.__class__(**changes)
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-<string>:24: in __init__
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = Deal(deal_id='deal-001', tenant_id='tenant-001', customer_id='customer-001', broker_id='broker-001', builder_id='build... relationship_version=1, lifecycle=<DealPartyLifecycle.ACTIVE: 'ACTIVE'>, metadata={})), contract_schema_version='1.0')
-
-    def __post_init__(self) -> None:
-        for name in (
-            "deal_id",
-            "tenant_id",
-            "customer_id",
-            "broker_id",
-        ):
-            _require_id(getattr(self, name), name)
-
-        for name in (
-            "builder_id",
-            "project_id",
-            "unit_id",
-        ):
-            value = getattr(self, name)
-
-            if value is not None:
-                _require_id(value, name)
-
-        if self.version < 1:
-            raise DealValidationError(
-                "version must be >= 1."
-            )
-
-        if self.source_of_truth != "deal":
-            raise DealValidationError(
-                "Deal source_of_truth must remain 'deal'."
-            )
-
-        object.__setattr__(
-            self,
-            "status",
-            DealStatus(self.status),
-        )
-
-        previous_version = 0
-
-        for entry in self.history:
-            if entry.version != previous_version + 1:
-                raise DealValidationError(
-                    "Deal history versions must be contiguous."
-                )
-            previous_version = entry.version
-
-        if self.history and (
-            self.history[-1].version != self.version
-        ):
->           raise DealValidationError(
-                "Latest history version must equal Deal version."
-            )
-E           AUTONOMY_ENGINE.core.deal_transaction.deal.DealValidationError: Latest history version must equal Deal version.
-
-AUTONOMY_ENGINE\core\deal_transaction\deal.py:157: DealValidationError
-________________________________________________ test_evidence_mutation_does_not_corrupt_lifecycle_history ________________________________________________
-
-    def test_evidence_mutation_does_not_corrupt_lifecycle_history() -> None:
-        deal = make_deal()
-
->       updated = deal.attach_evidence(
-            tenant_id="tenant-001",
-            expected_version=deal.version,
-            evidence_type="CUSTOMER_ORIGIN",
-            reference="evidence://001",
-            evidence_id="evidence-001",
-            actor_id="user-001",
-            at=AT,
-        )
-
-AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06_adversarial.py:95:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\deal_transaction\deal.py:979: in attach_evidence
-    return replace(
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\dataclasses.py:1588: in replace
-    return obj.__class__(**changes)
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-<string>:24: in __init__
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = Deal(deal_id='deal-001', tenant_id='tenant-001', customer_id='customer-001', broker_id='broker-001', builder_id='build... relationship_version=1, lifecycle=<DealPartyLifecycle.ACTIVE: 'ACTIVE'>, metadata={})), contract_schema_version='1.0')
-
-    def __post_init__(self) -> None:
-        for name in (
-            "deal_id",
-            "tenant_id",
-            "customer_id",
-            "broker_id",
-        ):
-            _require_id(getattr(self, name), name)
-
-        for name in (
-            "builder_id",
-            "project_id",
-            "unit_id",
-        ):
-            value = getattr(self, name)
-
-            if value is not None:
-                _require_id(value, name)
-
-        if self.version < 1:
-            raise DealValidationError(
-                "version must be >= 1."
-            )
-
-        if self.source_of_truth != "deal":
-            raise DealValidationError(
-                "Deal source_of_truth must remain 'deal'."
-            )
-
-        object.__setattr__(
-            self,
-            "status",
-            DealStatus(self.status),
-        )
-
-        previous_version = 0
-
-        for entry in self.history:
-            if entry.version != previous_version + 1:
-                raise DealValidationError(
-                    "Deal history versions must be contiguous."
-                )
-            previous_version = entry.version
-
-        if self.history and (
-            self.history[-1].version != self.version
-        ):
->           raise DealValidationError(
-                "Latest history version must equal Deal version."
-            )
-E           AUTONOMY_ENGINE.core.deal_transaction.deal.DealValidationError: Latest history version must equal Deal version.
-
-AUTONOMY_ENGINE\core\deal_transaction\deal.py:157: DealValidationError
-_________________________________________________ test_audit_mutation_does_not_corrupt_lifecycle_history __________________________________________________
-
-    def test_audit_mutation_does_not_corrupt_lifecycle_history() -> None:
-        deal = make_deal()
-
->       updated = deal.record_audit(
-            tenant_id="tenant-001",
-            expected_version=deal.version,
-            action="DEAL_CREATED",
-            actor_id="user-001",
-            audit_id="audit-001",
-            at=AT,
-        )
-
-AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06_adversarial.py:120:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\deal_transaction\deal.py:1026: in record_audit
-    return replace(
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\dataclasses.py:1588: in replace
-    return obj.__class__(**changes)
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-<string>:24: in __init__
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = Deal(deal_id='deal-001', tenant_id='tenant-001', customer_id='customer-001', broker_id='broker-001', builder_id='build... relationship_version=1, lifecycle=<DealPartyLifecycle.ACTIVE: 'ACTIVE'>, metadata={})), contract_schema_version='1.0')
-
-    def __post_init__(self) -> None:
-        for name in (
-            "deal_id",
-            "tenant_id",
-            "customer_id",
-            "broker_id",
-        ):
-            _require_id(getattr(self, name), name)
-
-        for name in (
-            "builder_id",
-            "project_id",
-            "unit_id",
-        ):
-            value = getattr(self, name)
-
-            if value is not None:
-                _require_id(value, name)
-
-        if self.version < 1:
-            raise DealValidationError(
-                "version must be >= 1."
-            )
-
-        if self.source_of_truth != "deal":
-            raise DealValidationError(
-                "Deal source_of_truth must remain 'deal'."
-            )
-
-        object.__setattr__(
-            self,
-            "status",
-            DealStatus(self.status),
-        )
-
-        previous_version = 0
-
-        for entry in self.history:
-            if entry.version != previous_version + 1:
-                raise DealValidationError(
-                    "Deal history versions must be contiguous."
-                )
-            previous_version = entry.version
-
-        if self.history and (
-            self.history[-1].version != self.version
-        ):
->           raise DealValidationError(
-                "Latest history version must equal Deal version."
-            )
-E           AUTONOMY_ENGINE.core.deal_transaction.deal.DealValidationError: Latest history version must equal Deal version.
-
-AUTONOMY_ENGINE\core\deal_transaction\deal.py:157: DealValidationError
-____________________________________________________________ test_ownership_is_reference_only _____________________________________________________________
-
-    def test_ownership_is_reference_only() -> None:
-        deal = make_deal()
-
->       updated = deal.bind_ownership(
-            binding_id="binding-001",
-            lead_id="lead-001",
-            ownership_record_id="ownership-001",
-            owner_id="owner-001",
-            tenant_id="tenant-001",
-            expected_version=deal.version,
-            at=AT,
-        )
-
-AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06_adversarial.py:144:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\deal_transaction\deal.py:933: in bind_ownership
-    return replace(
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\dataclasses.py:1588: in replace
-    return obj.__class__(**changes)
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-<string>:24: in __init__
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = Deal(deal_id='deal-001', tenant_id='tenant-001', customer_id='customer-001', broker_id='broker-001', builder_id='build... relationship_version=1, lifecycle=<DealPartyLifecycle.ACTIVE: 'ACTIVE'>, metadata={})), contract_schema_version='1.0')
-
-    def __post_init__(self) -> None:
-        for name in (
-            "deal_id",
-            "tenant_id",
-            "customer_id",
-            "broker_id",
-        ):
-            _require_id(getattr(self, name), name)
-
-        for name in (
-            "builder_id",
-            "project_id",
-            "unit_id",
-        ):
-            value = getattr(self, name)
-
-            if value is not None:
-                _require_id(value, name)
-
-        if self.version < 1:
-            raise DealValidationError(
-                "version must be >= 1."
-            )
-
-        if self.source_of_truth != "deal":
-            raise DealValidationError(
-                "Deal source_of_truth must remain 'deal'."
-            )
-
-        object.__setattr__(
-            self,
-            "status",
-            DealStatus(self.status),
-        )
-
-        previous_version = 0
-
-        for entry in self.history:
-            if entry.version != previous_version + 1:
-                raise DealValidationError(
-                    "Deal history versions must be contiguous."
-                )
-            previous_version = entry.version
-
-        if self.history and (
-            self.history[-1].version != self.version
-        ):
->           raise DealValidationError(
-                "Latest history version must equal Deal version."
-            )
-E           AUTONOMY_ENGINE.core.deal_transaction.deal.DealValidationError: Latest history version must equal Deal version.
-
-AUTONOMY_ENGINE\core\deal_transaction\deal.py:157: DealValidationError
+AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06.py:137: AttributeError
 ================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_create_and_full_lifecycle - AssertionError: assert 13 == 14
-FAILED AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_offer_negotiation_booking_path - TypeError: Deal.create_offer() takes 1 positional argument but 2 positional arguments (and 3 keyword-only arguments) were given
-FAILED AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_ownership_is_external_authority_reference - AUTONOMY_ENGINE.core.deal_transaction.deal.DealValidationError: Latest history version must equal Deal version.
-FAILED AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_evidence_is_idempotent_and_conflict_safe - TypeError: Deal.attach_evidence() takes 1 positional argument but 2 positional arguments (and 5 keyword-only arguments) were given
-FAILED AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_audit_is_idempotent_and_conflict_safe - AUTONOMY_ENGINE.core.deal_transaction.deal.DealValidationError: Latest history version must equal Deal version.
-FAILED AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py::test_aggregate_version_and_lifecycle_history_are_distinct - AUTONOMY_ENGINE.core.deal_transaction.deal.DealValidationError: Latest history version must equal Deal version.
-FAILED AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py::test_evidence_mutation_does_not_corrupt_lifecycle_history - AUTONOMY_ENGINE.core.deal_transaction.deal.DealValidationError: Latest history version must equal Deal version.
-FAILED AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py::test_audit_mutation_does_not_corrupt_lifecycle_history - AUTONOMY_ENGINE.core.deal_transaction.deal.DealValidationError: Latest history version must equal Deal version.
-FAILED AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06_adversarial.py::test_ownership_is_reference_only - AUTONOMY_ENGINE.core.deal_transaction.deal.DealValidationError: Latest history version must equal Deal version.
-9 failed, 14 passed in 0.69s
+FAILED AUTONOMY_ENGINE/core/deal_transaction/test_core006_t01_t06.py::test_offer_negotiation_booking_path - AttributeError: 'Deal' object has no attribute 'close_negotiation'. Did you mean: 'start_negotiation'?
+1 failed, 22 passed in 0.27s
