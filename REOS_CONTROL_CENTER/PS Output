@@ -1,296 +1,215 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== T03 TARGETED ==="
-=== T03 TARGETED ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest `
->>     "AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py" `
->>     -q --tb=short
-.........FFFFF........F.....                                                                                                                         [100%]
-======================================================================== FAILURES =========================================================================
-_____________________________________________________________ test_fraud_tripwire_is_critical _____________________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:260: in test_fraud_tripwire_is_critical
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-____________________________________________________________ test_high_fraud_severity_matches _____________________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:282: in test_high_fraud_severity_matches
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-___________________________________________________ test_review_fraud_does_not_match_high_severity_rule ___________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:304: in test_review_fraud_does_not_match_high_severity_rule
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-________________________________________________________ test_evidence_conflict_gets_critical_rule ________________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:325: in test_evidence_conflict_gets_critical_rule
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-____________________________________________________ test_multiple_matches_are_accumulated_and_capped _____________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:346: in test_multiple_matches_are_accumulated_and_capped
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-_______________________________________________________ test_evidence_is_preserved_in_rule_finding ________________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:514: in test_evidence_is_preserved_in_rule_finding
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_fraud_tripwire_is_critical - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_high_fraud_severity_matches - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_review_fraud_does_not_match_high_severity_rule - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_evidence_conflict_gets_critical_rule - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_multiple_matches_are_accumulated_and_capped - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_evidence_is_preserved_in_rule_finding - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-6 failed, 22 passed in 0.47s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "FAIL: T03 targeted tests."
->> }
-FAIL: T03 targeted tests.
-At line:2 char:5
-+     throw "FAIL: T03 targeted tests."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (FAIL: T03 targeted tests.:String) [], RuntimeException
-    + FullyQualifiedErrorId : FAIL: T03 targeted tests.
-
+>> ForEach-Object { "{0}: {1}" -f $i++,$_ }
+575:
+576:             self.trust_score.assert_scope(
+577:                 tenant_id=self.tenant_id,
+578:                 subject_id=self.subject_id,
+579:             )
+580:
+581:         if self.fraud_assessment is not None:
+582:             if not isinstance(
+583:                 self.fraud_assessment,
+584:                 FraudAssessment,
+585:             ):
+586:                 raise RiskRuleValidationError(
+587:                     "fraud_assessment must be FraudAssessment"
+588:                 )
+589:
+590:             if (
+591:                 self.fraud_assessment.source_of_truth
+592:                 != "fraud_detection"
+593:             ):
+594:                 raise RiskRuleValidationError(
+595:                     "Invalid FraudAssessment source_of_truth"
+596:                 )
+597:
+598:             if (
+599:                 self.fraud_assessment.tenant_id
+600:                 != self.tenant_id
+601:                 or self.fraud_assessment.subject_id
+602:                 != self.subject_id
+603:             ):
+604:                 raise RiskRuleScopeError(
+605:                     "FraudAssessment crosses tenant or subject scope"
+606:                 )
+607:
+608:     @property
+609:     def input_fingerprint(self) -> str:
+610:         return _fingerprint(
+611:             {
+612:                 "tenant_id": self.tenant_id,
+613:                 "subject_id": self.subject_id,
+614:                 "action_id": self.action_id,
+615:                 "trust_score": (
+616:                     self.trust_score.to_dict()
+617:                     if self.trust_score
+618:                     else None
+619:                 ),
+620:                 "fraud_assessment": (
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== TRUST/FRAUD/GOVERNANCE PACKAGE ==="
-=== TRUST/FRAUD/GOVERNANCE PACKAGE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest `
->>     "AUTONOMY_ENGINE\core\trust_fraud_governance" `
->>     -q --tb=short
-.....................................................................FFFFF........F.....                                                             [100%]
-======================================================================== FAILURES =========================================================================
-_____________________________________________________________ test_fraud_tripwire_is_critical _____________________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:260: in test_fraud_tripwire_is_critical
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-____________________________________________________________ test_high_fraud_severity_matches _____________________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:282: in test_high_fraud_severity_matches
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-___________________________________________________ test_review_fraud_does_not_match_high_severity_rule ___________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:304: in test_review_fraud_does_not_match_high_severity_rule
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-________________________________________________________ test_evidence_conflict_gets_critical_rule ________________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:325: in test_evidence_conflict_gets_critical_rule
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-____________________________________________________ test_multiple_matches_are_accumulated_and_capped _____________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:346: in test_multiple_matches_are_accumulated_and_capped
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-_______________________________________________________ test_evidence_is_preserved_in_rule_finding ________________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:514: in test_evidence_is_preserved_in_rule_finding
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_fraud_tripwire_is_critical - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_high_fraud_severity_matches - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_review_fraud_does_not_match_high_severity_rule - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_evidence_conflict_gets_critical_rule - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_multiple_matches_are_accumulated_and_capped - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_evidence_is_preserved_in_rule_finding - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-6 failed, 82 passed in 0.54s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "FAIL: trust_fraud_governance regression."
->> }
-FAIL: trust_fraud_governance regression.
-At line:2 char:5
-+     throw "FAIL: trust_fraud_governance regression."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (FAIL: trust_fraud_governance regression.:String) [], RuntimeException
-    + FullyQualifiedErrorId : FAIL: trust_fraud_governance regression.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== FULL CORE REGRESSION ==="
-=== FULL CORE REGRESSION ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest `
->>     "AUTONOMY_ENGINE\core" `
->>     -q --tb=short
-.................................................................................................................................................... [ 18%]
-.................................................................................................................................................... [ 37%]
-.................................................................................................................................................... [ 56%]
-.................................................................................................................................................... [ 75%]
-.................................................................................................................................................... [ 94%]
-......................FFFFF........F.....                                                                                                            [100%]
-======================================================================== FAILURES =========================================================================
-_____________________________________________________________ test_fraud_tripwire_is_critical _____________________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:260: in test_fraud_tripwire_is_critical
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-____________________________________________________________ test_high_fraud_severity_matches _____________________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:282: in test_high_fraud_severity_matches
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-___________________________________________________ test_review_fraud_does_not_match_high_severity_rule ___________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:304: in test_review_fraud_does_not_match_high_severity_rule
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-________________________________________________________ test_evidence_conflict_gets_critical_rule ________________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:325: in test_evidence_conflict_gets_critical_rule
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-____________________________________________________ test_multiple_matches_are_accumulated_and_capped _____________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:346: in test_multiple_matches_are_accumulated_and_capped
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-_______________________________________________________ test_evidence_is_preserved_in_rule_finding ________________________________________________________
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:514: in test_evidence_is_preserved_in_rule_finding
-    context=context(
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:139: in context
-    return RiskEvaluationContext(
-<string>:8: in __init__
-    ???
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:604: in __post_init__
-    raise RiskRuleScopeError(
-E   AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_fraud_tripwire_is_critical - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_high_fraud_severity_matches - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_review_fraud_does_not_match_high_severity_rule - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_evidence_conflict_gets_critical_rule - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_multiple_matches_are_accumulated_and_capped - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_evidence_is_preserved_in_rule_finding - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: FraudAssessment crosses tenant or subject scope
-6 failed, 775 passed in 4.82s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "FAIL: full CORE regression."
->> }
-FAIL: full CORE regression.
-At line:2 char:5
-+     throw "FAIL: full CORE regression."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (FAIL: full CORE regression.:String) [], RuntimeException
-    + FullyQualifiedErrorId : FAIL: full CORE regression.
-
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== T03 TEST SETUP 235-355 ==="
+=== T03 TEST SETUP 235-355 ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> $i=235
+PS D:\HOMIO\REOS_CONTROL_CENTER> (Get-Content "AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py")[234..354] |
+>> ForEach-Object { "{0}: {1}" -f $i++,$_ }
+235:
+236:
+237: def test_high_trust_does_not_match_low_trust_rule() -> None:
+238:     result = RiskRuleEngine().evaluate(
+239:         context=context(
+240:             trust_score=TRUST_SCORE_HIGH,
+241:         ),
+242:         evaluated_at=NOW,
+243:     )
+244:
+245:     assert result.total_score == 0
+246:     assert result.level == RiskLevel.LOW
+247:
+248:
+249: def test_fraud_tripwire_is_critical() -> None:
+250:     fraud = make_fraud_assessment(
+251:         tripwire=True,
+252:         finding=make_finding(
+253:             code=FraudFindingCode.GPS_MOCK_LOCATION,
+254:             severity=FraudSeverity.CRITICAL,
+255:             evidence="evidence:mock",
+256:         ),
+257:     )
+258:
+259:     result = RiskRuleEngine().evaluate(
+260:         context=context(
+261:             fraud_assessment=fraud,
+262:         ),
+263:         evaluated_at=NOW,
+264:     )
+265:
+266:     assert result.level == RiskLevel.CRITICAL
+267:     assert result.total_score == 100
+268:     assert "RISK-FRAUD-TRIPWIRE" in result.matched_rule_ids
+269:
+270:
+271: def test_high_fraud_severity_matches() -> None:
+272:     fraud = make_fraud_assessment(
+273:         tripwire=False,
+274:         finding=make_finding(
+275:             code=FraudFindingCode.GPS_PROXY_DETECTED,
+276:             severity=FraudSeverity.HIGH,
+277:             evidence="evidence:proxy",
+278:         ),
+279:     )
+280:
+281:     result = RiskRuleEngine().evaluate(
+282:         context=context(
+283:             fraud_assessment=fraud,
+284:         ),
+285:         evaluated_at=NOW,
+286:     )
+287:
+288:     assert result.level == RiskLevel.HIGH
+289:     assert result.total_score == 70
+290:     assert "RISK-FRAUD-HIGH" in result.matched_rule_ids
+291:
+292:
+293: def test_review_fraud_does_not_match_high_severity_rule() -> None:
+294:     fraud = make_fraud_assessment(
+295:         tripwire=False,
+296:         finding=make_finding(
+297:             code=FraudFindingCode.HANDOFF_DUPLICATE_LEAD,
+298:             severity=FraudSeverity.REVIEW,
+299:             evidence="evidence:review",
+300:         ),
+301:     )
+302:
+303:     result = RiskRuleEngine().evaluate(
+304:         context=context(
+305:             fraud_assessment=fraud,
+306:         ),
+307:         evaluated_at=NOW,
+308:     )
+309:
+310:     assert result.total_score == 0
+311:     assert result.level == RiskLevel.LOW
+312:
+313:
+314: def test_evidence_conflict_gets_critical_rule() -> None:
+315:     fraud = make_fraud_assessment(
+316:         tripwire=False,
+317:         finding=make_finding(
+318:             code=FraudFindingCode.HANDOFF_EVIDENCE_CONFLICT,
+319:             severity=FraudSeverity.REVIEW,
+320:             evidence="evidence:conflict",
+321:         ),
+322:     )
+323:
+324:     result = RiskRuleEngine().evaluate(
+325:         context=context(
+326:             fraud_assessment=fraud,
+327:         ),
+328:         evaluated_at=NOW,
+329:     )
+330:
+331:     assert result.level == RiskLevel.CRITICAL
+332:     assert "RISK-EVIDENCE-CONFLICT" in result.matched_rule_ids
+333:
+334:
+335: def test_multiple_matches_are_accumulated_and_capped() -> None:
+336:     fraud = make_fraud_assessment(
+337:         tripwire=True,
+338:         finding=make_finding(
+339:             code=FraudFindingCode.HANDOFF_EVIDENCE_CONFLICT,
+340:             severity=FraudSeverity.CRITICAL,
+341:             evidence="evidence:conflict",
+342:         ),
+343:     )
+344:
+345:     result = RiskRuleEngine().evaluate(
+346:         context=context(
+347:             trust_score=TRUST_SCORE_LOW,
+348:             fraud_assessment=fraud,
+349:         ),
+350:         evaluated_at=NOW,
+351:     )
+352:
+353:     assert result.total_score == 100
+354:     assert result.level == RiskLevel.CRITICAL
+355:     assert set(result.matched_rule_ids) == {
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== T03 GIT STATUS ==="
-=== T03 GIT STATUS ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short -- `
->>     "AUTONOMY_ENGINE\core\trust_fraud_governance"
- M AUTONOMY_ENGINE/core/trust_fraud_governance/__init__.py
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=============================================="
-==============================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "T03 IMPLEMENTATION + REGRESSION COMPLETE"
-T03 IMPLEMENTATION + REGRESSION COMPLETE
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "DO NOT COMMIT YET"
-DO NOT COMMIT YET
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "DO NOT COMPLETE-SUBTASK YET"
-DO NOT COMPLETE-SUBTASK YET
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=============================================="
-==============================================
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== T03 TEST 490-520 ==="
+=== T03 TEST 490-520 ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> $i=490
+PS D:\HOMIO\REOS_CONTROL_CENTER> (Get-Content "AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py")[489..519] |
+>> ForEach-Object { "{0}: {1}" -f $i++,$_ }
+490:     assert "policy_decision" not in payload
+491:     assert "approval" not in payload
+492:
+493:
+494: def test_model_version_is_explicit() -> None:
+495:     result = RiskRuleEngine().evaluate(
+496:         context=context(),
+497:         evaluated_at=NOW,
+498:     )
+499:
+500:     assert result.model_version == RISK_RULE_MODEL_VERSION
+501:
+502:
+503: def test_evidence_is_preserved_in_rule_finding() -> None:
+504:     fraud = make_fraud_assessment(
+505:         tripwire=True,
+506:         finding=make_finding(
+507:             code=FraudFindingCode.GPS_MOCK_LOCATION,
+508:             severity=FraudSeverity.CRITICAL,
+509:             evidence="evidence:gps-001",
+510:         ),
+511:     )
+512:
+513:     result = RiskRuleEngine().evaluate(
+514:         context=context(
+515:             fraud_assessment=fraud,
+516:         ),
+517:         evaluated_at=NOW,
+518:     )
+519:
+520:     assert result.findings
