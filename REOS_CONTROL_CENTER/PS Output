@@ -1,658 +1,74 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $text.Contains($old)) {
->>     throw "Expected old T07 fixture was not found. STOP."
->> }
-Expected old T07 fixture was not found. STOP.
-At line:2 char:5
-+     throw "Expected old T07 fixture was not found. STOP."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Expected old T0...ot found. STOP.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Expected old T07 fixture was not found. STOP.
-
+PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
+remote: Enumerating objects: 81, done.
+remote: Counting objects: 100% (81/81), done.
+remote: Compressing objects: 100% (76/76), done.
+remote: Total 76 (delta 63), reused 0 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (76/76), 14.53 KiB | 29.00 KiB/s, done.
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+   d8822f7..fc149ff  reos-development -> origin/reos-development
+PS D:\HOMIO\REOS_CONTROL_CENTER> git checkout reos-development
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/projection_sync.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/reos_integration.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_consistency.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_domain.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py
+M       REOS_CONTROL_CENTER/PS Output
+Already on 'reos-development'
+Your branch is behind 'origin/reos-development' by 13 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+PS D:\HOMIO\REOS_CONTROL_CENTER> git pull --ff-only origin reos-development
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+Updating d8822f7..fc149ff
+error: Your local changes to the following files would be overwritten by merge:
+        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/projection_sync.py
+        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
+        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/reos_integration.py
+        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_consistency.py
+        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_domain.py
+        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py
+        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py
+Please commit your changes or stash them before you merge.
+Aborting
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $text = $text.Replace($old, $new)
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # last_transaction_milestone is a property.
-PS D:\HOMIO\REOS_CONTROL_CENTER> $text = $text.Replace(
->>     "deal.last_transaction_milestone()",
->>     "deal.last_transaction_milestone"
->> )
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Content $RecoveryTest $text -Encoding UTF8
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== 2. SHOW PATCHED FIXTURE ===" -ForegroundColor Cyan
-=== 2. SHOW PATCHED FIXTURE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Select-String -Path $RecoveryTest `
->>     -Pattern "advance_transaction_milestone|last_transaction_milestone" `
->>     -Context 2,5
-
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:44:def
-test_event_is_derived_from_authoritative_milestone() -> None:
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:45:    deal = make_deal()
-> AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:46:    milestone = deal.last_transaction_milestone
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:47:
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:48:    assert milestone is not None
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:49:
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:50:    event =
-DealTransactionEvent.from_milestone(milestone)
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:51:
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:62:def test_event_identity_is_stable_for_replay() ->
-None:
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:63:    deal = make_deal()
-> AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:64:    milestone = deal.last_transaction_milestone
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:65:
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:66:    assert milestone is not None
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:67:
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:68:    first =
-DealTransactionEvent.from_milestone(milestone)
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:69:    second =
-DealTransactionEvent.from_milestone(milestone)
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:76:def test_event_scope_is_tenant_and_deal_bound() ->
-None:
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:77:    deal = make_deal()
-> AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:78:    milestone = deal.last_transaction_milestone
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:79:
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:80:    assert milestone is not None
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:81:
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:82:    event =
-transaction_event_from_milestone(milestone)
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:83:
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:97:def test_event_serialization_is_canonical() -> None:
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:98:    deal = make_deal()
-> AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:99:    milestone = deal.last_transaction_milestone
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:100:
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:101:    assert milestone is not None
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:102:
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:103:    data = DealTransactionEvent.from_milestone(
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:104:        milestone
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:124:    deal = make_deal()
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:125:
-> AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:126:    next_deal = deal.advance_transaction_milestone(
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:127:        target="BOOKED",
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:128:        tenant_id="tenant-001",
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:129:        expected_version=deal.version,
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:130:        reference_id="booking-002",
-  AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:131:    )
-
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== 3. T07 REAL TEST ===" -ForegroundColor Cyan
-=== 3. T07 REAL TEST ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest $RecoveryTest -q
-FFFFF                                                                                                                                                [100%]
-======================================================================== FAILURES =========================================================================
-___________________________________________________ test_event_is_derived_from_authoritative_milestone ____________________________________________________
-
-    def test_event_is_derived_from_authoritative_milestone() -> None:
-        deal = make_deal()
-        milestone = deal.last_transaction_milestone
-
->       assert milestone is not None
-E       assert None is not None
-
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:48: AssertionError
-________________________________________________________ test_event_identity_is_stable_for_replay _________________________________________________________
-
-    def test_event_identity_is_stable_for_replay() -> None:
-        deal = make_deal()
-        milestone = deal.last_transaction_milestone
-
->       assert milestone is not None
-E       assert None is not None
-
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:66: AssertionError
-________________________________________________________ test_event_scope_is_tenant_and_deal_bound ________________________________________________________
-
-    def test_event_scope_is_tenant_and_deal_bound() -> None:
-        deal = make_deal()
-        milestone = deal.last_transaction_milestone
-
->       assert milestone is not None
-E       assert None is not None
-
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:80: AssertionError
-__________________________________________________________ test_event_serialization_is_canonical __________________________________________________________
-
-    def test_event_serialization_is_canonical() -> None:
-        deal = make_deal()
-        milestone = deal.last_transaction_milestone
-
->       assert milestone is not None
-E       assert None is not None
-
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:101: AssertionError
-_________________________________________________ test_multiple_milestones_create_distinct_ordered_events _________________________________________________
-
-    def test_multiple_milestones_create_distinct_ordered_events() -> None:
-        deal = make_deal()
-
->       next_deal = deal.advance_transaction_milestone(
-            target="BOOKED",
-            tenant_id="tenant-001",
-            expected_version=deal.version,
-            reference_id="booking-002",
-        )
-
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:126:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\deal.py:804: in advance_transaction_milestone
-    updated = self.transition(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = Deal(deal_id='45a0956b-f243-41d5-9cff-22c50e516fcc', tenant_id='tenant-001', customer_id='customer-001', broker_id='br... source_of_truth='deal', offers=(), negotiation=None, milestones=(), ownership_binding=None, evidence=(), audit_log=())
-target = <DealStatus.BOOKED: 'BOOKED'>, tenant_id = 'tenant-001', expected_version = 6, reason = None, at = None
-
-    def transition(
-        self,
-        target: DealStatus | str,
-        *,
-        tenant_id: str,
-        expected_version: int | None = None,
-        reason: str | None = None,
-        at: datetime | str | None = None,
-    ) -> "Deal":
-        self._assert_tenant(tenant_id)
-        self._assert_version(expected_version)
-
-        target = DealStatus(target)
-
-        if target == self.status:
-            raise DealTransitionError(
-                "Deal cannot transition to its current status."
-            )
-
-        allowed = set(
-            _NOMINAL_TRANSITIONS.get(
-                self.status,
-                frozenset(),
-            )
-        )
-
-        if target == DealStatus.CANCELLED and self.status in _NON_TERMINAL_STATES:
-            allowed.add(target)
-
-        if target == DealStatus.EXPIRED and self.status in _PRE_BOOKING_EXPIRY_STATES:
-            allowed.add(target)
-
-        if target == DealStatus.REJECTED and self.status in _REJECTION_STATES:
-            allowed.add(target)
-
-        if target == DealStatus.FRAUD_BLOCKED and self.status in _NON_TERMINAL_STATES:
-            allowed.add(target)
-
-        if target == DealStatus.DISPUTED and self.status in _DISPUTE_STATES:
-            allowed.add(target)
-
-        if target not in allowed:
->           raise DealTransitionError(
-                f"Invalid Deal transition: "
-                f"{self.status.value} -> {target.value}."
-            )
-E           AUTONOMY_ENGINE.core.deal.DealTransitionError: Invalid Deal transition: OFFERED -> BOOKED.
-
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\deal.py:1163: DealTransitionError
-================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_is_derived_from_authoritative_milestone - assert None is not None
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_identity_is_stable_for_replay - assert None is not None
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_scope_is_tenant_and_deal_bound - assert None is not None
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_serialization_is_canonical - assert None is not None
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_multiple_milestones_create_distinct_ordered_events - AUTONOMY_ENGINE.core.deal.DealTransitionError: Invalid Deal transition: OFFERED -> BOOKED.
-5 failed in 0.18s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "T07 FAILED. STOP - nothing will be committed."
->> }
-T07 FAILED. STOP - nothing will be committed.
-At line:2 char:5
-+     throw "T07 FAILED. STOP - nothing will be committed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (T07 FAILED. STO...l be committed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : T07 FAILED. STOP - nothing will be committed.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== 4. FULL RECOVERED CORE-006 ===" -ForegroundColor Cyan
-=== 4. FULL RECOVERED CORE-006 ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest "$Root\AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV" -q
-...........................................................................................FFFFF............                                         [100%]
-======================================================================== FAILURES =========================================================================
-___________________________________________________ test_event_is_derived_from_authoritative_milestone ____________________________________________________
-
-    def test_event_is_derived_from_authoritative_milestone() -> None:
-        deal = make_deal()
-        milestone = deal.last_transaction_milestone
-
->       assert milestone is not None
-E       assert None is not None
-
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:48: AssertionError
-________________________________________________________ test_event_identity_is_stable_for_replay _________________________________________________________
-
-    def test_event_identity_is_stable_for_replay() -> None:
-        deal = make_deal()
-        milestone = deal.last_transaction_milestone
-
->       assert milestone is not None
-E       assert None is not None
-
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:66: AssertionError
-________________________________________________________ test_event_scope_is_tenant_and_deal_bound ________________________________________________________
-
-    def test_event_scope_is_tenant_and_deal_bound() -> None:
-        deal = make_deal()
-        milestone = deal.last_transaction_milestone
-
->       assert milestone is not None
-E       assert None is not None
-
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:80: AssertionError
-__________________________________________________________ test_event_serialization_is_canonical __________________________________________________________
-
-    def test_event_serialization_is_canonical() -> None:
-        deal = make_deal()
-        milestone = deal.last_transaction_milestone
-
->       assert milestone is not None
-E       assert None is not None
-
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:101: AssertionError
-_________________________________________________ test_multiple_milestones_create_distinct_ordered_events _________________________________________________
-
-    def test_multiple_milestones_create_distinct_ordered_events() -> None:
-        deal = make_deal()
-
->       next_deal = deal.advance_transaction_milestone(
-            target="BOOKED",
-            tenant_id="tenant-001",
-            expected_version=deal.version,
-            reference_id="booking-002",
-        )
-
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\test_deal_transaction_events.py:126:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\deal.py:804: in advance_transaction_milestone
-    updated = self.transition(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = Deal(deal_id='a40b2c40-e105-4bbc-91d8-60616fff2459', tenant_id='tenant-001', customer_id='customer-001', broker_id='br... source_of_truth='deal', offers=(), negotiation=None, milestones=(), ownership_binding=None, evidence=(), audit_log=())
-target = <DealStatus.BOOKED: 'BOOKED'>, tenant_id = 'tenant-001', expected_version = 6, reason = None, at = None
-
-    def transition(
-        self,
-        target: DealStatus | str,
-        *,
-        tenant_id: str,
-        expected_version: int | None = None,
-        reason: str | None = None,
-        at: datetime | str | None = None,
-    ) -> "Deal":
-        self._assert_tenant(tenant_id)
-        self._assert_version(expected_version)
-
-        target = DealStatus(target)
-
-        if target == self.status:
-            raise DealTransitionError(
-                "Deal cannot transition to its current status."
-            )
-
-        allowed = set(
-            _NOMINAL_TRANSITIONS.get(
-                self.status,
-                frozenset(),
-            )
-        )
-
-        if target == DealStatus.CANCELLED and self.status in _NON_TERMINAL_STATES:
-            allowed.add(target)
-
-        if target == DealStatus.EXPIRED and self.status in _PRE_BOOKING_EXPIRY_STATES:
-            allowed.add(target)
-
-        if target == DealStatus.REJECTED and self.status in _REJECTION_STATES:
-            allowed.add(target)
-
-        if target == DealStatus.FRAUD_BLOCKED and self.status in _NON_TERMINAL_STATES:
-            allowed.add(target)
-
-        if target == DealStatus.DISPUTED and self.status in _DISPUTE_STATES:
-            allowed.add(target)
-
-        if target not in allowed:
->           raise DealTransitionError(
-                f"Invalid Deal transition: "
-                f"{self.status.value} -> {target.value}."
-            )
-E           AUTONOMY_ENGINE.core.deal.DealTransitionError: Invalid Deal transition: OFFERED -> BOOKED.
-
-AUTONOMY_ENGINE\core\CORE-006_REGRESSION_ENV\AUTONOMY_ENGINE\core\deal.py:1163: DealTransitionError
-================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_is_derived_from_authoritative_milestone - assert None is not None
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_identity_is_stable_for_replay - assert None is not None
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_scope_is_tenant_and_deal_bound - assert None is not None
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_serialization_is_canonical - assert None is not None
-FAILED AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_multiple_milestones_create_distinct_ordered_events - AUTONOMY_ENGINE.core.deal.DealTransitionError: Invalid Deal transition: OFFERED -> BOOKED.
-5 failed, 103 passed in 0.38s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "Recovered CORE-006 FAILED. STOP - nothing will be committed."
->> }
-Recovered CORE-006 FAILED. STOP - nothing will be committed.
-At line:2 char:5
-+     throw "Recovered CORE-006 FAILED. STOP - nothing will be committe ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Recovered CORE-...l be committed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Recovered CORE-006 FAILED. STOP - nothing will be committed.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== 5. SYNC VERIFIED T07 TO CANONICAL CORE ===" -ForegroundColor Cyan
-=== 5. SYNC VERIFIED T07 TO CANONICAL CORE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Copy-Item $RecoveryTest $CanonicalTest -Force
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== 6. CANONICAL CORE-006 TESTS ===" -ForegroundColor Cyan
-=== 6. CANONICAL CORE-006 TESTS ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $CanonicalTests = @(
->>     "$CanonicalCore\test_deal.py",
->>     "$CanonicalCore\test_deal_evidence_audit.py",
->>     "$CanonicalCore\test_deal_final_hardening.py",
->>     "$CanonicalCore\test_deal_offer_negotiation.py",
->>     "$CanonicalCore\test_deal_ownership_integration.py",
->>     "$CanonicalCore\test_deal_parties.py",
->>     "$CanonicalCore\test_deal_transaction_events.py",
->>     "$CanonicalCore\test_deal_transaction_milestones.py"
->> )
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest $CanonicalTests -q
-...........................................................................................FFFFF............                                         [100%]
-======================================================================== FAILURES =========================================================================
-___________________________________________________ test_event_is_derived_from_authoritative_milestone ____________________________________________________
-
-    def test_event_is_derived_from_authoritative_milestone() -> None:
-        deal = make_deal()
-        milestone = deal.last_transaction_milestone
-
->       assert milestone is not None
-E       assert None is not None
-
-AUTONOMY_ENGINE\core\test_deal_transaction_events.py:48: AssertionError
-________________________________________________________ test_event_identity_is_stable_for_replay _________________________________________________________
-
-    def test_event_identity_is_stable_for_replay() -> None:
-        deal = make_deal()
-        milestone = deal.last_transaction_milestone
-
->       assert milestone is not None
-E       assert None is not None
-
-AUTONOMY_ENGINE\core\test_deal_transaction_events.py:66: AssertionError
-________________________________________________________ test_event_scope_is_tenant_and_deal_bound ________________________________________________________
-
-    def test_event_scope_is_tenant_and_deal_bound() -> None:
-        deal = make_deal()
-        milestone = deal.last_transaction_milestone
-
->       assert milestone is not None
-E       assert None is not None
-
-AUTONOMY_ENGINE\core\test_deal_transaction_events.py:80: AssertionError
-__________________________________________________________ test_event_serialization_is_canonical __________________________________________________________
-
-    def test_event_serialization_is_canonical() -> None:
-        deal = make_deal()
-        milestone = deal.last_transaction_milestone
-
->       assert milestone is not None
-E       assert None is not None
-
-AUTONOMY_ENGINE\core\test_deal_transaction_events.py:101: AssertionError
-_________________________________________________ test_multiple_milestones_create_distinct_ordered_events _________________________________________________
-
-    def test_multiple_milestones_create_distinct_ordered_events() -> None:
-        deal = make_deal()
-
->       next_deal = deal.advance_transaction_milestone(
-            target="BOOKED",
-            tenant_id="tenant-001",
-            expected_version=deal.version,
-            reference_id="booking-002",
-        )
-
-AUTONOMY_ENGINE\core\test_deal_transaction_events.py:126:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\deal.py:804: in advance_transaction_milestone
-    updated = self.transition(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = Deal(deal_id='54ba179a-d8b0-4b67-8942-b0c20d392884', tenant_id='tenant-001', customer_id='customer-001', broker_id='br... source_of_truth='deal', offers=(), negotiation=None, milestones=(), ownership_binding=None, evidence=(), audit_log=())
-target = <DealStatus.BOOKED: 'BOOKED'>, tenant_id = 'tenant-001', expected_version = 6, reason = None, at = None
-
-    def transition(
-        self,
-        target: DealStatus | str,
-        *,
-        tenant_id: str,
-        expected_version: int | None = None,
-        reason: str | None = None,
-        at: datetime | str | None = None,
-    ) -> "Deal":
-        self._assert_tenant(tenant_id)
-        self._assert_version(expected_version)
-
-        target = DealStatus(target)
-
-        if target == self.status:
-            raise DealTransitionError(
-                "Deal cannot transition to its current status."
-            )
-
-        allowed = set(
-            _NOMINAL_TRANSITIONS.get(
-                self.status,
-                frozenset(),
-            )
-        )
-
-        if target == DealStatus.CANCELLED and self.status in _NON_TERMINAL_STATES:
-            allowed.add(target)
-
-        if target == DealStatus.EXPIRED and self.status in _PRE_BOOKING_EXPIRY_STATES:
-            allowed.add(target)
-
-        if target == DealStatus.REJECTED and self.status in _REJECTION_STATES:
-            allowed.add(target)
-
-        if target == DealStatus.FRAUD_BLOCKED and self.status in _NON_TERMINAL_STATES:
-            allowed.add(target)
-
-        if target == DealStatus.DISPUTED and self.status in _DISPUTE_STATES:
-            allowed.add(target)
-
-        if target not in allowed:
->           raise DealTransitionError(
-                f"Invalid Deal transition: "
-                f"{self.status.value} -> {target.value}."
-            )
-E           AUTONOMY_ENGINE.core.deal.DealTransitionError: Invalid Deal transition: OFFERED -> BOOKED.
-
-AUTONOMY_ENGINE\core\deal.py:1163: DealTransitionError
-================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_is_derived_from_authoritative_milestone - assert None is not None
-FAILED AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_identity_is_stable_for_replay - assert None is not None
-FAILED AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_scope_is_tenant_and_deal_bound - assert None is not None
-FAILED AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_event_serialization_is_canonical - assert None is not None
-FAILED AUTONOMY_ENGINE/core/test_deal_transaction_events.py::test_multiple_milestones_create_distinct_ordered_events - AUTONOMY_ENGINE.core.deal.DealTransitionError: Invalid Deal transition: OFFERED -> BOOKED.
-5 failed, 103 passed in 0.77s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "Canonical CORE-006 FAILED. STOP - nothing will be committed."
->> }
-Canonical CORE-006 FAILED. STOP - nothing will be committed.
-At line:2 char:5
-+     throw "Canonical CORE-006 FAILED. STOP - nothing will be committe ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Canonical CORE-...l be committed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Canonical CORE-006 FAILED. STOP - nothing will be committed.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== 7. GIT DIFF CHECK CORE-006 ONLY ===" -ForegroundColor Cyan
-=== 7. GIT DIFF CHECK CORE-006 ONLY ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check -- `
->>     AUTONOMY_ENGINE/core/deal.py `
->>     AUTONOMY_ENGINE/core/deal_authorization.py `
->>     AUTONOMY_ENGINE/core/deal_concurrency.py `
->>     AUTONOMY_ENGINE/core/deal_consistency.py `
->>     AUTONOMY_ENGINE/core/deal_evidence_audit.py `
->>     AUTONOMY_ENGINE/core/deal_external_contracts.py `
->>     AUTONOMY_ENGINE/core/deal_freeze.py `
->>     AUTONOMY_ENGINE/core/deal_integrity.py `
->>     AUTONOMY_ENGINE/core/deal_offer_negotiation.py `
->>     AUTONOMY_ENGINE/core/deal_ownership_integration.py `
->>     AUTONOMY_ENGINE/core/deal_transaction_events.py `
->>     AUTONOMY_ENGINE/core/deal_transaction_milestones.py `
->>     AUTONOMY_ENGINE/core/deal_transaction_replay.py `
->>     AUTONOMY_ENGINE/core/deal_transaction_workflow.py `
->>     AUTONOMY_ENGINE/core/test_deal.py `
->>     AUTONOMY_ENGINE/core/test_deal_evidence_audit.py `
->>     AUTONOMY_ENGINE/core/test_deal_final_hardening.py `
->>     AUTONOMY_ENGINE/core/test_deal_offer_negotiation.py `
->>     AUTONOMY_ENGINE/core/test_deal_ownership_integration.py `
->>     AUTONOMY_ENGINE/core/test_deal_parties.py `
->>     AUTONOMY_ENGINE/core/test_deal_transaction_events.py `
->>     AUTONOMY_ENGINE/core/test_deal_transaction_milestones.py
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "CORE-006 diff check failed."
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== 8. STAGE ONLY CANONICAL CORE-006 FILES ===" -ForegroundColor Cyan
-=== 8. STAGE ONLY CANONICAL CORE-006 FILES ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git add -- `
->>     AUTONOMY_ENGINE/core/deal.py `
->>     AUTONOMY_ENGINE/core/deal_authorization.py `
->>     AUTONOMY_ENGINE/core/deal_concurrency.py `
->>     AUTONOMY_ENGINE/core/deal_consistency.py `
->>     AUTONOMY_ENGINE/core/deal_evidence_audit.py `
->>     AUTONOMY_ENGINE/core/deal_external_contracts.py `
->>     AUTONOMY_ENGINE/core/deal_freeze.py `
->>     AUTONOMY_ENGINE/core/deal_integrity.py `
->>     AUTONOMY_ENGINE/core/deal_offer_negotiation.py `
->>     AUTONOMY_ENGINE/core/deal_ownership_integration.py `
->>     AUTONOMY_ENGINE/core/deal_transaction_events.py `
->>     AUTONOMY_ENGINE/core/deal_transaction_milestones.py `
->>     AUTONOMY_ENGINE/core/deal_transaction_replay.py `
->>     AUTONOMY_ENGINE/core/deal_transaction_workflow.py `
->>     AUTONOMY_ENGINE/core/test_deal.py `
->>     AUTONOMY_ENGINE/core/test_deal_evidence_audit.py `
->>     AUTONOMY_ENGINE/core/test_deal_final_hardening.py `
->>     AUTONOMY_ENGINE/core/test_deal_offer_negotiation.py `
->>     AUTONOMY_ENGINE/core/test_deal_ownership_integration.py `
->>     AUTONOMY_ENGINE/core/test_deal_parties.py `
->>     AUTONOMY_ENGINE/core/test_deal_transaction_events.py `
->>     AUTONOMY_ENGINE/core/test_deal_transaction_milestones.py
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction_events.py', LF will be replaced by CRLF the next time Git touches it
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== 9. VERIFY STAGED FILES ===" -ForegroundColor Cyan
-=== 9. VERIFY STAGED FILES ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
-A  AUTONOMY_ENGINE/core/deal.py
-A  AUTONOMY_ENGINE/core/deal_authorization.py
-A  AUTONOMY_ENGINE/core/deal_concurrency.py
-A  AUTONOMY_ENGINE/core/deal_consistency.py
-A  AUTONOMY_ENGINE/core/deal_evidence_audit.py
-A  AUTONOMY_ENGINE/core/deal_external_contracts.py
-A  AUTONOMY_ENGINE/core/deal_freeze.py
-A  AUTONOMY_ENGINE/core/deal_integrity.py
-A  AUTONOMY_ENGINE/core/deal_offer_negotiation.py
-A  AUTONOMY_ENGINE/core/deal_ownership_integration.py
-A  AUTONOMY_ENGINE/core/deal_transaction_events.py
-A  AUTONOMY_ENGINE/core/deal_transaction_milestones.py
-A  AUTONOMY_ENGINE/core/deal_transaction_replay.py
-A  AUTONOMY_ENGINE/core/deal_transaction_workflow.py
- M AUTONOMY_ENGINE/core/search_matching/projection_sync.py
- M AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
- M AUTONOMY_ENGINE/core/search_matching/reos_integration.py
- M AUTONOMY_ENGINE/core/search_matching/search_consistency.py
- M AUTONOMY_ENGINE/core/search_matching/search_domain.py
- M AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py
- M AUTONOMY_ENGINE/core/search_matching/test_matching.py
-A  AUTONOMY_ENGINE/core/test_deal.py
-A  AUTONOMY_ENGINE/core/test_deal_evidence_audit.py
-A  AUTONOMY_ENGINE/core/test_deal_final_hardening.py
-A  AUTONOMY_ENGINE/core/test_deal_offer_negotiation.py
-A  AUTONOMY_ENGINE/core/test_deal_ownership_integration.py
-A  AUTONOMY_ENGINE/core/test_deal_parties.py
-A  AUTONOMY_ENGINE/core/test_deal_transaction_events.py
-A  AUTONOMY_ENGINE/core/test_deal_transaction_milestones.py
- M "PS Output"
-?? AUTONOMY_ENGINE/core/CORE-006_RECOVERY/
-?? AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/
-?? AUTONOMY_ENGINE/core/CORE-006_RESTORE_CANDIDATE/
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== 10. COMMIT ===" -ForegroundColor Cyan
-=== 10. COMMIT ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git commit -m "fix: restore CORE-006 authoritative deal transaction layer"
-[reos-development febe3aa] fix: restore CORE-006 authoritative deal transaction layer
- 22 files changed, 4752 insertions(+)
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_authorization.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_concurrency.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_consistency.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_evidence_audit.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_external_contracts.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_freeze.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_integrity.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_offer_negotiation.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_ownership_integration.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction_events.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction_milestones.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction_replay.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction_workflow.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_deal.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_deal_evidence_audit.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_deal_final_hardening.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_deal_offer_negotiation.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_deal_ownership_integration.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_deal_parties.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_deal_transaction_events.py
- create mode 100644 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_deal_transaction_milestones.py
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "Commit failed."
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== 11. PUSH reos-development ===" -ForegroundColor Cyan
-=== 11. PUSH reos-development ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git revert fc149ff48774fc280831a3e2c117ce64ac91ff76 --no-edit
+On branch reos-development
+Your branch is behind 'origin/reos-development' by 13 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/projection_sync.py
+        modified:   REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py
+        modified:   REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/reos_integration.py
+        modified:   REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_consistency.py
+        modified:   REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/search_domain.py
+        modified:   REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_core005_regression.py
+        modified:   REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/search_matching/test_matching.py
+        modified:   REOS_CONTROL_CENTER/PS Output
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/CORE-006_RECOVERY/
+        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/CORE-006_REGRESSION_ENV/
+        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/CORE-006_RESTORE_CANDIDATE/
+        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/CORE-006_CANONICAL_INSTALL.ps1
+        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/INSTALL.txt
+        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/REOS_CONTROL_CENTER/
+        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_core006_final_regression.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> git push origin reos-development
 To https://github.com/prajaktaranjane80-sketch/Homio.git
- ! [rejected]        reos-development -> reos-development (fetch first)
+ ! [rejected]        reos-development -> reos-development (non-fast-forward)
 error: failed to push some refs to 'https://github.com/prajaktaranjane80-sketch/Homio.git'
-hint: Updates were rejected because the remote contains work that you do not
-hint: have locally. This is usually caused by another repository pushing to
-hint: the same ref. If you want to integrate the remote changes, use
-hint: 'git pull' before pushing again.
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. If you want to integrate the remote changes,
+hint: use 'git pull' before pushing again.
 hint: See the 'Note about fast-forwards' in 'git push --help' for details.
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "Push failed."
->> }
-Push failed.
-At line:2 char:5
-+     throw "Push failed."
-+     ~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Push failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Push failed.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "==============================================" -ForegroundColor Green
-==============================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CORE-006 FIX + COMMIT + PUSH COMPLETE" -ForegroundColor Green
-CORE-006 FIX + COMMIT + PUSH COMPLETE
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "==============================================" -ForegroundColor Green
-==============================================
 PS D:\HOMIO\REOS_CONTROL_CENTER>
