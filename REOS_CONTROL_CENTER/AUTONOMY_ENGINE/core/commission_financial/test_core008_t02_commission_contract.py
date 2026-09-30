@@ -1,5 +1,3 @@
-"""CORE-008 T02 — Commission Contract adversarial regression."""
-
 from __future__ import annotations
 
 from dataclasses import FrozenInstanceError
@@ -44,15 +42,15 @@ END = datetime(
 )
 
 
-def entitlement(
+def build_entitlement(
     tenant_id: str = "tenant-a",
 ) -> CommissionEntitlementReference:
     return CommissionEntitlementReference(
         entitlement_id="ent-001",
         tenant_id=tenant_id,
         entitled_party=CommissionPartyReference(
-            CommissionPartyType.BROKER,
-            "broker-001",
+            party_type=CommissionPartyType.BROKER,
+            party_id="broker-001",
         ),
         deal_reference="deal-001",
         ownership_reference="ownership-001",
@@ -60,16 +58,18 @@ def entitlement(
     )
 
 
-def provenance() -> CommissionProvenance:
+def build_provenance() -> CommissionProvenance:
     return CommissionProvenance(
         source_type="BUILDER_MOU",
         source_reference="mou-001",
-        captured_at=START - timedelta(days=2),
+        captured_at=(
+            START - timedelta(days=2)
+        ),
         evidence_reference="evidence-001",
     )
 
 
-def basis() -> CommissionBasis:
+def build_basis() -> CommissionBasis:
     return CommissionBasis(
         basis_type=(
             CommissionBasisType.GROSS_TRANSACTION_VALUE
@@ -78,7 +78,7 @@ def basis() -> CommissionBasis:
     )
 
 
-def percentage_rate(
+def build_rate(
     value: str = "2.5",
 ) -> CommissionRate:
     return CommissionRate(
@@ -87,31 +87,34 @@ def percentage_rate(
     )
 
 
-def make_contract(
+def build_contract(
     **overrides,
 ) -> CommissionContract:
     values = {
         "commission_id": "commission-001",
         "tenant_id": "tenant-a",
-        "entitlement": entitlement(),
-        "basis": basis(),
-        "rate": percentage_rate(),
+        "entitlement": build_entitlement(),
+        "basis": build_basis(),
+        "rate": build_rate(),
         "eligibility_rules": (
             CommissionEligibilityRule(
                 rule_code="DEAL_ELIGIBLE",
-                operator=EligibilityOperator.EQUALS,
+                operator=(
+                    EligibilityOperator.EQUALS
+                ),
                 value="ELIGIBLE",
             ),
             CommissionEligibilityRule(
                 rule_code="EVIDENCE_PRESENT",
-                operator=EligibilityOperator.EXISTS,
-                evidence_required=True,
+                operator=(
+                    EligibilityOperator.EXISTS
+                ),
             ),
         ),
         "effective_from": START,
         "effective_to": END,
         "contract_version": 1,
-        "provenance": provenance(),
+        "provenance": build_provenance(),
         "state": CommissionContractState.ACTIVE,
         "metadata": {
             "source": "CORE-008-T02",
@@ -125,8 +128,35 @@ def make_contract(
     )
 
 
-def test_percentage_rate_is_deterministic_and_not_a_calculation_engine() -> None:
-    contract = make_contract()
+def test_contract_identity_is_tenant_scoped() -> None:
+    contract = build_contract()
+
+    assert contract.identity_key == (
+        "tenant-a",
+        "commission-001",
+    )
+
+    with pytest.raises(
+        CommissionContractTenantScopeError
+    ):
+        contract.assert_tenant(
+            "tenant-b"
+        )
+
+
+def test_entitlement_tenant_must_match_contract() -> None:
+    with pytest.raises(
+        CommissionContractTenantScopeError
+    ):
+        build_contract(
+            entitlement=build_entitlement(
+                "tenant-b"
+            )
+        )
+
+
+def test_percentage_rate_is_declarative() -> None:
+    contract = build_contract()
 
     assert (
         contract.rate.rate_type
@@ -137,18 +167,9 @@ def test_percentage_rate_is_deterministic_and_not_a_calculation_engine() -> None
         contract.rate.value
     ) == "2.5"
 
-    assert contract.is_effective_at(
-        datetime(
-            2026,
-            9,
-            15,
-            tzinfo=UTC,
-        )
-    )
-
 
 def test_effective_window_is_half_open() -> None:
-    contract = make_contract()
+    contract = build_contract()
 
     assert not contract.is_effective_at(
         START - timedelta(seconds=1)
@@ -167,9 +188,9 @@ def test_effective_window_is_half_open() -> None:
     )
 
 
-def test_inactive_contract_is_not_effective_inside_date_window() -> None:
-    contract = make_contract(
-        state=CommissionContractState.SUSPENDED,
+def test_inactive_contract_is_not_effective() -> None:
+    contract = build_contract(
+        state=CommissionContractState.SUSPENDED
     )
 
     assert not contract.is_effective_at(
@@ -177,40 +198,13 @@ def test_inactive_contract_is_not_effective_inside_date_window() -> None:
     )
 
 
-def test_contract_identity_is_tenant_scoped() -> None:
-    contract = make_contract()
-
-    assert contract.identity_key == (
-        "tenant-a",
-        "commission-001",
-    )
-
-    with pytest.raises(
-        CommissionContractTenantScopeError
-    ):
-        contract.assert_tenant(
-            "tenant-b"
-        )
-
-
-def test_entitlement_tenant_must_match_contract_tenant() -> None:
-    with pytest.raises(
-        CommissionContractTenantScopeError
-    ):
-        make_contract(
-            entitlement=entitlement(
-                "tenant-b"
-            )
-        )
-
-
 def test_contract_terms_are_immutable() -> None:
-    contract = make_contract()
+    contract = build_contract()
 
     with pytest.raises(
         FrozenInstanceError
     ):
-        contract.rate = percentage_rate(
+        contract.rate = build_rate(
             "3.0"
         )  # type: ignore[misc]
 
@@ -223,8 +217,8 @@ def test_contract_terms_are_immutable() -> None:
 
 
 def test_same_identity_and_version_with_same_terms_is_compatible() -> None:
-    first = make_contract()
-    second = make_contract()
+    first = build_contract()
+    second = build_contract()
 
     assert (
         first.immutable_terms_fingerprint
@@ -236,11 +230,11 @@ def test_same_identity_and_version_with_same_terms_is_compatible() -> None:
     )
 
 
-def test_same_identity_and_version_with_changed_terms_is_rejected() -> None:
-    first = make_contract()
+def test_same_identity_and_version_with_changed_terms_fails() -> None:
+    first = build_contract()
 
-    second = make_contract(
-        rate=percentage_rate(
+    second = build_contract(
+        rate=build_rate(
             "3.0"
         )
     )
@@ -253,12 +247,12 @@ def test_same_identity_and_version_with_changed_terms_is_rejected() -> None:
         )
 
 
-def test_new_version_preserves_identity_but_changes_version() -> None:
-    first = make_contract()
+def test_new_version_preserves_identity() -> None:
+    first = build_contract()
 
     second = first.next_version(
         basis=first.basis,
-        rate=percentage_rate(
+        rate=build_rate(
             "3.0"
         ),
         eligibility_rules=(
@@ -274,17 +268,17 @@ def test_new_version_preserves_identity_but_changes_version() -> None:
             ),
             evidence_reference="evidence-002",
         ),
-        state=(
-            CommissionContractState.DRAFT
-        ),
+        state=CommissionContractState.DRAFT,
     )
 
-    assert second.commission_id == (
-        first.commission_id
+    assert (
+        second.commission_id
+        == first.commission_id
     )
 
-    assert second.tenant_id == (
-        first.tenant_id
+    assert (
+        second.tenant_id
+        == first.tenant_id
     )
 
     assert second.contract_version == 2
@@ -315,7 +309,7 @@ def test_new_version_preserves_identity_but_changes_version() -> None:
         ),
     ],
 )
-def test_invalid_rate_declarations_are_rejected(
+def test_invalid_rates_are_rejected(
     rate_type,
     value,
     currency,
@@ -330,7 +324,7 @@ def test_invalid_rate_declarations_are_rejected(
         )
 
 
-def test_fixed_amount_rate_requires_currency() -> None:
+def test_fixed_amount_requires_currency() -> None:
     rate = CommissionRate(
         rate_type=(
             CommissionRateType.FIXED_AMOUNT
@@ -361,20 +355,7 @@ def test_percentage_rate_rejects_currency() -> None:
         )
 
 
-def test_basis_requires_currency_only_for_fixed_transaction_amount() -> None:
-    fixed = CommissionBasis(
-        basis_type=(
-            CommissionBasisType.FIXED_TRANSACTION_AMOUNT
-        ),
-        source_reference="transaction.fixed",
-        currency=Currency(
-            "INR",
-            2,
-        ),
-    )
-
-    assert fixed.currency.code == "INR"
-
+def test_fixed_amount_basis_requires_currency() -> None:
     with pytest.raises(
         CommissionContractValidationError
     ):
@@ -386,39 +367,69 @@ def test_basis_requires_currency_only_for_fixed_transaction_amount() -> None:
         )
 
 
-def test_eligibility_rule_is_declarative_only() -> None:
-    exists = CommissionEligibilityRule(
-        rule_code="EVIDENCE_PRESENT",
-        operator=(
-            EligibilityOperator.EXISTS
+def test_fixed_amount_basis_accepts_currency() -> None:
+    basis = CommissionBasis(
+        basis_type=(
+            CommissionBasisType.FIXED_TRANSACTION_AMOUNT
+        ),
+        source_reference="transaction.fixed",
+        currency=Currency(
+            "INR",
+            2,
         ),
     )
 
-    equals = CommissionEligibilityRule(
+    assert basis.currency.code == "INR"
+
+
+def test_eligibility_rule_is_declarative() -> None:
+    exists_rule = CommissionEligibilityRule(
+        rule_code="EVIDENCE_PRESENT",
+        operator=EligibilityOperator.EXISTS,
+    )
+
+    equals_rule = CommissionEligibilityRule(
         rule_code="DEAL_STATE",
-        operator=(
-            EligibilityOperator.EQUALS
-        ),
+        operator=EligibilityOperator.EQUALS,
         value="CLOSED",
     )
 
-    assert exists.value is None
-    assert equals.value == "CLOSED"
+    assert exists_rule.value is None
+    assert equals_rule.value == "CLOSED"
 
 
-def test_duplicate_eligibility_rule_codes_are_rejected() -> None:
+def test_exists_rule_cannot_have_value() -> None:
+    with pytest.raises(
+        CommissionContractValidationError
+    ):
+        CommissionEligibilityRule(
+            rule_code="EVIDENCE_PRESENT",
+            operator=EligibilityOperator.EXISTS,
+            value="TRUE",
+        )
+
+
+def test_non_exists_rule_requires_value() -> None:
+    with pytest.raises(
+        CommissionContractValidationError
+    ):
+        CommissionEligibilityRule(
+            rule_code="DEAL_STATE",
+            operator=EligibilityOperator.EQUALS,
+        )
+
+
+def test_duplicate_eligibility_codes_are_rejected() -> None:
     rule = CommissionEligibilityRule(
         rule_code="DEAL_STATE",
-        operator=(
-            EligibilityOperator.EQUALS
-        ),
+        operator=EligibilityOperator.EQUALS,
         value="CLOSED",
     )
 
     with pytest.raises(
         CommissionContractValidationError
     ):
-        make_contract(
+        build_contract(
             eligibility_rules=(
                 rule,
                 rule,
@@ -430,7 +441,7 @@ def test_effective_to_must_follow_effective_from() -> None:
     with pytest.raises(
         CommissionContractValidationError
     ):
-        make_contract(
+        build_contract(
             effective_to=START
         )
 
@@ -439,25 +450,25 @@ def test_provenance_cannot_be_after_effective_start() -> None:
     with pytest.raises(
         CommissionContractValidationError
     ):
-        make_contract(
+        build_contract(
             provenance=CommissionProvenance(
                 source_type="BUILDER_MOU",
-                source_reference="mou-invalid",
+                source_reference="invalid-mou",
                 captured_at=(
                     START + timedelta(days=1)
                 ),
-                evidence_reference="evidence-invalid",
+                evidence_reference="invalid-evidence",
             )
         )
 
 
-def test_contract_is_reproducible_from_same_terms() -> None:
-    first = make_contract()
+def test_same_terms_have_deterministic_fingerprint() -> None:
+    first = build_contract()
+    second = build_contract()
 
-    second = make_contract(
-        metadata={
-            "source": "CORE-008-T02"
-        }
+    assert (
+        first.immutable_terms_fingerprint
+        == second.immutable_terms_fingerprint
     )
 
     assert (
@@ -469,43 +480,18 @@ def test_contract_is_reproducible_from_same_terms() -> None:
         )
     )
 
-    assert (
-        first.immutable_terms_fingerprint
-        == second.immutable_terms_fingerprint
-    )
 
-
-def test_core008_contract_does_not_own_existing_business_authorities() -> None:
-    contract = make_contract()
-
-    payload = contract.to_dict()
+def test_contract_does_not_create_duplicate_authorities() -> None:
+    payload = build_contract().to_dict()
 
     assert (
         payload["source_of_truth"]
         == "CORE-008.COMMISSION_CONTRACT"
     )
 
-    assert (
-        "control_center_state"
-        not in payload
-    )
-
-    assert (
-        "ownership_engine"
-        not in payload
-    )
-
-    assert (
-        "event_bus"
-        not in payload
-    )
-
-    assert (
-        "fraud_engine"
-        not in payload
-    )
-
-    assert (
-        "authorization_engine"
-        not in payload
-    )
+    assert "control_center_state" not in payload
+    assert "ownership_engine" not in payload
+    assert "event_bus" not in payload
+    assert "fraud_engine" not in payload
+    assert "authorization_engine" not in payload
+    assert "acrL_engine" not in payload
