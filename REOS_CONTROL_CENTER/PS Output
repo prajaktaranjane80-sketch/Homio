@@ -1,342 +1,631 @@
-PS C:\Users\Sandip RanjanePatil> Set-Location "D:\Homio\REOS_CONTROL_CENTER"
-PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $repo   = "prajaktaranjane80-sketch/Homio"
-PS D:\Homio\REOS_CONTROL_CENTER> $branch = "reos-development"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> function Get-GitHubFile {
->>     param([string]$Path)
->>
->>     $encoded = [uri]::EscapeDataString($Path)
->>     $r = gh api "repos/$repo/contents/$encoded?ref=$branch" | ConvertFrom-Json
->>     $bytes = [Convert]::FromBase64String(($r.content -replace "`n",""))
->>     $content = [Text.Encoding]::UTF8.GetString($bytes)
->>
->>     [pscustomobject]@{
->>         Path    = $Path
->>         Sha     = $r.sha
->>         Content = $content
->>     }
+PS D:\Homio\REOS_CONTROL_CENTER> if ($c.Contains($oldCondition)) {
+>>     $c = $c.Replace($oldCondition, $newCondition)
 >> }
+You cannot call a method on a null-valued expression.
+At line:1 char:5
++ if ($c.Contains($oldCondition)) {
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : InvokeMethodOnNull
+
+PS D:\Homio\REOS_CONTROL_CENTER> elseif ($c -notmatch 'enabled must be boolean') {
+>>     throw "T03 condition-validation anchor not found."
+>> }
+elseif : The term 'elseif' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a
+path was included, verify that the path is correct and try again.
+At line:1 char:1
++ elseif ($c -notmatch 'enabled must be boolean') {
++ ~~~~~~
+    + CategoryInfo          : ObjectNotFound: (elseif:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> function Update-GitHubFile {
->>     param(
->>         [string]$Path,
->>         [string]$Sha,
->>         [string]$Content,
->>         [string]$Message
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER> # 3. Recursive immutability for RiskRule scope
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $oldRuleScope = @'
+>>         object.__setattr__(
+>>             self,
+>>             "scope",
+>>             dict(
+>>                 _canonicalize(
+>>                     self.scope
+>>                 )
+>>             ),
+>>         )
+>>
+>>         object.__setattr__(
+>>             self,
+>>             "applicability",
+>>             dict(
+>>                 _canonicalize(
+>>                     self.applicability
+>>                 )
+>>             ),
+>>         )
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $newRuleScope = @'
+>>         object.__setattr__(
+>>             self,
+>>             "scope",
+>>             deep_freeze(
+>>                 self.scope,
+>>                 field_name="rule.scope",
+>>             ),
+>>         )
+>>
+>>         object.__setattr__(
+>>             self,
+>>             "applicability",
+>>             deep_freeze(
+>>                 self.applicability,
+>>                 field_name="rule.applicability",
+>>             ),
+>>         )
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($c.Contains($oldRuleScope)) {
+>>     $c = $c.Replace($oldRuleScope, $newRuleScope)
+>> }
+You cannot call a method on a null-valued expression.
+At line:1 char:5
++ if ($c.Contains($oldRuleScope)) {
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : InvokeMethodOnNull
+
+PS D:\Homio\REOS_CONTROL_CENTER> elseif ($c -notmatch 'field_name="rule.scope"') {
+>>     throw "RiskRule scope hardening anchor not found."
+>> }
+elseif : The term 'elseif' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a
+path was included, verify that the path is correct and try again.
+At line:1 char:1
++ elseif ($c -notmatch 'field_name="rule.scope"') {
++ ~~~~~~
+    + CategoryInfo          : ObjectNotFound: (elseif:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER> # 4. Recursive immutability for RiskRulePolicy
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $oldPolicyScope = @'
+>>         object.__setattr__(
+>>             self,
+>>             "scope",
+>>             dict(
+>>                 _canonicalize(
+>>                     self.scope
+>>                 )
+>>             ),
+>>         )
+>>
+>>         object.__setattr__(
+>>             self,
+>>             "applicability",
+>>             dict(
+>>                 _canonicalize(
+>>                     self.applicability
+>>                 )
+>>             ),
+>>         )
+>>
+>>         object.__setattr__(
+>>             self,
+>>             "provenance_reference",
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $newPolicyScope = @'
+>>         if not isinstance(
+>>             self.scope,
+>>             Mapping,
+>>         ):
+>>             raise RiskRuleValidationError(
+>>                 "scope must be mapping."
+>>             )
+>>
+>>         if not isinstance(
+>>             self.applicability,
+>>             Mapping,
+>>         ):
+>>             raise RiskRuleValidationError(
+>>                 "applicability must be mapping."
+>>             )
+>>
+>>         object.__setattr__(
+>>             self,
+>>             "scope",
+>>             deep_freeze(
+>>                 self.scope,
+>>                 field_name="policy.scope",
+>>             ),
+>>         )
+>>
+>>         object.__setattr__(
+>>             self,
+>>             "applicability",
+>>             deep_freeze(
+>>                 self.applicability,
+>>                 field_name="policy.applicability",
+>>             ),
+>>         )
+>>
+>>         object.__setattr__(
+>>             self,
+>>             "provenance_reference",
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($c.Contains($oldPolicyScope)) {
+>>     $c = $c.Replace($oldPolicyScope, $newPolicyScope)
+>> }
+You cannot call a method on a null-valued expression.
+At line:1 char:5
++ if ($c.Contains($oldPolicyScope)) {
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : InvokeMethodOnNull
+
+PS D:\Homio\REOS_CONTROL_CENTER> elseif ($c -notmatch 'field_name="policy.scope"') {
+>>     throw "RiskRulePolicy scope hardening anchor not found."
+>> }
+elseif : The term 'elseif' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a
+path was included, verify that the path is correct and try again.
+At line:1 char:1
++ elseif ($c -notmatch 'field_name="policy.scope"') {
++ ~~~~~~
+    + CategoryInfo          : ObjectNotFound: (elseif:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER> # 5. Policy jurisdiction applicability
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $oldApplicability = @'
+>>         if (
+>>             modes is not None
+>>             and context.get(
+>>                 "operating_mode"
+>>             ) not in set(modes)
+>>         ):
+>>             return False
+>>
+>>         return True
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $newApplicability = @'
+>>         if (
+>>             modes is not None
+>>             and context.get(
+>>                 "operating_mode"
+>>             ) not in set(modes)
+>>         ):
+>>             return False
+>>
+>>         jurisdictions = self.applicability.get(
+>>             "jurisdictions"
+>>         )
+>>
+>>         if (
+>>             jurisdictions is not None
+>>             and context.get(
+>>                 "jurisdiction"
+>>             ) not in set(jurisdictions)
+>>         ):
+>>             return False
+>>
+>>         return True
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($c.Contains($oldApplicability)) {
+>>     $c = $c.Replace($oldApplicability, $newApplicability)
+>> }
+You cannot call a method on a null-valued expression.
+At line:1 char:5
++ if ($c.Contains($oldApplicability)) {
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : InvokeMethodOnNull
+
+PS D:\Homio\REOS_CONTROL_CENTER> elseif ($c -notmatch 'jurisdictions = self\.applicability\.get') {
+>>     throw "Policy applicability anchor not found."
+>> }
+elseif : The term 'elseif' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a
+path was included, verify that the path is correct and try again.
+At line:1 char:1
++ elseif ($c -notmatch 'jurisdictions = self\.applicability\.get') {
++ ~~~~~~
+    + CategoryInfo          : ObjectNotFound: (elseif:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER> # 6. Frozen RiskRuleEvaluation bug
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $oldFrozen = @'
+>>         if (
+>>             self.trust_score is not None
+>>         ):
+>>             self.trust_score = _score(
+>>                 self.trust_score,
+>>                 "trust_score",
+>>             )
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $newFrozen = @'
+>>         if (
+>>             self.trust_score is not None
+>>         ):
+>>             object.__setattr__(
+>>                 self,
+>>                 "trust_score",
+>>                 _score(
+>>                     self.trust_score,
+>>                     "trust_score",
+>>                 ),
+>>             )
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($c.Contains($oldFrozen)) {
+>>     $c = $c.Replace($oldFrozen, $newFrozen)
+>> }
+You cannot call a method on a null-valued expression.
+At line:1 char:5
++ if ($c.Contains($oldFrozen)) {
++     ~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : InvokeMethodOnNull
+
+PS D:\Homio\REOS_CONTROL_CENTER> elseif ($c -notmatch '"trust_score",\s*\n\s*_score') {
+>>     throw "RiskRuleEvaluation trust-score anchor not found."
+>> }
+elseif : The term 'elseif' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a
+path was included, verify that the path is correct and try again.
+At line:1 char:1
++ elseif ($c -notmatch '"trust_score",\s*\n\s*_score') {
++ ~~~~~~
+    + CategoryInfo          : ObjectNotFound: (elseif:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER> # 7. Remote update
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $commit1 = Set-GHFile `
+>>     -Path $path `
+>>     -Sha $file.Sha `
+>>     -Content $c `
+>>     -Message "CORE-007-T03: harden deterministic risk rule contracts"
+gh: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py does not match  (HTTP 409)
+GitHub update failed: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
+At line:28 char:9
++         throw "GitHub update failed: $Path"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (GitHub update f...e/risk_rules.py:String) [], RuntimeException
+    + FullyQualifiedErrorId : GitHub update failed: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "RISK_RULES COMMIT: $commit1"
+RISK_RULES COMMIT:
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ============================================================
+PS D:\Homio\REOS_CONTROL_CENTER> # CORE-007 T03 — adversarial hardening tests
+PS D:\Homio\REOS_CONTROL_CENTER> # ============================================================
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $testPath = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_contract_hardening.py"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $testContent = @'
+>> from __future__ import annotations
+>>
+>> from datetime import datetime, timezone
+>> from uuid import UUID
+>>
+>> import pytest
+>>
+>> from .risk_rules import (
+>>     RiskRule,
+>>     RiskRuleCondition,
+>>     RiskRuleEvaluation,
+>>     RiskRuleOutcome,
+>>     RiskRulePolicy,
+>>     RiskRuleValidationError,
+>> )
+>>
+>>
+>> NOW = datetime(
+>>     2026,
+>>     9,
+>>     30,
+>>     12,
+>>     0,
+>>     tzinfo=timezone.utc,
+>> )
+>>
+>>
+>> def make_rule() -> RiskRule:
+>>     return RiskRule(
+>>         rule_id="RULE-HARDEN-001",
+>>         version="1.0",
+>>         priority=10,
+>>         condition=RiskRuleCondition.TRUST_SCORE_RANGE,
+>>         outcome=RiskRuleOutcome.REVIEW,
+>>         description="T03 contract hardening rule.",
+>>         min_trust_score=40,
+>>         max_trust_score=70,
+>>         scope={
+>>             "tenant_id": "tenant-001",
+>>             "nested": {
+>>                 "region": "IN",
+>>             },
+>>         },
+>>         applicability={
+>>             "operating_modes": (
+>>                 "BROKER_SAAS",
+>>             ),
+>>             "nested": {
+>>                 "channel": "API",
+>>             },
+>>         },
 >>     )
 >>
->>     $encoded = [Convert]::ToBase64String(
->>         [Text.Encoding]::UTF8.GetBytes($Content)
+>>
+>> def make_policy() -> RiskRulePolicy:
+>>     return RiskRulePolicy(
+>>         policy_id="POLICY-HARDEN-001",
+>>         version="1.0",
+>>         rules=(make_rule(),),
+>>         applicability={
+>>             "operating_modes": (
+>>                 "BROKER_SAAS",
+>>             ),
+>>             "jurisdictions": (
+>>                 "IN",
+>>             ),
+>>             "nested": {
+>>                 "channel": "API",
+>>             },
+>>         },
 >>     )
 >>
->>     $body = @{
->>         message = $Message
->>         content = $encoded
->>         sha     = $Sha
->>         branch  = $branch
+>>
+>> def test_risk_rule_scope_is_recursively_immutable() -> None:
+>>     rule = make_rule()
+>>
+>>     with pytest.raises(TypeError):
+>>         rule.scope["nested"]["region"] = "US"  # type: ignore[index]
+>>
+>>
+>> def test_risk_rule_applicability_is_recursively_immutable() -> None:
+>>     rule = make_rule()
+>>
+>>     with pytest.raises(TypeError):
+>>         rule.applicability["nested"]["channel"] = "WEB"  # type: ignore[index]
+>>
+>>
+>> def test_policy_scope_and_applicability_are_recursively_immutable() -> None:
+>>     policy = make_policy()
+>>
+>>     with pytest.raises(TypeError):
+>>         policy.applicability["nested"]["channel"] = "WEB"  # type: ignore[index]
+>>
+>>
+>> def test_policy_enforces_jurisdiction_applicability() -> None:
+>>     policy = make_policy()
+>>
+>>     assert policy.applies_to(
+>>         tenant_id="tenant-001",
+>>         subject_id="subject-001",
+>>         context={
+>>             "operating_mode": "BROKER_SAAS",
+>>             "jurisdiction": "IN",
+>>         },
+>>     )
+>>
+>>     assert not policy.applies_to(
+>>         tenant_id="tenant-001",
+>>         subject_id="subject-001",
+>>         context={
+>>             "operating_mode": "BROKER_SAAS",
+>>             "jurisdiction": "US",
+>>         },
+>>     )
+>>
+>>
+>> def test_trust_score_evaluation_is_constructible_when_present() -> None:
+>>     evaluation = RiskRuleEvaluation(
+>>         evaluation_id=UUID(
+>>             "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+>>         ),
+>>         tenant_id="tenant-001",
+>>         subject_id="subject-001",
+>>         correlation_id="corr-001",
+>>         engine_version="1.0",
+>>         policy_id="POLICY-HARDEN-001",
+>>         policy_version="1.0",
+>>         policy_fingerprint="policy-fingerprint",
+>>         outcome=RiskRuleOutcome.REVIEW,
+>>         matched_rule_ids=("RULE-HARDEN-001",),
+>>         matched_rule_fingerprints=("rule-fingerprint",),
+>>         trust_score=65,
+>>         fraud_assessment_fingerprint=None,
+>>         evidence_references=("evidence://001",),
+>>         evaluated_at=NOW,
+>>     )
+>>
+>>     assert evaluation.trust_score == 65
+>>     assert evaluation.fingerprint
+>>
+>>
+>> def test_fraud_severity_rule_requires_severity() -> None:
+>>     with pytest.raises(RiskRuleValidationError):
+>>         RiskRule(
+>>             rule_id="RULE-FRAUD-INVALID",
+>>             version="1.0",
+>>             priority=10,
+>>             condition=RiskRuleCondition.FRAUD_SEVERITY,
+>>             outcome=RiskRuleOutcome.REVIEW,
+>>             description="Invalid fraud rule.",
+>>         )
+>>
+>>
+>> def test_trust_range_rule_requires_a_bound() -> None:
+>>     with pytest.raises(RiskRuleValidationError):
+>>         RiskRule(
+>>             rule_id="RULE-TRUST-INVALID",
+>>             version="1.0",
+>>             priority=10,
+>>             condition=RiskRuleCondition.TRUST_SCORE_RANGE,
+>>             outcome=RiskRuleOutcome.REVIEW,
+>>             description="Invalid trust rule.",
+>>         )
+>>
+>>
+>> def test_fraud_tripwire_rejects_unrelated_fields() -> None:
+>>     with pytest.raises(RiskRuleValidationError):
+>>         RiskRule(
+>>             rule_id="RULE-TRIPWIRE-INVALID",
+>>             version="1.0",
+>>             priority=10,
+>>             condition=RiskRuleCondition.FRAUD_TRIPWIRE,
+>>             outcome=RiskRuleOutcome.HIGH,
+>>             description="Invalid tripwire rule.",
+>>             min_trust_score=10,
+>>         )
+>>
+>>
+>> def test_policy_requires_mapping_scope() -> None:
+>>     with pytest.raises(RiskRuleValidationError):
+>>         RiskRulePolicy(
+>>             policy_id="POLICY-INVALID",
+>>             version="1.0",
+>>             rules=(make_rule(),),
+>>             scope=("invalid",),  # type: ignore[arg-type]
+>>         )
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Check whether test file already exists.
+PS D:\Homio\REOS_CONTROL_CENTER> $testExists = $true
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> try {
+>>     $existingTest = Get-GHFile $testPath
+>> }
+>> catch {
+>>     $testExists = $false
+>> }
+gh: Not Found (HTTP 404)
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($testExists) {
+>>     $commit2 = Set-GHFile `
+>>         -Path $testPath `
+>>         -Sha $existingTest.Sha `
+>>         -Content $testContent `
+>>         -Message "CORE-007-T03: add risk-rule contract hardening tests"
+>>
+>>     Write-Host "TEST COMMIT: $commit2"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> else {
+>>     $encodedPath = [Uri]::EscapeDataString($testPath)
+>>
+>>     $payload = @{
+>>         message = "CORE-007-T03: add risk-rule contract hardening tests"
+>>         content = [Convert]::ToBase64String(
+>>             [Text.Encoding]::UTF8.GetBytes($testContent)
+>>         )
+>>         branch = $branch
 >>     } | ConvertTo-Json -Compress
 >>
->>     $result = gh api `
->>         -X PUT `
->>         "repos/$repo/contents/$([uri]::EscapeDataString($Path))" `
->>         --input - <<< $body | ConvertFrom-Json
+>>     $created = $payload |
+>>         gh api `
+>>             -X PUT `
+>>             "repos/$repo/contents/$encodedPath" `
+>>             --input - |
+>>         ConvertFrom-Json
 >>
->>     $result.commit.sha
->> }
-At line:23 char:20
-+         --input - <<< $body | ConvertFrom-Json
-+                    ~
-Missing file specification after redirection operator.
-At line:23 char:19
-+         --input - <<< $body | ConvertFrom-Json
-+                   ~
-The '<' operator is reserved for future use.
-At line:23 char:21
-+         --input - <<< $body | ConvertFrom-Json
-+                     ~
-Missing file specification after redirection operator.
-At line:23 char:20
-+         --input - <<< $body | ConvertFrom-Json
-+                    ~
-The '<' operator is reserved for future use.
-At line:23 char:21
-+         --input - <<< $body | ConvertFrom-Json
-+                     ~
-The '<' operator is reserved for future use.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : MissingFileSpecification
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # ============================================================
-PS D:\Homio\REOS_CONTROL_CENTER> # CORE-002: EventEnvelope recursive immutability
-PS D:\Homio\REOS_CONTROL_CENTER> # ============================================================
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $eventPath = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/event_domain.py"
-PS D:\Homio\REOS_CONTROL_CENTER> $eventFile = Get-GitHubFile $eventPath
-gh: Not Found (HTTP 404)
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $eventContent = $eventFile.Content
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($eventContent -notmatch 'from \.\.contract_primitives import deep_freeze') {
->>     $eventContent = $eventContent.Replace(
->>         "from uuid import UUID, uuid4`r`nimport json",
->>         "from uuid import UUID, uuid4`r`nimport json`r`n`r`nfrom ..contract_primitives import deep_freeze"
->>     )
->>
->>     if ($eventContent -notmatch 'from \.\.contract_primitives import deep_freeze') {
->>         $eventContent = $eventContent.Replace(
->>             "from uuid import UUID, uuid4`nimport json",
->>             "from uuid import UUID, uuid4`nimport json`n`nfrom ..contract_primitives import deep_freeze"
->>         )
+>>     if (-not $created.commit.sha) {
+>>         throw "Unable to create T03 hardening test file."
 >>     }
+>>
+>>     Write-Host "TEST COMMIT: $($created.commit.sha)"
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $oldEventBlock = @'
->>         canonical_payload = dict(
->>             _canonicalize(self.payload)
->>         )
->>
->>         canonical_metadata = dict(
->>             _canonicalize(self.metadata)
->>         )
->>
->>         object.__setattr__(
->>             self,
->>             "payload",
->>             MappingProxyType(
->>                 canonical_payload
->>             ),
->>         )
->>
->>         object.__setattr__(
->>             self,
->>             "metadata",
->>             MappingProxyType(
->>                 canonical_metadata
->>             ),
->>         )
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $newEventBlock = @'
->>         frozen_payload = deep_freeze(
->>             self.payload,
->>             field_name="payload",
->>         )
->>
->>         frozen_metadata = deep_freeze(
->>             self.metadata,
->>             field_name="metadata",
->>         )
->>
->>         object.__setattr__(
->>             self,
->>             "payload",
->>             frozen_payload,
->>         )
->>
->>         object.__setattr__(
->>             self,
->>             "metadata",
->>             frozen_metadata,
->>         )
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($eventContent.Contains($oldEventBlock)) {
->>     $eventContent = $eventContent.Replace($oldEventBlock, $newEventBlock)
->> }
-PS D:\Homio\REOS_CONTROL_CENTER> elseif (-not $eventContent.Contains('frozen_payload = deep_freeze(')) {
->>     throw "CORE-002 anchor not found. Remote event_domain.py was not modified."
->> }
-elseif : The term 'elseif' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a
-path was included, verify that the path is correct and try again.
+else : The term 'else' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path
+was included, verify that the path is correct and try again.
 At line:1 char:1
-+ elseif (-not $eventContent.Contains('frozen_payload = deep_freeze(')) ...
-+ ~~~~~~
-    + CategoryInfo          : ObjectNotFound: (elseif:String) [], ParentContainsErrorRecordException
++ else {
++ ~~~~
+    + CategoryInfo          : ObjectNotFound: (else:String) [], ParentContainsErrorRecordException
     + FullyQualifiedErrorId : CommandNotFoundException
 
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $eventCommit = Update-GitHubFile `
->>     -Path $eventPath `
->>     -Sha $eventFile.Sha `
->>     -Content $eventContent `
->>     -Message "CORE-007: enforce recursive event contract immutability"
-Update-GitHubFile : The term 'Update-GitHubFile' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling
-of the name, or if a path was included, verify that the path is correct and try again.
-At line:1 char:16
-+ $eventCommit = Update-GitHubFile `
-+                ~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (Update-GitHubFile:String) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : CommandNotFoundException
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "EVENT FILE COMMIT: $eventCommit"
-EVENT FILE COMMIT:
-PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> # ============================================================
-PS D:\Homio\REOS_CONTROL_CENTER> # CORE-003: Lead metadata recursive immutability
+PS D:\Homio\REOS_CONTROL_CENTER> # Remote-only verification
 PS D:\Homio\REOS_CONTROL_CENTER> # ============================================================
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $leadPath = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/lead.py"
-PS D:\Homio\REOS_CONTROL_CENTER> $leadFile = Get-GitHubFile $leadPath
-gh: Not Found (HTTP 404)
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $leadContent = $leadFile.Content
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($leadContent -notmatch 'from \.\.contract_primitives import') {
->>     $leadContent = $leadContent.Replace(
->>         "from uuid import UUID, uuid4",
->>         "from uuid import UUID, uuid4`r`n`r`nfrom ..contract_primitives import ContractPrimitiveError, deep_freeze"
->>     )
->>
->>     if ($leadContent -notmatch 'from \.\.contract_primitives import') {
->>         $leadContent = $leadContent.Replace(
->>             "from uuid import UUID, uuid4",
->>             "from uuid import UUID, uuid4`n`nfrom ..contract_primitives import ContractPrimitiveError, deep_freeze"
->>         )
->>     }
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $anchor = @'
->> def _canonicalize(value: Any) -> Any:
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $helper = @'
->> def _freeze_metadata(value: Mapping[str, Any]) -> Mapping[str, Any]:
->>     try:
->>         return deep_freeze(
->>             value,
->>             field_name="metadata",
->>         )
->>     except ContractPrimitiveError as exc:
->>         raise LeadValidationError(str(exc)) from exc
->>
->>
->> def _canonicalize(value: Any) -> Any:
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($leadContent.Contains($anchor) -and
->>     $leadContent -notmatch 'def _freeze_metadata\(') {
->>     $leadContent = $leadContent.Replace($anchor, $helper)
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $oldLeadBlock = @'
->>         normalized_metadata = MappingProxyType(
->>             {
->>                 str(key): _canonicalize(value)
->>                 for key, value in self.metadata.items()
->>             }
->>         )
->>
->>         object.__setattr__(self, "metadata", normalized_metadata)
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $newLeadBlock = @'
->>         normalized_metadata = _freeze_metadata(
->>             self.metadata
->>         )
->>
->>         object.__setattr__(
->>             self,
->>             "metadata",
->>             normalized_metadata,
->>         )
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($leadContent.Contains($oldLeadBlock)) {
->>     $leadContent = $leadContent.Replace($oldLeadBlock, $newLeadBlock)
->> }
-PS D:\Homio\REOS_CONTROL_CENTER> elseif (-not $leadContent.Contains('normalized_metadata = _freeze_metadata(')) {
->>     throw "CORE-003 constructor anchor not found. Remote lead.py was not modified."
->> }
-elseif : The term 'elseif' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a
-path was included, verify that the path is correct and try again.
-At line:1 char:1
-+ elseif (-not $leadContent.Contains('normalized_metadata = _freeze_met ...
-+ ~~~~~~
-    + CategoryInfo          : ObjectNotFound: (elseif:String) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : CommandNotFoundException
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== REMOTE BRANCH ==="
 
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $oldCreate = 'metadata=MappingProxyType(dict(metadata or {})),'
-PS D:\Homio\REOS_CONTROL_CENTER> $newCreate = 'metadata=metadata or {},'
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($leadContent.Contains($oldCreate)) {
->>     $leadContent = $leadContent.Replace($oldCreate, $newCreate)
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $oldWithMetadata = 'metadata=MappingProxyType(dict(metadata)),'
-PS D:\Homio\REOS_CONTROL_CENTER> $newWithMetadata = @'
->> metadata=_freeze_metadata(
->>                 metadata
->>             ),
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($leadContent.Contains($oldWithMetadata)) {
->>     $leadContent = $leadContent.Replace($oldWithMetadata, $newWithMetadata)
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $leadCommit = Update-GitHubFile `
->>     -Path $leadPath `
->>     -Sha $leadFile.Sha `
->>     -Content $leadContent `
->>     -Message "CORE-007: enforce recursive lead metadata immutability"
-Update-GitHubFile : The term 'Update-GitHubFile' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling
-of the name, or if a path was included, verify that the path is correct and try again.
-At line:1 char:15
-+ $leadCommit = Update-GitHubFile `
-+               ~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (Update-GitHubFile:String) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : CommandNotFoundException
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "LEAD FILE COMMIT: $leadCommit"
-LEAD FILE COMMIT:
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # ============================================================
-PS D:\Homio\REOS_CONTROL_CENTER> # REMOTE VERIFICATION
-PS D:\Homio\REOS_CONTROL_CENTER> # ============================================================
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== REMOTE HEAD ==="
-
-=== REMOTE HEAD ===
+=== REMOTE BRANCH ===
 PS D:\Homio\REOS_CONTROL_CENTER> gh api "repos/$repo/git/ref/heads/$branch" --jq ".object.sha"
-21bf0a374cfb6589384f436c17446cdcd539af10
+f71e42f1727370c6d0e45259baea8bf5f2b80e0c
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== EVENT DEEP FREEZE ==="
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== RISK RULES CHECK ==="
 
-=== EVENT DEEP FREEZE ===
-PS D:\Homio\REOS_CONTROL_CENTER> gh api "repos/$repo/contents/$([uri]::EscapeDataString($eventPath))?ref=$branch" |
->>     ConvertFrom-Json |
+=== RISK RULES CHECK ===
+PS D:\Homio\REOS_CONTROL_CENTER> Get-GHFile $path |
 >>     ForEach-Object {
->>         $c = [Text.Encoding]::UTF8.GetString(
->>             [Convert]::FromBase64String(($_.content -replace "`n",""))
->>         )
->>         if ($c -match "deep_freeze") { "PASS" } else { "FAIL" }
->>     }
-FAIL
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== LEAD DEEP FREEZE ==="
-
-=== LEAD DEEP FREEZE ===
-PS D:\Homio\REOS_CONTROL_CENTER> gh api "repos/$repo/contents/$([uri]::EscapeDataString($leadPath))?ref=$branch" |
->>     ConvertFrom-Json |
->>     ForEach-Object {
->>         $c = [Text.Encoding]::UTF8.GetString(
->>             [Convert]::FromBase64String(($_.content -replace "`n",""))
->>         )
->>         if ($c -match "deep_freeze" -and $c -match "_freeze_metadata") {
+>>         if (
+>>             $_.Content -match "from \.\.contract_primitives import deep_freeze" -and
+>>             $_.Content -match "field_name=""rule.scope""" -and
+>>             $_.Content -match "field_name=""policy.scope""" -and
+>>             $_.Content -match "jurisdictions = self.applicability.get" -and
+>>             $_.Content -match 'object.__setattr__'
+>>         ) {
 >>             "PASS"
->>         } else {
+>>         }
+>>         else {
 >>             "FAIL"
 >>         }
 >>     }
-FAIL
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== DONE: GITHUB REMOTE ONLY ==="
+gh: Not Found (HTTP 404)
+GitHub file content unavailable: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
+At line:11 char:9
++         throw "GitHub file content unavailable: $Path"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (GitHub file con...e/risk_rules.py:String) [], RuntimeException
+    + FullyQualifiedErrorId : GitHub file content unavailable: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
 
-=== DONE: GITHUB REMOTE ONLY ===
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== T03 HARDENING TEST CHECK ==="
+
+=== T03 HARDENING TEST CHECK ===
+PS D:\Homio\REOS_CONTROL_CENTER> if (Get-GHFile $testPath) {
+>>     "PASS"
+>> }
+gh: Not Found (HTTP 404)
+GitHub file content unavailable: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_contract_hardening.py
+At line:11 char:9
++         throw "GitHub file content unavailable: $Path"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (GitHub file con...ct_hardening.py:String) [], RuntimeException
+    + FullyQualifiedErrorId : GitHub file content unavailable: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_contract_h
+   ardening.py
+
+PS D:\Homio\REOS_CONTROL_CENTER> else {
+>>     "FAIL"
+>> }
+else : The term 'else' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path
+was included, verify that the path is correct and try again.
+At line:1 char:1
++ else {
++ ~~~~
+    + CategoryInfo          : ObjectNotFound: (else:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== GITHUB T03 WRITE COMPLETE ==="
