@@ -15,23 +15,31 @@ CORE008_COMMISSION_CONTRACT_SCHEMA_VERSION = 1
 
 
 class CommissionContractError(ValueError):
-    """Base CORE-008 commission-contract error."""
+    """Base CORE-008 commission contract error."""
 
 
-class CommissionContractValidationError(CommissionContractError):
-    """Invalid commission-contract value."""
+class CommissionContractValidationError(
+    CommissionContractError
+):
+    """Invalid commission contract value."""
 
 
-class CommissionContractTenantScopeError(CommissionContractError):
+class CommissionContractTenantScopeError(
+    CommissionContractError
+):
     """Commission contract crossed tenant scope."""
 
 
-class CommissionContractConflictError(CommissionContractError):
-    """Same contract identity was supplied with conflicting terms."""
+class CommissionContractConflictError(
+    CommissionContractError
+):
+    """Same contract identity contains conflicting terms."""
 
 
-class CommissionContractVersionError(CommissionContractError):
-    """Invalid or conflicting commission-contract version."""
+class CommissionContractVersionError(
+    CommissionContractError
+):
+    """Invalid or conflicting commission contract version."""
 
 
 class CommissionContractState(str, Enum):
@@ -69,21 +77,21 @@ class EligibilityOperator(str, Enum):
     EXISTS = "EXISTS"
 
 
-def _text(
+def _require_text(
     value: str,
-    field: str,
+    field_name: str,
 ) -> str:
     if not isinstance(value, str) or not value.strip():
         raise CommissionContractValidationError(
-            f"{field} must be non-empty text."
+            f"{field_name} must be non-empty text."
         )
 
     return value.strip()
 
 
-def _positive_int(
+def _require_positive_int(
     value: int,
-    field: str,
+    field_name: str,
 ) -> int:
     if (
         isinstance(value, bool)
@@ -91,19 +99,24 @@ def _positive_int(
         or value < 1
     ):
         raise CommissionContractValidationError(
-            f"{field} must be a positive integer."
+            f"{field_name} must be a positive integer."
         )
 
     return value
 
 
-def _decimal(
+def _require_decimal(
     value: Decimal | int | str,
-    field: str,
+    field_name: str,
 ) -> Decimal:
-    if isinstance(value, bool) or isinstance(value, float):
+    if isinstance(value, bool):
         raise CommissionContractValidationError(
-            f"{field} must use Decimal, integer, or decimal text."
+            f"{field_name} cannot be boolean."
+        )
+
+    if isinstance(value, float):
+        raise CommissionContractValidationError(
+            f"{field_name} must not use float."
         )
 
     try:
@@ -118,29 +131,32 @@ def _decimal(
         TypeError,
     ) as exc:
         raise CommissionContractValidationError(
-            f"{field} must be a valid decimal."
+            f"{field_name} must be a valid decimal."
         ) from exc
 
     if not result.is_finite():
         raise CommissionContractValidationError(
-            f"{field} must be finite."
+            f"{field_name} must be finite."
         )
 
     return result
 
 
-def _aware_datetime(
+def _require_aware_datetime(
     value: datetime,
-    field: str,
+    field_name: str,
 ) -> datetime:
     if not isinstance(value, datetime):
         raise CommissionContractValidationError(
-            f"{field} must be datetime."
+            f"{field_name} must be datetime."
         )
 
-    if value.tzinfo is None or value.utcoffset() is None:
+    if (
+        value.tzinfo is None
+        or value.utcoffset() is None
+    ):
         raise CommissionContractValidationError(
-            f"{field} must be timezone-aware."
+            f"{field_name} must be timezone-aware."
         )
 
     return value.astimezone(timezone.utc)
@@ -148,10 +164,10 @@ def _aware_datetime(
 
 @dataclass(frozen=True, slots=True)
 class CommissionPartyReference:
-    """Reference to entitled party.
+    """Typed financial reference to an entitled party.
 
-    CORE-001 remains the identity/authorization authority.
-    This object is only a typed financial reference.
+    CORE-001 owns identity and authorization.
+    CORE-008 only preserves the financial reference.
     """
 
     party_type: CommissionPartyType
@@ -176,10 +192,17 @@ class CommissionPartyReference:
         object.__setattr__(
             self,
             "party_id",
-            _text(
+            _require_text(
                 self.party_id,
                 "party_id",
             ),
+        )
+
+    @property
+    def identity_key(self) -> tuple[str, str]:
+        return (
+            self.party_type.value,
+            self.party_id,
         )
 
     def to_dict(self) -> dict[str, str]:
@@ -191,10 +214,9 @@ class CommissionPartyReference:
 
 @dataclass(frozen=True, slots=True)
 class CommissionEntitlementReference:
-    """Immutable entitlement and attribution reference.
+    """Immutable reference to commission entitlement.
 
-    Deal and ownership remain references to CORE-006 / CORE-003.
-    CORE-008 does not recreate those engines.
+    Deal and ownership remain owned by CORE-006 / CORE-003.
     """
 
     entitlement_id: str
@@ -215,7 +237,7 @@ class CommissionEntitlementReference:
             object.__setattr__(
                 self,
                 field_name,
-                _text(
+                _require_text(
                     getattr(self, field_name),
                     field_name,
                 ),
@@ -226,7 +248,8 @@ class CommissionEntitlementReference:
             CommissionPartyReference,
         ):
             raise CommissionContractValidationError(
-                "entitled_party must be CommissionPartyReference."
+                "entitled_party must be "
+                "CommissionPartyReference."
             )
 
     @property
@@ -240,31 +263,38 @@ class CommissionEntitlementReference:
         self,
         tenant_id: str,
     ) -> None:
-        if _text(
+        tenant_id = _require_text(
             tenant_id,
             "tenant_id",
-        ) != self.tenant_id:
+        )
+
+        if tenant_id != self.tenant_id:
             raise CommissionContractTenantScopeError(
-                "Commission entitlement crosses tenant scope."
+                "Commission entitlement crossed tenant scope."
             )
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "entitlement_id": self.entitlement_id,
             "tenant_id": self.tenant_id,
-            "entitled_party": self.entitled_party.to_dict(),
+            "entitled_party": (
+                self.entitled_party.to_dict()
+            ),
             "deal_reference": self.deal_reference,
-            "ownership_reference": self.ownership_reference,
-            "provenance_reference": self.provenance_reference,
+            "ownership_reference": (
+                self.ownership_reference
+            ),
+            "provenance_reference": (
+                self.provenance_reference
+            ),
         }
 
 
 @dataclass(frozen=True, slots=True)
 class CommissionBasis:
-    """Declarative commission basis.
+    """Declarative source/basis definition.
 
-    Point 02 defines the reference.
-    Point 03 owns deterministic calculation.
+    Actual calculation belongs to CORE-008 Point 03.
     """
 
     basis_type: CommissionBasisType
@@ -290,14 +320,14 @@ class CommissionBasis:
         object.__setattr__(
             self,
             "source_reference",
-            _text(
+            _require_text(
                 self.source_reference,
                 "source_reference",
             ),
         )
 
         if (
-            self.basis_type
+            basis_type
             is CommissionBasisType.FIXED_TRANSACTION_AMOUNT
         ):
             if not isinstance(
@@ -307,10 +337,12 @@ class CommissionBasis:
                 raise CommissionContractValidationError(
                     "FIXED_TRANSACTION_AMOUNT requires currency."
                 )
-
-        elif self.currency is not None and not isinstance(
-            self.currency,
-            Currency,
+        elif (
+            self.currency is not None
+            and not isinstance(
+                self.currency,
+                Currency,
+            )
         ):
             raise CommissionContractValidationError(
                 "currency must be Currency or None."
@@ -319,7 +351,9 @@ class CommissionBasis:
     def to_dict(self) -> dict[str, Any]:
         return {
             "basis_type": self.basis_type.value,
-            "source_reference": self.source_reference,
+            "source_reference": (
+                self.source_reference
+            ),
             "currency": (
                 self.currency.to_dict()
                 if self.currency is not None
@@ -332,8 +366,7 @@ class CommissionBasis:
 class CommissionRate:
     """Immutable commission-rate declaration.
 
-    No commission calculation occurs here.
-    Point 03 owns calculation.
+    This object declares the rate only.
     """
 
     rate_type: CommissionRateType
@@ -350,7 +383,7 @@ class CommissionRate:
                 "Unsupported commission rate type."
             ) from exc
 
-        value = _decimal(
+        value = _require_decimal(
             self.value,
             "value",
         )
@@ -368,7 +401,7 @@ class CommissionRate:
 
             if self.currency is not None:
                 raise CommissionContractValidationError(
-                    "Percentage rate must not carry a currency."
+                    "Percentage rate must not carry currency."
                 )
 
         else:
@@ -377,7 +410,7 @@ class CommissionRate:
                 Currency,
             ):
                 raise CommissionContractValidationError(
-                    "FIXED_AMOUNT rate requires currency."
+                    "FIXED_AMOUNT requires currency."
                 )
 
         object.__setattr__(
@@ -409,12 +442,10 @@ class CommissionRate:
 
 @dataclass(frozen=True, slots=True)
 class CommissionEligibilityRule:
-    """Declarative eligibility condition.
+    """Declarative eligibility requirement.
 
-    This records eligibility requirements.
-    It does not evaluate them.
-
-    Governance and authorization remain outside this contract.
+    CORE-008 Point 02 records the rule.
+    Actual governance/evaluation belongs to existing authorities.
     """
 
     rule_code: str
@@ -426,7 +457,7 @@ class CommissionEligibilityRule:
         object.__setattr__(
             self,
             "rule_code",
-            _text(
+            _require_text(
                 self.rule_code,
                 "rule_code",
             ),
@@ -451,7 +482,7 @@ class CommissionEligibilityRule:
             object.__setattr__(
                 self,
                 "value",
-                _text(
+                _require_text(
                     self.value,
                     "value",
                 ),
@@ -470,7 +501,7 @@ class CommissionEligibilityRule:
             and self.value is not None
         ):
             raise CommissionContractValidationError(
-                "EXISTS rule must not supply value."
+                "EXISTS cannot carry a value."
             )
 
         if (
@@ -478,7 +509,7 @@ class CommissionEligibilityRule:
             and self.value is None
         ):
             raise CommissionContractValidationError(
-                f"{operator.value} rule requires value."
+                f"{operator.value} requires a value."
             )
 
     def to_dict(self) -> dict[str, Any]:
@@ -492,7 +523,7 @@ class CommissionEligibilityRule:
 
 @dataclass(frozen=True, slots=True)
 class CommissionProvenance:
-    """Immutable source/provenance declaration."""
+    """Immutable source and evidence reference."""
 
     source_type: str
     source_reference: str
@@ -508,7 +539,7 @@ class CommissionProvenance:
             object.__setattr__(
                 self,
                 field_name,
-                _text(
+                _require_text(
                     getattr(
                         self,
                         field_name,
@@ -520,7 +551,7 @@ class CommissionProvenance:
         object.__setattr__(
             self,
             "captured_at",
-            _aware_datetime(
+            _require_aware_datetime(
                 self.captured_at,
                 "captured_at",
             ),
@@ -529,9 +560,15 @@ class CommissionProvenance:
     def to_dict(self) -> dict[str, Any]:
         return {
             "source_type": self.source_type,
-            "source_reference": self.source_reference,
-            "captured_at": self.captured_at.isoformat(),
-            "evidence_reference": self.evidence_reference,
+            "source_reference": (
+                self.source_reference
+            ),
+            "captured_at": (
+                self.captured_at.isoformat()
+            ),
+            "evidence_reference": (
+                self.evidence_reference
+            ),
         }
 
 
@@ -539,19 +576,29 @@ class CommissionProvenance:
 class CommissionContract:
     """Versioned immutable commission terms.
 
-    This is the authoritative contract for commission terms inside CORE-008.
+    Owns:
+    - commission identity
+    - entitlement reference
+    - basis
+    - rate/reference
+    - eligibility declaration
+    - effective dates
+    - contract version
+    - provenance
+    - immutable historical terms
 
-    It does NOT:
-    - calculate commission,
-    - allocate commission,
-    - settle money,
-    - reconcile financial entries,
-    - own deal lifecycle,
-    - own ownership,
-    - own authorization,
-    - own governance,
-    - publish events,
-    - own ACRL recovery.
+    Does NOT own:
+    - deal lifecycle
+    - ownership engine
+    - commission calculation
+    - allocation engine
+    - ledger
+    - settlement
+    - reconciliation
+    - authorization
+    - governance
+    - event transport
+    - ACRL recovery
     """
 
     commission_id: str
@@ -573,28 +620,31 @@ class CommissionContract:
     metadata: Mapping[str, Any] = ()
 
     def __post_init__(self) -> None:
-        for field_name in (
+        object.__setattr__(
+            self,
             "commission_id",
+            _require_text(
+                self.commission_id,
+                "commission_id",
+            ),
+        )
+
+        object.__setattr__(
+            self,
             "tenant_id",
-        ):
-            object.__setattr__(
-                self,
-                field_name,
-                _text(
-                    getattr(
-                        self,
-                        field_name,
-                    ),
-                    field_name,
-                ),
-            )
+            _require_text(
+                self.tenant_id,
+                "tenant_id",
+            ),
+        )
 
         if not isinstance(
             self.entitlement,
             CommissionEntitlementReference,
         ):
             raise CommissionContractValidationError(
-                "entitlement must be CommissionEntitlementReference."
+                "entitlement must be "
+                "CommissionEntitlementReference."
             )
 
         if (
@@ -602,7 +652,8 @@ class CommissionContract:
             != self.tenant_id
         ):
             raise CommissionContractTenantScopeError(
-                "Entitlement tenant does not match commission tenant."
+                "Entitlement tenant does not match "
+                "commission tenant."
             )
 
         if not isinstance(
@@ -625,25 +676,26 @@ class CommissionContract:
             self.eligibility_rules
         )
 
-        if len(
-            {
-                rule.rule_code
-                for rule in rules
-            }
-        ) != len(rules):
+        if any(
+            not isinstance(
+                rule,
+                CommissionEligibilityRule,
+            )
+            for rule in rules
+        ):
+            raise CommissionContractValidationError(
+                "eligibility_rules contains invalid values."
+            )
+
+        codes = [
+            rule.rule_code
+            for rule in rules
+        ]
+
+        if len(codes) != len(set(codes)):
             raise CommissionContractValidationError(
                 "Duplicate eligibility rule_code is not allowed."
             )
-
-        for rule in rules:
-            if not isinstance(
-                rule,
-                CommissionEligibilityRule,
-            ):
-                raise CommissionContractValidationError(
-                    "eligibility_rules must contain "
-                    "CommissionEligibilityRule values."
-                )
 
         object.__setattr__(
             self,
@@ -651,7 +703,7 @@ class CommissionContract:
             rules,
         )
 
-        effective_from = _aware_datetime(
+        effective_from = _require_aware_datetime(
             self.effective_from,
             "effective_from",
         )
@@ -663,14 +715,15 @@ class CommissionContract:
         )
 
         if self.effective_to is not None:
-            effective_to = _aware_datetime(
+            effective_to = _require_aware_datetime(
                 self.effective_to,
                 "effective_to",
             )
 
             if effective_to <= effective_from:
                 raise CommissionContractValidationError(
-                    "effective_to must be later than effective_from."
+                    "effective_to must be later "
+                    "than effective_from."
                 )
 
             object.__setattr__(
@@ -682,7 +735,7 @@ class CommissionContract:
         object.__setattr__(
             self,
             "contract_version",
-            _positive_int(
+            _require_positive_int(
                 self.contract_version,
                 "contract_version",
             ),
@@ -701,7 +754,7 @@ class CommissionContract:
             > effective_from
         ):
             raise CommissionContractValidationError(
-                "provenance.captured_at cannot be later "
+                "provenance cannot be later "
                 "than effective_from."
             )
 
@@ -809,19 +862,21 @@ class CommissionContract:
         self,
         tenant_id: str,
     ) -> None:
-        if _text(
+        tenant_id = _require_text(
             tenant_id,
             "tenant_id",
-        ) != self.tenant_id:
+        )
+
+        if tenant_id != self.tenant_id:
             raise CommissionContractTenantScopeError(
-                "Commission contract crosses tenant scope."
+                "Commission contract crossed tenant scope."
             )
 
     def is_effective_at(
         self,
         at: datetime,
     ) -> bool:
-        instant = _aware_datetime(
+        instant = _require_aware_datetime(
             at,
             "at",
         )
@@ -873,7 +928,7 @@ class CommissionContract:
             != other.immutable_terms_fingerprint
         ):
             raise CommissionContractConflictError(
-                "Same commission contract identity/version "
+                "Same commission identity/version "
                 "has conflicting terms."
             )
 
@@ -894,7 +949,7 @@ class CommissionContract:
         ),
         metadata: Mapping[str, Any] | None = None,
     ) -> "CommissionContract":
-        """Create a new immutable historical contract version."""
+        """Create a new immutable historical version."""
 
         return CommissionContract(
             commission_id=self.commission_id,
@@ -967,7 +1022,9 @@ class CommissionContract:
             "state": (
                 self.state.value
             ),
-            "metadata": self.metadata,
+            "metadata": dict(
+                self.metadata
+            ),
         }
 
         if include_fingerprint:
