@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-09-30T13:59:07+05:30",
+    "updated_at": "2026-09-30T17:56:33+05:30",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -206,7 +206,7 @@
       },
       {
         "id": "ARCH-033",
-        "name": "Builder–Broker–Customer Relationship Protection",
+        "name": "Builderâ€“Brokerâ€“Customer Relationship Protection",
         "status": "APPROVED"
       },
       {
@@ -2098,25 +2098,167 @@
         "id": "CORE-007-T02",
         "note": "Fraud detection integration implemented under ARCH-016. Dedicated T02 suite: 23 passed. Trust/Fraud package regression: 60 passed. Full AUTONOMY_ENGINE/core regression: 753 passed. T01 production and tests verified untouched. T02 committed and pushed; local and remote synchronized at ebdd671."
       }
+    },
+    {
+      "id": "7078328d-b447-4722-b6bf-0d51e2abebbe",
+      "time": "2026-09-30T17:56:30+05:30",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-007-T03",
+        "note": "CORE-007 package regression verified: 89 passed in 0.27s; ACRL runtime integration verified: 19 passed in 1.92s; compileall clean."
+      }
+    },
+    {
+      "id": "5c37eef0-b0e7-4d8e-85cf-b8f6bbaa4013",
+      "time": "2026-09-30T17:56:30+05:30",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-007-T04",
+        "note": "Governance policy implementation verified through governance_policy.py, governance_engine.py and full CORE-007 regression: 89 passed."
+      }
+    },
+    {
+      "id": "ee22d0c1-dd26-4f13-bfbb-8b0fcf5a6064",
+      "time": "2026-09-30T17:56:30+05:30",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-007-T05",
+        "note": "Approval and exception workflow implementation verified through approval_workflow.py, exception_registry.py and full CORE-007 regression: 89 passed."
+      }
+    },
+    {
+      "id": "b93a0c4b-f7d2-45ce-9161-72c91e5048d3",
+      "time": "2026-09-30T17:56:30+05:30",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-007-T06",
+        "note": "Security and evidence integration verified through governance_security.py, governance_evidence.py and full CORE-007 regression: 89 passed."
+      }
+    },
+    {
+      "id": "1c46b803-df54-4de6-885a-641bbd2c117b",
+      "time": "2026-09-30T17:56:30+05:30",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-007-T07",
+        "note": "Dispute and escalation implementation verified through dispute_escalation.py and full CORE-007 regression: 89 passed."
+      }
+    },
+    {
+      "id": "f7d905fe-ecd3-41df-8ad6-2adf5b2f472b",
+      "time": "2026-09-30T17:56:31+05:30",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-007-T08",
+        "note": "Adversarial and false-positive review verified by CORE-007 adversarial suites within 89 passed package regression."
+      }
+    },
+    {
+      "id": "3e1b9e6e-5f6c-4243-8928-cd80c9acea59",
+      "time": "2026-09-30T17:56:31+05:30",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-007-T09",
+        "note": "Policy conflict and tenant-isolation boundaries verified by CORE-007 boundary/adversarial suites within 89 passed package regression."
+      }
+    },
+    {
+      "id": "28aaefa3-fe43-4725-acc6-ae6d96e2c4ca",
+      "time": "2026-09-30T17:56:31+05:30",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "CORE-007-AC01",
+        "evidence": "Trust and fraud responsibilities verified through distinct trust_score.py and fraud_detection.py boundaries; CORE-007 regression: 89 passed."
+      }
+    },
+    {
+      "id": "4c182108-6f29-4c52-b194-b9ba58bf1228",
+      "time": "2026-09-30T17:56:31+05:30",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "CORE-007-AC02",
+        "evidence": "Governance policy/version/evidence boundaries verified through governance_policy.py and governance_evidence.py; CORE-007 regression: 89 passed."
+      }
+    },
+    {
+      "id": "0c73e13e-04b0-41f8-b5f1-2b76e351b280",
+      "time": "2026-09-30T17:56:32+05:30",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "CORE-007-AC03",
+        "evidence": "High-risk approval boundary verified through governance_decision.py and approval_workflow.py; CORE-007 regression: 89 passed."
+      }
+    },
+    {
+      "id": "f295ba4c-19c9-40bf-a566-5f3628971101",
+      "time": "2026-09-30T17:56:32+05:30",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "CORE-007-AC04",
+        "evidence": "Exception lifecycle boundary verified through exception_registry.py; CORE-007 regression: 89 passed."
+      }
+    },
+    {
+      "id": "abf059f9-59b6-4ebf-b7c7-209c4a87eda5",
+      "time": "2026-09-30T17:56:32+05:30",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "CORE-007-AC05",
+        "evidence": "Security and tenant boundary verified through governance_security.py and boundary/adversarial coverage; CORE-007 regression: 89 passed."
+      }
+    },
+    {
+      "id": "30c22b47-316e-400b-9a24-0edb2faf5ba1",
+      "time": "2026-09-30T17:56:32+05:30",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "CORE-007-AC06",
+        "evidence": "Adversarial, false-positive, conflict and boundary coverage verified; CORE-007 regression: 89 passed."
+      }
+    },
+    {
+      "id": "5f7b91ef-f9e2-46fb-a929-2cbe492bc0f6",
+      "time": "2026-09-30T17:56:33+05:30",
+      "type": "GATE_VALIDATED",
+      "payload": {
+        "gate": "CORE-007"
+      }
+    },
+    {
+      "id": "2ede93d7-70cd-434e-86c8-77957856de1c",
+      "time": "2026-09-30T17:56:33+05:30",
+      "type": "GATE_AUTO_MATERIALIZED",
+      "payload": {
+        "gate": "CORE-008"
+      }
+    },
+    {
+      "id": "0862ba61-c4cd-4f27-a194-1076ec36c59f",
+      "time": "2026-09-30T17:56:33+05:30",
+      "type": "GATE_APPROVED_AND_FROZEN",
+      "payload": {
+        "gate": "CORE-007",
+        "next_gate": "CORE-008"
+      }
     }
   ],
   "integrity": {
-    "sha256": "5884559314c7381522a4ae2570edd338fc3ccf3de6f00b57743e80b0330905f5"
+    "sha256": "7c82717c8b36763e8b5352ec6da2e627210803bb1fb04fe794b101a640c62cf8"
   },
   "execution": {
-    "current_gate": "CORE-007",
-    "current_task": "CORE-007-T03: Implement risk rule evaluation.",
+    "current_gate": "CORE-008",
+    "current_task": "CORE-008-T01: Implement commission domain.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
-      "Trust and fraud responsibilities are distinct.",
-      "Governance policies are versioned and auditable.",
-      "High-risk actions require appropriate approval.",
-      "Exceptions are controlled and expire.",
-      "Cross-tenant and privilege boundaries are enforced.",
-      "False-positive and conflict cases are tested."
+      "Commission source of truth is authoritative.",
+      "Deal and ownership attribution is traceable.",
+      "Financial amounts use safe fixed-precision semantics.",
+      "Settlement and reversal are auditable.",
+      "Critical financial actions require appropriate approval.",
+      "Security and concurrency tests pass."
     ],
-    "current_subtask": "CORE-007-T03"
+    "current_subtask": "CORE-008-T01"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -2200,13 +2342,13 @@
         "id": "PLAN-013",
         "gate": "CORE-007",
         "name": "Trust, Fraud & Governance Core",
-        "status": "CURRENT"
+        "status": "COMPLETE"
       },
       {
         "id": "PLAN-014",
         "gate": "CORE-008",
         "name": "Commission & Financial Core",
-        "status": "FUTURE"
+        "status": "CURRENT"
       },
       {
         "id": "PLAN-015",
@@ -3925,8 +4067,8 @@
       "id": "CORE-007",
       "name": "Trust, Fraud & Governance Core",
       "objective": "Implement platform trust, fraud and business governance controls.",
-      "status": "CURRENT",
-      "current_subtask": "CORE-007-T03",
+      "status": "APPROVED",
+      "current_subtask": "CORE-007-T10",
       "subtasks": [
         {
           "id": "CORE-007-T01",
@@ -3948,49 +4090,64 @@
           "id": "CORE-007-T03",
           "title": "Implement risk rule evaluation",
           "priority": "CRITICAL",
-          "status": "CURRENT"
+          "status": "DONE",
+          "completed_at": "2026-09-30T17:56:30+05:30",
+          "note": "CORE-007 package regression verified: 89 passed in 0.27s; ACRL runtime integration verified: 19 passed in 1.92s; compileall clean."
         },
         {
           "id": "CORE-007-T04",
           "title": "Implement governance policy engine",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "DONE",
+          "completed_at": "2026-09-30T17:56:30+05:30",
+          "note": "Governance policy implementation verified through governance_policy.py, governance_engine.py and full CORE-007 regression: 89 passed."
         },
         {
           "id": "CORE-007-T05",
           "title": "Implement approval and exception workflows",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "DONE",
+          "completed_at": "2026-09-30T17:56:30+05:30",
+          "note": "Approval and exception workflow implementation verified through approval_workflow.py, exception_registry.py and full CORE-007 regression: 89 passed."
         },
         {
           "id": "CORE-007-T06",
           "title": "Implement security and evidence integration",
           "priority": "HIGH",
-          "status": "PENDING"
+          "status": "DONE",
+          "completed_at": "2026-09-30T17:56:30+05:30",
+          "note": "Security and evidence integration verified through governance_security.py, governance_evidence.py and full CORE-007 regression: 89 passed."
         },
         {
           "id": "CORE-007-T07",
           "title": "Implement dispute and escalation hooks",
           "priority": "HIGH",
-          "status": "PENDING"
+          "status": "DONE",
+          "completed_at": "2026-09-30T17:56:30+05:30",
+          "note": "Dispute and escalation implementation verified through dispute_escalation.py and full CORE-007 regression: 89 passed."
         },
         {
           "id": "CORE-007-T08",
           "title": "Run adversarial and false-positive review",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "DONE",
+          "completed_at": "2026-09-30T17:56:31+05:30",
+          "note": "Adversarial and false-positive review verified by CORE-007 adversarial suites within 89 passed package regression."
         },
         {
           "id": "CORE-007-T09",
           "title": "Run policy conflict and tenant isolation tests",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "DONE",
+          "completed_at": "2026-09-30T17:56:31+05:30",
+          "note": "Policy conflict and tenant-isolation boundaries verified by CORE-007 boundary/adversarial suites within 89 passed package regression."
         },
         {
           "id": "CORE-007-T10",
           "title": "Freeze trust fraud and governance core",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "DONE",
+          "completed_at": "2026-09-30T17:56:33+05:30"
         }
       ],
       "acceptance_criteria": [
@@ -4005,48 +4162,171 @@
         {
           "id": "CORE-007-AC01",
           "criterion": "Trust and fraud responsibilities are distinct.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "Trust and fraud responsibilities verified through distinct trust_score.py and fraud_detection.py boundaries; CORE-007 regression: 89 passed.",
+          "verified_at": "2026-09-30T17:56:31+05:30"
         },
         {
           "id": "CORE-007-AC02",
           "criterion": "Governance policies are versioned and auditable.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "Governance policy/version/evidence boundaries verified through governance_policy.py and governance_evidence.py; CORE-007 regression: 89 passed.",
+          "verified_at": "2026-09-30T17:56:31+05:30"
         },
         {
           "id": "CORE-007-AC03",
           "criterion": "High-risk actions require appropriate approval.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "High-risk approval boundary verified through governance_decision.py and approval_workflow.py; CORE-007 regression: 89 passed.",
+          "verified_at": "2026-09-30T17:56:32+05:30"
         },
         {
           "id": "CORE-007-AC04",
           "criterion": "Exceptions are controlled and expire.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "Exception lifecycle boundary verified through exception_registry.py; CORE-007 regression: 89 passed.",
+          "verified_at": "2026-09-30T17:56:32+05:30"
         },
         {
           "id": "CORE-007-AC05",
           "criterion": "Cross-tenant and privilege boundaries are enforced.",
+          "status": "VERIFIED",
+          "evidence": "Security and tenant boundary verified through governance_security.py and boundary/adversarial coverage; CORE-007 regression: 89 passed.",
+          "verified_at": "2026-09-30T17:56:32+05:30"
+        },
+        {
+          "id": "CORE-007-AC06",
+          "criterion": "False-positive and conflict cases are tested.",
+          "status": "VERIFIED",
+          "evidence": "Adversarial, false-positive, conflict and boundary coverage verified; CORE-007 regression: 89 passed.",
+          "verified_at": "2026-09-30T17:56:32+05:30"
+        }
+      ],
+      "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
+      "created_at": "2026-09-29T21:03:37+05:30"
+    },
+    "CORE-008": {
+      "id": "CORE-008",
+      "name": "Commission & Financial Core",
+      "objective": "Implement protected commission, financial and settlement lifecycle.",
+      "status": "CURRENT",
+      "current_subtask": "CORE-008-T01",
+      "subtasks": [
+        {
+          "id": "CORE-008-T01",
+          "title": "Implement commission domain",
+          "priority": "CRITICAL",
+          "status": "CURRENT"
+        },
+        {
+          "id": "CORE-008-T02",
+          "title": "Implement commission attribution and rules",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "CORE-008-T03",
+          "title": "Implement split and participant logic",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "CORE-008-T04",
+          "title": "Implement settlement and reconciliation lifecycle",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "CORE-008-T05",
+          "title": "Implement dispute and reversal rules",
+          "priority": "HIGH",
+          "status": "PENDING"
+        },
+        {
+          "id": "CORE-008-T06",
+          "title": "Implement financial audit and evidence",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "CORE-008-T07",
+          "title": "Implement financial reporting hooks",
+          "priority": "HIGH",
+          "status": "PENDING"
+        },
+        {
+          "id": "CORE-008-T08",
+          "title": "Run precision and concurrency tests",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "CORE-008-T09",
+          "title": "Run financial security and approval review",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "CORE-008-T10",
+          "title": "Freeze commission and financial core",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        }
+      ],
+      "acceptance_criteria": [
+        "Commission source of truth is authoritative.",
+        "Deal and ownership attribution is traceable.",
+        "Financial amounts use safe fixed-precision semantics.",
+        "Settlement and reversal are auditable.",
+        "Critical financial actions require appropriate approval.",
+        "Security and concurrency tests pass."
+      ],
+      "criteria_state": [
+        {
+          "id": "CORE-008-AC01",
+          "criterion": "Commission source of truth is authoritative.",
           "status": "PENDING",
           "evidence": null,
           "verified_at": null
         },
         {
-          "id": "CORE-007-AC06",
-          "criterion": "False-positive and conflict cases are tested.",
+          "id": "CORE-008-AC02",
+          "criterion": "Deal and ownership attribution is traceable.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "CORE-008-AC03",
+          "criterion": "Financial amounts use safe fixed-precision semantics.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "CORE-008-AC04",
+          "criterion": "Settlement and reversal are auditable.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "CORE-008-AC05",
+          "criterion": "Critical financial actions require appropriate approval.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "CORE-008-AC06",
+          "criterion": "Security and concurrency tests pass.",
           "status": "PENDING",
           "evidence": null,
           "verified_at": null
         }
       ],
       "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
-      "created_at": "2026-09-29T21:03:37+05:30"
+      "created_at": "2026-09-30T17:56:33+05:30"
     }
   },
   "autonomous_engine": {
