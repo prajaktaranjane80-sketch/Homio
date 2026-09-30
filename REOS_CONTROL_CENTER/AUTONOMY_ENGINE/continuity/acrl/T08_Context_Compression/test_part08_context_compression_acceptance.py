@@ -76,6 +76,7 @@ def make_bootstrap():
                 "current_gate": "CORE-005",
                 "current_task": "CORE-005-T01",
                 "current_subtask": "CORE-005-T01",
+                "current_subtask_status": "CURRENT",
                 "status": "CONTROL_CENTER_DRIVEN",
                 "relevant_evidence": [
                     "T07_BOOTSTRAP_VALIDATED",

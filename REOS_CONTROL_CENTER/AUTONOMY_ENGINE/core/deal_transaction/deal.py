@@ -15,6 +15,7 @@ from .deal_contract import (
     DealContract,
     DealHistoryEntry,
     DealStatus,
+    require_positive_int,
     utc_datetime,
 )
 from .deal_evidence_audit import (
@@ -126,10 +127,23 @@ class Deal:
             if value is not None:
                 _require_id(value, name)
 
-        if self.version < 1:
-            raise DealValidationError(
-                "version must be >= 1."
-            )
+        try:
+            require_positive_int(self.version, "version")
+        except ValueError as exc:
+            raise DealValidationError(str(exc)) from exc
+
+        for field_name in (
+            "history",
+            "offers",
+            "milestones",
+            "evidence",
+            "audit_log",
+            "participants",
+        ):
+            if not isinstance(getattr(self, field_name), tuple):
+                raise DealValidationError(
+                    f"{field_name} must be an immutable tuple."
+                )
 
         if self.source_of_truth != "deal":
             raise DealValidationError(

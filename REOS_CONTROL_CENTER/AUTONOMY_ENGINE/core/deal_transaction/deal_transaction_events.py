@@ -8,7 +8,11 @@ import json
 from types import MappingProxyType
 from typing import Any, Mapping
 
-from .deal_contract import DealStatus
+from .deal_contract import (
+    DealStatus,
+    deep_freeze,
+    deep_thaw,
+)
 from .deal_transaction_milestones import (
     DealTransactionMilestone,
 )
@@ -290,10 +294,8 @@ class DealTransactionEvent:
                 "payload must be a mapping."
             )
 
-        normalized_payload = MappingProxyType(
-            _canonicalize(
-                dict(self.payload)
-            )
+        normalized_payload = deep_freeze(
+            dict(self.payload)
         )
 
         object.__setattr__(
@@ -408,7 +410,7 @@ class DealTransactionEvent:
             "tenant_id": self.tenant_id,
             "deal_version": self.deal_version,
             "occurred_at": self.occurred_at,
-            "payload": dict(self.payload),
+            "payload": deep_thaw(self.payload),
             "payload_hash": self.payload_hash,
             "idempotency_key": self.idempotency_key,
             "correlation_id": self.correlation_id,

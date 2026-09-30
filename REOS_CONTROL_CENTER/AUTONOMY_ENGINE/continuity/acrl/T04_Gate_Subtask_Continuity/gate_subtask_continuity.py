@@ -26,7 +26,8 @@ from typing import Any, Mapping
 
 from AUTONOMY_ENGINE.continuity.acrl.T03_State_Reconstruction.state_reconstruction import (
     ExecutionStateReconstructor,
-    StateReconstructionError,
+    StateReconstructionIntegrityError,
+    StateReconstructionSourceError,
 )
 
 
@@ -205,9 +206,13 @@ class GateSubtaskContinuityReader:
             execution_snapshot = ExecutionStateReconstructor(
                 self.root
             ).reconstruct()
-        except StateReconstructionError as exc:
+        except StateReconstructionSourceError as exc:
             raise GateContinuitySourceError(
-                "T04 requires a valid T03 execution-state reconstruction."
+                "T04 could not load authoritative T03 execution state."
+            ) from exc
+        except StateReconstructionIntegrityError as exc:
+            raise GateContinuityConflictError(
+                "T03 execution state conflicts with gate/subtask continuity."
             ) from exc
 
         state = self._load_state(self.state_path)

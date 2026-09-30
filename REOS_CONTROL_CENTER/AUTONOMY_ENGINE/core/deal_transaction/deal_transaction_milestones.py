@@ -4,7 +4,11 @@ from dataclasses import dataclass
 from typing import Any
 from uuid import uuid4
 
-from .deal_contract import DealStatus, utc_datetime
+from .deal_contract import (
+    DealStatus,
+    require_positive_int,
+    utc_datetime,
+)
 
 
 class DealMilestoneTransitionError(ValueError):
@@ -37,15 +41,14 @@ class DealTransactionMilestone:
     evidence_required: bool = True
 
     def __post_init__(self) -> None:
-        if self.sequence < 1:
-            raise DealMilestoneTransitionError(
-                "sequence must be >= 1."
+        try:
+            require_positive_int(self.sequence, "sequence")
+            require_positive_int(
+                self.deal_version,
+                "deal_version",
             )
-
-        if self.deal_version < 1:
-            raise DealMilestoneTransitionError(
-                "deal_version must be >= 1."
-            )
+        except ValueError as exc:
+            raise DealMilestoneTransitionError(str(exc)) from exc
 
         object.__setattr__(
             self,

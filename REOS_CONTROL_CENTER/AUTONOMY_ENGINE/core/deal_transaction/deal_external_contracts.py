@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Mapping
 
+from .deal_contract import deep_freeze, deep_thaw
+
 
 class DealExternalAuthority(str, Enum):
     IDENTITY = "CORE-001"
@@ -61,6 +63,12 @@ class DealExternalReference:
             DealExternalAuthority(self.authority),
         )
 
+        object.__setattr__(
+            self,
+            "metadata",
+            deep_freeze(self.metadata),
+        )
+
     def assert_scope(
         self,
         *,
@@ -84,7 +92,7 @@ class DealExternalReference:
             "reference_type": self.reference_type,
             "authority_version": self.authority_version,
             "created_at": self.created_at,
-            "metadata": dict(self.metadata),
+            "metadata": deep_thaw(self.metadata),
         }
 
 

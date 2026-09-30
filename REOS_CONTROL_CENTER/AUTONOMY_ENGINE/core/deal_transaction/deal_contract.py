@@ -6,6 +6,7 @@ from enum import Enum
 from hashlib import sha256
 import json
 from typing import Any, Mapping, TYPE_CHECKING
+from types import MappingProxyType
 
 if TYPE_CHECKING:
     from .deal import Deal
@@ -135,6 +136,54 @@ def payload_fingerprint(value: Mapping[str, Any]) -> str:
     ).hexdigest()
 
 
+def require_positive_int(value: Any, field_name: str) -> int:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, int)
+        or value < 1
+    ):
+        raise ValueError(
+            f"{field_name} must be an integer >= 1."
+        )
+    return value
+
+
+def deep_freeze(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return MappingProxyType(
+            {
+                key: deep_freeze(item)
+                for key, item in value.items()
+            }
+        )
+
+    if isinstance(value, (list, tuple)):
+        return tuple(deep_freeze(item) for item in value)
+
+    if isinstance(value, (set, frozenset)):
+        return frozenset(
+            deep_freeze(item) for item in value
+        )
+
+    return value
+
+
+def deep_thaw(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {
+            key: deep_thaw(item)
+            for key, item in value.items()
+        }
+
+    if isinstance(value, (tuple, list)):
+        return [deep_thaw(item) for item in value]
+
+    if isinstance(value, (set, frozenset)):
+        return [deep_thaw(item) for item in value]
+
+    return value
+
+
 @dataclass(frozen=True)
 class DealHistoryEntry:
     history_id: str
@@ -145,8 +194,7 @@ class DealHistoryEntry:
     reason: str | None = None
 
     def __post_init__(self) -> None:
-        if self.version < 1:
-            raise ValueError("history version must be >= 1.")
+        require_positive_int(self.version, "history version")
 
         object.__setattr__(
             self,
@@ -204,6 +252,14 @@ class DealContract:
             updated_at=deal.updated_at.isoformat(),
         )
 
+    def __post_init__(self) -> None:
+        require_positive_int(self.version, "contract version")
+        object.__setattr__(
+            self,
+            "status",
+            DealStatus(self.status),
+        )
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "deal_id": self.deal_id,
@@ -245,12 +301,13 @@ def validate_contract_payload(
     ):
         return ("invalid:identity_key",)
 
-    try:
-        version = int(payload["version"])
-    except (TypeError, ValueError):
-        return ("invalid:version",)
+    version = payload["version"]
 
-    if version < 1:
+    if (
+        isinstance(version, bool)
+        or not isinstance(version, int)
+        or version < 1
+    ):
         return ("invalid:version",)
 
     try:

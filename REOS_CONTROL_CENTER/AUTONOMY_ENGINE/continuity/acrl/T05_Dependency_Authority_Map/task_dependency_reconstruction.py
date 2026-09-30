@@ -32,7 +32,8 @@ from typing import Any, Mapping
 
 from AUTONOMY_ENGINE.continuity.acrl.T03_State_Reconstruction.state_reconstruction import (
     ExecutionStateReconstructor,
-    StateReconstructionError,
+    StateReconstructionIntegrityError,
+    StateReconstructionSourceError,
 )
 
 
@@ -422,9 +423,13 @@ class TaskDependencyReconstructor:
             execution = ExecutionStateReconstructor(
                 self.root
             ).reconstruct()
-        except StateReconstructionError as exc:
+        except StateReconstructionSourceError as exc:
             raise TaskDependencySourceError(
-                "T05 requires a valid T03 execution-state reconstruction."
+                "T05 could not load authoritative T03 execution state."
+            ) from exc
+        except StateReconstructionIntegrityError as exc:
+            raise TaskDependencyConflictError(
+                "T03 execution state conflicts with dependency authority."
             ) from exc
 
         state = self._read_state(self.state_path)

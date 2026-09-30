@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-09-24T10:18:20+05:30",
+    "updated_at": "2026-09-29T21:29:05+05:30",
     "control_center_version": "6.0"
   },
   "constitution": {
@@ -2003,14 +2003,109 @@
         "id": "CORE-006-T05",
         "note": "Deal ownership integration complete; T05 focused tests 12 passed; AUTONOMY_ENGINE/core full regression 440 passed."
       }
+    },
+    {
+      "id": "23045198-18fa-4ded-8c13-bb3fc769ce34",
+      "time": "2026-09-29T19:00:47+05:30",
+      "type": "CRITERIA_BULK_VERIFIED",
+      "payload": {
+        "gate": "CORE-006"
+      }
+    },
+    {
+      "id": "e55d09ef-0e35-4e89-852f-a8a9a4f6f655",
+      "time": "2026-09-29T20:28:40+05:30",
+      "type": "CRITERIA_BULK_VERIFIED",
+      "payload": {
+        "gate": "CORE-006"
+      }
+    },
+    {
+      "id": "0919788c-e3c0-4a4d-baf1-82a675deed77",
+      "time": "2026-09-29T20:30:24+05:30",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-006-T06",
+        "note": "Evidence and audit integration implemented and regression-verified; full repository 2209 tests passed, with no failures."
+      }
+    },
+    {
+      "id": "8e55ec6d-20d1-4865-9582-db1b702920a8",
+      "time": "2026-09-29T20:54:07+05:30",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-006-T07",
+        "note": "T07 transaction event workflows completed. CORE-006 T07 targeted suite: 17 passed. CORE-006 deal_transaction regression: 582 passed. T07 test coverage committed and pushed to reos-development."
+      }
+    },
+    {
+      "id": "a4e1fbe1-f89d-406b-92e6-397c48d26636",
+      "time": "2026-09-29T20:58:35+05:30",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-006-T08",
+        "note": "Consistency and concurrency verification completed. Dedicated T08 suite: 34 passed in 0.23s. Full CORE-006 deal_transaction regression: 74 passed in 0.36s. T08 test coverage committed and pushed to reos-development."
+      }
+    },
+    {
+      "id": "67ba240d-35f2-41fa-9256-c0c0211239d7",
+      "time": "2026-09-29T21:01:31+05:30",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-006-T09",
+        "note": "Security and authorization review completed. Dedicated T09 suite: 77 passed in 0.31s. Full CORE-006 deal_transaction regression: 151 passed in 0.52s."
+      }
+    },
+    {
+      "id": "86aead75-be24-4e56-a407-b814f53c96a6",
+      "time": "2026-09-29T21:03:17+05:30",
+      "type": "GATE_VALIDATED",
+      "payload": {
+        "gate": "CORE-006"
+      }
+    },
+    {
+      "id": "9488d473-1f8a-41e3-a6ab-4e85514bf25f",
+      "time": "2026-09-29T21:03:37+05:30",
+      "type": "GATE_AUTO_MATERIALIZED",
+      "payload": {
+        "gate": "CORE-007"
+      }
+    },
+    {
+      "id": "45444757-9799-48e9-8647-cde0fac43d13",
+      "time": "2026-09-29T21:03:37+05:30",
+      "type": "GATE_APPROVED_AND_FROZEN",
+      "payload": {
+        "gate": "CORE-006",
+        "next_gate": "CORE-007"
+      }
+    },
+    {
+      "id": "7a4e351d-0d39-413c-b43c-2d86256b9ad1",
+      "time": "2026-09-29T21:09:06+05:30",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-007-T01",
+        "note": "Trust score foundation implemented under ARCH-015. Dedicated T01 suite: 37 passed in 0.18s. Full AUTONOMY_ENGINE/core regression: 730 passed in 4.94s. T01 implementation and tests committed/pushed."
+      }
+    },
+    {
+      "id": "850bc9ea-a192-4484-844d-86e0047d8ff7",
+      "time": "2026-09-29T21:29:05+05:30",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-007-T02",
+        "note": "Fraud detection integration implemented under ARCH-016. Dedicated T02 suite: 23 passed. Trust/Fraud package regression: 60 passed. Full AUTONOMY_ENGINE/core regression: 753 passed. T01 production and tests verified untouched. T02 committed and pushed; local and remote synchronized at ebdd671."
+      }
     }
   ],
   "integrity": {
-    "sha256": "79a8f1d12b44b04140562f9b885fae4760854e72b34932218250b1f429afe9a3"
+    "sha256": "39abe3264be3cc2a73964d4aee5351f80242f53aeeb5f0c2e033fb6f5ac35fc6"
   },
   "execution": {
-    "current_gate": "CORE-006",
-    "current_task": "CORE-006-T06: Implement evidence and audit integration.",
+    "current_gate": "CORE-007",
+    "current_task": "CORE-007-T03: Implement risk rule evaluation.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
@@ -2027,7 +2122,7 @@
       "Define mode activation, suspension and transition rules.",
       "No overlap or duplicate responsibility with existing engines."
     ],
-    "current_subtask": "CORE-006-T06"
+    "current_subtask": "CORE-007-T03"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -2105,13 +2200,13 @@
         "id": "PLAN-012",
         "gate": "CORE-006",
         "name": "Deal & Transaction Core",
-        "status": "CURRENT"
+        "status": "COMPLETE"
       },
       {
         "id": "PLAN-013",
         "gate": "CORE-007",
         "name": "Trust, Fraud & Governance Core",
-        "status": "FUTURE"
+        "status": "CURRENT"
       },
       {
         "id": "PLAN-014",
@@ -3694,8 +3789,8 @@
       "id": "CORE-006",
       "name": "Deal & Transaction Core",
       "objective": "Implement protected deal lifecycle and transaction state.",
-      "status": "CURRENT",
-      "current_subtask": "CORE-006-T06",
+      "status": "APPROVED",
+      "current_subtask": "CORE-006-T10",
       "subtasks": [
         {
           "id": "CORE-006-T01",
@@ -3741,31 +3836,40 @@
           "id": "CORE-006-T06",
           "title": "Implement evidence and audit integration",
           "priority": "HIGH",
-          "status": "CURRENT"
+          "status": "DONE",
+          "completed_at": "2026-09-29T20:30:24+05:30",
+          "note": "Evidence and audit integration implemented and regression-verified; full repository 2209 tests passed, with no failures."
         },
         {
           "id": "CORE-006-T07",
           "title": "Implement transaction event workflows",
           "priority": "HIGH",
-          "status": "PENDING"
+          "status": "DONE",
+          "completed_at": "2026-09-29T20:54:07+05:30",
+          "note": "T07 transaction event workflows completed. CORE-006 T07 targeted suite: 17 passed. CORE-006 deal_transaction regression: 582 passed. T07 test coverage committed and pushed to reos-development."
         },
         {
           "id": "CORE-006-T08",
           "title": "Run consistency and concurrency tests",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "DONE",
+          "completed_at": "2026-09-29T20:58:35+05:30",
+          "note": "Consistency and concurrency verification completed. Dedicated T08 suite: 34 passed in 0.23s. Full CORE-006 deal_transaction regression: 74 passed in 0.36s. T08 test coverage committed and pushed to reos-development."
         },
         {
           "id": "CORE-006-T09",
           "title": "Run security and authorization review",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "DONE",
+          "completed_at": "2026-09-29T21:01:31+05:30",
+          "note": "Security and authorization review completed. Dedicated T09 suite: 77 passed in 0.31s. Full CORE-006 deal_transaction regression: 151 passed in 0.52s."
         },
         {
           "id": "CORE-006-T10",
           "title": "Freeze deal and transaction core",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "DONE",
+          "completed_at": "2026-09-29T21:03:37+05:30"
         }
       ],
       "acceptance_criteria": [
@@ -3780,48 +3884,175 @@
         {
           "id": "CORE-006-AC01",
           "criterion": "Deal state has one authoritative owner.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "Final review completed by current gate execution.",
+          "verified_at": "2026-09-29T20:28:40+05:30"
         },
         {
           "id": "CORE-006-AC02",
           "criterion": "Lead, inventory and ownership relationships are traceable.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "Final review completed by current gate execution.",
+          "verified_at": "2026-09-29T20:28:40+05:30"
         },
         {
           "id": "CORE-006-AC03",
           "criterion": "Critical transaction transitions are auditable.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "Final review completed by current gate execution.",
+          "verified_at": "2026-09-29T20:28:40+05:30"
         },
         {
           "id": "CORE-006-AC04",
           "criterion": "Concurrent updates are safe.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "Final review completed by current gate execution.",
+          "verified_at": "2026-09-29T20:28:40+05:30"
         },
         {
           "id": "CORE-006-AC05",
           "criterion": "Evidence and events preserve historical truth.",
+          "status": "VERIFIED",
+          "evidence": "Final review completed by current gate execution.",
+          "verified_at": "2026-09-29T20:28:40+05:30"
+        },
+        {
+          "id": "CORE-006-AC06",
+          "criterion": "Authorization and tenant isolation pass.",
+          "status": "VERIFIED",
+          "evidence": "Final review completed by current gate execution.",
+          "verified_at": "2026-09-29T20:28:40+05:30"
+        }
+      ],
+      "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
+      "created_at": "2026-09-23T20:44:54+05:30"
+    },
+    "CORE-007": {
+      "id": "CORE-007",
+      "name": "Trust, Fraud & Governance Core",
+      "objective": "Implement platform trust, fraud and business governance controls.",
+      "status": "CURRENT",
+      "current_subtask": "CORE-007-T03",
+      "subtasks": [
+        {
+          "id": "CORE-007-T01",
+          "title": "Implement trust score foundation",
+          "priority": "CRITICAL",
+          "status": "DONE",
+          "completed_at": "2026-09-29T21:09:06+05:30",
+          "note": "Trust score foundation implemented under ARCH-015. Dedicated T01 suite: 37 passed in 0.18s. Full AUTONOMY_ENGINE/core regression: 730 passed in 4.94s. T01 implementation and tests committed/pushed."
+        },
+        {
+          "id": "CORE-007-T02",
+          "title": "Implement fraud detection integration",
+          "priority": "CRITICAL",
+          "status": "DONE",
+          "completed_at": "2026-09-29T21:29:05+05:30",
+          "note": "Fraud detection integration implemented under ARCH-016. Dedicated T02 suite: 23 passed. Trust/Fraud package regression: 60 passed. Full AUTONOMY_ENGINE/core regression: 753 passed. T01 production and tests verified untouched. T02 committed and pushed; local and remote synchronized at ebdd671."
+        },
+        {
+          "id": "CORE-007-T03",
+          "title": "Implement risk rule evaluation",
+          "priority": "CRITICAL",
+          "status": "CURRENT"
+        },
+        {
+          "id": "CORE-007-T04",
+          "title": "Implement governance policy engine",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "CORE-007-T05",
+          "title": "Implement approval and exception workflows",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "CORE-007-T06",
+          "title": "Implement security and evidence integration",
+          "priority": "HIGH",
+          "status": "PENDING"
+        },
+        {
+          "id": "CORE-007-T07",
+          "title": "Implement dispute and escalation hooks",
+          "priority": "HIGH",
+          "status": "PENDING"
+        },
+        {
+          "id": "CORE-007-T08",
+          "title": "Run adversarial and false-positive review",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "CORE-007-T09",
+          "title": "Run policy conflict and tenant isolation tests",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "CORE-007-T10",
+          "title": "Freeze trust fraud and governance core",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        }
+      ],
+      "acceptance_criteria": [
+        "Trust and fraud responsibilities are distinct.",
+        "Governance policies are versioned and auditable.",
+        "High-risk actions require appropriate approval.",
+        "Exceptions are controlled and expire.",
+        "Cross-tenant and privilege boundaries are enforced.",
+        "False-positive and conflict cases are tested."
+      ],
+      "criteria_state": [
+        {
+          "id": "CORE-007-AC01",
+          "criterion": "Trust and fraud responsibilities are distinct.",
           "status": "PENDING",
           "evidence": null,
           "verified_at": null
         },
         {
-          "id": "CORE-006-AC06",
-          "criterion": "Authorization and tenant isolation pass.",
+          "id": "CORE-007-AC02",
+          "criterion": "Governance policies are versioned and auditable.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "CORE-007-AC03",
+          "criterion": "High-risk actions require appropriate approval.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "CORE-007-AC04",
+          "criterion": "Exceptions are controlled and expire.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "CORE-007-AC05",
+          "criterion": "Cross-tenant and privilege boundaries are enforced.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "CORE-007-AC06",
+          "criterion": "False-positive and conflict cases are tested.",
           "status": "PENDING",
           "evidence": null,
           "verified_at": null
         }
       ],
       "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
-      "created_at": "2026-09-23T20:44:54+05:30"
+      "created_at": "2026-09-29T21:03:37+05:30"
     }
   },
   "autonomous_engine": {

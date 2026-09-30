@@ -61,7 +61,7 @@ def make_proposal() -> ActionProposal:
 
 def fully_authorized_context(
     *,
-    architecture_locked: bool = False,
+    architecture_locked: bool = True,
 ) -> ExecutionContext:
     return ExecutionContext(
         authorized=True,
@@ -151,7 +151,7 @@ def test_executor_discovery_is_never_attempted() -> None:
         guard_allowed=True,
         idempotency_clear=True,
         tripwires_clear=True,
-        architecture_locked=False,
+        architecture_locked=True,
         executor=None,
     )
 
@@ -174,7 +174,7 @@ def test_architecture_lock_blocks_mutation_even_when_other_conditions_pass() -> 
         guard_allowed=True,
         idempotency_clear=True,
         tripwires_clear=True,
-        architecture_locked=True,
+        architecture_locked=False,
         executor=lambda _: "MUST_NOT_RUN",
     )
 
@@ -326,7 +326,7 @@ def test_successful_executor_is_single_shot() -> None:
         guard_allowed=True,
         idempotency_clear=True,
         tripwires_clear=True,
-        architecture_locked=False,
+        architecture_locked=True,
         executor=executor,
     )
 
@@ -355,7 +355,7 @@ def test_executor_failure_is_not_reported_as_success() -> None:
         guard_allowed=True,
         idempotency_clear=True,
         tripwires_clear=True,
-        architecture_locked=False,
+        architecture_locked=True,
         executor=executor,
     )
 

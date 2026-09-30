@@ -1,4 +1,4 @@
-"""ACRL T06 — Checkpoint Continuity acceptance tests."""
+"""ACRL T06 â€” Checkpoint Continuity acceptance tests."""
 
 from __future__ import annotations
 
@@ -71,7 +71,7 @@ def _checkpoint(
         },
         "evidence": {
             "verified": evidence_verified,
-            "evidence_ids": evidence_ids or ["EV-001"],
+            "evidence_ids": evidence_ids if evidence_ids is not None else ["EV-001"],
         },
         "interruption_boundary": {
             "type": "SAFE_INTERRUPTION",

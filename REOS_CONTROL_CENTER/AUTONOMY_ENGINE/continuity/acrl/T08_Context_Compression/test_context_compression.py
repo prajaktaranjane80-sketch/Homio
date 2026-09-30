@@ -66,7 +66,9 @@ def make_bootstrap():
         execution_state=Projection(
             {
                 "current_gate": "CORE-005",
+                "current_task": "CORE-005-T01",
                 "current_subtask": "CORE-005-T01",
+                "current_subtask_status": "CURRENT",
                 "status": "CONTROL_CENTER_DRIVEN",
             }
         ),

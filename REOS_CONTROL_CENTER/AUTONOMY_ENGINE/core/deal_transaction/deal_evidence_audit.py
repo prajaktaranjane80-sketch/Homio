@@ -4,7 +4,12 @@ from dataclasses import dataclass, field
 from typing import Any, Mapping
 from uuid import uuid4
 
-from .deal_contract import utc_datetime
+from .deal_contract import (
+    deep_freeze,
+    deep_thaw,
+    require_positive_int,
+    utc_datetime,
+)
 
 
 class DealEvidenceAuditError(ValueError):
@@ -57,10 +62,13 @@ class DealEvidenceReference:
                     f"{name} is required."
                 )
 
-        if self.deal_version < 1:
-            raise DealEvidenceAuditError(
-                "deal_version must be >= 1."
+        try:
+            require_positive_int(
+                self.deal_version,
+                "deal_version",
             )
+        except ValueError as exc:
+            raise DealEvidenceAuditError(str(exc)) from exc
 
         if self.source_of_truth != "ARCH-014":
             raise DealEvidenceAuditError(
@@ -70,7 +78,7 @@ class DealEvidenceReference:
         object.__setattr__(
             self,
             "metadata",
-            dict(self.metadata),
+            deep_freeze(self.metadata),
         )
 
     @classmethod
@@ -107,7 +115,7 @@ class DealEvidenceReference:
             self.evidence_type,
             self.reference,
             self.actor_id,
-            dict(self.metadata),
+            deep_thaw(self.metadata),
         )
 
     def assert_scope(
@@ -170,10 +178,13 @@ class DealAuditEntry:
                     f"{name} is required."
                 )
 
-        if self.deal_version < 1:
-            raise DealEvidenceAuditError(
-                "deal_version must be >= 1."
+        try:
+            require_positive_int(
+                self.deal_version,
+                "deal_version",
             )
+        except ValueError as exc:
+            raise DealEvidenceAuditError(str(exc)) from exc
 
         if self.source_of_truth != "deal":
             raise DealEvidenceAuditError(

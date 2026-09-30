@@ -5,7 +5,12 @@ from enum import Enum
 from typing import Any, Mapping
 from uuid import uuid4
 
-from .deal_contract import utc_datetime
+from .deal_contract import (
+    deep_freeze,
+    deep_thaw,
+    require_positive_int,
+    utc_datetime,
+)
 
 
 class DealOfferStatus(str, Enum):
@@ -50,10 +55,7 @@ class DealOffer:
                     f"{name} is required."
                 )
 
-        if self.version < 1:
-            raise ValueError(
-                "offer version must be >= 1."
-            )
+        require_positive_int(self.version, "offer version")
 
         object.__setattr__(
             self,
@@ -64,7 +66,7 @@ class DealOffer:
         object.__setattr__(
             self,
             "terms",
-            dict(self.terms),
+            deep_freeze(self.terms),
         )
 
     @classmethod
@@ -118,6 +120,11 @@ class DealOffer:
         self.assert_scope(
             deal_id=self.deal_id,
             tenant_id=tenant_id,
+        )
+
+        require_positive_int(
+            expected_version,
+            "expected_version",
         )
 
         if expected_version != self.version:
@@ -177,7 +184,7 @@ class DealOffer:
             "version": self.version,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
-            "terms": dict(self.terms),
+            "terms": deep_thaw(self.terms),
             "supersedes_offer_id": self.supersedes_offer_id,
         }
 
@@ -195,10 +202,10 @@ class DealNegotiation:
     updated_at: str
 
     def __post_init__(self) -> None:
-        if self.version < 1:
-            raise ValueError(
-                "negotiation version must be >= 1."
-            )
+        require_positive_int(
+            self.version,
+            "negotiation version",
+        )
 
         object.__setattr__(
             self,
@@ -245,6 +252,11 @@ class DealNegotiation:
             raise ValueError(
                 "Negotiation crosses tenant scope."
             )
+
+        require_positive_int(
+            expected_version,
+            "expected_version",
+        )
 
         if expected_version != self.version:
             raise ValueError(

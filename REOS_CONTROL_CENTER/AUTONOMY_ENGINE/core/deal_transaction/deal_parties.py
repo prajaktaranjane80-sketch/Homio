@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import Any, Mapping
+
+from .deal_contract import deep_freeze, deep_thaw, require_positive_int
 
 
 class DealPartyRole(str, Enum):
@@ -43,10 +45,10 @@ class DealPartyRelationship:
                     f"{name} must be a non-empty string."
                 )
 
-        if self.relationship_version < 1:
-            raise ValueError(
-                "relationship_version must be >= 1."
-            )
+        require_positive_int(
+            self.relationship_version,
+            "relationship_version",
+        )
 
         object.__setattr__(
             self,
@@ -63,7 +65,7 @@ class DealPartyRelationship:
         object.__setattr__(
             self,
             "metadata",
-            dict(self.metadata or {}),
+            deep_freeze(self.metadata or {}),
         )
 
     @property
@@ -98,5 +100,5 @@ class DealPartyRelationship:
             "relationship_version": self.relationship_version,
             "lifecycle": self.lifecycle.value,
             "relationship_key": self.relationship_key,
-            "metadata": dict(self.metadata or {}),
+            "metadata": deep_thaw(self.metadata or {}),
         }

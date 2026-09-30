@@ -190,7 +190,7 @@ def _execution_context() -> ExecutionContext:
         guard_allowed=True,
         idempotency_clear=True,
         tripwires_clear=True,
-        architecture_locked=False,
+        architecture_locked=True,
         evidence={
             "acceptance": "L1",
             "source": "test_l1_l2_acceptance",
