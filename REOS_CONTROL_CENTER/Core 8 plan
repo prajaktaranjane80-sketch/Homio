@@ -1,144 +1,45 @@
-CORE-008 Commission & Financial Core
-│
-├── 01 Financial Domain
-│   ├── financial identity
-│   ├── financial subject
-│   ├── currency
-│   ├── monetary amount
-│   ├── precision/rounding rules
-│   ├── financial state
-│   ├── tenant identity
-│   └── immutable financial identity
-│
-├── 02 Commission Contract
-│   ├── commission identity
-│   ├── commission entitlement
-│   ├── commission basis
-│   ├── commission rate/reference
-│   ├── eligibility rules
-│   ├── effective dates
-│   ├── contract version
-│   ├── provenance
-│   └── immutable historical terms
-│
-├── 03 Commission Calculation
-│   ├── calculation input contract
-│   ├── calculation version
-│   ├── gross basis
-│   ├── deductions/reference
-│   ├── commission amount
-│   ├── currency
-│   ├── rounding
-│   ├── deterministic calculation
-│   └── reproducibility
-│
-├── 04 Entitlement & Allocation
-│   ├── entitled party
-│   ├── entitlement identity
-│   ├── allocation rule
-│   ├── allocation percentage/reference
-│   ├── allocation history
-│   ├── eligibility state
-│   ├── ownership/deal reference
-│   ├── conflict handling
-│   └── no duplicate ownership engine
-│
-├── 05 Commission Protection
-│   ├── lead/deal provenance reference
-│   ├── ownership reference
-│   ├── attribution evidence
-│   ├── entitlement evidence
-│   ├── protection state
-│   ├── dispute reference
-│   ├── historical snapshot
-│   └── tamper/integrity protection
-│
-├── 06 Financial Ledger Boundary
-│   ├── financial entry identity
-│   ├── debit/credit semantics
-│   ├── immutable entry
-│   ├── reference transaction
-│   ├── entry timestamp
-│   ├── currency consistency
-│   ├── balancing/integrity validation
-│   └── no destructive mutation
-│
-├── 07 Settlement & Reconciliation
-│   ├── settlement identity
-│   ├── settlement state
-│   ├── settlement reference
-│   ├── reconciliation identity
-│   ├── expected vs recorded amount
-│   ├── discrepancy state
-│   ├── reconciliation evidence
-│   ├── retry/recovery boundary
-│   └── deterministic reconciliation
-│
-├── 08 Financial Consistency & Concurrency
-│   ├── optimistic versioning
-│   ├── stale calculation protection
-│   ├── concurrent entitlement protection
-│   ├── concurrent settlement protection
-│   ├── duplicate financial command protection
-│   ├── idempotency
-│   ├── atomic financial transition
-│   └── deterministic conflict behavior
-│
-├── 09 Security & Tenant Boundary
-│   ├── tenant isolation
-│   ├── financial authorization
-│   ├── entitlement authorization
-│   ├── settlement authorization
-│   ├── reconciliation authorization
-│   ├── cross-tenant rejection
-│   ├── sensitive financial-data boundary
-│   └── IDOR protection
-│
-├── 10 REOS Integration Contract
-│   ├── Control Center authority boundary
-│   ├── canonical-state non-ownership
-│   ├── execution-boundary compatibility
-│   ├── gate/task discoverability
-│   ├── verification contract
-│   └── no autonomous project-state mutation
-│
-├── 11 ACRL Integration Contract
-│   ├── commission reconstruction
-│   ├── entitlement reconstruction
-│   ├── calculation reconstruction
-│   ├── ledger reconstruction
-│   ├── settlement reconstruction
-│   ├── reconciliation reconstruction
-│   ├── evidence discoverability
-│   ├── checkpoint/recovery compatibility
-│   └── deterministic reconstruction
-│
-├── 12 Financial Event Integration
-│   ├── commission-created
-│   ├── entitlement-established
-│   ├── commission-calculated
-│   ├── commission-adjusted
-│   ├── settlement-created
-│   ├── settlement-completed
-│   ├── reconciliation-discrepancy
-│   └── CORE-002 event contract
-│
-└── 13 Contract + Adversarial Regression
-    ├── monetary precision tests
-    ├── rounding tests
-    ├── calculation reproducibility tests
-    ├── entitlement tests
-    ├── commission protection tests
-    ├── ledger integrity tests
-    ├── settlement tests
-    ├── reconciliation tests
-    ├── duplicate financial command tests
-    ├── concurrency tests
-    ├── stale-version tests
-    ├── tenant isolation tests
-    ├── authorization tests
-    ├── tamper/integrity tests
-    ├── reconstruction tests
-    ├── REOS integration tests
-    ├── ACRL reconstruction tests
-    └── cross-core regression
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "========================================"
+========================================
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CORE-008 T01 PUSHED"
+CORE-008 T01 PUSHED
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "========================================"
+========================================
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "PARENT SHA     : $parentSha"
+PARENT SHA     : 67defddf9cad557144cf1606c663356ec750fa3a
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "NEW COMMIT     : $($newCommit.sha)"
+NEW COMMIT     : 8d8ed94c58d5e291902148684a65d046a6b353e7
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "BRANCH         : $branch"
+BRANCH         : reos-development
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "FORCE PUSH     : NO"
+FORCE PUSH     : NO
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "FILES          : $($files.Count)"
+FILES          : 3
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "========================================"
+========================================
+PS D:\Homio\REOS_CONTROL_CENTER> git pull --ff-only origin reos-development
+remote: Enumerating objects: 79, done.
+remote: Counting objects: 100% (79/79), done.
+remote: Compressing objects: 100% (65/65), done.
+remote: Total 67 (delta 43), reused 1 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (67/67), 46.51 KiB | 86.00 KiB/s, done.
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+   48e0333..8d8ed94  reos-development -> origin/reos-development
+hint: Diverging branches can't be fast-forwarded, you need to either:
+hint:
+hint:   git merge --no-ff
+hint:
+hint: or:
+hint:
+hint:   git rebase
+hint:
+hint: Disable this message with "git config set advice.diverging false"
+fatal: Not possible to fast-forward, aborting.
+PS D:\Homio\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\commission_financial -q
+
+no tests ran in 0.01s
+ERROR: file or directory not found: AUTONOMY_ENGINE\core\commission_financial
+
+PS D:\Homio\REOS_CONTROL_CENTER> python -m compileall AUTONOMY_ENGINE\core\commission_financial -q
+Can't list 'AUTONOMY_ENGINE\\core\\commission_financial'
+PS D:\Homio\REOS_CONTROL_CENTER>
