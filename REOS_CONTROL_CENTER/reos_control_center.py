@@ -193,11 +193,64 @@ def calculate_hash(state: dict[str, Any]) -> str:
     return hashlib.sha256(canonical_without_hash(state)).hexdigest()
 
 
+def synchronize_execution_projection(
+    state: dict[str, Any],
+) -> None:
+    """
+    Synchronize execution metadata that is derived from the authoritative
+    current gate plan.
+
+    The gate plan is the source for current subtask, current task and
+    acceptance criteria. These execution fields are projections only and
+    must never retain criteria from an older gate.
+    """
+    execution = state.setdefault("execution", {})
+    gate_id = execution.get("current_gate")
+
+    if not isinstance(gate_id, str) or not gate_id:
+        return
+
+    gate_plans = state.setdefault("gate_plans", {})
+    gate = gate_plans.get(gate_id)
+
+    if not isinstance(gate, dict):
+        return
+
+    current_subtask = gate.get("current_subtask")
+
+    if isinstance(current_subtask, str) and current_subtask:
+        execution["current_subtask"] = current_subtask
+
+        current_item = next(
+            (
+                item
+                for item in gate.get("subtasks", [])
+                if item.get("id") == current_subtask
+            ),
+            None,
+        )
+
+        if isinstance(current_item, dict):
+            title = current_item.get("title")
+
+            if isinstance(title, str) and title:
+                execution["current_task"] = (
+                    f"{current_subtask}: {title}."
+                )
+
+    criteria = gate.get("acceptance_criteria")
+
+    if isinstance(criteria, list):
+        execution["current_acceptance_criteria"] = list(criteria)
+
+    state.setdefault("meta", {})["control_center_version"] = VERSION
+
 def save_state(
     state: dict[str, Any],
     *,
     create_snapshot: bool = True,
 ) -> None:
+    synchronize_execution_projection(state)
     state.setdefault("meta", {})["updated_at"] = now()
     state.setdefault("integrity", {})["sha256"] = calculate_hash(state)
 
