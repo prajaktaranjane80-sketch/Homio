@@ -1,100 +1,342 @@
-PS D:\Homio\REOS_CONTROL_CENTER> # 1. CORE-007 local commit को safety branch पर preserve करो
-PS D:\Homio\REOS_CONTROL_CENTER> git branch backup-core007-local HEAD
+PS C:\Users\Sandip RanjanePatil> Set-Location "D:\Homio\REOS_CONTROL_CENTER"
+PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 2. केवल accidental unstaged deletions restore करो
-PS D:\Homio\REOS_CONTROL_CENTER> git status --short | ForEach-Object {
->>     if ($_ -match '^ D (.+)$') {
->>         git restore -- "$($Matches[1])"
+PS D:\Homio\REOS_CONTROL_CENTER> $repo   = "prajaktaranjane80-sketch/Homio"
+PS D:\Homio\REOS_CONTROL_CENTER> $branch = "reos-development"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> function Get-GitHubFile {
+>>     param([string]$Path)
+>>
+>>     $encoded = [uri]::EscapeDataString($Path)
+>>     $r = gh api "repos/$repo/contents/$encoded?ref=$branch" | ConvertFrom-Json
+>>     $bytes = [Convert]::FromBase64String(($r.content -replace "`n",""))
+>>     $content = [Text.Encoding]::UTF8.GetString($bytes)
+>>
+>>     [pscustomobject]@{
+>>         Path    = $Path
+>>         Sha     = $r.sha
+>>         Content = $content
 >>     }
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 3. Remote refresh
-PS D:\Homio\REOS_CONTROL_CENTER> git fetch origin reos-development
-remote: Enumerating objects: 292, done.
-remote: Counting objects: 100% (149/149), done.
-remote: Compressing objects: 100% (119/119), done.
-remote: Total 292 (delta 112), reused 30 (delta 30), pack-reused 143 (from 1)
-Receiving objects: 100% (292/292), 162.95 KiB | 6.52 MiB/s, done.
-Resolving deltas: 100% (205/205), completed with 2 local objects.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   9c7ac45..48e0333  reos-development -> origin/reos-development
-Enumerating objects: 651, done.
-Counting objects: 100% (649/649), done.
-Delta compression using up to 12 threads
-Compressing objects: 100% (336/336), done.
-Writing objects: 100% (649/649), done.
-Total 649 (delta 414), reused 446 (delta 301), pack-reused 0 (from 0)
+PS D:\Homio\REOS_CONTROL_CENTER> function Update-GitHubFile {
+>>     param(
+>>         [string]$Path,
+>>         [string]$Sha,
+>>         [string]$Content,
+>>         [string]$Message
+>>     )
+>>
+>>     $encoded = [Convert]::ToBase64String(
+>>         [Text.Encoding]::UTF8.GetBytes($Content)
+>>     )
+>>
+>>     $body = @{
+>>         message = $Message
+>>         content = $encoded
+>>         sha     = $Sha
+>>         branch  = $branch
+>>     } | ConvertTo-Json -Compress
+>>
+>>     $result = gh api `
+>>         -X PUT `
+>>         "repos/$repo/contents/$([uri]::EscapeDataString($Path))" `
+>>         --input - <<< $body | ConvertFrom-Json
+>>
+>>     $result.commit.sha
+>> }
+At line:23 char:20
++         --input - <<< $body | ConvertFrom-Json
++                    ~
+Missing file specification after redirection operator.
+At line:23 char:19
++         --input - <<< $body | ConvertFrom-Json
++                   ~
+The '<' operator is reserved for future use.
+At line:23 char:21
++         --input - <<< $body | ConvertFrom-Json
++                     ~
+Missing file specification after redirection operator.
+At line:23 char:20
++         --input - <<< $body | ConvertFrom-Json
++                    ~
+The '<' operator is reserved for future use.
+At line:23 char:21
++         --input - <<< $body | ConvertFrom-Json
++                     ~
+The '<' operator is reserved for future use.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingFileSpecification
+
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 4. Exact divergence देखो
-PS D:\Homio\REOS_CONTROL_CENTER> git log --left-right --cherry-pick --oneline origin/reos-development...HEAD
-< 48e0333 (origin/reos-development) Update PS Output
-< 37ac024 Update PS Output
-> 6816f8e (HEAD -> reos-development, backup-core007-local) CORE-007 verification and core contract hardening
-< 007a781 Update PS Output
-< bdac749 Update PS Output
-< 8219238 Update PS Output
-< 477d7c9 Update PS Output
-< f48883a Update and rename Core 7 to PS Output
-< 7c91b21 Update __init__.py
-< f1cdcc0 Update governance_consistency.py
-< 2a8f7f5 Update governance_security.py
-< ab891df Update governance_evidence.py
-< 9cf36a3 Update governance_decision.py
-< 6316f9e Update governance_engine.py
-< 4750698 Update governance_policy.py
-< 4231ad6 Update risk_rules.py
-< b276baf Update risk_assessment.py
-< 4b3abdf Update fraud_detection.py
-< e141928 Update trust_score.py
-< b61a169 Create test_core007_t13_contract_matrix.py
-< ca1a26e Create test_core007_t12_event_contract.py
-< 687318f Create test_core007_t11_acrl_contract.py
-< 756433f Create governance_event_contract.py
-< b6cf881 Create governance_acrl_contract.py
-< 6545358 Rename PS Output to Core 7
-< a373a1d Create governance_reos_contract.py
-< 41f2baa Create governance_consistency.py
-< fa152f9 Create governance_security.py
-< 0979c66 Create governance_decision.py
-< 1c67f2a Create test_core007_t09_t10_boundaries.py
-< daa361c Create test_core007_t08_adversarial.py
-< 0fb0433 Create dispute_escalation.py
-< ec30c42 Create governance_evidence.py
-< e856c14 Create exception_registry.py
-< 7febffc Create approval_workflow.py
-< f7b57a3 Create governance_engine.py
-< 1b915a4 Create governance_policy.py
-< caab57b Create test_core007_t03_adversarial.py
-< 741c2e8 Create test_core007_t03_risk_assessment.py
-< 17663b6 Create risk_assessment_engine.py
-< d816d55 Create risk_assessment_policy.py
-< e712f2e Create risk_assessment.py
-< 7394e11 Create test_core007_t03_risk_rules.py
-< 1412d59 Create risk_rules.py
-< 7d2fc5a Update PS Output
-< d967e57 REOS: complete ACRL-controlled execution and synchronization contract
-< 8de1796 REOS: align AI entrypoint with existing ACRL synchronization boundaries
-< 5d070ff REOS: align AI entrypoint with existing ACRL synchronization boundaries
-< a9d54c9 Update PS Output
-< 9c7ac45 Update PS Output
-< 70459a3 ARCH: persist remote Git synchronization workflow
-< 95f5a59 Update PS Output
-< f039583 Update PS Output
-< ffae782 STATE: synchronize CORE-007 execution projection
-< 69610fe Update PS Output
-< 942d5a0 Update PS Output
-> 35ca160 STATE: synchronize CORE-007 execution projection
-< d6c4c6b Update PS Output
-> e623fa9 STATE: synchronize current execution projection
-< f8f7004 CORE: synchronize Control Center execution projection
-< 469189d ARCH: repair canonical AUTONOMY_ENGINE package wiring
-< 6db39ca Update PS Output
-< bdebcf1 TEST: guard canonical AUTONOMY_ENGINE package wiring
-< d16cc30 Update PS Output
-< 925d954 Update PS Output
-< 52d8f32 ARCH: add shared cross-core contract primitives
-< 0eede8d Update PS Output
-< 119f404 Update PS Output
-< 185bb8a Update PS Output
-< a7584ff Update PS Output
+PS D:\Homio\REOS_CONTROL_CENTER> # ============================================================
+PS D:\Homio\REOS_CONTROL_CENTER> # CORE-002: EventEnvelope recursive immutability
+PS D:\Homio\REOS_CONTROL_CENTER> # ============================================================
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $eventPath = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/event_platform/event_domain.py"
+PS D:\Homio\REOS_CONTROL_CENTER> $eventFile = Get-GitHubFile $eventPath
+gh: Not Found (HTTP 404)
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $eventContent = $eventFile.Content
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($eventContent -notmatch 'from \.\.contract_primitives import deep_freeze') {
+>>     $eventContent = $eventContent.Replace(
+>>         "from uuid import UUID, uuid4`r`nimport json",
+>>         "from uuid import UUID, uuid4`r`nimport json`r`n`r`nfrom ..contract_primitives import deep_freeze"
+>>     )
+>>
+>>     if ($eventContent -notmatch 'from \.\.contract_primitives import deep_freeze') {
+>>         $eventContent = $eventContent.Replace(
+>>             "from uuid import UUID, uuid4`nimport json",
+>>             "from uuid import UUID, uuid4`nimport json`n`nfrom ..contract_primitives import deep_freeze"
+>>         )
+>>     }
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $oldEventBlock = @'
+>>         canonical_payload = dict(
+>>             _canonicalize(self.payload)
+>>         )
+>>
+>>         canonical_metadata = dict(
+>>             _canonicalize(self.metadata)
+>>         )
+>>
+>>         object.__setattr__(
+>>             self,
+>>             "payload",
+>>             MappingProxyType(
+>>                 canonical_payload
+>>             ),
+>>         )
+>>
+>>         object.__setattr__(
+>>             self,
+>>             "metadata",
+>>             MappingProxyType(
+>>                 canonical_metadata
+>>             ),
+>>         )
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $newEventBlock = @'
+>>         frozen_payload = deep_freeze(
+>>             self.payload,
+>>             field_name="payload",
+>>         )
+>>
+>>         frozen_metadata = deep_freeze(
+>>             self.metadata,
+>>             field_name="metadata",
+>>         )
+>>
+>>         object.__setattr__(
+>>             self,
+>>             "payload",
+>>             frozen_payload,
+>>         )
+>>
+>>         object.__setattr__(
+>>             self,
+>>             "metadata",
+>>             frozen_metadata,
+>>         )
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($eventContent.Contains($oldEventBlock)) {
+>>     $eventContent = $eventContent.Replace($oldEventBlock, $newEventBlock)
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> elseif (-not $eventContent.Contains('frozen_payload = deep_freeze(')) {
+>>     throw "CORE-002 anchor not found. Remote event_domain.py was not modified."
+>> }
+elseif : The term 'elseif' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a
+path was included, verify that the path is correct and try again.
+At line:1 char:1
++ elseif (-not $eventContent.Contains('frozen_payload = deep_freeze(')) ...
++ ~~~~~~
+    + CategoryInfo          : ObjectNotFound: (elseif:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $eventCommit = Update-GitHubFile `
+>>     -Path $eventPath `
+>>     -Sha $eventFile.Sha `
+>>     -Content $eventContent `
+>>     -Message "CORE-007: enforce recursive event contract immutability"
+Update-GitHubFile : The term 'Update-GitHubFile' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling
+of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:16
++ $eventCommit = Update-GitHubFile `
++                ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (Update-GitHubFile:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "EVENT FILE COMMIT: $eventCommit"
+EVENT FILE COMMIT:
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ============================================================
+PS D:\Homio\REOS_CONTROL_CENTER> # CORE-003: Lead metadata recursive immutability
+PS D:\Homio\REOS_CONTROL_CENTER> # ============================================================
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $leadPath = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/lead.py"
+PS D:\Homio\REOS_CONTROL_CENTER> $leadFile = Get-GitHubFile $leadPath
+gh: Not Found (HTTP 404)
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $leadContent = $leadFile.Content
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($leadContent -notmatch 'from \.\.contract_primitives import') {
+>>     $leadContent = $leadContent.Replace(
+>>         "from uuid import UUID, uuid4",
+>>         "from uuid import UUID, uuid4`r`n`r`nfrom ..contract_primitives import ContractPrimitiveError, deep_freeze"
+>>     )
+>>
+>>     if ($leadContent -notmatch 'from \.\.contract_primitives import') {
+>>         $leadContent = $leadContent.Replace(
+>>             "from uuid import UUID, uuid4",
+>>             "from uuid import UUID, uuid4`n`nfrom ..contract_primitives import ContractPrimitiveError, deep_freeze"
+>>         )
+>>     }
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $anchor = @'
+>> def _canonicalize(value: Any) -> Any:
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $helper = @'
+>> def _freeze_metadata(value: Mapping[str, Any]) -> Mapping[str, Any]:
+>>     try:
+>>         return deep_freeze(
+>>             value,
+>>             field_name="metadata",
+>>         )
+>>     except ContractPrimitiveError as exc:
+>>         raise LeadValidationError(str(exc)) from exc
+>>
+>>
+>> def _canonicalize(value: Any) -> Any:
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($leadContent.Contains($anchor) -and
+>>     $leadContent -notmatch 'def _freeze_metadata\(') {
+>>     $leadContent = $leadContent.Replace($anchor, $helper)
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $oldLeadBlock = @'
+>>         normalized_metadata = MappingProxyType(
+>>             {
+>>                 str(key): _canonicalize(value)
+>>                 for key, value in self.metadata.items()
+>>             }
+>>         )
+>>
+>>         object.__setattr__(self, "metadata", normalized_metadata)
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $newLeadBlock = @'
+>>         normalized_metadata = _freeze_metadata(
+>>             self.metadata
+>>         )
+>>
+>>         object.__setattr__(
+>>             self,
+>>             "metadata",
+>>             normalized_metadata,
+>>         )
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($leadContent.Contains($oldLeadBlock)) {
+>>     $leadContent = $leadContent.Replace($oldLeadBlock, $newLeadBlock)
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> elseif (-not $leadContent.Contains('normalized_metadata = _freeze_metadata(')) {
+>>     throw "CORE-003 constructor anchor not found. Remote lead.py was not modified."
+>> }
+elseif : The term 'elseif' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a
+path was included, verify that the path is correct and try again.
+At line:1 char:1
++ elseif (-not $leadContent.Contains('normalized_metadata = _freeze_met ...
++ ~~~~~~
+    + CategoryInfo          : ObjectNotFound: (elseif:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $oldCreate = 'metadata=MappingProxyType(dict(metadata or {})),'
+PS D:\Homio\REOS_CONTROL_CENTER> $newCreate = 'metadata=metadata or {},'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($leadContent.Contains($oldCreate)) {
+>>     $leadContent = $leadContent.Replace($oldCreate, $newCreate)
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $oldWithMetadata = 'metadata=MappingProxyType(dict(metadata)),'
+PS D:\Homio\REOS_CONTROL_CENTER> $newWithMetadata = @'
+>> metadata=_freeze_metadata(
+>>                 metadata
+>>             ),
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($leadContent.Contains($oldWithMetadata)) {
+>>     $leadContent = $leadContent.Replace($oldWithMetadata, $newWithMetadata)
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $leadCommit = Update-GitHubFile `
+>>     -Path $leadPath `
+>>     -Sha $leadFile.Sha `
+>>     -Content $leadContent `
+>>     -Message "CORE-007: enforce recursive lead metadata immutability"
+Update-GitHubFile : The term 'Update-GitHubFile' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling
+of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:15
++ $leadCommit = Update-GitHubFile `
++               ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (Update-GitHubFile:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "LEAD FILE COMMIT: $leadCommit"
+LEAD FILE COMMIT:
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ============================================================
+PS D:\Homio\REOS_CONTROL_CENTER> # REMOTE VERIFICATION
+PS D:\Homio\REOS_CONTROL_CENTER> # ============================================================
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== REMOTE HEAD ==="
+
+=== REMOTE HEAD ===
+PS D:\Homio\REOS_CONTROL_CENTER> gh api "repos/$repo/git/ref/heads/$branch" --jq ".object.sha"
+21bf0a374cfb6589384f436c17446cdcd539af10
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== EVENT DEEP FREEZE ==="
+
+=== EVENT DEEP FREEZE ===
+PS D:\Homio\REOS_CONTROL_CENTER> gh api "repos/$repo/contents/$([uri]::EscapeDataString($eventPath))?ref=$branch" |
+>>     ConvertFrom-Json |
+>>     ForEach-Object {
+>>         $c = [Text.Encoding]::UTF8.GetString(
+>>             [Convert]::FromBase64String(($_.content -replace "`n",""))
+>>         )
+>>         if ($c -match "deep_freeze") { "PASS" } else { "FAIL" }
+>>     }
+FAIL
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== LEAD DEEP FREEZE ==="
+
+=== LEAD DEEP FREEZE ===
+PS D:\Homio\REOS_CONTROL_CENTER> gh api "repos/$repo/contents/$([uri]::EscapeDataString($leadPath))?ref=$branch" |
+>>     ConvertFrom-Json |
+>>     ForEach-Object {
+>>         $c = [Text.Encoding]::UTF8.GetString(
+>>             [Convert]::FromBase64String(($_.content -replace "`n",""))
+>>         )
+>>         if ($c -match "deep_freeze" -and $c -match "_freeze_metadata") {
+>>             "PASS"
+>>         } else {
+>>             "FAIL"
+>>         }
+>>     }
+FAIL
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== DONE: GITHUB REMOTE ONLY ==="
+
+=== DONE: GITHUB REMOTE ONLY ===
