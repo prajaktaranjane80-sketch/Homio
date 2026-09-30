@@ -228,6 +228,22 @@ SOURCE_OF_TRUTH: dict[str, str] = {
         "AUTONOMY_ENGINE/continuity/acrl/"
         "T15_AI_Operator_Autonomy"
     ),
+    "git_repository_coordination": (
+        "AUTONOMY_ENGINE/continuity/acrl/"
+        "T21_Git_Repository_Read_Write_Coordination"
+    ),
+    "commit_checkpoint_coordination": (
+        "AUTONOMY_ENGINE/continuity/acrl/"
+        "T22_Commit_Execution_Checkpoint_Coordination"
+    ),
+    "evidence_resolution": (
+        "AUTONOMY_ENGINE/continuity/acrl/"
+        "T23_Reference_Evidence_Resolution_Engine"
+    ),
+    "continuity_recovery": (
+        "AUTONOMY_ENGINE/continuity/acrl/"
+        "T24_Cross_Chat_Continuity_Recovery_Engine"
+    ),
     "chat_history": "NON_AUTHORITATIVE",
 }
 
@@ -293,6 +309,10 @@ def repository_paths() -> dict[str, str]:
         "t07": str(ACRL_ENTRYPOINT),
         "t14": str(ACRL_REPOSITORY_CONTEXT),
         "t15": str(ACRL_OPERATOR_AUTONOMY),
+        "t21": str(ACRL_GIT_REPOSITORY_COORDINATION),
+        "t22": str(ACRL_COMMIT_CHECKPOINT_COORDINATION),
+        "t23": str(ACRL_EVIDENCE_RESOLUTION),
+        "t24": str(ACRL_CONTINUITY_RECOVERY),
     }
 
 
