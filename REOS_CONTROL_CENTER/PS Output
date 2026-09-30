@@ -1,51 +1,10 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location "D:\HOMIO\REOS_CONTROL_CENTER"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $utf8 = New-Object System.Text.UTF8Encoding($false)
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> function Replace-Exact {
->>     param(
->>         [Parameter(Mandatory=$true)][string]$Path,
->>         [Parameter(Mandatory=$true)][string]$Old,
->>         [Parameter(Mandatory=$true)][string]$New,
->>         [Parameter(Mandatory=$true)][int]$ExpectedCount
->>     )
->>
->>     if (-not (Test-Path $Path)) {
->>         throw "Missing file: $Path"
->>     }
->>
->>     $text = [System.IO.File]::ReadAllText($Path)
->>
->>     $count = ([regex]::Matches(
->>         $text,
->>         [regex]::Escape($Old)
->>     )).Count
->>
->>     if ($count -ne $ExpectedCount) {
->>         throw "Safety stop: $Path expected $ExpectedCount match(es), found $count."
->>     }
->>
->>     $updated = $text.Replace($Old, $New)
->>
->>     [System.IO.File]::WriteAllText(
->>         $Path,
->>         $updated,
->>         $utf8
->>     )
->>
->>     Write-Host "PATCHED: $Path" -ForegroundColor Green
->> }
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # CORE-002 Event Domain
+PS D:\HOMIO\REOS_CONTROL_CENTER> # CORE-002
 PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $eventPath = "AUTONOMY_ENGINE\core\event_platform\event_domain.py"
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Replace-Exact `
->>     $eventPath `
+>>     "AUTONOMY_ENGINE\core\event_platform\event_domain.py" `
 >>     'from uuid import UUID, uuid4
 >> import json' `
 >>     'from uuid import UUID, uuid4
@@ -53,17 +12,16 @@ PS D:\HOMIO\REOS_CONTROL_CENTER> Replace-Exact `
 >>
 >> from ..contract_primitives import deep_freeze' `
 >>     1
-Replace-Exact : Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
-RanjanePatil\AUTONOMY_ENGINE\core\event_platform\event_domain.py'."
-At line:1 char:1
-+ Replace-Exact `
-+ ~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [Replace-Exact], MethodInvocationException
-    + FullyQualifiedErrorId : DirectoryNotFoundException,Replace-Exact
+Safety stop: AUTONOMY_ENGINE\core\event_platform\event_domain.py expected 1 match(es), found 0.
+At line:30 char:9
++         throw "Safety stop: $RelativePath expected $ExpectedCount mat ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Safety stop: AU...h(es), found 0.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Safety stop: AUTONOMY_ENGINE\core\event_platform\event_domain.py expected 1 match(es), found 0.
 
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Replace-Exact `
->>     $eventPath `
+>>     "AUTONOMY_ENGINE\core\event_platform\event_domain.py" `
 >>     '        canonical_payload = dict(
 >>             _canonicalize(self.payload)
 >>         )
@@ -109,54 +67,29 @@ PS D:\HOMIO\REOS_CONTROL_CENTER> Replace-Exact `
 >>             canonical_metadata,
 >>         )' `
 >>     1
-Replace-Exact : Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
-RanjanePatil\AUTONOMY_ENGINE\core\event_platform\event_domain.py'."
-At line:1 char:1
-+ Replace-Exact `
-+ ~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [Replace-Exact], MethodInvocationException
-    + FullyQualifiedErrorId : DirectoryNotFoundException,Replace-Exact
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # MappingProxyType is no longer needed in CORE-002 EventEnvelope.
-PS D:\HOMIO\REOS_CONTROL_CENTER> Replace-Exact `
->>     $eventPath `
->>     'from types import MappingProxyType
->> ' `
->>     '' `
->>     1
-Replace-Exact : Cannot bind argument to parameter 'New' because it is an empty string.
-At line:5 char:5
-+     '' `
-+     ~~
-    + CategoryInfo          : InvalidData: (:) [Replace-Exact], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Replace-Exact
+Safety stop: AUTONOMY_ENGINE\core\event_platform\event_domain.py expected 1 match(es), found 0.
+At line:30 char:9
++         throw "Safety stop: $RelativePath expected $ExpectedCount mat ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Safety stop: AU...h(es), found 0.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Safety stop: AUTONOMY_ENGINE\core\event_platform\event_domain.py expected 1 match(es), found 0.
 
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # CORE-003 Lead Domain
+PS D:\HOMIO\REOS_CONTROL_CENTER> # CORE-003
 PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $leadPath = "AUTONOMY_ENGINE\core\lead_ownership\lead.py"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Replace-Exact `
->>     $leadPath `
+>>     "AUTONOMY_ENGINE\core\lead_ownership\lead.py" `
 >>     'from uuid import UUID, uuid4' `
 >>     'from uuid import UUID, uuid4
 >>
 >> from ..contract_primitives import deep_freeze' `
 >>     1
-Replace-Exact : Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
-RanjanePatil\AUTONOMY_ENGINE\core\lead_ownership\lead.py'."
-At line:1 char:1
-+ Replace-Exact `
-+ ~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [Replace-Exact], MethodInvocationException
-    + FullyQualifiedErrorId : DirectoryNotFoundException,Replace-Exact
-
+PATCHED: AUTONOMY_ENGINE\core\lead_ownership\lead.py
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Replace-Exact `
->>     $leadPath `
+>>     "AUTONOMY_ENGINE\core\lead_ownership\lead.py" `
 >>     '        normalized_metadata = MappingProxyType(
 >>             {
 >>                 str(key): _canonicalize(value)
@@ -171,20 +104,20 @@ PS D:\HOMIO\REOS_CONTROL_CENTER> Replace-Exact `
 >>             field_name="metadata",
 >>         )' `
 >>     1
-Replace-Exact : Exception calling "ReadAllText" with "1" argument(s): "Could not find a part of the path 'C:\Users\Sandip
-RanjanePatil\AUTONOMY_ENGINE\core\lead_ownership\lead.py'."
-At line:1 char:1
-+ Replace-Exact `
-+ ~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [Replace-Exact], MethodInvocationException
-    + FullyQualifiedErrorId : DirectoryNotFoundException,Replace-Exact
+Safety stop: AUTONOMY_ENGINE\core\lead_ownership\lead.py expected 1 match(es), found 0.
+At line:30 char:9
++         throw "Safety stop: $RelativePath expected $ExpectedCount mat ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Safety stop: AU...h(es), found 0.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Safety stop: AUTONOMY_ENGINE\core\lead_ownership\lead.py expected 1 match(es), found 0.
 
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # PART-2 regression test
+PS D:\HOMIO\REOS_CONTROL_CENTER> # PART-2 TEST
 PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $testPath = "AUTONOMY_ENGINE\core\test_contract_part2.py"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $testRelative = "AUTONOMY_ENGINE\core\test_contract_part2.py"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $testPath = FullPath $testRelative
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> $testContent = @'
 >> from datetime import datetime, timezone
@@ -271,45 +204,95 @@ PS D:\HOMIO\REOS_CONTROL_CENTER> [System.IO.File]::WriteAllText(
 >>     $testContent,
 >>     $utf8
 >> )
-Exception calling "WriteAllText" with "3" argument(s): "Could not find a part of the path 'C:\Users\Sandip
-RanjanePatil\AUTONOMY_ENGINE\core\test_contract_part2.py'."
-At line:1 char:1
-+ [System.IO.File]::WriteAllText(
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : DirectoryNotFoundException
-
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CREATED: $testPath" -ForegroundColor Green
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CREATED: $testRelative" -ForegroundColor Green
 CREATED: AUTONOMY_ENGINE\core\test_contract_part2.py
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # Targeted tests only
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ONLY PART-2 TESTS
 PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\test_contract_primitives.py AUTONOMY_ENGINE\core\test_contract_part2.py -q
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest `
+>>     AUTONOMY_ENGINE\core\test_contract_primitives.py `
+>>     AUTONOMY_ENGINE\core\test_contract_part2.py `
+>>     -q
+.....FF                                                                                                                                              [100%]
+======================================================================== FAILURES =========================================================================
+___________________________________________________ test_core002_event_payload_is_recursively_immutable ___________________________________________________
 
-no tests ran in 0.01s
-ERROR: file or directory not found: AUTONOMY_ENGINE\core\test_contract_part2.py
+    def test_core002_event_payload_is_recursively_immutable():
+        event = EventEnvelope.create(
+            event_type="TEST_EVENT",
+            schema_name="REOS.TEST",
+            schema_version=1,
+            event_version=1,
+            tenant_id=uuid4(),
+            producer_id=uuid4(),
+            payload={
+                "nested": {
+                    "items": [
+                        {"value": 10}
+                    ]
+                }
+            },
+            metadata={
+                "context": {
+                    "region": "IN"
+                }
+            },
+            occurred_at=datetime.now(timezone.utc),
+        )
 
+>       with pytest.raises(TypeError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE TypeError
+
+AUTONOMY_ENGINE\core\test_contract_part2.py:53: Failed
+___________________________________________________ test_core003_lead_metadata_is_recursively_immutable ___________________________________________________
+
+    def test_core003_lead_metadata_is_recursively_immutable():
+        lead = Lead.create(
+            tenant_id=uuid4(),
+            customer_id=uuid4(),
+            source=LeadSource(
+                source_type=LeadSourceType.DIRECT
+            ),
+            metadata={
+                "preferences": {
+                    "locations": [
+                        {"city": "Pune"}
+                    ]
+                }
+            },
+        )
+
+>       with pytest.raises(TypeError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE TypeError
+
+AUTONOMY_ENGINE\core\test_contract_part2.py:76: Failed
+================================================================= short test summary info =================================================================
+FAILED AUTONOMY_ENGINE/core/test_contract_part2.py::test_core002_event_payload_is_recursively_immutable - Failed: DID NOT RAISE TypeError
+FAILED AUTONOMY_ENGINE/core/test_contract_part2.py::test_core003_lead_metadata_is_recursively_immutable - Failed: DID NOT RAISE TypeError
+2 failed, 5 passed in 0.18s
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "PART 2 regression test failed. No commit/push performed."
+>>     throw "Part-2 targeted regression FAILED."
 >> }
-PART 2 regression test failed. No commit/push performed.
+Part-2 targeted regression FAILED.
 At line:2 char:5
-+     throw "PART 2 regression test failed. No commit/push performed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (PART 2 regressi...push performed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : PART 2 regression test failed. No commit/push performed.
++     throw "Part-2 targeted regression FAILED."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Part-2 targeted regression FAILED.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Part-2 targeted regression FAILED.
 
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\event_platform -q
 .....................................................                                                                                                [100%]
-53 passed in 0.15s
+53 passed in 0.16s
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "CORE-002 regression failed. No commit/push performed."
+>>     throw "CORE-002 regression FAILED."
 >> }
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\lead_ownership -q
@@ -317,65 +300,12 @@ PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\lead_owne
 74 passed in 0.18s
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "CORE-003 regression failed. No commit/push performed."
+>>     throw "CORE-003 regression FAILED."
 >> }
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "PART 2 PASSED: CORE-002 + CORE-003 nested immutability." -ForegroundColor Cyan
-PART 2 PASSED: CORE-002 + CORE-003 nested immutability.
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff -- AUTONOMY_ENGINE/core/event_platform/event_domain.py
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff -- AUTONOMY_ENGINE/core/lead_ownership/lead.py
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
- M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_reconstruction.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/gate_subtask_continuity.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/test_gate_subtask_continuity.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/new_chat_bootstrap.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/test_new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/context_compression.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/test_context_compression.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_guard.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_t12_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_metrics.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_contract.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/dependency_graph.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/core/trust_fraud_governance/__init__.py
- M AUTONOMY_ENGINE/execution/__pycache__/mutation_adapter.cpython-312.pyc
- M AUTONOMY_ENGINE/execution/__pycache__/production_executor.cpython-312.pyc
- M AUTONOMY_ENGINE/orchestration/__pycache__/execution_coordinator.cpython-312.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_controller_autonomy_integration_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_execution_coordinator_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_execution_pipeline_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_mutation_adapter_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_production_executor_adversarial.cpython-312-pytest-9.1.1.pyc
-?? AUTONOMY_ENGINE/core/contract_primitives.py
-?? AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-20260929_203458.bak
-?? AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-sync-20260929_204442.bak
-?? AUTONOMY_ENGINE/core/test_contract_primitives.py
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py
-?? CORE006_HARDENING_BACKUP_20260930_110139/
-?? snapshots/state_20260929_190047_321090.json
-?? snapshots/state_20260929_202840_417870.json
-?? snapshots/state_20260929_203024_561461.json
-?? snapshots/state_20260929_205407_688934.json
-?? snapshots/state_20260929_205835_799742.json
-?? snapshots/state_20260929_210131_376828.json
-?? snapshots/state_20260929_210317_077045.json
-?? snapshots/state_20260929_210337_134750.json
-?? snapshots/state_20260929_210337_147255.json
-?? snapshots/state_20260929_210906_554909.json
-?? snapshots/state_20260929_212905_421537.json
-?? ../REOS_LAYER_BACKUP_ACRL_REPAIR_20260929_182814/
-PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "PART 2 REAL PASS" -ForegroundColor Cyan
+PART 2 REAL PASS
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "No commit/push performed."
+No commit/push performed.
