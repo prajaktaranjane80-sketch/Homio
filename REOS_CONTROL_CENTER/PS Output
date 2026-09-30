@@ -1,175 +1,139 @@
-PS D:\Homio\REOS_CONTROL_CENTER> $remotePath="REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> git fetch origin $branch
-remote: Enumerating objects: 7, done.
-remote: Counting objects: 100% (7/7), done.
-remote: Compressing objects: 100% (4/4), done.
-remote: Total 4 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (4/4), 2.82 KiB | 80.00 KiB/s, done.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   ffae782..f039583  reos-development -> origin/reos-development
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $treeLine = git ls-tree "origin/$branch" -- $remotePath
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $treeLine) {
->>     throw "REMOTE ENTRYPOINT NOT FOUND"
->> }
-REMOTE ENTRYPOINT NOT FOUND
-At line:2 char:5
-+     throw "REMOTE ENTRYPOINT NOT FOUND"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (REMOTE ENTRYPOINT NOT FOUND:String) [], RuntimeException
-    + FullyQualifiedErrorId : REMOTE ENTRYPOINT NOT FOUND
+CORE-007 Trust, Fraud & Governance Core
+│
+├── 01 Trust Domain
+│   ├── trust subject identity
+│   ├── trust context
+│   ├── trust signal
+│   ├── signal provenance
+│   ├── trust state
+│   ├── trust history
+│   ├── trust version
+│   └── tenant identity
+│
+├── 02 Trust Signal Contract
+│   ├── signal identity
+│   ├── signal source
+│   ├── signal type
+│   ├── signal timestamp
+│   ├── evidence reference
+│   ├── confidence metadata
+│   ├── signal version
+│   ├── provenance
+│   └── signal immutability
+│
+├── 03 Fraud Signal & Detection Boundary
+│   ├── fraud signal identity
+│   ├── detection rule reference
+│   ├── detection input provenance
+│   ├── anomaly reference
+│   ├── confidence
+│   ├── detection state
+│   ├── false-positive handling
+│   ├── escalation boundary
+│   └── no autonomous irreversible punishment
+│
+├── 04 Risk Assessment
+│   ├── risk subject
+│   ├── risk context
+│   ├── risk factors
+│   ├── assessment version
+│   ├── assessment evidence
+│   ├── deterministic evaluation boundary
+│   ├── assessment history
+│   └── reproducibility
+│
+├── 05 Governance Rules
+│   ├── governance rule identity
+│   ├── rule version
+│   ├── rule scope
+│   ├── rule applicability
+│   ├── rule precedence
+│   ├── rule outcome
+│   ├── exception/reference handling
+│   ├── effective dates
+│   └── rule provenance
+│
+├── 06 Decision & Escalation Boundary
+│   ├── review state
+│   ├── escalation state
+│   ├── human-review reference
+│   ├── decision evidence
+│   ├── override reference
+│   ├── override authorization
+│   ├── appeal/review reference
+│   └── irreversible-action protection
+│
+├── 07 Evidence & Explainability
+│   ├── evidence reference
+│   ├── signal provenance
+│   ├── rule provenance
+│   ├── assessment explanation
+│   ├── decision explanation
+│   ├── evidence integrity
+│   ├── historical snapshot
+│   └── reproducibility
+│
+├── 08 Security & Tenant Boundary
+│   ├── tenant isolation
+│   ├── subject authorization
+│   ├── sensitive-risk data boundary
+│   ├── governance access control
+│   ├── review authorization
+│   ├── override authorization
+│   ├── cross-tenant rejection
+│   └── privacy/data-minimization boundary
+│
+├── 09 Consistency & Concurrency
+│   ├── assessment version
+│   ├── stale assessment protection
+│   ├── concurrent review protection
+│   ├── duplicate signal handling
+│   ├── duplicate command handling
+│   ├── deterministic rule evaluation
+│   └── idempotency
+│
+├── 10 REOS Integration Contract
+│   ├── Control Center authority boundary
+│   ├── canonical-state non-ownership
+│   ├── execution compatibility
+│   ├── gate/task discoverability
+│   ├── verification contract
+│   └── no autonomous project-state mutation
+│
+├── 11 ACRL Integration Contract
+│   ├── signal reconstruction
+│   ├── assessment reconstruction
+│   ├── rule reconstruction
+│   ├── decision reconstruction
+│   ├── evidence discoverability
+│   ├── provenance discoverability
+│   ├── checkpoint/recovery compatibility
+│   └── deterministic reconstruction
+│
+├── 12 Governance Event Integration
+│   ├── trust-signal event
+│   ├── fraud-signal event
+│   ├── risk-assessment event
+│   ├── governance-review event
+│   ├── escalation event
+│   ├── override event
+│   └── CORE-002 event contract
+│
+└── 13 Contract + Adversarial Regression
+    ├── signal integrity tests
+    ├── provenance tests
+    ├── fraud detection boundary tests
+    ├── false-positive tests
+    ├── rule precedence tests
+    ├── rule version tests
+    ├── deterministic evaluation tests
+    ├── override authorization tests
+    ├── tenant isolation tests
+    ├── privacy tests
+    ├── evidence integrity tests
+    ├── concurrency tests
+    ├── reconstruction tests
+    ├── REOS integration tests
+    ├── ACRL reconstruction tests
+    └── cross-core regression
 
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $parts = $treeLine -split "\s+"
-PS D:\Homio\REOS_CONTROL_CENTER> $blobSha = $parts[2]
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $blobSha) {
->>     throw "ENTRYPOINT BLOB SHA NOT FOUND"
->> }
-ENTRYPOINT BLOB SHA NOT FOUND
-At line:2 char:5
-+     throw "ENTRYPOINT BLOB SHA NOT FOUND"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (ENTRYPOINT BLOB SHA NOT FOUND:String) [], RuntimeException
-    + FullyQualifiedErrorId : ENTRYPOINT BLOB SHA NOT FOUND
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $content = git show "origin/$branch`:$remotePath" | Out-String
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $content) {
->>     throw "REMOTE ENTRYPOINT READ FAILED"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($content.Contains("REMOTE_GIT_SYNCHRONIZATION_RULES")) {
->>     Write-Host "SYNC RULES ALREADY PRESENT"
->>     exit 0
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $marker = @'
->> # ---------------------------------------------------------------------------
->> # REQUIRED NEW-SESSION WORKFLOW
->> # ---------------------------------------------------------------------------
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $rules = @'
->>
->> # ---------------------------------------------------------------------------
->> # REMOTE GIT SYNCHRONIZATION RULES
->> # ---------------------------------------------------------------------------
->>
->> REMOTE_GIT_SYNCHRONIZATION_RULES: tuple[str, ...] = (
->>     "Resolve the repository root and exact repository path before any remote synchronization.",
->>     "Treat the current remote branch HEAD as the integration base for isolated remote changes.",
->>     "Never mix REOS_CONTROL_CENTER-relative local paths with repository-root Git paths.",
->>     "When unrelated local changes exist, do not use pull, reset, rebase, stash, or force-push merely to publish an isolated file change.",
->>     "For isolated remote file synchronization, prefer a Git blob/tree commit against the current remote HEAD.",
->>     "Never overwrite unrelated dirty working-tree changes while publishing an isolated correction.",
->>     "After remote synchronization, fetch the branch and verify the exact remote file content from the remote branch.",
->>     "If a synchronization method fails, do not repeat the same path or history assumption with another wrapper; re-diagnose repository root, remote HEAD, blob SHA, exact path, and working-tree state first.",
->>     "A remote synchronization is complete only after the resulting remote file is independently re-read and its required projection or contract is verified.",
->> )
->>
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $content.Contains($marker)) {
->>     throw "ENTRYPOINT PATCH MARKER NOT FOUND"
->> }
-ENTRYPOINT PATCH MARKER NOT FOUND
-At line:2 char:5
-+     throw "ENTRYPOINT PATCH MARKER NOT FOUND"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (ENTRYPOINT PATCH MARKER NOT FOUND:String) [], RuntimeException
-    + FullyQualifiedErrorId : ENTRYPOINT PATCH MARKER NOT FOUND
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $content = $content.Replace(
->>     $marker,
->>     $rules + $marker
->> )
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $startupMarker = @'
->>         "change_decision_rules": list(CHANGE_DECISION_RULES),
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $startupReplacement = @'
->>         "change_decision_rules": list(CHANGE_DECISION_RULES),
->>         "remote_git_synchronization_rules": list(
->>             REMOTE_GIT_SYNCHRONIZATION_RULES
->>         ),
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $content.Contains($startupMarker)) {
->>     throw "STARTUP INSTRUCTIONS MARKER NOT FOUND"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $content = $content.Replace(
->>     $startupMarker,
->>     $startupReplacement
->> )
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $b64 = [Convert]::ToBase64String(
->>     [Text.Encoding]::UTF8.GetBytes($content)
->> )
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $result = gh api `
->>     --method PUT `
->>     "repos/$owner/$repo/contents/$remotePath" `
->>     -f message="ARCH: persist remote Git synchronization workflow" `
->>     -f content="$b64" `
->>     -f sha="$blobSha" `
->>     -f branch="$branch" | ConvertFrom-Json
-gh: REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py does not match  (HTTP 409)
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $result.commit.sha) {
->>     throw "REMOTE ENTRYPOINT UPDATE FAILED"
->> }
-REMOTE ENTRYPOINT UPDATE FAILED
-At line:2 char:5
-+     throw "REMOTE ENTRYPOINT UPDATE FAILED"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (REMOTE ENTRYPOINT UPDATE FAILED:String) [], RuntimeException
-    + FullyQualifiedErrorId : REMOTE ENTRYPOINT UPDATE FAILED
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "AI_AGENT_ENTRYPOINT REMOTE EDIT: PASS"
-AI_AGENT_ENTRYPOINT REMOTE EDIT: PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "COMMIT:" $result.commit.sha
-COMMIT:
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "FILE:" $remotePath
-FILE: REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> git fetch origin $branch
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $verify = git show "origin/$branch`:$remotePath" | Out-String
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $verify.Contains("REMOTE_GIT_SYNCHRONIZATION_RULES")) {
->>     throw "REMOTE ENTRYPOINT VERIFICATION FAILED"
->> }
-REMOTE ENTRYPOINT VERIFICATION FAILED
-At line:2 char:5
-+     throw "REMOTE ENTRYPOINT VERIFICATION FAILED"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (REMOTE ENTRYPOINT VERIFICATION FAILED:String) [], RuntimeException
-    + FullyQualifiedErrorId : REMOTE ENTRYPOINT VERIFICATION FAILED
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $verify.Contains("remote_git_synchronization_rules")) {
->>     throw "STARTUP CONTRACT VERIFICATION FAILED"
->> }
-STARTUP CONTRACT VERIFICATION FAILED
-At line:2 char:5
-+     throw "STARTUP CONTRACT VERIFICATION FAILED"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STARTUP CONTRACT VERIFICATION FAILED:String) [], RuntimeException
-    + FullyQualifiedErrorId : STARTUP CONTRACT VERIFICATION FAILED
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE ENTRYPOINT VERIFICATION: PASS"
-REMOTE ENTRYPOINT VERIFICATION: PASS
