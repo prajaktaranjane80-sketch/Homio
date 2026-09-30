@@ -1,4 +1,4 @@
-S D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> # ============================================================
 PS D:\Homio\REOS_CONTROL_CENTER> # ACRL T18/T20/T21/T22/T23/T24 REMOTE AUTHORITY CHECK
 PS D:\Homio\REOS_CONTROL_CENTER> # ============================================================
@@ -233,3 +233,296 @@ PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "FAIL-CLOSED             : ACTIVE"
 FAIL-CLOSED             : ACTIVE
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "=== ACRL REMOTE SYNC VERIFIED ==="
 === ACRL REMOTE SYNC VERIFIED ===
+PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $repo   = "prajaktaranjane80-sketch/Homio"
+PS D:\Homio\REOS_CONTROL_CENTER> $branch = "reos-development"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> function Encode-GHPath {
+>>     param([string]$Path)
+>>
+>>     $parts = $Path -split "/"
+>>
+>>     return (
+>>         ($parts | ForEach-Object {
+>>             [Uri]::EscapeDataString($_)
+>>         }) -join "/"
+>>     )
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> function Read-GHFile {
+>>     param([string]$Path)
+>>
+>>     $encodedPath = Encode-GHPath $Path
+>>
+>>     $response = gh api `
+>>         "repos/$repo/contents/$encodedPath?ref=$branch"
+>>
+>>     if ($LASTEXITCODE -ne 0) {
+>>         throw "REMOTE_READ_FAILED: $Path"
+>>     }
+>>
+>>     $obj = $response | ConvertFrom-Json
+>>
+>>     if (-not $obj.sha) {
+>>         throw "REMOTE_EVIDENCE_FAILED: SHA missing for $Path"
+>>     }
+>>
+>>     if (-not $obj.content) {
+>>         throw "REMOTE_EVIDENCE_FAILED: content missing for $Path"
+>>     }
+>>
+>>     $bytes = [Convert]::FromBase64String(
+>>         ($obj.content -replace '\s','')
+>>     )
+>>
+>>     return [pscustomobject]@{
+>>         Path    = $Path
+>>         Sha     = $obj.sha
+>>         Content = [Text.Encoding]::UTF8.GetString($bytes)
+>>     }
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "========================================"
+========================================
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REOS / ACRL REMOTE SYNC VERIFICATION"
+REOS / ACRL REMOTE SYNC VERIFICATION
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "========================================"
+========================================
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER> # 1. Remote branch
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $ref = gh api `
+>>     "repos/$repo/git/ref/heads/$branch" |
+>>     ConvertFrom-Json
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "FAIL_CLOSED: branch read failed"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $remoteHead = $ref.object.sha
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $remoteHead) {
+>>     throw "FAIL_CLOSED: remote HEAD unavailable"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE BRANCH : $branch"
+REMOTE BRANCH : reos-development
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE HEAD   : $remoteHead"
+REMOTE HEAD   : 5700a3dac320fe913e562d12ccf6fce7637696db
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER> # 2. Canonical REOS state
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $stateFile = Read-GHFile `
+>>     "REOS_CONTROL_CENTER/data/state.json"
+gh: Not Found (HTTP 404)
+REMOTE_READ_FAILED: REOS_CONTROL_CENTER/data/state.json
+At line:10 char:9
++         throw "REMOTE_READ_FAILED: $Path"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE_READ_FAI...data/state.json:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE_READ_FAILED: REOS_CONTROL_CENTER/data/state.json
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $state = $stateFile.Content | ConvertFrom-Json
+ConvertFrom-Json : Cannot bind argument to parameter 'InputObject' because it is null.
+At line:1 char:31
++ $state = $stateFile.Content | ConvertFrom-Json
++                               ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [ConvertFrom-Json], ParameterBindingValidationException
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Microsoft.PowerShell.Commands.ConvertFromJsonCommand
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($state.project.name -ne "HOMIO") {
+>>     throw "FAIL_CLOSED: project identity mismatch"
+>> }
+FAIL_CLOSED: project identity mismatch
+At line:2 char:5
++     throw "FAIL_CLOSED: project identity mismatch"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FAIL_CLOSED: project identity mismatch:String) [], RuntimeException
+    + FullyQualifiedErrorId : FAIL_CLOSED: project identity mismatch
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "STATE FILE    : PASS"
+STATE FILE    : PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "STATE SHA     : $($stateFile.Sha)"
+STATE SHA     :
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER> # 3. Current CORE-007 projection
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $core007 = $state.gate_plans."CORE-007"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $core007) {
+>>     throw "FAIL_CLOSED: CORE-007 missing from state"
+>> }
+FAIL_CLOSED: CORE-007 missing from state
+At line:2 char:5
++     throw "FAIL_CLOSED: CORE-007 missing from state"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FAIL_CLOSED: CORE-007 missing from state:String) [], RuntimeException
+    + FullyQualifiedErrorId : FAIL_CLOSED: CORE-007 missing from state
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CORE-007      : $($core007.status)"
+CORE-007      :
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CURRENT TASK  : $($core007.current_subtask)"
+CURRENT TASK  :
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER> # 4. AI entrypoint / ACRL wiring
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $entry = Read-GHFile `
+>>     "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py"
+gh: Not Found (HTTP 404)
+REMOTE_READ_FAILED: REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
+At line:10 char:9
++         throw "REMOTE_READ_FAILED: $Path"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE_READ_FAI...T_ENTRYPOINT.py:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE_READ_FAILED: REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $rules = @(
+>>     "ACRL T18 is the execution-authorization boundary.",
+>>     "ACRL T20 is the repair and patch-verification boundary.",
+>>     "ACRL T21 is the Git repository read/write transaction boundary.",
+>>     "ACRL T22 is the immutable commit execution checkpoint boundary.",
+>>     "ACRL T23 is the authority for missing, stale or conflicting evidence resolution.",
+>>     "ACRL T24 is the authority for continuity and recovery snapshots.",
+>>     "PowerShell MUST NOT create a second synchronization engine."
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($rule in $rules) {
+>>     if (-not $entry.Content.Contains($rule)) {
+>>         throw "FAIL_CLOSED: ACRL wiring rule missing"
+>>     }
+>> }
+You cannot call a method on a null-valued expression.
+At line:2 char:9
++     if (-not $entry.Content.Contains($rule)) {
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : InvokeMethodOnNull
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "AI/ACRL WIRING: PASS"
+AI/ACRL WIRING: PASS
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER> # 5. ACRL T18-T24 existence/read verification
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $acrlFiles = @(
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__init__.py",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__init__.py",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/__init__.py",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/__init__.py",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/__init__.py",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T24_Cross_Chat_Continuity_Recovery_Engine/__init__.py"
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($file in $acrlFiles) {
+>>     $null = Read-GHFile $file
+>> }
+gh: Not Found (HTTP 404)
+REMOTE_READ_FAILED: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__init__.py
+At line:10 char:9
++         throw "REMOTE_READ_FAILED: $Path"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE_READ_FAI...ard/__init__.py:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE_READ_FAILED: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/__init__.py
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "ACRL T18-T24  : PASS"
+ACRL T18-T24  : PASS
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER> # 6. CORE-007 T03 remote evidence
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $riskFile = Read-GHFile `
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py"
+gh: Not Found (HTTP 404)
+REMOTE_READ_FAILED: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
+At line:10 char:9
++         throw "REMOTE_READ_FAILED: $Path"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE_READ_FAI...e/risk_rules.py:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE_READ_FAILED: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $testFile = Read-GHFile `
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py"
+gh: Not Found (HTTP 404)
+REMOTE_READ_FAILED: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py
+At line:10 char:9
++         throw "REMOTE_READ_FAILED: $Path"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE_READ_FAI...3_risk_rules.py:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE_READ_FAILED: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($riskFile.Content.Length -lt 1000) {
+>>     throw "FAIL_CLOSED: risk_rules.py evidence invalid"
+>> }
+FAIL_CLOSED: risk_rules.py evidence invalid
+At line:2 char:5
++     throw "FAIL_CLOSED: risk_rules.py evidence invalid"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FAIL_CLOSED: ri...vidence invalid:String) [], RuntimeException
+    + FullyQualifiedErrorId : FAIL_CLOSED: risk_rules.py evidence invalid
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($testFile.Content.Length -lt 1000) {
+>>     throw "FAIL_CLOSED: T03 test evidence invalid"
+>> }
+FAIL_CLOSED: T03 test evidence invalid
+At line:2 char:5
++     throw "FAIL_CLOSED: T03 test evidence invalid"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FAIL_CLOSED: T03 test evidence invalid:String) [], RuntimeException
+    + FullyQualifiedErrorId : FAIL_CLOSED: T03 test evidence invalid
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CORE-007 T03  : PASS"
+CORE-007 T03  : PASS
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER> # 7. Final
+PS D:\Homio\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "========================================"
+========================================
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "FINAL SYNCHRONIZATION RESULT"
+FINAL SYNCHRONIZATION RESULT
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "========================================"
+========================================
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE BRANCH : PASS"
+REMOTE BRANCH : PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REOS STATE    : PASS"
+REOS STATE    : PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "ACRL WIRING   : PASS"
+ACRL WIRING   : PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "T18-T24       : PASS"
+T18-T24       : PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CORE-007 T03  : PASS"
+CORE-007 T03  : PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "SYNC ENGINE   : NONE"
+SYNC ENGINE   : NONE
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "FAIL-CLOSED   : ACTIVE"
+FAIL-CLOSED   : ACTIVE
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "========================================"
+========================================
+PS D:\Homio\REOS_CONTROL_CENTER>
