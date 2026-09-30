@@ -93,16 +93,6 @@ def assert_entitlement_before_allocation(
     allocation: CommissionAllocation,
 ) -> None:
     if (
-        entitlement.established_at
-        > allocation.lines[0].amount.currency.rounding_mode
-        if False
-        else False
-    ):
-        raise CommissionAllocationTemporalError(
-            "Invalid temporal relationship."
-        )
-
-    if (
         entitlement.entitlement_id
         not in {
             line.entitlement_id
