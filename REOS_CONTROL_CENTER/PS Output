@@ -1,130 +1,96 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> $script | python -
-REPAIR PASS
-updated existing risk_rules import block
-added missing exports: RiskRuleScopeError
+=== CORE-006 FUTURE HARDENING AUDIT ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest $audit -q --tb=short
+FFF...........................FFFFFFFF.......F                                                                                                       [100%]
+======================================================================== FAILURES =========================================================================
+______________________________________________________ test_deal_direct_boolean_version_is_rejected _______________________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Temp\test_core006_future_hardening.py:87: in test_deal_direct_boolean_version_is_rejected
+    with pytest.raises(DealValidationError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE DealValidationError
+________________________________________________________ test_history_boolean_version_is_rejected _________________________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Temp\test_core006_future_hardening.py:92: in test_history_boolean_version_is_rejected
+    with pytest.raises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE ValueError
+________________________________________________________ test_contract_boolean_version_is_rejected ________________________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Temp\test_core006_future_hardening.py:113: in test_contract_boolean_version_is_rejected
+    assert "invalid:version" in errors
+E   AssertionError: assert 'invalid:version' in ()
+_________________________________________________________ test_event_nested_payload_is_immutable __________________________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Temp\test_core006_future_hardening.py:257: in test_event_nested_payload_is_immutable
+    with pytest.raises(TypeError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE TypeError
+__________________________________________________ test_evidence_nested_metadata_cannot_rewrite_history ___________________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Temp\test_core006_future_hardening.py:277: in test_evidence_nested_metadata_cannot_rewrite_history
+    assert evidence.metadata["nested"]["x"] == 1
+E   assert 99 == 1
+____________________________________________________ test_audit_nested_metadata_cannot_rewrite_history ____________________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Temp\test_core006_future_hardening.py:294: in test_audit_nested_metadata_cannot_rewrite_history
+    assert audit.metadata["nested"]["x"] == 1
+E   assert 99 == 1
+___________________________________________________ test_party_nested_metadata_cannot_rewrite_snapshot ____________________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Temp\test_core006_future_hardening.py:308: in test_party_nested_metadata_cannot_rewrite_snapshot
+    assert relationship.metadata["nested"]["x"] == 1
+E   assert 99 == 1
+____________________________________________________________ test_offer_terms_are_not_aliased _____________________________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Temp\test_core006_future_hardening.py:323: in test_offer_terms_are_not_aliased
+    assert offer.terms["price"]["amount"] == 100
+E   assert 999 == 100
+__________________________________________________________ test_external_metadata_is_not_aliased __________________________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Temp\test_core006_future_hardening.py:342: in test_external_metadata_is_not_aliased
+    assert reference.metadata["nested"]["x"] == 1
+E   assert 99 == 1
+_______________________________________________________ test_milestone_boolean_sequence_is_rejected _______________________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Temp\test_core006_future_hardening.py:346: in test_milestone_boolean_sequence_is_rejected
+    with pytest.raises(DealMilestoneTransitionError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE DealMilestoneTransitionError
+_____________________________________________________ test_milestone_boolean_deal_version_is_rejected _____________________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Temp\test_core006_future_hardening.py:359: in test_milestone_boolean_deal_version_is_rejected
+    with pytest.raises(DealMilestoneTransitionError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE DealMilestoneTransitionError
+____________________________________________________________ test_identity_key_is_tenant_bound ____________________________________________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Temp\test_core006_future_hardening.py:511: in test_identity_key_is_tenant_bound
+    b = replace(a, tenant_id="tenant-999")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\dataclasses.py:1588: in replace
+    return obj.__class__(**changes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:24: in __init__
+    ???
+AUTONOMY_ENGINE\core\deal_transaction\deal.py:168: in __post_init__
+    participant.assert_scope(
+AUTONOMY_ENGINE\core\deal_transaction\deal_parties.py:88: in assert_scope
+    raise ValueError(
+E   ValueError: Party relationship crosses Deal scope.
+================================================================= short test summary info =================================================================
+FAILED ::::Users::Sandip RanjanePatil::AppData::Local::Temp::test_core006_future_hardening.py::test_deal_direct_boolean_version_is_rejected - Failed: DID NOT RAISE DealValidationError
+FAILED ::::Users::Sandip RanjanePatil::AppData::Local::Temp::test_core006_future_hardening.py::test_history_boolean_version_is_rejected - Failed: DID NOT RAISE ValueError
+FAILED ::::Users::Sandip RanjanePatil::AppData::Local::Temp::test_core006_future_hardening.py::test_contract_boolean_version_is_rejected - AssertionError: assert 'invalid:version' in ()
+FAILED ::::Users::Sandip RanjanePatil::AppData::Local::Temp::test_core006_future_hardening.py::test_event_nested_payload_is_immutable - Failed: DID NOT RAISE TypeError
+FAILED ::::Users::Sandip RanjanePatil::AppData::Local::Temp::test_core006_future_hardening.py::test_evidence_nested_metadata_cannot_rewrite_history - assert 99 == 1
+FAILED ::::Users::Sandip RanjanePatil::AppData::Local::Temp::test_core006_future_hardening.py::test_audit_nested_metadata_cannot_rewrite_history - assert 99 == 1
+FAILED ::::Users::Sandip RanjanePatil::AppData::Local::Temp::test_core006_future_hardening.py::test_party_nested_metadata_cannot_rewrite_snapshot - assert 99 == 1
+FAILED ::::Users::Sandip RanjanePatil::AppData::Local::Temp::test_core006_future_hardening.py::test_offer_terms_are_not_aliased - assert 999 == 100
+FAILED ::::Users::Sandip RanjanePatil::AppData::Local::Temp::test_core006_future_hardening.py::test_external_metadata_is_not_aliased - assert 99 == 1
+FAILED ::::Users::Sandip RanjanePatil::AppData::Local::Temp::test_core006_future_hardening.py::test_milestone_boolean_sequence_is_rejected - Failed: DID NOT RAISE DealMilestoneTransitionError
+FAILED ::::Users::Sandip RanjanePatil::AppData::Local::Temp::test_core006_future_hardening.py::test_milestone_boolean_deal_version_is_rejected - Failed: DID NOT RAISE DealMilestoneTransitionError
+FAILED ::::Users::Sandip RanjanePatil::AppData::Local::Temp::test_core006_future_hardening.py::test_identity_key_is_tenant_bound - ValueError: Party relationship crosses Deal scope.
+12 failed, 34 passed in 1.09s
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) { exit 1 }
+PS D:\HOMIO\REOS_CONTROL_CENTER> $code = $LASTEXITCODE
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== T03 PACKAGE EXPORT SMOKE ===" -ForegroundColor Cyan
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== AUDIT FILE ===" -ForegroundColor Yellow
 
-=== T03 PACKAGE EXPORT SMOKE ===
+=== AUDIT FILE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host $audit
+C:\Users\SANDIP~1\AppData\Local\Temp\test_core006_future_hardening.py
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -c "from AUTONOMY_ENGINE.core.trust_fraud_governance import RISK_RULE_MODEL_VERSION, RISK_RULE_SCHEMA_VERSION, RiskAssessment, RiskEvaluationContext, RiskLevel, RiskRule, RiskRuleConflictError, RiskRuleEngine, RiskRuleError, RiskRuleFinding, RiskRuleKind, RiskRuleScopeError, RiskRuleSet, RiskRuleValidationError; print('CORE-007-T03 EXPORT PASS')"
-CORE-007-T03 EXPORT PASS
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     Write-Host "STOP: T03 package exports still incomplete." -ForegroundColor Red
->>     exit 1
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== T03 TARGETED ===" -ForegroundColor Yellow
+PS D:\HOMIO\REOS_CONTROL_CENTER> exit $code
 
-=== T03 TARGETED ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py -q --tb=short
-.............................                                                                                                                        [100%]
-29 passed in 0.21s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) { exit 1 }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== TRUST/FRAUD PACKAGE ===" -ForegroundColor Yellow
-
-=== TRUST/FRAUD PACKAGE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\trust_fraud_governance -q --tb=short
-.........................................................................................                                                            [100%]
-89 passed in 0.26s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) { exit 1 }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== FULL CORE ===" -ForegroundColor Yellow
-
-=== FULL CORE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core -q --tb=short
-.................................................................................................................................................... [ 18%]
-.................................................................................................................................................... [ 37%]
-.................................................................................................................................................... [ 56%]
-.................................................................................................................................................... [ 75%]
-.................................................................................................................................................... [ 94%]
-..........................................                                                                                                           [100%]
-782 passed in 5.00s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) { exit 1 }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== COMPILE ===" -ForegroundColor Yellow
-
-=== COMPILE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m compileall -q AUTONOMY_ENGINE\core\trust_fraud_governance
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) { exit 1 }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== FINAL SOURCE DIFF ===" -ForegroundColor Cyan
-
-=== FINAL SOURCE DIFF ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff -- AUTONOMY_ENGINE/core/trust_fraud_governance/__init__.py
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/__init__.py', LF will be replaced by CRLF the next time Git touches it
-diff --git a/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/__init__.py b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/__init__.py
-index 2f38fdd..c9298b4 100644
---- a/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/__init__.py
-+++ b/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/__init__.py
-@@ -16,6 +16,22 @@ from .fraud_detection import (
-     LeadSubmissionObservation,
-     VisitTelemetryObservation,
- )
-+from .risk_rules import (
-+    RISK_RULE_MODEL_VERSION,
-+    RISK_RULE_SCHEMA_VERSION,
-+    RiskAssessment,
-+    RiskEvaluationContext,
-+    RiskLevel,
-+    RiskRule,
-+    RiskRuleConflictError,
-+    RiskRuleEngine,
-+    RiskRuleError,
-+    RiskRuleFinding,
-+    RiskRuleKind,
-+    RiskRuleScopeError,
-+    RiskRuleSet,
-+    RiskRuleValidationError,
-+)
- from .trust_score import (
-     TRUST_SCORE_MAX,
-     TRUST_SCORE_MIN,
-@@ -35,6 +51,7 @@ from .trust_score import (
- )
-
- __all__ = [
-+    "RiskRuleScopeError",
-     "FRAUD_DETECTION_MODEL_VERSION",
-     "FRAUD_DETECTION_SCHEMA_VERSION",
-     "FraudAssessment",
-@@ -49,6 +66,19 @@ __all__ = [
-     "FraudSeverity",
-     "LeadSubmissionObservation",
-     "VisitTelemetryObservation",
-+    "RISK_RULE_MODEL_VERSION",
-+    "RISK_RULE_SCHEMA_VERSION",
-+    "RiskAssessment",
-+    "RiskEvaluationContext",
-+    "RiskLevel",
-+    "RiskRule",
-+    "RiskRuleConflictError",
-+    "RiskRuleEngine",
-+    "RiskRuleError",
-+    "RiskRuleFinding",
-+    "RiskRuleKind",
-+    "RiskRuleSet",
-+    "RiskRuleValidationError",
-     "TRUST_SCORE_MAX",
-     "TRUST_SCORE_MIN",
-     "TRUST_SCORE_MODEL_VERSION",
-(END)
+[process exited with code 1 (0x00000001)]
+You can now close this terminal with Ctrl+D, or press Enter to restart.
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
