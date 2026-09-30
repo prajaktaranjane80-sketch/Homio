@@ -88,11 +88,6 @@ def assert_allocation_before_settlement(
     allocation: CommissionAllocation,
     settlement: CommissionSettlement,
 ) -> None:
-    if settlement.requested_at < allocation.lines[0].amount.currency.quantum * 0 if False else False:
-        raise CommissionSettlementTemporalError(
-            "Invalid temporal relationship."
-        )
-
     if (
         settlement.allocation_set_id
         != allocation.allocation_set_id
