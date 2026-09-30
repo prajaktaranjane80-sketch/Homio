@@ -1,0 +1,144 @@
+CORE-008 Commission & Financial Core
+│
+├── 01 Financial Domain
+│   ├── financial identity
+│   ├── financial subject
+│   ├── currency
+│   ├── monetary amount
+│   ├── precision/rounding rules
+│   ├── financial state
+│   ├── tenant identity
+│   └── immutable financial identity
+│
+├── 02 Commission Contract
+│   ├── commission identity
+│   ├── commission entitlement
+│   ├── commission basis
+│   ├── commission rate/reference
+│   ├── eligibility rules
+│   ├── effective dates
+│   ├── contract version
+│   ├── provenance
+│   └── immutable historical terms
+│
+├── 03 Commission Calculation
+│   ├── calculation input contract
+│   ├── calculation version
+│   ├── gross basis
+│   ├── deductions/reference
+│   ├── commission amount
+│   ├── currency
+│   ├── rounding
+│   ├── deterministic calculation
+│   └── reproducibility
+│
+├── 04 Entitlement & Allocation
+│   ├── entitled party
+│   ├── entitlement identity
+│   ├── allocation rule
+│   ├── allocation percentage/reference
+│   ├── allocation history
+│   ├── eligibility state
+│   ├── ownership/deal reference
+│   ├── conflict handling
+│   └── no duplicate ownership engine
+│
+├── 05 Commission Protection
+│   ├── lead/deal provenance reference
+│   ├── ownership reference
+│   ├── attribution evidence
+│   ├── entitlement evidence
+│   ├── protection state
+│   ├── dispute reference
+│   ├── historical snapshot
+│   └── tamper/integrity protection
+│
+├── 06 Financial Ledger Boundary
+│   ├── financial entry identity
+│   ├── debit/credit semantics
+│   ├── immutable entry
+│   ├── reference transaction
+│   ├── entry timestamp
+│   ├── currency consistency
+│   ├── balancing/integrity validation
+│   └── no destructive mutation
+│
+├── 07 Settlement & Reconciliation
+│   ├── settlement identity
+│   ├── settlement state
+│   ├── settlement reference
+│   ├── reconciliation identity
+│   ├── expected vs recorded amount
+│   ├── discrepancy state
+│   ├── reconciliation evidence
+│   ├── retry/recovery boundary
+│   └── deterministic reconciliation
+│
+├── 08 Financial Consistency & Concurrency
+│   ├── optimistic versioning
+│   ├── stale calculation protection
+│   ├── concurrent entitlement protection
+│   ├── concurrent settlement protection
+│   ├── duplicate financial command protection
+│   ├── idempotency
+│   ├── atomic financial transition
+│   └── deterministic conflict behavior
+│
+├── 09 Security & Tenant Boundary
+│   ├── tenant isolation
+│   ├── financial authorization
+│   ├── entitlement authorization
+│   ├── settlement authorization
+│   ├── reconciliation authorization
+│   ├── cross-tenant rejection
+│   ├── sensitive financial-data boundary
+│   └── IDOR protection
+│
+├── 10 REOS Integration Contract
+│   ├── Control Center authority boundary
+│   ├── canonical-state non-ownership
+│   ├── execution-boundary compatibility
+│   ├── gate/task discoverability
+│   ├── verification contract
+│   └── no autonomous project-state mutation
+│
+├── 11 ACRL Integration Contract
+│   ├── commission reconstruction
+│   ├── entitlement reconstruction
+│   ├── calculation reconstruction
+│   ├── ledger reconstruction
+│   ├── settlement reconstruction
+│   ├── reconciliation reconstruction
+│   ├── evidence discoverability
+│   ├── checkpoint/recovery compatibility
+│   └── deterministic reconstruction
+│
+├── 12 Financial Event Integration
+│   ├── commission-created
+│   ├── entitlement-established
+│   ├── commission-calculated
+│   ├── commission-adjusted
+│   ├── settlement-created
+│   ├── settlement-completed
+│   ├── reconciliation-discrepancy
+│   └── CORE-002 event contract
+│
+└── 13 Contract + Adversarial Regression
+    ├── monetary precision tests
+    ├── rounding tests
+    ├── calculation reproducibility tests
+    ├── entitlement tests
+    ├── commission protection tests
+    ├── ledger integrity tests
+    ├── settlement tests
+    ├── reconciliation tests
+    ├── duplicate financial command tests
+    ├── concurrency tests
+    ├── stale-version tests
+    ├── tenant isolation tests
+    ├── authorization tests
+    ├── tamper/integrity tests
+    ├── reconstruction tests
+    ├── REOS integration tests
+    ├── ACRL reconstruction tests
+    └── cross-core regression
