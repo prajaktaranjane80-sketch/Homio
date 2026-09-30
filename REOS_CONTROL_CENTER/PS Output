@@ -1,79 +1,71 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> At line:1 char:1
-The AT command has been deprecated. Please use schtasks.exe instead.
-
-Invalid command.
-
-The AT command schedules commands and programs to run on a computer at
-a specified time and date. The Schedule service must be running to use
-the AT command.
-
-AT [\\computername] [ [id] [/DELETE] | /DELETE [/YES]]
-AT [\\computername] time [/INTERACTIVE]
-    [ /EVERY:date[,...] | /NEXT:date[,...]] "command"
-
-\\computername     Specifies a remote computer. Commands are scheduled on the
-                   local computer if this parameter is omitted.
-id                 Is an identification number assigned to a scheduled
-                   command.
-/delete            Cancels a scheduled command. If id is omitted, all the
-                   scheduled commands on the computer are canceled.
-/yes               Used with cancel all jobs command when no further
-                   confirmation is desired.
-time               Specifies the time when command is to run.
-/interactive       Allows the job to interact with the desktop of the user
-                   who is logged on at the time the job runs.
-/every:date[,...]  Runs the command on each specified day(s) of the week or
-                   month. If date is omitted, the current day of the month
-                   is assumed.
-/next:date[,...]   Runs the specified command on the next occurrence of the
-                   day (for example, next Thursday).  If date is omitted, the
-                   current day of the month is assumed.
-"command"          Is the Windows NT command, or batch program to be run.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> + $text = $text.Replace(
->> + ~~~~~~~~~~~~~~~~~~~~~~
-At line:2 char:2
-+ + ~~~~~~~~~~~~~~~~~~~~~~
-+  ~
-Missing expression after unary operator '+'.
-At line:2 char:2
-+ + ~~~~~~~~~~~~~~~~~~~~~~
-+  ~
-Missing ')' in method call.
-At line:2 char:3
-+ + ~~~~~~~~~~~~~~~~~~~~~~
-+   ~~~~~~~~~~~~~~~~~~~~~~
-Unexpected token '~~~~~~~~~~~~~~~~~~~~~~' in expression or statement.
-At line:1 char:1
-+ + $text = $text.Replace(
-+ ~~~~~~~
-The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept assignments, such as a variable or a
-property.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : MissingExpressionAfterOperator
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>     + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
-At line:1 char:6
-+     + CategoryInfo          : NotSpecified: (:) [], ParentContainsErr ...
-+      ~
-Missing expression after unary operator '+'.
-At line:1 char:7
-+     + CategoryInfo          : NotSpecified: (:) [], ParentContainsErr ...
-+       ~~~~~~~~~~~~
-Unexpected token 'CategoryInfo' in expression or statement.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : MissingExpressionAfterOperator
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>     + Full
-At line:1 char:6
-+     + Full
-+      ~
-Missing expression after unary operator '+'.
-At line:1 char:7
-+     + Full
-+       ~~~~
-Unexpected token 'Full' in expression or statement.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : MissingExpressionAfterOperator
+Invoke-RestMethod : {"message":"Invalid request.\n\n\"sha\" wasn't
+supplied.","documentation_url":"https://docs.github.com/rest/repos/contents#create-or-update-file-contents","status":"422"}
+At line:1 char:12
++ $created = Invoke-RestMethod `
++            ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $created.content.path) {
+>>     throw "GitHub returned no created file path."
+>> }
+GitHub returned no created file path.
+At line:2 char:5
++     throw "GitHub returned no created file path."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (GitHub returned no created file path.:String) [], RuntimeException
+    + FullyQualifiedErrorId : GitHub returned no created file path.
 
 PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE CREATE SUCCESS" -ForegroundColor Green
+REMOTE CREATE SUCCESS
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "Path : $($created.content.path)"
+Path :
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "SHA  : $($created.content.sha)"
+SHA  :
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "Commit: $($created.commit.sha)"
+Commit:
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 8. VERIFY REMOTE CONTENT
+PS D:\HOMIO\REOS_CONTROL_CENTER> $verify = Invoke-RestMethod `
+>>     -Method Get `
+>>     -Uri $fileUri `
+>>     -Headers $headers
+Invoke-RestMethod : {"message":"Not Found","documentation_url":"https://docs.github.com/rest/repos/contents#get-repository-content","status":"404"}
+At line:1 char:11
++ $verify = Invoke-RestMethod `
++           ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($verify.path -ne $path) {
+>>     throw "Remote verification path mismatch."
+>> }
+Remote verification path mismatch.
+At line:2 char:5
++     throw "Remote verification path mismatch."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Remote verification path mismatch.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Remote verification path mismatch.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE VERIFICATION SUCCESS" -ForegroundColor Cyan
+REMOTE VERIFICATION SUCCESS
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "Path : $($verify.path)"
+Path :
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "SHA  : $($verify.sha)"
+SHA  :
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "NO LOCAL SOURCE EDIT"
+NO LOCAL SOURCE EDIT
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "NO git add"
+NO git add
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "NO git commit"
+NO git commit
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "NO git push"
+NO git push
