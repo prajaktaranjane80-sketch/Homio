@@ -102,6 +102,36 @@ ACRL_OPERATOR_AUTONOMY = (
     / "T15_AI_Operator_Autonomy"
 )
 
+ACRL_EXECUTION_AUTHORIZATION = (
+    ACRL_PATH
+    / "T18_Safe_Execution_Authorization_Guard"
+)
+
+ACRL_REPAIR_VERIFICATION = (
+    ACRL_PATH
+    / "T20_Autonomous_Repair_Patch_Verification"
+)
+
+ACRL_GIT_REPOSITORY_COORDINATION = (
+    ACRL_PATH
+    / "T21_Git_Repository_Read_Write_Coordination"
+)
+
+ACRL_COMMIT_CHECKPOINT_COORDINATION = (
+    ACRL_PATH
+    / "T22_Commit_Execution_Checkpoint_Coordination"
+)
+
+ACRL_EVIDENCE_RESOLUTION = (
+    ACRL_PATH
+    / "T23_Reference_Evidence_Resolution_Engine"
+)
+
+ACRL_CONTINUITY_RECOVERY = (
+    ACRL_PATH
+    / "T24_Cross_Chat_Continuity_Recovery_Engine"
+)
+
 
 # ---------------------------------------------------------------------------
 # OPERATING AUTHORITY
@@ -138,7 +168,9 @@ class REOSAgentOperatingContract:
     control_authority: str = "REOS_CONTROL_CENTER"
 
     execution_authority: str = (
-        "Existing REOS execution authorization / executor boundary"
+        "ACRL T18 authorization -> T20 repair verification -> "
+        "PowerShell executor -> T21 Git transaction -> T22 checkpoint -> "
+        "T23 evidence resolution -> T24 continuity recovery"
     )
 
     ai_role: str = (
@@ -185,6 +217,52 @@ AI_OPERATING_RULES: tuple[str, ...] = (
 
 
 # ---------------------------------------------------------------------------
+# REMOTE GIT SYNCHRONIZATION CONTRACT
+# ---------------------------------------------------------------------------
+
+REMOTE_GIT_SYNCHRONIZATION_RULES: tuple[str, ...] = (
+    "REOS_CONTROL_CENTER remains the project control authority.",
+    "REOS_CONTROL_CENTER/data/state.json remains the canonical project state.",
+    "ACRL T18 is the execution-authorization boundary.",
+    "ACRL T20 is the repair and patch-verification boundary.",
+    "Local PowerShell is the actual execution and current-working-tree verification interface.",
+    "ACRL T21 is the Git repository read/write transaction boundary.",
+    "ACRL T22 is the immutable commit execution checkpoint boundary.",
+    "ACRL T23 is the authority for missing, stale or conflicting evidence resolution.",
+    "ACRL T24 is the authority for continuity and recovery snapshots.",
+    "PowerShell MUST NOT create a second synchronization engine.",
+    "AI_AGENT_ENTRYPOINT.py is descriptive contract only and MUST NOT execute Git writes.",
+    "A remote write is successful only after independent branch, commit and file evidence verification.",
+    "The active REOS branch MUST be verified before any repository write.",
+    "A failed, ambiguous or conflicting operation MUST fail closed.",
+    "Do not create a second Git sync engine.",
+    "Do not create a second checkpoint engine.",
+    "Do not create a second evidence engine.",
+    "Do not create a second continuity engine.",
+    "Do not create a second state store.",
+    "Do not bypass REOS Control Center authority.",
+)
+
+# ---------------------------------------------------------------------------
+# EXECUTION / SYNCHRONIZATION WORKFLOW
+# ---------------------------------------------------------------------------
+
+EXECUTION_WORKFLOW: tuple[str, ...] = (
+    "1. Discover canonical state from REOS_CONTROL_CENTER/data/state.json.",
+    "2. Resolve the authoritative current gate/task/subtask through REOS Control Center.",
+    "3. Resolve architecture and dependency ownership before changing code.",
+    "4. Obtain execution authorization through existing ACRL T18.",
+    "5. Verify the proposed repair/patch through existing ACRL T20.",
+    "6. Execute the authorized local change through PowerShell.",
+    "7. Verify the changed working tree and focused tests locally.",
+    "8. Coordinate Git mutation through existing ACRL T21.",
+    "9. Create/verify the immutable execution checkpoint through T22 when required.",
+    "10. Resolve execution evidence through T23.",
+    "11. Preserve/recover continuity through T24 when required.",
+    "12. Update canonical project state only through the existing REOS Control Center workflow.",
+    "13. Never report PASS without independent verification evidence.",
+)
+# ---------------------------------------------------------------------------
 # REQUIRED NEW-SESSION WORKFLOW
 # ---------------------------------------------------------------------------
 
@@ -227,6 +305,30 @@ SOURCE_OF_TRUTH: dict[str, str] = {
     "ai_operator_boundary": (
         "AUTONOMY_ENGINE/continuity/acrl/"
         "T15_AI_Operator_Autonomy"
+    ),
+    "execution_authorization": (
+        "AUTONOMY_ENGINE/continuity/acrl/"
+        "T18_Safe_Execution_Authorization_Guard"
+    ),
+    "repair_verification": (
+        "AUTONOMY_ENGINE/continuity/acrl/"
+        "T20_Autonomous_Repair_Patch_Verification"
+    ),
+    "git_repository_coordination": (
+        "AUTONOMY_ENGINE/continuity/acrl/"
+        "T21_Git_Repository_Read_Write_Coordination"
+    ),
+    "commit_checkpoint_coordination": (
+        "AUTONOMY_ENGINE/continuity/acrl/"
+        "T22_Commit_Execution_Checkpoint_Coordination"
+    ),
+    "evidence_resolution": (
+        "AUTONOMY_ENGINE/continuity/acrl/"
+        "T23_Reference_Evidence_Resolution_Engine"
+    ),
+    "continuity_recovery": (
+        "AUTONOMY_ENGINE/continuity/acrl/"
+        "T24_Cross_Chat_Continuity_Recovery_Engine"
     ),
     "git_repository_coordination": (
         "AUTONOMY_ENGINE/continuity/acrl/"
@@ -309,6 +411,12 @@ def repository_paths() -> dict[str, str]:
         "t07": str(ACRL_ENTRYPOINT),
         "t14": str(ACRL_REPOSITORY_CONTEXT),
         "t15": str(ACRL_OPERATOR_AUTONOMY),
+        "t18": str(ACRL_EXECUTION_AUTHORIZATION),
+        "t20": str(ACRL_REPAIR_VERIFICATION),
+        "t21": str(ACRL_GIT_REPOSITORY_COORDINATION),
+        "t22": str(ACRL_COMMIT_CHECKPOINT_COORDINATION),
+        "t23": str(ACRL_EVIDENCE_RESOLUTION),
+        "t24": str(ACRL_CONTINUITY_RECOVERY),
         "t21": str(ACRL_GIT_REPOSITORY_COORDINATION),
         "t22": str(ACRL_COMMIT_CHECKPOINT_COORDINATION),
         "t23": str(ACRL_EVIDENCE_RESOLUTION),
@@ -347,6 +455,7 @@ def startup_instructions() -> dict[str, Any]:
         "paths": repository_paths(),
         "operating_rules": list(AI_OPERATING_RULES),
         "new_session_workflow": list(NEW_SESSION_WORKFLOW),
+        "execution_workflow": list(EXECUTION_WORKFLOW),
         "change_decision_rules": list(CHANGE_DECISION_RULES),
         "remote_git_synchronization_rules": list(
             REMOTE_GIT_SYNCHRONIZATION_RULES
@@ -399,6 +508,12 @@ def print_startup_context() -> None:
     print("T07            : New Chat Bootstrap")
     print("T14            : Repository Intelligence Context")
     print("T15            : AI Operator Autonomy")
+    print("T18            : Safe Execution Authorization")
+    print("T20            : Repair / Patch Verification")
+    print("T21            : Git Repository Coordination")
+    print("T22            : Commit Execution Checkpoint")
+    print("T23            : Evidence Resolution")
+    print("T24            : Continuity Recovery")
     print("-" * 72)
     print("RULE           : DISCOVER BEFORE MODIFY")
     print("RULE           : NO DUPLICATE ENGINES")
