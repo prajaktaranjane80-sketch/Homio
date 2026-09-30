@@ -1,89 +1,150 @@
-PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference="Stop"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "TEMP WORKTREE CREATION FAILED"
+>> }
+TEMP WORKTREE CREATION FAILED
+At line:2 char:5
++     throw "TEMP WORKTREE CREATION FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (TEMP WORKTREE CREATION FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : TEMP WORKTREE CREATION FAILED
+
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> python reos_control_center.py verify-state
-STATE HASH STORED: 5884559314c7381522a4ae2570edd338fc3ccf3de6f00b57743e80b0330905f5
-STATE HASH CALCULATED: 5884559314c7381522a4ae2570edd338fc3ccf3de6f00b57743e80b0330905f5
-INTEGRITY: PASS
+PS D:\Homio\REOS_CONTROL_CENTER> try {
+>>
+>>     Write-Host "TEMP WORKTREE:" $wt
+>>
+>>     $target = Join-Path $wt $p
+>>
+>>     if (-not (Test-Path $target)) {
+>>         throw "TEMP STATE PATH NOT FOUND: $target"
+>>     }
+>>
+>>     Write-Host "TEMP STATE PATH:" $target
+>>
+>>     Copy-Item ".\data\state.json" $target -Force
+>>
+>>     $temp = Get-Content $target -Raw | ConvertFrom-Json
+>>
+>>     Write-Host "TEMP GATE:" $temp.execution.current_gate
+>>     Write-Host "TEMP SUBTASK:" $temp.execution.current_subtask
+>>     Write-Host "TEMP EXECUTION CRITERIA:" @($temp.execution.current_acceptance_criteria).Count
+>>     Write-Host "TEMP CORE-007 CRITERIA:" @($temp.gate_plans.'CORE-007'.acceptance_criteria).Count
+>>
+>>     if ($temp.execution.current_gate -ne "CORE-007") {
+>>         throw "TEMP GATE FAILED"
+>>     }
+>>
+>>     if ($temp.execution.current_subtask -ne "CORE-007-T03") {
+>>         throw "TEMP SUBTASK FAILED"
+>>     }
+>>
+>>     if (@($temp.execution.current_acceptance_criteria).Count -ne 6) {
+>>         throw "TEMP EXECUTION CRITERIA FAILED"
+>>     }
+>>
+>>     if (@($temp.gate_plans.'CORE-007'.acceptance_criteria).Count -ne 6) {
+>>         throw "TEMP CORE-007 CRITERIA FAILED"
+>>     }
+>>
+>>     Write-Host "TEMP STATE: PASS"
+>>
+>>     git -C $wt add $p
+>>
+>>     git -C $wt commit -m "STATE: synchronize CORE-007 execution projection"
+>>
+>>     if ($LASTEXITCODE -ne 0) {
+>>         throw "STATE COMMIT FAILED"
+>>     }
+>>
+>>     git -C $wt push origin "HEAD:$branch"
+>>
+>>     if ($LASTEXITCODE -ne 0) {
+>>         throw "STATE PUSH FAILED"
+>>     }
+>>
+>>     Write-Host "STATE PUSH: PASS"
+>> }
+>> finally {
+>>     git worktree remove $wt --force
+>> }
+TEMP WORKTREE: C:\Users\SANDIP~1\AppData\Local\Temp\REOS_STATE_ONLY_8a57fa9d340d44f6bcbd6090e5ccdd22
+fatal: 'C:\Users\SANDIP~1\AppData\Local\Temp\REOS_STATE_ONLY_8a57fa9d340d44f6bcbd6090e5ccdd22' is not a working tree
+TEMP STATE PATH NOT FOUND: C:\Users\SANDIP~1\AppData\Local\Temp\REOS_STATE_ONLY_8a57fa9d340d44f6bcbd6090e5ccdd22\data\state.json
+At line:8 char:9
++         throw "TEMP STATE PATH NOT FOUND: $target"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (TEMP STATE PATH...data\state.json:String) [], RuntimeException
+    + FullyQualifiedErrorId : TEMP STATE PATH NOT FOUND: C:\Users\SANDIP~1\AppData\Local\Temp\REOS_STATE_ONLY_8a57fa9d340d44f6bcbd6090e5ccdd22\data\state.
+   json
+
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> git diff --check
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/lead.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/data/state.json', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt', CRLF will be replaced by LF the next time Git touches it
-PS D:\Homio\REOS_CONTROL_CENTER> git status --short
- M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_reconstruction.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/gate_subtask_continuity.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/test_gate_subtask_continuity.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/new_chat_bootstrap.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/test_new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/context_compression.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/test_context_compression.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_guard.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_t12_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_metrics.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_contract.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/dependency_graph.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/core/lead_ownership/lead.py
- M AUTONOMY_ENGINE/core/trust_fraud_governance/__init__.py
- M AUTONOMY_ENGINE/execution/__pycache__/mutation_adapter.cpython-312.pyc
- M AUTONOMY_ENGINE/execution/__pycache__/production_executor.cpython-312.pyc
- M AUTONOMY_ENGINE/orchestration/__pycache__/execution_coordinator.cpython-312.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_controller_autonomy_integration_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_execution_coordinator_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_execution_pipeline_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_mutation_adapter_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_production_executor_adversarial.cpython-312-pytest-9.1.1.pyc
- M REOS_NEXT_CHAT.txt
- M data/state.json
- M packets/NEW_CHAT_PACKET.txt
- M reos_control_center.py
-?? AUTONOMY_ENGINE/core/contract_primitives.py
-?? AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-20260929_203458.bak
-?? AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-sync-20260929_204442.bak
-?? AUTONOMY_ENGINE/core/test_contract_part2.py
-?? AUTONOMY_ENGINE/core/test_contract_part2_event.py
-?? AUTONOMY_ENGINE/core/test_contract_primitives.py
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py
-?? CORE006_HARDENING_BACKUP_20260930_110139/
-?? snapshots/state_20260929_190047_321090.json
-?? snapshots/state_20260929_202840_417870.json
-?? snapshots/state_20260929_203024_561461.json
-?? snapshots/state_20260929_205407_688934.json
-?? snapshots/state_20260929_205835_799742.json
-?? snapshots/state_20260929_210131_376828.json
-?? snapshots/state_20260929_210317_077045.json
-?? snapshots/state_20260929_210337_134750.json
-?? snapshots/state_20260929_210337_147255.json
-?? snapshots/state_20260929_210906_554909.json
-?? snapshots/state_20260929_212905_421537.json
-?? snapshots/state_20260930_133215_576626.json
-?? snapshots/state_20260930_135907_650246.json
-?? ../REOS_LAYER_BACKUP_ACRL_REPAIR_20260929_182814/
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "=== FINAL REMOTE VERIFY ==="
+=== FINAL REMOTE VERIFY ===
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> git add data/state.json
-warning: in the working copy of 'REOS_CONTROL_CENTER/data/state.json', CRLF will be replaced by LF the next time Git touches it
-PS D:\Homio\REOS_CONTROL_CENTER> git commit -m "STATE: synchronize CORE-007 execution projection"
-[reos-development 35ca160] STATE: synchronize CORE-007 execution projection
- 1 file changed, 9 insertions(+), 15 deletions(-)
-PS D:\Homio\REOS_CONTROL_CENTER> git push origin reos-development
-To https://github.com/prajaktaranjane80-sketch/Homio.git
- ! [rejected]        reos-development -> reos-development (fetch first)
-error: failed to push some refs to 'https://github.com/prajaktaranjane80-sketch/Homio.git'
-hint: Updates were rejected because the remote contains work that you do not
-hint: have locally. This is usually caused by another repository pushing to
-hint: the same ref. If you want to integrate the remote changes, use
-hint: 'git pull' before pushing again.
-hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+PS D:\Homio\REOS_CONTROL_CENTER> git fetch origin $branch
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
 PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $remote = git show "origin/$branch`:$p" | Out-String | ConvertFrom-Json
+fatal: path 'REOS_CONTROL_CENTER/data/state.json' exists, but not 'data/state.json'
+hint: Did you mean 'origin/reos-development:REOS_CONTROL_CENTER/data/state.json' aka 'origin/reos-development:./data/state.json'?
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE GATE:" $remote.execution.current_gate
+REMOTE GATE:
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE SUBTASK:" $remote.execution.current_subtask
+REMOTE SUBTASK:
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE EXECUTION CRITERIA:" @($remote.execution.current_acceptance_criteria).Count
+REMOTE EXECUTION CRITERIA: 1
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE CORE-007 CRITERIA:" @($remote.gate_plans.'CORE-007'.acceptance_criteria).Count
+REMOTE CORE-007 CRITERIA: 1
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($remote.execution.current_gate -ne "CORE-007") {
+>>     throw "FINAL REMOTE GATE FAILED"
+>> }
+FINAL REMOTE GATE FAILED
+At line:2 char:5
++     throw "FINAL REMOTE GATE FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FINAL REMOTE GATE FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : FINAL REMOTE GATE FAILED
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($remote.execution.current_subtask -ne "CORE-007-T03") {
+>>     throw "FINAL REMOTE SUBTASK FAILED"
+>> }
+FINAL REMOTE SUBTASK FAILED
+At line:2 char:5
++     throw "FINAL REMOTE SUBTASK FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FINAL REMOTE SUBTASK FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : FINAL REMOTE SUBTASK FAILED
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (@($remote.execution.current_acceptance_criteria).Count -ne 6) {
+>>     throw "FINAL REMOTE EXECUTION CRITERIA FAILED"
+>> }
+FINAL REMOTE EXECUTION CRITERIA FAILED
+At line:2 char:5
++     throw "FINAL REMOTE EXECUTION CRITERIA FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FINAL REMOTE EXECUTION CRITERIA FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : FINAL REMOTE EXECUTION CRITERIA FAILED
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (@($remote.gate_plans.'CORE-007'.acceptance_criteria).Count -ne 6) {
+>>     throw "FINAL REMOTE CORE-007 CRITERIA FAILED"
+>> }
+FINAL REMOTE CORE-007 CRITERIA FAILED
+At line:2 char:5
++     throw "FINAL REMOTE CORE-007 CRITERIA FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FINAL REMOTE CORE-007 CRITERIA FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : FINAL REMOTE CORE-007 CRITERIA FAILED
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE STATE PROJECTION: PASS"
+REMOTE STATE PROJECTION: PASS
