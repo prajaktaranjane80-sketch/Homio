@@ -1,0 +1,96 @@
+======================================================================== FAILURES =========================================================================
+___________________________________________________ test_core002_event_payload_is_recursively_immutable ___________________________________________________
+
+    def test_core002_event_payload_is_recursively_immutable():
+        event = EventEnvelope.create(
+            event_type="TEST_EVENT",
+            schema_name="REOS.TEST",
+            schema_version=1,
+            event_version=1,
+            tenant_id=uuid4(),
+            producer_id=uuid4(),
+            payload={
+                "nested": {
+                    "items": [
+                        {"value": 10}
+                    ]
+                }
+            },
+            metadata={
+                "context": {
+                    "region": "IN"
+                }
+            },
+            occurred_at=datetime.now(timezone.utc),
+        )
+
+>       with pytest.raises(TypeError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE TypeError
+
+AUTONOMY_ENGINE\core\test_contract_part2.py:53: Failed
+___________________________________________________ test_core003_lead_metadata_is_recursively_immutable ___________________________________________________
+
+    def test_core003_lead_metadata_is_recursively_immutable():
+        lead = Lead.create(
+            tenant_id=uuid4(),
+            customer_id=uuid4(),
+            source=LeadSource(
+                source_type=LeadSourceType.DIRECT
+            ),
+            metadata={
+                "preferences": {
+                    "locations": [
+                        {"city": "Pune"}
+                    ]
+                }
+            },
+        )
+
+>       with pytest.raises(TypeError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE TypeError
+
+AUTONOMY_ENGINE\core\test_contract_part2.py:76: Failed
+_______________________________________________________ test_event_payload_is_recursively_immutable _______________________________________________________
+
+    def test_event_payload_is_recursively_immutable():
+        event = EventEnvelope.create(
+            event_type="TEST_EVENT",
+            schema_name="REOS.TEST",
+            schema_version=1,
+            event_version=1,
+            tenant_id=uuid4(),
+            producer_id=uuid4(),
+            payload={
+                "nested": {
+                    "items": [
+                        {"value": 10}
+                    ]
+                }
+            },
+            metadata={
+                "context": {
+                    "region": "IN"
+                }
+            },
+            occurred_at=datetime(
+                2026,
+                1,
+                1,
+                tzinfo=timezone.utc,
+            ),
+        )
+
+>       with pytest.raises(TypeError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE TypeError
+
+AUTONOMY_ENGINE\core\test_contract_part2_event.py:37: Failed
+================================================================= short test summary info =================================================================
+FAILED AUTONOMY_ENGINE/core/test_contract_part2.py::test_core002_event_payload_is_recursively_immutable - Failed: DID NOT RAISE TypeError
+FAILED AUTONOMY_ENGINE/core/test_contract_part2.py::test_core003_lead_metadata_is_recursively_immutable - Failed: DID NOT RAISE TypeError
+FAILED AUTONOMY_ENGINE/core/test_contract_part2_event.py::test_event_payload_is_recursively_immutable - Failed: DID NOT RAISE TypeError
+3 failed, 787 passed in 5.60s
+PS D:\Homio\REOS_CONTROL_CENTER> python -m compileall AUTONOMY_ENGINE\core\trust_fraud_governance -q
+PS D:\Homio\REOS_CONTROL_CENTER>
