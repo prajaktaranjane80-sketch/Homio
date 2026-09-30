@@ -1,139 +1,106 @@
-CORE-007 Trust, Fraud & Governance Core
-│
-├── 01 Trust Domain
-│   ├── trust subject identity
-│   ├── trust context
-│   ├── trust signal
-│   ├── signal provenance
-│   ├── trust state
-│   ├── trust history
-│   ├── trust version
-│   └── tenant identity
-│
-├── 02 Trust Signal Contract
-│   ├── signal identity
-│   ├── signal source
-│   ├── signal type
-│   ├── signal timestamp
-│   ├── evidence reference
-│   ├── confidence metadata
-│   ├── signal version
-│   ├── provenance
-│   └── signal immutability
-│
-├── 03 Fraud Signal & Detection Boundary
-│   ├── fraud signal identity
-│   ├── detection rule reference
-│   ├── detection input provenance
-│   ├── anomaly reference
-│   ├── confidence
-│   ├── detection state
-│   ├── false-positive handling
-│   ├── escalation boundary
-│   └── no autonomous irreversible punishment
-│
-├── 04 Risk Assessment
-│   ├── risk subject
-│   ├── risk context
-│   ├── risk factors
-│   ├── assessment version
-│   ├── assessment evidence
-│   ├── deterministic evaluation boundary
-│   ├── assessment history
-│   └── reproducibility
-│
-├── 05 Governance Rules
-│   ├── governance rule identity
-│   ├── rule version
-│   ├── rule scope
-│   ├── rule applicability
-│   ├── rule precedence
-│   ├── rule outcome
-│   ├── exception/reference handling
-│   ├── effective dates
-│   └── rule provenance
-│
-├── 06 Decision & Escalation Boundary
-│   ├── review state
-│   ├── escalation state
-│   ├── human-review reference
-│   ├── decision evidence
-│   ├── override reference
-│   ├── override authorization
-│   ├── appeal/review reference
-│   └── irreversible-action protection
-│
-├── 07 Evidence & Explainability
-│   ├── evidence reference
-│   ├── signal provenance
-│   ├── rule provenance
-│   ├── assessment explanation
-│   ├── decision explanation
-│   ├── evidence integrity
-│   ├── historical snapshot
-│   └── reproducibility
-│
-├── 08 Security & Tenant Boundary
-│   ├── tenant isolation
-│   ├── subject authorization
-│   ├── sensitive-risk data boundary
-│   ├── governance access control
-│   ├── review authorization
-│   ├── override authorization
-│   ├── cross-tenant rejection
-│   └── privacy/data-minimization boundary
-│
-├── 09 Consistency & Concurrency
-│   ├── assessment version
-│   ├── stale assessment protection
-│   ├── concurrent review protection
-│   ├── duplicate signal handling
-│   ├── duplicate command handling
-│   ├── deterministic rule evaluation
-│   └── idempotency
-│
-├── 10 REOS Integration Contract
-│   ├── Control Center authority boundary
-│   ├── canonical-state non-ownership
-│   ├── execution compatibility
-│   ├── gate/task discoverability
-│   ├── verification contract
-│   └── no autonomous project-state mutation
-│
-├── 11 ACRL Integration Contract
-│   ├── signal reconstruction
-│   ├── assessment reconstruction
-│   ├── rule reconstruction
-│   ├── decision reconstruction
-│   ├── evidence discoverability
-│   ├── provenance discoverability
-│   ├── checkpoint/recovery compatibility
-│   └── deterministic reconstruction
-│
-├── 12 Governance Event Integration
-│   ├── trust-signal event
-│   ├── fraud-signal event
-│   ├── risk-assessment event
-│   ├── governance-review event
-│   ├── escalation event
-│   ├── override event
-│   └── CORE-002 event contract
-│
-└── 13 Contract + Adversarial Regression
-    ├── signal integrity tests
-    ├── provenance tests
-    ├── fraud detection boundary tests
-    ├── false-positive tests
-    ├── rule precedence tests
-    ├── rule version tests
-    ├── deterministic evaluation tests
-    ├── override authorization tests
-    ├── tenant isolation tests
-    ├── privacy tests
-    ├── evidence integrity tests
-    ├── concurrency tests
-    ├── reconstruction tests
-    ├── REOS integration tests
-    ├── ACRL reconstruction tests
-    └── cross-core regression
+PS D:\HOMIO\REOS_CONTROL_CENTER> @'
+>> PASTE THE COMPLETE risk_rules.py CONTENT HERE
+>> '@ | Set-Content -Path $path -Encoding utf8
+Set-Content : Could not find a part of the path
+'D:\HOMIO\REOS_CONTROL_CENTER\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py'.
+At line:3 char:6
++ '@ | Set-Content -Path $path -Encoding utf8
++      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (D:\HOMIO\REOS_C...e\risk_rules.py:String) [Set-Content], DirectoryNotFoundException
+    + FullyQualifiedErrorId : GetContentWriterDirectoryNotFoundError,Microsoft.PowerShell.Commands.SetContentCommand
 
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 5) Verify exact local repo-relative path
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not (Test-Path $path)) {
+>>     throw "FILE CREATE FAILED: $path"
+>> }
+FILE CREATE FAILED: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
+At line:2 char:5
++     throw "FILE CREATE FAILED: $path"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FILE CREATE FAI...e/risk_rules.py:String) [], RuntimeException
+    + FullyQualifiedErrorId : FILE CREATE FAILED: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 6) Check whether remote file already exists.
+PS D:\HOMIO\REOS_CONTROL_CENTER> #    404 => CREATE, existing SHA => UPDATE.
+PS D:\HOMIO\REOS_CONTROL_CENTER> $remote = $null
+PS D:\HOMIO\REOS_CONTROL_CENTER> try {
+>>     $remote = gh api "repos/$repo/contents/$path?ref=$branch" 2>$null | ConvertFrom-Json
+>> } catch {
+>>     $remote = $null
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $content = [Convert]::ToBase64String(
+>>     [System.IO.File]::ReadAllBytes((Resolve-Path $path))
+>> )
+Resolve-Path : Cannot find path 'D:\HOMIO\REOS_CONTROL_CENTER\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py' because it
+does not exist.
+At line:2 char:37
++     [System.IO.File]::ReadAllBytes((Resolve-Path $path))
++                                     ~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (D:\HOMIO\REOS_C...e\risk_rules.py:String) [Resolve-Path], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.ResolvePathCommand
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($null -eq $remote) {
+>>
+>>     gh api `
+>>         --method PUT `
+>>         "repos/$repo/contents/$path" `
+>>         -f message="CORE-007 T03: add bounded risk rule evaluator" `
+>>         -f branch="$branch" `
+>>         -f content="$content"
+>>
+>> } else {
+>>
+>>     gh api `
+>>         --method PUT `
+>>         "repos/$repo/contents/$path" `
+>>         -f message="CORE-007 T03: update bounded risk rule evaluator" `
+>>         -f branch="$branch" `
+>>         -f content="$content" `
+>>         -f sha="$($remote.sha)"
+>> }
+accepts 1 arg(s), received 607
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "REMOTE GITHUB WRITE FAILED"
+>> }
+REMOTE GITHUB WRITE FAILED
+At line:2 char:5
++     throw "REMOTE GITHUB WRITE FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE GITHUB WRITE FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE GITHUB WRITE FAILED
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # 7) Pull fresh remote metadata and verify the exact path
+PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin $branch
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $verify = gh api "repos/$repo/contents/$path?ref=$branch" |
+>>     ConvertFrom-Json
+gh: Not Found (HTTP 404)
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $verify.sha) {
+>>     throw "REMOTE VERIFICATION FAILED: no blob SHA"
+>> }
+REMOTE VERIFICATION FAILED: no blob SHA
+At line:2 char:5
++     throw "REMOTE VERIFICATION FAILED: no blob SHA"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE VERIFICATION FAILED: no blob SHA:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE VERIFICATION FAILED: no blob SHA
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE WRITE PASS"
+REMOTE WRITE PASS
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "PATH : $path"
+PATH : REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "SHA  : $($verify.sha)"
+SHA  :
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "BRANCH: $branch"
+BRANCH: reos-development
+PS D:\HOMIO\REOS_CONTROL_CENTER>
