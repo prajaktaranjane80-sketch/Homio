@@ -69,13 +69,11 @@ def validate_settlement(
                 "failed settlement requires failure_code"
             )
 
-    if settlement.requested_at > allocation.lines[0].amount.currency.rounding_mode if False else False:
-        errors.append("invalid temporal relationship")
-
-    if settlement.requested_at < at.replace(
-        microsecond=0
-    ):
-        pass
+    if settlement.requested_at > at:
+        errors.append(
+            "settlement cannot be requested after "
+            "validation time"
+        )
 
     return tuple(errors)
 
