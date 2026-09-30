@@ -1,20 +1,3 @@
-"""CORE-007 — Governance Security & Tenant Boundary.
-
-This module defines the explicit security contract owned by CORE-007.
-
-CORE-001 remains the authoritative identity/authorization boundary.
-CORE-007 only validates that governance evaluation context is correctly
-scoped before governance decisions are interpreted.
-
-This module does NOT:
-- authenticate identities,
-- grant permissions,
-- replace RBAC/ABAC,
-- issue sessions,
-- own tenant lifecycle,
-- mutate domain state.
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -35,25 +18,25 @@ class GovernanceSecurityError(ValueError):
 class GovernanceTenantViolation(
     GovernanceSecurityError
 ):
-    """Cross-tenant request detected."""
+    """Cross-tenant operation."""
 
 
 class GovernanceSubjectViolation(
     GovernanceSecurityError
 ):
-    """Cross-subject request detected."""
+    """Cross-subject operation."""
 
 
 class GovernanceActorViolation(
     GovernanceSecurityError
 ):
-    """Invalid actor/security relationship."""
+    """Invalid actor boundary."""
 
 
 class GovernanceContextViolation(
     GovernanceSecurityError
 ):
-    """Invalid governance execution context."""
+    """Invalid governance security context."""
 
 
 class GovernancePrivilegeClass(str, Enum):
@@ -77,22 +60,37 @@ def _utc(
     value: datetime,
     field_name: str,
 ) -> datetime:
-    if not isinstance(value, datetime):
-        raise GovernanceSecurityError(
-            f"{field_name} must be datetime."
-        )
-
-    if value.tzinfo is None or value.utcoffset() is None:
+    if (
+        value.tzinfo is None
+        or value.utcoffset() is None
+    ):
         raise GovernanceSecurityError(
             f"{field_name} must be timezone-aware."
         )
-
     return value.astimezone(timezone.utc)
+
+
+def _fingerprint(value: Any) -> str:
+    raw = json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    ).encode("utf-8")
+
+    return hashlib.sha256(raw).hexdigest()
 
 
 @dataclass(frozen=True, slots=True)
 class GovernanceSecurityContext:
-    """Immutable scope context for CORE-007 operations."""
+    """
+    Security boundary for governance operations.
+
+    CORE-001 remains the actual identity/authorization owner.
+    CORE-007 only validates domain boundaries and required
+    authorization references.
+    """
 
     tenant_id: str
     subject_id: str
@@ -103,7 +101,9 @@ class GovernanceSecurityContext:
     target_tenant_id: str | None = None
     target_subject_id: str | None = None
 
-    action_code: str = "GOVERNANCE_EVALUATION"
+    action_code: str = (
+        "GOVERNANCE_EVALUATION"
+    )
 
     operating_mode: str | None = None
     jurisdiction: str | None = None
@@ -112,16 +112,31 @@ class GovernanceSecurityContext:
         GovernancePrivilegeClass.STANDARD
     )
 
-    captured_at: datetime = datetime(
-        1970,
-        1,
-        1,
-        tzinfo=timezone.utc,
+    captured_at: datetime = (
+        datetime(
+            1970,
+            1,
+            1,
+            tzinfo=timezone.utc,
+        )
     )
 
     schema_version: int = (
         GOVERNANCE_SECURITY_SCHEMA_VERSION
     )
+
+    sensitive_risk_data_class: str = (
+        "CONTROLLED"
+    )
+
+    data_minimization_basis: str = (
+        "DOMAIN_REQUIRED_ONLY"
+    )
+
+    review_authorized: bool = False
+    override_authorized: bool = False
+
+    privacy_mode: str = "MINIMIZED"
 
     def __post_init__(self) -> None:
         for name in (
@@ -130,6 +145,9 @@ class GovernanceSecurityContext:
             "actor_id",
             "actor_tenant_id",
             "action_code",
+            "sensitive_risk_data_class",
+            "data_minimization_basis",
+            "privacy_mode",
         ):
             object.__setattr__(
                 self,
@@ -140,28 +158,52 @@ class GovernanceSecurityContext:
                 ),
             )
 
-        for name in (
-            "target_tenant_id",
-            "target_subject_id",
-            "operating_mode",
-            "jurisdiction",
-        ):
-            value = getattr(self, name)
+        if self.target_tenant_id is not None:
+            object.__setattr__(
+                self,
+                "target_tenant_id",
+                _text(
+                    self.target_tenant_id,
+                    "target_tenant_id",
+                ),
+            )
 
-            if value is not None:
-                object.__setattr__(
-                    self,
-                    name,
-                    _text(value, name),
-                )
+        if self.target_subject_id is not None:
+            object.__setattr__(
+                self,
+                "target_subject_id",
+                _text(
+                    self.target_subject_id,
+                    "target_subject_id",
+                ),
+            )
+
+        if self.operating_mode is not None:
+            object.__setattr__(
+                self,
+                "operating_mode",
+                _text(
+                    self.operating_mode,
+                    "operating_mode",
+                ),
+            )
+
+        if self.jurisdiction is not None:
+            object.__setattr__(
+                self,
+                "jurisdiction",
+                _text(
+                    self.jurisdiction,
+                    "jurisdiction",
+                ),
+            )
 
         if not isinstance(
             self.privilege_class,
             GovernancePrivilegeClass,
         ):
             raise GovernanceSecurityError(
-                "privilege_class must be "
-                "GovernancePrivilegeClass."
+                "Invalid privilege_class."
             )
 
         object.__setattr__(
@@ -177,39 +219,124 @@ class GovernanceSecurityContext:
             GOVERNANCE_SECURITY_SCHEMA_VERSION
         ):
             raise GovernanceSecurityError(
-                "Unsupported governance security schema."
+                "Unsupported security schema."
+            )
+
+        if not isinstance(
+            self.review_authorized,
+            bool,
+        ):
+            raise GovernanceSecurityError(
+                "review_authorized must bool."
+            )
+
+        if not isinstance(
+            self.override_authorized,
+            bool,
+        ):
+            raise GovernanceSecurityError(
+                "override_authorized must bool."
             )
 
     @property
     def scope_fingerprint(self) -> str:
-        material = {
+        return _fingerprint(
+            {
+                "tenant_id": self.tenant_id,
+                "subject_id": self.subject_id,
+                "actor_tenant_id": (
+                    self.actor_tenant_id
+                ),
+                "target_tenant_id": (
+                    self.target_tenant_id
+                ),
+                "target_subject_id": (
+                    self.target_subject_id
+                ),
+                "action_code": self.action_code,
+                "operating_mode": (
+                    self.operating_mode
+                ),
+                "jurisdiction": (
+                    self.jurisdiction
+                ),
+                "privilege_class": (
+                    self.privilege_class.value
+                ),
+                "sensitive_risk_data_class": (
+                    self.sensitive_risk_data_class
+                ),
+                "data_minimization_basis": (
+                    self.data_minimization_basis
+                ),
+                "review_authorized": (
+                    self.review_authorized
+                ),
+                "override_authorized": (
+                    self.override_authorized
+                ),
+                "privacy_mode": self.privacy_mode,
+                "schema_version": (
+                    self.schema_version
+                ),
+            }
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
             "tenant_id": self.tenant_id,
             "subject_id": self.subject_id,
             "actor_id": self.actor_id,
-            "actor_tenant_id": self.actor_tenant_id,
-            "target_tenant_id": self.target_tenant_id,
-            "target_subject_id": self.target_subject_id,
+            "actor_tenant_id": (
+                self.actor_tenant_id
+            ),
+            "target_tenant_id": (
+                self.target_tenant_id
+            ),
+            "target_subject_id": (
+                self.target_subject_id
+            ),
             "action_code": self.action_code,
-            "operating_mode": self.operating_mode,
-            "jurisdiction": self.jurisdiction,
+            "operating_mode": (
+                self.operating_mode
+            ),
+            "jurisdiction": (
+                self.jurisdiction
+            ),
             "privilege_class": (
                 self.privilege_class.value
             ),
-            "schema_version": self.schema_version,
+            "captured_at": (
+                self.captured_at.isoformat()
+            ),
+            "schema_version": (
+                self.schema_version
+            ),
+            "sensitive_risk_data_class": (
+                self.sensitive_risk_data_class
+            ),
+            "data_minimization_basis": (
+                self.data_minimization_basis
+            ),
+            "review_authorized": (
+                self.review_authorized
+            ),
+            "override_authorized": (
+                self.override_authorized
+            ),
+            "privacy_mode": self.privacy_mode,
+            "scope_fingerprint": (
+                self.scope_fingerprint
+            ),
         }
-
-        raw = json.dumps(
-            material,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-        ).encode("utf-8")
-
-        return hashlib.sha256(raw).hexdigest()
 
 
 class GovernanceSecurityBoundary:
-    """Explicit pre-evaluation governance security boundary."""
+    """
+    CORE-007 security boundary.
+
+    CORE-001 remains the authoritative authorization system.
+    """
 
     @staticmethod
     def validate(
@@ -220,7 +347,7 @@ class GovernanceSecurityBoundary:
             GovernanceSecurityContext,
         ):
             raise GovernanceSecurityError(
-                "context must be GovernanceSecurityContext."
+                "context must GovernanceSecurityContext."
             )
 
         if (
@@ -237,7 +364,7 @@ class GovernanceSecurityBoundary:
             != context.tenant_id
         ):
             raise GovernanceTenantViolation(
-                "Target tenant does not match context tenant."
+                "Target tenant does not match context."
             )
 
         if (
@@ -246,49 +373,60 @@ class GovernanceSecurityBoundary:
             != context.subject_id
         ):
             raise GovernanceSubjectViolation(
-                "Target subject does not match context subject."
-            )
-
-        if (
-            context.privilege_class
-            is GovernancePrivilegeClass.SYSTEM
-            and context.actor_id.startswith("system:")
-            is False
-        ):
-            raise GovernanceActorViolation(
-                "SYSTEM governance privilege requires "
-                "a system actor reference."
+                "Target subject does not match context."
             )
 
         if not context.action_code.strip():
             raise GovernanceContextViolation(
-                "Governance action code is required."
+                "action_code is required."
+            )
+
+        if (
+            context.privacy_mode
+            not in {
+                "MINIMIZED",
+                "CONTROLLED",
+            }
+        ):
+            raise GovernanceContextViolation(
+                "Unsupported privacy mode."
+            )
+
+        if (
+            context.sensitive_risk_data_class
+            == "RESTRICTED"
+            and context.privacy_mode
+            != "MINIMIZED"
+        ):
+            raise GovernanceContextViolation(
+                "Restricted risk data requires "
+                "MINIMIZED privacy mode."
             )
 
     @staticmethod
     def assert_tenant(
-        *,
-        expected_tenant_id: str,
-        actual_tenant_id: str,
+        context: GovernanceSecurityContext,
+        tenant_id: str,
     ) -> None:
-        if (
-            expected_tenant_id
-            != actual_tenant_id
-        ):
+        GovernanceSecurityBoundary.validate(
+            context
+        )
+
+        if context.tenant_id != tenant_id:
             raise GovernanceTenantViolation(
                 "Governance operation crosses tenant boundary."
             )
 
     @staticmethod
     def assert_subject(
-        *,
-        expected_subject_id: str,
-        actual_subject_id: str,
+        context: GovernanceSecurityContext,
+        subject_id: str,
     ) -> None:
-        if (
-            expected_subject_id
-            != actual_subject_id
-        ):
+        GovernanceSecurityBoundary.validate(
+            context
+        )
+
+        if context.subject_id != subject_id:
             raise GovernanceSubjectViolation(
                 "Governance operation crosses subject boundary."
             )
@@ -296,25 +434,75 @@ class GovernanceSecurityBoundary:
     @staticmethod
     def assert_separation_of_duties(
         *,
-        decision_actor_id: str,
-        approval_actor_id: str,
+        actor_id: str,
+        reviewer_id: str,
     ) -> None:
-        if not decision_actor_id.strip():
+        actor_id = _text(
+            actor_id,
+            "actor_id",
+        )
+
+        reviewer_id = _text(
+            reviewer_id,
+            "reviewer_id",
+        )
+
+        if actor_id == reviewer_id:
             raise GovernanceActorViolation(
-                "decision_actor_id is required."
+                "Actor and reviewer must be separate "
+                "for protected review."
             )
 
-        if not approval_actor_id.strip():
+    @staticmethod
+    def require_review_reference(
+        context: GovernanceSecurityContext,
+        reference: str,
+    ) -> None:
+        GovernanceSecurityBoundary.validate(
+            context
+        )
+
+        _text(
+            reference,
+            "review_reference",
+        )
+
+        if not context.review_authorized:
             raise GovernanceActorViolation(
-                "approval_actor_id is required."
+                "Review authorization reference is "
+                "required from CORE-001."
             )
 
-        if (
-            decision_actor_id
-            == approval_actor_id
-        ):
+    @staticmethod
+    def require_override_reference(
+        context: GovernanceSecurityContext,
+        reference: str,
+    ) -> None:
+        GovernanceSecurityBoundary.validate(
+            context
+        )
+
+        _text(
+            reference,
+            "override_reference",
+        )
+
+        if not context.override_authorized:
             raise GovernanceActorViolation(
-                "Decision and approval actors must be "
-                "different for separation-of-duties protected "
-                "governance actions."
+                "Override authorization must be "
+                "supplied by the authoritative "
+                "authorization boundary."
             )
+
+
+__all__ = [
+    "GOVERNANCE_SECURITY_SCHEMA_VERSION",
+    "GovernanceSecurityError",
+    "GovernanceTenantViolation",
+    "GovernanceSubjectViolation",
+    "GovernanceActorViolation",
+    "GovernanceContextViolation",
+    "GovernancePrivilegeClass",
+    "GovernanceSecurityContext",
+    "GovernanceSecurityBoundary",
+]
