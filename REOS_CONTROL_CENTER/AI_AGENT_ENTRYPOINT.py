@@ -1,5 +1,5 @@
 """
-HOMIO / REOS — AI AGENT ENTRYPOINT
+HOMIO / REOS ΓÇö AI AGENT ENTRYPOINT
 ==================================
 
 Purpose
@@ -328,6 +328,9 @@ def startup_instructions() -> dict[str, Any]:
         "operating_rules": list(AI_OPERATING_RULES),
         "new_session_workflow": list(NEW_SESSION_WORKFLOW),
         "change_decision_rules": list(CHANGE_DECISION_RULES),
+        "remote_git_synchronization_rules": list(
+            REMOTE_GIT_SYNCHRONIZATION_RULES
+        ),
         "failure_rules": list(FAILURE_RULES),
         "non_developer_owner_contract": list(
             NON_DEVELOPER_OWNER_CONTRACT
@@ -364,7 +367,7 @@ def print_startup_context() -> None:
     """Print a compact new-AI startup contract."""
 
     print("=" * 72)
-    print("HOMIO / REOS — AI AGENT ENTRYPOINT")
+    print("HOMIO / REOS ΓÇö AI AGENT ENTRYPOINT")
     print("=" * 72)
     print(f"PROJECT        : {PROJECT_NAME}")
     print(f"AUTHORITY      : {CONTROL_CENTER_NAME}")
