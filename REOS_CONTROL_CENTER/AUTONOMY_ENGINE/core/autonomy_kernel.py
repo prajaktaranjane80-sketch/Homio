@@ -6,11 +6,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from core.integrity import IntegrityEngine
-from core.models import ContextSnapshot
-from execution.guard import ExecutionGuard
-from memory.context_store import ContextStore
-from memory.evidence_ledger import EvidenceLedger
+from .integrity import IntegrityEngine
+from .models import ContextSnapshot
+from ..execution.guard import ExecutionGuard
+from ..memory.context_store import ContextStore
+from ..memory.evidence_ledger import EvidenceLedger
 
 
 class AutonomyKernel:
