@@ -1,172 +1,130 @@
-REMOTE CONTENT PATCH VALIDATED IN MEMORY
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ENCODE UPDATED CONTENT
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $updatedBytes = [System.Text.Encoding]::UTF8.GetBytes($content)
-PS D:\HOMIO\REOS_CONTROL_CENTER> $updatedBase64 = [Convert]::ToBase64String($updatedBytes)
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # DIRECT GITHUB UPDATE
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $body = @{
->>     message = "CORE-002: enforce recursive event payload immutability"
->>     content = $updatedBase64
->>     sha     = $remote.sha
->>     branch  = $branch
->> } | ConvertTo-Json -Depth 5
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> try {
->>     $updated = Invoke-RestMethod `
->>         -Method Put `
->>         -Uri "https://api.github.com/repos/$repo/contents/$path" `
->>         -Headers $headers `
->>         -ContentType "application/json" `
->>         -Body $body
->> }
->> catch {
->>     throw "REMOTE GITHUB UPDATE FAILED: $($_.Exception.Message)"
->> }
-REMOTE GITHUB UPDATE FAILED: The remote server returned an error: (422) Unprocessable Entity.
-At line:10 char:5
-+     throw "REMOTE GITHUB UPDATE FAILED: $($_.Exception.Message)"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (REMOTE GITHUB U...essable Entity.:String) [], RuntimeException
-    + FullyQualifiedErrorId : REMOTE GITHUB UPDATE FAILED: The remote server returned an error: (422) Unprocessable Entity.
+Get-Process : A positional parameter cannot be found that accepts argument 'if'.
+At line:1 char:1
++ PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [Get-Process], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : PositionalParameterNotFound,Microsoft.PowerShell.Commands.GetProcessCommand
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # HARD SUCCESS CHECK
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ([string]::IsNullOrWhiteSpace($updated.commit.sha)) {
->>     throw "GitHub returned no commit SHA. Update not accepted."
->> }
-GitHub returned no commit SHA. Update not accepted.
-At line:2 char:5
-+     throw "GitHub returned no commit SHA. Update not accepted."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (GitHub returned...e not accepted.:String) [], RuntimeException
-    + FullyQualifiedErrorId : GitHub returned no commit SHA. Update not accepted.
+PS D:\HOMIO\REOS_CONTROL_CENTER> PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS : Cannot find a process with the name "D:\HOMIO\REOS_CONTROL_CENTER>". Verify the process name and call the cmdlet again.
+At line:1 char:1
++ PS D:\HOMIO\REOS_CONTROL_CENTER>
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (D:\HOMIO\REOS_CONTROL_CENTER>:String) [Get-Process], ProcessCommandException
+    + FullyQualifiedErrorId : NoProcessFoundForGivenName,Microsoft.PowerShell.Commands.GetProcessCommand
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ([string]::IsNullOrWhiteSpace($updated.content.sha)) {
->>     throw "GitHub returned no content SHA. Update not accepted."
->> }
-GitHub returned no content SHA. Update not accepted.
-At line:2 char:5
-+     throw "GitHub returned no content SHA. Update not accepted."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (GitHub returned...e not accepted.:String) [], RuntimeException
-    + FullyQualifiedErrorId : GitHub returned no content SHA. Update not accepted.
+PS D:\HOMIO\REOS_CONTROL_CENTER> PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
+PS : Cannot find a process with the name "D:\HOMIO\REOS_CONTROL_CENTER>". Verify the process name and call the cmdlet again.
+At line:1 char:1
++ PS D:\HOMIO\REOS_CONTROL_CENTER> # ================================== ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (D:\HOMIO\REOS_CONTROL_CENTER>:String) [Get-Process], ProcessCommandException
+    + FullyQualifiedErrorId : NoProcessFoundForGivenName,Microsoft.PowerShell.Commands.GetProcessCommand
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+PS D:\HOMIO\REOS_CONTROL_CENTER> PS D:\HOMIO\REOS_CONTROL_CENTER> # FETCH REMOTE KERNEL
+PS : Cannot find a process with the name "D:\HOMIO\REOS_CONTROL_CENTER>". Verify the process name and call the cmdlet again.
+At line:1 char:1
++ PS D:\HOMIO\REOS_CONTROL_CENTER> # FETCH REMOTE KERNEL
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (D:\HOMIO\REOS_CONTROL_CENTER>:String) [Get-Process], ProcessCommandException
+    + FullyQualifiedErrorId : NoProcessFoundForGivenName,Microsoft.PowerShell.Commands.GetProcessCommand
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE UPDATE SUCCESS" -ForegroundColor Green
-REMOTE UPDATE SUCCESS
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "Commit SHA : $($updated.commit.sha)"
-Commit SHA :
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "Content SHA: $($updated.content.sha)"
-Content SHA:
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # REMOTE POST-WRITE VERIFICATION
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $verifyUri = "https://api.github.com/repos/$repo/contents/$path?ref=$branch"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $verify = Invoke-RestMethod `
->>     -Method Get `
->>     -Uri $verifyUri `
->>     -Headers $headers
-Invoke-RestMethod : {"message":"Not Found","documentation_url":"https://docs.github.com/rest/repos/contents#get-repository-content","status":"404"}
-At line:1 char:11
-+ $verify = Invoke-RestMethod `
-+           ~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
-    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($verify.path -ne $path) {
->>     throw "POST-WRITE path verification failed."
->> }
-POST-WRITE path verification failed.
-At line:2 char:5
-+     throw "POST-WRITE path verification failed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (POST-WRITE path verification failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : POST-WRITE path verification failed.
+PS D:\HOMIO\REOS_CONTROL_CENTER> PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
+PS : Cannot find a process with the name "D:\HOMIO\REOS_CONTROL_CENTER>". Verify the process name and call the cmdlet again.
+At line:1 char:1
++ PS D:\HOMIO\REOS_CONTROL_CENTER> # ================================== ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (D:\HOMIO\REOS_CONTROL_CENTER>:String) [Get-Process], ProcessCommandException
+    + FullyQualifiedErrorId : NoProcessFoundForGivenName,Microsoft.PowerShell.Commands.GetProcessCommand
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($verify.sha -ne $updated.content.sha) {
->>     throw "POST-WRITE SHA mismatch."
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $verifyBytes = [Convert]::FromBase64String(
->>     ($verify.content -replace "\s", "")
->> )
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $verifyContent = [System.Text.Encoding]::UTF8.GetString($verifyBytes)
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $verifyContent.Contains(
->>     "from ..contract_primitives import deep_freeze"
->> )) {
->>     throw "POST-WRITE import verification failed."
->> }
-POST-WRITE import verification failed.
-At line:4 char:5
-+     throw "POST-WRITE import verification failed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (POST-WRITE import verification failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : POST-WRITE import verification failed.
+PS D:\HOMIO\REOS_CONTROL_CENTER> PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS : Cannot find a process with the name "D:\HOMIO\REOS_CONTROL_CENTER>". Verify the process name and call the cmdlet again.
+At line:1 char:1
++ PS D:\HOMIO\REOS_CONTROL_CENTER>
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (D:\HOMIO\REOS_CONTROL_CENTER>:String) [Get-Process], ProcessCommandException
+    + FullyQualifiedErrorId : NoProcessFoundForGivenName,Microsoft.PowerShell.Commands.GetProcessCommand
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($verifyContent.Contains("MappingProxyType")) {
->>     throw "POST-WRITE still contains MappingProxyType."
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $verifyContent.Contains(
->>     'field_name="payload"'
->> )) {
->>     throw "POST-WRITE payload verification failed."
->> }
-POST-WRITE payload verification failed.
-At line:4 char:5
-+     throw "POST-WRITE payload verification failed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (POST-WRITE payload verification failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : POST-WRITE payload verification failed.
+PS D:\HOMIO\REOS_CONTROL_CENTER> PS D:\HOMIO\REOS_CONTROL_CENTER> $kernelJson = gh api `
+>> >>     "repos/$repo/contents/$kernelPath?ref=$branch" 2>&1
+out-file : Could not find a part of the path 'D:\HOMIO\REOS_CONTROL_CENTER\repos\prajaktaranjane80-sketch\Homio\contents\=reos-development'.
+At line:1 char:1
++ PS D:\HOMIO\REOS_CONTROL_CENTER> $kernelJson = gh api `
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OpenError: (:) [Out-File], DirectoryNotFoundException
+    + FullyQualifiedErrorId : FileOpenFailure,Microsoft.PowerShell.Commands.OutFileCommand
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $verifyContent.Contains(
->>     'field_name="metadata"'
->> )) {
->>     throw "POST-WRITE metadata verification failed."
->> }
-POST-WRITE metadata verification failed.
-At line:4 char:5
-+     throw "POST-WRITE metadata verification failed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (POST-WRITE metadata verification failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : POST-WRITE metadata verification failed.
+PS D:\HOMIO\REOS_CONTROL_CENTER> gh : gh: Not Found (HTTP 404)
+HTTP : The term 'HTTP' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path
+was included, verify that the path is correct and try again.
+At line:1 char:21
++ gh : gh: Not Found (HTTP 404)
++                     ~~~~
+    + CategoryInfo          : ObjectNotFound: (HTTP:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+PS D:\HOMIO\REOS_CONTROL_CENTER> At line:1 char:15
+The AT command has been deprecated. Please use schtasks.exe instead.
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE POST-WRITE VERIFICATION PASSED" -ForegroundColor Green
-REMOTE POST-WRITE VERIFICATION PASSED
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "Verified SHA: $($verify.sha)"
-Verified SHA:
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+Invalid command.
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "NO LOCAL SOURCE FILE WRITTEN"
-NO LOCAL SOURCE FILE WRITTEN
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "NO git add"
-NO git add
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "NO git commit"
-NO git commit
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "NO git push"
-NO git push
-PS D:\HOMIO\REOS_CONTROL_CENTER>
+The AT command schedules commands and programs to run on a computer at
+a specified time and date. The Schedule service must be running to use
+the AT command.
+
+AT [\\computername] [ [id] [/DELETE] | /DELETE [/YES]]
+AT [\\computername] time [/INTERACTIVE]
+    [ /EVERY:date[,...] | /NEXT:date[,...]] "command"
+
+\\computername     Specifies a remote computer. Commands are scheduled on the
+                   local computer if this parameter is omitted.
+id                 Is an identification number assigned to a scheduled
+                   command.
+/delete            Cancels a scheduled command. If id is omitted, all the
+                   scheduled commands on the computer are canceled.
+/yes               Used with cancel all jobs command when no further
+                   confirmation is desired.
+time               Specifies the time when command is to run.
+/interactive       Allows the job to interact with the desktop of the user
+                   who is logged on at the time the job runs.
+/every:date[,...]  Runs the command on each specified day(s) of the week or
+                   month. If date is omitted, the current day of the month
+                   is assumed.
+/next:date[,...]   Runs the specified command on the next occurrence of the
+                   day (for example, next Thursday).  If date is omitted, the
+                   current day of the month is assumed.
+"command"          Is the Windows NT command, or batch program to be run.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> + $kernelJson = gh api `
+>> +               ~~~~~~~~
+At line:1 char:1
++ + $kernelJson = gh api `
++ ~~~~~~~~~~~~~
+The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept assignments, such as a variable or a
+property.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : InvalidLeftHandSide
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>     + CategoryInfo          : NotSpecified: (gh: Not Found (HTTP 404):String) [], RemoteException
+At line:1 char:6
++     + CategoryInfo          : NotSpecified: (gh: Not Found (HTTP 404) ...
++      ~
+Missing expression after unary operator '+'.
+At line:1 char:7
++     + CategoryInfo          : NotSpecified: (gh: Not Found (HTTP 404) ...
++       ~~~~~~~~~~~~
+Unexpected token 'CategoryInfo' in expression or statement.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingExpressionAfterOperator
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>     + FullyQual
+At line:1 char:6
++     + FullyQual
++      ~
+Missing expression after unary operator '+'.
+At line:1 char:7
++     + FullyQual
++       ~~~~~~~~~
+Unexpected token 'FullyQual' in expression or statement.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingExpressionAfterOperator
