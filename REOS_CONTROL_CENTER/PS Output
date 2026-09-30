@@ -1,210 +1,175 @@
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "=== 1. VERIFY LOCAL CANONICAL STATE ==="
-=== 1. VERIFY LOCAL CANONICAL STATE ===
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> python reos_control_center.py verify-state
-STATE HASH STORED: 5884559314c7381522a4ae2570edd338fc3ccf3de6f00b57743e80b0330905f5
-STATE HASH CALCULATED: 5884559314c7381522a4ae2570edd338fc3ccf3de6f00b57743e80b0330905f5
-INTEGRITY: PASS
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "LOCAL STATE INTEGRITY FAILED"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $s = Get-Content ".\data\state.json" -Raw | ConvertFrom-Json
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "LOCAL GATE:" $s.execution.current_gate
-LOCAL GATE: CORE-007
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "LOCAL SUBTASK:" $s.execution.current_subtask
-LOCAL SUBTASK: CORE-007-T03
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "LOCAL EXECUTION CRITERIA:" @($s.execution.current_acceptance_criteria).Count
-LOCAL EXECUTION CRITERIA: 6
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "LOCAL CORE-007 CRITERIA:" @($s.gate_plans.'CORE-007'.acceptance_criteria).Count
-LOCAL CORE-007 CRITERIA: 6
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($s.execution.current_gate -ne "CORE-007") {
->>     throw "LOCAL GATE FAILED"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($s.execution.current_subtask -ne "CORE-007-T03") {
->>     throw "LOCAL SUBTASK FAILED"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (@($s.execution.current_acceptance_criteria).Count -ne 6) {
->>     throw "LOCAL EXECUTION PROJECTION FAILED"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (@($s.gate_plans.'CORE-007'.acceptance_criteria).Count -ne 6) {
->>     throw "LOCAL CORE-007 CRITERIA FAILED"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "LOCAL STATE CHECK: PASS"
-LOCAL STATE CHECK: PASS
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "=== 2. FETCH CURRENT REMOTE ==="
-=== 2. FETCH CURRENT REMOTE ===
+PS D:\Homio\REOS_CONTROL_CENTER> $remotePath="REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py"
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> git fetch origin $branch
 remote: Enumerating objects: 7, done.
 remote: Counting objects: 100% (7/7), done.
 remote: Compressing objects: 100% (4/4), done.
-remote: Total 4 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (4/4), 2.18 KiB | 93.00 KiB/s, done.
+remote: Total 4 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (4/4), 2.82 KiB | 80.00 KiB/s, done.
 From https://github.com/prajaktaranjane80-sketch/Homio
  * branch            reos-development -> FETCH_HEAD
-   942d5a0..69610fe  reos-development -> origin/reos-development
+   ffae782..f039583  reos-development -> origin/reos-development
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $remoteHead = git rev-parse "origin/$branch"
+PS D:\Homio\REOS_CONTROL_CENTER> $treeLine = git ls-tree "origin/$branch" -- $remotePath
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE HEAD:" $remoteHead
-REMOTE HEAD: 69610fe4e1afd08b7205ee8399d194049abfbe1e
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $treeLine) {
+>>     throw "REMOTE ENTRYPOINT NOT FOUND"
+>> }
+REMOTE ENTRYPOINT NOT FOUND
+At line:2 char:5
++     throw "REMOTE ENTRYPOINT NOT FOUND"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE ENTRYPOINT NOT FOUND:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE ENTRYPOINT NOT FOUND
 
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "=== 3. CREATE BLOB FROM VERIFIED LOCAL STATE ==="
-=== 3. CREATE BLOB FROM VERIFIED LOCAL STATE ===
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $blob = git hash-object -w $localPath
-warning: in the working copy of 'REOS_CONTROL_CENTER/data/state.json', CRLF will be replaced by LF the next time Git touches it
+PS D:\Homio\REOS_CONTROL_CENTER> $parts = $treeLine -split "\s+"
+PS D:\Homio\REOS_CONTROL_CENTER> $blobSha = $parts[2]
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $blob) {
->>     throw "STATE BLOB CREATION FAILED"
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $blobSha) {
+>>     throw "ENTRYPOINT BLOB SHA NOT FOUND"
+>> }
+ENTRYPOINT BLOB SHA NOT FOUND
+At line:2 char:5
++     throw "ENTRYPOINT BLOB SHA NOT FOUND"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ENTRYPOINT BLOB SHA NOT FOUND:String) [], RuntimeException
+    + FullyQualifiedErrorId : ENTRYPOINT BLOB SHA NOT FOUND
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $content = git show "origin/$branch`:$remotePath" | Out-String
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $content) {
+>>     throw "REMOTE ENTRYPOINT READ FAILED"
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "STATE BLOB:" $blob
-STATE BLOB: fbd3a5d6daca3b1e5de76afb50663adb68c0bf30
+PS D:\Homio\REOS_CONTROL_CENTER> if ($content.Contains("REMOTE_GIT_SYNCHRONIZATION_RULES")) {
+>>     Write-Host "SYNC RULES ALREADY PRESENT"
+>>     exit 0
+>> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
+PS D:\Homio\REOS_CONTROL_CENTER> $marker = @'
+>> # ---------------------------------------------------------------------------
+>> # REQUIRED NEW-SESSION WORKFLOW
+>> # ---------------------------------------------------------------------------
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $rules = @'
+>>
+>> # ---------------------------------------------------------------------------
+>> # REMOTE GIT SYNCHRONIZATION RULES
+>> # ---------------------------------------------------------------------------
+>>
+>> REMOTE_GIT_SYNCHRONIZATION_RULES: tuple[str, ...] = (
+>>     "Resolve the repository root and exact repository path before any remote synchronization.",
+>>     "Treat the current remote branch HEAD as the integration base for isolated remote changes.",
+>>     "Never mix REOS_CONTROL_CENTER-relative local paths with repository-root Git paths.",
+>>     "When unrelated local changes exist, do not use pull, reset, rebase, stash, or force-push merely to publish an isolated file change.",
+>>     "For isolated remote file synchronization, prefer a Git blob/tree commit against the current remote HEAD.",
+>>     "Never overwrite unrelated dirty working-tree changes while publishing an isolated correction.",
+>>     "After remote synchronization, fetch the branch and verify the exact remote file content from the remote branch.",
+>>     "If a synchronization method fails, do not repeat the same path or history assumption with another wrapper; re-diagnose repository root, remote HEAD, blob SHA, exact path, and working-tree state first.",
+>>     "A remote synchronization is complete only after the resulting remote file is independently re-read and its required projection or contract is verified.",
+>> )
+>>
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $content.Contains($marker)) {
+>>     throw "ENTRYPOINT PATCH MARKER NOT FOUND"
+>> }
+ENTRYPOINT PATCH MARKER NOT FOUND
+At line:2 char:5
++     throw "ENTRYPOINT PATCH MARKER NOT FOUND"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ENTRYPOINT PATCH MARKER NOT FOUND:String) [], RuntimeException
+    + FullyQualifiedErrorId : ENTRYPOINT PATCH MARKER NOT FOUND
 
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "=== 4. BUILD REMOTE TREE WITHOUT TOUCHING WORKTREE ==="
-=== 4. BUILD REMOTE TREE WITHOUT TOUCHING WORKTREE ===
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $indexFile = Join-Path $env:TEMP (
->>     "REOS_STATE_INDEX_" + [guid]::NewGuid().ToString("N")
+PS D:\Homio\REOS_CONTROL_CENTER> $content = $content.Replace(
+>>     $marker,
+>>     $rules + $marker
 >> )
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $env:GIT_INDEX_FILE = $indexFile
+PS D:\Homio\REOS_CONTROL_CENTER> $startupMarker = @'
+>>         "change_decision_rules": list(CHANGE_DECISION_RULES),
+>> '@
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> try {
->>
->>     if (Test-Path $indexFile) {
->>         Remove-Item $indexFile -Force
->>     }
->>
->>     git read-tree $remoteHead
->>
->>     if ($LASTEXITCODE -ne 0) {
->>         throw "REMOTE TREE READ FAILED"
->>     }
->>
->>     git update-index --add --cacheinfo 100644,$blob,$remotePath
->>
->>     if ($LASTEXITCODE -ne 0) {
->>         throw "STATE TREE UPDATE FAILED"
->>     }
->>
->>     $tree = git write-tree
->>
->>     if (-not $tree) {
->>         throw "TREE CREATION FAILED"
->>     }
->>
->>     Write-Host "NEW TREE:" $tree
->>
->>     Write-Host ""
->>     Write-Host "=== 5. CREATE COMMIT ON CURRENT REMOTE HEAD ==="
->>
->>     $commit = @"
->> git commit-tree $tree -p $remoteHead -m "STATE: synchronize CORE-007 execution projection"
->> "@
->>
->>     $newCommit = Invoke-Expression $commit
->>
->>     if (-not $newCommit) {
->>         throw "COMMIT CREATION FAILED"
->>     }
->>
->>     Write-Host "NEW COMMIT:" $newCommit
->>
+PS D:\Homio\REOS_CONTROL_CENTER> $startupReplacement = @'
+>>         "change_decision_rules": list(CHANGE_DECISION_RULES),
+>>         "remote_git_synchronization_rules": list(
+>>             REMOTE_GIT_SYNCHRONIZATION_RULES
+>>         ),
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $content.Contains($startupMarker)) {
+>>     throw "STARTUP INSTRUCTIONS MARKER NOT FOUND"
 >> }
->> finally {
->>
->>     Remove-Item Env:GIT_INDEX_FILE -ErrorAction SilentlyContinue
->>
->>     if (Test-Path $indexFile) {
->>         Remove-Item $indexFile -Force -ErrorAction SilentlyContinue
->>     }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $content = $content.Replace(
+>>     $startupMarker,
+>>     $startupReplacement
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $b64 = [Convert]::ToBase64String(
+>>     [Text.Encoding]::UTF8.GetBytes($content)
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $result = gh api `
+>>     --method PUT `
+>>     "repos/$owner/$repo/contents/$remotePath" `
+>>     -f message="ARCH: persist remote Git synchronization workflow" `
+>>     -f content="$b64" `
+>>     -f sha="$blobSha" `
+>>     -f branch="$branch" | ConvertFrom-Json
+gh: REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py does not match  (HTTP 409)
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $result.commit.sha) {
+>>     throw "REMOTE ENTRYPOINT UPDATE FAILED"
 >> }
-NEW TREE: 3e6aac09a4d328d98cf64644a1997f552158c488
+REMOTE ENTRYPOINT UPDATE FAILED
+At line:2 char:5
++     throw "REMOTE ENTRYPOINT UPDATE FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE ENTRYPOINT UPDATE FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE ENTRYPOINT UPDATE FAILED
 
-=== 5. CREATE COMMIT ON CURRENT REMOTE HEAD ===
-NEW COMMIT: ffae782bc52bda83e15fc7d5d8fd4f9006895359
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
 
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "=== 6. PUSH EXACT COMMIT ==="
-=== 6. PUSH EXACT COMMIT ===
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> git push origin "$newCommit`:$branch"
-Enumerating objects: 9, done.
-Counting objects: 100% (9/9), done.
-Delta compression using up to 12 threads
-Compressing objects: 100% (4/4), done.
-Writing objects: 100% (5/5), 566 bytes | 566.00 KiB/s, done.
-Total 5 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
-remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
-To https://github.com/prajaktaranjane80-sketch/Homio.git
-   69610fe..ffae782  ffae782bc52bda83e15fc7d5d8fd4f9006895359 -> reos-development
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "STATE COMMIT PUSH FAILED"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE PUSH: PASS"
-REMOTE PUSH: PASS
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "=== 7. FINAL REMOTE VERIFICATION ==="
-=== 7. FINAL REMOTE VERIFICATION ===
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "AI_AGENT_ENTRYPOINT REMOTE EDIT: PASS"
+AI_AGENT_ENTRYPOINT REMOTE EDIT: PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "COMMIT:" $result.commit.sha
+COMMIT:
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "FILE:" $remotePath
+FILE: REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> git fetch origin $branch
 From https://github.com/prajaktaranjane80-sketch/Homio
  * branch            reos-development -> FETCH_HEAD
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $remote = git show "origin/$branch`:$remotePath" | Out-String | ConvertFrom-Json
+PS D:\Homio\REOS_CONTROL_CENTER> $verify = git show "origin/$branch`:$remotePath" | Out-String
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE GATE:" $remote.execution.current_gate
-REMOTE GATE: CORE-007
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE SUBTASK:" $remote.execution.current_subtask
-REMOTE SUBTASK: CORE-007-T03
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE EXECUTION CRITERIA:" @($remote.execution.current_acceptance_criteria).Count
-REMOTE EXECUTION CRITERIA: 6
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE CORE-007 CRITERIA:" @($remote.gate_plans.'CORE-007'.acceptance_criteria).Count
-REMOTE CORE-007 CRITERIA: 6
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($remote.execution.current_gate -ne "CORE-007") {
->>     throw "REMOTE GATE FAILED"
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $verify.Contains("REMOTE_GIT_SYNCHRONIZATION_RULES")) {
+>>     throw "REMOTE ENTRYPOINT VERIFICATION FAILED"
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($remote.execution.current_subtask -ne "CORE-007-T03") {
->>     throw "REMOTE SUBTASK FAILED"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (@($remote.execution.current_acceptance_criteria).Count -ne 6) {
->>     throw "REMOTE EXECUTION PROJECTION FAILED"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (@($remote.gate_plans.'CORE-007'.acceptance_criteria).Count -ne 6) {
->>     throw "REMOTE CORE-007 CRITERIA FAILED"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
+REMOTE ENTRYPOINT VERIFICATION FAILED
+At line:2 char:5
++     throw "REMOTE ENTRYPOINT VERIFICATION FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE ENTRYPOINT VERIFICATION FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE ENTRYPOINT VERIFICATION FAILED
 
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "========================================"
-========================================
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "ROOT STATE SYNCHRONIZATION: PASS"
-ROOT STATE SYNCHRONIZATION: PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "========================================"
-========================================
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $verify.Contains("remote_git_synchronization_rules")) {
+>>     throw "STARTUP CONTRACT VERIFICATION FAILED"
+>> }
+STARTUP CONTRACT VERIFICATION FAILED
+At line:2 char:5
++     throw "STARTUP CONTRACT VERIFICATION FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STARTUP CONTRACT VERIFICATION FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : STARTUP CONTRACT VERIFICATION FAILED
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE ENTRYPOINT VERIFICATION: PASS"
+REMOTE ENTRYPOINT VERIFICATION: PASS
