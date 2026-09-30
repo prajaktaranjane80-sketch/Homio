@@ -1,102 +1,89 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> $ErrorActionPreference="Stop"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
-remote: Enumerating objects: 57, done.
-remote: Counting objects: 100% (57/57), done.
-remote: Compressing objects: 100% (50/50), done.
-remote: Total 50 (delta 34), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (50/50), 19.58 KiB | 69.00 KiB/s, done.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   f21b67a..f8f7004  reos-development -> origin/reos-development
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE:"
-REMOTE:
-PS D:\HOMIO\REOS_CONTROL_CENTER> git rev-parse origin/reos-development
-f8f70045dc305adf3429137ea84fb27458d1d53b
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "LOCAL:"
-LOCAL:
-PS D:\HOMIO\REOS_CONTROL_CENTER> git rev-parse HEAD
-e623fa92a57c066d980547d2543c3c04618275d7
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git restore --source=origin/reos-development -- reos_control_center.py
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`nCONTROLLER FIX CHECK:"
-
-CONTROLLER FIX CHECK:
-PS D:\HOMIO\REOS_CONTROL_CENTER> Select-String -Path .\reos_control_center.py `
->>   -Pattern "synchronize_execution_projection"
-
-reos_control_center.py:196:def synchronize_execution_projection(
-reos_control_center.py:253:    synchronize_execution_projection(state)
-
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py sync-gate
-Gate synchronized: CORE-007
-Current subtask: CORE-007-T03
-PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py status
-HOMIO / REOS CONTROL CENTER v7.0
-========================================================================
-Phase: PRE-CODING ARCHITECTURE
-Gate: CORE-007
-Task: CORE-007-T03: Implement risk rule evaluation.
-Status: CONTROL_CENTER_DRIVEN
-Subtask: CORE-007-T03
-Gate Status: CURRENT
-Subtasks: 10 Criteria: 6
-Approved: 38 Pending: 1
-State: D:\Homio\REOS_CONTROL_CENTER\data\state.json
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff -- data/state.json
+PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference="Stop"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> python reos_control_center.py verify-state
+STATE HASH STORED: 5884559314c7381522a4ae2570edd338fc3ccf3de6f00b57743e80b0330905f5
+STATE HASH CALCULATED: 5884559314c7381522a4ae2570edd338fc3ccf3de6f00b57743e80b0330905f5
+INTEGRITY: PASS
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> git diff --check
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/lead_ownership/lead.py', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt', CRLF will be replaced by LF the next time Git touches it
 warning: in the working copy of 'REOS_CONTROL_CENTER/data/state.json', CRLF will be replaced by LF the next time Git touches it
-diff --git a/REOS_CONTROL_CENTER/data/state.json b/REOS_CONTROL_CENTER/data/state.json
-index f8def44..fbd3a5d 100644
---- a/REOS_CONTROL_CENTER/data/state.json
-+++ b/REOS_CONTROL_CENTER/data/state.json
-@@ -3,8 +3,8 @@
-     "product": "HOMIO / REOS",
-     "version": "3.4",
-     "schema_version": 3,
--    "updated_at": "2026-09-30T13:32:15+05:30",
--    "control_center_version": "6.0"
-+    "updated_at": "2026-09-30T13:59:07+05:30",
-+    "control_center_version": "7.0"
-   },
-   "constitution": {
-     "no_markdown_project_memory": true,
-@@ -2101,7 +2101,7 @@
-     }
-   ],
-   "integrity": {
--    "sha256": "e6d8034679bc0a689d6e84ec3d15c0014fb77cb782dd161778fd7dfe74ea62f4"
-+    "sha256": "5884559314c7381522a4ae2570edd338fc3ccf3de6f00b57743e80b0330905f5"
-   },
-   "execution": {
-     "current_gate": "CORE-007",
-@@ -2109,18 +2109,12 @@
-     "status": "CONTROL_CENTER_DRIVEN",
-     "next_step_source": "execution_plan.authoritative_sequence",
-     "current_acceptance_criteria": [
--      "Define Our Owned International Brokerage Mode.",
--      "Define Broker SaaS Mode.",
--      "Define Builder SaaS Mode.",
--      "Define Enterprise / White-Label Mode.",
--      "Define Platform / API Partner Mode.",
--      "Define ownership boundaries for lead, deal, commission, data and AI.",
--      "Define tenant and role behavior by operating mode.",
--      "Define revenue behavior by operating mode.",
--      "Define communication and evidence behavior by operating mode.",
--      "Define cross-mode isolation rules.",
--      "Define mode activation, suspension and transition rules.",
--      "No overlap or duplicate responsibility with existing engines."
-+      "Trust and fraud responsibilities are distinct.",
-+      "Governance policies are versioned and auditable.",
-+      "High-risk actions require appropriate approval.",
-+      "Exceptions are controlled and expire.",
-+      "Cross-tenant and privilege boundaries are enforced.",
-+      "False-positive and conflict cases are tested."
-     ],
-     "current_subtask": "CORE-007-T03"
-   },
-(END)
+warning: in the working copy of 'REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt', CRLF will be replaced by LF the next time Git touches it
+PS D:\Homio\REOS_CONTROL_CENTER> git status --short
+ M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_reconstruction.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/gate_subtask_continuity.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/test_gate_subtask_continuity.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/new_chat_bootstrap.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/test_new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/context_compression.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/test_context_compression.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_guard.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_t12_integration.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_metrics.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_adversarial.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_contract.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_integration.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/dependency_graph.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/core/lead_ownership/lead.py
+ M AUTONOMY_ENGINE/core/trust_fraud_governance/__init__.py
+ M AUTONOMY_ENGINE/execution/__pycache__/mutation_adapter.cpython-312.pyc
+ M AUTONOMY_ENGINE/execution/__pycache__/production_executor.cpython-312.pyc
+ M AUTONOMY_ENGINE/orchestration/__pycache__/execution_coordinator.cpython-312.pyc
+ M AUTONOMY_ENGINE/tests/__pycache__/test_controller_autonomy_integration_adversarial.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/tests/__pycache__/test_execution_coordinator_adversarial.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/tests/__pycache__/test_execution_pipeline_adversarial.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/tests/__pycache__/test_mutation_adapter_adversarial.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/tests/__pycache__/test_production_executor_adversarial.cpython-312-pytest-9.1.1.pyc
+ M REOS_NEXT_CHAT.txt
+ M data/state.json
+ M packets/NEW_CHAT_PACKET.txt
+ M reos_control_center.py
+?? AUTONOMY_ENGINE/core/contract_primitives.py
+?? AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-20260929_203458.bak
+?? AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py.before-T07-sync-20260929_204442.bak
+?? AUTONOMY_ENGINE/core/test_contract_part2.py
+?? AUTONOMY_ENGINE/core/test_contract_part2_event.py
+?? AUTONOMY_ENGINE/core/test_contract_primitives.py
+?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
+?? AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py
+?? CORE006_HARDENING_BACKUP_20260930_110139/
+?? snapshots/state_20260929_190047_321090.json
+?? snapshots/state_20260929_202840_417870.json
+?? snapshots/state_20260929_203024_561461.json
+?? snapshots/state_20260929_205407_688934.json
+?? snapshots/state_20260929_205835_799742.json
+?? snapshots/state_20260929_210131_376828.json
+?? snapshots/state_20260929_210317_077045.json
+?? snapshots/state_20260929_210337_134750.json
+?? snapshots/state_20260929_210337_147255.json
+?? snapshots/state_20260929_210906_554909.json
+?? snapshots/state_20260929_212905_421537.json
+?? snapshots/state_20260930_133215_576626.json
+?? snapshots/state_20260930_135907_650246.json
+?? ../REOS_LAYER_BACKUP_ACRL_REPAIR_20260929_182814/
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> git add data/state.json
+warning: in the working copy of 'REOS_CONTROL_CENTER/data/state.json', CRLF will be replaced by LF the next time Git touches it
+PS D:\Homio\REOS_CONTROL_CENTER> git commit -m "STATE: synchronize CORE-007 execution projection"
+[reos-development 35ca160] STATE: synchronize CORE-007 execution projection
+ 1 file changed, 9 insertions(+), 15 deletions(-)
+PS D:\Homio\REOS_CONTROL_CENTER> git push origin reos-development
+To https://github.com/prajaktaranjane80-sketch/Homio.git
+ ! [rejected]        reos-development -> reos-development (fetch first)
+error: failed to push some refs to 'https://github.com/prajaktaranjane80-sketch/Homio.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+PS D:\Homio\REOS_CONTROL_CENTER>
