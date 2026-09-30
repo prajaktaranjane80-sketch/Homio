@@ -1,96 +1,81 @@
-======================================================================== FAILURES =========================================================================
-___________________________________________________ test_core002_event_payload_is_recursively_immutable ___________________________________________________
+======================================================================= FAILURES =========================================================================
+__________________________________________________ test_unsupported_metadata_type_fails_without_coercion __________________________________________________
 
-    def test_core002_event_payload_is_recursively_immutable():
-        event = EventEnvelope.create(
-            event_type="TEST_EVENT",
-            schema_name="REOS.TEST",
-            schema_version=1,
-            event_version=1,
-            tenant_id=uuid4(),
-            producer_id=uuid4(),
-            payload={
-                "nested": {
-                    "items": [
-                        {"value": 10}
-                    ]
-                }
-            },
-            metadata={
-                "context": {
-                    "region": "IN"
-                }
-            },
-            occurred_at=datetime.now(timezone.utc),
+    def test_unsupported_metadata_type_fails_without_coercion():
+        class Unsupported:
+            pass
+
+        with pytest.raises(LeadValidationError):
+>           Lead.create(
+                tenant_id=uuid4(),
+                customer_id=uuid4(),
+                source=LeadSource(
+                    source_type=LeadSourceType.DIRECT
+                ),
+                metadata={
+                    "bad": Unsupported(),
+                },
+            )
+
+AUTONOMY_ENGINE\core\lead_ownership\test_core_003_contract_matrix.py:558:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\lead_ownership\lead.py:314: in create
+    metadata=deep_freeze(metadata or {}, field_name="metadata"),
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\core\contract_primitives.py:30: in deep_freeze
+    frozen[key] = deep_freeze(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = <AUTONOMY_ENGINE.core.lead_ownership.test_core_003_contract_matrix.test_unsupported_metadata_type_fails_without_coercion.<locals>.Unsupported object at 0x0000019D09D9AD20>
+field_name = "metadata['bad']"
+
+    def deep_freeze(value: Any, *, field_name: str = "value") -> Any:
+        """Recursively freeze mappings and sequences."""
+        if isinstance(value, Mapping):
+            frozen = {}
+
+            for key, item in value.items():
+                if not isinstance(key, str):
+                    raise ContractPrimitiveError(
+                        f"{field_name} mapping keys must be strings."
+                    )
+
+                frozen[key] = deep_freeze(
+                    item,
+                    field_name=f"{field_name}[{key!r}]",
+                )
+
+            return MappingProxyType(frozen)
+
+        if isinstance(value, (list, tuple)):
+            return tuple(
+                deep_freeze(
+                    item,
+                    field_name=f"{field_name}[{index}]",
+                )
+                for index, item in enumerate(value)
+            )
+
+        if isinstance(value, (set, frozenset)):
+            raise ContractPrimitiveError(
+                f"{field_name} cannot contain sets."
+            )
+
+        if isinstance(
+            value,
+            (str, int, float, bool, UUID, datetime, date, Enum),
+        ) or value is None:
+            return value
+
+>       raise ContractPrimitiveError(
+            f"{field_name} contains unsupported type "
+            f"{type(value).__name__}."
         )
+E       AUTONOMY_ENGINE.core.contract_primitives.ContractPrimitiveError: metadata['bad'] contains unsupported type Unsupported.
 
->       with pytest.raises(TypeError):
-             ^^^^^^^^^^^^^^^^^^^^^^^^
-E       Failed: DID NOT RAISE TypeError
-
-AUTONOMY_ENGINE\core\test_contract_part2.py:53: Failed
-___________________________________________________ test_core003_lead_metadata_is_recursively_immutable ___________________________________________________
-
-    def test_core003_lead_metadata_is_recursively_immutable():
-        lead = Lead.create(
-            tenant_id=uuid4(),
-            customer_id=uuid4(),
-            source=LeadSource(
-                source_type=LeadSourceType.DIRECT
-            ),
-            metadata={
-                "preferences": {
-                    "locations": [
-                        {"city": "Pune"}
-                    ]
-                }
-            },
-        )
-
->       with pytest.raises(TypeError):
-             ^^^^^^^^^^^^^^^^^^^^^^^^
-E       Failed: DID NOT RAISE TypeError
-
-AUTONOMY_ENGINE\core\test_contract_part2.py:76: Failed
-_______________________________________________________ test_event_payload_is_recursively_immutable _______________________________________________________
-
-    def test_event_payload_is_recursively_immutable():
-        event = EventEnvelope.create(
-            event_type="TEST_EVENT",
-            schema_name="REOS.TEST",
-            schema_version=1,
-            event_version=1,
-            tenant_id=uuid4(),
-            producer_id=uuid4(),
-            payload={
-                "nested": {
-                    "items": [
-                        {"value": 10}
-                    ]
-                }
-            },
-            metadata={
-                "context": {
-                    "region": "IN"
-                }
-            },
-            occurred_at=datetime(
-                2026,
-                1,
-                1,
-                tzinfo=timezone.utc,
-            ),
-        )
-
->       with pytest.raises(TypeError):
-             ^^^^^^^^^^^^^^^^^^^^^^^^
-E       Failed: DID NOT RAISE TypeError
-
-AUTONOMY_ENGINE\core\test_contract_part2_event.py:37: Failed
+AUTONOMY_ENGINE\core\contract_primitives.py:57: ContractPrimitiveError
 ================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/test_contract_part2.py::test_core002_event_payload_is_recursively_immutable - Failed: DID NOT RAISE TypeError
-FAILED AUTONOMY_ENGINE/core/test_contract_part2.py::test_core003_lead_metadata_is_recursively_immutable - Failed: DID NOT RAISE TypeError
-FAILED AUTONOMY_ENGINE/core/test_contract_part2_event.py::test_event_payload_is_recursively_immutable - Failed: DID NOT RAISE TypeError
-3 failed, 787 passed in 5.60s
-PS D:\Homio\REOS_CONTROL_CENTER> python -m compileall AUTONOMY_ENGINE\core\trust_fraud_governance -q
+FAILED AUTONOMY_ENGINE/core/lead_ownership/test_core_003_contract_matrix.py::test_unsupported_metadata_type_fails_without_coercion - AUTONOMY_ENGINE.core.contract_primitives.ContractPrimitiveError: metadata['bad'] contains unsupported type Unsupported.
+1 failed, 789 passed in 3.05s
+PS D:\Homio\REOS_CONTROL_CENTER> python -m compileall AUTONOMY_ENGINE\core -q
 PS D:\Homio\REOS_CONTROL_CENTER>
