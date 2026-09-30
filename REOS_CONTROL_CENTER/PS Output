@@ -1,24 +1,16 @@
-Remove-Item : A positional parameter cannot be found that accepts argument 'Output\*'.
-At line:1 char:1
-+ Remove-Item .\PS\ Output\* -Force -Recurse -ErrorAction SilentlyConti ...
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidArgument: (:) [Remove-Item], ParameterBindingException
-    + FullyQualifiedErrorId : PositionalParameterNotFound,Microsoft.PowerShell.Commands.RemoveItemCommand
-
-PS D:\Homio\REOS_CONTROL_CENTER> Remove-Item ".\PS Output\*" -Force -Recurse -ErrorAction SilentlyContinue
-PS D:\Homio\REOS_CONTROL_CENTER> @(
->>     "=== CORE REGRESSION ==="
->>     python -m pytest AUTONOMY_ENGINE\core -q 2>&1
->>
->>     "=== CORE COMPILE ==="
->>     python -m compileall AUTONOMY_ENGINE\core -q 2>&1
->>
->>     "=== GIT STATUS ==="
->>     git status --short
->> ) | Tee-Object ".\PS Output\CORE-REGRESSION-CLEAN.txt"
 out-file : Could not find a part of the path 'D:\Homio\REOS_CONTROL_CENTER\PS Output\CORE-REGRESSION-CLEAN.txt'.
-At line:9 char:5
+At line:13 char:5
 +     git status --short
 +     ~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : OpenError: (:) [out-file], DirectoryNotFoundException
     + FullyQualifiedErrorId : FileOpenFailure,Microsoft.PowerShell.Commands.OutFileCommand
+
+PS D:\Homio\REOS_CONTROL_CENTER> Get-ChildItem ".\PS Output"
+
+
+    Directory: D:\Homio\REOS_CONTROL_CENTER
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         9/30/2026  12:00 PM          45166 PS Output
