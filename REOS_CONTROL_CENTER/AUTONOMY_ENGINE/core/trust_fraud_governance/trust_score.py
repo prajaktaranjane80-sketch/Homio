@@ -4,10 +4,10 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 from enum import Enum
-import hashlib
-import json
 from types import MappingProxyType
 from typing import Any, Mapping
+import hashlib
+import json
 
 
 TRUST_SCORE_SCHEMA_VERSION = 1
@@ -17,11 +17,11 @@ TRUST_SCORE_MAX = 100
 
 
 class TrustScoreError(ValueError):
-    """Base Trust Score foundation error."""
+    """Base CORE-007 trust-score error."""
 
 
 class TrustScoreValidationError(TrustScoreError):
-    """Invalid Trust Score contract data."""
+    """Invalid trust contract data."""
 
 
 class TrustScoreScopeError(TrustScoreError):
@@ -29,21 +29,21 @@ class TrustScoreScopeError(TrustScoreError):
 
 
 class TrustScoreConflictError(TrustScoreError):
-    """Conflicting Trust Score identity or signal."""
+    """Conflicting trust identity or evidence."""
 
 
 class TrustScoreInsufficientEvidenceError(TrustScoreError):
-    """Trust Score cannot be computed from the supplied evidence."""
+    """Insufficient evidence for trust calculation."""
+
+
+class TrustState(str, Enum):
+    OBSERVED = "OBSERVED"
+    ACTIVE = "ACTIVE"
+    REVIEW = "REVIEW"
+    HISTORICAL = "HISTORICAL"
 
 
 class TrustScoreDecisionBoundary(str, Enum):
-    """
-    T01 deliberately contains no allow/deny or fraud decision.
-
-    Trust score is a measured trust signal. Risk, fraud and governance
-    authorities consume it later through their own approved boundaries.
-    """
-
     INFORMATIONAL = "INFORMATIONAL"
 
 
@@ -52,14 +52,10 @@ def _text(value: Any, field_name: str) -> str:
         raise TrustScoreValidationError(
             f"{field_name} must be non-empty text."
         )
-
     return value.strip()
 
 
-def _positive_int(
-    value: Any,
-    field_name: str,
-) -> int:
+def _positive_int(value: Any, field_name: str) -> int:
     if (
         isinstance(value, bool)
         or not isinstance(value, int)
@@ -68,14 +64,10 @@ def _positive_int(
         raise TrustScoreValidationError(
             f"{field_name} must be an integer >= 1."
         )
-
     return value
 
 
-def _percentage(
-    value: Any,
-    field_name: str,
-) -> int:
+def _percentage(value: Any, field_name: str) -> int:
     if (
         isinstance(value, bool)
         or not isinstance(value, int)
@@ -83,10 +75,9 @@ def _percentage(
         or value > TRUST_SCORE_MAX
     ):
         raise TrustScoreValidationError(
-            f"{field_name} must be an integer between "
+            f"{field_name} must be between "
             f"{TRUST_SCORE_MIN} and {TRUST_SCORE_MAX}."
         )
-
     return value
 
 
@@ -113,10 +104,10 @@ def _canonicalize(value: Any) -> Any:
 
     if isinstance(value, Mapping):
         return {
-            str(key): _canonicalize(value[key])
-            for key in sorted(
-                value,
-                key=lambda item: str(item),
+            str(key): _canonicalize(item)
+            for key, item in sorted(
+                value.items(),
+                key=lambda item: str(item[0]),
             )
         }
 
@@ -133,35 +124,26 @@ def _canonicalize(value: Any) -> Any:
         return value
 
     raise TrustScoreValidationError(
-        "Unsupported value type: "
+        "Unsupported canonical value type: "
         f"{type(value).__name__}"
     )
 
 
-def _canonical_json(value: Any) -> str:
-    return json.dumps(
-        _canonicalize(value),
-        sort_keys=True,
-        ensure_ascii=False,
-        separators=(",", ":"),
-    )
-
-
 def _fingerprint(value: Any) -> str:
-    return hashlib.sha256(
-        _canonical_json(value).encode("utf-8")
-    ).hexdigest()
+    raw = json.dumps(
+        _canonicalize(value),
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+
+    return hashlib.sha256(raw).hexdigest()
 
 
 @dataclass(frozen=True, slots=True)
 class TrustScoringModel:
-    """
-    Versioned, immutable scoring model.
-
-    The model owns category weighting. Callers cannot silently inject
-    arbitrary weights into a signal. Governance/approval of models belongs
-    to later CORE-007 governance work.
-    """
+    """Versioned immutable trust scoring model."""
 
     model_version: str
     category_weights_bps: Mapping[str, int]
@@ -189,15 +171,10 @@ class TrustScoringModel:
         for category, weight in (
             self.category_weights_bps.items()
         ):
-            normalized_category = _text(
+            category = _text(
                 category,
                 "category",
             )
-
-            if normalized_category in normalized:
-                raise TrustScoreConflictError(
-                    "Duplicate normalized scoring category."
-                )
 
             if (
                 isinstance(weight, bool)
@@ -206,13 +183,16 @@ class TrustScoringModel:
                 or weight > 10000
             ):
                 raise TrustScoreValidationError(
-                    "Each category weight must be an integer "
+                    "Each category weight must be "
                     "between 1 and 10000."
                 )
 
-            normalized[
-                normalized_category
-            ] = weight
+            if category in normalized:
+                raise TrustScoreConflictError(
+                    "Duplicate trust category."
+                )
+
+            normalized[category] = weight
 
         if not normalized:
             raise TrustScoreInsufficientEvidenceError(
@@ -236,20 +216,19 @@ class TrustScoringModel:
             }
         )
 
-    def weight_for(
-        self,
-        category: str,
-    ) -> int:
+    def weight_for(self, category: str) -> int:
         category = _text(
             category,
             "category",
         )
 
         try:
-            return self.category_weights_bps[category]
+            return self.category_weights_bps[
+                category
+            ]
         except KeyError as exc:
             raise TrustScoreInsufficientEvidenceError(
-                f"No scoring weight configured for category "
+                f"No scoring weight configured for "
                 f"{category!r}."
             ) from exc
 
@@ -266,13 +245,19 @@ class TrustScoringModel:
 @dataclass(frozen=True, slots=True)
 class TrustSignal:
     """
-    Immutable observed trust evidence.
+    Immutable CORE-007 trust signal.
 
-    This is NOT:
-    - a fraud verdict
-    - a risk decision
-    - a governance decision
-    - an authorization decision
+    Explicitly carries:
+    - subject identity
+    - tenant identity
+    - trust context
+    - signal provenance
+    - confidence metadata
+    - signal version
+    - trust state
+    - historical linkage
+
+    It is never an authorization or fraud verdict.
     """
 
     signal_id: str
@@ -283,10 +268,32 @@ class TrustSignal:
     evidence_reference: str
     source_reference: str
     observed_at: datetime
+
     metadata: Mapping[str, Any] = field(
         default_factory=dict
     )
+
     schema_version: int = TRUST_SCORE_SCHEMA_VERSION
+
+    context: Mapping[str, Any] = field(
+        default_factory=dict
+    )
+
+    provenance_reference: str = (
+        "CORE-007.TRUST_SIGNAL"
+    )
+
+    confidence_metadata: Mapping[str, Any] = field(
+        default_factory=dict
+    )
+
+    signal_version: int = 1
+
+    trust_state: TrustState = (
+        TrustState.OBSERVED
+    )
+
+    history_reference: str | None = None
 
     def __post_init__(self) -> None:
         for name in (
@@ -296,6 +303,7 @@ class TrustSignal:
             "category",
             "evidence_reference",
             "source_reference",
+            "provenance_reference",
         ):
             object.__setattr__(
                 self,
@@ -324,28 +332,87 @@ class TrustSignal:
             ),
         )
 
-        if self.schema_version != TRUST_SCORE_SCHEMA_VERSION:
+        if self.schema_version != (
+            TRUST_SCORE_SCHEMA_VERSION
+        ):
             raise TrustScoreValidationError(
-                "Unsupported Trust Score schema version."
+                "Unsupported trust-score schema."
+            )
+
+        object.__setattr__(
+            self,
+            "signal_version",
+            _positive_int(
+                self.signal_version,
+                "signal_version",
+            ),
+        )
+
+        if not isinstance(
+            self.trust_state,
+            TrustState,
+        ):
+            raise TrustScoreValidationError(
+                "trust_state must be TrustState."
             )
 
         if not isinstance(
-            self.metadata,
+            self.context,
             Mapping,
         ):
             raise TrustScoreValidationError(
-                "metadata must be a mapping."
+                "context must be mapping."
             )
 
-        normalized = _canonicalize(
-            dict(self.metadata)
+        if not isinstance(
+            self.confidence_metadata,
+            Mapping,
+        ):
+            raise TrustScoreValidationError(
+                "confidence_metadata must be mapping."
+            )
+
+        object.__setattr__(
+            self,
+            "context",
+            MappingProxyType(
+                _canonicalize(
+                    dict(self.context)
+                )
+            ),
         )
 
         object.__setattr__(
             self,
-            "metadata",
-            MappingProxyType(normalized),
+            "confidence_metadata",
+            MappingProxyType(
+                _canonicalize(
+                    dict(self.confidence_metadata)
+                )
+            ),
         )
+
+        if self.history_reference is not None:
+            object.__setattr__(
+                self,
+                "history_reference",
+                _text(
+                    self.history_reference,
+                    "history_reference",
+                ),
+            )
+
+    @property
+    def trust_context(self) -> Mapping[str, Any]:
+        return self.context
+
+    @property
+    def provenance(self) -> str:
+        return self.provenance_reference
+
+    @property
+    def confidence(self) -> Mapping[str, Any]:
+        return self.confidence_metadata
 
     @property
     def identity_key(self) -> tuple[str, str, str]:
@@ -373,8 +440,30 @@ class TrustSignal:
                 "observed_at": (
                     self.observed_at.isoformat()
                 ),
-                "metadata": dict(self.metadata),
-                "schema_version": self.schema_version,
+                "metadata": dict(
+                    self.metadata
+                ),
+                "schema_version": (
+                    self.schema_version
+                ),
+                "context": dict(
+                    self.context
+                ),
+                "provenance_reference": (
+                    self.provenance_reference
+                ),
+                "confidence_metadata": dict(
+                    self.confidence_metadata
+                ),
+                "signal_version": (
+                    self.signal_version
+                ),
+                "trust_state": (
+                    self.trust_state.value
+                ),
+                "history_reference": (
+                    self.history_reference
+                ),
             }
         )
 
@@ -389,7 +478,8 @@ class TrustSignal:
             or self.subject_id != subject_id
         ):
             raise TrustScoreScopeError(
-                "Trust signal crosses tenant or subject scope."
+                "Trust signal crosses tenant or "
+                "subject scope."
             )
 
     def assert_compatible(
@@ -404,14 +494,17 @@ class TrustSignal:
                 "other must be TrustSignal."
             )
 
-        if self.identity_key != other.identity_key:
+        if (
+            self.identity_key
+            != other.identity_key
+        ):
             raise TrustScoreConflictError(
                 "Trust signal identities differ."
             )
 
         if self.fingerprint != other.fingerprint:
             raise TrustScoreConflictError(
-                "Same Trust signal identity has conflicting data."
+                "Same signal identity has conflicting data."
             )
 
     def to_dict(self) -> dict[str, Any]:
@@ -432,6 +525,18 @@ class TrustSignal:
             ),
             "metadata": dict(self.metadata),
             "schema_version": self.schema_version,
+            "context": dict(self.context),
+            "provenance_reference": (
+                self.provenance_reference
+            ),
+            "confidence_metadata": dict(
+                self.confidence_metadata
+            ),
+            "signal_version": self.signal_version,
+            "trust_state": self.trust_state.value,
+            "history_reference": (
+                self.history_reference
+            ),
             "fingerprint": self.fingerprint,
         }
 
@@ -452,6 +557,7 @@ class TrustScoreContribution:
                 "signal_id",
             ),
         )
+
         object.__setattr__(
             self,
             "category",
@@ -460,6 +566,7 @@ class TrustScoreContribution:
                 "category",
             ),
         )
+
         object.__setattr__(
             self,
             "value",
@@ -478,7 +585,7 @@ class TrustScoreContribution:
             or self.weight_bps < 1
         ):
             raise TrustScoreValidationError(
-                "weight_bps must be an integer >= 1."
+                "weight_bps must be >= 1."
             )
 
     @property
@@ -498,27 +605,39 @@ class TrustScoreContribution:
 @dataclass(frozen=True, slots=True)
 class TrustScore:
     """
-    Immutable, evidence-linked trust score.
+    Immutable trust score with explicit history/version/provenance.
 
-    TrustScore is descriptive intelligence. It is deliberately not an
-    authorization, fraud or governance verdict.
+    This remains descriptive intelligence only.
     """
 
     tenant_id: str
     subject_id: str
     score: int
+
     model_version: str
     model_fingerprint: str
+
     signal_ids: tuple[str, ...]
     signal_fingerprints: tuple[str, ...]
+
     contributions: tuple[
         TrustScoreContribution,
         ...
     ]
+
     total_weight_bps: int
     computed_at: datetime
+
     schema_version: int = TRUST_SCORE_SCHEMA_VERSION
     source_of_truth: str = "trust_score"
+
+    trust_state: TrustState = TrustState.ACTIVE
+    trust_version: int = 1
+    trust_history: tuple[str, ...] = ()
+    provenance_references: tuple[str, ...] = ()
+    confidence_metadata: Mapping[str, Any] = (
+        field(default_factory=dict)
+    )
 
     def __post_init__(self) -> None:
         for name in (
@@ -555,22 +674,25 @@ class TrustScore:
             self.signal_fingerprints
         ):
             raise TrustScoreValidationError(
-                "Signal identity and fingerprint lengths differ."
+                "Signal identity/fingerprint counts differ."
             )
 
         if len(self.signal_ids) != len(
             self.contributions
         ):
             raise TrustScoreValidationError(
-                "Signal identity and contribution lengths differ."
+                "Signal/contribution counts differ."
             )
 
         object.__setattr__(
             self,
             "signal_ids",
             tuple(
-                _text(signal_id, "signal_id")
-                for signal_id in self.signal_ids
+                _text(
+                    value,
+                    "signal_id",
+                )
+                for value in self.signal_ids
             ),
         )
 
@@ -579,13 +701,30 @@ class TrustScore:
             "signal_fingerprints",
             tuple(
                 _text(
-                    fingerprint,
+                    value,
                     "signal_fingerprint",
                 )
-                for fingerprint
-                in self.signal_fingerprints
+                for value in self.signal_fingerprints
             ),
         )
+
+        if len(self.signal_ids) != len(
+            set(self.signal_ids)
+        ):
+            raise TrustScoreConflictError(
+                "Duplicate signal identities."
+            )
+
+        if not all(
+            isinstance(
+                item,
+                TrustScoreContribution,
+            )
+            for item in self.contributions
+        ):
+            raise TrustScoreValidationError(
+                "Invalid TrustScore contribution."
+            )
 
         object.__setattr__(
             self,
@@ -605,10 +744,73 @@ class TrustScore:
             ),
         )
 
-        if self.schema_version != TRUST_SCORE_SCHEMA_VERSION:
+        if self.schema_version != (
+            TRUST_SCORE_SCHEMA_VERSION
+        ):
             raise TrustScoreValidationError(
-                "Unsupported TrustScore schema version."
+                "Unsupported TrustScore schema."
             )
+
+        if not isinstance(
+            self.trust_state,
+            TrustState,
+        ):
+            raise TrustScoreValidationError(
+                "trust_state must be TrustState."
+            )
+
+        object.__setattr__(
+            self,
+            "trust_version",
+            _positive_int(
+                self.trust_version,
+                "trust_version",
+            ),
+        )
+
+        object.__setattr__(
+            self,
+            "trust_history",
+            tuple(
+                _text(
+                    item,
+                    "trust_history_reference",
+                )
+                for item in self.trust_history
+            ),
+        )
+
+        object.__setattr__(
+            self,
+            "provenance_references",
+            tuple(
+                _text(
+                    item,
+                    "provenance_reference",
+                )
+                for item in self.provenance_references
+            ),
+        )
+
+        if not isinstance(
+            self.confidence_metadata,
+            Mapping,
+        ):
+            raise TrustScoreValidationError(
+                "confidence_metadata must be mapping."
+            )
+
+        object.__setattr__(
+            self,
+            "confidence_metadata",
+            MappingProxyType(
+                _canonicalize(
+                    dict(
+                        self.confidence_metadata
+                    )
+                )
+            ),
+        )
 
     @property
     def subject_key(self) -> tuple[str, str]:
@@ -620,6 +822,10 @@ class TrustScore:
     @property
     def evidence_count(self) -> int:
         return len(self.signal_ids)
+
+    @property
+    def trust_history(self) -> tuple[str, ...]:
+        return self.__dict__["trust_history"]
 
     @property
     def identity_key(self) -> tuple[
@@ -646,7 +852,8 @@ class TrustScore:
             or self.subject_id != subject_id
         ):
             raise TrustScoreScopeError(
-                "Trust score crosses tenant or subject scope."
+                "Trust score crosses tenant or "
+                "subject scope."
             )
 
     def assert_compatible(
@@ -668,7 +875,8 @@ class TrustScore:
 
         if self.to_dict() != other.to_dict():
             raise TrustScoreConflictError(
-                "Same Trust score identity has conflicting data."
+                "Same trust-score identity has "
+                "conflicting data."
             )
 
     def to_dict(self) -> dict[str, Any]:
@@ -677,7 +885,9 @@ class TrustScore:
             "subject_id": self.subject_id,
             "score": self.score,
             "model_version": self.model_version,
-            "model_fingerprint": self.model_fingerprint,
+            "model_fingerprint": (
+                self.model_fingerprint
+            ),
             "signal_ids": list(self.signal_ids),
             "signal_fingerprints": list(
                 self.signal_fingerprints
@@ -686,27 +896,44 @@ class TrustScore:
                 item.to_dict()
                 for item in self.contributions
             ],
-            "total_weight_bps": self.total_weight_bps,
+            "total_weight_bps": (
+                self.total_weight_bps
+            ),
             "computed_at": (
                 self.computed_at.isoformat()
             ),
             "schema_version": self.schema_version,
-            "source_of_truth": self.source_of_truth,
+            "source_of_truth": (
+                self.source_of_truth
+            ),
+            "trust_state": (
+                self.trust_state.value
+            ),
+            "trust_version": self.trust_version,
+            "trust_history": list(
+                self.trust_history
+            ),
+            "provenance_references": list(
+                self.provenance_references
+            ),
+            "confidence_metadata": dict(
+                self.confidence_metadata
+            ),
             "evidence_count": self.evidence_count,
         }
 
 
 class TrustScoreEngine:
     """
-    CORE-007 / ARCH-015 trust-score computation authority.
+    CORE-007 Trust Domain authority.
 
-    Explicitly excluded:
+    Does not own:
     - fraud detection
-    - risk policy decisions
-    - governance policy evaluation
+    - risk rules
+    - governance
     - authorization
-    - approval workflows
-    - event transport
+    - approvals
+    - events
     - Control Center state
     """
 
@@ -718,7 +945,10 @@ class TrustScoreEngine:
         *,
         tenant_id: str,
         subject_id: str,
-        signals: tuple[TrustSignal, ...] | list[TrustSignal],
+        signals: tuple[
+            TrustSignal,
+            ...
+        ] | list[TrustSignal],
         model: TrustScoringModel,
         computed_at: datetime,
     ) -> TrustScore:
@@ -739,22 +969,22 @@ class TrustScoreEngine:
                 "model must be TrustScoringModel."
             )
 
-        normalized_signals = tuple(signals)
+        normalized = tuple(signals)
 
-        if not normalized_signals:
+        if not normalized:
             raise TrustScoreInsufficientEvidenceError(
                 "Trust score requires at least one signal."
             )
 
         by_id: dict[str, TrustSignal] = {}
 
-        for signal in normalized_signals:
+        for signal in normalized:
             if not isinstance(
                 signal,
                 TrustSignal,
             ):
                 raise TrustScoreValidationError(
-                    "All signals must be TrustSignal instances."
+                    "signals must contain TrustSignal."
                 )
 
             signal.assert_scope(
@@ -762,19 +992,21 @@ class TrustScoreEngine:
                 subject_id=subject_id,
             )
 
-            existing = by_id.get(
+            previous = by_id.get(
                 signal.signal_id
             )
 
-            if existing is not None:
-                existing.assert_compatible(signal)
+            if previous is not None:
+                previous.assert_compatible(
+                    signal
+                )
                 raise TrustScoreConflictError(
-                    "Duplicate signal identity supplied."
+                    "Duplicate signal identity."
                 )
 
             by_id[signal.signal_id] = signal
 
-        ordered_signals = tuple(
+        ordered = tuple(
             by_id[key]
             for key in sorted(by_id)
         )
@@ -783,34 +1015,37 @@ class TrustScoreEngine:
             TrustScoreContribution
         ] = []
 
-        numerator = Decimal(0)
+        numerator = Decimal("0")
         total_weight = 0
+        provenance: list[str] = []
 
-        for signal in ordered_signals:
+        for signal in ordered:
             weight = model.weight_for(
                 signal.category
             )
 
-            contribution = TrustScoreContribution(
-                signal_id=signal.signal_id,
-                category=signal.category,
-                value=signal.value,
-                weight_bps=weight,
-            )
-
             contributions.append(
-                contribution
+                TrustScoreContribution(
+                    signal_id=signal.signal_id,
+                    category=signal.category,
+                    value=signal.value,
+                    weight_bps=weight,
+                )
             )
 
             numerator += (
                 Decimal(signal.value)
                 * Decimal(weight)
             )
+
             total_weight += weight
+            provenance.append(
+                signal.provenance_reference
+            )
 
         if total_weight <= 0:
             raise TrustScoreInsufficientEvidenceError(
-                "Total scoring weight must be greater than zero."
+                "Total trust weight must be positive."
             )
 
         score = int(
@@ -823,6 +1058,27 @@ class TrustScoreEngine:
             )
         )
 
+        normalized_time = _utc(
+            computed_at,
+            "computed_at",
+        )
+
+        history = tuple(
+            sorted(
+                {
+                    signal.history_reference
+                    for signal in ordered
+                    if signal.history_reference
+                }
+            )
+        )
+
+        confidence_values = [
+            signal.confidence_metadata
+            for signal in ordered
+            if signal.confidence_metadata
+        ]
+
         return TrustScore(
             tenant_id=tenant_id,
             subject_id=subject_id,
@@ -831,20 +1087,32 @@ class TrustScoreEngine:
             model_fingerprint=model.fingerprint,
             signal_ids=tuple(
                 signal.signal_id
-                for signal in ordered_signals
+                for signal in ordered
             ),
             signal_fingerprints=tuple(
                 signal.fingerprint
-                for signal in ordered_signals
+                for signal in ordered
             ),
             contributions=tuple(
                 contributions
             ),
             total_weight_bps=total_weight,
-            computed_at=_utc(
-                computed_at,
-                "computed_at",
+            computed_at=normalized_time,
+            trust_state=TrustState.ACTIVE,
+            trust_version=max(
+                signal.signal_version
+                for signal in ordered
             ),
+            trust_history=history,
+            provenance_references=tuple(
+                sorted(set(provenance))
+            ),
+            confidence_metadata={
+                "signal_count": len(ordered),
+                "signal_confidence_metadata": (
+                    confidence_values
+                ),
+            },
         )
 
 
@@ -858,6 +1126,7 @@ __all__ = [
     "TrustScoreScopeError",
     "TrustScoreConflictError",
     "TrustScoreInsufficientEvidenceError",
+    "TrustState",
     "TrustScoreDecisionBoundary",
     "TrustScoringModel",
     "TrustSignal",
