@@ -1,16 +1,3 @@
-"""CORE-007 — Governance Consistency & Concurrency Boundary.
-
-Protects governance evaluation from:
-- stale policy versions,
-- stale evaluation results,
-- conflicting fingerprints,
-- duplicate governance identities,
-- replay of obsolete decision material.
-
-This module does NOT own persistence or distributed locking.
-The caller supplies the authoritative revision/version values.
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -30,7 +17,7 @@ class GovernanceConsistencyError(ValueError):
 class GovernanceStalePolicyError(
     GovernanceConsistencyError
 ):
-    """Policy version is stale."""
+    """Policy version/fingerprint is stale."""
 
 
 class GovernanceStaleEvaluationError(
@@ -42,13 +29,31 @@ class GovernanceStaleEvaluationError(
 class GovernanceVersionConflictError(
     GovernanceConsistencyError
 ):
-    """Same identity contains different material."""
+    """Version identity conflict."""
 
 
 class GovernanceReplayConflictError(
     GovernanceConsistencyError
 ):
-    """Replay material conflicts with recorded identity."""
+    """Replay content conflicts with recorded identity."""
+
+
+class GovernanceDuplicateSignalError(
+    GovernanceConsistencyError
+):
+    """Duplicate signal identity with conflicting content."""
+
+
+class GovernanceDuplicateCommandError(
+    GovernanceConsistencyError
+):
+    """Duplicate command identity with conflicting content."""
+
+
+class GovernanceConcurrentReviewError(
+    GovernanceConsistencyError
+):
+    """Concurrent review revision conflict."""
 
 
 class ConsistencyCheck(str, Enum):
@@ -56,12 +61,34 @@ class ConsistencyCheck(str, Enum):
     POLICY_FINGERPRINT = "POLICY_FINGERPRINT"
     EVALUATION_REVISION = "EVALUATION_REVISION"
     DECISION_FINGERPRINT = "DECISION_FINGERPRINT"
+    SIGNAL_IDENTITY = "SIGNAL_IDENTITY"
+    COMMAND_IDENTITY = "COMMAND_IDENTITY"
+    REVIEW_REVISION = "REVIEW_REVISION"
+    IDEMPOTENCY = "IDEMPOTENCY"
+
+
+def _text(value: Any, field_name: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise GovernanceConsistencyError(
+            f"{field_name} must be non-empty text."
+        )
+    return value.strip()
+
+
+def _fingerprint(value: Any) -> str:
+    raw = json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    ).encode("utf-8")
+
+    return hashlib.sha256(raw).hexdigest()
 
 
 @dataclass(frozen=True, slots=True)
 class GovernanceVersionToken:
-    """Immutable optimistic-concurrency token."""
-
     resource_type: str
     resource_id: str
     version: str
@@ -69,29 +96,30 @@ class GovernanceVersionToken:
     revision: int
 
     def __post_init__(self) -> None:
-        if not self.resource_type.strip():
-            raise GovernanceConsistencyError(
-                "resource_type is required."
-            )
-
-        if not self.resource_id.strip():
-            raise GovernanceConsistencyError(
-                "resource_id is required."
-            )
-
-        if not self.version.strip():
-            raise GovernanceConsistencyError(
-                "version is required."
-            )
-
-        if not self.fingerprint.strip():
-            raise GovernanceConsistencyError(
-                "fingerprint is required."
+        for name in (
+            "resource_type",
+            "resource_id",
+            "version",
+            "fingerprint",
+        ):
+            object.__setattr__(
+                self,
+                name,
+                _text(
+                    getattr(self, name),
+                    name,
+                ),
             )
 
         if (
-            isinstance(self.revision, bool)
-            or not isinstance(self.revision, int)
+            isinstance(
+                self.revision,
+                bool,
+            )
+            or not isinstance(
+                self.revision,
+                int,
+            )
             or self.revision < 0
         ):
             raise GovernanceConsistencyError(
@@ -99,7 +127,9 @@ class GovernanceVersionToken:
             )
 
     @property
-    def identity_key(self) -> tuple[str, str]:
+    def identity_key(
+        self,
+    ) -> tuple[str, str]:
         return (
             self.resource_type,
             self.resource_id,
@@ -108,8 +138,6 @@ class GovernanceVersionToken:
 
 @dataclass(frozen=True, slots=True)
 class GovernanceConsistencySnapshot:
-    """Canonical comparison snapshot."""
-
     policy_id: str
     policy_version: str
     policy_fingerprint: str
@@ -123,36 +151,64 @@ class GovernanceConsistencySnapshot:
         GOVERNANCE_CONSISTENCY_SCHEMA_VERSION
     )
 
-    @property
+    review_id: str | None = None
+    review_revision: int | None = None
+
+    signal_identity: str | None = None
+    signal_fingerprint: str | None = None
+
+    command_identity: str | None = None
+    command_fingerprint: str | None = None
+
+    idempotency_key: str | None = None
+
     def fingerprint(self) -> str:
-        payload = {
-            "policy_id": self.policy_id,
-            "policy_version": self.policy_version,
-            "policy_fingerprint": (
-                self.policy_fingerprint
-            ),
-            "evaluation_id": self.evaluation_id,
-            "evaluation_revision": (
-                self.evaluation_revision
-            ),
-            "decision_fingerprint": (
-                self.decision_fingerprint
-            ),
-            "schema_version": self.schema_version,
-        }
-
-        raw = json.dumps(
-            payload,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-        ).encode("utf-8")
-
-        return hashlib.sha256(raw).hexdigest()
+        return _fingerprint(
+            {
+                "policy_id": self.policy_id,
+                "policy_version": (
+                    self.policy_version
+                ),
+                "policy_fingerprint": (
+                    self.policy_fingerprint
+                ),
+                "evaluation_id": (
+                    self.evaluation_id
+                ),
+                "evaluation_revision": (
+                    self.evaluation_revision
+                ),
+                "decision_fingerprint": (
+                    self.decision_fingerprint
+                ),
+                "review_id": self.review_id,
+                "review_revision": (
+                    self.review_revision
+                ),
+                "signal_identity": (
+                    self.signal_identity
+                ),
+                "signal_fingerprint": (
+                    self.signal_fingerprint
+                ),
+                "command_identity": (
+                    self.command_identity
+                ),
+                "command_fingerprint": (
+                    self.command_fingerprint
+                ),
+                "idempotency_key": (
+                    self.idempotency_key
+                ),
+                "schema_version": (
+                    self.schema_version
+                ),
+            }
+        )
 
 
 class GovernanceConsistencyGuard:
-    """Stateless deterministic consistency checks."""
+    """Stateless deterministic consistency guards."""
 
     @staticmethod
     def assert_policy_current(
@@ -174,9 +230,8 @@ class GovernanceConsistencyGuard:
             expected_policy_fingerprint
             != actual_policy_fingerprint
         ):
-            raise GovernanceVersionConflictError(
-                "Governance policy fingerprint conflicts "
-                "with expected material."
+            raise GovernanceStalePolicyError(
+                "Governance policy fingerprint is stale."
             )
 
     @staticmethod
@@ -185,59 +240,138 @@ class GovernanceConsistencyGuard:
         expected_revision: int,
         actual_revision: int,
     ) -> None:
-        if (
-            isinstance(expected_revision, bool)
-            or not isinstance(expected_revision, int)
-            or expected_revision < 0
-        ):
-            raise GovernanceConsistencyError(
-                "expected_revision must be integer >= 0."
-            )
-
-        if (
-            isinstance(actual_revision, bool)
-            or not isinstance(actual_revision, int)
-            or actual_revision < 0
-        ):
-            raise GovernanceConsistencyError(
-                "actual_revision must be integer >= 0."
-            )
-
         if expected_revision != actual_revision:
             raise GovernanceStaleEvaluationError(
                 "Governance evaluation revision is stale."
             )
 
     @staticmethod
+    def assert_concurrent_review_safe(
+        *,
+        expected_review_revision: int,
+        actual_review_revision: int,
+    ) -> None:
+        if (
+            expected_review_revision
+            != actual_review_revision
+        ):
+            raise GovernanceConcurrentReviewError(
+                "Concurrent governance review detected."
+            )
+
+    @staticmethod
     def assert_identity_compatible(
         *,
-        identity_key: tuple[str, str],
-        fingerprint: str,
-        existing_identity_key: tuple[str, str],
-        existing_fingerprint: str,
+        expected_resource_type: str,
+        expected_resource_id: str,
+        actual_resource_type: str,
+        actual_resource_id: str,
     ) -> None:
-        if identity_key != existing_identity_key:
-            return
-
-        if fingerprint != existing_fingerprint:
+        if (
+            expected_resource_type
+            != actual_resource_type
+            or expected_resource_id
+            != actual_resource_id
+        ):
             raise GovernanceVersionConflictError(
-                "Same governance identity contains "
-                "conflicting material."
+                "Governance resource identities differ."
             )
 
     @staticmethod
     def assert_replay_safe(
         *,
-        expected_fingerprint: str,
+        recorded_fingerprint: str,
         replayed_fingerprint: str,
     ) -> None:
         if (
-            expected_fingerprint
+            recorded_fingerprint
             != replayed_fingerprint
         ):
             raise GovernanceReplayConflictError(
-                "Replayed governance material conflicts "
-                "with authoritative fingerprint."
+                "Replay material conflicts with "
+                "recorded identity."
+            )
+
+    @staticmethod
+    def assert_duplicate_signal_safe(
+        *,
+        signal_identity: str,
+        existing_fingerprint: str | None,
+        incoming_fingerprint: str,
+    ) -> None:
+        _text(
+            signal_identity,
+            "signal_identity",
+        )
+
+        if (
+            existing_fingerprint is not None
+            and existing_fingerprint
+            != incoming_fingerprint
+        ):
+            raise GovernanceDuplicateSignalError(
+                "Duplicate signal identity contains "
+                "conflicting content."
+            )
+
+    @staticmethod
+    def assert_duplicate_command_safe(
+        *,
+        command_identity: str,
+        existing_fingerprint: str | None,
+        incoming_fingerprint: str,
+    ) -> None:
+        _text(
+            command_identity,
+            "command_identity",
+        )
+
+        if (
+            existing_fingerprint is not None
+            and existing_fingerprint
+            != incoming_fingerprint
+        ):
+            raise GovernanceDuplicateCommandError(
+                "Duplicate command identity contains "
+                "conflicting content."
+            )
+
+    @staticmethod
+    def idempotency_key(
+        *,
+        tenant_id: str,
+        command_identity: str,
+        command_fingerprint: str,
+    ) -> str:
+        return _fingerprint(
+            {
+                "tenant_id": _text(
+                    tenant_id,
+                    "tenant_id",
+                ),
+                "command_identity": _text(
+                    command_identity,
+                    "command_identity",
+                ),
+                "command_fingerprint": _text(
+                    command_fingerprint,
+                    "command_fingerprint",
+                ),
+            }
+        )
+
+    @staticmethod
+    def assert_idempotent(
+        *,
+        expected_idempotency_key: str,
+        actual_idempotency_key: str,
+    ) -> None:
+        if (
+            expected_idempotency_key
+            != actual_idempotency_key
+        ):
+            raise GovernanceVersionConflictError(
+                "Idempotency key mismatch."
             )
 
     @staticmethod
@@ -256,3 +390,53 @@ class GovernanceConsistencyGuard:
             fingerprint=fingerprint,
             revision=revision,
         )
+
+    @staticmethod
+    def build_snapshot(
+        *,
+        policy_id: str,
+        policy_version: str,
+        policy_fingerprint: str,
+        evaluation_id: str,
+        evaluation_revision: int,
+        decision_fingerprint: str | None = None,
+        review_id: str | None = None,
+        review_revision: int | None = None,
+        signal_identity: str | None = None,
+        signal_fingerprint: str | None = None,
+        command_identity: str | None = None,
+        command_fingerprint: str | None = None,
+        idempotency_key: str | None = None,
+    ) -> GovernanceConsistencySnapshot:
+        return GovernanceConsistencySnapshot(
+            policy_id=policy_id,
+            policy_version=policy_version,
+            policy_fingerprint=policy_fingerprint,
+            evaluation_id=evaluation_id,
+            evaluation_revision=evaluation_revision,
+            decision_fingerprint=decision_fingerprint,
+            review_id=review_id,
+            review_revision=review_revision,
+            signal_identity=signal_identity,
+            signal_fingerprint=signal_fingerprint,
+            command_identity=command_identity,
+            command_fingerprint=command_fingerprint,
+            idempotency_key=idempotency_key,
+        )
+
+
+__all__ = [
+    "GOVERNANCE_CONSISTENCY_SCHEMA_VERSION",
+    "GovernanceConsistencyError",
+    "GovernanceStalePolicyError",
+    "GovernanceStaleEvaluationError",
+    "GovernanceVersionConflictError",
+    "GovernanceReplayConflictError",
+    "GovernanceDuplicateSignalError",
+    "GovernanceDuplicateCommandError",
+    "GovernanceConcurrentReviewError",
+    "ConsistencyCheck",
+    "GovernanceVersionToken",
+    "GovernanceConsistencySnapshot",
+    "GovernanceConsistencyGuard",
+]
