@@ -37,7 +37,7 @@ def contract(
     tenant_id: str = "tenant-a",
     commission_id: str = "commission-a",
     start: datetime | None = None,
-    end: datetime | None = None,
+    end: datetime | None | object = _UNSET,
     rate: str = "2.5",
 ) -> CommissionContract:
     if start is None:
@@ -48,7 +48,7 @@ def contract(
             tzinfo=UTC,
         )
 
-    if end is None:
+    if end is _UNSET:
         end = datetime(
             2026,
             10,
