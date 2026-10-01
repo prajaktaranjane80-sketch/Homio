@@ -1,374 +1,3 @@
-PS D:\HOMIO>
-PS D:\HOMIO> Set-SafeProperty -Object $doc -Name "reference_implementation_boundary" -Value $referenceBoundary
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $doc -Name "reference_implementation_boundar ...
-+                          ~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO>
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> # Frontend build rules
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> $buildRules = Get-RequiredObject -Object $doc -Name "frontend_build_rules"
-Get-RequiredObject : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:42
-+ $buildRules = Get-RequiredObject -Object $doc -Name "frontend_build_r ...
-+                                          ~~~~
-    + CategoryInfo          : InvalidData: (:) [Get-RequiredObject], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Get-RequiredObject
-
-PS D:\HOMIO>
-PS D:\HOMIO> Set-SafeProperty -Object $buildRules -Name "rule_22" -Value "ACRL patterns may guide engineering workflow, but ACRL must never become a frontend runtime dependency."
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $buildRules -Name "rule_22" -Value "ACRL pat ...
-+                          ~~~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO> Set-SafeProperty -Object $buildRules -Name "rule_23" -Value "Use repository discovery and change-impact analysis before material cross-cutting frontend changes."
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $buildRules -Name "rule_23" -Value "Use repo ...
-+                          ~~~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO> Set-SafeProperty -Object $buildRules -Name "rule_24" -Value "Keep one canonical implementation per responsibility and use thin adapters or compatibility boundaries where needed."
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $buildRules -Name "rule_24" -Value "Keep one ...
-+                          ~~~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO> Set-SafeProperty -Object $buildRules -Name "rule_25" -Value "Do not create frontend continuity, checkpoint, repository-intelligence or autonomous-repair engines."
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $buildRules -Name "rule_25" -Value "Do not c ...
-+                          ~~~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO> Set-SafeProperty -Object $buildRules -Name "rule_26" -Value "Frontend UX context and ACRL engineering-continuity context must remain separate."
-
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $buildRules -Name "rule_26" -Value "Frontend ...
-+                          ~~~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO>
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> # Artifact registry
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> $registry = Get-RequiredObject -Object $doc -Name "frontend_artifact_registry"
-Get-RequiredObject : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:40
-+ $registry = Get-RequiredObject -Object $doc -Name "frontend_artifact_ ...
-+                                        ~~~~
-    + CategoryInfo          : InvalidData: (:) [Get-RequiredObject], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Get-RequiredObject
-
-PS D:\HOMIO>
-PS D:\HOMIO> Set-SafeProperty -Object $registry -Name "continuity_authority" -Value "Existing ACRL spine"
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $registry -Name "continuity_authority" -Valu ...
-+                          ~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO> Set-SafeProperty -Object $registry -Name "acrl_usage" -Value "Engineering-time continuity and repository-intelligence support only; never frontend runtime architecture."
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $registry -Name "acrl_usage" -Value "Enginee ...
-+                          ~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO> Set-SafeProperty -Object $registry -Name "blueprint_version" -Value "3.2"
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $registry -Name "blueprint_version" -Value " ...
-+                          ~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO>
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> # Change control
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> $changeControl = Get-RequiredObject -Object $doc -Name "change_control"
-Get-RequiredObject : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:45
-+ $changeControl = Get-RequiredObject -Object $doc -Name "change_contro ...
-+                                             ~~~~
-    + CategoryInfo          : InvalidData: (:) [Get-RequiredObject], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Get-RequiredObject
-
-PS D:\HOMIO>
-PS D:\HOMIO> $mustPreserve = @(
->>     "single master architecture",
->>     "single source of truth per responsibility",
->>     "REOS authority boundaries",
->>     "ACRL role",
->>     "Control Center role",
->>     "frontend/backend separation",
->>     "ACRL as engineering-time support only",
->>     "frontend runtime independence from ACRL"
->> )
-PS D:\HOMIO>
-PS D:\HOMIO> $forbiddenChanges = @(
->>     "second frontend master architecture",
->>     "frontend business authority",
->>     "duplicate REOS engine",
->>     "duplicate data truth",
->>     "backend terminology becoming consumer UX structure solely for internal symmetry",
->>     "ACRL imported into frontend runtime",
->>     "frontend T01-T30 continuity architecture",
->>     "frontend repository-intelligence engine",
->>     "frontend autonomous repair or checkpoint engine"
->> )
-PS D:\HOMIO>
-PS D:\HOMIO> Set-SafeProperty -Object $changeControl -Name "must_preserve" -Value $mustPreserve
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $changeControl -Name "must_preserve" -Value  ...
-+                          ~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO> Set-SafeProperty -Object $changeControl -Name "forbidden_changes" -Value $forbiddenChanges
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $changeControl -Name "forbidden_changes" -Va ...
-+                          ~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO>
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> # Blueprint integrity
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> $integrity = Get-RequiredObject -Object $doc -Name "blueprint_integrity"
-Get-RequiredObject : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:41
-+ $integrity = Get-RequiredObject -Object $doc -Name "blueprint_integri ...
-+                                         ~~~~
-    + CategoryInfo          : InvalidData: (:) [Get-RequiredObject], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Get-RequiredObject
-
-PS D:\HOMIO>
-PS D:\HOMIO> Set-SafeProperty -Object $integrity -Name "format" -Value "JSON"
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $integrity -Name "format" -Value "JSON"
-+                          ~~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO> Set-SafeProperty -Object $integrity -Name "strict_json_required" -Value $true
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $integrity -Name "strict_json_required" -Val ...
-+                          ~~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO> Set-SafeProperty -Object $integrity -Name "markdown_code_fences_forbidden" -Value $true
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $integrity -Name "markdown_code_fences_forbi ...
-+                          ~~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO> Set-SafeProperty -Object $integrity -Name "duplicate_top_level_architecture_forbidden" -Value $true
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $integrity -Name "duplicate_top_level_archit ...
-+                          ~~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO>
-PS D:\HOMIO> $integrityRules = @(
->>     "The file must parse as strict JSON.",
->>     "No Markdown fences may exist inside the file.",
->>     "No second master architecture may be introduced.",
->>     "Changes must remain subordinate to the REOS Master Architecture.",
->>     "The document version must identify the current approved frontend blueprint revision.",
->>     "ACRL references must remain descriptive engineering boundaries and must not become frontend runtime dependencies.",
->>     "No frontend T-series architecture may be introduced.",
->>     "No ACRL module may be required to build or execute the HOMIO frontend.",
->>     "Every material cross-cutting frontend change must respect the change-impact policy.",
->>     "One canonical implementation must exist for each responsibility."
->> )
-PS D:\HOMIO>
-PS D:\HOMIO> Set-SafeProperty -Object $integrity -Name "integrity_rules" -Value $integrityRules
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $integrity -Name "integrity_rules" -Value $i ...
-+                          ~~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO>
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> # Final product model
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> $finalModel = Get-RequiredObject -Object $doc -Name "final_product_model"
-Get-RequiredObject : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:42
-+ $finalModel = Get-RequiredObject -Object $doc -Name "final_product_mo ...
-+                                          ~~~~
-    + CategoryInfo          : InvalidData: (:) [Get-RequiredObject], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Get-RequiredObject
-
-PS D:\HOMIO>
-PS D:\HOMIO> Set-SafeProperty -Object $finalModel -Name "key_principle" -Value "The complexity belongs behind the product. The user should experience clarity."
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $finalModel -Name "key_principle" -Value "Th ...
-+                          ~~~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO> Set-SafeProperty -Object $finalModel -Name "engineering_principle" -Value "Use the strength of ACRL engineering safety patterns without turning those patterns into the frontend product architecture."
-Set-SafeProperty : Cannot bind argument to parameter 'Object' because it is null.
-At line:1 char:26
-+ Set-SafeProperty -Object $finalModel -Name "engineering_principle" -V ...
-+                          ~~~~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Set-SafeProperty], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Set-SafeProperty
-
-PS D:\HOMIO>
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> # Remove old v3.1 wording if present
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> $serialized = $doc | ConvertTo-Json -Depth 100
-PS D:\HOMIO> $serialized = $serialized.Replace("v3.1 experience grammar", "v3.2 experience grammar")
-You cannot call a method on a null-valued expression.
-At line:1 char:1
-+ $serialized = $serialized.Replace("v3.1 experience grammar", "v3.2 ex ...
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : InvokeMethodOnNull
-
-PS D:\HOMIO>
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> # FAIL-CLOSED validation BEFORE writing
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> if ($serialized -match '```') {
->>     throw "FAIL-CLOSED: Markdown code fence still exists."
->> }
-PS D:\HOMIO>
-PS D:\HOMIO> $check = $serialized | ConvertFrom-Json
-PS D:\HOMIO>
-PS D:\HOMIO> if ($check.document.version -ne "3.2") {
->>     throw "FAIL-CLOSED: Blueprint version is not 3.2."
->> }
-FAIL-CLOSED: Blueprint version is not 3.2.
-At line:2 char:5
-+     throw "FAIL-CLOSED: Blueprint version is not 3.2."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (FAIL-CLOSED: Bl...ion is not 3.2.:String) [], RuntimeException
-    + FullyQualifiedErrorId : FAIL-CLOSED: Blueprint version is not 3.2.
-
-PS D:\HOMIO>
-PS D:\HOMIO> if ($check.document.status -ne "FINAL_IMPLEMENTATION_BLUEPRINT") {
->>     throw "FAIL-CLOSED: Blueprint status is invalid."
->> }
-FAIL-CLOSED: Blueprint status is invalid.
-At line:2 char:5
-+     throw "FAIL-CLOSED: Blueprint status is invalid."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (FAIL-CLOSED: Bl...tus is invalid.:String) [], RuntimeException
-    + FullyQualifiedErrorId : FAIL-CLOSED: Blueprint status is invalid.
-
-PS D:\HOMIO>
-PS D:\HOMIO> $requiredSections = @(
->>     "acrl_usage_boundary",
->>     "frontend_engineering_workflow",
->>     "change_impact_policy",
->>     "runtime_dependency_boundary",
->>     "reference_implementation_boundary"
->> )
-PS D:\HOMIO>
-PS D:\HOMIO> foreach ($section in $requiredSections) {
->>     if (-not ($check.PSObject.Properties.Name -contains $section)) {
->>         throw "FAIL-CLOSED: Missing required blueprint section: $section"
->>     }
->> }
-FAIL-CLOSED: Missing required blueprint section: acrl_usage_boundary
-At line:3 char:9
-+         throw "FAIL-CLOSED: Missing required blueprint section: $sect ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (FAIL-CLOSED: Mi..._usage_boundary:String) [], RuntimeException
-    + FullyQualifiedErrorId : FAIL-CLOSED: Missing required blueprint section: acrl_usage_boundary
-
-PS D:\HOMIO>
-PS D:\HOMIO> if ($check.runtime_dependency_boundary.forbidden_runtime_dependencies.Count -lt 1) {
->>     throw "FAIL-CLOSED: ACRL runtime dependency boundary missing."
->> }
-FAIL-CLOSED: ACRL runtime dependency boundary missing.
-At line:2 char:5
-+     throw "FAIL-CLOSED: ACRL runtime dependency boundary missing."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (FAIL-CLOSED: AC...undary missing.:String) [], RuntimeException
-    + FullyQualifiedErrorId : FAIL-CLOSED: ACRL runtime dependency boundary missing.
-
-PS D:\HOMIO>
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> # Atomic write: only blueprint file
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> $temp = Join-Path $env:TEMP "HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT_v3.2.json"
-PS D:\HOMIO>
-PS D:\HOMIO> Set-Content -LiteralPath $temp -Value $serialized -Encoding UTF8
-PS D:\HOMIO>
-PS D:\HOMIO> $written = Get-Content -LiteralPath $temp -Raw
-PS D:\HOMIO> $written | ConvertFrom-Json | Out-Null
-PS D:\HOMIO>
-PS D:\HOMIO> Move-Item -LiteralPath $temp -Destination $p -Force
-PS D:\HOMIO>
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> # FINAL LOCAL PROOF
-PS D:\HOMIO> # ------------------------------------------------------------
-PS D:\HOMIO> $final = Get-Content -LiteralPath $p -Raw
-PS D:\HOMIO> $finalDoc = $final | ConvertFrom-Json
-PS D:\HOMIO>
-PS D:\HOMIO> if ($final -match '```') {
->>     throw "FAIL-CLOSED: Markdown fence found after write."
->> }
-PS D:\HOMIO>
-PS D:\HOMIO> if ($finalDoc.document.version -ne "3.2") {
->>     throw "FAIL-CLOSED: Final file version is not 3.2."
->> }
-FAIL-CLOSED: Final file version is not 3.2.
-At line:2 char:5
-+     throw "FAIL-CLOSED: Final file version is not 3.2."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (FAIL-CLOSED: Fi...ion is not 3.2.:String) [], RuntimeException
-    + FullyQualifiedErrorId : FAIL-CLOSED: Final file version is not 3.2.
-
-PS D:\HOMIO>
-PS D:\HOMIO> foreach ($section in $requiredSections) {
->>     if (-not ($finalDoc.PSObject.Properties.Name -contains $section)) {
->>         throw "FAIL-CLOSED: Final file missing section: $section"
->>     }
->> }
-FAIL-CLOSED: Final file missing section: acrl_usage_boundary
-At line:3 char:9
-+         throw "FAIL-CLOSED: Final file missing section: $section"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (FAIL-CLOSED: Fi..._usage_boundary:String) [], RuntimeException
-    + FullyQualifiedErrorId : FAIL-CLOSED: Final file missing section: acrl_usage_boundary
-
-PS D:\HOMIO>
 PS D:\HOMIO> Write-Host ""
 
 PS D:\HOMIO> Write-Host "==============================================="
@@ -409,4 +38,90 @@ FINAL BLUEPRINT JSON = PASS
 PS D:\HOMIO>
 PS D:\HOMIO> git status --short -- "REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json"
 ?? REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
+PS D:\HOMIO> $ErrorActionPreference = "Stop"
+PS D:\HOMIO>
+PS D:\HOMIO> Set-Location D:\HOMIO
+PS D:\HOMIO>
+PS D:\HOMIO> $p = "REOS_CONTROL_CENTER\architecture\HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json"
+PS D:\HOMIO> $tmp = Join-Path $env:TEMP "HOMIO_FRONTEND_BLUEPRINT_RESTORE.json"
+PS D:\HOMIO>
+PS D:\HOMIO> # Remote canonical source
+PS D:\HOMIO> $remoteContent = git show 'origin/reos-development:REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json'
+PS D:\HOMIO>
+PS D:\HOMIO> if ([string]::IsNullOrWhiteSpace($remoteContent)) {
+>>     throw "FAIL-CLOSED: Remote blueprint content is empty."
+>> }
+PS D:\HOMIO>
+PS D:\HOMIO> # Remove only the known accidental Markdown fences.
+PS D:\HOMIO> $clean = $remoteContent `
+>>     -replace '(?m)^\s*```json\s*\r?\n?', '' `
+>>     -replace '(?m)^\s*```\s*\r?\n?', ''
+PS D:\HOMIO>
+PS D:\HOMIO> # FIRST validation
+PS D:\HOMIO> $remoteDoc = $clean | ConvertFrom-Json
+PS D:\HOMIO>
+PS D:\HOMIO> if ($null -eq $remoteDoc) {
+>>     throw "FAIL-CLOSED: Restored blueprint parsed to null."
+>> }
+PS D:\HOMIO>
+PS D:\HOMIO> if ($null -eq $remoteDoc.document) {
+>>     throw "FAIL-CLOSED: Restored blueprint has no document object."
+>> }
+PS D:\HOMIO>
+PS D:\HOMIO> Write-Host "REMOTE BLUEPRINT PARSE = PASS"
+REMOTE BLUEPRINT PARSE = PASS
+PS D:\HOMIO> Write-Host "REMOTE VERSION = $($remoteDoc.document.version)"
+REMOTE VERSION = 3.1
+PS D:\HOMIO> Write-Host "REMOTE STATUS = $($remoteDoc.document.status)"
+REMOTE STATUS = FINAL_IMPLEMENTATION_BLUEPRINT
+PS D:\HOMIO>
+PS D:\HOMIO> # Atomic local restore
+PS D:\HOMIO> Set-Content -LiteralPath $tmp -Value $clean -Encoding UTF8
+PS D:\HOMIO>
+PS D:\HOMIO> # Verify temp BEFORE replacing target
+PS D:\HOMIO> $verify = Get-Content -LiteralPath $tmp -Raw
+PS D:\HOMIO> $verifyDoc = $verify | ConvertFrom-Json
+PS D:\HOMIO>
+PS D:\HOMIO> if ($null -eq $verifyDoc) {
+>>     throw "FAIL-CLOSED: Temporary restored blueprint is null."
+>> }
+PS D:\HOMIO>
+PS D:\HOMIO> if ($verify -match '```') {
+>>     throw "FAIL-CLOSED: Markdown fence remains."
+>> }
+PS D:\HOMIO>
+PS D:\HOMIO> Move-Item -LiteralPath $tmp -Destination $p -Force
+PS D:\HOMIO>
+PS D:\HOMIO> # FINAL proof
+PS D:\HOMIO> $final = Get-Content -LiteralPath $p -Raw
+PS D:\HOMIO> $finalDoc = $final | ConvertFrom-Json
+PS D:\HOMIO>
+PS D:\HOMIO> if ($null -eq $finalDoc) {
+>>     throw "FAIL-CLOSED: Final blueprint is null."
+>> }
+PS D:\HOMIO>
+PS D:\HOMIO> if ($null -eq $finalDoc.document) {
+>>     throw "FAIL-CLOSED: Final blueprint document object missing."
+>> }
+PS D:\HOMIO>
+PS D:\HOMIO> Write-Host ""
+
+PS D:\HOMIO> Write-Host "======================================"
+======================================
+PS D:\HOMIO> Write-Host "CYCLE 1 RESTORE = PASS"
+CYCLE 1 RESTORE = PASS
+PS D:\HOMIO> Write-Host "STRICT JSON     = PASS"
+STRICT JSON     = PASS
+PS D:\HOMIO> Write-Host "DOCUMENT OBJECT = PASS"
+DOCUMENT OBJECT = PASS
+PS D:\HOMIO> Write-Host "MARKDOWN FENCE  = NONE"
+MARKDOWN FENCE  = NONE
+PS D:\HOMIO> Write-Host "VERSION         = $($finalDoc.document.version)"
+VERSION         = 3.1
+PS D:\HOMIO> Write-Host "STATUS          = $($finalDoc.document.status)"
+STATUS          = FINAL_IMPLEMENTATION_BLUEPRINT
+PS D:\HOMIO> Write-Host "FILE            = $p"
+FILE            = REOS_CONTROL_CENTER\architecture\HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
+PS D:\HOMIO> Write-Host "======================================"
+======================================
 PS D:\HOMIO>
