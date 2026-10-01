@@ -1,36 +1,64 @@
 ======================================================================== FAILURES =========================================================================
-_________________________________________________________ test_evidence_references_are_preserved __________________________________________________________
+_________________________________________________ test_trust_score_only_produces_deterministic_assessment _________________________________________________
 
-    def test_evidence_references_are_preserved() -> None:
-        policy = RiskRulePolicy(
-            policy_id="T03-EVIDENCE",
-            version="1.0",
-            rules=(
-                fraud_rule(),
-            ),
-        )
+    def test_trust_score_only_produces_deterministic_assessment():
+        trust = build_trust_score(score_value=85)
+        engine = RiskAssessmentEngine()
+        policy = RiskAssessmentPolicy.baseline()
 
-        fraud = build_fraud_assessment()
-
-        result = RiskRuleEngine().evaluate(
+>       first = engine.evaluate(
             tenant_id=TENANT_ID,
             subject_id=SUBJECT_ID,
-            correlation_id="evidence",
+            trust_score=trust,
             policy=policy,
-            fraud_assessment=fraud,
-            evaluated_at=NOW,
+            assessment_id=UUID(int=1),
+            evaluated_at=utc_now(),
         )
 
->       assert (
-            fraud.fingerprint
-            in result.evidence_references
-        )
-E       AssertionError: assert '40b31e6a14a174ac4cd3ff6e37e69a7a69e9b63343e72b0385076d0ced5d2154' in ('evidence://fraud/t03',)
-E        +  where '40b31e6a14a174ac4cd3ff6e37e69a7a69e9b63343e72b0385076d0ced5d2154' = FraudAssessment(assessment_id=UUID('b0841a45-3e0c-4dee-8c24-98118cc948bd'), tenant_id=UUID('267d6307-9095-4fa9-9954-14...ERSIBLE_ACTION', escalation_boundary='HIGH_OR_CRITICAL_REQUIRES_GOVERNANCE_REVIEW', irreversible_action_protected=True).fingerprint
-E        +  and   ('evidence://fraud/t03',) = RiskRuleEvaluation(evaluation_id=UUID('7d1a483c-eff5-4726-b4b0-fc95ced41154'), tenant_id='267d6307-9095-4fa9-9954-1492...ity='DETERMINISTIC', rule_provenance_references=('CORE-007.RISK_RULE',), exception_references=(), assessment_version=1).evidence_references
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_assessment.py:161:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+AUTONOMY_ENGINE\core\trust_fraud_governance\risk_assessment_engine.py:325: in evaluate
+    trust_factor, trust_trace = self._trust_factor(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_adversarial.py:578: AssertionError
+trust_score = TrustScore(tenant_id='df60eab7-0fca-4ab7-9276-0ce9630fcb6a', subject_id='7a703944-dca6-46f1-8087-52b79a9f9763', score=...es=('CORE-007.TRUST_SIGNAL',), confidence_metadata=mappingproxy({'signal_confidence_metadata': [], 'signal_count': 1}))
+policy = RiskAssessmentPolicy(policy_id='CORE-007-T03-RISK-BASELINE', policy_version='1.0', trust_score_bands=(TrustRiskBand(mi...skScoreLevelBand(minimum_score=100, maximum_score=100, risk_level=<RiskLevel.CRITICAL: 'CRITICAL'>)), schema_version=1)
+
+    @staticmethod
+    def _trust_factor(
+        *,
+        trust_score: TrustScore,
+        policy: RiskAssessmentPolicy,
+    ) -> tuple[RiskFactor, RiskEvaluationTrace]:
+        band = policy.trust_score_rule(
+            trust_score.score
+        )
+
+        factor = RiskFactor(
+            factor_id=(
+                "trust-score:"
+                f"{trust_score.model_version}:"
+                f"{trust_score.model_fingerprint}"
+            ),
+            source_type=RiskFactorSource.TRUST_SCORE,
+            code=band.rule_code,
+            raw_value=str(trust_score.score),
+            contribution_points=band.contribution_points,
+            evidence_references=tuple(
+                trust_score.signal_fingerprints
+            ),
+            source_references=tuple(
+                trust_score.signal_ids
+            ),
+>           source_fingerprint=trust_score.fingerprint,
+                               ^^^^^^^^^^^^^^^^^^^^^^^
+            observed_at=trust_score.computed_at,
+        )
+E       AttributeError: 'TrustScore' object has no attribute 'fingerprint'
+
+AUTONOMY_ENGINE\core\trust_fraud_governance\risk_assessment_engine.py:139: AttributeError
 ================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_adversarial.py::test_evidence_references_are_preserved - AssertionError: assert '40b31e6a14a174ac4cd3ff6e37e69a7a69e9b63343e72b0385076d0ced5d2154' in ('evidence://fraud/t03',)
+FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_assessment.py::test_trust_score_only_produces_deterministic_assessment - AttributeError: 'TrustScore' object has no attribute 'fingerprint'
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-1 failed, 77 passed in 0.48s
+1 failed, 80 passed in 0.58s
+PS D:\HOMIO\REOS_CONTROL_CENTER>
