@@ -1,62 +1,22 @@
 ===============================================
-FRONTEND PUSH DIVERGENCE CHECK
+FRONTEND REMOTE SYNC + WORKTREE REPAIR
 ===============================================
-LOCAL HEAD   = d12eb32d7f43a664dcb130d286ac14cba90a0ee0
-REMOTE HEAD  = 2ad4abfc03780867be3ae97a49563d1ff47a1ab3
+remote: Enumerating objects: 7, done.
+remote: Counting objects: 100% (7/7), done.
+remote: Compressing objects: 100% (4/4), done.
+remote: Total 4 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (4/4), 1.61 KiB | 45.00 KiB/s, done.
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+   2ad4abf..5f9817f  reos-development -> origin/reos-development
+REMOTE HEAD = 5f9817ffb8df5decf93fda9fb352e77130762c59
+SOURCE COMMIT FILES:
+  REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
+FAIL-CLOSED: Source frontend commit is not blueprint-only.
+At line:41 char:9
++         throw "FAIL-CLOSED: Source frontend commit is not blueprint-o ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FAIL-CLOSED: So...blueprint-only.:String) [], RuntimeException
+    + FullyQualifiedErrorId : FAIL-CLOSED: Source frontend commit is not blueprint-only.
 
-LOCAL COMMITS NOT ON REMOTE:
-d12eb32 (HEAD -> reos-development) Finalize HOMIO frontend implementation blueprint v3.2
-
-REMOTE COMMITS NOT ON LOCAL:
-2ad4abf (origin/reos-development) Update Frontend Ps Output
-6aa4f87 Update Backend PS  Output
-11af2de Create CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan
-073df38 Update Frontend Ps Output
-b7a6280 Update Frontend Ps Output
-26f1288 Update Backend PS  Output
-53df9de Update Backend PS  Output
-882d76e Update Frontend Ps Output
-56f43c0 Create Frontend Ps Output
-5425f50 Update and rename PS  Output to Backend PS  Output
-13f9751 Update PS  Output
-602e7ad Resolve test failures in evidence and trust score
-b265d04 Update PS  Output
-54da83b Update PS  Output
-0e2a44e Update HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
-2b6d5bc Update PS  Output
-8c39fc9 Update PS  Output
-8fbb7e6 Update HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
-8560031 Update PS  Output
-d5e428a Update PS  Output
-35f225b Update HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
-bccc572 Update PS  Output
-e8c6697 Update PS  Output
-3cf7e2a Update PS  Output
-c11b353 Create HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
-
-DIVERGENCE:
-25      1
-
-WORKTREE:
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py
- M REOS_CONTROL_CENTER/data/state.json
-?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py.before-fraud-compatibility-fix.bak
-?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-condition-shape-rootfix.bak
-?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-determinism-key-rootfix.bak
-?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-disabled-rule-rootfix.bak
-?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-evaluation-freeze-fix.bak
-?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-fraud-evidence-rootfix.bak
-?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-trust-model-evidence-rootfix.bak
-?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-trust-scope-rootfix.bak
-?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py.before-fraud-fixture-scope-rootfix.bak
-?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py.before-metadata-fix.bak
-?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py.before-trustscore-fingerprint-rootfix.bak
-?? REOS_CONTROL_CENTER/snapshots/state_20261001_183859_268694.json
-?? REOS_LAYER_BACKUP_CORE007_ROOTFIX_20261001_185255/
-
-===============================================
-DIAGNOSTIC ONLY — NO FILE MODIFICATION
-===============================================
+PS D:\HOMIO>
