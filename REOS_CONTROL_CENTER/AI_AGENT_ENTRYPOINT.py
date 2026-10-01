@@ -71,6 +71,23 @@ CONTROL_CENTER_NAME = "REOS_CONTROL_CENTER"
 
 CONTROL_CENTER_PATH = Path(__file__).resolve().parent
 
+# Canonical local repository identity.
+# Descriptive/read-only contract only.
+CANONICAL_LOCAL_WORKSPACE = Path(r"D:\HOMIO")
+CANONICAL_CONTROL_CENTER = CANONICAL_LOCAL_WORKSPACE / CONTROL_CENTER_NAME
+REPOSITORY_FULL_NAME = "prajaktaranjane80-sketch/Homio"
+EXPECTED_BRANCH = "reos-development"
+EXPECTED_ORIGIN = "https://github.com/prajaktaranjane80-sketch/Homio.git"
+
+# PowerShell Output is evidence only.
+PS_OUTPUT_IS_EVIDENCE_ONLY = True
+
+GENERATED_ARTIFACT_PATTERNS: tuple[str, ...] = (
+    "__pycache__/",
+    "*.pyc",
+    "*.pyo",
+)
+
 STATE_PATH = CONTROL_CENTER_PATH / "data" / "state.json"
 
 AUTONOMY_ENGINE_PATH = (
@@ -241,6 +258,25 @@ REMOTE_GIT_SYNCHRONIZATION_RULES: tuple[str, ...] = (
     "Do not create a second continuity engine.",
     "Do not create a second state store.",
     "Do not bypass REOS Control Center authority.",
+)
+
+# ---------------------------------------------------------------------------
+# REPOSITORY PREFLIGHT CONTRACT
+# ---------------------------------------------------------------------------
+
+REPOSITORY_PREFLIGHT_RULES: tuple[str, ...] = (
+    "Canonical workspace is D:\\HOMIO.",
+    "Canonical Control Center is D:\\HOMIO\\REOS_CONTROL_CENTER.",
+    "Expected repository is prajaktaranjane80-sketch/Homio.",
+    "Expected branch is reos-development.",
+    "Expected origin resolves to the canonical GitHub repository.",
+    "Current working directory must be the canonical Control Center.",
+    "Repository root must resolve to the canonical Control Center.",
+    "Remote-ahead evidence-only commits are valid synchronization state.",
+    "Remote-ahead code or canonical-state changes require investigation.",
+    "Generated Python caches are artifacts, never project source or state.",
+    "PS Output is evidence only.",
+    "Preflight must fail closed on branch, origin or repository identity mismatch.",
 )
 
 # ---------------------------------------------------------------------------
@@ -442,6 +478,8 @@ def startup_instructions() -> dict[str, Any]:
         "source_of_truth": dict(SOURCE_OF_TRUTH),
         "paths": repository_paths(),
         "operating_rules": list(AI_OPERATING_RULES),
+        "repository_preflight_rules": list(REPOSITORY_PREFLIGHT_RULES),
+        "git_preflight": git_preflight(),
         "new_session_workflow": list(NEW_SESSION_WORKFLOW),
         "execution_workflow": list(EXECUTION_WORKFLOW),
         "change_decision_rules": list(CHANGE_DECISION_RULES),
@@ -455,14 +493,279 @@ def startup_instructions() -> dict[str, Any]:
     }
 
 
-def validate_entrypoint() -> bool:
-    """
-    Validate only the structural entrypoint assumptions.
+def _run_git(*args: str) -> tuple[int, str, str]:
+    """Run a read-only Git command from the canonical Control Center."""
 
-    This is intentionally read-only.
-    It does not assert that every referenced implementation exists
-    locally; local repository verification remains authoritative.
-    """
+    import subprocess
+
+    try:
+        completed = subprocess.run(
+            ["git", *args],
+            cwd=CONTROL_CENTER_PATH,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+    except (FileNotFoundError, OSError) as exc:
+        return 127, "", str(exc)
+
+    return (
+        completed.returncode,
+        completed.stdout.strip(),
+        completed.stderr.strip(),
+    )
+
+
+def _normalize_origin(value: str) -> str:
+    """Normalize common GitHub HTTPS/SSH origins."""
+
+    from urllib.parse import urlsplit
+
+    origin = value.strip()
+
+    if origin.startswith("git@github.com:"):
+        origin = "https://github.com/" + origin.split(":", 1)[1]
+
+    elif origin.startswith("ssh://git@github.com/"):
+        origin = (
+            "https://github.com/"
+            + origin.split("ssh://git@github.com/", 1)[1]
+        )
+
+    if origin.startswith("https://"):
+        parsed = urlsplit(origin)
+        origin = (
+            "https://"
+            + parsed.hostname.lower()
+            + parsed.path
+        )
+
+    if origin.endswith(".git"):
+        origin = origin[:-4]
+
+    return origin.rstrip("/").lower()
+
+
+def _is_evidence_path(path_value: str) -> bool:
+    """Return True only for approved evidence-only repository paths."""
+
+    return (
+        path_value == "REOS_CONTROL_CENTER/PS  Output"
+        or path_value == "REOS_CONTROL_CENTER/errors"
+        or path_value.startswith("REOS_CONTROL_CENTER/errors/")
+    )
+
+
+def _remote_sync_status() -> dict[str, Any]:
+    """Classify local vs remote state without mutating Git."""
+
+    result: dict[str, Any] = {
+        "status": "unavailable",
+        "remote_head": "",
+        "changed_files": [],
+        "evidence_only": False,
+    }
+
+    code, remote_head, _ = _run_git(
+        "rev-parse",
+        "origin/reos-development",
+    )
+
+    if code != 0 or not remote_head:
+        return result
+
+    result["remote_head"] = remote_head
+
+    code, local_head, _ = _run_git(
+        "rev-parse",
+        "HEAD",
+    )
+
+    if code != 0:
+        return result
+
+    if local_head == remote_head:
+        result["status"] = "exact"
+        result["evidence_only"] = True
+        return result
+
+    code, _, _ = _run_git(
+        "merge-base",
+        "--is-ancestor",
+        "HEAD",
+        "origin/reos-development",
+    )
+
+    if code == 0:
+        code, changed, _ = _run_git(
+            "diff",
+            "--name-only",
+            "HEAD",
+            "origin/reos-development",
+        )
+
+        if code != 0:
+            return result
+
+        files = [
+            item
+            for item in changed.splitlines()
+            if item
+        ]
+
+        result["changed_files"] = files
+        result["evidence_only"] = (
+            len(files) > 0
+            and all(_is_evidence_path(item) for item in files)
+        )
+
+        result["status"] = (
+            "remote_ahead_evidence_only"
+            if result["evidence_only"]
+            else "remote_ahead_code_or_state"
+        )
+
+        return result
+
+    code, _, _ = _run_git(
+        "merge-base",
+        "--is-ancestor",
+        "origin/reos-development",
+        "HEAD",
+    )
+
+    if code == 0:
+        result["status"] = "local_ahead"
+        return result
+
+    result["status"] = "diverged"
+    return result
+
+
+def git_preflight() -> dict[str, Any]:
+    """Return a read-only canonical repository preflight report."""
+
+    result: dict[str, Any] = {
+        "canonical_workspace": str(CANONICAL_LOCAL_WORKSPACE),
+        "canonical_control_center": str(CANONICAL_CONTROL_CENTER),
+        "current_cwd": str(Path.cwd()),
+        "repository_root": "",
+        "branch": "",
+        "origin": "",
+        "local_head": "",
+        "cwd_ok": False,
+        "control_center_ok": False,
+        "repository_root_ok": False,
+        "branch_ok": False,
+        "origin_ok": False,
+        "local_head_ok": False,
+        "remote_branch_ok": False,
+        "remote_sync_status": "unavailable",
+        "remote_ahead_evidence_only": False,
+        "ready": False,
+    }
+
+    result["cwd_ok"] = (
+        Path.cwd().resolve()
+        == CANONICAL_CONTROL_CENTER.resolve()
+    )
+
+    result["control_center_ok"] = (
+        CONTROL_CENTER_PATH.resolve()
+        == CANONICAL_CONTROL_CENTER.resolve()
+    )
+
+    code, root, _ = _run_git(
+        "rev-parse",
+        "--show-toplevel",
+    )
+
+    result["repository_root"] = root
+    result["repository_root_ok"] = (
+        code == 0
+        and Path(root).resolve()
+        == CANONICAL_CONTROL_CENTER.resolve()
+    )
+
+    code, branch, _ = _run_git(
+        "branch",
+        "--show-current",
+    )
+
+    result["branch"] = branch
+    result["branch_ok"] = (
+        code == 0
+        and branch == EXPECTED_BRANCH
+    )
+
+    code, origin, _ = _run_git(
+        "config",
+        "--get",
+        "remote.origin.url",
+    )
+
+    result["origin"] = origin
+    result["origin_ok"] = (
+        code == 0
+        and _normalize_origin(origin)
+        == _normalize_origin(EXPECTED_ORIGIN)
+    )
+
+    code, local_head, _ = _run_git(
+        "rev-parse",
+        "HEAD",
+    )
+
+    result["local_head"] = local_head
+    result["local_head_ok"] = (
+        code == 0
+        and bool(local_head)
+    )
+
+    code, remote, _ = _run_git(
+        "ls-remote",
+        "origin",
+        "refs/heads/reos-development",
+    )
+
+    result["remote_branch_ok"] = (
+        code == 0
+        and bool(remote)
+    )
+
+    sync = _remote_sync_status()
+
+    result["remote_sync_status"] = sync["status"]
+    result["remote_ahead_evidence_only"] = sync[
+        "evidence_only"
+    ]
+
+    acceptable_sync = (
+        sync["status"] in {
+            "exact",
+            "remote_ahead_evidence_only",
+            "local_ahead",
+        }
+    )
+
+    result["ready"] = all(
+        (
+            result["cwd_ok"],
+            result["control_center_ok"],
+            result["repository_root_ok"],
+            result["branch_ok"],
+            result["origin_ok"],
+            result["local_head_ok"],
+            result["remote_branch_ok"],
+            acceptable_sync,
+        )
+    )
+
+    return result
+
+
+def validate_entrypoint() -> bool:
+    """Return True only when structural and repository preflight is clean."""
 
     if not CONTROL_CENTER_PATH.is_dir():
         return False
@@ -473,7 +776,13 @@ def validate_entrypoint() -> bool:
     if not ACRL_PATH.is_dir():
         return False
 
-    return True
+    if not STATE_PATH.is_file():
+        return False
+
+    if not ACRL_ENTRYPOINT.is_file():
+        return False
+
+    return bool(git_preflight()["ready"])
 
 
 # ---------------------------------------------------------------------------
@@ -493,6 +802,21 @@ def print_startup_context() -> None:
     print("STATE          : REOS_CONTROL_CENTER/data/state.json")
     print("CODE           : Git repository")
     print("VERIFICATION   : Local PowerShell")
+    print(f"WORKSPACE      : {CANONICAL_LOCAL_WORKSPACE}")
+    print(f"CONTROL CENTER : {CANONICAL_CONTROL_CENTER}")
+    print(f"BRANCH         : {EXPECTED_BRANCH}")
+    print(f"REPOSITORY     : {REPOSITORY_FULL_NAME}")
+
+    preflight = git_preflight()
+
+    print(f"CWD CHECK      : {preflight['cwd_ok']}")
+    print(f"BRANCH CHECK   : {preflight['branch_ok']}")
+    print(f"ORIGIN CHECK   : {preflight['origin_ok']}")
+    print(f"REMOTE SYNC    : {preflight['remote_sync_status']}")
+    print(
+        f"REMOTE EVIDENCE ONLY : "
+        f"{preflight['remote_ahead_evidence_only']}"
+    )
     print("T07            : New Chat Bootstrap")
     print("T14            : Repository Intelligence Context")
     print("T15            : AI Operator Autonomy")
