@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>HOMIO — Global Real Estate</title>
+
+    <meta
+        name="description"
+        content="HOMIO — Discover homes, businesses, offices and investment opportunities across the world's leading real estate markets."
+    >
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap"
+        rel="stylesheet"
+    >
+
+    <style>
+        :root {
+            --white: #ffffff;
+            --black: #111111;
+            --muted: #777777;
+            --light: #f5f4f1;
+            --border: rgba(17, 17, 17, 0.10);
+            --dark: #171717;
+            --radius: 22px;
+            --max: 1380px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: "DM Sans", sans-serif;
+            color: var(--black);
+            background: var(--white);
+            line-height: 1.5;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        img {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .container {
+            width: min(calc(100% - 48px), var(--max));
+            margin: auto;
+        }
+
+        /* =========================
+           HEADER
+        ========================== */
+
+        header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 20;
+            color: var(--white);
+        }
+
+        .nav {
+            height: 88px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 27px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+        }
+
+        .logo span {
+            font-weight: 400;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            font-size: 14px;
+        }
+
+        .nav-links a {
+            opacity: 0.9;
+            transition: opacity .2s;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-button {
+            padding: 11px 19px;
+            border: 1px solid rgba(255,255,255,.45);
+            border-radius: 999px;
+            font-size: 13px;
+            backdrop-filter: blur(8px);
+        }
+
+        .nav-button.primary {
+            background: var(--white);
+            color: var(--black);
+            border-color: var(--white);
+        }
+
+        /* =========================
+           HERO
+        ========================== */
+
+        .hero {
+            min-height: 850px;
+            height: 92vh;
+            position: relative;
+            overflow: hidden;
+            background: #222;
+            color: var(--white);
+        }
+
+        .hero-images {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        .hero-city {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-city::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(
+                    180deg,
+                    rgba(0,0,0,.22),
+                    rgba(0,0,0,.12) 35%,
+                    rgba(0,0,0,.72)
+                );
+        }
+
+        .hero-city img {
+            height: 100%;
+            transition: transform 1.2s ease;
+        }
+
+        .hero-city:hover img {
+            transform: scale(1.05);
+        }
+
+        .city-label {
+            position: absolute;
+            z-index: 2;
+            left: 24px;
+            bottom: 30px;
+            font-size: 12px;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            opacity: .92;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(0,0,0,.48),
+                    rgba(0,0,0,.12) 55%,
+                    rgba(0,0,0,.35)
+                );
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 5;
+            min-height: 850px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding-top: 80px;
+        }
+
+        .hero-inner {
+            width: min(920px, 100%);
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 8px 15px;
+            border: 1px solid rgba(255,255,255,.28);
+            border-radius: 999px;
+            background: rgba(255,255,255,.08);
+            backdrop-filter: blur(12px);
+            font-size: 11px;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            margin-bottom: 28px;
+        }
+
+        .eyebrow-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #fff;
+        }
+
+        .hero h1 {
+            font-family: "Playfair Display", serif;
+            font-weight: 500;
+            font-size: clamp(54px, 7vw, 96px);
+            line-height: .98;
+            letter-spacing: -4px;
+            margin-bottom: 24px;
+        }
+
+        .hero-description {
+            max-width: 650px;
+            margin: auto;
+            font-size: 18px;
+            line-height: 1.65;
+            color: rgba(255,255,255,.88);
+        }
+
+        /* =========================
+           SEARCH
+        ========================== */
+
+        .search-box {
+            margin: 42px auto 0;
+            width: min(760px, 100%);
+            padding: 8px;
+            background: rgba(255,255,255,.97);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 18px 50px rgba(0,0,0,.20);
+        }
+
+        .search-icon {
+            width: 50px;
+            display: grid;
+            place-items: center;
+            color: #777;
+            font-size: 19px;
+        }
+
+        .search-box input {
+            flex: 1;
+            border: 0;
+            outline: 0;
+            font-family: inherit;
+            font-size: 15px;
+            color: var(--black);
+            background: transparent;
+        }
+
+        .search-box input::placeholder {
+            color: #888;
+        }
+
+        .search-button {
+            border: 0;
+            background: var(--black);
+            color: var(--white);
+            border-radius: 13px;
+            padding: 16px 24px;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* =========================
+           CATEGORY STRIP
+        ========================== */
+
+        .category-wrap {
+            position: absolute;
+            z-index: 6;
+            bottom: 34px;
+            left: 0;
+            width: 100%;
+        }
+
+        .categories {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .category {
+            padding: 12px 20px;
+            border: 1px solid rgba(255,255,255,.28);
+            background: rgba(0,0,0,.22);
+            backdrop-filter: blur(10px);
+            border-radius: 999px;
+            font-size: 13px;
+        }
+
+        .category.active {
+            background: var(--white);
+            color: var(--black);
+            border-color: var(--white);
+        }
+
+        /* =========================
+           SECTION COMMON
+        ========================== */
+
+        section {
+            padding: 110px 0;
+        }
+
+        .section-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 30px;
+            margin-bottom: 46px;
+        }
+
+        .section-kicker {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .18em;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-family: "Playfair Display", serif;
+            font-size: clamp(38px, 4vw, 58px);
+            line-height: 1.04;
+            font-weight: 500;
+            letter-spacing: -1.8px;
+        }
+
+        .section-description {
+            max-width: 480px;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .view-all {
+            font-size: 13px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--black);
+            padding-bottom: 5px;
+            white-space: nowrap;
+        }
+
+        /* =========================
+           GLOBAL MARKETS
+        ========================== */
+
+        .markets {
+            background: var(--light);
+        }
+
+        .market-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr 1fr;
+            grid-template-rows: 280px 280px;
+            gap: 16px;
+        }
+
+        .market-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--radius);
+            color: var(--white);
+        }
+
+        .market-card:first-child {
+            grid-row: span 2;
+        }
+
+        .market-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                180deg,
+                transparent 35%,
+                rgba(0,0,0,.72)
+            );
+        }
+
+        .market-card img {
+            height: 100%;
+            transition: transform .8s ease;
+        }
+
+        .market-card:hover img {
+            transform: scale(1.06);
+        }
+
+        .market-info {
+            position: absolute;
+            z-index: 2;
+            left: 26px;
+            bottom: 25px;
+        }
+
+        .market-info small {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .16em;
+            opacity: .75;
+        }
+
+        .market-info h3 {
+            font-family: "Playfair Display", serif;
+            font-size: 30px;
+            font-weight: 500;
+            margin-top: 5px;
+        }
+
+        /* =========================
+           PROPERTY CARDS
+        ========================== */
+
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .property-card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            background: var(--white);
+        }
+
+        .property-image {
+            height: 280px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .property-image img {
+            height: 100%;
+            transition: transform .7s ease;
+        }
+
+        .property-card:hover .property-image img {
+            transform: scale(1.04);
+        }
+
+        .property-tag {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            padding: 7px 11px;
+            background: rgba(255,255,255,.94);
+            border-radius: 999px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            font-weight: 700;
+        }
+
+        .property-body {
+            padding: 22px;
+        }
+
+        .property-location {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 7px;
+        }
+
+        .property-name {
+            font-family: "Playfair Display", serif;
+            font-size: 25px;
+            font-weight: 500;
+            line-height: 1.15;
+        }
+
+        .property-details {
+            display: flex;
+            gap: 16px;
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 14px;
+        }
+
+        .property-price {
+            margin-top: 20px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
+            font-weight: 700;
+            font-size: 17px;
+        }
+
+        /* =========================
+           INTELLIGENCE
+        ========================== */
+
+        .intelligence {
+            background: var(--dark);
+            color: var(--white);
+        }
+
+        .intelligence .section-kicker {
+            color: rgba(255,255,255,.5);
+        }
+
+        .intelligence .section-description {
+            color: rgba(255,255,255,.62);
+        }
+
+        .intel-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .intel-title {
+            font-family: "Playfair Display", serif;
+            font-size: clamp(42px, 5vw, 68px);
+            line-height: 1.02;
+            font-weight: 500;
+            letter-spacing: -2px;
+        }
+
+        .intel-copy {
+            color: rgba(255,255,255,.62);
+            max-width: 520px;
+            margin-top: 24px;
+            line-height: 1.8;
+        }
+
+        .intel-box {
+            border: 1px solid rgba(255,255,255,.14);
+            border-radius: 24px;
+            padding: 30px;
+            background: rgba(255,255,255,.04);
+        }
+
+        .intel-question {
+            font-size: 14px;
+            color: rgba(255,255,255,.55);
+            margin-bottom: 18px;
+        }
+
+        .intel-search {
+            padding: 20px;
+            border-radius: 15px;
+            background: rgba(255,255,255,.08);
+            border: 1px solid rgba(255,255,255,.1);
+            font-size: 17px;
+            line-height: 1.6;
+        }
+
+        .intel-results {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .intel-result {
+            padding: 15px;
+            border-radius: 13px;
+            background: rgba(255,255,255,.06);
+        }
+
+        .intel-result strong {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .intel-result span {
+            color: rgba(255,255,255,.5);
+            font-size: 11px;
+        }
+
+        /* =========================
+           JOURNEY
+        ========================== */
+
+        .journey {
+            background: #fafafa;
+        }
+
+        .journey-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .journey-step {
+            padding: 30px 18px;
+            border-right: 1px solid var(--border);
+        }
+
+        .journey-step:last-child {
+            border-right: 0;
+        }
+
+        .journey-number {
+            color: #999;
+            font-size: 11px;
+            margin-bottom: 30px;
+        }
+
+        .journey-step h4 {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .journey-step p {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        /* =========================
+           FINAL CTA
+        ========================== */
+
+        .cta {
+            padding: 130px 0;
+            text-align: center;
+        }
+
+        .cta h2 {
+            font-family: "Playfair Display", serif;
+            font-weight: 500;
+            font-size: clamp(46px, 6vw, 78px);
+            line-height: 1;
+            letter-spacing: -3px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .cta p {
+            max-width: 560px;
+            margin: 24px auto 35px;
+            color: var(--muted);
+        }
+
+        .cta-button {
+            display: inline-flex;
+            padding: 15px 25px;
+            background: var(--black);
+            color: var(--white);
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* =========================
+           FOOTER
+        ========================== */
+
+        footer {
+            background: var(--black);
+            color: var(--white);
+            padding: 70px 0 30px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 50px;
+            padding-bottom: 65px;
+        }
+
+        .footer-brand p {
+            max-width: 350px;
+            color: rgba(255,255,255,.48);
+            font-size: 13px;
+            line-height: 1.7;
+            margin-top: 18px;
+        }
+
+        .footer-column h4 {
+            font-size: 12px;
+            margin-bottom: 18px;
+        }
+
+        .footer-column a {
+            display: block;
+            color: rgba(255,255,255,.5);
+            font-size: 12px;
+            margin-bottom: 11px;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,.12);
+            padding-top: 25px;
+            color: rgba(255,255,255,.38);
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================== */
+
+        @media (max-width: 1050px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero-images {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .hero-city:nth-child(4),
+            .hero-city:nth-child(5) {
+                display: none;
+            }
+
+            .market-grid {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: 300px 300px 300px;
+            }
+
+            .market-card:first-child {
+                grid-row: span 1;
+            }
+
+            .property-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .journey-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .journey-step:nth-child(3) {
+                border-right: 0;
+            }
+
+            .intel-layout {
+                grid-template-columns: 1fr;
+                gap: 45px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .container {
+                width: min(calc(100% - 28px), var(--max));
+            }
+
+            .hero {
+                min-height: 780px;
+                height: auto;
+            }
+
+            .hero-content {
+                min-height: 780px;
+                padding: 120px 0 150px;
+            }
+
+            .hero-images {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .hero-city:nth-child(3),
+            .hero-city:nth-child(4),
+            .hero-city:nth-child(5) {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 55px;
+                letter-spacing: -2.5px;
+            }
+
+            .hero-description {
+                font-size: 15px;
+            }
+
+            .search-box {
+                flex-wrap: wrap;
+                padding: 8px;
+            }
+
+            .search-icon {
+                width: 38px;
+            }
+
+            .search-button {
+                width: 100%;
+            }
+
+            .category-wrap {
+                bottom: 22px;
+            }
+
+            .categories {
+                gap: 6px;
+            }
+
+            .category {
+                padding: 9px 13px;
+                font-size: 11px;
+            }
+
+            section {
+                padding: 75px 0;
+            }
+
+            .section-top {
+                display: block;
+            }
+
+            .section-description {
+                margin-top: 18px;
+            }
+
+            .view-all {
+                display: inline-block;
+                margin-top: 20px;
+            }
+
+            .market-grid,
+            .property-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .market-grid {
+                grid-template-rows: repeat(5, 260px);
+            }
+
+            .property-image {
+                height: 250px;
+            }
+
+            .journey-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .journey-step {
+                border-bottom: 1px solid var(--border);
+            }
+
+            .journey-step:nth-child(3) {
+                border-right: 1px solid var(--border);
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .footer-brand {
+                grid-column: span 2;
+            }
+
+            .footer-bottom {
+                display: block;
+            }
+
+            .footer-bottom span {
+                display: block;
+                margin-bottom: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- =========================
+     HEADER
+========================== -->
+
+<header>
+    <div class="container nav">
+
+        <a href="#" class="logo">HOMIO<span>.</span></a>
+
+        <nav class="nav-links">
+            <a href="#markets">Markets</a>
+            <a href="#properties">Properties</a>
+            <a href="#intelligence">HOMIO Intelligence</a>
+            <a href="#journey">Your Journey</a>
+        </nav>
+
+        <div class="nav-actions">
+            <a href="#" class="nav-button">Sign in</a>
+            <a href="#" class="nav-button primary">Explore</a>
+        </div>
+
+    </div>
+</header>
+
+
+<!-- =========================
+     HERO
+========================== -->
+
+<section class="hero">
+
+    <div class="hero-images">
+
+        <div class="hero-city">
+            <img
+                src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=85"
+                alt="Dubai skyline"
+            >
+            <span class="city-label">Dubai</span>
+        </div>
+
+        <div class="hero-city">
+            <img
+                src="https://images.unsplash.com/photo-1525625293386-3f8f99389edd?auto=format&fit=crop&w=1200&q=85"
+                alt="Singapore skyline"
+            >
+            <span class="city-label">Singapore</span>
+        </div>
+
+        <div class="hero-city">
+            <img
+                src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1200&q=85"
+                alt="Tokyo skyline"
+            >
+            <span class="city-label">Tokyo</span>
+        </div>
+
+        <div class="hero-city">
+            <img
+                src="https://images.unsplash.com/photo-1485871981521-5b1f2d6f8f31?auto=format&fit=crop&w=1200&q=85"
+                alt="New York skyline"
+            >
+            <span class="city-label">New York</span>
+        </div>
+
+        <div class="hero-city">
+            <img
+                src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=1200&q=85"
+                alt="London skyline"
+            >
+            <span class="city-label">London</span>
+        </div>
+
+    </div>
+
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+        <div class="hero-inner">
+
+            <div class="eyebrow">
+                <span class="eyebrow-dot"></span>
+                Global Real Estate
+            </div>
+
+            <h1>Your World.<br>Your Property.</h1>
+
+            <p class="hero-description">
+                Discover homes, businesses, offices and investment
+                opportunities across the world's leading real estate markets.
+            </p>
+
+            <div class="search-box">
+
+                <div class="search-icon">⌕</div>
+
+                <input
+                    type="text"
+                    placeholder="Where in the world do you want to be?"
+                    aria-label="Search global real estate"
+                >
+
+                <button class="search-button">
+                    Search
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="category-wrap">
+        <div class="container">
+            <div class="categories">
+                <a href="#" class="category active">Homes</a>
+                <a href="#" class="category">Business</a>
+                <a href="#" class="category">Offices</a>
+                <a href="#" class="category">Investments</a>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+
+<!-- =========================
+     GLOBAL MARKETS
+========================== -->
+
+<section class="markets" id="markets">
+
+    <div class="container">
+
+        <div class="section-top">
+
+            <div>
+                <div class="section-kicker">Global markets</div>
+
+                <h2 class="section-title">
+                    Explore the world's<br>
+                    leading cities.
+                </h2>
+            </div>
+
+            <p class="section-description">
+                Move, invest and discover opportunities across the
+                world's most connected real estate markets.
+            </p>
+
+        </div>
+
+
+        <div class="market-grid">
+
+            <a href="#" class="market-card">
+                <img
+                    src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1400&q=85"
+                    alt="Dubai"
+                >
+                <div class="market-info">
+                    <small>United Arab Emirates</small>
+                    <h3>Dubai</h3>
+                </div>
+            </a>
+
+            <a href="#" class="market-card">
+                <img
+                    src="https://images.unsplash.com/photo-1525625293386-3f8f99389edd?auto=format&fit=crop&w=1000&q=85"
+                    alt="Singapore"
+                >
+                <div class="market-info">
+                    <small>Singapore</small>
+                    <h3>Singapore</h3>
+                </div>
+            </a>
+
+            <a href="#" class="market-card">
+                <img
+                    src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1000&q=85"
+                    alt="Tokyo"
+                >
+                <div class="market-info">
+                    <small>Japan</small>
+                    <h3>Tokyo</h3>
+                </div>
+            </a>
+
+            <a href="#" class="market-card">
+                <img
+                    src="https://images.unsplash.com/photo-1485871981521-5b1f2d6f8f31?auto=format&fit=crop&w=1000&q=85"
+                    alt="New York"
+                >
+                <div class="market-info">
+                    <small>United States</small>
+                    <h3>New York</h3>
+                </div>
+            </a>
+
+            <a href="#" class="market-card">
+                <img
+                    src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=1000&q=85"
+                    alt="London"
+                >
+                <div class="market-info">
+                    <small>United Kingdom</small>
+                    <h3>London</h3>
+                </div>
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     FEATURED PROPERTIES
+========================== -->
+
+<section id="properties">
+
+    <div class="container">
+
+        <div class="section-top">
+
+            <div>
+                <div class="section-kicker">Selected opportunities</div>
+
+                <h2 class="section-title">
+                    Properties worth<br>
+                    discovering.
+                </h2>
+            </div>
+
+            <a href="#" class="view-all">
+                View all properties →
+            </a>
+
+        </div>
+
+
+        <div class="property-grid">
+
+            <article class="property-card">
+
+                <div class="property-image">
+                    <img
+                        src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=85"
+                        alt="Luxury Dubai residence"
+                    >
+
+                    <span class="property-tag">
+                        Featured
+                    </span>
+                </div>
+
+                <div class="property-body">
+
+                    <div class="property-location">
+                        Downtown Dubai · UAE
+                    </div>
+
+                    <h3 class="property-name">
+                        Contemporary Sky Residence
+                    </h3>
+
+                    <div class="property-details">
+                        <span>3 Beds</span>
+                        <span>3 Baths</span>
+                        <span>2,140 sq ft</span>
+                    </div>
+
+                    <div class="property-price">
+                        AED 4.8M
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <article class="property-card">
+
+                <div class="property-image">
+                    <img
+                        src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=85"
+                        alt="Luxury Singapore residence"
+                    >
+
+                    <span class="property-tag">
+                        New
+                    </span>
+                </div>
+
+                <div class="property-body">
+
+                    <div class="property-location">
+                        Marina Bay · Singapore
+                    </div>
+
+                    <h3 class="property-name">
+                        Marina Residence
+                    </h3>
+
+                    <div class="property-details">
+                        <span>3 Beds</span>
+                        <span>2 Baths</span>
+                        <span>1,860 sq ft</span>
+                    </div>
+
+                    <div class="property-price">
+                        SGD 3.2M
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <article class="property-card">
+
+                <div class="property-image">
+                    <img
+                        src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1200&q=85"
+                        alt="Luxury London residence"
+                    >
+
+                    <span class="property-tag">
+                        Prime
+                    </span>
+                </div>
+
+                <div class="property-body">
+
+                    <div class="property-location">
+                        Mayfair · London
+                    </div>
+
+                    <h3 class="property-name">
+                        Mayfair Town Residence
+                    </h3>
+
+                    <div class="property-details">
+                        <span>4 Beds</span>
+                        <span>3 Baths</span>
+                        <span>2,300 sq ft</span>
+                    </div>
+
+                    <div class="property-price">
+                        £3.9M
+                    </div>
+
+                </div>
+
+            </article>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     HOMIO INTELLIGENCE
+========================== -->
+
+<section class="intelligence" id="intelligence">
+
+    <div class="container">
+
+        <div class="intel-layout">
+
+            <div>
+
+                <div class="section-kicker">
+                    HOMIO Intelligence
+                </div>
+
+                <h2 class="intel-title">
+                    Don't just search.<br>
+                    Find what fits.
+                </h2>
+
+                <p class="intel-copy">
+                    Tell HOMIO what you want in your own words.
+                    Our global real estate intelligence is designed
+                    to understand your intent, discover relevant
+                    opportunities and help you move from discovery
+                    to decision.
+                </p>
+
+            </div>
+
+
+            <div class="intel-box">
+
+                <div class="intel-question">
+                    Try asking HOMIO
+                </div>
+
+                <div class="intel-search">
+                    “I want a modern 3-bedroom home in Dubai,
+                    close to the city, under AED 5 million,
+                    with strong investment potential.”
+                </div>
+
+                <div class="intel-results">
+
+                    <div class="intel-result">
+                        <strong>Location</strong>
+                        <span>Dubai · Central districts</span>
+                    </div>
+
+                    <div class="intel-result">
+                        <strong>Property</strong>
+                        <span>3 bedroom · Modern</span>
+                    </div>
+
+                    <div class="intel-result">
+                        <strong>Budget</strong>
+                        <span>Up to AED 5M</span>
+                    </div>
+
+                    <div class="intel-result">
+                        <strong>Intent</strong>
+                        <span>Home + investment</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     JOURNEY
+========================== -->
+
+<section class="journey" id="journey">
+
+    <div class="container">
+
+        <div class="section-top">
+
+            <div>
+                <div class="section-kicker">
+                    Your real estate journey
+                </div>
+
+                <h2 class="section-title">
+                    From discovery<br>
+                    to transaction.
+                </h2>
+            </div>
+
+            <p class="section-description">
+                HOMIO brings the entire real estate journey
+                into one connected experience.
+            </p>
+
+        </div>
+
+
+        <div class="journey-grid">
+
+            <div class="journey-step">
+                <div class="journey-number">01</div>
+                <h4>Discover</h4>
+                <p>Explore global markets and opportunities.</p>
+            </div>
+
+            <div class="journey-step">
+                <div class="journey-number">02</div>
+                <h4>Match</h4>
+                <p>Find properties aligned with your intent.</p>
+            </div>
+
+            <div class="journey-step">
+                <div class="journey-number">03</div>
+                <h4>Shortlist</h4>
+                <p>Save and compare the opportunities that matter.</p>
+            </div>
+
+            <div class="journey-step">
+                <div class="journey-number">04</div>
+                <h4>Connect</h4>
+                <p>Connect with the right real estate professionals.</p>
+            </div>
+
+            <div class="journey-step">
+                <div class="journey-number">05</div>
+                <h4>Deal</h4>
+                <p>Move through offers and negotiations.</p>
+            </div>
+
+            <div class="journey-step">
+                <div class="journey-number">06</div>
+                <h4>Complete</h4>
+                <p>Progress through the transaction with confidence.</p>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     CTA
+========================== -->
+
+<section class="cta">
+
+    <div class="container">
+
+        <div class="section-kicker">
+            HOMIO
+        </div>
+
+        <h2>
+            Real estate without borders.
+        </h2>
+
+        <p>
+            Discover where the world can take you.
+            Find the property that takes you there.
+        </p>
+
+        <a href="#" class="cta-button">
+            Explore HOMIO →
+        </a>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     FOOTER
+========================== -->
+
+<footer>
+
+    <div class="container">
+
+        <div class="footer-grid">
+
+            <div class="footer-brand">
+
+                <div class="logo">
+                    HOMIO.
+                </div>
+
+                <p>
+                    A global real estate platform connecting people,
+                    properties, businesses and opportunities across
+                    the world's leading markets.
+                </p>
+
+            </div>
+
+
+            <div class="footer-column">
+
+                <h4>Explore</h4>
+
+                <a href="#">Homes</a>
+                <a href="#">Business</a>
+                <a href="#">Offices</a>
+                <a href="#">Investments</a>
+
+            </div>
+
+
+            <div class="footer-column">
+
+                <h4>Markets</h4>
+
+                <a href="#">Dubai</a>
+                <a href="#">Singapore</a>
+                <a href="#">Tokyo</a>
+                <a href="#">New York</a>
+                <a href="#">London</a>
+
+            </div>
+
+
+            <div class="footer-column">
+
+                <h4>HOMIO</h4>
+
+                <a href="#">About</a>
+                <a href="#">Professionals</a>
+                <a href="#">Developers</a>
+                <a href="#">Partners</a>
+                <a href="#">Contact</a>
+
+            </div>
+
+        </div>
+
+
+        <div class="footer-bottom">
+
+            <span>© 2026 HOMIO. All rights reserved.</span>
+
+            <span>
+                Global Real Estate Platform
+            </span>
+
+        </div>
+
+    </div>
+
+</footer>
+
+
+</body>
+</html>
