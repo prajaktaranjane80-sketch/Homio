@@ -1,17 +1,18 @@
 {
 "document": {
 "name": "HOMIO Frontend Experience Blueprint",
-"version": "3.0",
-"status": "FINAL_EXPERIENCE_ARCHITECTURE_CONTENT",
-"purpose": "Define the canonical frontend product experience for HOMIO as a global real-estate SaaS experience layer over the existing REOS platform.",
-"scope": "Frontend product experience, interaction model, navigation, responsive behavior, reusable UX, REOS integration, user journey continuity, AI interaction, discovery and decision flows.",
+"version": "3.1",
+"status": "FINAL_IMPLEMENTATION_BLUEPRINT",
+"purpose": "Define HOMIO's canonical frontend product experience and implementation boundary as a global real-estate SaaS experience layer over the existing REOS platform.",
+"scope": "Frontend product experience, interaction model, navigation, responsive behavior, reusable UX, REOS integration, user journey continuity, AI interaction, discovery, decision flows, production implementation boundaries and frontend verification.",
 "authority": {
-"frontend_blueprint": "This document is the canonical frontend experience blueprint.",
-"master_architecture": "REOS_CONTROL_CENTER/architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json remains the canonical overall architecture.",
-"project_state": "REOS_CONTROL_CENTER/data/state.json remains the canonical execution/project state.",
+"frontend_blueprint": "This document is the canonical frontend implementation blueprint for product experience and frontend boundaries; it is subordinate to the REOS Master Architecture.",
+"master_architecture": "REOS_CONTROL_CENTER/architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json remains the canonical overall architecture and business authority.",
+"project_state": "REOS_CONTROL_CENTER/data/state.json remains the canonical execution and project-state authority.",
 "code": "Git branch reos-development is the canonical frontend implementation reference.",
 "continuity": "ACRL remains the continuity and reconstruction boundary.",
-"chat": "Chat is communication only and does not become project state."
+"chat": "Chat is communication only and does not become project state.",
+"architecture_change": "Any change to a business authority, source of truth, tenant boundary, governance boundary or autonomous authority remains governed by the Master Architecture and Control Center."
 },
 "non_goals": [
 "Do not create a second business architecture.",
@@ -20,7 +21,9 @@
 "Do not create a frontend duplicate of search, inventory, ownership, deal, commission, fraud, governance, evidence, identity or event engines.",
 "Do not make the frontend mirror backend CORE/T01/T02/T03 structures merely for architectural symmetry.",
 "Do not replace existing REOS capabilities with frontend-local business logic.",
-"Do not make the frontend look like an enterprise backend control panel for normal consumers."
+"Do not make the frontend look like an enterprise backend control panel for normal consumers.",
+"Do not introduce microfrontends by default.",
+"Do not invent APIs, contracts, identifiers or business states that are not present in verified REOS capabilities."
 ]
 },
 
@@ -28,8 +31,8 @@
 "north_star": "HOMIO should feel like a premium, simple, intelligent real-estate SaaS product in which the user can discover, explore, understand, compare, save and act without needing to understand the underlying REOS system.",
 "experience_statement": "A user should be able to enter HOMIO with a property need expressed in normal language, immediately discover useful opportunities, move naturally from one property to related opportunities, preserve context, receive contextual help, save decisions and continue the journey later.",
 "interaction_reference": {
-"principle": "Use the interaction philosophy of modern guided SaaS products such as resume builders: simple entry, clear progress, progressive disclosure, low cognitive load, reusable components and the product doing the complex work behind the scenes.",
-"real_estate_reference": "Apply modern real-estate discovery patterns: strong visual inventory, map/context, property detail depth, compare/save/revisit behavior, AI assistance and clear action paths.",
+"principle": "Use the interaction philosophy of modern guided SaaS products: simple entry, clear progress, progressive disclosure, low cognitive load, reusable components and the product doing complex work behind the scenes.",
+"real_estate_reference": "Apply modern real-estate discovery patterns: strong visual inventory, map/context, property detail depth, compare/save/revisit behavior, contextual AI assistance and clear action paths.",
 "important_boundary": "HOMIO must not visually or structurally clone another product. References are interaction lessons only."
 },
 "frontend_role": "The frontend translates existing REOS capabilities into a human-friendly SaaS experience.",
@@ -133,6 +136,7 @@
 "Continue later"
 ],
 "journey_is_not_linear": true,
+"experience_formula": "DISCOVER -> EXPLORE -> DECIDE -> ACT -> RETURN",
 "exploration_loop": {
 "purpose": "Allow users to continue exploring useful opportunities without repeatedly returning to the beginning.",
 "loop": [
@@ -168,7 +172,7 @@
 "purpose": "A user returning to HOMIO should be able to continue from meaningful previous activity.",
 "examples": [
 "Continue comparing",
-"Continue exploring Dubai",
+"Continue exploring a market",
 "Recently viewed",
 "Saved properties",
 "Last project opened",
@@ -217,19 +221,19 @@
 "global_navigation": {
 "primary_navigation": [
 "Discover",
-"Explore",
-"Compare",
 "Saved",
 "My HOMIO"
 ],
 "contextual_navigation": [
+"Explore",
 "Market",
 "Project",
 "Area",
 "Property",
 "Visit",
 "Conversation",
-"Deal"
+"Deal",
+"Compare"
 ],
 "persistent_actions": [
 "Search",
@@ -245,7 +249,10 @@
 "back_forward_supported": true,
 "shareable_property_urls": true,
 "shareable_project_urls": true,
-"search_context_in_url_when_useful": true
+"search_context_in_url_when_useful": true,
+"compare_is_contextual": true,
+"explore_is_contextual": true,
+"ai_is_contextual": true
 }
 },
 
@@ -374,6 +381,24 @@
     "level_2": "More detailed preferences.",
     "level_3": "Advanced search options.",
     "rule": "Do not expose every backend search parameter at once."
+  },
+  "map_behavior": {
+    "principle": "Search results and geographic context remain synchronized without silently replacing the user's active intent.",
+    "desktop": "Optional synchronized list/map presentation when location materially improves discovery.",
+    "tablet": "Adaptive list/map interaction with touch-friendly switching.",
+    "mobile": "Results-first flow with map in a dedicated view or bottom sheet.",
+    "state_preservation": [
+      "search intent",
+      "filters",
+      "sort",
+      "map viewport when explicitly relevant",
+      "selected property"
+    ],
+    "rules": [
+      "Changing the map viewport must not silently change the search intent without clear user feedback.",
+      "Opening a property and returning must preserve the prior result context.",
+      "Map availability does not block list-based discovery."
+    ]
   },
   "responsive_behavior": {
     "desktop": "Rich result layout with optional map/context.",
@@ -585,7 +610,8 @@
     "AI must not invent property facts.",
     "AI responses must remain grounded in available REOS data/context.",
     "High-risk or irreversible actions remain subject to appropriate backend authorization and human controls.",
-    "AI should help the user understand and act, not create unnecessary conversation."
+    "AI should help the user understand and act, not create unnecessary conversation.",
+    "When a normal control solves the problem faster, use the normal control instead of forcing a conversational interaction."
   ],
   "done_when": [
     "AI is useful without feeling like a separate chatbot product.",
@@ -773,6 +799,42 @@
 "rule": "Business ownership remains outside the frontend."
 },
 
+"runtime_contract": {
+"source": "ARCH-038 Technology Stack Lock",
+"status": "APPROVED",
+"frontend_framework": "Next.js 16.2",
+"react": "React 19.2",
+"language": "TypeScript 6.0",
+"node_runtime": "Node.js 24 LTS",
+"router": "Next.js App Router",
+"bundler": "Turbopack",
+"rendering_strategy": "Use the approved Next.js App Router with route-appropriate server rendering or static generation for public discovery and client interactivity only where required.",
+"rule": "Frontend implementation must remain within the approved ARCH-038 stack unless a formal architecture change is approved."
+},
+
+"frontend_implementation_structure": {
+"principle": "Use a small modular Next.js application structure with experience boundaries, not backend-shaped folder proliferation.",
+"target_root": "REOS_CONTROL_CENTER/Frontend",
+"target_structure": {
+"app/": "Next.js App Router routes, layouts, route groups and page composition.",
+"components/": "Shared UI primitives and cross-experience composites.",
+"features/": "Experience-owned modules such as discovery, property, compare, journey and AI.",
+"lib/reos/": "Thin REOS adapters and contract integration; no business engine duplication.",
+"lib/state/": "Frontend interaction and navigation state only.",
+"lib/config/": "Frontend configuration and presentation configuration.",
+"public/": "Static public assets.",
+"tests/": "Unit, integration, accessibility, route and E2E coverage."
+},
+"rules": [
+"Keep experience-specific composition in features.",
+"Keep generic reusable UI in components.",
+"Keep REOS integration in lib/reos.",
+"Do not create one folder per backend domain solely for symmetry.",
+"Do not create microfrontends by default.",
+"Do not turn the frontend root into a duplicate of AUTONOMY_ENGINE/core."
+]
+},
+
 "implementation_method": {
 "name": "Experience Slice Delivery",
 "principle": "Build coherent user-facing slices rather than backend-style technical layers.",
@@ -803,6 +865,10 @@
 "loading_state",
 "empty_state",
 "error_state",
+"data_freshness_behavior",
+"authorization_behavior",
+"privacy_behavior",
+"test_coverage",
 "done_when"
 ],
 "implementation_rule": "Do not move to the next experience slice until the current slice is visually coherent, connected to the existing product shell and usable on desktop, tablet and mobile."
@@ -969,6 +1035,102 @@
 }
 },
 
+"state_persistence_model": {
+"principle": "Temporary UI state may live locally; persistent user journey and business state must use governed REOS mechanisms.",
+"guest_state": [
+"recently viewed identifiers",
+"temporary compare set",
+"temporary search context",
+"temporary UI preferences"
+],
+"signed_in_state": [
+"server-synchronized saved items",
+"persistent compare state when supported",
+"search/journey resume state when supported",
+"enquiries",
+"visits",
+"communication",
+"authorized transaction progress"
+],
+"local_storage_rules": [
+"Do not store canonical business truth in browser storage.",
+"Do not store sensitive tokens in arbitrary frontend state or local storage.",
+"PII persistence must follow the approved identity and security design.",
+"Temporary cached display state must be treated as non-authoritative."
+]
+},
+
+"category_experience_model": {
+"principle": "Homes, Business, Offices and Investments share one HOMIO product shell but use category-appropriate information hierarchy.",
+"categories": {
+"Homes": {
+"primary_facts": [
+"property type",
+"beds",
+"baths",
+"area",
+"location",
+"price",
+"availability"
+],
+"secondary_context": [
+"amenities",
+"community",
+"views",
+"lifestyle context"
+]
+},
+"Business": {
+"primary_facts": [
+"commercial type",
+"location",
+"size",
+"price or commercial terms",
+"availability"
+],
+"secondary_context": [
+"use context",
+"access",
+"business-relevant features"
+]
+},
+"Offices": {
+"primary_facts": [
+"office type",
+"location",
+"size",
+"capacity when available",
+"price or commercial terms",
+"availability"
+],
+"secondary_context": [
+"building features",
+"access",
+"workspace context"
+]
+},
+"Investments": {
+"primary_facts": [
+"asset type",
+"location",
+"price",
+"availability",
+"commercial/investment metrics when supplied"
+],
+"secondary_context": [
+"market context",
+"income/yield metrics when authoritative",
+"risk/evidence context"
+]
+}
+},
+"rules": [
+"The frontend presents category-specific fields supplied by REOS; it does not calculate authoritative financial or investment truth.",
+"Category changes presentation hierarchy, not the underlying canonical inventory model.",
+"Unavailable category-specific facts must be omitted or clearly marked rather than fabricated."
+]
+},
+
 "reos_capability_bindings": {
 "binding_rule": "Bind frontend experiences to existing REOS capabilities instead of creating replacement capabilities.",
 "capability_groups": [
@@ -1042,6 +1204,29 @@
 ]
 },
 
+"reos_binding_registry": {
+"purpose": "Define the exact mapping from each frontend experience to existing REOS capabilities before implementation.",
+"status": "CAPABILITY_MAPPING_REQUIRED_BEFORE_IMPLEMENTATION",
+"required_fields": [
+"experience_id",
+"user_action",
+"REOS_capability",
+"repository_contract_reference",
+"request_shape_reference",
+"response_shape_reference",
+"authorization_requirement",
+"state_transition",
+"error_mapping",
+"test_reference"
+],
+"rules": [
+"Do not invent API endpoints, payloads, statuses or identifiers.",
+"Inspect the repository and existing contracts before adding a binding.",
+"Prefer existing contracts over frontend-specific replicas.",
+"Any adapter must remain presentation-oriented and must not become a second business engine."
+]
+},
+
 "data_truth_boundary": {
 "canonical": [
 "identity",
@@ -1068,6 +1253,30 @@
 ],
 "frontend_rule": "Frontend display data may be transformed for presentation but must remain traceable to authoritative REOS sources.",
 "derived_data_rule": "Derived data can improve experience but cannot silently become canonical business truth."
+},
+
+"property_data_quality_model": {
+"principle": "Real-estate information must communicate freshness, availability and provenance honestly.",
+"display_when_available": [
+"availability status",
+"last updated",
+"price freshness",
+"source/provenance context",
+"verification or evidence status"
+],
+"states": [
+"current",
+"stale",
+"temporarily_unavailable",
+"partially_available",
+"verification_pending"
+],
+"rules": [
+"Freshness policy comes from the authoritative REOS capability or market configuration; frontend must not invent a global freshness threshold.",
+"Stale or unavailable data must not be presented as current fact.",
+"Presentation may degrade gracefully when optional fields are missing.",
+"Authoritative availability and pricing remain server-side."
+]
 },
 
 "routing_model": {
@@ -1102,7 +1311,10 @@
 "shareable_public_pages": true,
 "preserve_search_state_where_useful": true,
 "role_aware_access": true,
-"server_authorization_is_authoritative": true
+"server_authorization_is_authoritative": true,
+"ai_route_is_contextual_deep_link": true,
+"ai_route_must_restore_context": true,
+"ai_is_not_a_primary_navigation_destination": true
 }
 },
 
@@ -1155,6 +1367,23 @@
 "forces a chat workflow when a simple UI is better"
 ],
 "interaction_rule": "When a normal control solves the problem faster, use the normal control; use AI where conversational assistance adds meaningful value."
+},
+
+"security_privacy_model": {
+"principle": "Frontend security and privacy are part of production UX and never replace backend authorization.",
+"requirements": [
+"Server-side authorization remains authoritative.",
+"Protected routes must not rely only on client-side hiding.",
+"Sensitive credentials and tokens must follow the approved identity/session design.",
+"Do not store canonical financial, ownership, transaction or authorization truth in browser storage.",
+"Escape and sanitize untrusted content according to the approved application security model.",
+"Protect forms and actions against accidental duplicate submission where relevant.",
+"Respect tenant, role and relationship boundaries returned by REOS.",
+"Analytics must minimize unnecessary PII.",
+"External links and media sources must be handled safely.",
+"Security headers and CSP belong in production hardening where applicable to the approved deployment."
+],
+"failure_behavior": "Unauthorized or expired-session states must recover through the approved authentication flow without exposing protected data."
 },
 
 "accessibility": {
@@ -1310,7 +1539,15 @@
 "monolithic page structure",
 "remote-only prototype content as production truth"
 ],
-"production_direction": "Recompose the existing visual prototype into the experience slices defined by this document and connect those slices to real REOS capabilities."
+"production_direction": "Recompose the existing visual prototype into the experience slices defined by this document and connect those slices to verified REOS capabilities.",
+"target_runtime": "The static prototype is a visual reference only; production implementation moves to the approved Next.js, React, TypeScript and Node runtime.",
+"migration_rules": [
+"Retain useful brand and visual direction.",
+"Replace hardcoded inventory and market content with REOS-backed data.",
+"Replace placeholder interactions with real route and state behavior.",
+"Preserve the premium visual language while applying the v3.1 experience grammar.",
+"Do not convert the existing HTML into a large monolithic React page."
+]
 },
 
 "reuse_first_policy": {
@@ -1365,6 +1602,86 @@
 ]
 },
 
+"verification_model": {
+"purpose": "Verify user experience, integration and production behavior without turning frontend verification into a backend gate system.",
+"layers": {
+"unit_component": [
+"shared primitives",
+"experience components",
+"state helpers",
+"formatting helpers"
+],
+"integration": [
+"REOS adapter behavior",
+"route data flow",
+"authorization-aware states"
+],
+"navigation": [
+"deep links",
+"back/forward",
+"search context preservation",
+"resume behavior"
+],
+"responsive": [
+"desktop",
+"tablet",
+"mobile",
+"orientation changes",
+"touch interactions"
+],
+"accessibility": [
+"keyboard",
+"focus",
+"labels",
+"semantic structure",
+"dialog/drawer behavior",
+"reduced motion"
+],
+"visual": [
+"critical page visual regression for home",
+"critical page visual regression for search",
+"critical page visual regression for property",
+"critical page visual regression for compare",
+"critical page visual regression for My HOMIO"
+],
+"e2e": [
+"critical discovery-to-action journey"
+],
+"performance": [
+"initial shell",
+"media loading",
+"long results",
+"slow network",
+"interaction responsiveness"
+],
+"security": [
+"protected route behavior",
+"session expiry",
+"unauthorized action blocking",
+"safe rendering"
+],
+"build": [
+"production build",
+"lint/type checks",
+"runtime startup where applicable"
+]
+},
+"critical_e2e_journey": [
+"Open HOMIO",
+"Start search",
+"View results",
+"Open property",
+"Save",
+"Explore similar",
+"Compare",
+"Ask HOMIO in context",
+"Start enquiry or visit",
+"See resulting state in My HOMIO",
+"Return and resume"
+],
+"rule": "A slice is not production-ready until its relevant verification layers pass."
+},
+
 "quality_model": {
 "frontend_quality_dimensions": [
 "clarity",
@@ -1397,7 +1714,12 @@
 "No broken responsive states.",
 "Loading, empty and error states exist.",
 "Existing REOS APIs/contracts are reused.",
+"Approved ARCH-038 frontend runtime is used.",
+"No arbitrary API endpoint or business contract is invented.",
+"Data freshness and availability states are handled.",
+"Protected actions fail safely when unauthorized or expired.",
 "Relevant frontend tests pass.",
+"Critical E2E journey passes.",
 "Production build remains valid."
 ]
 },
@@ -1418,14 +1740,18 @@
 "integration": [
 "Existing REOS capabilities are reused.",
 "No frontend duplicate engine exists.",
-"Canonical data boundaries remain intact."
+"Canonical data boundaries remain intact.",
+"Exact REOS capability bindings are documented before production integration.",
+"Authorization and privacy behavior are verified."
 ],
 "quality": [
 "Loading/empty/error states are complete.",
 "Accessibility basics are implemented.",
 "Deep linking works.",
 "Relevant tests pass.",
-"Production build succeeds."
+"Critical E2E discovery-to-action journey passes.",
+"Approved runtime and build checks pass.",
+"JSON blueprint parses as strict JSON with no Markdown code fences."
 ],
 "product": [
 "A user can discover.",
@@ -1502,7 +1828,13 @@
 "rule_12": "Do not introduce microfrontends unless a future measured need requires them.",
 "rule_13": "Do not convert presentation concerns into business domain logic.",
 "rule_14": "The user should always understand where they are and what they can do next.",
-"rule_15": "Every experience should support a clean return path."
+"rule_15": "Every experience should support a clean return path.",
+"rule_16": "Use the approved ARCH-038 frontend/runtime stack.",
+"rule_17": "Do not invent frontend API contracts; bind only to verified REOS contracts.",
+"rule_18": "Represent listing freshness, availability and provenance honestly.",
+"rule_19": "Keep category-specific presentation separate from canonical business logic.",
+"rule_20": "Treat Compare and Explore as contextual tasks rather than mandatory top-level navigation.",
+"rule_21": "Keep AI available in context; do not force users into a standalone chatbot journey."
 },
 
 "frontend_artifact_registry": {
@@ -1511,7 +1843,25 @@
 "state_reference": "REOS_CONTROL_CENTER/data/state.json",
 "frontend_boundary": "REOS_CONTROL_CENTER/Frontend",
 "repository_authority": "Git branch reos-development",
-"continuity_authority": "Existing ACRL spine"
+"continuity_authority": "Existing ACRL spine",
+"arch_038_reference": "ARCH-038 Technology Stack Lock v1.0",
+"blueprint_format": "Strict JSON; Markdown code fences are forbidden inside the file.",
+"binding_registry": "reos_binding_registry",
+"verification_model": "verification_model"
+},
+
+"architecture_alignment": {
+"master_architecture": "HOMIO_REOS_MASTER_ARCHITECTURE.json",
+"technology_stack": "ARCH-038",
+"canonical_graph_consumers": [
+"Demand Graph for discovery intent and relevant search context where exposed by REOS.",
+"Inventory Graph for property and project presentation.",
+"Relationship Graph for governed people and organization context where exposed.",
+"Transaction Graph for authorized deal and transaction progress.",
+"Evidence Graph for trust and evidence presentation.",
+"Intelligence Graph for contextual AI and recommendation capabilities."
+],
+"rule": "Frontend consumes canonical capabilities and derived views; it never promotes a derived view to business truth."
 },
 
 "change_control": {
@@ -1530,6 +1880,10 @@
 "Does it preserve navigation/context?",
 "Does it work on desktop/tablet/mobile?",
 "Does it preserve accessibility and performance?",
+"Does it remain within the approved ARCH-038 runtime?",
+"Does it preserve data freshness and provenance semantics?",
+"Does it preserve privacy and authorization behavior?",
+"Does it preserve category-aware presentation without duplicating business logic?",
 "Does it require a real architecture change or only a UX change?"
 ],
 "forbidden_changes": [
@@ -1538,6 +1892,23 @@
 "duplicate REOS engine",
 "duplicate data truth",
 "backend terminology becoming consumer UX structure solely for internal symmetry"
+]
+},
+
+"blueprint_integrity": {
+"format": "JSON",
+"strict_json_required": true,
+"markdown_code_fences_forbidden": true,
+"duplicate_top_level_architecture_forbidden": true,
+"last_verified_against": {
+"frontend_path": "REOS_CONTROL_CENTER/Frontend",
+"state_path": "REOS_CONTROL_CENTER/data/state.json"
+},
+"integrity_rules": [
+"The file must parse as strict JSON.",
+"No Markdown fences may exist inside the file.",
+"No second master architecture may be introduced.",
+"Changes must remain subordinate to the REOS Master Architecture."
 ]
 },
 
