@@ -1,58 +1,41 @@
-________________________________________________________ test_cross_tenant_trust_input_is_rejected ________________________________________________________
+======================================================================== FAILURES =========================================================================
+________________________________________________________ test_evaluation_identity_is_deterministic ________________________________________________________
 
-    def test_cross_tenant_trust_input_is_rejected() -> None:
+    def test_evaluation_identity_is_deterministic() -> None:
         policy = RiskRulePolicy(
-            policy_id="T03-SCOPE",
+            policy_id="T03-DETERMINISM",
             version="1.0",
             rules=(
                 trust_rule(),
             ),
         )
 
-        trust = build_trust_score(
-            score=20,
-            tenant_id=OTHER_TENANT_ID,
+        first = RiskRuleEngine().evaluate(
+            tenant_id=TENANT_ID,
+            subject_id=SUBJECT_ID,
+            correlation_id="determinism",
+            policy=policy,
+            trust_score=build_trust_score(score=20),
+            evaluated_at=NOW,
+            evaluation_id=UUID(int=101),
         )
 
-        with pytest.raises(RiskRuleScopeError):
->           RiskRuleEngine().evaluate(
-                tenant_id=TENANT_ID,
-                subject_id=SUBJECT_ID,
-                correlation_id="cross-tenant-trust",
-                policy=policy,
-                trust_score=trust,
-                evaluated_at=NOW,
-            )
+        second = RiskRuleEngine().evaluate(
+            tenant_id=TENANT_ID,
+            subject_id=SUBJECT_ID,
+            correlation_id="determinism",
+            policy=policy,
+            trust_score=build_trust_score(score=20),
+            evaluated_at=NOW,
+            evaluation_id=UUID(int=202),
+        )
 
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_adversarial.py:283:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:1469: in evaluate
-    self._validate_scope(
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:1373: in _validate_scope
-    trust_score.assert_scope(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+>       assert first.determinism_key == second.determinism_key
+               ^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'RiskRuleEvaluation' object has no attribute 'determinism_key'
 
-self = TrustScore(tenant_id='776f4ea5-6550-483b-b64c-c0f20ebfae76', subject_id='93ccbc44-43b8-4156-908c-a9b764e66ffe', score=...es=('CORE-007.TRUST_SIGNAL',), confidence_metadata=mappingproxy({'signal_confidence_metadata': [], 'signal_count': 1}))
-tenant_id = 'ec901d95-2000-4a4e-abb3-210217776c27', subject_id = '93ccbc44-43b8-4156-908c-a9b764e66ffe'
-
-    def assert_scope(
-        self,
-        *,
-        tenant_id: str,
-        subject_id: str,
-    ) -> None:
-        if (
-            self.tenant_id != tenant_id
-            or self.subject_id != subject_id
-        ):
->           raise TrustScoreScopeError(
-                "Trust score crosses tenant or "
-                "subject scope."
-            )
-E           AUTONOMY_ENGINE.core.trust_fraud_governance.trust_score.TrustScoreScopeError: Trust score crosses tenant or subject scope.
-
-AUTONOMY_ENGINE\core\trust_fraud_governance\trust_score.py:872: TrustScoreScopeError
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_adversarial.py:442: AttributeError
 ================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_adversarial.py::test_cross_tenant_trust_input_is_rejected - AUTONOMY_ENGINE.core.trust_fraud_governance.trust_score.TrustScoreScopeError: Trust score crosses tenant or subject scope.
+FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_adversarial.py::test_evaluation_identity_is_deterministic - AttributeError: 'RiskRuleEvaluation' object has no attribute 'determinism_key'
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-1 failed, 67 passed in 0.36s
+1 failed, 72 passed in 0.39s
