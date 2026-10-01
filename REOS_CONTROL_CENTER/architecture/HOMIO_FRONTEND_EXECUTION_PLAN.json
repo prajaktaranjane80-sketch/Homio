@@ -1,0 +1,1097 @@
+{
+"document": {
+"name": "HOMIO Frontend Execution Plan",
+"version": "1.0",
+"status": "ACTIVE_EXECUTION_PLAN",
+"purpose": "Provide a durable, new-chat-safe implementation plan for the complete HOMIO F01-F13 frontend layer, including production modules, routes, state boundaries, REOS bindings, testing, dependency order and definition of done.",
+"scope": "Production frontend implementation only. Covers F01 through F13, shared frontend engineering modules, prototype migration, REOS integration boundaries, verification and delivery sequence.",
+"authority": {
+"frontend_blueprint": "REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json remains the canonical frontend experience and UX boundary.",
+"this_plan": "This document is the canonical frontend coding execution plan and module registry. It does not become a second architecture.",
+"master_architecture": "REOS_CONTROL_CENTER/architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json remains the canonical overall architecture and business authority.",
+"project_state": "REOS_CONTROL_CENTER/data/state.json remains the canonical project-state and execution-state authority.",
+"code": "Git branch and implementation workspaces remain the canonical code reference.",
+"acrl": "ACRL remains an engineering-time continuity, repository-intelligence, impact-analysis, diagnosis, repair and verification boundary. It is not a frontend runtime dependency.",
+"control_center": "Control Center remains authoritative for project execution, verification and approval state.",
+"chat": "Chat is communication only and never becomes project state."
+},
+"implementation_boundary": {
+"production_frontend_root": "REOS_CONTROL_CENTER/Frontend",
+"engineering_worktree": "D:\HOMIO_FRONTEND_WORK",
+"engineering_branch": "frontend-development",
+"canonical_integration_branch": "reos-development",
+"prototype": "REOS_CONTROL_CENTER/Frontend/index.html",
+"prototype_role": "Visual and interaction reference only. It is not production architecture or canonical business data.",
+"approved_runtime": "ARCH-038 approved Next.js, React, TypeScript and Node.js stack."
+}
+},
+
+"execution_invariants": {
+"single_frontend_execution_plan": true,
+"single_frontend_blueprint": true,
+"single_master_architecture": true,
+"single_business_source_of_truth_per_responsibility": true,
+"frontend_is_not_business_authority": true,
+"frontend_does_not_duplicate_core_engines": true,
+"frontend_does_not_duplicate_search_engine": true,
+"frontend_does_not_duplicate_inventory_authority": true,
+"frontend_does_not_duplicate_lead_or_ownership_authority": true,
+"frontend_does_not_duplicate_deal_authority": true,
+"frontend_does_not_duplicate_trust_fraud_governance": true,
+"frontend_does_not_duplicate_commission_financial_logic": true,
+"frontend_does_not_duplicate_identity_or_tenant_authority": true,
+"frontend_does_not_use_acrl_at_runtime": true,
+"frontend_does_not_use_state_json_as_runtime_data": true,
+"frontend_does_not_use_master_architecture_json_as_runtime_data": true,
+"frontend_does_not_invent_unverified_api_contracts": true,
+"frontend_does_not_store_canonical_business_truth_in_browser_state": true,
+"frontend_must_fail_safely_on_unknown_capability": true
+},
+
+"production_structure": {
+"root": "REOS_CONTROL_CENTER/Frontend",
+"target_structure": {
+"config": [
+"package.json",
+"next.config.ts",
+"tsconfig.json",
+"eslint.config.*"
+],
+"app": [
+"src/app/layout.tsx",
+"src/app/page.tsx",
+"src/app/search/page.tsx",
+"src/app/property/[propertyId]/page.tsx",
+"src/app/project/[projectId]/page.tsx",
+"src/app/market/[marketId]/page.tsx",
+"src/app/saved/page.tsx",
+"src/app/compare/page.tsx",
+"src/app/my/page.tsx",
+"src/app/ai/page.tsx",
+"src/app/visit/[visitId]/page.tsx",
+"src/app/deal/[dealId]/page.tsx",
+"src/app/pro/page.tsx",
+"src/app/pro/leads/page.tsx",
+"src/app/pro/inventory/page.tsx",
+"src/app/pro/communications/page.tsx",
+"src/app/pro/deals/page.tsx"
+],
+"components": [
+"src/components/ui",
+"src/components/shell",
+"src/components/navigation",
+"src/components/search",
+"src/components/property",
+"src/components/project",
+"src/components/compare",
+"src/components/journey",
+"src/components/ai",
+"src/components/action",
+"src/components/professional"
+],
+"features": [
+"src/features/f01_experience_foundation",
+"src/features/f02_home_discovery",
+"src/features/f03_search",
+"src/features/f04_property",
+"src/features/f05_project_collection",
+"src/features/f06_save_compare",
+"src/features/f07_my_homio",
+"src/features/f08_ai_context",
+"src/features/f09_enquiry_visit",
+"src/features/f10_transaction_journey",
+"src/features/f11_professional_saas",
+"src/features/f12_globalization",
+"src/features/f13_production_quality"
+],
+"lib": [
+"src/lib/reos",
+"src/lib/frontend-state",
+"src/lib/routing",
+"src/lib/formatting",
+"src/lib/media",
+"src/lib/security",
+"src/lib/observability",
+"src/lib/accessibility"
+],
+"types": [
+"src/types/reos",
+"src/types/frontend"
+],
+"tests": [
+"src/tests/unit",
+"src/tests/integration",
+"src/tests/e2e",
+"src/tests/accessibility",
+"src/tests/visual"
+]
+}
+},
+
+"shared_modules": {
+"SH01": {
+"name": "App Shell",
+"purpose": "Global visual and responsive application frame.",
+"modules": [
+"AppShell",
+"Header",
+"ContextBar",
+"ResponsiveNavigation",
+"PageContainer",
+"GlobalActionLayer"
+],
+"owns": [
+"layout composition",
+"responsive shell",
+"global navigation placement"
+],
+"must_not_own": [
+"business decisions",
+"domain lifecycle",
+"canonical business state"
+]
+},
+"SH02": {
+"name": "Design System",
+"purpose": "Reusable visual primitives and accessibility-safe UI building blocks.",
+"modules": [
+"Button",
+"Input",
+"SearchField",
+"Select",
+"Chip",
+"Badge",
+"Card",
+"PropertyCard",
+"ProjectCard",
+"Avatar",
+"Tabs",
+"Modal",
+"Drawer",
+"BottomSheet",
+"Toast",
+"Tooltip",
+"Skeleton",
+"EmptyState",
+"ErrorState"
+]
+},
+"SH03": {
+"name": "Navigation and Routing",
+"purpose": "Route composition, deep linking and safe context preservation.",
+"modules": [
+"RouteRegistry",
+"RouteGuardAdapter",
+"DeepLinkResolver",
+"ReturnContext",
+"SearchContextSerializer",
+"NavigationContext"
+],
+"boundary": "Authorization remains server-side; these modules only integrate with approved authorization/session capabilities."
+},
+"SH04": {
+"name": "Frontend State",
+"purpose": "UI and journey state only.",
+"modules": [
+"SearchViewState",
+"CompareViewState",
+"JourneyViewState",
+"NavigationViewState",
+"AIContextViewState",
+"NotificationViewState"
+],
+"forbidden": [
+"canonical ownership state",
+"canonical deal state",
+"canonical financial state",
+"canonical identity authority",
+"canonical inventory authority"
+]
+},
+"SH05": {
+"name": "REOS Binding Layer",
+"purpose": "Controlled frontend consumption of verified REOS capabilities.",
+"modules": [
+"REOS capability registry",
+"typed binding adapters",
+"response normalization adapters",
+"capability availability guards",
+"provenance/freshness adapters"
+],
+"rule": "No adapter may invent a backend contract. Every production binding must reference a verified REOS capability."
+},
+"SH06": {
+"name": "Security and Session Integration",
+"purpose": "Frontend-facing session and authorization integration.",
+"modules": [
+"SessionContext",
+"ProtectedRouteBoundary",
+"UnauthorizedState",
+"SessionExpiryRecovery",
+"SafeActionBoundary"
+],
+"rule": "Frontend visibility is never the authorization authority."
+},
+"SH07": {
+"name": "Media",
+"purpose": "Safe property/project media rendering.",
+"modules": [
+"ImageGallery",
+"ResponsiveMedia",
+"VideoFrame",
+"FloorPlanViewer",
+"VirtualTourFrame",
+"MediaPlaceholder",
+"MediaFailureState"
+]
+},
+"SH08": {
+"name": "Formatting",
+"purpose": "Display-only formatting of canonical data.",
+"modules": [
+"CurrencyFormatter",
+"AreaFormatter",
+"DateTimeFormatter",
+"LocationFormatter",
+"PropertyFactFormatter",
+"StatusFormatter"
+],
+"rule": "Formatting must never change canonical business meaning."
+},
+"SH09": {
+"name": "Observability",
+"purpose": "Frontend telemetry and diagnostics without becoming business truth.",
+"modules": [
+"ExperienceEventEmitter",
+"ErrorReporterAdapter",
+"PerformanceReporter",
+"NavigationTelemetry"
+]
+},
+"SH10": {
+"name": "Accessibility",
+"purpose": "Cross-product accessibility utilities and conventions.",
+"modules": [
+"FocusBoundary",
+"KeyboardNavigation",
+"AccessibleDialog",
+"AccessibleDrawer",
+"AriaStateHelpers",
+"ReducedMotion"
+]
+}
+},
+
+"f_layer_execution": {
+"F01": {
+"name": "HOMIO Experience Foundation",
+"goal": "Build the production frontend shell, runtime foundation, design system, responsive structure, routing foundation and shared primitives.",
+"primary_routes": [
+"/"
+],
+"modules": [
+"AppShell",
+"Header",
+"GlobalSearch",
+"ResponsiveNavigation",
+"ContextBar",
+"PageContainer",
+"Breadcrumbs",
+"Toast",
+"Modal",
+"Drawer",
+"BottomSheet",
+"Skeleton",
+"EmptyState",
+"ErrorState",
+"GlobalActionLayer"
+],
+"engineering_modules": [
+"Next.js App Router foundation",
+"root layout",
+"providers",
+"theme/tokens",
+"global styles",
+"responsive breakpoints",
+"error boundaries",
+"loading boundaries"
+],
+"depends_on": [],
+"outputs": [
+"production frontend shell",
+"shared design primitives",
+"responsive foundation",
+"route foundation",
+"test harness"
+],
+"verification": [
+"type check",
+"lint",
+"unit tests",
+"responsive checks",
+"accessibility checks",
+"production build"
+],
+"done_when": [
+"Production app starts.",
+"Global shell works on desktop/tablet/mobile.",
+"Shared primitives are reusable.",
+"No prototype monolith is carried into production architecture.",
+"No business engine exists in frontend foundation."
+]
+},
+
+```
+"F02": {
+  "name": "Global HOMIO Home and Discovery",
+  "goal": "Create the first useful entry into HOMIO and start a real discovery journey.",
+  "primary_routes": [
+    "/"
+  ],
+  "modules": [
+    "HomeHero",
+    "IntentSearch",
+    "CategorySelector",
+    "MarketCard",
+    "PropertyCard",
+    "ProjectCard",
+    "FeaturedDiscovery",
+    "ContinueJourneyCard",
+    "TrustSignal"
+  ],
+  "depends_on": [
+    "F01"
+  ],
+  "REOS_bindings": [
+    "verified discovery capabilities",
+    "verified market/property/project presentation capabilities",
+    "verified journey continuation capability where available"
+  ],
+  "forbidden": [
+    "hardcoded canonical inventory",
+    "fake market statistics",
+    "frontend recommendation engine"
+  ],
+  "done_when": [
+    "First-time user can start a useful search immediately.",
+    "Returning user can resume meaningful activity.",
+    "Home remains data-driven.",
+    "No mock business truth is shipped."
+  ]
+},
+
+"F03": {
+  "name": "Search Experience",
+  "goal": "Provide simple, powerful search while preserving context.",
+  "primary_routes": [
+    "/search"
+  ],
+  "modules": [
+    "SearchPage",
+    "SearchBar",
+    "IntentParserAdapter",
+    "SearchToolbar",
+    "FilterPanel",
+    "FilterDrawer",
+    "ResultGrid",
+    "ResultList",
+    "PropertyCard",
+    "ProjectCard",
+    "MapContext",
+    "SortControl",
+    "SearchContext",
+    "SaveSearchAction"
+  ],
+  "depends_on": [
+    "F01",
+    "F02"
+  ],
+  "REOS_bindings": [
+    "CORE-005 search/matching capability",
+    "verified location/search contracts"
+  ],
+  "state": [
+    "search intent",
+    "filters",
+    "sort",
+    "selected result",
+    "map viewport when relevant",
+    "return point"
+  ],
+  "done_when": [
+    "Useful results appear from verified REOS capability.",
+    "Search context survives property navigation.",
+    "Desktop/tablet/mobile search behavior is intentional.",
+    "No frontend search engine is created."
+  ]
+},
+
+"F04": {
+  "name": "Property Experience",
+  "goal": "Turn canonical property data into a deep but easy-to-understand decision experience.",
+  "primary_routes": [
+    "/property/[propertyId]"
+  ],
+  "modules": [
+    "PropertyPage",
+    "PropertyGallery",
+    "PropertySummary",
+    "PropertyFacts",
+    "PropertyCommercialSummary",
+    "PropertyLocation",
+    "PropertyProjectContext",
+    "PropertyTrustContext",
+    "PropertyAIContext",
+    "PropertyActions",
+    "SimilarProperties"
+  ],
+  "depends_on": [
+    "F03"
+  ],
+  "REOS_bindings": [
+    "CORE-004 inventory capability",
+    "CORE-005 search/matching capability",
+    "verified trust/evidence presentation capability"
+  ],
+  "done_when": [
+    "Property information is canonical and current.",
+    "Media works responsively.",
+    "Save/compare/action entry points exist.",
+    "Trust/evidence information is presented without becoming frontend authority."
+  ]
+},
+
+"F05": {
+  "name": "Project and Collection Experience",
+  "goal": "Connect individual property discovery to project-level and collection-level exploration.",
+  "primary_routes": [
+    "/project/[projectId]",
+    "/market/[marketId]"
+  ],
+  "modules": [
+    "ProjectPage",
+    "ProjectIdentity",
+    "ProjectOverview",
+    "ProjectFacts",
+    "ProjectLocation",
+    "ProjectInventorySummary",
+    "ProjectAmenities",
+    "ProjectInventoryGrid",
+    "RelatedProjects",
+    "MarketContext"
+  ],
+  "depends_on": [
+    "F03",
+    "F04"
+  ],
+  "REOS_bindings": [
+    "CORE-004 inventory capability",
+    "CORE-005 search/matching capability",
+    "verified market/project capabilities"
+  ],
+  "done_when": [
+    "Project and property navigation is seamless.",
+    "Inventory is canonical.",
+    "Project context does not create duplicate inventory ownership."
+  ]
+},
+
+"F06": {
+  "name": "Save, Compare and Return",
+  "goal": "Help users organize decisions without turning comparison into a database dump.",
+  "primary_routes": [
+    "/saved",
+    "/compare"
+  ],
+  "modules": [
+    "SaveAction",
+    "SavedCollection",
+    "CompareSelector",
+    "CompareTable",
+    "CompareCard",
+    "ComparisonGroup",
+    "DecisionSummary",
+    "ReturnToContext"
+  ],
+  "depends_on": [
+    "F03",
+    "F04",
+    "F05"
+  ],
+  "REOS_bindings": [
+    "verified saved-state capability",
+    "verified comparison-capable data"
+  ],
+  "state": [
+    "saved items",
+    "compare set",
+    "return context"
+  ],
+  "done_when": [
+    "Saving is simple.",
+    "Comparison focuses on meaningful decision attributes.",
+    "Signed-in state can persist through approved REOS capabilities.",
+    "No business ownership or inventory logic is duplicated."
+  ]
+},
+
+"F07": {
+  "name": "My HOMIO Journey",
+  "goal": "Give users one place to resume meaningful real-estate activity.",
+  "primary_routes": [
+    "/my"
+  ],
+  "modules": [
+    "MyHOMIOPage",
+    "ContinueJourney",
+    "RecentlyViewed",
+    "SavedProperties",
+    "SavedSearches",
+    "CompareResume",
+    "PendingActions",
+    "UpcomingVisit",
+    "ActiveConversation",
+    "JourneyTimeline"
+  ],
+  "depends_on": [
+    "F06"
+  ],
+  "REOS_bindings": [
+    "verified customer/journey capability",
+    "verified saved/visit/enquiry/deal references"
+  ],
+  "rule": "My HOMIO aggregates authorized references; it does not become a second business-state database.",
+  "done_when": [
+    "User can resume prior activity.",
+    "Journey state is traceable to canonical capabilities.",
+    "No frontend database becomes the source of truth."
+  ]
+},
+
+"F08": {
+  "name": "Contextual AI",
+  "goal": "Provide grounded AI assistance inside the user's current real-estate context.",
+  "primary_routes": [
+    "/ai"
+  ],
+  "modules": [
+    "AIContextPanel",
+    "AIMessageList",
+    "AIInput",
+    "ContextSummary",
+    "PropertyQuestionPanel",
+    "ComparisonExplanation",
+    "SearchRefinementAssistant",
+    "AIActionSuggestion"
+  ],
+  "depends_on": [
+    "F03",
+    "F04",
+    "F06",
+    "F07"
+  ],
+  "REOS_bindings": [
+    "verified intelligence capabilities",
+    "verified property/search/comparison context"
+  ],
+  "forbidden": [
+    "AI making final authorization decisions",
+    "AI inventing property facts",
+    "AI creating canonical deal/ownership/financial state",
+    "AI replacing normal UI where normal UI is safer or simpler"
+  ],
+  "done_when": [
+    "AI remains contextual.",
+    "Grounding/source context is preserved where available.",
+    "Unavailable actions are not falsely claimed.",
+    "AI cannot override REOS authority."
+  ]
+},
+
+"F09": {
+  "name": "Enquiry and Visit",
+  "goal": "Turn discovery into controlled real-world action.",
+  "primary_routes": [
+    "/visit/[visitId]"
+  ],
+  "modules": [
+    "EnquiryAction",
+    "EnquiryForm",
+    "ContactContext",
+    "VisitRequest",
+    "VisitSchedule",
+    "VisitStatus",
+    "VisitConfirmation",
+    "CommunicationEntry",
+    "ActionStatus"
+  ],
+  "depends_on": [
+    "F04",
+    "F07",
+    "F08"
+  ],
+  "REOS_bindings": [
+    "CORE-003 lead/ownership capability",
+    "verified communication capability",
+    "verified visit capability"
+  ],
+  "rule": "Frontend initiates authorized actions and displays authoritative results. It does not own lead, visit or communication truth.",
+  "done_when": [
+    "Enquiry flow is clear.",
+    "Visit flow handles loading, confirmation, failure and authorization.",
+    "Duplicate submissions are prevented where appropriate."
+  ]
+},
+
+"F10": {
+  "name": "Transaction Journey",
+  "goal": "Expose authorized transaction progress without recreating the transaction engine.",
+  "primary_routes": [
+    "/deal/[dealId]"
+  ],
+  "modules": [
+    "DealOverview",
+    "DealStatus",
+    "TransactionMilestones",
+    "RequiredActions",
+    "EvidenceContext",
+    "PartySummary",
+    "TransactionTimeline",
+    "DealDocuments",
+    "TransactionNextStep"
+  ],
+  "depends_on": [
+    "F07",
+    "F09"
+  ],
+  "REOS_bindings": [
+    "CORE-006 deal/transaction capability",
+    "CORE-007 trust/fraud/governance capability where surfaced",
+    "verified evidence references"
+  ],
+  "forbidden": [
+    "frontend deal state machine",
+    "frontend contract authority",
+    "frontend payment ledger",
+    "frontend ownership authority"
+  ],
+  "done_when": [
+    "Authorized transaction state is clearly displayed.",
+    "Milestones and next actions are grounded in REOS.",
+    "Historical/evidence references are presented safely."
+  ]
+},
+
+"F11": {
+  "name": "Professional SaaS",
+  "goal": "Provide role-appropriate professional workspaces without creating a second platform architecture.",
+  "primary_routes": [
+    "/pro",
+    "/pro/leads",
+    "/pro/inventory",
+    "/pro/communications",
+    "/pro/deals"
+  ],
+  "modules": [
+    "ProfessionalShell",
+    "RoleContext",
+    "LeadWorkspace",
+    "InventoryWorkspace",
+    "CommunicationWorkspace",
+    "DealWorkspace",
+    "ProfessionalDashboard",
+    "ProfessionalFilters",
+    "ProfessionalActionBar"
+  ],
+  "depends_on": [
+    "F01",
+    "F07",
+    "F09",
+    "F10"
+  ],
+  "REOS_bindings": [
+    "CORE-001 identity/tenant authority",
+    "CORE-003 lead/ownership authority",
+    "CORE-004 inventory authority",
+    "CORE-006 deal authority",
+    "CORE-007 governance/trust capability",
+    "future CORE-008 financial/commission capability where verified"
+  ],
+  "rule": "Professional SaaS is a frontend experience layer over existing authorities, never an additional domain engine.",
+  "done_when": [
+    "Role-aware workspace exists.",
+    "Authorization is server authoritative.",
+    "Professional actions map to verified REOS capabilities."
+  ]
+},
+
+"F12": {
+  "name": "Globalization and International Experience",
+  "goal": "Prepare HOMIO for multi-market, multilingual and localized real-estate experiences.",
+  "primary_routes": [
+    "locale-prefixed public routes where approved",
+    "market-aware discovery routes"
+  ],
+  "modules": [
+    "LocaleProvider",
+    "CurrencyDisplay",
+    "DateTimeLocalization",
+    "UnitLocalization",
+    "AddressLocalization",
+    "MarketContext",
+    "LanguageSelector",
+    "RegionSelector",
+    "RTLSupport",
+    "LocalizedSEO"
+  ],
+  "depends_on": [
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05"
+  ],
+  "forbidden": [
+    "hardcoded country business rules in presentation components",
+    "duplicate currency truth",
+    "duplicate tax/legal authority"
+  ],
+  "done_when": [
+    "Locale display is consistent.",
+    "Market-specific presentation is configurable.",
+    "Canonical business rules remain in authoritative REOS capabilities."
+  ]
+},
+
+"F13": {
+  "name": "Production Quality and Launch Readiness",
+  "goal": "Turn the completed experience layer into a measurable production-quality frontend.",
+  "modules": [
+    "PerformanceBudget",
+    "ImageOptimization",
+    "CachingBoundary",
+    "ErrorRecovery",
+    "AccessibilityAudit",
+    "SecurityHardening",
+    "SEOValidation",
+    "VisualRegression",
+    "E2EJourney",
+    "TelemetryValidation",
+    "ProductionBuildGate"
+  ],
+  "depends_on": [
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05",
+    "F06",
+    "F07",
+    "F08",
+    "F09",
+    "F10",
+    "F11",
+    "F12"
+  ],
+  "verification_layers": [
+    "unit",
+    "integration",
+    "navigation",
+    "responsive",
+    "accessibility",
+    "visual regression",
+    "critical E2E",
+    "performance",
+    "security",
+    "production build"
+  ],
+  "critical_journey": [
+    "Open HOMIO",
+    "Start search",
+    "View results",
+    "Open property",
+    "Save",
+    "Explore similar",
+    "Compare",
+    "Ask HOMIO",
+    "Start enquiry or visit",
+    "Open My HOMIO",
+    "Return and resume"
+  ],
+  "done_when": [
+    "Critical journey passes.",
+    "Production build passes.",
+    "No duplicate business authority exists.",
+    "No ACRL runtime dependency exists.",
+    "Responsive/accessibility/security checks pass.",
+    "Performance meets approved project targets."
+  ]
+}
+```
+
+},
+
+"f_layer_dependency_graph": {
+"foundation": [
+"F01"
+],
+"discovery": [
+"F02",
+"F03"
+],
+"exploration": [
+"F04",
+"F05"
+],
+"decision": [
+"F06",
+"F07"
+],
+"action_intelligence": [
+"F08",
+"F09"
+],
+"transaction_professional": [
+"F10",
+"F11"
+],
+"global_production": [
+"F12",
+"F13"
+],
+"primary_sequence": [
+"F01",
+"F02",
+"F03",
+"F04",
+"F05",
+"F06",
+"F07",
+"F08",
+"F09",
+"F10",
+"F11",
+"F12",
+"F13"
+],
+"parallelization_rule": "Only modules with no unresolved shared dependency may be developed in parallel. Shared primitives and REOS binding boundaries must stabilize before dependent slices proceed."
+},
+
+"reos_binding_registry": {
+"B01": {
+"consumer": "F03 Search",
+"authority": "CORE-005",
+"frontend_role": "search request/response presentation and context preservation"
+},
+"B02": {
+"consumer": "F04/F05 Property and Project",
+"authority": "CORE-004",
+"frontend_role": "inventory presentation"
+},
+"B03": {
+"consumer": "F09 Enquiry and Visit",
+"authority": "CORE-003 plus verified communication/visit capabilities",
+"frontend_role": "authorized action initiation and result presentation"
+},
+"B04": {
+"consumer": "F10 Transaction",
+"authority": "CORE-006",
+"frontend_role": "transaction state presentation"
+},
+"B05": {
+"consumer": "F10/F11 trust states",
+"authority": "CORE-007",
+"frontend_role": "authorized trust/governance information presentation"
+},
+"B06": {
+"consumer": "F11 Professional SaaS",
+"authority": "CORE-001 and relevant core authorities",
+"frontend_role": "role-aware experience boundary"
+},
+"B07": {
+"consumer": "F13 future financial surfaces",
+"authority": "CORE-008 when verified",
+"frontend_role": "financial presentation only"
+}
+},
+
+"frontend_state_model": {
+"canonical_business_state": "REOS",
+"frontend_owned_state": [
+"navigation state",
+"view state",
+"filter presentation state",
+"temporary form state",
+"loading state",
+"error state",
+"AI interaction state",
+"responsive UI state",
+"temporary optimistic UI where explicitly safe"
+],
+"persisted_user_state": "Only through approved REOS capabilities or approved frontend persistence for non-authoritative UX preferences.",
+"forbidden_persistence": [
+"canonical deal state",
+"canonical ownership state",
+"canonical financial truth",
+"canonical authorization state",
+"canonical inventory truth"
+]
+},
+
+"testing_strategy": {
+"unit": [
+"shared UI primitives",
+"formatters",
+"frontend state helpers",
+"route helpers",
+"display adapters"
+],
+"integration": [
+"REOS binding adapters",
+"authorization-aware views",
+"loading/empty/error states",
+"navigation/context persistence"
+],
+"e2e": [
+"search to property",
+"property to save",
+"property to compare",
+"property to enquiry",
+"visit journey",
+"My HOMIO resume",
+"transaction view",
+"professional workspace access"
+],
+"visual": [
+"home",
+"search",
+"property",
+"project",
+"compare",
+"My HOMIO",
+"professional workspace"
+],
+"accessibility": [
+"keyboard",
+"focus",
+"ARIA",
+"dialogs",
+"drawers",
+"forms",
+"reduced motion"
+],
+"performance": [
+"initial shell",
+"route transitions",
+"large property media",
+"long search results",
+"mobile network behavior"
+],
+"security": [
+"protected routes",
+"session expiry",
+"unauthorized action blocking",
+"safe rendering",
+"sensitive data handling"
+]
+},
+
+"coding_rules": {
+"rule_01": "Before creating a module, check whether a shared module or existing REOS capability already solves the requirement.",
+"rule_02": "Feature modules own presentation and UX composition, not canonical business logic.",
+"rule_03": "Use adapters only for verified capabilities.",
+"rule_04": "Do not create generic Manager, Service or Engine classes merely for naming symmetry.",
+"rule_05": "Do not mirror CORE-001 through CORE-008 structure inside frontend features.",
+"rule_06": "Do not import ACRL into production frontend code.",
+"rule_07": "Do not read state.json from the browser.",
+"rule_08": "Do not read Master Architecture JSON from the browser.",
+"rule_09": "Do not invent API endpoints because a UI needs data.",
+"rule_10": "A missing backend capability becomes a clear unavailable/error state, not a fabricated frontend implementation.",
+"rule_11": "Preserve user search and journey context wherever practical.",
+"rule_12": "Every action requires clear pending, success, failure and unauthorized handling where relevant.",
+"rule_13": "Mobile, tablet and desktop are intentional interaction modes.",
+"rule_14": "Accessibility is implemented with the feature, not after it.",
+"rule_15": "Prototype visual quality may be reused, but prototype architecture is not."
+},
+
+"delivery_gates": {
+"G01": "F01 foundation complete and production build valid.",
+"G02": "F02-F03 discovery flow functional.",
+"G03": "F04-F05 property/project exploration functional.",
+"G04": "F06-F07 decision and journey continuity functional.",
+"G05": "F08-F09 AI and action flows functional.",
+"G06": "F10-F11 transaction and professional surfaces functional.",
+"G07": "F12 globalization baseline complete.",
+"G08": "F13 full production quality verification complete."
+},
+
+"new_chat_bootstrap": {
+"read_first": [
+"REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json",
+"REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_EXECUTION_PLAN.json",
+"REOS_CONTROL_CENTER/architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json",
+"REOS_CONTROL_CENTER/data/state.json"
+],
+"then_check": [
+"current frontend branch",
+"current frontend worktree",
+"current F-layer status in this plan",
+"latest relevant frontend verification output"
+],
+"never_assume": [
+"current F-layer completion",
+"current REOS API availability",
+"backend contract shape",
+"frontend branch cleanliness",
+"ACRL runtime availability",
+"business ownership from UI references"
+],
+"continuation_rule": "Resume from the first incomplete F-layer gate. Do not restart completed F-layers without evidence of regression."
+},
+
+"live_status_board": {
+"F01": "PENDING",
+"F02": "PENDING",
+"F03": "PENDING",
+"F04": "PENDING",
+"F05": "PENDING",
+"F06": "PENDING",
+"F07": "PENDING",
+"F08": "PENDING",
+"F09": "PENDING",
+"F10": "PENDING",
+"F11": "PENDING",
+"F12": "PENDING",
+"F13": "PENDING",
+"overall": "NOT_COMPLETE"
+},
+
+"definition_of_done": {
+"architecture": [
+"Frontend remains subordinate to the Master Architecture.",
+"Frontend does not create a second business architecture.",
+"No duplicate canonical domain engine exists."
+],
+"implementation": [
+"F01-F13 are implemented according to the module registry.",
+"All production routes are intentional and verified.",
+"REOS bindings are explicit.",
+"Prototype is migrated without carrying monolithic architecture into production."
+],
+"quality": [
+"Unit tests pass.",
+"Integration tests pass.",
+"Critical E2E journey passes.",
+"Accessibility verification passes.",
+"Responsive verification passes.",
+"Security verification passes.",
+"Production build passes.",
+"Performance verification passes."
+],
+"continuity": [
+"This plan remains in the repository.",
+"Current F-layer status is maintained here.",
+"New chats can resume from this plan without reconstructing the entire frontend strategy."
+]
+}
+}
