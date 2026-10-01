@@ -1,20 +1,13 @@
+======================================================================== FAILURES =========================================================================
+________________________________________________________ test_invalid_fraud_rule_shape_is_rejected ________________________________________________________
 
-    def test_disabled_rule_never_matches() -> None:
-        rule = trust_rule(enabled=False)
+    def test_invalid_fraud_rule_shape_is_rejected() -> None:
+>       with pytest.raises(RiskRuleValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RiskRuleValidationError
 
-        assert not rule.is_active(NOW)
-
->       assert not rule.matches(
-            trust_score=build_trust_score(score=20),
-            fraud_assessment=None,
-        )
-E       AssertionError: assert not True
-E        +  where True = matches(trust_score=TrustScore(tenant_id='ce817897-7fb6-43ac-8b7a-b912a3750478', subject_id='c9d4319c-9071-446d-a798-4b76ba3b673c', score=...es=('CORE-007.TRUST_SIGNAL',), confidence_metadata=mappingproxy({'signal_confidence_metadata': [], 'signal_count': 1})), fraud_assessment=None)
-E        +    where matches = RiskRule(rule_id='TRUST-LOW', version='1.0', priority=100, condition=<RiskRuleCondition.TRUST_SCORE_RANGE: 'TRUST_SCOR...on=1, scope={}, applicability={}, precedence=None, exception_reference=None, provenance_reference='CORE-007.RISK_RULE').matches
-E        +    and   TrustScore(tenant_id='ce817897-7fb6-43ac-8b7a-b912a3750478', subject_id='c9d4319c-9071-446d-a798-4b76ba3b673c', score=...es=('CORE-007.TRUST_SIGNAL',), confidence_metadata=mappingproxy({'signal_confidence_metadata': [], 'signal_count': 1})) = build_trust_score(score=20)
-
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_adversarial.py:201: AssertionError
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_adversarial.py:256: Failed
 ================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_adversarial.py::test_disabled_rule_never_matches - AssertionError: assert not True
+FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_adversarial.py::test_invalid_fraud_rule_shape_is_rejected - Failed: DID NOT RAISE RiskRuleValidationError
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-1 failed, 60 passed in 0.36s
+1 failed, 66 passed in 0.36s
