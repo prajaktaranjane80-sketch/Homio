@@ -1,74 +1,39 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python ".\reos_control_center.py" verify-state
-Traceback (most recent call last):
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1237, in <module>
-    main()
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1169, in main
-    parser = build_parser()
-             ^^^^^^^^^^^^^^
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1148, in build_parser
-    p = sub.add_parser("repair-arch039-transition")
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\argparse.py", line 1218, in add_parser
-    raise ArgumentError(self, _('conflicting subparser: %s') % name)
-argparse.ArgumentError: argument cmd: conflicting subparser: repair-arch039-transition
-PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "FAIL-CLOSED: canonical state integrity check failed."
+>>     throw "C1 architecture integrity tests FAILED."
 >> }
-FAIL-CLOSED: canonical state integrity check failed.
+C1 architecture integrity tests FAILED.
 At line:2 char:5
-+     throw "FAIL-CLOSED: canonical state integrity check failed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (FAIL-CLOSED: ca...y check failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : FAIL-CLOSED: canonical state integrity check failed.
++     throw "C1 architecture integrity tests FAILED."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (C1 architecture integrity tests FAILED.:String) [], RuntimeException
+    + FullyQualifiedErrorId : C1 architecture integrity tests FAILED.
 
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "C1 ROOT CONTROL CENTER = READY"
-C1 ROOT CONTROL CENTER = READY
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "FRONTEND FILES = NOT TOUCHED"
-FRONTEND FILES = NOT TOUCHED
-PS D:\HOMIO\REOS_CONTROL_CENTER> python ".\reos_control_center.py" repair-arch039-transition
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -c "import sys; sys.path.insert(0,'.'); from architecture.architecture_integrity import run_integrity_check; from pathlib import Path; r=run_integrity_check(Path('.')); print('C1 ARCHITECTURE INTEGRITY:','PASS' if r.ok else 'FAIL'); [print(f'[{x.code}] {x.message}') for x in r.issues]"
 Traceback (most recent call last):
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1237, in <module>
-    main()
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1169, in main
-    parser = build_parser()
-             ^^^^^^^^^^^^^^
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1148, in build_parser
-    p = sub.add_parser("repair-arch039-transition")
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\argparse.py", line 1218, in add_parser
-    raise ArgumentError(self, _('conflicting subparser: %s') % name)
-argparse.ArgumentError: argument cmd: conflicting subparser: repair-arch039-transition
+  File "<string>", line 1, in <module>
+ModuleNotFoundError: No module named 'architecture.architecture_integrity'
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python ".\reos_control_center.py" status
-Traceback (most recent call last):
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1237, in <module>
-    main()
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1169, in main
-    parser = build_parser()
-             ^^^^^^^^^^^^^^
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1148, in build_parser
-    p = sub.add_parser("repair-arch039-transition")
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\argparse.py", line 1218, in add_parser
-    raise ArgumentError(self, _('conflicting subparser: %s') % name)
-argparse.ArgumentError: argument cmd: conflicting subparser: repair-arch039-transition
+PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check -- ".\architecture\architecture_integrity.py" ".\architecture\test_architecture_integrity.py"
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python ".\reos_control_center.py" verify-state
-Traceback (most recent call last):
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1237, in <module>
-    main()
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1169, in main
-    parser = build_parser()
-             ^^^^^^^^^^^^^^
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1148, in build_parser
-    p = sub.add_parser("repair-arch039-transition")
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\argparse.py", line 1218, in add_parser
-    raise ArgumentError(self, _('conflicting subparser: %s') % name)
-argparse.ArgumentError: argument cmd: conflicting subparser: repair-arch039-transition
-PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
+ M AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py
+ M AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
+ M AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py
+ M AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py
+ M data/state.json
+ M reos_control_center.py
+?? AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py.before-fraud-compatibility-fix.bak
+?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-condition-shape-rootfix.bak
+?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-determinism-key-rootfix.bak
+?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-disabled-rule-rootfix.bak
+?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-evaluation-freeze-fix.bak
+?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-fraud-evidence-rootfix.bak
+?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-trust-model-evidence-rootfix.bak
+?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-trust-scope-rootfix.bak
+?? AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py.before-fraud-fixture-scope-rootfix.bak
+?? AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py.before-metadata-fix.bak
+?? AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py.before-trustscore-fingerprint-rootfix.bak
+?? reos_control_center.py.before-C1-parser-repair.bak
+?? snapshots/state_20261001_183859_268694.json
+?? ../REOS_LAYER_BACKUP_CORE007_ROOTFIX_20261001_185255/
