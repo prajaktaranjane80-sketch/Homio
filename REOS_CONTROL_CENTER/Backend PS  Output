@@ -1,34 +1,74 @@
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status
-On branch reos-development
-Your branch and 'origin/reos-development' have diverged,
-and have 2 and 30 different commits each, respectively.
-  (use "git pull" if you want to integrate the remote branch with yours)
+PS D:\HOMIO\REOS_CONTROL_CENTER> python ".\reos_control_center.py" verify-state
+Traceback (most recent call last):
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1237, in <module>
+    main()
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1169, in main
+    parser = build_parser()
+             ^^^^^^^^^^^^^^
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1148, in build_parser
+    p = sub.add_parser("repair-arch039-transition")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\argparse.py", line 1218, in add_parser
+    raise ArgumentError(self, _('conflicting subparser: %s') % name)
+argparse.ArgumentError: argument cmd: conflicting subparser: repair-arch039-transition
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "FAIL-CLOSED: canonical state integrity check failed."
+>> }
+FAIL-CLOSED: canonical state integrity check failed.
+At line:2 char:5
++     throw "FAIL-CLOSED: canonical state integrity check failed."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FAIL-CLOSED: ca...y check failed.:String) [], RuntimeException
+    + FullyQualifiedErrorId : FAIL-CLOSED: canonical state integrity check failed.
 
-Changes not staged for commit:
-  (use "git add <file>..." to update what will be committed)
-  (use "git restore <file>..." to discard changes in working directory)
-        modified:   AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py
-        modified:   AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
-        modified:   AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py
-        modified:   AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py
-        modified:   data/state.json
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
 
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-        AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py.before-fraud-compatibility-fix.bak
-        AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-condition-shape-rootfix.bak
-        AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-determinism-key-rootfix.bak
-        AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-disabled-rule-rootfix.bak
-        AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-evaluation-freeze-fix.bak
-        AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-fraud-evidence-rootfix.bak
-        AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-trust-model-evidence-rootfix.bak
-        AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-trust-scope-rootfix.bak
-        AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py.before-fraud-fixture-scope-rootfix.bak
-        AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py.before-metadata-fix.bak
-        AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py.before-trustscore-fingerprint-rootfix.bak
-        snapshots/state_20261001_183859_268694.json
-        ../REOS_LAYER_BACKUP_CORE007_ROOTFIX_20261001_185255/
-
-no changes added to commit (use "git add" and/or "git commit -a")
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "C1 ROOT CONTROL CENTER = READY"
+C1 ROOT CONTROL CENTER = READY
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "FRONTEND FILES = NOT TOUCHED"
+FRONTEND FILES = NOT TOUCHED
+PS D:\HOMIO\REOS_CONTROL_CENTER> python ".\reos_control_center.py" repair-arch039-transition
+Traceback (most recent call last):
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1237, in <module>
+    main()
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1169, in main
+    parser = build_parser()
+             ^^^^^^^^^^^^^^
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1148, in build_parser
+    p = sub.add_parser("repair-arch039-transition")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\argparse.py", line 1218, in add_parser
+    raise ArgumentError(self, _('conflicting subparser: %s') % name)
+argparse.ArgumentError: argument cmd: conflicting subparser: repair-arch039-transition
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python ".\reos_control_center.py" status
+Traceback (most recent call last):
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1237, in <module>
+    main()
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1169, in main
+    parser = build_parser()
+             ^^^^^^^^^^^^^^
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1148, in build_parser
+    p = sub.add_parser("repair-arch039-transition")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\argparse.py", line 1218, in add_parser
+    raise ArgumentError(self, _('conflicting subparser: %s') % name)
+argparse.ArgumentError: argument cmd: conflicting subparser: repair-arch039-transition
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python ".\reos_control_center.py" verify-state
+Traceback (most recent call last):
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1237, in <module>
+    main()
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1169, in main
+    parser = build_parser()
+             ^^^^^^^^^^^^^^
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1148, in build_parser
+    p = sub.add_parser("repair-arch039-transition")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\argparse.py", line 1218, in add_parser
+    raise ArgumentError(self, _('conflicting subparser: %s') % name)
+argparse.ArgumentError: argument cmd: conflicting subparser: repair-arch039-transition
 PS D:\HOMIO\REOS_CONTROL_CENTER>
