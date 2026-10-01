@@ -9,6 +9,7 @@ from .commission_contract import (
     CommissionBasisType,
     CommissionContract,
     CommissionContractState,
+    CommissionContractValidationError,
     CommissionEligibilityRule,
     CommissionEntitlementReference,
     CommissionPartyReference,
@@ -123,10 +124,13 @@ def test_provenance_must_precede_effective_start() -> None:
     )
 
 
-def test_late_provenance_is_detected() -> None:
+def test_late_provenance_is_rejected_at_contract_boundary() -> None:
     original = build_contract()
 
-    late = CommissionContract(
+    with pytest.raises(
+        CommissionContractValidationError
+    ):
+        CommissionContract(
         commission_id=original.commission_id,
         tenant_id=original.tenant_id,
         entitlement=original.entitlement,
@@ -145,15 +149,8 @@ def test_late_provenance_is_detected() -> None:
             ),
             evidence_reference="late-evidence",
         ),
-        state=original.state,
-    )
-
-    assert (
-        provenance_is_before_effective_start(
-            late
+            state=original.state,
         )
-        is False
-    )
 
 
 def test_provenance_is_version_specific() -> None:
