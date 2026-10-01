@@ -1,0 +1,905 @@
+{
+  "schema_version": "1.0",
+  "document_id": "HOMIO-FRONTEND-BLUEPRINT-001",
+  "name": "HOMIO Frontend Implementation Blueprint",
+  "version": "1.0",
+  "status": "IMPLEMENTATION_BLUEPRINT",
+  "authority": {
+    "business_architecture": "REOS_CONTROL_CENTER/architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json",
+    "execution_state": "REOS_CONTROL_CENTER/data/state.json",
+    "gate_authority": "REOS_CONTROL_CENTER",
+    "code_truth": "Git repository",
+    "continuity_and_recovery": "AUTONOMY_ENGINE/continuity/acrl",
+    "chat_is_authority": false,
+    "this_file_is": "Frontend implementation contract, dependency map, artifact registry, verification registry and frontend history",
+    "this_file_is_not": [
+      "a replacement for data/state.json",
+      "a second master architecture",
+      "a second project roadmap",
+      "a second business source of truth",
+      "a duplicate REOS domain engine"
+    ]
+  },
+  "product": {
+    "name": "HOMIO",
+    "identity": "Global AI Real Estate OS + International Brokerage + SaaS",
+    "frontend_role": "Global customer, professional and transaction experience layer",
+    "north_star": "A customer gives HOMIO one real-estate problem; HOMIO finds, verifies, matches, communicates, protects, negotiates and coordinates the right opportunity through a governed transaction.",
+    "experience_principle": "The frontend exposes HOMIO capabilities; REOS owns domain truth; ACRL protects build-time continuity and verification.",
+    "global_first": true,
+    "india_first": false
+  },
+  "non_negotiable_rules": [
+    "No generic property-portal clone.",
+    "No India-only visual or business assumptions.",
+    "No hardcoded INR-first product model.",
+    "No duplicate search engine.",
+    "No duplicate matching engine.",
+    "No duplicate trust engine.",
+    "No duplicate fraud engine.",
+    "No duplicate governance engine.",
+    "No duplicate lead ownership engine.",
+    "No duplicate deal engine.",
+    "No duplicate commission engine.",
+    "No duplicate AI decision authority.",
+    "No duplicate ACRL implementation in the browser.",
+    "No giant monolithic index.html as the permanent application architecture.",
+    "Business truth comes from existing REOS contracts.",
+    "Derived frontend state must never silently become canonical business truth.",
+    "New functionality must be modular and replaceable.",
+    "Every implementation batch must have machine-readable evidence.",
+    "Every completed frontend task must record files changed and verification performed.",
+    "Chat history must not be required to reconstruct frontend progress."
+  ],
+  "current_repository_boundary": {
+    "frontend_root": "REOS_CONTROL_CENTER/Frontend",
+    "architecture_root": "REOS_CONTROL_CENTER/architecture",
+    "current_frontend_state": "EXISTING_PROTOTYPE_NOT_ACCEPTED_AS_PRODUCTION",
+    "reason": "The existing frontend contains a monolithic/static implementation and must be replaced by the modular implementation defined by this blueprint."
+  },
+  "reos_dependencies": {
+    "core_domains": [
+      {
+        "id": "CORE-001",
+        "name": "Identity & Tenant",
+        "frontend_use": [
+          "identity context",
+          "session context",
+          "tenant context",
+          "authorization-aware experience"
+        ]
+      },
+      {
+        "id": "CORE-002",
+        "name": "Event Platform",
+        "frontend_use": [
+          "event-driven UI updates",
+          "transactional notifications",
+          "workflow state propagation"
+        ]
+      },
+      {
+        "id": "CORE-003",
+        "name": "Lead & Ownership",
+        "frontend_use": [
+          "customer enquiry",
+          "lead status",
+          "lead attribution",
+          "protected relationship experience"
+        ]
+      },
+      {
+        "id": "CORE-004",
+        "name": "Inventory",
+        "frontend_use": [
+          "project",
+          "tower",
+          "phase",
+          "unit",
+          "availability",
+          "pricing references"
+        ]
+      },
+      {
+        "id": "CORE-005",
+        "name": "Search & Matching",
+        "frontend_use": [
+          "search intent",
+          "filters",
+          "candidate results",
+          "ranking",
+          "match explanation"
+        ]
+      },
+      {
+        "id": "CORE-006",
+        "name": "Deal & Transaction",
+        "frontend_use": [
+          "offer",
+          "negotiation",
+          "milestones",
+          "deal room",
+          "transaction progression"
+        ]
+      },
+      {
+        "id": "CORE-007",
+        "name": "Trust / Fraud / Governance",
+        "frontend_use": [
+          "trust signals",
+          "verification state",
+          "risk state",
+          "governed actions"
+        ]
+      },
+      {
+        "id": "CORE-008",
+        "name": "Commission / Financial",
+        "frontend_use": [
+          "commission references",
+          "financial milestone visibility",
+          "professional financial workflow surfaces"
+        ]
+      }
+    ],
+    "approved_architecture_dependencies": [
+      "ARCH-009",
+      "ARCH-019",
+      "ARCH-020",
+      "ARCH-031",
+      "ARCH-032",
+      "ARCH-033",
+      "ARCH-034",
+      "ARCH-035",
+      "ARCH-036"
+    ]
+  },
+  "acrl_usage": {
+    "role": "Build-time continuity, repository intelligence, dependency analysis, safe execution, verification, recovery and handoff.",
+    "browser_role": "none",
+    "allowed": [
+      "reconstruct frontend implementation state",
+      "inspect repository evidence",
+      "detect duplicate frontend responsibility",
+      "check dependency impact",
+      "verify implementation",
+      "select targeted regression",
+      "record evidence",
+      "checkpoint progress",
+      "recover frontend work after interruption"
+    ],
+    "forbidden": [
+      "creating an ACRL frontend engine",
+      "creating a browser-side ACRL",
+      "creating ACRL T31",
+      "creating another continuity authority"
+    ]
+  },
+  "architecture_layers": [
+    {
+      "id": "F01",
+      "name": "Frontend Authority & Repository Foundation",
+      "goal": "Create the permanent frontend boundary and implementation registry.",
+      "dependencies": [
+        "ARCH-039",
+        "REPO-001",
+        "ENG-001"
+      ],
+      "reos_connections": [],
+      "artifacts": [
+        "HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json",
+        "frontend repository boundary",
+        "frontend ownership metadata"
+      ],
+      "tasks": [
+        "F01-T01 Define frontend root and ownership boundary",
+        "F01-T02 Define modular directory contract",
+        "F01-T03 Define frontend artifact naming convention",
+        "F01-T04 Define frontend verification contract",
+        "F01-T05 Define frontend history/change registry",
+        "F01-T06 Define REOS integration boundary",
+        "F01-T07 Define ACRL build-time boundary"
+      ],
+      "acceptance": [
+        "Frontend has one canonical repository boundary.",
+        "Frontend does not own backend business truth.",
+        "Frontend does not duplicate REOS engines.",
+        "Frontend implementation can be reconstructed without chat history."
+      ],
+      "status": "IN_PROGRESS"
+    },
+    {
+      "id": "F02",
+      "name": "HOMIO Global Design System",
+      "goal": "Create the permanent visual language instead of page-specific styling.",
+      "dependencies": [
+        "F01"
+      ],
+      "reos_connections": [],
+      "artifacts": [
+        "design tokens",
+        "typography system",
+        "spacing system",
+        "responsive rules",
+        "motion rules",
+        "accessibility tokens",
+        "icon strategy",
+        "photography rules"
+      ],
+      "tasks": [
+        "F02-T01 Brand token system",
+        "F02-T02 Typography system",
+        "F02-T03 Color system",
+        "F02-T04 Spacing and layout grid",
+        "F02-T05 Radius and elevation system",
+        "F02-T06 Motion and reduced-motion rules",
+        "F02-T07 Responsive breakpoint system",
+        "F02-T08 Form control system",
+        "F02-T09 Search component system",
+        "F02-T10 Card system",
+        "F02-T11 Trust surface system",
+        "F02-T12 AI surface system",
+        "F02-T13 Data display system",
+        "F02-T14 Accessibility baseline"
+      ],
+      "acceptance": [
+        "No page-specific design token duplication.",
+        "Desktop, tablet and mobile rules are defined.",
+        "Accessibility is built into primitives.",
+        "Visual changes can be made centrally."
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "F03",
+      "name": "Global Application Shell",
+      "goal": "Create the reusable HOMIO application shell.",
+      "dependencies": [
+        "F01",
+        "F02"
+      ],
+      "tasks": [
+        "F03-T01 Global header",
+        "F03-T02 Desktop navigation",
+        "F03-T03 Mobile navigation",
+        "F03-T04 Global footer",
+        "F03-T05 Route/page shell",
+        "F03-T06 Loading state",
+        "F03-T07 Error state",
+        "F03-T08 Empty state",
+        "F03-T09 Accessibility skip navigation",
+        "F03-T10 Analytics/telemetry boundary"
+      ],
+      "acceptance": [
+        "Every future page uses the same shell.",
+        "Mobile navigation works without layout breakage.",
+        "Loading/error/empty states are reusable."
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "F04",
+      "name": "Global HOMIO Home Experience",
+      "goal": "Build the premium global landing experience.",
+      "dependencies": [
+        "F02",
+        "F03",
+        "ARCH-031",
+        "ARCH-032",
+        "ARCH-035",
+        "ARCH-036"
+      ],
+      "tasks": [
+        "F04-T01 Five-city cinematic hero",
+        "F04-T02 Universal HOMIO tagline",
+        "F04-T03 Global intent selector",
+        "F04-T04 Natural-language property search surface",
+        "F04-T05 Global market explorer",
+        "F04-T06 HOMIO intelligence introduction",
+        "F04-T07 Global real-estate journey introduction",
+        "F04-T08 Professional ecosystem introduction",
+        "F04-T09 Responsive hero transformation",
+        "F04-T10 Performance-safe image strategy"
+      ],
+      "target_cities": [
+        "Dubai",
+        "Singapore",
+        "Tokyo",
+        "New York",
+        "London"
+      ],
+      "primary_intents": [
+        "Homes",
+        "Business",
+        "Offices",
+        "Investments"
+      ],
+      "acceptance": [
+        "Homepage clearly communicates global rather than India-first positioning.",
+        "The page is usable on desktop, tablet and mobile.",
+        "City expansion is configuration-driven.",
+        "Search interaction is connected to the REOS adapter boundary.",
+        "No business matching logic lives inside homepage code."
+      ],
+      "status": "SCAFFOLD_ONLY"
+    },
+    {
+      "id": "F05",
+      "name": "Global Market Experience",
+      "goal": "Make country/city discovery a first-class global experience.",
+      "dependencies": [
+        "F04",
+        "ARCH-031",
+        "ARCH-032",
+        "ARCH-020"
+      ],
+      "tasks": [
+        "F05-T01 World market index",
+        "F05-T02 Region navigation",
+        "F05-T03 Country experience",
+        "F05-T04 City experience",
+        "F05-T05 Locality experience",
+        "F05-T06 Market profile",
+        "F05-T07 Market intelligence entry point",
+        "F05-T08 Currency context",
+        "F05-T09 Measurement context",
+        "F05-T10 Jurisdiction context"
+      ],
+      "acceptance": [
+        "New markets are added by data/configuration where possible.",
+        "Market-specific localization does not fork the application."
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "F06",
+      "name": "Search & Matching Experience",
+      "goal": "Expose CORE-005 through an advanced user-friendly discovery experience.",
+      "dependencies": [
+        "F02",
+        "F03",
+        "F05",
+        "CORE-005"
+      ],
+      "tasks": [
+        "F06-T01 Search intent parser surface",
+        "F06-T02 Location selection",
+        "F06-T03 Property type controls",
+        "F06-T04 Budget controls",
+        "F06-T05 Bedroom and specification controls",
+        "F06-T06 Lifestyle and requirement filters",
+        "F06-T07 Market filters",
+        "F06-T08 Result grid/list switching",
+        "F06-T09 Map experience",
+        "F06-T10 Result sorting surface",
+        "F06-T11 Match explanation",
+        "F06-T12 Search persistence",
+        "F06-T13 Save search",
+        "F06-T14 Search state restoration",
+        "F06-T15 Empty result intelligence",
+        "F06-T16 Search analytics boundary"
+      ],
+      "acceptance": [
+        "Search UI delegates actual matching/ranking to CORE-005.",
+        "Search state can be reproduced.",
+        "Match explanations are explainable and source-driven.",
+        "No second ranking/matching algorithm exists in frontend."
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "F07",
+      "name": "Property / Project / Inventory Experience",
+      "goal": "Expose CORE-004 inventory truth through premium property and project experiences.",
+      "dependencies": [
+        "F06",
+        "CORE-004"
+      ],
+      "tasks": [
+        "F07-T01 Property page",
+        "F07-T02 Project page",
+        "F07-T03 Development/portfolio page",
+        "F07-T04 Unit availability surface",
+        "F07-T05 Price surface",
+        "F07-T06 Floor/tower/phase navigation",
+        "F07-T07 Property media system",
+        "F07-T08 Location intelligence",
+        "F07-T09 Builder/developer profile",
+        "F07-T10 Similar opportunities",
+        "F07-T11 Property verification surface",
+        "F07-T12 Availability freshness surface",
+        "F07-T13 Property sharing",
+        "F07-T14 Property brochure interaction"
+      ],
+      "acceptance": [
+        "Inventory truth is read from REOS.",
+        "Availability cannot be silently invented by frontend.",
+        "Property/project/unit context remains unambiguous."
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "F08",
+      "name": "Identity, Customer & My HOMIO Journey",
+      "goal": "Create the customer account and journey layer.",
+      "dependencies": [
+        "F03",
+        "F06",
+        "F07",
+        "CORE-001",
+        "CORE-003",
+        "ARCH-035"
+      ],
+      "tasks": [
+        "F08-T01 Sign-in experience",
+        "F08-T02 Registration experience",
+        "F08-T03 Session-aware shell",
+        "F08-T04 Tenant-aware context",
+        "F08-T05 Saved properties",
+        "F08-T06 Saved searches",
+        "F08-T07 Customer profile",
+        "F08-T08 My HOMIO dashboard",
+        "F08-T09 Journey timeline",
+        "F08-T10 Protected enquiry experience",
+        "F08-T11 Attribution acknowledgement",
+        "F08-T12 Visit scheduling",
+        "F08-T13 Communication history",
+        "F08-T14 Customer preferences"
+      ],
+      "acceptance": [
+        "Identity and session state come from CORE-001.",
+        "Lead ownership comes from CORE-003.",
+        "Frontend never silently changes lead ownership.",
+        "Customer journey can be reconstructed."
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "F09",
+      "name": "Communication & AI Experience",
+      "goal": "Expose approved communication and AI capabilities without creating a second AI system.",
+      "dependencies": [
+        "F08",
+        "ARCH-009",
+        "ARCH-019",
+        "ARCH-035"
+      ],
+      "tasks": [
+        "F09-T01 HOMIO Assistant entry point",
+        "F09-T02 Contextual assistant",
+        "F09-T03 Property research assistant",
+        "F09-T04 Market intelligence assistant",
+        "F09-T05 Follow-up communication surface",
+        "F09-T06 Brochure/share workflow",
+        "F09-T07 Conversation timeline",
+        "F09-T08 Notification center",
+        "F09-T09 Agent handoff",
+        "F09-T10 AI action explanation",
+        "F09-T11 Human approval boundary presentation"
+      ],
+      "acceptance": [
+        "AI remains advisory/governed according to REOS.",
+        "Frontend does not become final business decision authority.",
+        "Human approval states are visible where required."
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "F10",
+      "name": "Deal Room & Transaction Experience",
+      "goal": "Expose CORE-006 and transaction workflow.",
+      "dependencies": [
+        "F08",
+        "F09",
+        "CORE-006",
+        "ARCH-033",
+        "ARCH-034",
+        "ARCH-035"
+      ],
+      "tasks": [
+        "F10-T01 Deal creation experience",
+        "F10-T02 Deal overview",
+        "F10-T03 Party relationships",
+        "F10-T04 Ownership visibility",
+        "F10-T05 Offer surface",
+        "F10-T06 Negotiation surface",
+        "F10-T07 Milestone timeline",
+        "F10-T08 Evidence surface",
+        "F10-T09 Governance/risk surface",
+        "F10-T10 Documentation surface",
+        "F10-T11 Transaction status",
+        "F10-T12 Completion surface"
+      ],
+      "acceptance": [
+        "Deal state comes from CORE-006.",
+        "Commission logic is not duplicated.",
+        "Trust/fraud/governance remain external authorities.",
+        "Historical deal truth remains auditable."
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "F11",
+      "name": "Professional & Operating-Mode Experience",
+      "goal": "Create broker, builder, enterprise and partner surfaces without creating separate products.",
+      "dependencies": [
+        "F08",
+        "F09",
+        "F10",
+        "ARCH-031",
+        "ARCH-032",
+        "ARCH-036"
+      ],
+      "roles": [
+        "Broker",
+        "Builder",
+        "Enterprise",
+        "White-label",
+        "Platform/API Partner"
+      ],
+      "tasks": [
+        "F11-T01 Professional identity context",
+        "F11-T02 Broker workspace",
+        "F11-T03 Broker lead workspace",
+        "F11-T04 Broker ownership workspace",
+        "F11-T05 Broker deal workspace",
+        "F11-T06 Broker commission view",
+        "F11-T07 Broker AI chief-of-staff",
+        "F11-T08 Builder workspace",
+        "F11-T09 Builder project workspace",
+        "F11-T10 Builder inventory workspace",
+        "F11-T11 Builder demand intelligence",
+        "F11-T12 Builder lead workspace",
+        "F11-T13 Builder deal workspace",
+        "F11-T14 Enterprise workspace",
+        "F11-T15 White-label configuration surface",
+        "F11-T16 Partner/API experience"
+      ],
+      "acceptance": [
+        "Operating modes do not fork business logic.",
+        "Permissions are enforced through existing identity/tenant authority.",
+        "Professional experiences compose existing CORE capabilities."
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "F12",
+      "name": "Globalization, SEO, Accessibility, Performance & Security",
+      "goal": "Make the frontend production-ready globally.",
+      "dependencies": [
+        "F02",
+        "F05",
+        "F06",
+        "F07",
+        "F08",
+        "ARCH-020",
+        "ARCH-028",
+        "ARCH-031",
+        "ARCH-032"
+      ],
+      "tasks": [
+        "F12-T01 Internationalization framework",
+        "F12-T02 Currency localization",
+        "F12-T03 Measurement localization",
+        "F12-T04 Date/time localization",
+        "F12-T05 Jurisdiction-aware content",
+        "F12-T06 Metadata system",
+        "F12-T07 Structured data",
+        "F12-T08 Search-engine landing strategy",
+        "F12-T09 Accessibility audit",
+        "F12-T10 Keyboard navigation",
+        "F12-T11 Screen reader validation",
+        "F12-T12 Image optimization",
+        "F12-T13 Lazy loading strategy",
+        "F12-T14 Performance budgets",
+        "F12-T15 Security headers contract",
+        "F12-T16 Client-side error boundary",
+        "F12-T17 Telemetry",
+        "F12-T18 Privacy-consent boundary"
+      ],
+      "acceptance": [
+        "Global markets work without country-specific forks.",
+        "Accessibility is validated.",
+        "SEO is systematic rather than page-by-page improvisation.",
+        "Performance budgets are measurable.",
+        "Privacy/security boundaries are explicit."
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "F13",
+      "name": "REOS Integration, Production Hardening & Adversarial Regression",
+      "goal": "Turn the frontend from presentation-ready into a production REOS consumer.",
+      "dependencies": [
+        "F06",
+        "F07",
+        "F08",
+        "F09",
+        "F10",
+        "F11",
+        "F12",
+        "ARCH-024",
+        "ARCH-025",
+        "ARCH-028",
+        "ARCH-029",
+        "ARCH-038"
+      ],
+      "tasks": [
+        "F13-T01 API client hardening",
+        "F13-T02 API contract validation",
+        "F13-T03 Identity/session integration",
+        "F13-T04 Search integration",
+        "F13-T05 Inventory integration",
+        "F13-T06 Lead/ownership integration",
+        "F13-T07 Communication integration",
+        "F13-T08 Trust/governance integration",
+        "F13-T09 Deal integration",
+        "F13-T10 Financial integration",
+        "F13-T11 Event-driven refresh integration",
+        "F13-T12 Observability integration",
+        "F13-T13 Failure-mode handling",
+        "F13-T14 Offline/degraded experience",
+        "F13-T15 Cross-tenant regression",
+        "F13-T16 Permission regression",
+        "F13-T17 Data-leak regression",
+        "F13-T18 Duplicate-action regression",
+        "F13-T19 Accessibility regression",
+        "F13-T20 Responsive regression",
+        "F13-T21 Full frontend adversarial regression",
+        "F13-T22 Production readiness evidence"
+      ],
+      "acceptance": [
+        "Frontend consumes authoritative REOS services.",
+        "No duplicate domain responsibility remains.",
+        "Tenant isolation is preserved.",
+        "High-risk actions respect authorization boundaries.",
+        "Frontend passes targeted and full regression.",
+        "Production deployment is repeatable.",
+        "Frontend can be reconstructed and verified without chat history."
+      ],
+      "status": "PENDING"
+    }
+  ],
+  "frontend_routes": {
+    "public": [
+      "/",
+      "/markets",
+      "/market/:market",
+      "/city/:city",
+      "/search",
+      "/property/:propertyId",
+      "/project/:projectId",
+      "/insights"
+    ],
+    "customer": [
+      "/account",
+      "/journey",
+      "/saved",
+      "/communications",
+      "/visits",
+      "/offers",
+      "/deals/:dealId"
+    ],
+    "professional": [
+      "/broker",
+      "/builder",
+      "/enterprise",
+      "/partner"
+    ],
+    "transaction": [
+      "/deals/:dealId",
+      "/deals/:dealId/offer",
+      "/deals/:dealId/negotiation",
+      "/deals/:dealId/evidence",
+      "/deals/:dealId/milestones",
+      "/deals/:dealId/completion"
+    ]
+  },
+  "frontend_module_boundaries": {
+    "experience": [
+      "home",
+      "markets",
+      "search",
+      "property",
+      "project",
+      "journey",
+      "deal",
+      "broker",
+      "builder",
+      "enterprise"
+    ],
+    "shared": [
+      "design-system",
+      "navigation",
+      "forms",
+      "search-ui",
+      "property-ui",
+      "trust-ui",
+      "ai-ui",
+      "transaction-ui",
+      "localization",
+      "telemetry"
+    ],
+    "integration": [
+      "identity-client",
+      "search-client",
+      "inventory-client",
+      "lead-client",
+      "communication-client",
+      "deal-client",
+      "trust-client",
+      "financial-client"
+    ]
+  },
+  "data_truth_boundary": {
+    "canonical_business_truth": [
+      "identity",
+      "tenant",
+      "customer",
+      "lead",
+      "lead ownership",
+      "builder",
+      "project",
+      "inventory",
+      "deal",
+      "governance",
+      "evidence",
+      "commission reference"
+    ],
+    "frontend_derived_state": [
+      "navigation state",
+      "filter state",
+      "temporary form state",
+      "view state",
+      "presentation cache"
+    ],
+    "forbidden_frontend_sources_of_truth": [
+      "lead ownership",
+      "deal ownership",
+      "trust score authority",
+      "fraud score authority",
+      "commission calculation authority",
+      "global governance policy",
+      "canonical inventory availability",
+      "canonical pricing",
+      "AI final decision authority"
+    ]
+  },
+  "verification_strategy": {
+    "per_batch": [
+      "Read current canonical state before implementation.",
+      "Read this blueprint before implementation.",
+      "Inspect relevant repository dependencies.",
+      "Run targeted frontend verification.",
+      "Run browser smoke verification.",
+      "Run responsive verification.",
+      "Capture changed-file evidence.",
+      "Record implementation status in this blueprint.",
+      "Checkpoint through existing Control Center/ACRL workflow where applicable."
+    ],
+    "required_browser_surfaces": [
+      "desktop wide",
+      "desktop standard",
+      "tablet",
+      "mobile portrait",
+      "mobile landscape"
+    ],
+    "required_failure_tests": [
+      "missing API",
+      "API failure",
+      "empty search",
+      "empty results",
+      "slow image",
+      "broken image",
+      "unauthorized action",
+      "expired session",
+      "tenant context missing",
+      "duplicate action",
+      "partial data",
+      "network interruption"
+    ]
+  },
+  "status_registry": {
+    "current_phase": "F01",
+    "current_task": "Create and persist frontend implementation blueprint",
+    "frontend_status": "BLUEPRINT_FIRST",
+    "completed": [],
+    "scaffold_only": [
+      "Existing REOS_CONTROL_CENTER/Frontend/index.html prototype"
+    ],
+    "not_accepted": [
+      "Existing monolithic frontend prototype"
+    ],
+    "next_authoritative_project_step_rule": "After this blueprint is persisted, the next project action must still be reconciled against REOS_CONTROL_CENTER/data/state.json and the active Control Center gate/subtask. This file must not invent a competing roadmap."
+  },
+  "artifact_registry": {
+    "required": [
+      {
+        "path": "REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json",
+        "purpose": "Frontend implementation contract and progress registry",
+        "status": "THIS_FILE"
+      },
+      {
+        "path": "REOS_CONTROL_CENTER/Frontend/index.html",
+        "purpose": "Public HOMIO entry point",
+        "status": "PROTOTYPE_NOT_ACCEPTED"
+      }
+    ],
+    "planned": [
+      "REOS_CONTROL_CENTER/Frontend/styles/",
+      "REOS_CONTROL_CENTER/Frontend/app/",
+      "REOS_CONTROL_CENTER/Frontend/assets/",
+      "REOS_CONTROL_CENTER/Frontend/tests/"
+    ]
+  },
+  "history_registry": {
+    "rule": "Every completed implementation batch must append one immutable history entry.",
+    "entry_schema": {
+      "version": "integer",
+      "date": "ISO-8601",
+      "phase": "Fxx",
+      "tasks": [
+        "Fxx-Txx"
+      ],
+      "summary": "string",
+      "files_added": [],
+      "files_modified": [],
+      "files_removed": [],
+      "verification": [],
+      "tests": [],
+      "commit_sha": "string",
+      "control_center_reference": "string",
+      "acrl_evidence_reference": "string"
+    },
+    "entries": []
+  },
+  "change_control": {
+    "requires_architecture_review": [
+      "new top-level business domain",
+      "new canonical business truth",
+      "change to identity/tenant model",
+      "change to lead ownership responsibility",
+      "change to deal responsibility",
+      "change to governance boundary",
+      "change to AI authority",
+      "change to event/data contract",
+      "new duplicate engine"
+    ],
+    "normal_frontend_change": [
+      "visual refinement",
+      "responsive refinement",
+      "component refactor",
+      "content refinement",
+      "accessibility refinement",
+      "performance optimization"
+    ]
+  },
+  "definition_of_done": [
+    "All required frontend phases are machine-tracked.",
+    "Every completed task has file evidence.",
+    "Every completed task has verification evidence.",
+    "No completed task depends on chat memory.",
+    "No frontend module owns forbidden business truth.",
+    "REOS contracts are used rather than duplicated.",
+    "ACRL remains the build-time continuity and verification boundary.",
+    "Global localization is operational.",
+    "Responsive behavior is validated.",
+    "Accessibility is validated.",
+    "Search and matching are connected to CORE-005.",
+    "Inventory is connected to CORE-004.",
+    "Lead ownership is connected to CORE-003.",
+    "Deal workflows are connected to CORE-006.",
+    "Trust/governance are connected to CORE-007.",
+    "Financial/commission surfaces are connected to CORE-008.",
+    "Production hardening and adversarial regression pass.",
+    "Final frontend evidence is recorded."
+  ],
+  "change_log": [
+    {
+      "version": 1,
+      "date": "2026-10-01",
+      "type": "INITIAL",
+      "summary": "Created the frontend implementation blueprint so frontend architecture, future scope, status, artifacts, verification and history do not depend on chat memory."
+    }
+  ]
+}
