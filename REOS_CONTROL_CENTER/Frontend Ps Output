@@ -1,22 +1,34 @@
 ===============================================
-FRONTEND REMOTE SYNC + WORKTREE REPAIR
+FRONTEND CHERRY-PICK PUBLISH
 ===============================================
 remote: Enumerating objects: 7, done.
 remote: Counting objects: 100% (7/7), done.
 remote: Compressing objects: 100% (4/4), done.
-remote: Total 4 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (4/4), 1.61 KiB | 45.00 KiB/s, done.
+remote: Total 4 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (4/4), 1.69 KiB | 96.00 KiB/s, done.
 From https://github.com/prajaktaranjane80-sketch/Homio
  * branch            reos-development -> FETCH_HEAD
-   2ad4abf..5f9817f  reos-development -> origin/reos-development
-REMOTE HEAD = 5f9817ffb8df5decf93fda9fb352e77130762c59
-SOURCE COMMIT FILES:
-  REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
-FAIL-CLOSED: Source frontend commit is not blueprint-only.
-At line:41 char:9
-+         throw "FAIL-CLOSED: Source frontend commit is not blueprint-o ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (FAIL-CLOSED: So...blueprint-only.:String) [], RuntimeException
-    + FullyQualifiedErrorId : FAIL-CLOSED: Source frontend commit is not blueprint-only.
+   dab9a0f..70ed8c2  reos-development -> origin/reos-development
+REMOTE HEAD = 70ed8c20893d9c65a65a4115dcf24b46bf854102
 
-PS D:\HOMIO>
+SOURCE COMMIT FILE:
+  REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
+SOURCE COMMIT SCOPE = BLUEPRINT ONLY
+Preparing worktree (detached HEAD 70ed8c2)
+HEAD is now at 70ed8c2 Update Backend PS  Output
+Auto-merging REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
+CONFLICT (add/add): Merge conflict in REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
+error: could not apply d12eb32... Finalize HOMIO frontend implementation blueprint v3.2
+hint: After resolving the conflicts, mark them with
+hint: "git add/rm <pathspec>", then run
+hint: "git cherry-pick --continue".
+hint: You can instead skip this commit with "git cherry-pick --skip".
+hint: To abort and get back to the state before "git cherry-pick",
+hint: run "git cherry-pick --abort".
+hint: Disable this message with "git config set advice.mergeConflict false"
+FAIL-CLOSED: Cherry-pick could not be applied cleanly.
+At line:80 char:13
++             throw "FAIL-CLOSED: Cherry-pick could not be applied clea ...
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FAIL-CLOSED: Ch...pplied cleanly.:String) [], RuntimeException
+    + FullyQualifiedErrorId : FAIL-CLOSED: Cherry-pick could not be applied cleanly.
