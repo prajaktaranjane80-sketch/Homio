@@ -1,641 +1,805 @@
-............................F.....F.............................................F............FF...................................                   [100%]
-======================================================================== FAILURES =========================================================================
-____________________________________________________________ test_history_cannot_skip_versions ____________________________________________________________
+PS D:\HOMIO\REOS_CONTROL_CENTER> Run-Test "CORE ALL" "AUTONOMY_ENGINE\core";
 
-    def test_history_cannot_skip_versions() -> None:
-        first = contract(
-            version=1,
-            end=datetime(
-                2026,
-                10,
-                1,
-                tzinfo=UTC,
-            ),
-        )
+===== CORE ALL =====
 
->       third = contract(
-            version=3,
-            start=datetime(
-                2026,
-                10,
-                1,
-                tzinfo=UTC,
-            ),
-            end=None,
-            rate="3.0",
-        )
-
-AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_adversarial.py:160:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_adversarial.py:59: in contract
-    return CommissionContract(
-<string>:15: in __init__
+========================================================================= ERRORS ==========================================================================
+______________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t01_trust_score.py _______________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
     ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = CommissionContract(commission_id='commission-a', tenant_id='tenant-a', entitlement=CommissionEntitlementReference(enti...o=datetime.timezone.utc), evidence_reference='proof-3'), state=<CommissionContractState.ACTIVE: 'ACTIVE'>, metadata=())
-
-    def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "commission_id",
-            _require_text(
-                self.commission_id,
-                "commission_id",
-            ),
-        )
-
-        object.__setattr__(
-            self,
-            "tenant_id",
-            _require_text(
-                self.tenant_id,
-                "tenant_id",
-            ),
-        )
-
-        if not isinstance(
-            self.entitlement,
-            CommissionEntitlementReference,
-        ):
-            raise CommissionContractValidationError(
-                "entitlement must be "
-                "CommissionEntitlementReference."
-            )
-
-        if (
-            self.entitlement.tenant_id
-            != self.tenant_id
-        ):
-            raise CommissionContractTenantScopeError(
-                "Entitlement tenant does not match "
-                "commission tenant."
-            )
-
-        if not isinstance(
-            self.basis,
-            CommissionBasis,
-        ):
-            raise CommissionContractValidationError(
-                "basis must be CommissionBasis."
-            )
-
-        if not isinstance(
-            self.rate,
-            CommissionRate,
-        ):
-            raise CommissionContractValidationError(
-                "rate must be CommissionRate."
-            )
-
-        rules = tuple(
-            self.eligibility_rules
-        )
-
-        if any(
-            not isinstance(
-                rule,
-                CommissionEligibilityRule,
-            )
-            for rule in rules
-        ):
-            raise CommissionContractValidationError(
-                "eligibility_rules contains invalid values."
-            )
-
-        codes = [
-            rule.rule_code
-            for rule in rules
-        ]
-
-        if len(codes) != len(set(codes)):
-            raise CommissionContractValidationError(
-                "Duplicate eligibility rule_code is not allowed."
-            )
-
-        object.__setattr__(
-            self,
-            "eligibility_rules",
-            rules,
-        )
-
-        effective_from = _require_aware_datetime(
-            self.effective_from,
-            "effective_from",
-        )
-
-        object.__setattr__(
-            self,
-            "effective_from",
-            effective_from,
-        )
-
-        if self.effective_to is not None:
-            effective_to = _require_aware_datetime(
-                self.effective_to,
-                "effective_to",
-            )
-
-            if effective_to <= effective_from:
->               raise CommissionContractValidationError(
-                    "effective_to must be later "
-                    "than effective_from."
-                )
-E               AUTONOMY_ENGINE.core.commission_financial.commission_contract.CommissionContractValidationError: effective_to must be later than effective_from.
-
-AUTONOMY_ENGINE\core\commission_financial\commission_contract.py:724: CommissionContractValidationError
-_______________________________________________________ test_history_cannot_overlap_effective_dates _______________________________________________________
-
-    def test_history_cannot_overlap_effective_dates() -> None:
-        first = contract(
-            version=1,
-            start=datetime(
-                2026,
-                9,
-                1,
-                tzinfo=UTC,
-            ),
-            end=datetime(
-                2026,
-                11,
-                1,
-                tzinfo=UTC,
-            ),
-        )
-
->       second = contract(
-            version=2,
-            start=datetime(
-                2026,
-                10,
-                1,
-                tzinfo=UTC,
-            ),
-            end=None,
-            rate="3.0",
-        )
-
-AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_adversarial.py:261:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_adversarial.py:59: in contract
-    return CommissionContract(
-<string>:15: in __init__
+<frozen importlib._bootstrap>:1360: in _find_and_load
     ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = CommissionContract(commission_id='commission-a', tenant_id='tenant-a', entitlement=CommissionEntitlementReference(enti...o=datetime.timezone.utc), evidence_reference='proof-2'), state=<CommissionContractState.ACTIVE: 'ACTIVE'>, metadata=())
-
-    def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "commission_id",
-            _require_text(
-                self.commission_id,
-                "commission_id",
-            ),
-        )
-
-        object.__setattr__(
-            self,
-            "tenant_id",
-            _require_text(
-                self.tenant_id,
-                "tenant_id",
-            ),
-        )
-
-        if not isinstance(
-            self.entitlement,
-            CommissionEntitlementReference,
-        ):
-            raise CommissionContractValidationError(
-                "entitlement must be "
-                "CommissionEntitlementReference."
-            )
-
-        if (
-            self.entitlement.tenant_id
-            != self.tenant_id
-        ):
-            raise CommissionContractTenantScopeError(
-                "Entitlement tenant does not match "
-                "commission tenant."
-            )
-
-        if not isinstance(
-            self.basis,
-            CommissionBasis,
-        ):
-            raise CommissionContractValidationError(
-                "basis must be CommissionBasis."
-            )
-
-        if not isinstance(
-            self.rate,
-            CommissionRate,
-        ):
-            raise CommissionContractValidationError(
-                "rate must be CommissionRate."
-            )
-
-        rules = tuple(
-            self.eligibility_rules
-        )
-
-        if any(
-            not isinstance(
-                rule,
-                CommissionEligibilityRule,
-            )
-            for rule in rules
-        ):
-            raise CommissionContractValidationError(
-                "eligibility_rules contains invalid values."
-            )
-
-        codes = [
-            rule.rule_code
-            for rule in rules
-        ]
-
-        if len(codes) != len(set(codes)):
-            raise CommissionContractValidationError(
-                "Duplicate eligibility rule_code is not allowed."
-            )
-
-        object.__setattr__(
-            self,
-            "eligibility_rules",
-            rules,
-        )
-
-        effective_from = _require_aware_datetime(
-            self.effective_from,
-            "effective_from",
-        )
-
-        object.__setattr__(
-            self,
-            "effective_from",
-            effective_from,
-        )
-
-        if self.effective_to is not None:
-            effective_to = _require_aware_datetime(
-                self.effective_to,
-                "effective_to",
-            )
-
-            if effective_to <= effective_from:
->               raise CommissionContractValidationError(
-                    "effective_to must be later "
-                    "than effective_from."
-                )
-E               AUTONOMY_ENGINE.core.commission_financial.commission_contract.CommissionContractValidationError: effective_to must be later than effective_from.
-
-AUTONOMY_ENGINE\core\commission_financial\commission_contract.py:724: CommissionContractValidationError
-____________________________________________________________ test_late_provenance_is_detected _____________________________________________________________
-
-    def test_late_provenance_is_detected() -> None:
-        original = build_contract()
-
->       late = CommissionContract(
-            commission_id=original.commission_id,
-            tenant_id=original.tenant_id,
-            entitlement=original.entitlement,
-            basis=original.basis,
-            rate=original.rate,
-            eligibility_rules=original.eligibility_rules,
-            effective_from=original.effective_from,
-            effective_to=original.effective_to,
-            contract_version=original.contract_version,
-            provenance=CommissionProvenance(
-                source_type="BUILDER_MOU",
-                source_reference="late-mou",
-                captured_at=(
-                    original.effective_from
-                    + timedelta(seconds=1)
-                ),
-                evidence_reference="late-evidence",
-            ),
-            state=original.state,
-        )
-
-AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_provenance_adversarial.py:129:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-<string>:15: in __init__
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
     ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = CommissionContract(commission_id='commission-proof', tenant_id='tenant-a', entitlement=CommissionEntitlementReference(...time.timezone.utc), evidence_reference='late-evidence'), state=<CommissionContractState.ACTIVE: 'ACTIVE'>, metadata=())
-
-    def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "commission_id",
-            _require_text(
-                self.commission_id,
-                "commission_id",
-            ),
-        )
-
-        object.__setattr__(
-            self,
-            "tenant_id",
-            _require_text(
-                self.tenant_id,
-                "tenant_id",
-            ),
-        )
-
-        if not isinstance(
-            self.entitlement,
-            CommissionEntitlementReference,
-        ):
-            raise CommissionContractValidationError(
-                "entitlement must be "
-                "CommissionEntitlementReference."
-            )
-
-        if (
-            self.entitlement.tenant_id
-            != self.tenant_id
-        ):
-            raise CommissionContractTenantScopeError(
-                "Entitlement tenant does not match "
-                "commission tenant."
-            )
-
-        if not isinstance(
-            self.basis,
-            CommissionBasis,
-        ):
-            raise CommissionContractValidationError(
-                "basis must be CommissionBasis."
-            )
-
-        if not isinstance(
-            self.rate,
-            CommissionRate,
-        ):
-            raise CommissionContractValidationError(
-                "rate must be CommissionRate."
-            )
-
-        rules = tuple(
-            self.eligibility_rules
-        )
-
-        if any(
-            not isinstance(
-                rule,
-                CommissionEligibilityRule,
-            )
-            for rule in rules
-        ):
-            raise CommissionContractValidationError(
-                "eligibility_rules contains invalid values."
-            )
-
-        codes = [
-            rule.rule_code
-            for rule in rules
-        ]
-
-        if len(codes) != len(set(codes)):
-            raise CommissionContractValidationError(
-                "Duplicate eligibility rule_code is not allowed."
-            )
-
-        object.__setattr__(
-            self,
-            "eligibility_rules",
-            rules,
-        )
-
-        effective_from = _require_aware_datetime(
-            self.effective_from,
-            "effective_from",
-        )
-
-        object.__setattr__(
-            self,
-            "effective_from",
-            effective_from,
-        )
-
-        if self.effective_to is not None:
-            effective_to = _require_aware_datetime(
-                self.effective_to,
-                "effective_to",
-            )
-
-            if effective_to <= effective_from:
-                raise CommissionContractValidationError(
-                    "effective_to must be later "
-                    "than effective_from."
-                )
-
-            object.__setattr__(
-                self,
-                "effective_to",
-                effective_to,
-            )
-
-        object.__setattr__(
-            self,
-            "contract_version",
-            _require_positive_int(
-                self.contract_version,
-                "contract_version",
-            ),
-        )
-
-        if not isinstance(
-            self.provenance,
-            CommissionProvenance,
-        ):
-            raise CommissionContractValidationError(
-                "provenance must be CommissionProvenance."
-            )
-
-        if (
-            self.provenance.captured_at
-            > effective_from
-        ):
->           raise CommissionContractValidationError(
-                "provenance cannot be later "
-                "than effective_from."
-            )
-E           AUTONOMY_ENGINE.core.commission_financial.commission_contract.CommissionContractValidationError: provenance cannot be later than effective_from.
-
-AUTONOMY_ENGINE\core\commission_financial\commission_contract.py:756: CommissionContractValidationError
-__________________________________________________________ test_reconstruction_is_deterministic ___________________________________________________________
-
-    def test_reconstruction_is_deterministic() -> None:
-        request = FinancialReconstructionRequest(
-            tenant_id="tenant-a",
-            commission_id="commission-001",
-            subject=FinancialReconstructionSubject.COMMISSION,
-            source_references=(
-                ACRLSourceReference(
-                    source_kind="COMMISSION_CONTRACT",
-                    source_id="contract-001",
-                    fingerprint="contract-fp-001",
-                ),
-                ACRLSourceReference(
-                    source_kind="COMMISSION_CALCULATION",
-                    source_id="calculation-001",
-                    fingerprint="calculation-fp-001",
-                ),
-            ),
-        )
-
-        reconstructor = CommissionACRLReconstructor(
-            lambda supplied: {
-                "commission_id": supplied.commission_id,
-                "state": "RECONSTRUCTED",
-                "version": 1,
-            }
-        )
-
->       first = reconstructor.reconstruct(request)
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-AUTONOMY_ENGINE\core\commission_financial\test_core008_t13_acrl_regression.py:63:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\commission_financial\commission_acrl_reconstruction.py:157: in reconstruct
-    result = FinancialReconstructionResult(
-<string>:7: in __init__
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
     ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = FinancialReconstructionResult(request=FinancialReconstructionRequest(tenant_id='tenant-a', commission_id='commission-0...ULATION', source_id='calculation-001', fingerprint='calculation-fp-001', authority='AUTONOMY_ENGINE.continuity.acrl')))
-
-    def __post_init__(self) -> None:
-        if not isinstance(
-            self.reconstructed_state,
-            Mapping,
-        ):
-            raise CommissionACRLValidationError(
-                "reconstructed_state must be a mapping"
-            )
-
-        object.__setattr__(
-            self,
-            "reconstructed_state",
-            dict(self.reconstructed_state),
-        )
-
-        references = tuple(self.source_references)
-
-        if not references:
-            raise CommissionACRLValidationError(
-                "reconstruction requires source references"
-            )
-
-        object.__setattr__(
-            self,
-            "source_references",
-            references,
-        )
-
-        if not isinstance(
-            self.result_fingerprint,
-            str,
-        ) or not self.result_fingerprint.strip():
->           raise CommissionACRLValidationError(
-                "result_fingerprint cannot be empty"
-            )
-E           AUTONOMY_ENGINE.core.commission_financial.commission_acrl_contract.CommissionACRLValidationError: result_fingerprint cannot be empty
-
-AUTONOMY_ENGINE\core\commission_financial\commission_acrl_reconstruction.py:65: CommissionACRLValidationError
-_____________________________________________ test_different_reconstruction_results_for_same_subject_conflict _____________________________________________
-
-    def test_different_reconstruction_results_for_same_subject_conflict() -> None:
-        request = FinancialReconstructionRequest(
-            tenant_id="tenant-a",
-            commission_id="commission-001",
-            subject=FinancialReconstructionSubject.SETTLEMENT,
-            source_references=(
-                ACRLSourceReference(
-                    source_kind="SETTLEMENT",
-                    source_id="settlement-001",
-                    fingerprint="settlement-fp-001",
-                ),
-            ),
-        )
-
-        first_reconstructor = CommissionACRLReconstructor(
-            lambda _: {
-                "settlement_state": "CREATED",
-                "amount": "1000.00",
-            }
-        )
-
-        second_reconstructor = CommissionACRLReconstructor(
-            lambda _: {
-                "settlement_state": "COMPLETED",
-                "amount": "1000.00",
-            }
-        )
-
->       first = first_reconstructor.reconstruct(
-            request
-        )
-
-AUTONOMY_ENGINE\core\commission_financial\test_core008_t13_acrl_regression.py:102:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\commission_financial\commission_acrl_reconstruction.py:157: in reconstruct
-    result = FinancialReconstructionResult(
-<string>:7: in __init__
+<frozen importlib._bootstrap>:1387: in _gcd_import
     ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = FinancialReconstructionResult(request=FinancialReconstructionRequest(tenant_id='tenant-a', commission_id='commission-0...TTLEMENT', source_id='settlement-001', fingerprint='settlement-fp-001', authority='AUTONOMY_ENGINE.continuity.acrl'),))
-
-    def __post_init__(self) -> None:
-        if not isinstance(
-            self.reconstructed_state,
-            Mapping,
-        ):
-            raise CommissionACRLValidationError(
-                "reconstructed_state must be a mapping"
-            )
-
-        object.__setattr__(
-            self,
-            "reconstructed_state",
-            dict(self.reconstructed_state),
-        )
-
-        references = tuple(self.source_references)
-
-        if not references:
-            raise CommissionACRLValidationError(
-                "reconstruction requires source references"
-            )
-
-        object.__setattr__(
-            self,
-            "source_references",
-            references,
-        )
-
-        if not isinstance(
-            self.result_fingerprint,
-            str,
-        ) or not self.result_fingerprint.strip():
->           raise CommissionACRLValidationError(
-                "result_fingerprint cannot be empty"
-            )
-E           AUTONOMY_ENGINE.core.commission_financial.commission_acrl_contract.CommissionACRLValidationError: result_fingerprint cannot be empty
-
-AUTONOMY_ENGINE\core\commission_financial\commission_acrl_reconstruction.py:65: CommissionACRLValidationError
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+____________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t02_fraud_detection.py _____________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+______________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_adversarial.py _______________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+____________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_assessment.py _____________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+_______________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py _______________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+______________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t08_adversarial.py _______________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+_____________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t09_t10_boundaries.py _____________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+_____________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t11_acrl_contract.py ______________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+_____________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t12_event_contract.py _____________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+____________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t13_contract_matrix.py _____________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
 ================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/commission_financial/test_core008_t02_adversarial.py::test_history_cannot_skip_versions - AUTONOMY_ENGINE.core.commission_financial.commission_contract.CommissionContractValidationError: effective_to must be later than effective_from.
-FAILED AUTONOMY_ENGINE/core/commission_financial/test_core008_t02_adversarial.py::test_history_cannot_overlap_effective_dates - AUTONOMY_ENGINE.core.commission_financial.commission_contract.CommissionContractValidationError: effective_to must be later than effective_from.
-FAILED AUTONOMY_ENGINE/core/commission_financial/test_core008_t02_provenance_adversarial.py::test_late_provenance_is_detected - AUTONOMY_ENGINE.core.commission_financial.commission_contract.CommissionContractValidationError: provenance cannot be later than effective_from.
-FAILED AUTONOMY_ENGINE/core/commission_financial/test_core008_t13_acrl_regression.py::test_reconstruction_is_deterministic - AUTONOMY_ENGINE.core.commission_financial.commission_acrl_contract.CommissionACRLValidationError: result_fingerprint cannot be empty
-FAILED AUTONOMY_ENGINE/core/commission_financial/test_core008_t13_acrl_regression.py::test_different_reconstruction_results_for_same_subject_conflict - AUTONOMY_ENGINE.core.commission_financial.commission_acrl_contract.CommissionACRLValidationError: result_fingerprint cannot be empty
-5 failed, 125 passed in 0.73s
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t01_trust_score.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t02_fraud_detection.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_adversarial.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_assessment.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t08_adversarial.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t09_t10_boundaries.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t11_acrl_contract.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t12_event_contract.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t13_contract_matrix.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 10 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+10 errors in 5.06s
+2
+PS D:\HOMIO\REOS_CONTROL_CENTER> Run-Test "ACRL ALL" "AUTONOMY_ENGINE\continuity\acrl";
+
+===== ACRL ALL =====
+.................................................................................................................................................... [ 12%]
+.................................................................................................................................................... [ 24%]
+.................................................................................................................................................... [ 37%]
+.................................................................................................................................................... [ 49%]
+.................................................................................................................................................... [ 61%]
+.................................................................................................................................................... [ 74%]
+.................................................................................................................................................... [ 86%]
+.................................................................................................................................................... [ 98%]
+..............                                                                                                                                       [100%]
+1198 passed in 20.16s
+0
+PS D:\HOMIO\REOS_CONTROL_CENTER> Run-Test "AUTONOMY ENGINE TESTS" "AUTONOMY_ENGINE\tests";
+
+===== AUTONOMY ENGINE TESTS =====
+
+========================================================================= ERRORS ==========================================================================
+_________________________________________________ ERROR collecting AUTONOMY_ENGINE/tests/test_adapter.py __________________________________________________
+ImportError while importing test module 'D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_adapter.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\tests\test_adapter.py:5: in <module>
+    from adapter.targeted_state import compact_state
+E   ModuleNotFoundError: No module named 'adapter'
+___________________________________________ ERROR collecting AUTONOMY_ENGINE/tests/test_autonomy_components.py ____________________________________________
+ImportError while importing test module 'D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_autonomy_components.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\tests\test_autonomy_components.py:2: in <module>
+    from core.action_planner import ActionCandidate,ActionPlanner
+E   ModuleNotFoundError: No module named 'core'
+_____________________________________________ ERROR collecting AUTONOMY_ENGINE/tests/test_l1_l2_acceptance.py _____________________________________________
+ImportError while importing test module 'D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\tests\test_l1_l2_acceptance.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\tests\test_l1_l2_acceptance.py:64: in <module>
+    from runtime.mission_cycle import MissionCycleEngine
+AUTONOMY_ENGINE\runtime\mission_cycle.py:6: in <module>
+    from autonomous_mission_runtime import AutonomousMissionRuntime
+E   ModuleNotFoundError: No module named 'autonomous_mission_runtime'
+================================================================= short test summary info =================================================================
+ERROR AUTONOMY_ENGINE/tests/test_adapter.py
+ERROR AUTONOMY_ENGINE/tests/test_autonomy_components.py
+ERROR AUTONOMY_ENGINE/tests/test_l1_l2_acceptance.py
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+3 errors in 1.39s
+2
+PS D:\HOMIO\REOS_CONTROL_CENTER> Run-Test "RUNTIME" "AUTONOMY_ENGINE\runtime";
+
+===== RUNTIME =====
+
+========================================================================= ERRORS ==========================================================================
+__________________________________________ ERROR collecting AUTONOMY_ENGINE/runtime/tests/test_mission_cycle.py ___________________________________________
+ImportError while importing test module 'D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\runtime\tests\test_mission_cycle.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\runtime\tests\test_mission_cycle.py:8: in <module>
+    from mission_cycle import MissionCycleEngine
+AUTONOMY_ENGINE\runtime\mission_cycle.py:7: in <module>
+    from orchestration.agent_runtime import AgentRuntime, AgentRuntimeContext
+E   ModuleNotFoundError: No module named 'orchestration'
+___________________________________________ ERROR collecting AUTONOMY_ENGINE/runtime/tests/test_runtime_core.py ___________________________________________
+ImportError while importing test module 'D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\runtime\tests\test_runtime_core.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AUTONOMY_ENGINE\runtime\tests\test_runtime_core.py:5: in <module>
+    from mission_cycle import MissionCycleEngine
+AUTONOMY_ENGINE\runtime\mission_cycle.py:7: in <module>
+    from orchestration.agent_runtime import AgentRuntime, AgentRuntimeContext
+E   ModuleNotFoundError: No module named 'orchestration'
+==================================================================== warnings summary =====================================================================
+AUTONOMY_ENGINE\runtime\test_runtime.py:8
+  D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\runtime\test_runtime.py:8: PytestCollectionWarning: cannot collect test class 'TestTarget' because it has a __init__ constructor (from: AUTONOMY_ENGINE/runtime/test_runtime.py)
+    @dataclass(frozen=True, slots=True)
+
+AUTONOMY_ENGINE\runtime\test_runtime.py:15
+  D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\runtime\test_runtime.py:15: PytestCollectionWarning: cannot collect test class 'TestRuntime' because it has a __init__ constructor (from: AUTONOMY_ENGINE/runtime/test_runtime.py)
+    class TestRuntime:
+
+AUTONOMY_ENGINE\runtime\test_runtime.py:15
+  D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\runtime\test_runtime.py:15: PytestCollectionWarning: cannot collect test class 'TestRuntime' because it has a __init__ constructor (from: AUTONOMY_ENGINE/runtime/tests/test_repository_dependency.py)
+    class TestRuntime:
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================================================= short test summary info =================================================================
+ERROR AUTONOMY_ENGINE/runtime/tests/test_mission_cycle.py
+ERROR AUTONOMY_ENGINE/runtime/tests/test_runtime_core.py
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+3 warnings, 2 errors in 0.83s
+2
+PS D:\HOMIO\REOS_CONTROL_CENTER> Run-Test "DIAGNOSTICS" "AUTONOMY_ENGINE\diagnostics";
+
+===== DIAGNOSTICS =====
+............                                                                                                                                         [100%]
+12 passed in 1.75s
+0
+PS D:\HOMIO\REOS_CONTROL_CENTER> Run-Test "ORCHESTRATION" "AUTONOMY_ENGINE\orchestration";
+
+===== ORCHESTRATION =====
+.............                                                                                                                                        [100%]
+13 passed in 0.21s
+0
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n===== FULL REPOSITORY REGRESSION =====" -ForegroundColor Yellow;
+
+===== FULL REPOSITORY REGRESSION =====
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest -q;
+
+========================================================================= ERRORS ==========================================================================
+______________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t01_trust_score.py _______________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+____________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t02_fraud_detection.py _____________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+______________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_adversarial.py _______________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+____________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_assessment.py _____________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+_______________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py _______________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+______________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t08_adversarial.py _______________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+_____________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t09_t10_boundaries.py _____________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+_____________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t11_acrl_contract.py ______________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+_____________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t12_event_contract.py _____________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+____________________________ ERROR collecting AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t13_contract_matrix.py _____________________________
+C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+<frozen importlib._bootstrap_external>:995: in exec_module
+    ???
+<frozen importlib._bootstrap>:488: in _call_with_frames_removed
+    ???
+AUTONOMY_ENGINE\core\trust_fraud_governance\__init__.py:42: in <module>
+    from .fraud_detection import (
+AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py:125: in <module>
+    FraudHandoffPriority.LOW: FraudSeverity.REVIEW,
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+==================================================================== warnings summary =====================================================================
+AUTONOMY_ENGINE\runtime\test_runtime.py:8
+  D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\runtime\test_runtime.py:8: PytestCollectionWarning: cannot collect test class 'TestTarget' because it has a __init__ constructor (from: AUTONOMY_ENGINE/runtime/test_runtime.py)
+    @dataclass(frozen=True, slots=True)
+
+AUTONOMY_ENGINE\runtime\test_runtime.py:15
+  D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\runtime\test_runtime.py:15: PytestCollectionWarning: cannot collect test class 'TestRuntime' because it has a __init__ constructor (from: AUTONOMY_ENGINE/runtime/test_runtime.py)
+    class TestRuntime:
+
+AUTONOMY_ENGINE\runtime\test_runtime.py:15
+  D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\runtime\test_runtime.py:15: PytestCollectionWarning: cannot collect test class 'TestRuntime' because it has a __init__ constructor (from: AUTONOMY_ENGINE/runtime/tests/test_repository_dependency.py)
+    class TestRuntime:
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================================================= short test summary info =================================================================
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t01_trust_score.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t02_fraud_detection.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_adversarial.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_assessment.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t08_adversarial.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t09_t10_boundaries.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t11_acrl_contract.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t12_event_contract.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+ERROR AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t13_contract_matrix.py - AttributeError: type object 'FraudHandoffPriority' has no attribute 'LOW'
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 10 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+3 warnings, 10 errors in 5.30s
+PS D:\HOMIO\REOS_CONTROL_CENTER> $full=$LASTEXITCODE;
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n===== PYTHON COMPILE / SYNTAX SWEEP =====" -ForegroundColor Yellow;
+
+===== PYTHON COMPILE / SYNTAX SWEEP =====
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m compileall -q AUTONOMY_ENGINE REOS_CONTROL_CENTER.py AI_AGENT_ENTRYPOINT.py;
+*** Error compiling 'AUTONOMY_ENGINE\\core\\commission_financial\\commission_release.py'...
+  File "AUTONOMY_ENGINE\core\commission_financial\commission_release.py", line 644
+    ]
+    ^
+SyntaxError: closing parenthesis ']' does not match opening parenthesis '(' on line 637
+
+*** Error compiling 'AUTONOMY_ENGINE\\diagnostics\\diagnostic_drift.py'...
+Sorry: IndentationError: unindent does not match any outer indentation level (diagnostic_drift.py, line 102)
+PS D:\HOMIO\REOS_CONTROL_CENTER> $compile=$LASTEXITCODE;
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n===== FINAL TEST MATRIX =====" -ForegroundColor Green;
+
+===== FINAL TEST MATRIX =====
+PS D:\HOMIO\REOS_CONTROL_CENTER> $results | Format-Table -AutoSize;
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "FULL_REPOSITORY_EXITCODE = $full";
+FULL_REPOSITORY_EXITCODE = 2
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "COMPILE_EXITCODE          = $compile";
+COMPILE_EXITCODE          = 1
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if(($full -ne 0) -or ($compile -ne 0) -or (($results | Where-Object {$_.ExitCode -ne 0}).Count -gt 0)){
+>>   exit 1
+>> }
+
+[process exited with code 1 (0x00000001)]
+You can now close this terminal with Ctrl+D, or press Enter to restart.
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
