@@ -1,41 +1,36 @@
 ======================================================================== FAILURES =========================================================================
-________________________________________________________ test_evaluation_identity_is_deterministic ________________________________________________________
+_________________________________________________________ test_evidence_references_are_preserved __________________________________________________________
 
-    def test_evaluation_identity_is_deterministic() -> None:
+    def test_evidence_references_are_preserved() -> None:
         policy = RiskRulePolicy(
-            policy_id="T03-DETERMINISM",
+            policy_id="T03-EVIDENCE",
             version="1.0",
             rules=(
-                trust_rule(),
+                fraud_rule(),
             ),
         )
 
-        first = RiskRuleEngine().evaluate(
+        fraud = build_fraud_assessment()
+
+        result = RiskRuleEngine().evaluate(
             tenant_id=TENANT_ID,
             subject_id=SUBJECT_ID,
-            correlation_id="determinism",
+            correlation_id="evidence",
             policy=policy,
-            trust_score=build_trust_score(score=20),
+            fraud_assessment=fraud,
             evaluated_at=NOW,
-            evaluation_id=UUID(int=101),
         )
 
-        second = RiskRuleEngine().evaluate(
-            tenant_id=TENANT_ID,
-            subject_id=SUBJECT_ID,
-            correlation_id="determinism",
-            policy=policy,
-            trust_score=build_trust_score(score=20),
-            evaluated_at=NOW,
-            evaluation_id=UUID(int=202),
+>       assert (
+            fraud.fingerprint
+            in result.evidence_references
         )
+E       AssertionError: assert '40b31e6a14a174ac4cd3ff6e37e69a7a69e9b63343e72b0385076d0ced5d2154' in ('evidence://fraud/t03',)
+E        +  where '40b31e6a14a174ac4cd3ff6e37e69a7a69e9b63343e72b0385076d0ced5d2154' = FraudAssessment(assessment_id=UUID('b0841a45-3e0c-4dee-8c24-98118cc948bd'), tenant_id=UUID('267d6307-9095-4fa9-9954-14...ERSIBLE_ACTION', escalation_boundary='HIGH_OR_CRITICAL_REQUIRES_GOVERNANCE_REVIEW', irreversible_action_protected=True).fingerprint
+E        +  and   ('evidence://fraud/t03',) = RiskRuleEvaluation(evaluation_id=UUID('7d1a483c-eff5-4726-b4b0-fc95ced41154'), tenant_id='267d6307-9095-4fa9-9954-1492...ity='DETERMINISTIC', rule_provenance_references=('CORE-007.RISK_RULE',), exception_references=(), assessment_version=1).evidence_references
 
->       assert first.determinism_key == second.determinism_key
-               ^^^^^^^^^^^^^^^^^^^^^
-E       AttributeError: 'RiskRuleEvaluation' object has no attribute 'determinism_key'
-
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_adversarial.py:442: AttributeError
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_adversarial.py:578: AssertionError
 ================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_adversarial.py::test_evaluation_identity_is_deterministic - AttributeError: 'RiskRuleEvaluation' object has no attribute 'determinism_key'
+FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_adversarial.py::test_evidence_references_are_preserved - AssertionError: assert '40b31e6a14a174ac4cd3ff6e37e69a7a69e9b63343e72b0385076d0ced5d2154' in ('evidence://fraud/t03',)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-1 failed, 72 passed in 0.39s
+1 failed, 77 passed in 0.48s
