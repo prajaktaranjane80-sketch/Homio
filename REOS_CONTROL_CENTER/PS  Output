@@ -1,117 +1,151 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> cd D:\HOMIO\REOS_CONTROL_CENTER
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $Repo="prajaktaranjane80-sketch/Homio"
-PS D:\HOMIO\REOS_CONTROL_CENTER> $Branch="reos-development"
-PS D:\HOMIO\REOS_CONTROL_CENTER> $Base="https://api.github.com/repos/$Repo"
-PS D:\HOMIO\REOS_CONTROL_CENTER> $EvidencePath="REOS_CONTROL_CENTER/PS  Output"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $TestOutput = & python -m pytest AUTONOMY_ENGINE\core\commission_financial -q 2>&1 | Out-String
-PS D:\HOMIO\REOS_CONTROL_CENTER> $TestExit = $LASTEXITCODE
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== CORE-008 PYTEST EXIT CODE: $TestExit ==="
-=== CORE-008 PYTEST EXIT CODE: 4 ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host $TestOutput
-python.exe : ERROR: file or directory not found: AUTONOMY_ENGINE\core\commission_financial
-At line:1 char:15
-+ ... estOutput = & python -m pytest AUTONOMY_ENGINE\core\commission_financ ...
-+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (ERROR: file or ...ssion_financial:String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
-
-
-
-no tests ran in 0.00s
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $Evidence = gh api "$Base/contents/$EvidencePath`?ref=$Branch" | ConvertFrom-Json
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $EvidenceText = @"
->> CORE-008 FULL TEST RUN
->> ======================
->> DATE: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
->> BRANCH: $Branch
->> PYTEST EXIT CODE: $TestExit
->>
->> $TestOutput
->>
->> REMOTE STRUCTURAL VERIFICATION
->> ==============================
->> commission_settlement.py = PRESENT
->> commission_settlement.p = 404 EXPECTED / REMOVED
->> "@
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $Encoded = [Convert]::ToBase64String(
->>     [Text.Encoding]::UTF8.GetBytes($EvidenceText)
->> )
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> gh api `
->>     -X PUT `
->>     "$Base/contents/$EvidencePath" `
->>     -H "Accept: application/vnd.github+json" `
->>     -H "X-GitHub-Api-Version: 2022-11-28" `
->>     -f "message=Record CORE-008 full pytest audit" `
->>     -f "content=$Encoded" `
->>     -f "branch=$Branch" `
->>     -f "sha=$($Evidence.sha)"
-{
-  "content": {
-    "name": "PS  Output",
-    "path": "REOS_CONTROL_CENTER/PS  Output",
-    "sha": "ac1095875775011573ea7f83e3be1fb259993e71",
-    "size": 722,
-    "url": "https://api.github.com/repos/prajaktaranjane80-sketch/Homio/contents/REOS_CONTROL_CENTER/PS%20%20Output?ref=reos-development",
-    "html_url": "https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/PS%20%20Output",
-    "git_url": "https://api.github.com/repos/prajaktaranjane80-sketch/Homio/git/blobs/ac1095875775011573ea7f83e3be1fb259993e71",
-    "download_url": "https://raw.githubusercontent.com/prajaktaranjane80-sketch/Homio/reos-development/REOS_CONTROL_CENTER/PS%20%20Output",
-    "type": "file",
-    "_links": {
-      "self": "https://api.github.com/repos/prajaktaranjane80-sketch/Homio/contents/REOS_CONTROL_CENTER/PS%20%20Output?ref=reos-development",
-      "git": "https://api.github.com/repos/prajaktaranjane80-sketch/Homio/git/blobs/ac1095875775011573ea7f83e3be1fb259993e71",
-      "html": "https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/PS%20%20Output"
-    }
-  },
-  "commit": {
-    "sha": "977a471d455b63fc0a6bd00fa1e09454b3e3ce64",
-    "node_id": "C_kwDOUDse0doAKDk3N2E0NzFkNDU1YjYzZmMwYTZiZDAwZmExZTA5NDU0YjNlM2NlNjQ",
-    "url": "https://api.github.com/repos/prajaktaranjane80-sketch/Homio/git/commits/977a471d455b63fc0a6bd00fa1e09454b3e3ce64",
-    "html_url": "https://github.com/prajaktaranjane80-sketch/Homio/commit/977a471d455b63fc0a6bd00fa1e09454b3e3ce64",
-    "author": {
-      "name": "prajaktaranjane80-sketch",
-      "email": "prajaktaranjane80@gmail.com",
-      "date": "2026-10-01T06:36:35Z"
-    },
-    "committer": {
-      "name": "prajaktaranjane80-sketch",
-      "email": "prajaktaranjane80@gmail.com",
-      "date": "2026-10-01T06:36:35Z"
-    },
-    "tree": {
-      "sha": "5f4cd11c4e47e480996f0154049363a893559ff2",
-      "url": "https://api.github.com/repos/prajaktaranjane80-sketch/Homio/git/trees/5f4cd11c4e47e480996f0154049363a893559ff2"
-    },
-    "message": "Record CORE-008 full pytest audit",
-    "parents": [
-      {
-        "sha": "5c1dfb80f86f9c9685ebba7b36c42a86be1e8709",
-        "url": "https://api.github.com/repos/prajaktaranjane80-sketch/Homio/git/commits/5c1dfb80f86f9c9685ebba7b36c42a86be1e8709",
-        "html_url": "https://github.com/prajaktaranjane80-sketch/Homio/commit/5c1dfb80f86f9c9685ebba7b36c42a86be1e8709"
-      }
-    ],
-    "verification": {
-      "verified": false,
-      "reason": "unsigned",
-      "signature": null,
-      "payload": null,
-      "verified_at": null
-    }
-  }
-}
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== CORE-008 TEST RESULT ==="
-
 === CORE-008 TEST RESULT ===
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "PYTEST EXIT CODE: $TestExit"
 PYTEST EXIT CODE: 4
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "PS OUTPUT UPDATED ON GITHUB"
 PS OUTPUT UPDATED ON GITHUB
+PS D:\HOMIO\REOS_CONTROL_CENTER> cd D:\HOMIO\REOS_CONTROL_CENTER
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
+ M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_reconstruction.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/gate_subtask_continuity.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/test_gate_subtask_continuity.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_engine.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/new_chat_bootstrap.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/test_new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/context_compression.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/test_context_compression.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_guard.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_t12_integration.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_metrics.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_adversarial.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_contract.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_integration.cpython-312-pytest-9.1.1.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/dependency_graph.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/__init__.cpython-312.pyc
+ M AUTONOMY_ENGINE/continuity/acrl/__pycache__/__init__.cpython-312.pyc
+ M REOS_NEXT_CHAT.txt
+ M data/state.json
+ M packets/NEW_CHAT_PACKET.txt
+?? ../Frontend/
+?? snapshots/state_20260930_175630_008157.json
+?? snapshots/state_20260930_175630_253952.json
+?? snapshots/state_20260930_175630_468820.json
+?? snapshots/state_20260930_175630_743954.json
+?? snapshots/state_20260930_175630_955116.json
+?? snapshots/state_20260930_175631_175115.json
+?? snapshots/state_20260930_175631_390024.json
+?? snapshots/state_20260930_175631_670253.json
+?? snapshots/state_20260930_175631_900087.json
+?? snapshots/state_20260930_175632_140075.json
+?? snapshots/state_20260930_175632_372498.json
+?? snapshots/state_20260930_175632_600337.json
+?? snapshots/state_20260930_175632_840066.json
+?? snapshots/state_20260930_175633_130205.json
+?? snapshots/state_20260930_175633_420357.json
+?? snapshots/state_20260930_175633_448315.json
+PS D:\HOMIO\REOS_CONTROL_CENTER> git branch --show-current
+reos-development
+PS D:\HOMIO\REOS_CONTROL_CENTER> git remote -v
+origin  https://prajaktaranjane80-sketch@github.com/prajaktaranjane80-sketch/Homio.git (fetch)
+origin  https://prajaktaranjane80-sketch@github.com/prajaktaranjane80-sketch/Homio.git (push)
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
+remote: Enumerating objects: 937, done.
+remote: Counting objects: 100% (179/179), done.
+remote: Compressing objects: 100% (29/29), done.
+remote: Total 937 (delta 165), reused 150 (delta 150), pack-reused 758 (from 2)
+Receiving objects: 100% (937/937), 279.10 KiB | 3.82 MiB/s, done.
+Resolving deltas: 100% (730/730), completed with 1 local object.
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+   8d8ed94..bc5fa54  reos-development -> origin/reos-development
+Enumerating objects: 3120, done.
+Counting objects: 100% (3119/3119), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (1003/1003), done.
+Writing objects: 100% (3119/3119), done.
+Total 3119 (delta 2161), reused 3013 (delta 2081), pack-reused 0 (from 0)
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git checkout reos-development
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/__init__.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/__init__.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_reconstruction.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/gate_subtask_continuity.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/test_gate_subtask_continuity.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/__init__.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/__init__.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_engine.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/__init__.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/new_chat_bootstrap.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/test_new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/context_compression.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/test_context_compression.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_guard.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_t12_integration.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_metrics.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_adversarial.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_contract.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_integration.cpython-312-pytest-9.1.1.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/dependency_graph.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/__init__.cpython-312.pyc
+M       REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/__pycache__/__init__.cpython-312.pyc
+M       REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt
+M       REOS_CONTROL_CENTER/data/state.json
+M       REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt
+Already on 'reos-development'
+Your branch and 'origin/reos-development' have diverged,
+and have 3 and 218 different commits each, respectively.
+  (use "git pull" if you want to integrate the remote branch with yours)
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git pull --ff-only origin reos-development
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+hint: Diverging branches can't be fast-forwarded, you need to either:
+hint:
+hint:   git merge --no-ff
+hint:
+hint: or:
+hint:
+hint:   git rebase
+hint:
+hint: Disable this message with "git config set advice.diverging false"
+fatal: Not possible to fast-forward, aborting.
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== SYNC CHECK ==="
+
+=== SYNC CHECK ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git rev-parse HEAD
+6816f8ecd7e10d908e7a3e6925f7b781d3296cce
+PS D:\HOMIO\REOS_CONTROL_CENTER> git rev-parse origin/reos-development
+bc5fa5476c0122746fac4b33cda1bde061cb4e4d
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== CORE-008 PATH CHECK ==="
+
+=== CORE-008 PATH CHECK ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Test-Path ".\AUTONOMY_ENGINE\core\commission_financial"
+False
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== SETTLEMENT MODULE CHECK ==="
+
+=== SETTLEMENT MODULE CHECK ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Test-Path ".\AUTONOMY_ENGINE\core\commission_financial\commission_settlement.py"
+False
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\commission_financial -q
+
+no tests ran in 0.01s
+ERROR: file or directory not found: AUTONOMY_ENGINE\core\commission_financial
+
 PS D:\HOMIO\REOS_CONTROL_CENTER>
