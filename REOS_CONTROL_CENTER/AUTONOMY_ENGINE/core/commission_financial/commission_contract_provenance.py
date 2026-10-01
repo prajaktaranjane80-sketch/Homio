@@ -94,5 +94,4 @@ def provenance_is_before_effective_start(
 __all__ = [
     "CommissionProvenanceRecord",
     "provenance_is_before_effective_start",
-    "provenance_timestamp",
 ]
