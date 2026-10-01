@@ -1,106 +1,55 @@
-S D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== FINAL REMOTE VERIFICATION ==="
-=== FINAL REMOTE VERIFICATION ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location 'D:\HOMIO\REOS_CONTROL_CENTER'
+PS D:\HOMIO\REOS_CONTROL_CENTER> $ErrorActionPreference = 'Stop'
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $verify.GetEnumerator() | ForEach-Object {
->>     Write-Host ("{0} : {1}" -f $_.Key,$_.Value)
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== AUTHORITATIVE GITHUB SYNC REPAIR ==="
+=== AUTHORITATIVE GITHUB SYNC REPAIR ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin '+refs/heads/reos-development:refs/remotes/origin/reos-development'
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $local  = git rev-parse HEAD
+PS D:\HOMIO\REOS_CONTROL_CENTER> $tracked = git rev-parse origin/reos-development
+PS D:\HOMIO\REOS_CONTROL_CENTER> $remote = ((git ls-remote origin refs/heads/reos-development) -split '\s+')[0]
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "LOCAL   :" $local
+LOCAL   : e2d0558b3a743e9c90679b8cfc04db817ad459c6
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "TRACKED :" $tracked
+TRACKED : 157de6bcd6ac6ec186c92d60ea323c032eb087bc
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "GITHUB  :" $remote
+GITHUB  : 157de6bcd6ac6ec186c92d60ea323c032eb087bc
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($tracked -ne $remote) {
+>>     throw "SYNC TRACKING REF STILL STALE"
 >> }
-CANONICAL_LOCAL_WORKSPACE : False
-GIT_PREFLIGHT : False
-REMOTE_HEAD_GUARD : False
-SOURCE_T21_SINGLE : False
-PATH_T21_SINGLE : False
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($local -ne $remote) {
+>>     git merge --ff-only origin/reos-development
+>> }
+Updating e2d0558..157de6b
+Fast-forward
+ REOS_CONTROL_CENTER/PS  Output | 186 +++++++++++++++++++++++------------------
+ 1 file changed, 103 insertions(+), 83 deletions(-)
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $local2   = git rev-parse HEAD
+PS D:\HOMIO\REOS_CONTROL_CENTER> $tracked2 = git rev-parse origin/reos-development
+PS D:\HOMIO\REOS_CONTROL_CENTER> $remote2  = ((git ls-remote origin refs/heads/reos-development) -split '\s+')[0]
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "OLD SHA      :" $oldSha
-OLD SHA      :
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "NEW FILE SHA :" $v.sha
-NEW FILE SHA :
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "COMMIT SHA   :" $commitObj.commit.sha
-COMMIT SHA   :
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location 'D:\HOMIO\REOS_CONTROL_CENTER'
-PS D:\HOMIO\REOS_CONTROL_CENTER> $ErrorActionPreference = 'Continue'
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== FINAL ==="
+=== FINAL ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "LOCAL   :" $local2
+LOCAL   : 157de6bcd6ac6ec186c92d60ea323c032eb087bc
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "TRACKED :" $tracked2
+TRACKED : 157de6bcd6ac6ec186c92d60ea323c032eb087bc
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "GITHUB  :" $remote2
+GITHUB  : 157de6bcd6ac6ec186c92d60ea323c032eb087bc
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== GH / GIT SYNC ROOT DIAGNOSTIC ==="
-=== GH / GIT SYNC ROOT DIAGNOSTIC ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (($local2 -eq $tracked2) -and ($tracked2 -eq $remote2)) {
+>>     Write-Host "SYNC FOUNDATION : PASS"
+>> }
+SYNC FOUNDATION : PASS
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n--- LOCAL GIT ---"
-
---- LOCAL GIT ---
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CWD    :" (Get-Location).Path
-CWD    : D:\HOMIO\REOS_CONTROL_CENTER
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "BRANCH :" (git branch --show-current)
-BRANCH : reos-development
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "LOCAL  :" (git rev-parse HEAD)
-LOCAL  : e2d0558b3a743e9c90679b8cfc04db817ad459c6
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE :" (git rev-parse origin/reos-development)
-REMOTE : e2d0558b3a743e9c90679b8cfc04db817ad459c6
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "ORIGIN :" (git remote get-url origin)
-ORIGIN : https://prajaktaranjane80-sketch@github.com/prajaktaranjane80-sketch/Homio.git
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (($local2 -ne $tracked2) -or ($tracked2 -ne $remote2)) {
+>>     throw "SYNC FOUNDATION : FAIL"
+>> }
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n--- GH ENVIRONMENT ---"
-
---- GH ENVIRONMENT ---
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "GH_HOST :" $env:GH_HOST
-GH_HOST :
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "GH_REPO :" $env:GH_REPO
-GH_REPO :
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n--- GH AUTH ---"
-
---- GH AUTH ---
-PS D:\HOMIO\REOS_CONTROL_CENTER> gh auth status --hostname github.com
-github.com
-  ✓ Logged in to github.com account prajaktaranjane80-sketch (keyring)
-  - Active account: true
-  - Git operations protocol: https
-  - Token: gho_************************************
-  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
-
-  ✓ Logged in to github.com account sandyranjane-hash (keyring)
-  - Active account: false
-  - Git operations protocol: https
-  - Token: gho_************************************
-  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n--- GH USER ---"
-
---- GH USER ---
-PS D:\HOMIO\REOS_CONTROL_CENTER> gh api user --jq '{login: .login, name: .name}'
-{
-  "login": "prajaktaranjane80-sketch",
-  "name": null
-}
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n--- GH REPOSITORY ---"
-
---- GH REPOSITORY ---
-PS D:\HOMIO\REOS_CONTROL_CENTER> gh api "repos/prajaktaranjane80-sketch/Homio" --jq '{full_name: .full_name,visibility: .visibility,default_branch: .default_branch}'
-{
-  "default_branch": "main",
-  "full_name": "prajaktaranjane80-sketch/Homio",
-  "visibility": "public"
-}
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n--- GH BRANCH ---"
-
---- GH BRANCH ---
-PS D:\HOMIO\REOS_CONTROL_CENTER> gh api "repos/prajaktaranjane80-sketch/Homio/branches/reos-development" --jq '{name: .name,sha: .commit.sha}'
-{
-  "name": "reos-development",
-  "sha": "d5c9c5537165a2807b1f0cd1aab3cfd2517c871e"
-}
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n--- GH CONTENT API ---"
-
---- GH CONTENT API ---
-PS D:\HOMIO\REOS_CONTROL_CENTER> gh api "repos/prajaktaranjane80-sketch/Homio/contents/REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py?ref=reos-development" --jq '{name: .name,sha: .sha,path: .path}'
-{
-  "name": "AI_AGENT_ENTRYPOINT.py",
-  "path": "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py",
-  "sha": "1068f357d7913ca839d33994b515a4eeb5b947a7"
-}
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== END ==="
-
-=== END ===
