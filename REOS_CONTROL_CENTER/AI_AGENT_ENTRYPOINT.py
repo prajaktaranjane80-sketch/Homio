@@ -267,16 +267,23 @@ REMOTE_GIT_SYNCHRONIZATION_RULES: tuple[str, ...] = (
 REPOSITORY_PREFLIGHT_RULES: tuple[str, ...] = (
     "Canonical workspace is D:\\HOMIO.",
     "Canonical Control Center is D:\\HOMIO\\REOS_CONTROL_CENTER.",
+    "Git repository root is D:\\HOMIO.",
     "Expected repository is prajaktaranjane80-sketch/Homio.",
     "Expected branch is reos-development.",
     "Expected origin resolves to the canonical GitHub repository.",
     "Current working directory must be the canonical Control Center.",
     "Repository root must resolve to the canonical Control Center.",
-    "Remote-ahead evidence-only commits are valid synchronization state.",
-    "Remote-ahead code or canonical-state changes require investigation.",
     "Generated Python caches are artifacts, never project source or state.",
     "PS Output is evidence only.",
-    "Preflight must fail closed on branch, origin or repository identity mismatch.",
+    "AI_AGENT_ENTRYPOINT.py does not own Git synchronization.",
+    "ACRL T21 is the single Git repository read/write coordination authority.",
+    "ACRL T21 performs branch/HEAD/push/remote verification for Git transactions.",
+    "T07 remains the new-chat bootstrap authority.",
+    "T18 remains the execution-authorization authority.",
+    "T20 remains the repair-verification authority.",
+    "T22 remains the immutable checkpoint authority.",
+    "T23 remains the evidence-resolution authority.",
+    "T24 remains the continuity/recovery authority.",
 )
 
 # ---------------------------------------------------------------------------
@@ -546,108 +553,21 @@ def _normalize_origin(value: str) -> str:
     return origin.rstrip("/").lower()
 
 
-def _is_evidence_path(path_value: str) -> bool:
-    """Return True only for approved evidence-only repository paths."""
-
-    return (
-        path_value == "REOS_CONTROL_CENTER/PS  Output"
-        or path_value == "REOS_CONTROL_CENTER/errors"
-        or path_value.startswith("REOS_CONTROL_CENTER/errors/")
-    )
-
-
-def _remote_sync_status() -> dict[str, Any]:
-    """Classify local vs remote state without mutating Git."""
-
-    result: dict[str, Any] = {
-        "status": "unavailable",
-        "remote_head": "",
-        "changed_files": [],
-        "evidence_only": False,
-    }
-
-    code, remote_head, _ = _run_git(
-        "rev-parse",
-        "origin/reos-development",
-    )
-
-    if code != 0 or not remote_head:
-        return result
-
-    result["remote_head"] = remote_head
-
-    code, local_head, _ = _run_git(
-        "rev-parse",
-        "HEAD",
-    )
-
-    if code != 0:
-        return result
-
-    if local_head == remote_head:
-        result["status"] = "exact"
-        result["evidence_only"] = True
-        return result
-
-    code, _, _ = _run_git(
-        "merge-base",
-        "--is-ancestor",
-        "HEAD",
-        "origin/reos-development",
-    )
-
-    if code == 0:
-        code, changed, _ = _run_git(
-            "diff",
-            "--name-only",
-            "HEAD",
-            "origin/reos-development",
-        )
-
-        if code != 0:
-            return result
-
-        files = [
-            item
-            for item in changed.splitlines()
-            if item
-        ]
-
-        result["changed_files"] = files
-        result["evidence_only"] = (
-            len(files) > 0
-            and all(_is_evidence_path(item) for item in files)
-        )
-
-        result["status"] = (
-            "remote_ahead_evidence_only"
-            if result["evidence_only"]
-            else "remote_ahead_code_or_state"
-        )
-
-        return result
-
-    code, _, _ = _run_git(
-        "merge-base",
-        "--is-ancestor",
-        "origin/reos-development",
-        "HEAD",
-    )
-
-    if code == 0:
-        result["status"] = "local_ahead"
-        return result
-
-    result["status"] = "diverged"
-    return result
-
-
 def git_preflight() -> dict[str, Any]:
-    """Return a read-only canonical repository preflight report."""
+    """
+    Return a read-only local repository identity/preflight report.
+
+    Git synchronization, transaction, commit and remote verification
+    remain owned exclusively by ACRL T21.
+    """
 
     result: dict[str, Any] = {
-        "canonical_workspace": str(CANONICAL_LOCAL_WORKSPACE),
-        "canonical_control_center": str(CANONICAL_CONTROL_CENTER),
+        "canonical_workspace": str(
+            CANONICAL_LOCAL_WORKSPACE
+        ),
+        "canonical_control_center": str(
+            CANONICAL_CONTROL_CENTER
+        ),
         "current_cwd": str(Path.cwd()),
         "repository_root": "",
         "branch": "",
@@ -659,9 +579,7 @@ def git_preflight() -> dict[str, Any]:
         "branch_ok": False,
         "origin_ok": False,
         "local_head_ok": False,
-        "remote_branch_ok": False,
-        "remote_sync_status": "unavailable",
-        "remote_ahead_evidence_only": False,
+        "t21_authority_ok": False,
         "ready": False,
     }
 
@@ -681,10 +599,11 @@ def git_preflight() -> dict[str, Any]:
     )
 
     result["repository_root"] = root
+
     result["repository_root_ok"] = (
         code == 0
         and Path(root).resolve()
-        == CANONICAL_CONTROL_CENTER.resolve()
+        == CANONICAL_LOCAL_WORKSPACE.resolve()
     )
 
     code, branch, _ = _run_git(
@@ -693,6 +612,7 @@ def git_preflight() -> dict[str, Any]:
     )
 
     result["branch"] = branch
+
     result["branch_ok"] = (
         code == 0
         and branch == EXPECTED_BRANCH
@@ -705,10 +625,15 @@ def git_preflight() -> dict[str, Any]:
     )
 
     result["origin"] = origin
+
     result["origin_ok"] = (
         code == 0
-        and _normalize_origin(origin)
-        == _normalize_origin(EXPECTED_ORIGIN)
+        and (
+            origin.rstrip("/").removesuffix(".git").lower()
+            == EXPECTED_ORIGIN.rstrip(
+                "/"
+            ).removesuffix(".git").lower()
+        )
     )
 
     code, local_head, _ = _run_git(
@@ -717,35 +642,14 @@ def git_preflight() -> dict[str, Any]:
     )
 
     result["local_head"] = local_head
+
     result["local_head_ok"] = (
         code == 0
         and bool(local_head)
     )
 
-    code, remote, _ = _run_git(
-        "ls-remote",
-        "origin",
-        "refs/heads/reos-development",
-    )
-
-    result["remote_branch_ok"] = (
-        code == 0
-        and bool(remote)
-    )
-
-    sync = _remote_sync_status()
-
-    result["remote_sync_status"] = sync["status"]
-    result["remote_ahead_evidence_only"] = sync[
-        "evidence_only"
-    ]
-
-    acceptable_sync = (
-        sync["status"] in {
-            "exact",
-            "remote_ahead_evidence_only",
-            "local_ahead",
-        }
+    result["t21_authority_ok"] = (
+        ACRL_GIT_REPOSITORY_COORDINATION.is_dir()
     )
 
     result["ready"] = all(
@@ -756,8 +660,7 @@ def git_preflight() -> dict[str, Any]:
             result["branch_ok"],
             result["origin_ok"],
             result["local_head_ok"],
-            result["remote_branch_ok"],
-            acceptable_sync,
+            result["t21_authority_ok"],
         )
     )
 
@@ -812,10 +715,9 @@ def print_startup_context() -> None:
     print(f"CWD CHECK      : {preflight['cwd_ok']}")
     print(f"BRANCH CHECK   : {preflight['branch_ok']}")
     print(f"ORIGIN CHECK   : {preflight['origin_ok']}")
-    print(f"REMOTE SYNC    : {preflight['remote_sync_status']}")
     print(
-        f"REMOTE EVIDENCE ONLY : "
-        f"{preflight['remote_ahead_evidence_only']}"
+        f"T21 AUTHORITY  : "
+        f"{preflight['t21_authority_ok']}"
     )
     print("T07            : New Chat Bootstrap")
     print("T14            : Repository Intelligence Context")
