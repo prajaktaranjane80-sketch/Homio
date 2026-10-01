@@ -12,12 +12,10 @@ from .commission_protection import (
 from .commission_entitlement import (
     CommissionEntitlementState,
 )
-from .commission_ledger_boundary import (
-    FinancialLedgerEntry,
-    LedgerAccountReference,
-)
 from .financial_ledger_boundary import (
     FinancialLedgerBoundary,
+    FinancialLedgerEntry,
+    LedgerAccountReference,
 )
 from .financial_domain import (
     Currency,
