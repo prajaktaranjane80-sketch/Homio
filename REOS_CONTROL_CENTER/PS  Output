@@ -1,55 +1,153 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location 'D:\HOMIO\REOS_CONTROL_CENTER'
-PS D:\HOMIO\REOS_CONTROL_CENTER> $ErrorActionPreference = 'Stop'
+ABORTED: duplicate cleanup did not produce exactly one entry per key.
+At line:2 char:5
++     throw "ABORTED: duplicate cleanup did not produce exactly one ent ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ABORTED: duplic... entry per key.:String) [], RuntimeException
+    + FullyQualifiedErrorId : ABORTED: duplicate cleanup did not produce exactly one entry per key.
+
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== AUTHORITATIVE GITHUB SYNC REPAIR ==="
-=== AUTHORITATIVE GITHUB SYNC REPAIR ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "DUPLICATE CLEANUP : PASS"
+DUPLICATE CLEANUP : PASS
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin '+refs/heads/reos-development:refs/remotes/origin/reos-development'
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # PYTHON SYNTAX CHECK
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> $temp = Join-Path $env:TEMP 'AI_AGENT_ENTRYPOINT_DUPLICATE_REPAIR.py'
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $local  = git rev-parse HEAD
-PS D:\HOMIO\REOS_CONTROL_CENTER> $tracked = git rev-parse origin/reos-development
-PS D:\HOMIO\REOS_CONTROL_CENTER> $remote = ((git ls-remote origin refs/heads/reos-development) -split '\s+')[0]
+PS D:\HOMIO\REOS_CONTROL_CENTER> [IO.File]::WriteAllText(
+>>     $temp,
+>>     $content,
+>>     [Text.UTF8Encoding]::new($false)
+>> )
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "LOCAL   :" $local
-LOCAL   : e2d0558b3a743e9c90679b8cfc04db817ad459c6
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "TRACKED :" $tracked
-TRACKED : 157de6bcd6ac6ec186c92d60ea323c032eb087bc
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "GITHUB  :" $remote
-GITHUB  : 157de6bcd6ac6ec186c92d60ea323c032eb087bc
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m py_compile $temp
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($tracked -ne $remote) {
->>     throw "SYNC TRACKING REF STILL STALE"
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     Remove-Item $temp -Force -ErrorAction SilentlyContinue
+>>     throw "ABORTED: Python syntax check failed. Remote file NOT modified."
 >> }
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($local -ne $remote) {
->>     git merge --ff-only origin/reos-development
->> }
-Updating e2d0558..157de6b
-Fast-forward
- REOS_CONTROL_CENTER/PS  Output | 186 +++++++++++++++++++++++------------------
- 1 file changed, 103 insertions(+), 83 deletions(-)
+PS D:\HOMIO\REOS_CONTROL_CENTER> Remove-Item $temp -Force -ErrorAction SilentlyContinue
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $local2   = git rev-parse HEAD
-PS D:\HOMIO\REOS_CONTROL_CENTER> $tracked2 = git rev-parse origin/reos-development
-PS D:\HOMIO\REOS_CONTROL_CENTER> $remote2  = ((git ls-remote origin refs/heads/reos-development) -split '\s+')[0]
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "PYTHON SYNTAX : PASS"
+PYTHON SYNTAX : PASS
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # WRITE TO LATEST REMOTE SHA
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> $b64 = [Convert]::ToBase64String(
+>>     [Text.Encoding]::UTF8.GetBytes($content)
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $body = @{
+>>     message = "Remove duplicate AI agent entrypoint authority keys"
+>>     content = $b64
+>>     sha     = $oldSha
+>>     branch  = $branch
+>> } | ConvertTo-Json -Compress
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $result = $body | gh api `
+>>     -X PUT `
+>>     "repos/$repo/contents/$path" `
+>>     --input -
+gh: Invalid request.
+
+For 'properties/sha', nil is not a string. (HTTP 422)
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $result) {
+>>     throw "ABORTED: GitHub returned no write response."
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $commit = $result | ConvertFrom-Json
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $commit.commit.sha) {
+>>     throw "ABORTED: GitHub write did not return commit SHA."
+>> }
+ABORTED: GitHub write did not return commit SHA.
+At line:2 char:5
++     throw "ABORTED: GitHub write did not return commit SHA."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ABORTED: GitHub...urn commit SHA.:String) [], RuntimeException
+    + FullyQualifiedErrorId : ABORTED: GitHub write did not return commit SHA.
+
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== FINAL ==="
-=== FINAL ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "LOCAL   :" $local2
-LOCAL   : 157de6bcd6ac6ec186c92d60ea323c032eb087bc
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "TRACKED :" $tracked2
-TRACKED : 157de6bcd6ac6ec186c92d60ea323c032eb087bc
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "GITHUB  :" $remote2
-GITHUB  : 157de6bcd6ac6ec186c92d60ea323c032eb087bc
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE UPDATE : SUCCESS"
+REMOTE UPDATE : SUCCESS
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "COMMIT SHA    :" $commit.commit.sha
+COMMIT SHA    :
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (($local2 -eq $tracked2) -and ($tracked2 -eq $remote2)) {
->>     Write-Host "SYNC FOUNDATION : PASS"
->> }
-SYNC FOUNDATION : PASS
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> # INDEPENDENT REMOTE VERIFICATION
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ------------------------------------------------------------
+PS D:\HOMIO\REOS_CONTROL_CENTER> $v = gh api "repos/$repo/contents/$path?ref=$branch" |
+>>     ConvertFrom-Json
+gh: Not Found (HTTP 404)
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (($local2 -ne $tracked2) -or ($tracked2 -ne $remote2)) {
->>     throw "SYNC FOUNDATION : FAIL"
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $v.sha) {
+>>     throw "VERIFICATION FAILED: remote SHA unavailable."
 >> }
+VERIFICATION FAILED: remote SHA unavailable.
+At line:2 char:5
++     throw "VERIFICATION FAILED: remote SHA unavailable."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (VERIFICATION FA...HA unavailable.:String) [], RuntimeException
+    + FullyQualifiedErrorId : VERIFICATION FAILED: remote SHA unavailable.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $remoteContent = [Text.Encoding]::UTF8.GetString(
+>>     [Convert]::FromBase64String(
+>>         ($v.content -replace '\s','')
+>>     )
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $finalFailed = $false
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== FINAL REMOTE VERIFICATION ==="
+=== FINAL REMOTE VERIFICATION ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($key in $keys) {
+>>
+>>     $count = ([regex]::Matches(
+>>         $remoteContent,
+>>         '"' + [regex]::Escape($key) + '"\s*:'
+>>     )).Count
+>>
+>>     Write-Host "$key : $count"
+>>
+>>     if ($count -ne 1) {
+>>         $finalFailed = $true
+>>     }
+>> }
+git_repository_coordination : 0
+commit_checkpoint_coordination : 0
+evidence_resolution : 0
+continuity_recovery : 0
+t21 : 0
+t22 : 0
+t23 : 0
+t24 : 0
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if ($finalFailed) {
+>>     throw "VERIFICATION FAILED: duplicate keys remain remotely."
+>> }
+VERIFICATION FAILED: duplicate keys remain remotely.
+At line:2 char:5
++     throw "VERIFICATION FAILED: duplicate keys remain remotely."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (VERIFICATION FA...emain remotely.:String) [], RuntimeException
+    + FullyQualifiedErrorId : VERIFICATION FAILED: duplicate keys remain remotely.
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE DUPLICATE CHECK : PASS"
+REMOTE DUPLICATE CHECK : PASS
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "VERIFIED FILE SHA      :" $v.sha
+VERIFIED FILE SHA      :
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "VERIFIED COMMIT SHA    :" $commit.commit.sha
+VERIFIED COMMIT SHA    :
 PS D:\HOMIO\REOS_CONTROL_CENTER>
