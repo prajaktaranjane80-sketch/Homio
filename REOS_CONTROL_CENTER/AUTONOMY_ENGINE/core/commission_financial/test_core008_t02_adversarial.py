@@ -29,6 +29,7 @@ from .commission_contract_history import (
 
 
 UTC = timezone.utc
+_UNSET = object()
 
 
 def contract(
