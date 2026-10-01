@@ -17,6 +17,41 @@ class CommissionACRLReconstructionError(RuntimeError):
     """CORE-008 ACRL reconstruction integration error."""
 
 
+def _calculate_result_fingerprint(
+    request: FinancialReconstructionRequest,
+    reconstructed_state: Mapping[str, Any],
+    source_references: tuple[ACRLSourceReference, ...],
+) -> str:
+    material = {
+        "tenant_id": request.tenant_id,
+        "commission_id": request.commission_id,
+        "subject": request.subject.value,
+        "sources": [
+            reference.to_dict()
+            for reference in sorted(
+                source_references,
+                key=lambda item: (
+                    item.source_kind,
+                    item.source_id,
+                    item.fingerprint,
+                ),
+            )
+        ],
+        "state": dict(reconstructed_state),
+    }
+
+    canonical = json.dumps(
+        material,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+    return sha256(
+        canonical.encode("utf-8")
+    ).hexdigest()
+
+
 @dataclass(frozen=True, slots=True)
 class FinancialReconstructionResult:
     """
@@ -88,16 +123,11 @@ class FinancialReconstructionResult:
 
     @property
     def deterministic_fingerprint(self) -> str:
-        canonical = json.dumps(
-            self.deterministic_material,
-            ensure_ascii=False,
-            sort_keys=True,
-            separators=(",", ":"),
+        return _calculate_result_fingerprint(
+            self.request,
+            self.reconstructed_state,
+            self.source_references,
         )
-
-        return sha256(
-            canonical.encode("utf-8")
-        ).hexdigest()
 
     def verify(self) -> bool:
         return (
@@ -154,22 +184,22 @@ class CommissionACRLReconstructor:
             for reference in request.source_references
         }
 
-        result = FinancialReconstructionResult(
+        source_references = tuple(
+            reference_map.values()
+        )
+
+        result_fingerprint = _calculate_result_fingerprint(
+            request,
+            normalized,
+            source_references,
+        )
+
+        return FinancialReconstructionResult(
             request=request,
             reconstructed_state=normalized,
-            result_fingerprint="",
-            source_references=tuple(
-                reference_map.values()
-            ),
+            result_fingerprint=result_fingerprint,
+            source_references=source_references,
         )
-
-        object.__setattr__(
-            result,
-            "result_fingerprint",
-            result.deterministic_fingerprint,
-        )
-
-        return result
 
 
 def build_reconstruction_request(
