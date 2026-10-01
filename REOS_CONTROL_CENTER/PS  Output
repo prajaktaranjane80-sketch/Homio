@@ -1,254 +1,106 @@
-ABORTED: validate_entrypoint not found.
-At line:2 char:5
-+     throw "ABORTED: validate_entrypoint not found."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (ABORTED: validate_entrypoint not found.:String) [], RuntimeException
-    + FullyQualifiedErrorId : ABORTED: validate_entrypoint not found.
-
+S D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== FINAL REMOTE VERIFICATION ==="
+=== FINAL REMOTE VERIFICATION ===
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $next = $content.IndexOf(
->>     '# ---------------------------------------------------------------------------',
->>     $start + 10,
->>     [StringComparison]::Ordinal
->> )
-Exception calling "IndexOf" with "3" argument(s): "Index was out of range. Must be non-negative and less than the size of the collection.
-Parameter name: startIndex"
-At line:1 char:1
-+ $next = $content.IndexOf(
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ArgumentOutOfRangeException
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($next -lt 0) {
->>     throw "ABORTED: validate_entrypoint boundary not found."
+PS D:\HOMIO\REOS_CONTROL_CENTER> $verify.GetEnumerator() | ForEach-Object {
+>>     Write-Host ("{0} : {1}" -f $_.Key,$_.Value)
 >> }
-ABORTED: validate_entrypoint boundary not found.
-At line:2 char:5
-+     throw "ABORTED: validate_entrypoint boundary not found."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (ABORTED: valida...dary not found.:String) [], RuntimeException
-    + FullyQualifiedErrorId : ABORTED: validate_entrypoint boundary not found.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $newValidate = @'
->> def validate_entrypoint() -> bool:
->>     """Return True only when structural and repository preflight is clean."""
->>
->>     if not CONTROL_CENTER_PATH.is_dir():
->>         return False
->>
->>     if not AUTONOMY_ENGINE_PATH.is_dir():
->>         return False
->>
->>     if not ACRL_PATH.is_dir():
->>         return False
->>
->>     if not STATE_PATH.is_file():
->>         return False
->>
->>     if not ACRL_ENTRYPOINT.is_file():
->>         return False
->>
->>     return bool(git_preflight()["ready"])
->>
->>
->> '@
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $content =
->>     $content.Substring(0,$start) +
->>     $newValidate +
->>     $content.Substring($next)
-Exception calling "Substring" with "2" argument(s): "Length cannot be less than zero.
-Parameter name: length"
-At line:1 char:1
-+ $content =
-+ ~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ArgumentOutOfRangeException
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "ENTRYPOINT VALIDATION: HARDENED"
-ENTRYPOINT VALIDATION: HARDENED
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # 8. STARTUP INSTRUCTIONS
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($content -notmatch '"git_preflight": git_preflight\(\)') {
->>
->> $content = $content.Replace(
->>     '        "operating_rules": list(AI_OPERATING_RULES),',
->>     '        "operating_rules": list(AI_OPERATING_RULES),' + "`n" +
->>     '        "repository_preflight_rules": list(REPOSITORY_PREFLIGHT_RULES),' + "`n" +
->>     '        "git_preflight": git_preflight(),'
->> )
->>
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # 9. HUMAN STARTUP CONTEXT
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($content -notmatch 'print\(f"WORKSPACE      :') {
->>
->> $content = $content.Replace(
->>     '    print("VERIFICATION   : Local PowerShell")',
->> @'
->>     print("VERIFICATION   : Local PowerShell")
->>     print(f"WORKSPACE      : {CANONICAL_LOCAL_WORKSPACE}")
->>     print(f"CONTROL CENTER : {CANONICAL_CONTROL_CENTER}")
->>     print(f"BRANCH         : {EXPECTED_BRANCH}")
->>     print(f"REPOSITORY     : {REPOSITORY_FULL_NAME}")
->>
->>     preflight = git_preflight()
->>
->>     print(f"CWD CHECK      : {preflight['cwd_ok']}")
->>     print(f"BRANCH CHECK   : {preflight['branch_ok']}")
->>     print(f"ORIGIN CHECK   : {preflight['origin_ok']}")
->>     print(f"REMOTE HEAD    : {preflight['remote_head_matches_local']}")
->>     print(
->>         f"CACHE CLEAN    : "
->>         f"{preflight['tracked_generated_artifacts'] == 0}"
->>     )
->> '@
->> )
->>
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # 10. HARD VALIDATION BEFORE WRITE
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> $required = @(
->>     'CANONICAL_LOCAL_WORKSPACE',
->>     'CANONICAL_CONTROL_CENTER',
->>     'REPOSITORY_FULL_NAME',
->>     'EXPECTED_BRANCH',
->>     'EXPECTED_ORIGIN',
->>     'PS_OUTPUT_IS_EVIDENCE_ONLY',
->>     'REPOSITORY_PREFLIGHT_RULES',
->>     'def _run_git(',
->>     'def git_preflight(',
->>     'remote_head_matches_local',
->>     'def validate_entrypoint() -> bool:'
->> )
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($marker in $required) {
->>     if (-not $content.Contains($marker)) {
->>         throw "ABORTED: missing required marker -> $marker"
->>     }
->> }
-ABORTED: missing required marker -> CANONICAL_LOCAL_WORKSPACE
-At line:3 char:9
-+         throw "ABORTED: missing required marker -> $marker"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (ABORTED: missin...LOCAL_WORKSPACE:String) [], RuntimeException
-    + FullyQualifiedErrorId : ABORTED: missing required marker -> CANONICAL_LOCAL_WORKSPACE
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($key in @(
->>     'git_repository_coordination',
->>     'commit_checkpoint_coordination',
->>     'evidence_resolution',
->>     'continuity_recovery'
->> )) {
->>     $n = ([regex]::Matches(
->>         $content,
->>         '"' + $key + '":'
->>     )).Count
->>
->>     if ($n -ne 1) {
->>         throw "ABORTED: $key occurs $n times."
->>     }
->> }
-ABORTED: git_repository_coordination occurs 0 times.
-At line:13 char:9
-+         throw "ABORTED: $key occurs $n times."
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (ABORTED: git_re...occurs 0 times.:String) [], RuntimeException
-    + FullyQualifiedErrorId : ABORTED: git_repository_coordination occurs 0 times.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($key in @('t21','t22','t23','t24')) {
->>     $n = ([regex]::Matches(
->>         $content,
->>         '"' + $key + '":'
->>     )).Count
->>
->>     if ($n -ne 1) {
->>         throw "ABORTED: $key occurs $n times."
->>     }
->> }
-ABORTED: t21 occurs 0 times.
-At line:8 char:9
-+         throw "ABORTED: $key occurs $n times."
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (ABORTED: t21 occurs 0 times.:String) [], RuntimeException
-    + FullyQualifiedErrorId : ABORTED: t21 occurs 0 times.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "ALL PRE-WRITE CHECKS: PASS"
-ALL PRE-WRITE CHECKS: PASS
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # 11. DIRECT GITHUB WRITE
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> $b64 = [Convert]::ToBase64String(
->>     [Text.Encoding]::UTF8.GetBytes($content)
->> )
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $body = @{
->>     message = "Harden AI agent entrypoint repository preflight"
->>     content = $b64
->>     sha     = $oldSha
->>     branch  = $branch
->> } | ConvertTo-Json -Compress
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $commitJson = $body | gh api `
->>     -X PUT `
->>     "/repos/$repo/contents/$path" `
->>     --input -
-gh: Invalid request.
-
-For 'properties/sha', nil is not a string. (HTTP 422)
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $commitObj = $commitJson | ConvertFrom-Json
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $commitObj.commit.sha) {
->>     throw "ABORTED: GitHub did not return a commit SHA."
->> }
-ABORTED: GitHub did not return a commit SHA.
-At line:2 char:5
-+     throw "ABORTED: GitHub did not return a commit SHA."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (ABORTED: GitHub...n a commit SHA.:String) [], RuntimeException
-    + FullyQualifiedErrorId : ABORTED: GitHub did not return a commit SHA.
-
+CANONICAL_LOCAL_WORKSPACE : False
+GIT_PREFLIGHT : False
+REMOTE_HEAD_GUARD : False
+SOURCE_T21_SINGLE : False
+PATH_T21_SINGLE : False
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
 
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE ENTRYPOINT UPDATED"
-REMOTE ENTRYPOINT UPDATED
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "COMMIT SHA :" $commitObj.commit.sha
-COMMIT SHA :
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CONTENT SHA:" $commitObj.content.sha
-CONTENT SHA:
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "OLD SHA      :" $oldSha
+OLD SHA      :
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "NEW FILE SHA :" $v.sha
+NEW FILE SHA :
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "COMMIT SHA   :" $commitObj.commit.sha
+COMMIT SHA   :
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location 'D:\HOMIO\REOS_CONTROL_CENTER'
+PS D:\HOMIO\REOS_CONTROL_CENTER> $ErrorActionPreference = 'Continue'
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> # 12. INDEPENDENT REMOTE VERIFICATION
-PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
-PS D:\HOMIO\REOS_CONTROL_CENTER> $v = gh api "/repos/$repo/contents/$path?ref=$branch" |
->>     ConvertFrom-Json
-gh: Not Found (HTTP 404)
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== GH / GIT SYNC ROOT DIAGNOSTIC ==="
+=== GH / GIT SYNC ROOT DIAGNOSTIC ===
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $v.sha) {
->>     throw "VERIFICATION FAILED: remote file SHA missing."
->> }
-VERIFICATION FAILED: remote file SHA missing.
-At line:2 char:5
-+     throw "VERIFICATION FAILED: remote file SHA missing."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (VERIFICATION FA...le SHA missing.:String) [], RuntimeException
-    + FullyQualifiedErrorId : VERIFICATION FAILED: remote file SHA missing.
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n--- LOCAL GIT ---"
 
+--- LOCAL GIT ---
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "CWD    :" (Get-Location).Path
+CWD    : D:\HOMIO\REOS_CONTROL_CENTER
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "BRANCH :" (git branch --show-current)
+BRANCH : reos-development
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "LOCAL  :" (git rev-parse HEAD)
+LOCAL  : e2d0558b3a743e9c90679b8cfc04db817ad459c6
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE :" (git rev-parse origin/reos-development)
+REMOTE : e2d0558b3a743e9c90679b8cfc04db817ad459c6
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "ORIGIN :" (git remote get-url origin)
+ORIGIN : https://prajaktaranjane80-sketch@github.com/prajaktaranjane80-sketch/Homio.git
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $remoteContent = [Text.Encoding]::UTF8.GetString(
->>     [Convert]::FromBase64String(
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n--- GH ENVIRONMENT ---"
+
+--- GH ENVIRONMENT ---
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "GH_HOST :" $env:GH_HOST
+GH_HOST :
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "GH_REPO :" $env:GH_REPO
+GH_REPO :
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n--- GH AUTH ---"
+
+--- GH AUTH ---
+PS D:\HOMIO\REOS_CONTROL_CENTER> gh auth status --hostname github.com
+github.com
+  ✓ Logged in to github.com account prajaktaranjane80-sketch (keyring)
+  - Active account: true
+  - Git operations protocol: https
+  - Token: gho_************************************
+  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
+
+  ✓ Logged in to github.com account sandyranjane-hash (keyring)
+  - Active account: false
+  - Git operations protocol: https
+  - Token: gho_************************************
+  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n--- GH USER ---"
+
+--- GH USER ---
+PS D:\HOMIO\REOS_CONTROL_CENTER> gh api user --jq '{login: .login, name: .name}'
+{
+  "login": "prajaktaranjane80-sketch",
+  "name": null
+}
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n--- GH REPOSITORY ---"
+
+--- GH REPOSITORY ---
+PS D:\HOMIO\REOS_CONTROL_CENTER> gh api "repos/prajaktaranjane80-sketch/Homio" --jq '{full_name: .full_name,visibility: .visibility,default_branch: .default_branch}'
+{
+  "default_branch": "main",
+  "full_name": "prajaktaranjane80-sketch/Homio",
+  "visibility": "public"
+}
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n--- GH BRANCH ---"
+
+--- GH BRANCH ---
+PS D:\HOMIO\REOS_CONTROL_CENTER> gh api "repos/prajaktaranjane80-sketch/Homio/branches/reos-development" --jq '{name: .name,sha: .commit.sha}'
+{
+  "name": "reos-development",
+  "sha": "d5c9c5537165a2807b1f0cd1aab3cfd2517c871e"
+}
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n--- GH CONTENT API ---"
+
+--- GH CONTENT API ---
+PS D:\HOMIO\REOS_CONTROL_CENTER> gh api "repos/prajaktaranjane80-sketch/Homio/contents/REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py?ref=reos-development" --jq '{name: .name,sha: .sha,path: .path}'
+{
+  "name": "AI_AGENT_ENTRYPOINT.py",
+  "path": "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py",
+  "sha": "1068f357d7913ca839d33994b515a4eeb5b947a7"
+}
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== END ==="
+
+=== END ===
