@@ -1,63 +1,33 @@
 ======================================================================== FAILURES =========================================================================
-__________________________________________________________ test_critical_fraud_maps_to_critical ___________________________________________________________
+_________________________________________________ test_evaluation_preserves_evidence_from_fraud_and_trust _________________________________________________
 
-    def test_critical_fraud_maps_to_critical() -> None:
+    def test_evaluation_preserves_evidence_from_fraud_and_trust() -> None:
         assessment = critical_fraud_assessment()
+        score = trust_score(value=85)
 
->       result = RiskRuleEngine().evaluate(
+        result = RiskRuleEngine().evaluate(
             tenant_id=TENANT,
             subject_id=SUBJECT,
-            correlation_id="eval-critical",
+            correlation_id="eval-evidence",
             policy=default_fraud_risk_policy(),
+            trust_score=score,
             fraud_assessment=assessment,
             evaluated_at=NOW,
             evaluation_id=EVALUATION_ID,
         )
 
-AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:324:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:1493: in evaluate
-    self._validate_scope(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+        assert result.fraud_assessment_fingerprint == (
+            assessment.fingerprint
+        )
 
-self = <AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleEngine object at 0x000002707F636210>, tenant_id = 'tenant-001'
-subject_id = 'subject-001', trust_score = None
-fraud_assessment = FraudAssessment(assessment_id=UUID('b6473a1e-2e67-4a98-866c-ac23ca166e2b'), tenant_id=UUID('11111111-1111-1111-1111-11...ERSIBLE_ACTION', escalation_boundary='HIGH_OR_CRITICAL_REQUIRES_GOVERNANCE_REVIEW', irreversible_action_protected=True)
+>       assert score.model_fingerprint in (
+            result.evidence_references
+        )
+E       AssertionError: assert 'c87ffe948a02c9ea17d0b2e84967974f2abd7a3cb68e584185991fd0458625b0' in ('3d4553ef35c9466324f70c76d8dd33ffae79f326658a3ba992bea17a97a4abcb', '91da2af202d794d5ac912343ad25806f92e8e6d7b7d466497a3fb2d621c95f58', 'evidence://fraud/001')
+E        +  where 'c87ffe948a02c9ea17d0b2e84967974f2abd7a3cb68e584185991fd0458625b0' = TrustScore(tenant_id='11111111-1111-1111-1111-111111111111', subject_id='33333333-3333-3333-3333-333333333333', score=...es=('CORE-007.TRUST_SIGNAL',), confidence_metadata=mappingproxy({'signal_confidence_metadata': [], 'signal_count': 1})).model_fingerprint
+E        +  and   ('3d4553ef35c9466324f70c76d8dd33ffae79f326658a3ba992bea17a97a4abcb', '91da2af202d794d5ac912343ad25806f92e8e6d7b7d466497a3fb2d621c95f58', 'evidence://fraud/001') = RiskRuleEvaluation(evaluation_id=UUID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'), tenant_id='11111111-1111-1111-1111-1111...ity='DETERMINISTIC', rule_provenance_references=('CORE-007.RISK_RULE',), exception_references=(), assessment_version=1).evidence_references
 
-    def _validate_scope(
-        self,
-        *,
-        tenant_id: str,
-        subject_id: str,
-        trust_score: TrustScore | None,
-        fraud_assessment: FraudAssessment | None,
-    ) -> None:
-        if trust_score is not None:
-            try:
-                trust_score.assert_scope(
-                    tenant_id=tenant_id,
-                    subject_id=subject_id,
-                )
-            except TrustScoreScopeError as exc:
-                raise RiskRuleScopeError(
-                    "Trust score crosses risk-rule scope."
-                ) from exc
-
-        if fraud_assessment is not None:
-            if (
-                str(fraud_assessment.tenant_id)
-                != tenant_id
-                or str(fraud_assessment.subject_id)
-                != subject_id
-            ):
->               raise RiskRuleScopeError(
-                    "Fraud assessment crosses "
-                    "risk-rule scope."
-                )
-E               AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: Fraud assessment crosses risk-rule scope.
-
-AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py:1405: RiskRuleScopeError
+AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py:691: AssertionError
 ================================================================= short test summary info =================================================================
-FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_critical_fraud_maps_to_critical - AUTONOMY_ENGINE.core.trust_fraud_governance.risk_rules.RiskRuleScopeError: Fraud assessment crosses risk-rule scope.
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-1 failed, 106 passed in 0.72s
+FAILED AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py::test_evaluation_preserves_evidence_from_fraud_and_trust - AssertionError: assert 'c87ffe948a02c9ea17d0b2e84967974f2abd7a3cb68e584185991fd0458625b0' in ('3d4553ef35c9466324f70c76d8dd33ffae79f326658a3ba992bea17a...
+1 failed, 5 passed, 23 deselected in 0.38s
