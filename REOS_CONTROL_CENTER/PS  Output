@@ -1,86 +1,963 @@
-REMOTE ENTRYPOINT UPDATED
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location 'D:\HOMIO\REOS_CONTROL_CENTER'
+=== 5. FAST-FORWARD ONLY ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git merge --ff-only origin/reos-development
+Already up to date.
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
-remote: Enumerating objects: 7, done.
-remote: Counting objects: 100% (7/7), done.
-remote: Compressing objects: 100% (4/4), done.
-remote: Total 4 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (4/4), 3.62 KiB | 231.00 KiB/s, done.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   b033768..130365f  reos-development -> origin/reos-development
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
- M AI_AGENT_ENTRYPOINT.py
- M AUTONOMY_ENGINE/continuity/acrl/T01_Project_DNA/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T02_Architecture_Lock/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/state_reconstruction.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T03_State_Reconstruction/__pycache__/test_state_reconstruction.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/gate_subtask_continuity.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T04_Gate_Subtask_Continuity/__pycache__/test_gate_subtask_continuity.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T05_Dependency_Authority_Map/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T06_Checkpoint_Engine/__pycache__/test_checkpoint_engine.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/new_chat_bootstrap.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/__pycache__/test_new_chat_bootstrap.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/context_compression.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T08_Context_Compression/__pycache__/test_context_compression.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T11_Recovery_Fail_Closed/__pycache__/recovery_guard.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T12_Resume_Safety_Validation/__pycache__/test_t12_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_integration.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_controller_metrics.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_contract.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T13_Controller_Integration/__pycache__/test_t13_integration.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/__pycache__/dependency_graph.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/continuity/acrl/__pycache__/__init__.cpython-312.pyc
- M AUTONOMY_ENGINE/execution/__pycache__/mutation_adapter.cpython-312.pyc
- M AUTONOMY_ENGINE/execution/__pycache__/production_executor.cpython-312.pyc
- M AUTONOMY_ENGINE/orchestration/__pycache__/execution_coordinator.cpython-312.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_controller_autonomy_integration_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_execution_coordinator_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_execution_coordinator_adversarial.cpython-312.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_execution_pipeline_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_mutation_adapter_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_mutation_adapter_adversarial.cpython-312.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_production_executor_adversarial.cpython-312-pytest-9.1.1.pyc
- M AUTONOMY_ENGINE/tests/__pycache__/test_v6_adversarial.cpython-312.pyc
- M data/state.json
-PS D:\HOMIO\REOS_CONTROL_CENTER> git rev-parse HEAD
-b033768a5943717f2a54d242b5150a49bf40125c
-PS D:\HOMIO\REOS_CONTROL_CENTER> git rev-parse origin/reos-development
-130365f99fbbddc8763f51a1fb3a2f46014a3b1a
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 6. HEAD VERIFICATION ===" -ForegroundColor Cyan
+
+=== 6. HEAD VERIFICATION ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "LOCAL : $(git rev-parse HEAD)"
+LOCAL : e2d0558b3a743e9c90679b8cfc04db817ad459c6
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE: $(git rev-parse origin/reos-development)"
+REMOTE: e2d0558b3a743e9c90679b8cfc04db817ad459c6
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python .\AI_AGENT_ENTRYPOINT.py
-========================================================================
-HOMIO / REOS ΓÇö AI AGENT ENTRYPOINT
-========================================================================
-PROJECT        : HOMIO / REOS
-AUTHORITY      : REOS_CONTROL_CENTER
-CONTINUITY     : ACRL
-CHAT HISTORY   : NON-AUTHORITATIVE
-STATE          : REOS_CONTROL_CENTER/data/state.json
-CODE           : Git repository
-VERIFICATION   : Local PowerShell
-T07            : New Chat Bootstrap
-T14            : Repository Intelligence Context
-T15            : AI Operator Autonomy
-T18            : Safe Execution Authorization
-T20            : Repair / Patch Verification
-T21            : Git Repository Coordination
-T22            : Commit Execution Checkpoint
-T23            : Evidence Resolution
-T24            : Continuity Recovery
-------------------------------------------------------------------------
-RULE           : DISCOVER BEFORE MODIFY
-RULE           : NO DUPLICATE ENGINES
-RULE           : NO DUPLICATE STATE
-RULE           : NO BLIND PATCHING
-RULE           : FAIL CLOSED ON UNCERTAINTY
-------------------------------------------------------------------------
-STATUS         : READY
-========================================================================
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 7. AI ENTRYPOINT LOCAL DIFF ===" -ForegroundColor Cyan
+
+=== 7. AI ENTRYPOINT LOCAL DIFF ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git diff -- AI_AGENT_ENTRYPOINT.py
+warning: in the working copy of 'REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py', CRLF will be replaced by LF the next time Git touches it
+diff --git a/REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py b/REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
+index 1068f35..0d39b92 100644
+--- a/REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
++++ b/REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
+@@ -1,533 +1,533 @@
+-"""
+-HOMIO / REOS ΓÇö AI AGENT ENTRYPOINT
+-==================================
+-
+-Purpose
+--------
+-This file is the repository-level entry point for ANY new AI/GPT agent
+-working on HOMIO / REOS.
+-
+-It is NOT:
+-    - a second Control Center
+-    - a second ACRL
+-    - a second state store
+-    - an architecture engine
+-    - an execution engine
+-    - an authorization engine
+-    - an AI decision engine
+-    - a replacement for T07/T14/T15
+-
+-It exists so that a new AI session can recover the correct operating
+-protocol from the repository without depending on previous GPT chat history.
+-
+-AUTHORITATIVE PROJECT SOURCES
+------------------------------
+-1. REOS_CONTROL_CENTER/data/state.json
+-   -> canonical machine-readable project state
+-
+-2. Git repository / current branch
+-   -> canonical code, history, architecture reference and repository evidence
+-
+-3. Local PowerShell execution
+-   -> canonical current verification of the actual working tree
+-
+-4. ACRL
+-   -> continuity, reconstruction, evidence, checkpoint, drift,
+-      recovery and AI-operation framework
+-
+-CHAT HISTORY
+-------------
+-Chat history is communication only.
+-It is NOT project memory.
+-A new GPT session MUST NOT assume that previous chat context is available,
+-correct, current, or authoritative.
+-
+-IMPORTANT
+----------
+-This entrypoint does not contain a copy of the project state.
+-
+-It tells an AI HOW TO DISCOVER the authoritative state and HOW TO WORK
+-inside the existing REOS / ACRL system.
+-"""
+-
+-from __future__ import annotations
+-
+-from dataclasses import dataclass
+-from pathlib import Path
+-from typing import Any
+-
+-
+-# ---------------------------------------------------------------------------
+-# REPOSITORY IDENTITY
+-# ---------------------------------------------------------------------------
+-
+-PROJECT_NAME = "HOMIO / REOS"
+-
+-PROJECT_DESCRIPTION = (
+-    "Global AI Real Estate OS + International Brokerage + SaaS."
+-)
+-
+-CONTROL_CENTER_NAME = "REOS_CONTROL_CENTER"
+-
+-CONTROL_CENTER_PATH = Path(__file__).resolve().parent
+-
+-STATE_PATH = CONTROL_CENTER_PATH / "data" / "state.json"
+-
+-AUTONOMY_ENGINE_PATH = (
+-    CONTROL_CENTER_PATH / "AUTONOMY_ENGINE"
+-)
+-
+-ACRL_PATH = (
+-    AUTONOMY_ENGINE_PATH / "continuity" / "acrl"
+-)
+-
+-
+-# ---------------------------------------------------------------------------
+-# EXISTING CANONICAL ACRL COMPONENTS
+-# ---------------------------------------------------------------------------
+-
+-ACRL_ENTRYPOINT = (
+-    ACRL_PATH
+-    / "T07_New_Chat_Bootstrap"
+-    / "new_chat_bootstrap.py"
+-)
+-
+-ACRL_REPOSITORY_CONTEXT = (
+-    ACRL_PATH
+-    / "T14_Repository_Intelligence_Context"
+-)
+-
+-ACRL_OPERATOR_AUTONOMY = (
+-    ACRL_PATH
+-    / "T15_AI_Operator_Autonomy"
+-)
+-
+-ACRL_EXECUTION_AUTHORIZATION = (
+-    ACRL_PATH
+-    / "T18_Safe_Execution_Authorization_Guard"
+-)
+-
+-ACRL_REPAIR_VERIFICATION = (
+-    ACRL_PATH
+-    / "T20_Autonomous_Repair_Patch_Verification"
+-)
+-
+-ACRL_GIT_REPOSITORY_COORDINATION = (
+-    ACRL_PATH
+-    / "T21_Git_Repository_Read_Write_Coordination"
+-)
+-
+-ACRL_COMMIT_CHECKPOINT_COORDINATION = (
+-    ACRL_PATH
+-    / "T22_Commit_Execution_Checkpoint_Coordination"
+-)
+-
+-ACRL_EVIDENCE_RESOLUTION = (
+-    ACRL_PATH
+-    / "T23_Reference_Evidence_Resolution_Engine"
+-)
+-
+-ACRL_CONTINUITY_RECOVERY = (
+-    ACRL_PATH
+-    / "T24_Cross_Chat_Continuity_Recovery_Engine"
+-)
+-
+-
+-# ---------------------------------------------------------------------------
+-# OPERATING AUTHORITY
+-# ---------------------------------------------------------------------------
+-
+-@dataclass(frozen=True)
+-class REOSAgentOperatingContract:
+-    """
+-    Compact repository-level contract for a new AI operator.
+-
+-    This is descriptive metadata only.
+-    It does not replace any ACRL or Control Center implementation.
+-    """
+-
+-    project: str = PROJECT_NAME
+-    project_description: str = PROJECT_DESCRIPTION
+-
+-    authoritative_state: str = (
+-        "REOS_CONTROL_CENTER/data/state.json"
+-    )
+-
+-    authoritative_code_reference: str = (
+-        "Git repository / active REOS branch"
+-    )
+-
+-    current_verification: str = (
+-        "Local PowerShell execution"
+-    )
+-
+-    continuity_system: str = "ACRL"
+-
+-    chat_history_authority: str = "NON_AUTHORITATIVE"
+-
+-    control_authority: str = "REOS_CONTROL_CENTER"
+-
+-    execution_authority: str = (
+-        "ACRL T18 authorization -> T20 repair verification -> "
+-        "PowerShell executor -> T21 Git transaction -> T22 checkpoint -> "
+-        "T23 evidence resolution -> T24 continuity recovery"
+-    )
+-
+-    ai_role: str = (
+-        "Architecture-aware engineering operator"
+-    )
+-
+-
+-# ---------------------------------------------------------------------------
+-# AI OPERATING RULES
+-# ---------------------------------------------------------------------------
+-
+-AI_OPERATING_RULES: tuple[str, ...] = (
+-    "Treat REOS_CONTROL_CENTER as the project control authority.",
+-    "Treat data/state.json as canonical machine-readable project state.",
+-    "Treat Git as canonical code/history/reference.",
+-    "Treat local PowerShell execution as current verification.",
+-    "Treat chat history as communication only, never as project truth.",
+-    "Before changing code, reconstruct the current repository state.",
+-    "Use existing ACRL continuity mechanisms instead of inventing new continuity.",
+-    "Use T07 New Chat Bootstrap for new-session continuity.",
+-    "Use T14 Repository Intelligence Context for repository-aware context.",
+-    "Respect T15 AI Operator Autonomy boundaries.",
+-    "Do not bypass architecture locks.",
+-    "Do not bypass Control Center authority.",
+-    "Do not directly invent or modify authoritative project state.",
+-    "Do not create a second state store.",
+-    "Do not create a second Control Center.",
+-    "Do not create a second ACRL.",
+-    "Do not create duplicate business engines.",
+-    "Do not replace existing modules when an existing module already owns the responsibility.",
+-    "Do not infer local files merely because they exist in Git history or a remote snapshot.",
+-    "Verify the actual local working tree before depending on a file.",
+-    "Do not blindly patch from assumptions.",
+-    "Use targeted evidence before making a change.",
+-    "Prefer the smallest architecture-consistent change.",
+-    "Run focused verification after a change.",
+-    "Run relevant regression verification before declaring success.",
+-    "Do not declare a task complete from code appearance alone.",
+-    "Do not manipulate state.json directly to manufacture completion.",
+-    "Do not self-authorize execution.",
+-    "Do not self-approve architecture or governance decisions.",
+-    "When evidence conflicts, stop and resolve the conflict instead of guessing.",
+-)
+-
+-
+-# ---------------------------------------------------------------------------
+-# REMOTE GIT SYNCHRONIZATION CONTRACT
+-# ---------------------------------------------------------------------------
+-
+-REMOTE_GIT_SYNCHRONIZATION_RULES: tuple[str, ...] = (
+-    "REOS_CONTROL_CENTER remains the project control authority.",
+-    "REOS_CONTROL_CENTER/data/state.json remains the canonical project state.",
+-    "ACRL T18 is the execution-authorization boundary.",
+-    "ACRL T20 is the repair and patch-verification boundary.",
+-    "Local PowerShell is the actual execution and current-working-tree verification interface.",
+-    "ACRL T21 is the Git repository read/write transaction boundary.",
+-    "ACRL T22 is the immutable commit execution checkpoint boundary.",
+-    "ACRL T23 is the authority for missing, stale or conflicting evidence resolution.",
+-    "ACRL T24 is the authority for continuity and recovery snapshots.",
+-    "PowerShell MUST NOT create a second synchronization engine.",
+-    "AI_AGENT_ENTRYPOINT.py is descriptive contract only and MUST NOT execute Git writes.",
+-    "A remote write is successful only after independent branch, commit and file evidence verification.",
+-    "The active REOS branch MUST be verified before any repository write.",
+-    "A failed, ambiguous or conflicting operation MUST fail closed.",
+-    "Do not create a second Git sync engine.",
+-    "Do not create a second checkpoint engine.",
+-    "Do not create a second evidence engine.",
+-    "Do not create a second continuity engine.",
+-    "Do not create a second state store.",
+-    "Do not bypass REOS Control Center authority.",
+-)
+-
+-# ---------------------------------------------------------------------------
+-# EXECUTION / SYNCHRONIZATION WORKFLOW
+-# ---------------------------------------------------------------------------
+-
+-EXECUTION_WORKFLOW: tuple[str, ...] = (
+-    "1. Discover canonical state from REOS_CONTROL_CENTER/data/state.json.",
+-    "2. Resolve the authoritative current gate/task/subtask through REOS Control Center.",
+-    "3. Resolve architecture and dependency ownership before changing code.",
+-    "4. Obtain execution authorization through existing ACRL T18.",
+-    "5. Verify the proposed repair/patch through existing ACRL T20.",
+-    "6. Execute the authorized local change through PowerShell.",
+-    "7. Verify the changed working tree and focused tests locally.",
+-    "8. Coordinate Git mutation through existing ACRL T21.",
+-    "9. Create/verify the immutable execution checkpoint through T22 when required.",
+-    "10. Resolve execution evidence through T23.",
+-    "11. Preserve/recover continuity through T24 when required.",
+-    "12. Update canonical project state only through the existing REOS Control Center workflow.",
+-    "13. Never report PASS without independent verification evidence.",
+-)
+-# ---------------------------------------------------------------------------
+-# REQUIRED NEW-SESSION WORKFLOW
+-# ---------------------------------------------------------------------------
+-
+-NEW_SESSION_WORKFLOW: tuple[str, ...] = (
+-    "1. Identify this repository as HOMIO / REOS.",
+-    "2. Read this entrypoint.",
+-    "3. Discover the existing ACRL T07 New Chat Bootstrap.",
+-    "4. Reconstruct current project state from REOS_CONTROL_CENTER.",
+-    "5. Inspect the current gate, task and subtask from canonical state.",
+-    "6. Inspect relevant architecture and dependency authority.",
+-    "7. Inspect the actual local repository tree before assuming files exist.",
+-    "8. Inspect relevant implementation and existing tests.",
+-    "9. Determine the smallest valid change.",
+-    "10. Execute only through the existing REOS-controlled workflow.",
+-    "11. Verify the changed scope.",
+-    "12. Run relevant regression tests.",
+-    "13. Update project state only through the existing Control Center workflow.",
+-    "14. Preserve checkpoint / continuity information when required.",
+-    "15. Report evidence, result and next controlled step.",
+-)
+-
+-
+-# ---------------------------------------------------------------------------
+-# SOURCE OF TRUTH MAP
+-# ---------------------------------------------------------------------------
+-
+-SOURCE_OF_TRUTH: dict[str, str] = {
+-    "project_state": "REOS_CONTROL_CENTER/data/state.json",
+-    "code_and_history": "Git repository",
+-    "current_execution_evidence": "Local PowerShell",
+-    "continuity": "AUTONOMY_ENGINE/continuity/acrl",
+-    "new_session_bootstrap": (
+-        "AUTONOMY_ENGINE/continuity/acrl/"
+-        "T07_New_Chat_Bootstrap/new_chat_bootstrap.py"
+-    ),
+-    "repository_context": (
+-        "AUTONOMY_ENGINE/continuity/acrl/"
+-        "T14_Repository_Intelligence_Context"
+-    ),
+-    "ai_operator_boundary": (
+-        "AUTONOMY_ENGINE/continuity/acrl/"
+-        "T15_AI_Operator_Autonomy"
+-    ),
+-    "execution_authorization": (
+-        "AUTONOMY_ENGINE/continuity/acrl/"
+-        "T18_Safe_Execution_Authorization_Guard"
+-    ),
+-    "repair_verification": (
+-        "AUTONOMY_ENGINE/continuity/acrl/"
+-        "T20_Autonomous_Repair_Patch_Verification"
+-    ),
+-    "git_repository_coordination": (
+-        "AUTONOMY_ENGINE/continuity/acrl/"
+-        "T21_Git_Repository_Read_Write_Coordination"
+-    ),
+-    "commit_checkpoint_coordination": (
+-        "AUTONOMY_ENGINE/continuity/acrl/"
+-        "T22_Commit_Execution_Checkpoint_Coordination"
+-    ),
+-    "evidence_resolution": (
+-        "AUTONOMY_ENGINE/continuity/acrl/"
+-        "T23_Reference_Evidence_Resolution_Engine"
+-    ),
+-    "continuity_recovery": (
+-        "AUTONOMY_ENGINE/continuity/acrl/"
+-        "T24_Cross_Chat_Continuity_Recovery_Engine"
+-    ),
+-    "git_repository_coordination": (
+-        "AUTONOMY_ENGINE/continuity/acrl/"
+-        "T21_Git_Repository_Read_Write_Coordination"
+-    ),
+-    "commit_checkpoint_coordination": (
+-        "AUTONOMY_ENGINE/continuity/acrl/"
+-        "T22_Commit_Execution_Checkpoint_Coordination"
+-    ),
+-    "evidence_resolution": (
+-        "AUTONOMY_ENGINE/continuity/acrl/"
+-        "T23_Reference_Evidence_Resolution_Engine"
+-    ),
+-    "continuity_recovery": (
+-        "AUTONOMY_ENGINE/continuity/acrl/"
+-        "T24_Cross_Chat_Continuity_Recovery_Engine"
+-    ),
+-    "chat_history": "NON_AUTHORITATIVE",
+-}
+-
+-
+-# ---------------------------------------------------------------------------
+-# NON-DEVELOPER OWNER WORKING CONTRACT
+-# ---------------------------------------------------------------------------
+-
+-NON_DEVELOPER_OWNER_CONTRACT: tuple[str, ...] = (
+-    "The project owner is not required to write or debug implementation code manually.",
+-    "The AI must provide exact repository paths for every requested file change.",
+-    "The AI must provide complete replacement content when a full file replacement is required.",
+-    "The AI must provide exact PowerShell commands for file creation or replacement.",
+-    "The AI must avoid asking the owner to perform unnecessary manual code editing.",
+-    "The AI must verify before instructing the owner to replace a file.",
+-    "The AI must never hide a structural uncertainty behind a generic recommendation.",
+-    "If the repository evidence is insufficient, the AI must request targeted evidence rather than guess.",
+-)
+-
+-
+-# ---------------------------------------------------------------------------
+-# CHANGE DECISION RULE
+-# ---------------------------------------------------------------------------
+-
+-CHANGE_DECISION_RULES: tuple[str, ...] = (
+-    "FIRST: determine whether an existing module already owns the required responsibility.",
+-    "SECOND: determine whether the existing module can be minimally extended.",
+-    "THIRD: add a new module only when no existing owner exists and architecture permits it.",
+-    "NEVER: create a duplicate module merely because discovery is inconvenient.",
+-    "NEVER: create a parallel source of truth.",
+-    "NEVER: create a parallel execution path.",
+-)
+-
+-
+-# ---------------------------------------------------------------------------
+-# FAILURE / RECOVERY RULES
+-# ---------------------------------------------------------------------------
+-
+-FAILURE_RULES: tuple[str, ...] = (
+-    "If repository state is unclear, reconstruct it before editing.",
+-    "If architecture authority is unclear, stop before architectural change.",
+-    "If local and remote repository evidence differs, verify locally.",
+-    "If tests fail, diagnose the actual failure before patching.",
+-    "If an existing implementation is approved and green, do not redesign it without evidence.",
+-    "If a proposed change creates duplicate responsibility, reject the change.",
+-    "If execution authority is unavailable, fail closed.",
+-    "If project state cannot be safely reconstructed, do not manufacture state.",
+-)
+-
+-
+-# ---------------------------------------------------------------------------
+-# DISCOVERY HELPERS
+-# ---------------------------------------------------------------------------
+-
+-def repository_paths() -> dict[str, str]:
+-    """Return important repository paths without reading or mutating state."""
+-
+-    return {
+-        "control_center": str(CONTROL_CENTER_PATH),
+-        "state": str(STATE_PATH),
+-        "autonomy_engine": str(AUTONOMY_ENGINE_PATH),
+-        "acrl": str(ACRL_PATH),
+-        "t07": str(ACRL_ENTRYPOINT),
+-        "t14": str(ACRL_REPOSITORY_CONTEXT),
+-        "t15": str(ACRL_OPERATOR_AUTONOMY),
+-        "t18": str(ACRL_EXECUTION_AUTHORIZATION),
+-        "t20": str(ACRL_REPAIR_VERIFICATION),
+-        "t21": str(ACRL_GIT_REPOSITORY_COORDINATION),
+-        "t22": str(ACRL_COMMIT_CHECKPOINT_COORDINATION),
+-        "t23": str(ACRL_EVIDENCE_RESOLUTION),
+-        "t24": str(ACRL_CONTINUITY_RECOVERY),
+-        "t21": str(ACRL_GIT_REPOSITORY_COORDINATION),
+-        "t22": str(ACRL_COMMIT_CHECKPOINT_COORDINATION),
+-        "t23": str(ACRL_EVIDENCE_RESOLUTION),
+-        "t24": str(ACRL_CONTINUITY_RECOVERY),
+-    }
+-
+-
+-def contract() -> REOSAgentOperatingContract:
+-    """Return the repository-level AI operating contract."""
+-
+-    return REOSAgentOperatingContract()
+-
+-
+-def startup_instructions() -> dict[str, Any]:
+-    """
+-    Return the complete machine-readable instructions for a new AI session.
+-
+-    This function does NOT:
+-        - mutate state
+-        - execute project commands
+-        - authorize execution
+-        - change architecture
+-        - replace ACRL
+-    """
+-
+-    operating_contract = contract()
+-
+-    return {
+-        "entrypoint": "AI_AGENT_ENTRYPOINT.py",
+-        "project": operating_contract.project,
+-        "project_description": operating_contract.project_description,
+-        "authority": operating_contract.control_authority,
+-        "continuity": operating_contract.continuity_system,
+-        "chat_history_authority": operating_contract.chat_history_authority,
+-        "source_of_truth": dict(SOURCE_OF_TRUTH),
+-        "paths": repository_paths(),
+-        "operating_rules": list(AI_OPERATING_RULES),
+-        "new_session_workflow": list(NEW_SESSION_WORKFLOW),
+-        "execution_workflow": list(EXECUTION_WORKFLOW),
+-        "change_decision_rules": list(CHANGE_DECISION_RULES),
+-        "remote_git_synchronization_rules": list(
+-            REMOTE_GIT_SYNCHRONIZATION_RULES
+-        ),
+-        "failure_rules": list(FAILURE_RULES),
+-        "non_developer_owner_contract": list(
+-            NON_DEVELOPER_OWNER_CONTRACT
+-        ),
+-    }
+-
+-
+-def validate_entrypoint() -> bool:
+-    """
+-    Validate only the structural entrypoint assumptions.
+-
+-    This is intentionally read-only.
+-    It does not assert that every referenced implementation exists
+-    locally; local repository verification remains authoritative.
+-    """
+-
+-    if not CONTROL_CENTER_PATH.is_dir():
+-        return False
+-
+-    if not AUTONOMY_ENGINE_PATH.is_dir():
+-        return False
+-
+-    if not ACRL_PATH.is_dir():
+-        return False
+-
+-    return True
+-
+-
+-# ---------------------------------------------------------------------------
+-# HUMAN-READABLE STARTUP
+-# ---------------------------------------------------------------------------
+-
+-def print_startup_context() -> None:
+-    """Print a compact new-AI startup contract."""
+-
+-    print("=" * 72)
+-    print("HOMIO / REOS ΓÇö AI AGENT ENTRYPOINT")
+-    print("=" * 72)
+-    print(f"PROJECT        : {PROJECT_NAME}")
+-    print(f"AUTHORITY      : {CONTROL_CENTER_NAME}")
+-    print("CONTINUITY     : ACRL")
+-    print("CHAT HISTORY   : NON-AUTHORITATIVE")
+-    print("STATE          : REOS_CONTROL_CENTER/data/state.json")
+-    print("CODE           : Git repository")
+-    print("VERIFICATION   : Local PowerShell")
+-    print("T07            : New Chat Bootstrap")
+-    print("T14            : Repository Intelligence Context")
+-    print("T15            : AI Operator Autonomy")
+-    print("T18            : Safe Execution Authorization")
+-    print("T20            : Repair / Patch Verification")
+-    print("T21            : Git Repository Coordination")
+-    print("T22            : Commit Execution Checkpoint")
+-    print("T23            : Evidence Resolution")
+-    print("T24            : Continuity Recovery")
+-    print("-" * 72)
+-    print("RULE           : DISCOVER BEFORE MODIFY")
+-    print("RULE           : NO DUPLICATE ENGINES")
+-    print("RULE           : NO DUPLICATE STATE")
+-    print("RULE           : NO BLIND PATCHING")
+-    print("RULE           : FAIL CLOSED ON UNCERTAINTY")
+-    print("-" * 72)
+-    print("STATUS         :", "READY" if validate_entrypoint() else "VERIFY")
+-    print("=" * 72)
+-
+-
+-# ---------------------------------------------------------------------------
+-# CLI
+-# ---------------------------------------------------------------------------
+-
+-if __name__ == "__main__":
+-    print_startup_context()
++"""
++HOMIO / REOS ΓÇö AI AGENT ENTRYPOINT
++==================================
++
++Purpose
++-------
++This file is the repository-level entry point for ANY new AI/GPT agent
++working on HOMIO / REOS.
++
++It is NOT:
++    - a second Control Center
++    - a second ACRL
++    - a second state store
++    - an architecture engine
++    - an execution engine
++    - an authorization engine
++    - an AI decision engine
++    - a replacement for T07/T14/T15
++
++It exists so that a new AI session can recover the correct operating
++protocol from the repository without depending on previous GPT chat history.
++
++AUTHORITATIVE PROJECT SOURCES
++-----------------------------
++1. REOS_CONTROL_CENTER/data/state.json
++   -> canonical machine-readable project state
++
++2. Git repository / current branch
++   -> canonical code, history, architecture reference and repository evidence
++
++3. Local PowerShell execution
++   -> canonical current verification of the actual working tree
++
++4. ACRL
++   -> continuity, reconstruction, evidence, checkpoint, drift,
++      recovery and AI-operation framework
++
++CHAT HISTORY
++------------
++Chat history is communication only.
++It is NOT project memory.
++A new GPT session MUST NOT assume that previous chat context is available,
++correct, current, or authoritative.
++
++IMPORTANT
++---------
++This entrypoint does not contain a copy of the project state.
++
++It tells an AI HOW TO DISCOVER the authoritative state and HOW TO WORK
++inside the existing REOS / ACRL system.
++"""
++
++from __future__ import annotations
++
++from dataclasses import dataclass
++from pathlib import Path
++from typing import Any
++
++
++# ---------------------------------------------------------------------------
++# REPOSITORY IDENTITY
++# ---------------------------------------------------------------------------
++
++PROJECT_NAME = "HOMIO / REOS"
++
++PROJECT_DESCRIPTION = (
++    "Global AI Real Estate OS + International Brokerage + SaaS."
++)
++
++CONTROL_CENTER_NAME = "REOS_CONTROL_CENTER"
++
++CONTROL_CENTER_PATH = Path(__file__).resolve().parent
++
++STATE_PATH = CONTROL_CENTER_PATH / "data" / "state.json"
++
++AUTONOMY_ENGINE_PATH = (
++    CONTROL_CENTER_PATH / "AUTONOMY_ENGINE"
++)
++
++ACRL_PATH = (
++    AUTONOMY_ENGINE_PATH / "continuity" / "acrl"
++)
++
++
++# ---------------------------------------------------------------------------
++# EXISTING CANONICAL ACRL COMPONENTS
++# ---------------------------------------------------------------------------
++
++ACRL_ENTRYPOINT = (
++    ACRL_PATH
++    / "T07_New_Chat_Bootstrap"
++    / "new_chat_bootstrap.py"
++)
++
++ACRL_REPOSITORY_CONTEXT = (
++    ACRL_PATH
++    / "T14_Repository_Intelligence_Context"
++)
++
++ACRL_OPERATOR_AUTONOMY = (
++    ACRL_PATH
++    / "T15_AI_Operator_Autonomy"
++)
++
++ACRL_EXECUTION_AUTHORIZATION = (
++    ACRL_PATH
++    / "T18_Safe_Execution_Authorization_Guard"
++)
++
++ACRL_REPAIR_VERIFICATION = (
++    ACRL_PATH
++    / "T20_Autonomous_Repair_Patch_Verification"
++)
++
++ACRL_GIT_REPOSITORY_COORDINATION = (
++    ACRL_PATH
++    / "T21_Git_Repository_Read_Write_Coordination"
++)
++
++ACRL_COMMIT_CHECKPOINT_COORDINATION = (
++    ACRL_PATH
++    / "T22_Commit_Execution_Checkpoint_Coordination"
++)
++
++ACRL_EVIDENCE_RESOLUTION = (
++    ACRL_PATH
++    / "T23_Reference_Evidence_Resolution_Engine"
++)
++
++ACRL_CONTINUITY_RECOVERY = (
++    ACRL_PATH
++    / "T24_Cross_Chat_Continuity_Recovery_Engine"
++)
++
++
++# ---------------------------------------------------------------------------
++# OPERATING AUTHORITY
++# ---------------------------------------------------------------------------
++
++@dataclass(frozen=True)
++class REOSAgentOperatingContract:
++    """
++    Compact repository-level contract for a new AI operator.
++
++    This is descriptive metadata only.
++    It does not replace any ACRL or Control Center implementation.
++    """
++
++    project: str = PROJECT_NAME
++    project_description: str = PROJECT_DESCRIPTION
++
++    authoritative_state: str = (
++        "REOS_CONTROL_CENTER/data/state.json"
++    )
++
++    authoritative_code_reference: str = (
++        "Git repository / active REOS branch"
++    )
++
++    current_verification: str = (
++        "Local PowerShell execution"
++    )
++
++    continuity_system: str = "ACRL"
++
++    chat_history_authority: str = "NON_AUTHORITATIVE"
++
++    control_authority: str = "REOS_CONTROL_CENTER"
++
++    execution_authority: str = (
++        "ACRL T18 authorization -> T20 repair verification -> "
++        "PowerShell executor -> T21 Git transaction -> T22 checkpoint -> "
++        "T23 evidence resolution -> T24 continuity recovery"
++    )
++
++    ai_role: str = (
++        "Architecture-aware engineering operator"
++    )
++
++
++# ---------------------------------------------------------------------------
++# AI OPERATING RULES
++# ---------------------------------------------------------------------------
++
++AI_OPERATING_RULES: tuple[str, ...] = (
++    "Treat REOS_CONTROL_CENTER as the project control authority.",
++    "Treat data/state.json as canonical machine-readable project state.",
++    "Treat Git as canonical code/history/reference.",
++    "Treat local PowerShell execution as current verification.",
++    "Treat chat history as communication only, never as project truth.",
++    "Before changing code, reconstruct the current repository state.",
++    "Use existing ACRL continuity mechanisms instead of inventing new continuity.",
++    "Use T07 New Chat Bootstrap for new-session continuity.",
++    "Use T14 Repository Intelligence Context for repository-aware context.",
++    "Respect T15 AI Operator Autonomy boundaries.",
++    "Do not bypass architecture locks.",
++    "Do not bypass Control Center authority.",
++    "Do not directly invent or modify authoritative project state.",
++    "Do not create a second state store.",
++    "Do not create a second Control Center.",
++    "Do not create a second ACRL.",
++    "Do not create duplicate business engines.",
++    "Do not replace existing modules when an existing module already owns the responsibility.",
++    "Do not infer local files merely because they exist in Git history or a remote snapshot.",
++    "Verify the actual local working tree before depending on a file.",
++    "Do not blindly patch from assumptions.",
++    "Use targeted evidence before making a change.",
++    "Prefer the smallest architecture-consistent change.",
++    "Run focused verification after a change.",
++    "Run relevant regression verification before declaring success.",
++    "Do not declare a task complete from code appearance alone.",
++    "Do not manipulate state.json directly to manufacture completion.",
++    "Do not self-authorize execution.",
++    "Do not self-approve architecture or governance decisions.",
++    "When evidence conflicts, stop and resolve the conflict instead of guessing.",
++)
++
++
++# ---------------------------------------------------------------------------
++# REMOTE GIT SYNCHRONIZATION CONTRACT
++# ---------------------------------------------------------------------------
++
++REMOTE_GIT_SYNCHRONIZATION_RULES: tuple[str, ...] = (
++    "REOS_CONTROL_CENTER remains the project control authority.",
++    "REOS_CONTROL_CENTER/data/state.json remains the canonical project state.",
++    "ACRL T18 is the execution-authorization boundary.",
++    "ACRL T20 is the repair and patch-verification boundary.",
++    "Local PowerShell is the actual execution and current-working-tree verification interface.",
++    "ACRL T21 is the Git repository read/write transaction boundary.",
++    "ACRL T22 is the immutable commit execution checkpoint boundary.",
++    "ACRL T23 is the authority for missing, stale or conflicting evidence resolution.",
++    "ACRL T24 is the authority for continuity and recovery snapshots.",
++    "PowerShell MUST NOT create a second synchronization engine.",
++    "AI_AGENT_ENTRYPOINT.py is descriptive contract only and MUST NOT execute Git writes.",
++    "A remote write is successful only after independent branch, commit and file evidence verification.",
++    "The active REOS branch MUST be verified before any repository write.",
++    "A failed, ambiguous or conflicting operation MUST fail closed.",
++    "Do not create a second Git sync engine.",
++    "Do not create a second checkpoint engine.",
++    "Do not create a second evidence engine.",
++    "Do not create a second continuity engine.",
++    "Do not create a second state store.",
++    "Do not bypass REOS Control Center authority.",
++)
++
++# ---------------------------------------------------------------------------
++# EXECUTION / SYNCHRONIZATION WORKFLOW
++# ---------------------------------------------------------------------------
++
++EXECUTION_WORKFLOW: tuple[str, ...] = (
++    "1. Discover canonical state from REOS_CONTROL_CENTER/data/state.json.",
++    "2. Resolve the authoritative current gate/task/subtask through REOS Control Center.",
++    "3. Resolve architecture and dependency ownership before changing code.",
++    "4. Obtain execution authorization through existing ACRL T18.",
++    "5. Verify the proposed repair/patch through existing ACRL T20.",
++    "6. Execute the authorized local change through PowerShell.",
++    "7. Verify the changed working tree and focused tests locally.",
++    "8. Coordinate Git mutation through existing ACRL T21.",
++    "9. Create/verify the immutable execution checkpoint through T22 when required.",
++    "10. Resolve execution evidence through T23.",
++    "11. Preserve/recover continuity through T24 when required.",
++    "12. Update canonical project state only through the existing REOS Control Center workflow.",
++    "13. Never report PASS without independent verification evidence.",
++)
++# ---------------------------------------------------------------------------
++# REQUIRED NEW-SESSION WORKFLOW
++# ---------------------------------------------------------------------------
++
++NEW_SESSION_WORKFLOW: tuple[str, ...] = (
++    "1. Identify this repository as HOMIO / REOS.",
++    "2. Read this entrypoint.",
++    "3. Discover the existing ACRL T07 New Chat Bootstrap.",
++    "4. Reconstruct current project state from REOS_CONTROL_CENTER.",
++    "5. Inspect the current gate, task and subtask from canonical state.",
++    "6. Inspect relevant architecture and dependency authority.",
++    "7. Inspect the actual local repository tree before assuming files exist.",
++    "8. Inspect relevant implementation and existing tests.",
++    "9. Determine the smallest valid change.",
++    "10. Execute only through the existing REOS-controlled workflow.",
++    "11. Verify the changed scope.",
++    "12. Run relevant regression tests.",
++    "13. Update project state only through the existing Control Center workflow.",
++    "14. Preserve checkpoint / continuity information when required.",
++    "15. Report evidence, result and next controlled step.",
++)
++
++
++# ---------------------------------------------------------------------------
++# SOURCE OF TRUTH MAP
++# ---------------------------------------------------------------------------
++
++SOURCE_OF_TRUTH: dict[str, str] = {
++    "project_state": "REOS_CONTROL_CENTER/data/state.json",
++    "code_and_history": "Git repository",
++    "current_execution_evidence": "Local PowerShell",
++    "continuity": "AUTONOMY_ENGINE/continuity/acrl",
++    "new_session_bootstrap": (
++        "AUTONOMY_ENGINE/continuity/acrl/"
++        "T07_New_Chat_Bootstrap/new_chat_bootstrap.py"
++    ),
++    "repository_context": (
++        "AUTONOMY_ENGINE/continuity/acrl/"
++        "T14_Repository_Intelligence_Context"
++    ),
++    "ai_operator_boundary": (
++        "AUTONOMY_ENGINE/continuity/acrl/"
++        "T15_AI_Operator_Autonomy"
++    ),
++    "execution_authorization": (
++        "AUTONOMY_ENGINE/continuity/acrl/"
++        "T18_Safe_Execution_Authorization_Guard"
++    ),
++    "repair_verification": (
++        "AUTONOMY_ENGINE/continuity/acrl/"
++        "T20_Autonomous_Repair_Patch_Verification"
++    ),
++    "git_repository_coordination": (
++        "AUTONOMY_ENGINE/continuity/acrl/"
++        "T21_Git_Repository_Read_Write_Coordination"
++    ),
++    "commit_checkpoint_coordination": (
++        "AUTONOMY_ENGINE/continuity/acrl/"
++        "T22_Commit_Execution_Checkpoint_Coordination"
++    ),
++    "evidence_resolution": (
++        "AUTONOMY_ENGINE/continuity/acrl/"
++        "T23_Reference_Evidence_Resolution_Engine"
++    ),
++    "continuity_recovery": (
++        "AUTONOMY_ENGINE/continuity/acrl/"
++        "T24_Cross_Chat_Continuity_Recovery_Engine"
++    ),
++    "git_repository_coordination": (
++        "AUTONOMY_ENGINE/continuity/acrl/"
++        "T21_Git_Repository_Read_Write_Coordination"
++    ),
++    "commit_checkpoint_coordination": (
++        "AUTONOMY_ENGINE/continuity/acrl/"
++        "T22_Commit_Execution_Checkpoint_Coordination"
++    ),
++    "evidence_resolution": (
++        "AUTONOMY_ENGINE/continuity/acrl/"
++        "T23_Reference_Evidence_Resolution_Engine"
++    ),
++    "continuity_recovery": (
++        "AUTONOMY_ENGINE/continuity/acrl/"
++        "T24_Cross_Chat_Continuity_Recovery_Engine"
++    ),
++    "chat_history": "NON_AUTHORITATIVE",
++}
++
++
++# ---------------------------------------------------------------------------
++# NON-DEVELOPER OWNER WORKING CONTRACT
++# ---------------------------------------------------------------------------
++
++NON_DEVELOPER_OWNER_CONTRACT: tuple[str, ...] = (
++    "The project owner is not required to write or debug implementation code manually.",
++    "The AI must provide exact repository paths for every requested file change.",
++    "The AI must provide complete replacement content when a full file replacement is required.",
++    "The AI must provide exact PowerShell commands for file creation or replacement.",
++    "The AI must avoid asking the owner to perform unnecessary manual code editing.",
++    "The AI must verify before instructing the owner to replace a file.",
++    "The AI must never hide a structural uncertainty behind a generic recommendation.",
++    "If the repository evidence is insufficient, the AI must request targeted evidence rather than guess.",
++)
++
++
++# ---------------------------------------------------------------------------
++# CHANGE DECISION RULE
++# ---------------------------------------------------------------------------
++
++CHANGE_DECISION_RULES: tuple[str, ...] = (
++    "FIRST: determine whether an existing module already owns the required responsibility.",
++    "SECOND: determine whether the existing module can be minimally extended.",
++    "THIRD: add a new module only when no existing owner exists and architecture permits it.",
++    "NEVER: create a duplicate module merely because discovery is inconvenient.",
++    "NEVER: create a parallel source of truth.",
++    "NEVER: create a parallel execution path.",
++)
++
++
++# ---------------------------------------------------------------------------
++# FAILURE / RECOVERY RULES
++# ---------------------------------------------------------------------------
++
++FAILURE_RULES: tuple[str, ...] = (
++    "If repository state is unclear, reconstruct it before editing.",
++    "If architecture authority is unclear, stop before architectural change.",
++    "If local and remote repository evidence differs, verify locally.",
++    "If tests fail, diagnose the actual failure before patching.",
++    "If an existing implementation is approved and green, do not redesign it without evidence.",
++    "If a proposed change creates duplicate responsibility, reject the change.",
++    "If execution authority is unavailable, fail closed.",
++    "If project state cannot be safely reconstructed, do not manufacture state.",
++)
++
++
++# ---------------------------------------------------------------------------
++# DISCOVERY HELPERS
++# ---------------------------------------------------------------------------
++
++def repository_paths() -> dict[str, str]:
++    """Return important repository paths without reading or mutating state."""
++
++    return {
++        "control_center": str(CONTROL_CENTER_PATH),
+:
