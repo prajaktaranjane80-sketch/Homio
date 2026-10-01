@@ -641,6 +641,7 @@ class CommissionRelease:
                         "All tax assessment references belong "
                         "to the statement scope."
                     ),
+                ),
             ]
         )
 
