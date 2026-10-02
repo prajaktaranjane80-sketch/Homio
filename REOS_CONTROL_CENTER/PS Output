@@ -1,42 +1,481 @@
-25 passed in 0.15s
+PS D:\HOMIO\REOS_CONTROL_CENTER> """CORE-008 Commission & Financial Core."""
+"CORE-008 Commission & Financial Core."
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_adversarial.py -q
-..........                                                                                                                                           [100%]
-10 passed in 0.11s
+PS D:\HOMIO\REOS_CONTROL_CENTER> from .financial_domain import (
+>>     CORE008_FINANCIAL_DOMAIN_SCHEMA_VERSION,
+>>     CORE008_FINANCIAL_DOMAIN_SOURCE,
+>>     Currency,
+>>     FinancialCurrencyMismatchError,
+>>     FinancialDomainError,
+>>     FinancialDomainRecord,
+>>     FinancialIdentity,
+>>     FinancialPrecisionError,
+>>     FinancialState,
+>>     FinancialSubject,
+>>     FinancialSubjectType,
+>>     FinancialTenantScopeError,
+>>     FinancialValidationError,
+>>     MonetaryAmount,
+>>     RoundingMode,
+>>     new_financial_identity,
+>> )
+At line:1 char:1
++ from .financial_domain import (
++ ~~~~
+The 'from' keyword is not supported in this version of the language.
+At line:2 char:44
++     CORE008_FINANCIAL_DOMAIN_SCHEMA_VERSION,
++                                            ~
+Missing argument in parameter list.
+At line:17 char:28
++     new_financial_identity,
++                            ~
+Missing expression after ',' in pipeline element.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
+
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check
-warning: in the working copy of 'REOS_CONTROL_CENTER/architecture/governance/test_architecture_integrity.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/data/state.json', CRLF will be replaced by LF the next time Git touches it
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
- M AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py
- M AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
- M AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py
- M AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py
-A  "architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan"
-A  architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
-R  architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json -> architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
-A  architecture/governance/architecture_integrity.py
-AM architecture/governance/test_architecture_integrity.py
-R  architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json -> architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
- M data/state.json
- M reos_control_center.py
-?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/
-?? ../FRONTEND_SYNC_BACKUP_20261002_113453/
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py.before-fraud-compatibility-fix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-condition-shape-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-determinism-key-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-disabled-rule-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-evaluation-freeze-fix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-fraud-evidence-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-trust-model-evidence-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-trust-scope-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py.before-fraud-fixture-scope-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py.before-metadata-fix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py.before-trustscore-fingerprint-rootfix.bak
-?? reos_control_center.py.before-C1-parser-repair.bak
-?? reos_control_center.py.before-duplicate-parser-fix-20261002_173140.bak
-?? reos_control_center.py.before-final-parser-repair-20261002_173554.bak
-?? snapshots/state_20261001_183859_268694.json
-?? snapshots/state_20261002_111929_382983.json
-?? ../REOS_LAYER_BACKUP_CORE007_ROOTFIX_20261001_185255/
+PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_contract import (
+>>     CORE008_COMMISSION_CONTRACT_SCHEMA_VERSION,
+>>     CommissionBasis,
+>>     CommissionBasisType,
+>>     CommissionContract,
+>>     CommissionContractConflictError,
+>>     CommissionContractError,
+>>     CommissionContractState,
+>>     CommissionContractTenantScopeError,
+>>     CommissionContractValidationError,
+>>     CommissionContractVersionError,
+>>     CommissionEligibilityRule,
+>>     CommissionEntitlementReference,
+>>     CommissionPartyReference,
+>>     CommissionPartyType,
+>>     CommissionProvenance,
+>>     CommissionRate,
+>>     CommissionRateType,
+>>     EligibilityOperator,
+>> )
+At line:1 char:1
++ from .commission_contract import (
++ ~~~~
+The 'from' keyword is not supported in this version of the language.
+At line:2 char:47
++     CORE008_COMMISSION_CONTRACT_SCHEMA_VERSION,
++                                               ~
+Missing argument in parameter list.
+At line:19 char:25
++     EligibilityOperator,
++                         ~
+Missing expression after ',' in pipeline element.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_calculation_basis import (
+>>     CommissionCalculationBasis,
+>>     CommissionCalculationBasisError,
+>> )
+At line:1 char:1
++ from .commission_calculation_basis import (
++ ~~~~
+The 'from' keyword is not supported in this version of the language.
+At line:2 char:31
++     CommissionCalculationBasis,
++                               ~
+Missing argument in parameter list.
+At line:3 char:37
++     CommissionCalculationBasisError,
++                                     ~
+Missing expression after ',' in pipeline element.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_calculation import (
+>>     CORE008_COMMISSION_CALCULATION_SCHEMA_VERSION,
+>>     CommissionCalculation,
+>>     CommissionCalculationCurrencyError,
+>>     CommissionCalculationEligibilityError,
+>>     CommissionCalculationError,
+>>     CommissionCalculationState,
+>>     CommissionCalculationValidationError,
+>>     calculate_commission,
+>> )
+At line:1 char:1
++ from .commission_calculation import (
++ ~~~~
+The 'from' keyword is not supported in this version of the language.
+At line:2 char:50
++     CORE008_COMMISSION_CALCULATION_SCHEMA_VERSION,
++                                                  ~
+Missing argument in parameter list.
+At line:9 char:26
++     calculate_commission,
++                          ~
+Missing expression after ',' in pipeline element.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_entitlement import (
+>>     CORE008_COMMISSION_ENTITLEMENT_SCHEMA_VERSION,
+>>     CommissionEntitlement,
+>>     CommissionEntitlementError,
+>>     CommissionEntitlementState,
+>>     CommissionEntitlementValidationError,
+>> )
+At line:1 char:1
++ from .commission_entitlement import (
++ ~~~~
+The 'from' keyword is not supported in this version of the language.
+At line:2 char:50
++     CORE008_COMMISSION_ENTITLEMENT_SCHEMA_VERSION,
++                                                  ~
+Missing argument in parameter list.
+At line:6 char:42
++     CommissionEntitlementValidationError,
++                                          ~
+Missing expression after ',' in pipeline element.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_allocation import (
+>>     CORE008_COMMISSION_ALLOCATION_SCHEMA_VERSION,
+>>     CommissionAllocation,
+>>     CommissionAllocationError,
+>>     CommissionAllocationLine,
+>>     CommissionAllocationValidationError,
+>> )
+At line:1 char:1
++ from .commission_allocation import (
++ ~~~~
+The 'from' keyword is not supported in this version of the language.
+At line:2 char:49
++     CORE008_COMMISSION_ALLOCATION_SCHEMA_VERSION,
++                                                 ~
+Missing argument in parameter list.
+At line:6 char:41
++     CommissionAllocationValidationError,
++                                         ~
+Missing expression after ',' in pipeline element.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_protection import (
+>>     CommissionProtection,
+>>     CommissionProtectionError,
+>>     CommissionProtectionState,
+>>     CommissionProtectionValidationError,
+>>     ProtectionEvidenceReference,
+>> )
+At line:1 char:1
++ from .commission_protection import (
++ ~~~~
+The 'from' keyword is not supported in this version of the language.
+At line:2 char:25
++     CommissionProtection,
++                         ~
+Missing argument in parameter list.
+At line:6 char:33
++     ProtectionEvidenceReference,
++                                 ~
+Missing expression after ',' in pipeline element.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> from .financial_ledger_boundary import (
+>>     FinancialLedgerBoundary,
+>>     FinancialLedgerBoundaryError,
+>>     FinancialLedgerEntry,
+>>     FinancialLedgerValidationError,
+>>     LedgerAccountReference,
+>> )
+At line:1 char:1
++ from .financial_ledger_boundary import (
++ ~~~~
+The 'from' keyword is not supported in this version of the language.
+At line:2 char:28
++     FinancialLedgerBoundary,
++                            ~
+Missing argument in parameter list.
+At line:6 char:28
++     LedgerAccountReference,
++                            ~
+Missing expression after ',' in pipeline element.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_concurrency import (
+>>     CommissionConcurrencyError,
+>>     CommissionDuplicateCommandError,
+>>     CommissionStaleVersionError,
+>>     FinancialConcurrencyBoundary,
+>>     FinancialIdempotencyRecord,
+>>     FinancialTransitionContract,
+>>     FinancialVersionToken,
+>> )
+At line:1 char:1
++ from .commission_concurrency import (
++ ~~~~
+The 'from' keyword is not supported in this version of the language.
+At line:2 char:31
++     CommissionConcurrencyError,
++                               ~
+Missing argument in parameter list.
+At line:8 char:27
++     FinancialVersionToken,
++                           ~
+Missing expression after ',' in pipeline element.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_security import (
+>>     FinancialAuthorizationAction,
+>>     FinancialAuthorizationDecision,
+>>     FinancialAuthorizationError,
+>>     FinancialAuthorizationRequest,
+>>     FinancialSecurityBoundary,
+>>     FinancialSecurityError,
+>>     FinancialTenantBoundaryError,
+>> )
+At line:1 char:1
++ from .commission_security import (
++ ~~~~
+The 'from' keyword is not supported in this version of the language.
+At line:2 char:33
++     FinancialAuthorizationAction,
++                                 ~
+Missing argument in parameter list.
+At line:8 char:34
++     FinancialTenantBoundaryError,
++                                  ~
+Missing expression after ',' in pipeline element.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_reos_contract import (
+>>     CORE008_CANONICAL_STATE,
+>>     CORE008_REOS_AUTHORITY,
+>>     CommissionREOSBoundary,
+>>     CommissionREOSContractError,
+>>     CommissionREOSExecutionReference,
+>>     CommissionREOSIntegrationContract,
+>>     validate_reos_contract,
+>> )
+At line:1 char:1
++ from .commission_reos_contract import (
++ ~~~~
+The 'from' keyword is not supported in this version of the language.
+At line:2 char:28
++     CORE008_CANONICAL_STATE,
++                            ~
+Missing argument in parameter list.
+At line:8 char:28
++     validate_reos_contract,
++                            ~
+Missing expression after ',' in pipeline element.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> __all__ = [
+__all__ : The term '__all__' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if
+a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ __all__ = [
++ ~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (__all__:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>     # Financial foundation
+PS D:\HOMIO\REOS_CONTROL_CENTER>     "CORE008_FINANCIAL_DOMAIN_SCHEMA_VERSION",
+>>     "CORE008_FINANCIAL_DOMAIN_SOURCE",
+>>     "Currency",
+>>     "FinancialCurrencyMismatchError",
+>>     "FinancialDomainError",
+>>     "FinancialDomainRecord",
+>>     "FinancialIdentity",
+>>     "FinancialPrecisionError",
+>>     "FinancialState",
+>>     "FinancialSubject",
+>>     "FinancialSubjectType",
+>>     "FinancialTenantScopeError",
+>>     "FinancialValidationError",
+>>     "MonetaryAmount",
+>>     "RoundingMode",
+>>     "new_financial_identity",
+>>
+At line:16 char:30
++     "new_financial_identity",
++                              ~
+Missing expression after ','.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingExpressionAfterToken
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>     # Commission contract
+PS D:\HOMIO\REOS_CONTROL_CENTER>     "CORE008_COMMISSION_CONTRACT_SCHEMA_VERSION",
+>>     "CommissionBasis",
+>>     "CommissionBasisType",
+>>     "CommissionContract",
+>>     "CommissionContractConflictError",
+>>     "CommissionContractError",
+>>     "CommissionContractState",
+>>     "CommissionContractTenantScopeError",
+>>     "CommissionContractValidationError",
+>>     "CommissionContractVersionError",
+>>     "CommissionEligibilityRule",
+>>     "CommissionEntitlementReference",
+>>     "CommissionPartyReference",
+>>     "CommissionPartyType",
+>>     "CommissionProvenance",
+>>     "CommissionRate",
+>>     "CommissionRateType",
+>>     "EligibilityOperator",
+>>
+At line:18 char:27
++     "EligibilityOperator",
++                           ~
+Missing expression after ','.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingExpressionAfterToken
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>     # Calculation
+PS D:\HOMIO\REOS_CONTROL_CENTER>     "CommissionCalculationBasis",
+>>     "CommissionCalculationBasisError",
+>>     "CORE008_COMMISSION_CALCULATION_SCHEMA_VERSION",
+>>     "CommissionCalculation",
+>>     "CommissionCalculationCurrencyError",
+>>     "CommissionCalculationEligibilityError",
+>>     "CommissionCalculationError",
+>>     "CommissionCalculationState",
+>>     "CommissionCalculationValidationError",
+>>     "calculate_commission",
+>>
+At line:10 char:28
++     "calculate_commission",
++                            ~
+Missing expression after ','.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingExpressionAfterToken
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>     # Entitlement
+PS D:\HOMIO\REOS_CONTROL_CENTER>     "CORE008_COMMISSION_ENTITLEMENT_SCHEMA_VERSION",
+>>     "CommissionEntitlement",
+>>     "CommissionEntitlementError",
+>>     "CommissionEntitlementState",
+>>     "CommissionEntitlementValidationError",
+>>
+At line:5 char:44
++     "CommissionEntitlementValidationError",
++                                            ~
+Missing expression after ','.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingExpressionAfterToken
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>     # Allocation
+PS D:\HOMIO\REOS_CONTROL_CENTER>     "CORE008_COMMISSION_ALLOCATION_SCHEMA_VERSION",
+>>     "CommissionAllocation",
+>>     "CommissionAllocationError",
+>>     "CommissionAllocationLine",
+>>     "CommissionAllocationValidationError",
+>>
+At line:5 char:43
++     "CommissionAllocationValidationError",
++                                           ~
+Missing expression after ','.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingExpressionAfterToken
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>     # Protection
+PS D:\HOMIO\REOS_CONTROL_CENTER>     "CommissionProtection",
+>>     "CommissionProtectionError",
+>>     "CommissionProtectionState",
+>>     "CommissionProtectionValidationError",
+>>     "ProtectionEvidenceReference",
+>>
+At line:5 char:35
++     "ProtectionEvidenceReference",
++                                   ~
+Missing expression after ','.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingExpressionAfterToken
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>     # Ledger boundary
+PS D:\HOMIO\REOS_CONTROL_CENTER>     "FinancialLedgerBoundary",
+>>     "FinancialLedgerBoundaryError",
+>>     "FinancialLedgerEntry",
+>>     "FinancialLedgerValidationError",
+>>     "LedgerAccountReference",
+>>
+At line:5 char:30
++     "LedgerAccountReference",
++                              ~
+Missing expression after ','.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingExpressionAfterToken
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>     # Concurrency
+PS D:\HOMIO\REOS_CONTROL_CENTER>     "CommissionConcurrencyError",
+>>     "CommissionDuplicateCommandError",
+>>     "CommissionStaleVersionError",
+>>     "FinancialConcurrencyBoundary",
+>>     "FinancialIdempotencyRecord",
+>>     "FinancialTransitionContract",
+>>     "FinancialVersionToken",
+>>
+At line:7 char:29
++     "FinancialVersionToken",
++                             ~
+Missing expression after ','.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingExpressionAfterToken
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>     # Security
+PS D:\HOMIO\REOS_CONTROL_CENTER>     "FinancialAuthorizationAction",
+>>     "FinancialAuthorizationDecision",
+>>     "FinancialAuthorizationError",
+>>     "FinancialAuthorizationRequest",
+>>     "FinancialSecurityBoundary",
+>>     "FinancialSecurityError",
+>>     "FinancialTenantBoundaryError",
+>>
+At line:7 char:36
++     "FinancialTenantBoundaryError",
++                                    ~
+Missing expression after ','.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingExpressionAfterToken
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>     # REOS boundary
+PS D:\HOMIO\REOS_CONTROL_CENTER>     "CORE008_CANONICAL_STATE",
+>>     "CORE008_REOS_AUTHORITY",
+>>     "CommissionREOSBoundary",
+>>     "CommissionREOSContractError",
+>>     "CommissionREOSExecutionReference",
+>>     "CommissionREOSIntegrationContract",
+>>     "validate_reos_contract",
+>> ]
+At line:7 char:30
++     "validate_reos_contract",
++                              ~
+Missing expression after ','.
+At line:8 char:1
++ ]
++ ~
+Unexpected token ']' in expression or statement.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingExpressionAfterToken
+
+PS D:\HOMIO\REOS_CONTROL_CENTER> cd D:\HOMIO\REOS_CONTROL_CENTER
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -c "from AUTONOMY_ENGINE.core.commission_financial import CommissionContract, CommissionCalculation, CommissionEntitlement, CommissionAllocation, Currency, MonetaryAmount; print('CORE-008 PUBLIC API OK')"
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+ImportError: cannot import name 'CommissionContract' from 'AUTONOMY_ENGINE.core.commission_financial' (D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\__init__.py). Did you mean: 'commission_contract'?
 PS D:\HOMIO\REOS_CONTROL_CENTER>
