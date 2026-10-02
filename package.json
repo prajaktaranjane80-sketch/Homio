@@ -1,0 +1,31 @@
+{
+  "name": "homio-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HOMIO production frontend experience layer over REOS.",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "verify:foundation": "node ./scripts/verify-foundation.mjs",
+    "verify": "npm run verify:foundation && npm run typecheck && npm run lint && npm run build"
+  },
+  "dependencies": {
+    "next": "16.2.11",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "16.2.11",
+    "typescript": "6.0.3"
+  }
+}
