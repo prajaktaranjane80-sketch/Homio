@@ -1,3 +1,6 @@
+PS D:\HOMIO\REOS_CONTROL_CENTER> git restore -- snapshots
+PS D:\HOMIO\REOS_CONTROL_CENTER> git restore -- ..\REOS_LAYER_BACKUP_20260924_201807
+PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
  M AUTONOMY_ENGINE/core/commission_financial/__init__.py
  M AUTONOMY_ENGINE/core/commission_financial/commission_allocation.py
@@ -20,37 +23,94 @@ AM architecture/governance/test_architecture_integrity.py
 R  architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json -> architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
  M data/state.json
  M reos_control_center.py
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/__init__.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_allocation.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_calculation_basis.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_concurrency.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_entitlement.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_protection.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/financial_ledger_boundary.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/architecture/governance/test_architecture_integrity.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/data/state.json', CRLF will be replaced by LF the next time Git touches it
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
- M AUTONOMY_ENGINE/core/commission_financial/__init__.py
- M AUTONOMY_ENGINE/core/commission_financial/commission_allocation.py
- M AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
- M AUTONOMY_ENGINE/core/commission_financial/commission_calculation_basis.py
- M AUTONOMY_ENGINE/core/commission_financial/commission_concurrency.py
- M AUTONOMY_ENGINE/core/commission_financial/commission_entitlement.py
- M AUTONOMY_ENGINE/core/commission_financial/commission_protection.py
- M AUTONOMY_ENGINE/core/commission_financial/financial_ledger_boundary.py
- M AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
- M AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py
- M AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
- M AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py
- M AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py
-A  "architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan"
-A  architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
-R  architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json -> architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
-A  architecture/governance/architecture_integrity.py
-AM architecture/governance/test_architecture_integrity.py
-R  architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json -> architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
- M data/state.json
- M reos_control_center.py
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py status
+HOMIO / REOS CONTROL CENTER v7.0
+========================================================================
+Phase: PRE-CODING ARCHITECTURE
+Gate: CORE-008
+Task: CORE-008-T01: Implement commission domain.
+Status: CONTROL_CENTER_DRIVEN
+Subtask: CORE-008-T01
+Gate Status: CURRENT
+Subtasks: 10 Criteria: 6
+Approved: 39 Pending: 0
+State: D:\Homio\REOS_CONTROL_CENTER\data\state.json
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py gate
+GATE: Commission & Financial Core
+STATUS: CURRENT
+CURRENT SUBTASK: CORE-008-T01
+SUBTASKS:
+CORE-008-T01 | Implement commission domain | CURRENT | CRITICAL
+CORE-008-T02 | Implement commission attribution and rules | PENDING | CRITICAL
+CORE-008-T03 | Implement split and participant logic | PENDING | CRITICAL
+CORE-008-T04 | Implement settlement and reconciliation lifecycle | PENDING | CRITICAL
+CORE-008-T05 | Implement dispute and reversal rules | PENDING | HIGH
+CORE-008-T06 | Implement financial audit and evidence | PENDING | CRITICAL
+CORE-008-T07 | Implement financial reporting hooks | PENDING | HIGH
+CORE-008-T08 | Run precision and concurrency tests | PENDING | CRITICAL
+CORE-008-T09 | Run financial security and approval review | PENDING | CRITICAL
+CORE-008-T10 | Freeze commission and financial core | PENDING | CRITICAL
+ACCEPTANCE CRITERIA:
+CORE-008-AC01 | PENDING | Commission source of truth is authoritative.
+CORE-008-AC02 | PENDING | Deal and ownership attribution is traceable.
+CORE-008-AC03 | PENDING | Financial amounts use safe fixed-precision semantics.
+CORE-008-AC04 | PENDING | Settlement and reversal are auditable.
+CORE-008-AC05 | PENDING | Critical financial actions require appropriate approval.
+CORE-008-AC06 | PENDING | Security and concurrency tests pass.
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest `
+>>   AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_commission_contract.py `
+>>   AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_conflict_adversarial.py `
+>>   AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_contract_history.py `
+>>   AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_contract_validation.py `
+>>   AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_provenance_adversarial.py `
+>>   AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_snapshot_integrity.py `
+>>   AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_temporal_adversarial.py -q
+.........................................................                                                                                            [100%]
+57 passed in 0.49s
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py status
+HOMIO / REOS CONTROL CENTER v7.0
+========================================================================
+Phase: PRE-CODING ARCHITECTURE
+Gate: CORE-008
+Task: CORE-008-T01: Implement commission domain.
+Status: CONTROL_CENTER_DRIVEN
+Subtask: CORE-008-T01
+Gate Status: CURRENT
+Subtasks: 10 Criteria: 6
+Approved: 39 Pending: 0
+State: D:\Homio\REOS_CONTROL_CENTER\data\state.json
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py gate
+GATE: Commission & Financial Core
+STATUS: CURRENT
+CURRENT SUBTASK: CORE-008-T01
+SUBTASKS:
+CORE-008-T01 | Implement commission domain | CURRENT | CRITICAL
+CORE-008-T02 | Implement commission attribution and rules | PENDING | CRITICAL
+CORE-008-T03 | Implement split and participant logic | PENDING | CRITICAL
+CORE-008-T04 | Implement settlement and reconciliation lifecycle | PENDING | CRITICAL
+CORE-008-T05 | Implement dispute and reversal rules | PENDING | HIGH
+CORE-008-T06 | Implement financial audit and evidence | PENDING | CRITICAL
+CORE-008-T07 | Implement financial reporting hooks | PENDING | HIGH
+CORE-008-T08 | Run precision and concurrency tests | PENDING | CRITICAL
+CORE-008-T09 | Run financial security and approval review | PENDING | CRITICAL
+CORE-008-T10 | Freeze commission and financial core | PENDING | CRITICAL
+ACCEPTANCE CRITERIA:
+CORE-008-AC01 | PENDING | Commission source of truth is authoritative.
+CORE-008-AC02 | PENDING | Deal and ownership attribution is traceable.
+CORE-008-AC03 | PENDING | Financial amounts use safe fixed-precision semantics.
+CORE-008-AC04 | PENDING | Settlement and reversal are auditable.
+CORE-008-AC05 | PENDING | Critical financial actions require appropriate approval.
+CORE-008-AC06 | PENDING | Security and concurrency tests pass.
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest `
+>>   AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_commission_contract.py `
+>>   AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_conflict_adversarial.py `
+>>   AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_contract_history.py `
+>>   AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_contract_validation.py `
+>>   AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_provenance_adversarial.py `
+>>   AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_snapshot_integrity.py `
+>>   AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_temporal_adversarial.py -q
+.........................................................                                                                                            [100%]
+57 passed in 0.45s
+PS D:\HOMIO\REOS_CONTROL_CENTER>
