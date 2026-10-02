@@ -1,481 +1,224 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> """CORE-008 Commission & Financial Core."""
-"CORE-008 Commission & Financial Core."
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> from .financial_domain import (
->>     CORE008_FINANCIAL_DOMAIN_SCHEMA_VERSION,
->>     CORE008_FINANCIAL_DOMAIN_SOURCE,
->>     Currency,
->>     FinancialCurrencyMismatchError,
->>     FinancialDomainError,
->>     FinancialDomainRecord,
->>     FinancialIdentity,
->>     FinancialPrecisionError,
->>     FinancialState,
->>     FinancialSubject,
->>     FinancialSubjectType,
->>     FinancialTenantScopeError,
->>     FinancialValidationError,
->>     MonetaryAmount,
->>     RoundingMode,
->>     new_financial_identity,
->> )
-At line:1 char:1
-+ from .financial_domain import (
-+ ~~~~
-The 'from' keyword is not supported in this version of the language.
-At line:2 char:44
-+     CORE008_FINANCIAL_DOMAIN_SCHEMA_VERSION,
-+                                            ~
-Missing argument in parameter list.
-At line:17 char:28
-+     new_financial_identity,
-+                            ~
-Missing expression after ',' in pipeline element.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
+Path                                                                                                           LineNumber Line
+----                                                                                                           ---------- ----
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_communication.py                                 30 class CommunicationEvidenceErr...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_communication.py                                 34 class CommunicationEvidenceVal...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_communication.py                                 40 class CommunicationEvidenceCon...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_communication.py                                 46 class CommunicationDirection(s...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_communication.py                                 53 class CommunicationChannel(str...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_communication.py                                113 class LeadCommunicationEvidenc...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_communication.py                                116     communication_id: UUID
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_communication.py                                128         _uuid(self.communicati...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_communication.py                                175             self.communication...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_communication.py                                183             "communication_id"...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_communication.py                                253             "communication_id"...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_communication.py                                254                 self.communica...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_ownership.py                                      4 First-class tenant-scoped lead...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_ownership.py                                     33 class LeadOwnershipError(Excep...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_ownership.py                                     37 class OwnershipValidationError...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_ownership.py                                     41 class OwnershipTenantViolation...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_ownership.py                                     45 class OwnershipConflictError(L...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_ownership.py                                     82 class LeadOwnership:
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_ownership.py                                     85     owner_id: UUID
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_ownership.py                                     94         _uuid(self.owner_id, "...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_ownership.py                                    133         owner_id: UUID,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_ownership.py                                    147             owner_id=owner_id,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_ownership.py                                    173         owner_id: UUID,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_ownership.py                                    179         _uuid(owner_id, "owner...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_ownership.py                                    192         if owner_id == self.ow...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_ownership.py                                    206             owner_id=owner_id,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_ownership.py                                    222             "owner_id": str(se...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\lead_ownership.py                                    243             "owner_id": str(se...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                 30 class OwnershipTransferError(E...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                 34 class OwnershipTransferValidat...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                 40 class OwnershipTransferConflic...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                 87 class OwnershipTransfer:
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                 91     previous_owner_id: UUID
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                 92     new_owner_id: UUID
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                104             self.previous_owne...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                105             "previous_owner_id",
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                107         _uuid(self.new_owner_i...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                110             self.previous_owne...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                111             == self.new_owner_id
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                166         previous_owner_id: UUID,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                167         new_owner_id: UUID,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                186             previous_owner_id=...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                187             new_owner_id=new_o...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                209             "previous_owner_id...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                210                 self.previous_...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                212             "new_owner_id": st...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                259             "previous_owner_id...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                260                 self.previous_...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\ownership_transfer.py                                262             "new_owner_id": st...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_adversarial.py                          92     owner_id=None,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_adversarial.py                          98         owner_id=owner_id or u...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_adversarial.py                         158             owner_id=uuid4(),
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_adversarial.py                         182             previous_owner_id=...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_adversarial.py                         183             new_owner_id=owner,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_adversarial.py                         192     communication_id = uuid4()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_adversarial.py                         198         communication_id=commu...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_adversarial.py                         208         communication_id=commu...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_contract_matrix.py                     139     owner_id=None,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_contract_matrix.py                     145         owner_id=owner_id or u...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_contract_matrix.py                     797         communication_id=uuid4(),
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_contract_matrix.py                    1149         previous_owner_id=owne...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_contract_matrix.py                    1150         new_owner_id=uuid4(),
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_contract_matrix.py                    1168         previous_owner_id=owne...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_contract_matrix.py                    1169         new_owner_id=uuid4(),
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_contract_matrix.py                    1182     communication_id = uuid4()
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_contract_matrix.py                    1188         communication_id=commu...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_contract_matrix.py                    1198         communication_id=commu...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_regression.py                          127         owner_id=owner_a,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_regression.py                          144         previous_owner_id=owne...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_regression.py                          145         new_owner_id=owner_b,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_regression.py                          154         owner_id=owner_b,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_regression.py                          163         communication_id=uuid4(),
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_regression.py                          265             "previous_owner_id...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_regression.py                          266             "new_owner_id": st...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\lead_ownership\test_core_003_regression.py                          336         owner_id=uuid4(),
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py                                             98     source_of_truth: str = "deal"
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py                                            148         if self.source_of_trut...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py                                            150                 "Deal source_o...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py                                            943         owner_id: str,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py                                            962             owner_id=owner_id,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py                                            985         evidence_id: str | Non...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py                                            999             evidence_id=eviden...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py                                           1010         if evidence_id is not ...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py                                           1012                 if existing.ev...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal.py                                           1096             "source_of_truth":...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                              15 class DealEvidenceAuditError(V...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                              19 class DealEvidenceConflictErro...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                              23 class DealAuditConflictError(D...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                              27 class DealEvidenceScopeError(D...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                              31 class DealAuditScopeError(Deal...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                              36 class DealEvidenceReference:
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                              37     evidence_id: str
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                              48     source_of_truth: str = "AR...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                              52             "evidence_id",
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                              73         if self.source_of_trut...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                              93         evidence_id: str | Non...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                              99             evidence_id=eviden...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                             112             self.evidence_id,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                             137             "evidence_id": sel...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                             146             "source_of_truth":...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                             163     source_of_truth: str = "deal"
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                             189         if self.source_of_trut...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                             191                 "Deal audit so...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py                             262             "source_of_truth":...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_external_contracts.py                          10 class DealExternalAuthority(st...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_ownership_integration.py                        8 class DealOwnershipError(Value...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_ownership_integration.py                       12 class DealOwnershipConflictErr...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_ownership_integration.py                       16 class DealOwnershipTenantError...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_ownership_integration.py                       21 class DealOwnershipBinding:
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_ownership_integration.py                       27     owner_id: str
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_ownership_integration.py                       39             "owner_id",
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_ownership_integration.py                       87             "owner_id": self.o...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_reos_integration.py                            12     control_center_authoritati...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_reos_integration.py                            14     source_of_truth: str
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_reos_integration.py                            25             "control_center_au...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_reos_integration.py                            26                 self.control_c...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_reos_integration.py                            31             "source_of_truth":...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_reos_integration.py                            50         control_center_authori...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_reos_integration.py                            52         source_of_truth="deal",
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_events.py                         201     source_of_truth: str = "deal"
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_events.py                         270             "source_of_truth",
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_events.py                         272                 self.source_of...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_events.py                         273                 "source_of_tru...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_events.py                         277         if self.source_of_trut...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_events.py                         279                 "source_of_tru...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_events.py                         408             "source_of_truth":...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\deal_transaction_events.py                         807         evidence.evidence_id,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06.py                            206         owner_id="owner-1",
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06.py                            316     assert payload["source_of_...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06_adversarial.py                 71         owner_id="owner-001",
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06_adversarial.py                100         evidence_id="evidence-...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06_adversarial.py                148         owner_id="owner-001",
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06_adversarial.py                219     assert contract.control_ce...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_core006_t01_t06_adversarial.py                221     assert contract.source_of_...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_core006_t07_events.py                         214         owner_id="owner-001",
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_core006_t07_events.py                         235         evidence_id="evidence-...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_core006_t07_events.py                         253     assert event.payload["evid...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_core006_t07_events.py                         254     assert event.payload["evid...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\deal_transaction\test_core006_t07_events.py                         410     assert payload["source_of_...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py                           702     source_of_truth: str = "fr...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py                           941             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\fraud_detection.py                           942                 self.source_of...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\governance_decision.py                        45 class GovernanceAuthorityClass...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\governance_evidence.py                        10 class GovernanceEvidenceError(...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\governance_evidence.py                        14 class EvidenceIntegrityError(
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\governance_evidence.py                        52 class EvidenceLink:
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\governance_evidence.py                       104 class GovernanceEvidenceEnvelope:
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\governance_security.py                       338     CORE-001 remains the autho...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\governance_security.py                       493                 "supplied by t...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\risk_assessment.py                            41 class RiskAssessmentInsufficie...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\risk_assessment.py                           475     source_of_truth: str = (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\risk_assessment.py                           665         if self.source_of_trut...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\risk_assessment.py                           669                 "source_of_tru...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\risk_assessment.py                           815                 "source_of_tru...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\risk_assessment.py                           816                     self.sourc...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\risk_assessment.py                           912             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\risk_assessment.py                           913                 self.source_of...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py                               1013     source_of_truth: str = "ri...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py                               1354             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\risk_rules.py                               1355                 self.source_of...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t01_trust_score.py              549 def test_source_of_truth_is_tr...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t01_trust_score.py              558     assert result.source_of_tr...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t02_fraud_detection.py          325     assert payload["source_of_...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t02_fraud_detection.py          382 def test_source_of_truth_is_no...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_assessment.py          429     assert payload["source_of_...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\test_core007_t03_risk_rules.py               646     assert payload["source_of_...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\trust_score.py                                35 class TrustScoreInsufficientEv...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\trust_score.py                               650     source_of_truth: str = "tr...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\trust_score.py                               666             "source_of_truth",
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\trust_score.py                               872                 "source_of_tru...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\trust_score.py                               873                     self.sourc...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\trust_score.py                               969             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\trust_fraud_governance\trust_score.py                               970                 self.source_of...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_acrl_contract.py                     33     Read-only reference into a...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_acrl_evidence.py                     13 class CommissionACRLEvidenceEr...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_acrl_evidence.py                     18 class FinancialEvidenceReference:
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_acrl_evidence.py                     21     evidence_id: str
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_acrl_evidence.py                     36             ("evidence_id", se...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_acrl_evidence.py                     62             "evidence_id": sel...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_acrl_evidence.py                     69 class FinancialEvidenceIndex:
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_acrl_evidence.py                     87                 reference.evid...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_acrl_evidence.py                    125         evidence_id: str,
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_acrl_evidence.py                    129             and reference.evid...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_adjustment.py                       408             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_allocation.py                       553             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_calculation.py                      355             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_calculation.py                      425     Eligibility is intentional...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_closeout.py                         288             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_contract.py                         983             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_contract_snapshot.py                 29     - a second commission sour...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_dispute.py                          449             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_entitlement.py                       80     authoritative upstream ref...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_entitlement.py                      351             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_invoice.py                          810             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_protection.py                        58 class ProtectionEvidenceRefere...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_protection.py                        60     evidence_id: str
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_protection.py                        67             "evidence_id",
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_protection.py                        83             "evidence_id": sel...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_protection.py                       400             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_reconciliation.py                    82 class CommissionExternalSettle...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_reconciliation.py                    89     evidence_id: str
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_reconciliation.py                   101             "evidence_id",
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_reconciliation.py                   181             "evidence_id": sel...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_reconciliation.py                   226     external_evidence_id: str
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_reconciliation.py                   240             "external_evidence...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_reconciliation.py                   464             external_evidence_...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_reconciliation.py                   511             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_reconciliation.py                   537             "external_evidence...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_reconciliation.py                   538                 self.external_...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_reconciliation_validation.py         61         reconciliation.externa...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_reconciliation_validation.py         62         != evidence.evidence_id
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_release.py                          731             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_settlement.py                       436             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_statement.py                        676             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_tax.py                              111     It does not become the aut...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\commission_tax.py                              800             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\financial_domain.py                            684             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\financial_ledger_boundary.py                   262             "source_of_truth": (
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\test_core008_t02_commission_contract.py        488         payload["source_of_tru...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\test_core008_t13_acrl_regression.py            132         evidence_id="reconcili...
+D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\test_core008_t13_protection_ledger.py           52         evidence_id="evidence-...
 
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_contract import (
->>     CORE008_COMMISSION_CONTRACT_SCHEMA_VERSION,
->>     CommissionBasis,
->>     CommissionBasisType,
->>     CommissionContract,
->>     CommissionContractConflictError,
->>     CommissionContractError,
->>     CommissionContractState,
->>     CommissionContractTenantScopeError,
->>     CommissionContractValidationError,
->>     CommissionContractVersionError,
->>     CommissionEligibilityRule,
->>     CommissionEntitlementReference,
->>     CommissionPartyReference,
->>     CommissionPartyType,
->>     CommissionProvenance,
->>     CommissionRate,
->>     CommissionRateType,
->>     EligibilityOperator,
->> )
-At line:1 char:1
-+ from .commission_contract import (
-+ ~~~~
-The 'from' keyword is not supported in this version of the language.
-At line:2 char:47
-+     CORE008_COMMISSION_CONTRACT_SCHEMA_VERSION,
-+                                               ~
-Missing argument in parameter list.
-At line:19 char:25
-+     EligibilityOperator,
-+                         ~
-Missing expression after ',' in pipeline element.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_calculation_basis import (
->>     CommissionCalculationBasis,
->>     CommissionCalculationBasisError,
->> )
-At line:1 char:1
-+ from .commission_calculation_basis import (
-+ ~~~~
-The 'from' keyword is not supported in this version of the language.
-At line:2 char:31
-+     CommissionCalculationBasis,
-+                               ~
-Missing argument in parameter list.
-At line:3 char:37
-+     CommissionCalculationBasisError,
-+                                     ~
-Missing expression after ',' in pipeline element.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_calculation import (
->>     CORE008_COMMISSION_CALCULATION_SCHEMA_VERSION,
->>     CommissionCalculation,
->>     CommissionCalculationCurrencyError,
->>     CommissionCalculationEligibilityError,
->>     CommissionCalculationError,
->>     CommissionCalculationState,
->>     CommissionCalculationValidationError,
->>     calculate_commission,
->> )
-At line:1 char:1
-+ from .commission_calculation import (
-+ ~~~~
-The 'from' keyword is not supported in this version of the language.
-At line:2 char:50
-+     CORE008_COMMISSION_CALCULATION_SCHEMA_VERSION,
-+                                                  ~
-Missing argument in parameter list.
-At line:9 char:26
-+     calculate_commission,
-+                          ~
-Missing expression after ',' in pipeline element.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_entitlement import (
->>     CORE008_COMMISSION_ENTITLEMENT_SCHEMA_VERSION,
->>     CommissionEntitlement,
->>     CommissionEntitlementError,
->>     CommissionEntitlementState,
->>     CommissionEntitlementValidationError,
->> )
-At line:1 char:1
-+ from .commission_entitlement import (
-+ ~~~~
-The 'from' keyword is not supported in this version of the language.
-At line:2 char:50
-+     CORE008_COMMISSION_ENTITLEMENT_SCHEMA_VERSION,
-+                                                  ~
-Missing argument in parameter list.
-At line:6 char:42
-+     CommissionEntitlementValidationError,
-+                                          ~
-Missing expression after ',' in pipeline element.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_allocation import (
->>     CORE008_COMMISSION_ALLOCATION_SCHEMA_VERSION,
->>     CommissionAllocation,
->>     CommissionAllocationError,
->>     CommissionAllocationLine,
->>     CommissionAllocationValidationError,
->> )
-At line:1 char:1
-+ from .commission_allocation import (
-+ ~~~~
-The 'from' keyword is not supported in this version of the language.
-At line:2 char:49
-+     CORE008_COMMISSION_ALLOCATION_SCHEMA_VERSION,
-+                                                 ~
-Missing argument in parameter list.
-At line:6 char:41
-+     CommissionAllocationValidationError,
-+                                         ~
-Missing expression after ',' in pipeline element.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_protection import (
->>     CommissionProtection,
->>     CommissionProtectionError,
->>     CommissionProtectionState,
->>     CommissionProtectionValidationError,
->>     ProtectionEvidenceReference,
->> )
-At line:1 char:1
-+ from .commission_protection import (
-+ ~~~~
-The 'from' keyword is not supported in this version of the language.
-At line:2 char:25
-+     CommissionProtection,
-+                         ~
-Missing argument in parameter list.
-At line:6 char:33
-+     ProtectionEvidenceReference,
-+                                 ~
-Missing expression after ',' in pipeline element.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> from .financial_ledger_boundary import (
->>     FinancialLedgerBoundary,
->>     FinancialLedgerBoundaryError,
->>     FinancialLedgerEntry,
->>     FinancialLedgerValidationError,
->>     LedgerAccountReference,
->> )
-At line:1 char:1
-+ from .financial_ledger_boundary import (
-+ ~~~~
-The 'from' keyword is not supported in this version of the language.
-At line:2 char:28
-+     FinancialLedgerBoundary,
-+                            ~
-Missing argument in parameter list.
-At line:6 char:28
-+     LedgerAccountReference,
-+                            ~
-Missing expression after ',' in pipeline element.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_concurrency import (
->>     CommissionConcurrencyError,
->>     CommissionDuplicateCommandError,
->>     CommissionStaleVersionError,
->>     FinancialConcurrencyBoundary,
->>     FinancialIdempotencyRecord,
->>     FinancialTransitionContract,
->>     FinancialVersionToken,
->> )
-At line:1 char:1
-+ from .commission_concurrency import (
-+ ~~~~
-The 'from' keyword is not supported in this version of the language.
-At line:2 char:31
-+     CommissionConcurrencyError,
-+                               ~
-Missing argument in parameter list.
-At line:8 char:27
-+     FinancialVersionToken,
-+                           ~
-Missing expression after ',' in pipeline element.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_security import (
->>     FinancialAuthorizationAction,
->>     FinancialAuthorizationDecision,
->>     FinancialAuthorizationError,
->>     FinancialAuthorizationRequest,
->>     FinancialSecurityBoundary,
->>     FinancialSecurityError,
->>     FinancialTenantBoundaryError,
->> )
-At line:1 char:1
-+ from .commission_security import (
-+ ~~~~
-The 'from' keyword is not supported in this version of the language.
-At line:2 char:33
-+     FinancialAuthorizationAction,
-+                                 ~
-Missing argument in parameter list.
-At line:8 char:34
-+     FinancialTenantBoundaryError,
-+                                  ~
-Missing expression after ',' in pipeline element.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> from .commission_reos_contract import (
->>     CORE008_CANONICAL_STATE,
->>     CORE008_REOS_AUTHORITY,
->>     CommissionREOSBoundary,
->>     CommissionREOSContractError,
->>     CommissionREOSExecutionReference,
->>     CommissionREOSIntegrationContract,
->>     validate_reos_contract,
->> )
-At line:1 char:1
-+ from .commission_reos_contract import (
-+ ~~~~
-The 'from' keyword is not supported in this version of the language.
-At line:2 char:28
-+     CORE008_CANONICAL_STATE,
-+                            ~
-Missing argument in parameter list.
-At line:8 char:28
-+     validate_reos_contract,
-+                            ~
-Missing expression after ',' in pipeline element.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ReservedKeywordNotAllowed
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> __all__ = [
-__all__ : The term '__all__' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if
-a path was included, verify that the path is correct and try again.
-At line:1 char:1
-+ __all__ = [
-+ ~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (__all__:String) [], CommandNotFoundException
-    + FullyQualifiedErrorId : CommandNotFoundException
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>     # Financial foundation
-PS D:\HOMIO\REOS_CONTROL_CENTER>     "CORE008_FINANCIAL_DOMAIN_SCHEMA_VERSION",
->>     "CORE008_FINANCIAL_DOMAIN_SOURCE",
->>     "Currency",
->>     "FinancialCurrencyMismatchError",
->>     "FinancialDomainError",
->>     "FinancialDomainRecord",
->>     "FinancialIdentity",
->>     "FinancialPrecisionError",
->>     "FinancialState",
->>     "FinancialSubject",
->>     "FinancialSubjectType",
->>     "FinancialTenantScopeError",
->>     "FinancialValidationError",
->>     "MonetaryAmount",
->>     "RoundingMode",
->>     "new_financial_identity",
->>
-At line:16 char:30
-+     "new_financial_identity",
-+                              ~
-Missing expression after ','.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : MissingExpressionAfterToken
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>     # Commission contract
-PS D:\HOMIO\REOS_CONTROL_CENTER>     "CORE008_COMMISSION_CONTRACT_SCHEMA_VERSION",
->>     "CommissionBasis",
->>     "CommissionBasisType",
->>     "CommissionContract",
->>     "CommissionContractConflictError",
->>     "CommissionContractError",
->>     "CommissionContractState",
->>     "CommissionContractTenantScopeError",
->>     "CommissionContractValidationError",
->>     "CommissionContractVersionError",
->>     "CommissionEligibilityRule",
->>     "CommissionEntitlementReference",
->>     "CommissionPartyReference",
->>     "CommissionPartyType",
->>     "CommissionProvenance",
->>     "CommissionRate",
->>     "CommissionRateType",
->>     "EligibilityOperator",
->>
-At line:18 char:27
-+     "EligibilityOperator",
-+                           ~
-Missing expression after ','.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : MissingExpressionAfterToken
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>     # Calculation
-PS D:\HOMIO\REOS_CONTROL_CENTER>     "CommissionCalculationBasis",
->>     "CommissionCalculationBasisError",
->>     "CORE008_COMMISSION_CALCULATION_SCHEMA_VERSION",
->>     "CommissionCalculation",
->>     "CommissionCalculationCurrencyError",
->>     "CommissionCalculationEligibilityError",
->>     "CommissionCalculationError",
->>     "CommissionCalculationState",
->>     "CommissionCalculationValidationError",
->>     "calculate_commission",
->>
-At line:10 char:28
-+     "calculate_commission",
-+                            ~
-Missing expression after ','.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : MissingExpressionAfterToken
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>     # Entitlement
-PS D:\HOMIO\REOS_CONTROL_CENTER>     "CORE008_COMMISSION_ENTITLEMENT_SCHEMA_VERSION",
->>     "CommissionEntitlement",
->>     "CommissionEntitlementError",
->>     "CommissionEntitlementState",
->>     "CommissionEntitlementValidationError",
->>
-At line:5 char:44
-+     "CommissionEntitlementValidationError",
-+                                            ~
-Missing expression after ','.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : MissingExpressionAfterToken
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>     # Allocation
-PS D:\HOMIO\REOS_CONTROL_CENTER>     "CORE008_COMMISSION_ALLOCATION_SCHEMA_VERSION",
->>     "CommissionAllocation",
->>     "CommissionAllocationError",
->>     "CommissionAllocationLine",
->>     "CommissionAllocationValidationError",
->>
-At line:5 char:43
-+     "CommissionAllocationValidationError",
-+                                           ~
-Missing expression after ','.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : MissingExpressionAfterToken
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>     # Protection
-PS D:\HOMIO\REOS_CONTROL_CENTER>     "CommissionProtection",
->>     "CommissionProtectionError",
->>     "CommissionProtectionState",
->>     "CommissionProtectionValidationError",
->>     "ProtectionEvidenceReference",
->>
-At line:5 char:35
-+     "ProtectionEvidenceReference",
-+                                   ~
-Missing expression after ','.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : MissingExpressionAfterToken
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>     # Ledger boundary
-PS D:\HOMIO\REOS_CONTROL_CENTER>     "FinancialLedgerBoundary",
->>     "FinancialLedgerBoundaryError",
->>     "FinancialLedgerEntry",
->>     "FinancialLedgerValidationError",
->>     "LedgerAccountReference",
->>
-At line:5 char:30
-+     "LedgerAccountReference",
-+                              ~
-Missing expression after ','.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : MissingExpressionAfterToken
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>     # Concurrency
-PS D:\HOMIO\REOS_CONTROL_CENTER>     "CommissionConcurrencyError",
->>     "CommissionDuplicateCommandError",
->>     "CommissionStaleVersionError",
->>     "FinancialConcurrencyBoundary",
->>     "FinancialIdempotencyRecord",
->>     "FinancialTransitionContract",
->>     "FinancialVersionToken",
->>
-At line:7 char:29
-+     "FinancialVersionToken",
-+                             ~
-Missing expression after ','.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : MissingExpressionAfterToken
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>     # Security
-PS D:\HOMIO\REOS_CONTROL_CENTER>     "FinancialAuthorizationAction",
->>     "FinancialAuthorizationDecision",
->>     "FinancialAuthorizationError",
->>     "FinancialAuthorizationRequest",
->>     "FinancialSecurityBoundary",
->>     "FinancialSecurityError",
->>     "FinancialTenantBoundaryError",
->>
-At line:7 char:36
-+     "FinancialTenantBoundaryError",
-+                                    ~
-Missing expression after ','.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : MissingExpressionAfterToken
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>     # REOS boundary
-PS D:\HOMIO\REOS_CONTROL_CENTER>     "CORE008_CANONICAL_STATE",
->>     "CORE008_REOS_AUTHORITY",
->>     "CommissionREOSBoundary",
->>     "CommissionREOSContractError",
->>     "CommissionREOSExecutionReference",
->>     "CommissionREOSIntegrationContract",
->>     "validate_reos_contract",
->> ]
-At line:7 char:30
-+     "validate_reos_contract",
-+                              ~
-Missing expression after ','.
-At line:8 char:1
-+ ]
-+ ~
-Unexpected token ']' in expression or statement.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : MissingExpressionAfterToken
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> cd D:\HOMIO\REOS_CONTROL_CENTER
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -c "from AUTONOMY_ENGINE.core.commission_financial import CommissionContract, CommissionCalculation, CommissionEntitlement, CommissionAllocation, Currency, MonetaryAmount; print('CORE-008 PUBLIC API OK')"
-Traceback (most recent call last):
-  File "<string>", line 1, in <module>
-ImportError: cannot import name 'CommissionContract' from 'AUTONOMY_ENGINE.core.commission_financial' (D:\HOMIO\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\__init__.py). Did you mean: 'commission_contract'?
-PS D:\HOMIO\REOS_CONTROL_CENTER>
