@@ -1,18 +1,336 @@
-REMOTE SOURCE MISSING: eslint.config.mjs
-At line:3 char:9
-+         throw "REMOTE SOURCE MISSING: $source"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (REMOTE SOURCE MISSING: eslint.config.mjs:String) [], RuntimeException
-    + FullyQualifiedErrorId : REMOTE SOURCE MISSING: eslint.config.mjs
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> if ($Moves.Count -ne 37) {
+>>     throw "F01 MAP COUNT ERROR: $($Moves.Count)"
+>> }
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # ------------------------------------------------------------
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # READ EVERY CURRENT REMOTE SOURCE BLOB
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # ------------------------------------------------------------
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $SourceSha = @{}
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> foreach ($source in $Moves.Keys) {
+>>     $sha = Get-RemoteFileSha -Path $source -Ref $Branch
+>>
+>>     if ([string]::IsNullOrWhiteSpace($sha)) {
+>>         throw "REMOTE SOURCE MISSING: $source"
+>>     }
+>>
+>>     $SourceSha[$source] = $sha
+>>     Write-Host "SOURCE OK: $source"
+>> }
+gh : gh: Not Found (HTTP 404)
+At line:9 char:12
++     $raw = gh api "repos/$Repo/contents/$encodedPath?ref=$Ref" 2>&1
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (gh: Not Found (HTTP 404):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
 
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host ""
 
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "37 / 37 F01 REMOTE SOURCES VERIFIED" -ForegroundColor Green
+37 / 37 F01 REMOTE SOURCES VERIFIED
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # ------------------------------------------------------------
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # TARGETS MUST NOT ALREADY EXIST
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # ------------------------------------------------------------
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> foreach ($target in $Moves.Values) {
+>>     $existing = Get-RemoteFileSha -Path $target -Ref $Branch
+>>
+>>     if (-not [string]::IsNullOrWhiteSpace($existing)) {
+>>         throw "TARGET ALREADY EXISTS: $target"
+>>     }
+>> }
+gh : gh: Not Found (HTTP 404)
+At line:9 char:12
++     $raw = gh api "repos/$Repo/contents/$encodedPath?ref=$Ref" 2>&1
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (gh: Not Found (HTTP 404):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
 
-CORRECTIVE TREE CREATION FAILED
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "ALL 37 TARGETS AVAILABLE" -ForegroundColor Green
+ALL 37 TARGETS AVAILABLE
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # ------------------------------------------------------------
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # GET ORIGINAL ROOT .gitignore
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # FROM THE PARENT OF THE ORIGINAL BAD F01 COMMIT
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # ------------------------------------------------------------
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $BadF01CommitSha = "125ff95633df4af0fd64921efb4cd0022fef2e57"
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $BadCommit = Get-GhJson "repos/$Repo/git/commits/$BadF01CommitSha"
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> if (-not $BadCommit.parents -or $BadCommit.parents.Count -lt 1) {
+>>     throw "BAD F01 PARENT COMMIT NOT FOUND"
+>> }
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $OriginalParentSha = [string]$BadCommit.parents[0].sha
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $OriginalRootGitignoreSha = Get-RemoteFileSha `
+>>     -Path ".gitignore" `
+>>     -Ref $OriginalParentSha
+gh : gh: Not Found (HTTP 404)
+At line:9 char:12
++     $raw = gh api "repos/$Repo/contents/$encodedPath?ref=$Ref" 2>&1
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (gh: Not Found (HTTP 404):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> if ([string]::IsNullOrWhiteSpace($OriginalRootGitignoreSha)) {
+>>     throw "ORIGINAL ROOT .gitignore NOT FOUND"
+>> }
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "ORIGINAL ROOT .gitignore VERIFIED" -ForegroundColor Green
+ORIGINAL ROOT .gitignore VERIFIED
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # ------------------------------------------------------------
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # BUILD CORRECTIVE TREE
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # ------------------------------------------------------------
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $TreeEntries = @()
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # Remove all 37 misplaced root entries.
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> foreach ($source in $Moves.Keys) {
+>>     $TreeEntries += [ordered]@{
+>>         path = $source
+>>         mode = "100644"
+>>         type = "blob"
+>>         sha  = $null
+>>     }
+>> }
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # Add same blobs under correct Frontend paths.
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> foreach ($source in $Moves.Keys) {
+>>     $target = [string]$Moves[$source]
+>>
+>>     $TreeEntries += [ordered]@{
+>>         path = $target
+>>         mode = "100644"
+>>         type = "blob"
+>>         sha  = [string]$SourceSha[$source]
+>>     }
+>> }
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # Restore root repository .gitignore.
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $TreeEntries += [ordered]@{
+>>     path = ".gitignore"
+>>     mode = "100644"
+>>     type = "blob"
+>>     sha  = $OriginalRootGitignoreSha
+>> }
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $PayloadPath = Join-Path $env:TEMP "homio-f01-corrective-tree.json"
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $TreePayload = [ordered]@{
+>>     base_tree = $BaseTreeSha
+>>     tree      = $TreeEntries
+>> } | ConvertTo-Json -Depth 30
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> [System.IO.File]::WriteAllText(
+>>     $PayloadPath,
+>>     $TreePayload,
+>>     [System.Text.UTF8Encoding]::new($false)
+>> )
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host ""
+
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "CREATING REMOTE TREE..." -ForegroundColor Cyan
+CREATING REMOTE TREE...
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $TreeRaw = gh api `
+>>     -X POST `
+>>     "repos/$Repo/git/trees" `
+>>     --input $PayloadPath 2>&1
+gh : gh: GitRPC::BadObjectState (HTTP 422)
+At line:1 char:12
++ $TreeRaw = gh api `
++            ~~~~~~~~
+    + CategoryInfo          : NotSpecified: (gh: GitRPC::BadObjectState (HTTP 422):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> if ($LASTEXITCODE -ne 0) {
+>>     Write-Host $TreeRaw
+>>     throw "REMOTE TREE CREATION FAILED"
+>> }
+
+REMOTE TREE CREATION FAILED
+At line:3 char:5
++     throw "REMOTE TREE CREATION FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE TREE CREATION FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE TREE CREATION FAILED
+
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $NewTree = $TreeRaw | ConvertFrom-Json
+ConvertFrom-Json : Cannot bind argument to parameter 'InputObject' because it is null.
+At line:1 char:23
++ $NewTree = $TreeRaw | ConvertFrom-Json
++                       ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [ConvertFrom-Json], ParameterBindingValidationException
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Microsoft.PowerShell.Commands.ConvertFromJsonCommand
+
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $NewTreeSha = [string]$NewTree.sha
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> if ([string]::IsNullOrWhiteSpace($NewTreeSha)) {
+>>     throw "REMOTE TREE SHA MISSING"
+>> }
+REMOTE TREE SHA MISSING
 At line:2 char:5
-+     throw "CORRECTIVE TREE CREATION FAILED"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (CORRECTIVE TREE CREATION FAILED:String) [], RuntimeException
-    + FullyQualifiedErrorId : CORRECTIVE TREE CREATION FAILED
++     throw "REMOTE TREE SHA MISSING"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE TREE SHA MISSING:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE TREE SHA MISSING
 
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "NEW TREE = $NewTreeSha" -ForegroundColor Green
+NEW TREE =
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # ------------------------------------------------------------
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # CREATE CORRECTIVE COMMIT
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # ------------------------------------------------------------
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $CommitPayload = @{
+>>     message = "Correct F01 frontend repository placement"
+>>     tree    = $NewTreeSha
+>>     parents = @($HeadSha)
+>> } | ConvertTo-Json -Depth 10
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> [System.IO.File]::WriteAllText(
+>>     $PayloadPath,
+>>     $CommitPayload,
+>>     [System.Text.UTF8Encoding]::new($false)
+>> )
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "CREATING REMOTE COMMIT..." -ForegroundColor Cyan
+CREATING REMOTE COMMIT...
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $CommitRaw = gh api `
+>>     -X POST `
+>>     "repos/$Repo/git/commits" `
+>>     --input $PayloadPath 2>&1
+gh : gh: The tree parameter must be exactly 40 characters and contain only [0-9a-f]. (HTTP 422)
+At line:1 char:14
++ $CommitRaw = gh api `
++              ~~~~~~~~
+    + CategoryInfo          : NotSpecified: (gh: The tree pa...-f]. (HTTP 422):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
 
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> if ($LASTEXITCODE -ne 0) {
+>>     Write-Host $CommitRaw
+>>     throw "REMOTE COMMIT CREATION FAILED"
+>> }
 
+REMOTE COMMIT CREATION FAILED
+At line:3 char:5
++     throw "REMOTE COMMIT CREATION FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE COMMIT CREATION FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE COMMIT CREATION FAILED
+
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $NewCommit = $CommitRaw | ConvertFrom-Json
+ConvertFrom-Json : Cannot bind argument to parameter 'InputObject' because it is null.
+At line:1 char:27
++ $NewCommit = $CommitRaw | ConvertFrom-Json
++                           ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [ConvertFrom-Json], ParameterBindingValidationException
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Microsoft.PowerShell.Commands.ConvertFromJsonCommand
+
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $NewCommitSha = [string]$NewCommit.sha
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> if ([string]::IsNullOrWhiteSpace($NewCommitSha)) {
+>>     throw "REMOTE COMMIT SHA MISSING"
+>> }
+REMOTE COMMIT SHA MISSING
+At line:2 char:5
++     throw "REMOTE COMMIT SHA MISSING"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE COMMIT SHA MISSING:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE COMMIT SHA MISSING
+
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "NEW COMMIT = $NewCommitSha" -ForegroundColor Green
+NEW COMMIT =
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # ------------------------------------------------------------
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # UPDATE BRANCH
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # ------------------------------------------------------------
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $RefPayload = @{
+>>     sha   = $NewCommitSha
+>>     force = $false
+>> } | ConvertTo-Json -Depth 10
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> [System.IO.File]::WriteAllText(
+>>     $PayloadPath,
+>>     $RefPayload,
+>>     [System.Text.UTF8Encoding]::new($false)
+>> )
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "UPDATING REMOTE BRANCH..." -ForegroundColor Cyan
+UPDATING REMOTE BRANCH...
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $RefRaw = gh api `
+>>     -X PATCH `
+>>     "repos/$Repo/git/refs/heads/$Branch" `
+>>     --input $PayloadPath 2>&1
+gh : gh: Invalid request.
+At line:1 char:11
++ $RefRaw = gh api `
++           ~~~~~~~~
+    + CategoryInfo          : NotSpecified: (gh: Invalid request.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> if ($LASTEXITCODE -ne 0) {
+>>     Write-Host $RefRaw
+>>     throw "REMOTE BRANCH UPDATE FAILED"
+>> }
+
+REMOTE BRANCH UPDATE FAILED
+At line:3 char:5
++     throw "REMOTE BRANCH UPDATE FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE BRANCH UPDATE FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE BRANCH UPDATE FAILED
+
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $UpdatedRef = $RefRaw | ConvertFrom-Json
+ConvertFrom-Json : Cannot bind argument to parameter 'InputObject' because it is null.
+At line:1 char:25
++ $UpdatedRef = $RefRaw | ConvertFrom-Json
++                         ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [ConvertFrom-Json], ParameterBindingValidationException
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Microsoft.PowerShell.Commands.ConvertFromJsonCommand
+
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> if ([string]$UpdatedRef.object.sha -ne $NewCommitSha) {
+>>     throw "REMOTE BRANCH SHA VERIFICATION FAILED"
+>> }
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Remove-Item -LiteralPath $PayloadPath -Force -ErrorAction SilentlyContinue
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host ""
+
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "================================================"
+================================================
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "F01 REMOTE REPAIR = SUCCESS" -ForegroundColor Green
+F01 REMOTE REPAIR = SUCCESS
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "BRANCH           = $Branch"
+BRANCH           = reos-development
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "COMMIT           = $NewCommitSha"
+COMMIT           =
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "F01 FILES        = 37"
+F01 FILES        = 37
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "ROOT COPIES      = REMOVED"
+ROOT COPIES      = REMOVED
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "FRONTEND TARGET  = REOS_CONTROL_CENTER/Frontend"
+FRONTEND TARGET  = REOS_CONTROL_CENTER/Frontend
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "ROOT GITIGNORE   = RESTORED"
+ROOT GITIGNORE   = RESTORED
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "LOCAL FILES      = NOT MODIFIED"
+LOCAL FILES      = NOT MODIFIED
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "BACKEND          = NOT TOUCHED"
+BACKEND          = NOT TOUCHED
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "================================================"
+================================================
