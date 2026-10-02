@@ -1,20 +1,10 @@
-q : The term 'q' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was
-included, verify that the path is correct and try again.
-At line:1 char:1
-+ q
-+ ~
-    + CategoryInfo          : ObjectNotFound: (q:String) [], CommandNotFoundException
-    + FullyQualifiedErrorId : CommandNotFoundException
-
-PS D:\Homio\REOS_CONTROL_CENTER> cd D:\HOMIO\REOS_CONTROL_CENTER
-PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short -- architecture
 A  "architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan"
 A  architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
 R  architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json -> architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
-AM architecture/governance/architecture_integrity.py
-AM architecture/governance/test_architecture_integrity.py
-RM architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json -> architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
+A  architecture/governance/architecture_integrity.py
+A  architecture/governance/test_architecture_integrity.py
+R  architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json -> architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --cached --name-status -- architecture
 A       REOS_CONTROL_CENTER/architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan
@@ -24,7 +14,3 @@ A       REOS_CONTROL_CENTER/architecture/governance/architecture_integrity.py
 A       REOS_CONTROL_CENTER/architecture/governance/test_architecture_integrity.py
 R099    REOS_CONTROL_CENTER/architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json    REOS_CONTROL_CENTER/architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --name-status -- architecture
-M       REOS_CONTROL_CENTER/architecture/governance/architecture_integrity.py
-M       REOS_CONTROL_CENTER/architecture/governance/test_architecture_integrity.py
-M       REOS_CONTROL_CENTER/architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
