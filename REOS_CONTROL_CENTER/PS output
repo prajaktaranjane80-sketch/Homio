@@ -1,151 +1,203 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --cached --name-status -- architecture
-A       REOS_CONTROL_CENTER/architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan
-A       REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
-R099    REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json   REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
-A       REOS_CONTROL_CENTER/architecture/governance/architecture_integrity.py
-A       REOS_CONTROL_CENTER/architecture/governance/test_architecture_integrity.py
-R099    REOS_CONTROL_CENTER/architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json    REOS_CONTROL_CENTER/architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Location D:\HOMIO\REOS_CONTROL_CENTER
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 1. CURRENT BRANCH / HEAD ===" -ForegroundColor Cyan
+C1 PATCH FAILED: canonical_path block not found
+At line:2 char:5
++     throw "C1 PATCH FAILED: canonical_path block not found"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (C1 PATCH FAILED...block not found:String) [], RuntimeException
+    + FullyQualifiedErrorId : C1 PATCH FAILED: canonical_path block not found
 
-=== 1. CURRENT BRANCH / HEAD ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git branch --show-current
-reos-development
-PS D:\HOMIO\REOS_CONTROL_CENTER> git rev-parse HEAD
-036f907195b5423a5405ea3cf7780a6689886176
-PS D:\HOMIO\REOS_CONTROL_CENTER> git rev-parse origin/reos-development
-4889f5e5d27650bfcadb2e1439f703e7c9acc4c5
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 2. WORKTREE STATUS ===" -ForegroundColor Cyan
-
-=== 2. WORKTREE STATUS ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
- M AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py
- M AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
- M AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py
- M AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py
-A  "architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan"
-A  architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
-R  architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json -> architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
-A  architecture/governance/architecture_integrity.py
-A  architecture/governance/test_architecture_integrity.py
-R  architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json -> architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
- M data/state.json
- M reos_control_center.py
-?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/
-?? ../FRONTEND_SYNC_BACKUP_20261002_113453/
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py.before-fraud-compatibility-fix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-condition-shape-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-determinism-key-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-disabled-rule-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-evaluation-freeze-fix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-fraud-evidence-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-trust-model-evidence-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-trust-scope-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py.before-fraud-fixture-scope-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py.before-metadata-fix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py.before-trustscore-fingerprint-rootfix.bak
-?? reos_control_center.py.before-C1-parser-repair.bak
-?? snapshots/state_20261001_183859_268694.json
-?? snapshots/state_20261002_111929_382983.json
-?? ../REOS_LAYER_BACKUP_CORE007_ROOTFIX_20261001_185255/
+PS D:\HOMIO\REOS_CONTROL_CENTER> $GovText = $GovText.Replace($OldCanonical, $NewCanonical)
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 3. STAGED ARCHITECTURE CHANGES ===" -ForegroundColor Cyan
-
-=== 3. STAGED ARCHITECTURE CHANGES ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --cached --name-status -- architecture
-A       REOS_CONTROL_CENTER/architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan
-A       REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
-R099    REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json   REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
-A       REOS_CONTROL_CENTER/architecture/governance/architecture_integrity.py
-A       REOS_CONTROL_CENTER/architecture/governance/test_architecture_integrity.py
-R099    REOS_CONTROL_CENTER/architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json    REOS_CONTROL_CENTER/architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
+PS D:\HOMIO\REOS_CONTROL_CENTER> $OldCandidates = @"
+>>     master_candidates = sorted(
+>>         path
+>>         for path in architecture_dir.iterdir()
+>>         if (
+>>             path.is_file()
+>>             and "MASTER_ARCHITECTURE"
+>>             in path.name.upper()
+>>             and path.suffix.lower()
+>>             == ".json"
+>>         )
+>>     )
+>> "@
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 4. UNSTAGED ARCHITECTURE CHANGES ===" -ForegroundColor Cyan
-
-=== 4. UNSTAGED ARCHITECTURE CHANGES ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --name-status -- architecture
+PS D:\HOMIO\REOS_CONTROL_CENTER> $NewCandidates = @"
+>>     master_candidates = sorted(
+>>         path
+>>         for path in architecture_dir.rglob("*.json")
+>>         if (
+>>             path.is_file()
+>>             and "MASTER_ARCHITECTURE"
+>>             in path.name.upper()
+>>         )
+>>     )
+>> "@
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 5. ARCHITECTURE DIFF SUMMARY ===" -ForegroundColor Cyan
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $GovText.Contains($OldCandidates)) {
+>>     throw "C1 PATCH FAILED: master_candidates block not found"
+>> }
+C1 PATCH FAILED: master_candidates block not found
+At line:2 char:5
++     throw "C1 PATCH FAILED: master_candidates block not found"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (C1 PATCH FAILED...block not found:String) [], RuntimeException
+    + FullyQualifiedErrorId : C1 PATCH FAILED: master_candidates block not found
 
-=== 5. ARCHITECTURE DIFF SUMMARY ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --stat -- architecture
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --cached --stat -- architecture
- ... Hardening & Architecture Integrity Active Plan | 1251 ++++++++++++++++++++
- .../plans/HOMIO_FRONTEND_EXECUTION_PLAN.json       | 1097 +++++++++++++++++
- .../HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json   |    6 +-
- .../governance/architecture_integrity.py           | 1145 ++++++++++++++++++
- .../governance/test_architecture_integrity.py      |  337 ++++++
- .../HOMIO_REOS_MASTER_ARCHITECTURE.json            |    4 +-
- 6 files changed, 3835 insertions(+), 5 deletions(-)
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 6. REMOTE BACKEND ARCHITECTURE TREE ===" -ForegroundColor Cyan
-
-=== 6. REMOTE BACKEND ARCHITECTURE TREE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
-remote: Enumerating objects: 44, done.
-remote: Counting objects: 100% (44/44), done.
-remote: Compressing objects: 100% (40/40), done.
-remote: Total 40 (delta 25), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (40/40), 34.91 KiB | 120.00 KiB/s, done.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   4889f5e..f0545b8  reos-development -> origin/reos-development
-Enumerating objects: 590, done.
-Counting objects: 100% (590/590), done.
-Delta compression using up to 12 threads
-Compressing objects: 100% (578/578), done.
-Writing objects: 100% (590/590), done.
-Total 590 (delta 283), reused 0 (delta 0), pack-reused 0 (from 0)
-PS D:\HOMIO\REOS_CONTROL_CENTER> git ls-tree -r --name-only origin/reos-development -- `
->>     architecture/backend `
->>     architecture/governance `
->>     architecture/master | Sort-Object
-architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan
-architecture/governance/architecture_integrity.py
-architecture/governance/test_architecture_integrity.py
-architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
+PS D:\HOMIO\REOS_CONTROL_CENTER> $GovText = $GovText.Replace($OldCandidates, $NewCandidates)
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 7. C1 REQUIRED FILES ===" -ForegroundColor Cyan
+PS D:\HOMIO\REOS_CONTROL_CENTER> $OldRunnerPath = @"
+>>     master_path = (
+>>         control_center_root
+>>         / "architecture"
+>>         / CANONICAL_ARCHITECTURE_FILENAME
+>>     )
+>> "@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $NewRunnerPath = @"
+>>     master_path = (
+>>         control_center_root
+>>         / "architecture"
+>>         / "master"
+>>         / CANONICAL_ARCHITECTURE_FILENAME
+>>     )
+>> "@
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $GovText.Contains($OldRunnerPath)) {
+>>     throw "C1 PATCH FAILED: run_integrity_check master path block not found"
+>> }
+C1 PATCH FAILED: run_integrity_check master path block not found
+At line:2 char:5
++     throw "C1 PATCH FAILED: run_integrity_check master path block not ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (C1 PATCH FAILED...block not found:String) [], RuntimeException
+    + FullyQualifiedErrorId : C1 PATCH FAILED: run_integrity_check master path block not found
 
-=== 7. C1 REQUIRED FILES ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> $Files = @(
->>     ".\architecture\backend\plans\CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan",
->>     ".\architecture\governance\architecture_integrity.py",
->>     ".\architecture\governance\test_architecture_integrity.py",
->>     ".\architecture\master\HOMIO_REOS_MASTER_ARCHITECTURE.json",
->>     ".\data\state.json"
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $GovText = $GovText.Replace($OldRunnerPath, $NewRunnerPath)
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> [System.IO.File]::WriteAllText(
+>>     (Resolve-Path $Gov).Path,
+>>     $GovText,
+>>     (New-Object System.Text.UTF8Encoding($false))
 >> )
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($File in $Files) {
->>     "{0} = {1}" -f $File, (Test-Path $File)
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
+PS D:\HOMIO\REOS_CONTROL_CENTER> # C1 TEST IMPORT + REAL REPOSITORY INTEGRATION TEST
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $Test = ".\architecture\governance\test_architecture_integrity.py"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $TestText = Get-Content $Test -Raw
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $TestText = $TestText.Replace(
+>>     "from architecture.architecture_integrity import (",
+>>     "from architecture.governance.architecture_integrity import ("
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $TestText = $TestText.Replace(
+>>     "    validate_state_alignment,`r`n)",
+>>     "    validate_state_alignment,`r`n    run_integrity_check,`r`n)"
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $TestText.Contains("run_integrity_check,")) {
+>>     throw "C1 PATCH FAILED: run_integrity_check import was not added"
 >> }
-.\architecture\backend\plans\CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan = True
-.\architecture\governance\architecture_integrity.py = True
-.\architecture\governance\test_architecture_integrity.py = True
-.\architecture\master\HOMIO_REOS_MASTER_ARCHITECTURE.json = True
-.\data\state.json = True
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 8. C1 PYTEST ===" -ForegroundColor Cyan
+C1 PATCH FAILED: run_integrity_check import was not added
+At line:2 char:5
++     throw "C1 PATCH FAILED: run_integrity_check import was not added"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (C1 PATCH FAILED...t was not added:String) [], RuntimeException
+    + FullyQualifiedErrorId : C1 PATCH FAILED: run_integrity_check import was not added
 
-=== 8. C1 PYTEST ===
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $TestText.Contains("def test_actual_repository_integrity_passes")) {
+>>
+>> $IntegrationTests = @'
+>>
+>> def test_actual_repository_integrity_passes() -> None:
+>>     control_center_root = Path(__file__).resolve().parents[2]
+>>
+>>     report = run_integrity_check(
+>>         control_center_root
+>>     )
+>>
+>>     assert report.ok is True, (
+>>         "\n".join(
+>>             f"[{issue.code}] {issue.message}"
+>>             for issue in report.issues
+>>         )
+>>     )
+>>
+>>
+>> def test_actual_repository_uses_canonical_master_path() -> None:
+>>     control_center_root = Path(__file__).resolve().parents[2]
+>>
+>>     canonical_master = (
+>>         control_center_root
+>>         / "architecture"
+>>         / "master"
+>>         / "HOMIO_REOS_MASTER_ARCHITECTURE.json"
+>>     )
+>>
+>>     assert canonical_master.is_file()
+>> '@
+>>
+>>     $TestText = $TestText.TrimEnd() + $IntegrationTests + "`r`n"
+>> }
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> [System.IO.File]::WriteAllText(
+>>     (Resolve-Path $Test).Path,
+>>     $TestText,
+>>     (New-Object System.Text.UTF8Encoding($false))
+>> )
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
+PS D:\HOMIO\REOS_CONTROL_CENTER> # STAGE ONLY THE TWO C1 GOVERNANCE FILES
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git add -- `
+>>     "architecture/governance/architecture_integrity.py" `
+>>     "architecture/governance/test_architecture_integrity.py"
+warning: in the working copy of 'REOS_CONTROL_CENTER/architecture/governance/test_architecture_integrity.py', CRLF will be replaced by LF the next time Git touches it
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
+PS D:\HOMIO\REOS_CONTROL_CENTER> # C1 VERIFICATION
+PS D:\HOMIO\REOS_CONTROL_CENTER> # ============================================================
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== C1 TARGETED TESTS ===" -ForegroundColor Cyan
+
+=== C1 TARGETED TESTS ===
 PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest ".\architecture\governance\test_architecture_integrity.py" -q
-.........                                                                                                                                            [100%]
-9 passed in 0.07s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 9. C1 DIRECT RUNNER ===" -ForegroundColor Cyan
+.........F.                                                                                                                                          [100%]
+======================================================================== FAILURES =========================================================================
+_________________________________________________________ test_actual_repository_integrity_passes _________________________________________________________
 
-=== 9. C1 DIRECT RUNNER ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -c "from pathlib import Path; from architecture.architecture_integrity import run_integrity_check; r=run_integrity_check(Path('.')); print('C1 RUNNER OK=',r.ok); [print(f'[{i.code}] {i.message}') for i in r.issues]"
-Traceback (most recent call last):
-  File "<string>", line 1, in <module>
-ModuleNotFoundError: No module named 'architecture.architecture_integrity'
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 10. GIT DIFF CHECK ===" -ForegroundColor Cyan
+    def test_actual_repository_integrity_passes() -> None:
+        control_center_root = Path(__file__).resolve().parents[2]
 
-=== 10. GIT DIFF CHECK ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check
-warning: in the working copy of 'REOS_CONTROL_CENTER/data/state.json', CRLF will be replaced by LF the next time Git touches it
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --cached --check
+>       report = run_integrity_check(
+                 ^^^^^^^^^^^^^^^^^^^
+            control_center_root
+        )
+E       NameError: name 'run_integrity_check' is not defined
+
+architecture\governance\test_architecture_integrity.py:341: NameError
+================================================================= short test summary info =================================================================
+FAILED architecture/governance/test_architecture_integrity.py::test_actual_repository_integrity_passes - NameError: name 'run_integrity_check' is not defined
+1 failed, 10 passed in 0.16s
 PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== C1 DIRECT CANONICAL RUNNER ===" -ForegroundColor Cyan
+
+=== C1 DIRECT CANONICAL RUNNER ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -c "from pathlib import Path; from architecture.governance.architecture_integrity import run_integrity_check; r=run_integrity_check(Path('.')); print('C1 RUNNER OK=',r.ok); [print(f'[{i.code}] {i.message}') for i in r.issues]"
+C1 RUNNER OK= True
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== C1 STAGED FILES ===" -ForegroundColor Cyan
+
+=== C1 STAGED FILES ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --cached --name-status -- architecture/governance
+A       REOS_CONTROL_CENTER/architecture/governance/architecture_integrity.py
+A       REOS_CONTROL_CENTER/architecture/governance/test_architecture_integrity.py
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== C1 DIFF CHECK ===" -ForegroundColor Cyan
