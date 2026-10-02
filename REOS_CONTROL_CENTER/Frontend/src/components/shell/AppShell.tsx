@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
-import { Header } from "@/components/shell/Header";
 import { ContextBar } from "@/components/shell/ContextBar";
 import { GlobalActionLayer } from "@/components/shell/GlobalActionLayer";
+import { Header } from "@/components/shell/Header";
 
 export function AppShell({
   children,
@@ -18,7 +18,7 @@ export function AppShell({
       <Header />
 
       <ContextBar
-        primary="HOMIO Experience Foundation"
+        primary="HOMIO ? Global real-estate experience"
         secondary="REOS remains the canonical business authority"
       />
 

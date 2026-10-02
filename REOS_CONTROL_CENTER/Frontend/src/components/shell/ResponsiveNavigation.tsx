@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type NavigationItem = {
   label: string;
   href: string;
@@ -5,8 +7,12 @@ type NavigationItem = {
 
 const foundationItems: NavigationItem[] = [
   {
-    label: "Discover",
-    href: "/",
+    label: "Experience",
+    href: "#experience",
+  },
+  {
+    label: "Boundary",
+    href: "#boundary",
   },
 ];
 
@@ -17,14 +23,11 @@ export function ResponsiveNavigation({
 }) {
   return (
     <div>
-      <nav
-        className="responsive-nav__desktop"
-        aria-label="Primary navigation"
-      >
+      <nav className="responsive-nav__desktop" aria-label="Primary navigation">
         {items.map((item) => (
-          <a className="responsive-nav__link" href={item.href} key={item.href}>
+          <Link className="responsive-nav__link" href={item.href} key={item.href}>
             {item.label}
-          </a>
+          </Link>
         ))}
       </nav>
 
@@ -37,9 +40,9 @@ export function ResponsiveNavigation({
             aria-label="Mobile primary navigation"
           >
             {items.map((item) => (
-              <a href={item.href} key={item.href}>
+              <Link href={item.href} key={item.href}>
                 {item.label}
-              </a>
+              </Link>
             ))}
           </nav>
         </details>

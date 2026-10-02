@@ -6,8 +6,12 @@ export function GlobalActionLayer() {
           Home
         </a>
 
-        <a className="global-actions__link" href="#foundation">
-          Foundation
+        <a className="global-actions__link" href="#experience">
+          Experience
+        </a>
+
+        <a className="global-actions__link" href="#boundary">
+          Boundary
         </a>
       </div>
     </aside>
