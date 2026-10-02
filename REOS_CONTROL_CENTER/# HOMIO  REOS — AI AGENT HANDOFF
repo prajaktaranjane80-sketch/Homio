@@ -1,0 +1,923 @@
+# HOMIO / REOS — AI AGENT HANDOFF
+
+## Active Backend Closure Workflow
+
+**Repository:** `prajaktaranjane80-sketch/Homio`
+**Branch:** `reos-development`
+**Local Root:** `D:\HOMIO\REOS_CONTROL_CENTER`
+
+---
+
+# 1. CANONICAL AUTHORITY ORDER
+
+The AI Agent MUST use this authority order:
+
+```text
+REOS_CONTROL_CENTER/data/state.json
+        ↓
+Git / reos-development repository
+        ↓
+Active Execution Plan
+        ↓
+Master Architecture
+        ↓
+Existing CORE contracts / implementation
+        ↓
+Tests / verification evidence
+        ↓
+Chat
+```
+
+Chat history is communication context only.
+
+The agent MUST NOT invent project state from conversation memory when repository/state evidence exists.
+
+---
+
+# 2. ACTIVE PLAN
+
+Canonical active plan:
+
+```text
+REOS_CONTROL_CENTER/
+└── architecture/
+    └── backend/
+        └── plans/
+            └── CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan
+```
+
+This plan is the current backend closure authority.
+
+Execution sequence is fixed:
+
+```text
+C0 — Preflight & Influence Audit
+        ↓
+C1 — ARCH-039 Architecture Integrity
+        ↓
+C2 — Root CORE Package Wiring
+        ↓
+C3 — Historical / Financial Immutability
+        ↓
+C4 — Canonical Authority Boundary Closure
+        ↓
+C5 — Cross-Core Integration & Adversarial Regression
+        ↓
+C6 — Full CORE Regression
+        ↓
+C7 — Git / Architecture Integrity Gate
+        ↓
+FINAL CORE-001 → CORE-008 CLOSURE
+```
+
+Never skip forward because a later task looks easier.
+
+Never create CORE-009.
+
+---
+
+# 3. CURRENT HANDOFF POINT
+
+Current closure layer:
+
+```text
+C1 — ARCH-039 Architecture Integrity
+```
+
+C1 targets:
+
+```text
+T01 Status Semantics
+T02 Architecture Structure Contract
+T03 ARCH-039 Closure
+T04 Architecture Adversarial Tests
+```
+
+Current local verification:
+
+```text
+Architecture integrity runner = OK=True
+```
+
+Current architecture changes are staged locally.
+
+The latest staged architecture set is:
+
+```text
+architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan
+
+architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
+
+architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
+
+architecture/governance/architecture_integrity.py
+
+architecture/governance/test_architecture_integrity.py
+
+architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
+```
+
+The agent MUST preserve these changes.
+
+Do NOT reset them.
+
+Do NOT blindly pull.
+
+Do NOT force-push.
+
+Do NOT broad-restore the architecture tree.
+
+---
+
+# 4. C1 CANONICAL FILE STRUCTURE
+
+Canonical C1 structure:
+
+```text
+REOS_CONTROL_CENTER/
+└── architecture/
+    ├── master/
+    │   └── HOMIO_REOS_MASTER_ARCHITECTURE.json
+    │
+    └── governance/
+        ├── architecture_integrity.py
+        └── test_architecture_integrity.py
+```
+
+The Master Architecture remains the single architectural blueprint.
+
+`architecture_integrity.py` is validation/governance logic only.
+
+`test_architecture_integrity.py` is verification only.
+
+No duplicate architecture engine may be created.
+
+---
+
+# 5. C1 COMPLETION REQUIREMENTS
+
+C1 is complete only when:
+
+```text
+STRICT JSON                  = PASS
+STATUS CONSISTENCY           = PASS
+ARCHITECTURE STRUCTURE       = PASS
+MASTER UNIQUENESS             = PASS
+AUTHORITY INTEGRITY          = PASS
+ADVERSARIAL VALIDATION       = PASS
+```
+
+Required adversarial coverage:
+
+```text
+duplicate architecture/node ID
+missing mandatory node
+invalid schema version
+invalid architecture version
+invalid node status
+invalid top-level status
+missing authority
+tampered authority
+missing canonical truth rule
+missing autonomy boundary
+duplicate graph ID
+unexpected top-level structure
+second Master Architecture
+malformed JSON
+locked + pending architecture
+execution COMPLETE + pending architecture
+approved ARCH-039 reopened as current gate
+```
+
+C1 must never create a second approval authority.
+
+Control Center remains the approval authority.
+
+---
+
+# 6. CRITICAL GIT/SYNC RULE
+
+The previous architecture sync problem happened because a broad command was used:
+
+```text
+git clean -fd -- architecture
+```
+
+This MUST NOT be used during frontend-only synchronization.
+
+The agent MUST always use the smallest safe scope.
+
+Frontend:
+
+```text
+architecture/frontend/
+```
+
+Backend architecture:
+
+```text
+architecture/backend/
+architecture/governance/
+architecture/master/
+```
+
+Only touch additional architecture files when the active task explicitly requires them.
+
+NEVER use:
+
+```text
+git restore ... -- architecture
+```
+
+The literal `...` is not a Git path.
+
+NEVER execute broad:
+
+```text
+git clean -fd -- architecture
+```
+
+while frontend/backend work is being isolated.
+
+---
+
+# 7. SAFE FRONTEND SYNC WORKFLOW
+
+When frontend synchronization is required:
+
+```powershell
+cd D:\HOMIO\REOS_CONTROL_CENTER
+
+$Stamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$Backup = "D:\HOMIO\FRONTEND_SYNC_BACKUP_$Stamp"
+
+New-Item -ItemType Directory -Force $Backup | Out-Null
+
+Copy-Item ".\architecture\frontend" "$Backup\frontend" -Recurse -Force
+
+git fetch origin reos-development
+
+git ls-tree -r --name-only origin/reos-development -- architecture/frontend | Sort-Object
+
+git clean -fd -- architecture/frontend
+
+git restore --source=origin/reos-development --staged --worktree -- architecture/frontend
+```
+
+Then verify only:
+
+```powershell
+Test-Path ".\architecture\frontend\plans\HOMIO_FRONTEND_EXECUTION_PLAN.json"
+Test-Path ".\architecture\frontend\plans\HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json"
+
+git status --short -- architecture/frontend
+git diff --cached --name-status -- architecture/frontend
+```
+
+Never clean the entire `architecture/` tree for frontend synchronization.
+
+---
+
+# 8. SAFE BACKEND ARCHITECTURE SYNC
+
+Before synchronizing backend architecture:
+
+```text
+1. backup target scope
+2. fetch origin
+3. inspect remote tree
+4. inspect local status
+5. restore only required scope
+6. verify files
+7. run targeted tests
+8. inspect name-status only
+```
+
+Never overwrite unrelated CORE implementation.
+
+Never treat PS Output as source code.
+
+Backend PS Output is evidence only.
+
+---
+
+# 9. DIFF OUTPUT RULE
+
+Never ask for:
+
+```powershell
+git diff -- architecture
+```
+
+unless full patch content is intentionally required.
+
+This can flood PowerShell with huge file content.
+
+Use:
+
+```powershell
+git diff --name-status -- architecture
+```
+
+and:
+
+```powershell
+git diff --cached --name-status -- architecture
+```
+
+For summary:
+
+```powershell
+git diff --stat -- architecture
+```
+
+These are the default diagnostic commands.
+
+---
+
+# 10. AFTER SYNC ISSUE — REQUIRED RECOVERY ORDER
+
+When a sync problem occurs:
+
+```text
+STOP
+ ↓
+preserve current working tree
+ ↓
+create backup
+ ↓
+inspect git status
+ ↓
+inspect origin tree
+ ↓
+identify exact affected scope
+ ↓
+restore only that scope
+ ↓
+run targeted verification
+ ↓
+do not broaden scope
+```
+
+Never repeat the same destructive sync operation hoping it fixes itself.
+
+---
+
+# 11. C2 — ROOT CORE PACKAGE WIRING
+
+After C1 is committed, verified, and preserved:
+
+Target:
+
+```text
+AUTONOMY_ENGINE/core/__init__.py
+```
+
+C2 tasks:
+
+```text
+T01 Existing Import Compatibility
+T02 Eight-Package Wiring
+T03 Import Safety
+T04 Public API Boundary
+T05 Wiring Tests
+```
+
+Required packages:
+
+```text
+identity_tenant
+event_platform
+lead_ownership
+inventory
+search_matching
+deal_transaction
+trust_fraud_governance
+commission_financial
+```
+
+Root `core` MUST remain:
+
+```text
+namespace
+package discovery
+controlled public API
+```
+
+Root `core` MUST NOT become:
+
+```text
+business manager
+global service
+mega-module
+second authority
+```
+
+C2 verification:
+
+```text
+ROOT IMPORT
+8 PACKAGE DISCOVERY
+IMPORT SAFETY
+CIRCULAR IMPORT RESISTANCE
+PUBLIC API BOUNDARY
+COMPATIBILITY
+```
+
+All must pass.
+
+---
+
+# 12. C3 — HISTORICAL / FINANCIAL IMMUTABILITY
+
+Targets already defined by the active plan:
+
+```text
+AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
+
+AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
+```
+
+C3 must reuse the existing authoritative deep-freeze mechanism.
+
+Do NOT create a second immutable framework.
+
+Required protections:
+
+```text
+nested dictionaries
+nested lists
+nested composites
+historical audit metadata
+commission metadata
+fingerprint stability
+serialization stability
+```
+
+Required adversarial verification:
+
+```text
+top-level mutation
+nested mutation
+post-construction mutation
+serialization mutation
+fingerprint drift
+```
+
+Expected:
+
+```text
+mutation blocked
+historical truth stable
+fingerprint stable
+serialization preserved
+```
+
+Do not rewrite business commission rules merely to solve immutability.
+
+---
+
+# 13. C4 — CANONICAL AUTHORITY BOUNDARY CLOSURE
+
+C4 is an ownership audit, not an invitation to create four new engines.
+
+The four boundaries:
+
+```text
+Customer
+Builder
+Communication
+Evidence
+```
+
+For each:
+
+```text
+locate existing authority
+        ↓
+identify canonical owner
+        ↓
+document/reference that owner
+        ↓
+preserve consumer references
+        ↓
+prevent duplicate write authority
+```
+
+CORE layers may reference:
+
+```text
+id
+snapshot/reference
+events
+evidence_id
+authorization result
+```
+
+They must not silently become owners of another domain.
+
+ACRL remains:
+
+```text
+continuity
+reconstruction
+checkpoint
+recovery
+continuity evidence
+```
+
+ACRL does not become:
+
+```text
+Customer authority
+Builder authority
+Deal authority
+Commission authority
+Evidence business database
+```
+
+C4 invariant:
+
+```text
+ONE BUSINESS RESPONSIBILITY
+        ↓
+ONE CANONICAL OWNER
+        ↓
+MANY AUTHORIZED CONSUMERS
+        ↓
+NO SILENT WRITE OWNERSHIP
+```
+
+---
+
+# 14. C5 — CROSS-CORE INTEGRATION
+
+Required boundary verification:
+
+```text
+CORE-001 ↔ CORE-002
+CORE-002 ↔ CORE-003
+CORE-003 ↔ CORE-004
+CORE-004 ↔ CORE-005
+CORE-005 ↔ CORE-006
+CORE-006 ↔ CORE-007
+CORE-007 ↔ CORE-008
+```
+
+Also:
+
+```text
+REOS integrations
+ACRL integrations
+```
+
+must survive.
+
+Required invariants:
+
+```text
+no tenant context = DENY
+
+lead ownership cannot silently mutate
+
+deal ownership cannot silently mutate
+
+inventory remains canonical
+
+search remains derived
+
+deal owns deal lifecycle only
+
+trust/fraud/governance does not replace Control Center
+
+commission does not become payment gateway authority
+
+ACRL does not own business domain state
+```
+
+C5 must be adversarial, not only happy-path.
+
+---
+
+# 15. C6 — FULL CORE REGRESSION
+
+C6 is primarily verification.
+
+Do not modify working CORE implementations merely to make the suite green.
+
+Run:
+
+```text
+CORE-001
+CORE-002
+CORE-003
+CORE-004
+CORE-005
+CORE-006
+CORE-007
+CORE-008
+```
+
+Then cross-core integration tests.
+
+Then adversarial tests.
+
+No completion claim until all required failures are understood and resolved.
+
+---
+
+# 16. C7 — GIT / ARCHITECTURE INTEGRITY GATE
+
+Final closure checks:
+
+```text
+canonical Master Architecture exists
+exactly one Master Architecture exists
+state and architecture agree
+no second source of truth
+no duplicate engine
+no unexpected architecture file
+frontend/backend boundaries preserved
+all intended changes are committed
+Git working tree is understood
+remote branch contains the verified implementation
+```
+
+Default commands:
+
+```powershell
+git status --short
+
+git diff --name-status
+
+git diff --cached --name-status
+
+git ls-tree -r --name-only origin/reos-development -- architecture | Sort-Object
+```
+
+Never use force-push as a shortcut for divergence.
+
+---
+
+# 17. FRONTEND AGENT SEPARATION
+
+Frontend implementation is a separate workstream.
+
+Frontend architecture:
+
+```text
+architecture/frontend/plans/
+├── HOMIO_FRONTEND_EXECUTION_PLAN.json
+└── HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
+```
+
+Frontend AI may own:
+
+```text
+navigation state
+view state
+filters
+temporary form state
+loading/error state
+AI interaction state
+responsive UI state
+presentation
+authorized interaction
+```
+
+Frontend MUST NOT own:
+
+```text
+canonical inventory
+canonical search
+lead ownership
+deal state
+commission truth
+authorization truth
+canonical evidence
+financial truth
+governance authority
+```
+
+Frontend is:
+
+```text
+Experience + Presentation + Authorized Interaction
+```
+
+REOS/Core remains:
+
+```text
+Business Authority
+```
+
+---
+
+# 18. AI AGENT OPERATING RULES
+
+The agent MUST:
+
+```text
+read the active plan before editing
+identify the current C/T layer
+inspect existing authority before creating files
+reuse existing engines/contracts
+keep changes scoped
+test after coherent batches
+preserve staged work
+verify before claiming completion
+```
+
+The agent MUST NOT:
+
+```text
+invent next task
+invent architecture
+create duplicate engines
+create duplicate state
+move domain state into ACRL
+make frontend business truth
+reset local work blindly
+force-push
+use broad clean/restore commands
+treat PS Output as source
+treat chat as canonical state
+```
+
+---
+
+# 19. FILE CREATION RULE
+
+New file is allowed only when:
+
+```text
+existing authoritative implementation does not exist
+AND
+the active plan requires the capability
+AND
+the new file does not duplicate another authority
+AND
+imports/dependencies are understood
+AND
+tests are defined
+```
+
+Otherwise:
+
+```text
+reuse / extend existing authority
+```
+
+---
+
+# 20. COMPLETION CONTRACT
+
+A layer is COMPLETE only when:
+
+```text
+SOURCE / CONTRACT
+        ↓
+IMPLEMENTATION
+        ↓
+INTEGRATION
+        ↓
+TARGETED TEST
+        ↓
+ADVERSARIAL REGRESSION
+        ↓
+FULL CORE REGRESSION
+        ↓
+GIT INTEGRITY
+```
+
+A green unit test alone does not mean COMPLETE.
+
+A file existing does not mean COMPLETE.
+
+A manual state change does not mean COMPLETE.
+
+---
+
+# 21. IMMEDIATE NEXT ACTION FOR THE NEW AGENT
+
+Do NOT restart from C0.
+
+Current handoff is:
+
+```text
+C1 integrity implementation completed locally
+C1 integrity runner = OK=True
+architecture changes = staged
+```
+
+The new agent must first:
+
+```text
+1. inspect current git status
+2. preserve staged architecture set
+3. confirm C1 targeted tests
+4. verify local architecture runner
+5. compare local HEAD vs origin/reos-development
+6. commit only after the staged set is understood
+7. push without force
+8. re-fetch origin
+9. verify the remote tree
+10. only then begin C2
+```
+
+Do NOT perform another architecture-wide sync before this reconciliation.
+
+---
+
+# 22. HANDOFF PRINCIPLE
+
+The new AI Agent is not starting a new project.
+
+It is continuing:
+
+```text
+HOMIO / REOS
+        ↓
+existing Master Architecture
+        ↓
+existing CORE-001 → CORE-008
+        ↓
+existing ACRL
+        ↓
+existing REOS authority
+        ↓
+ACTIVE CLOSURE PLAN
+        ↓
+CURRENT LAYER
+```
+
+The agent's job is:
+
+```text
+finish the current layer correctly
+protect previous work
+prove the layer
+advance exactly one layer
+repeat
+```
+
+No redesign unless the active plan or canonical architecture explicitly requires it.
+
+
+
+
+AI_AGENT_ENTRYPOINT ke liye important change
+
+Existing AI_AGENT_ENTRYPOINT.py ko blindly overwrite mat karna. Uska existing contract/API preserve karna hai. Tumhare existing entrypoint me jo contract(), startup_instructions() aur repository_paths() interfaces already hain, unko intact rakhkar new operating rules / current handoff section add karna hai.
+
+Naye entrypoint me minimum ye machine-readable fields hone chahiye:
+
+"active_workstream": "CORE_001_TO_CORE_008_CLOSURE",
+"active_plan": (
+    "REOS_CONTROL_CENTER/architecture/backend/plans/"
+    "CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan"
+),
+"current_layer": "C1",
+"next_layer": "C2",
+"canonical_state": "REOS_CONTROL_CENTER/data/state.json",
+"canonical_code_branch": "reos-development",
+"architecture_root": "REOS_CONTROL_CENTER/architecture",
+"frontend_scope": "REOS_CONTROL_CENTER/architecture/frontend",
+"backend_scope": (
+    "REOS_CONTROL_CENTER/architecture/backend,"
+    "REOS_CONTROL_CENTER/architecture/governance,"
+    "REOS_CONTROL_CENTER/architecture/master"
+),
+"sync_rule": "SCOPE_LOCKED",
+"broad_architecture_clean_forbidden": True,
+"force_push_forbidden": True,
+"chat_is_authority": False,
+"ps_output_is_source": False,
+"duplicate_domain_authority_forbidden": True,
+"acrl_domain_state_ownership_forbidden": True,
+"frontend_business_authority_forbidden": True,
+Sabse important transition
+
+Ab current agent ko C1 dobara design nahi karna. Current state se आगे:
+
+C1
+ ↓
+REMOTE COMMIT/PUSH + REMOTE VERIFICATION
+ ↓
+C2 Root CORE Package Wiring
+ ↓
+C3 Immutability
+ ↓
+C4 Authority Boundaries
+ ↓
+C5 Cross-Core Regression
+ ↓
+C6 Full CORE Regression
+ ↓
+C7 Git / Architecture Integrity
+ ↓
+FINAL CORE CLOSURE
+
+Aur frontend ko C2–C7 backend closure ke beech automatically start nahi karna. Frontend apne separate execution plan ke according tabhi move kare jab active workstream explicitly frontend ho.
+
+Abhi tumhare local output ke hisaab se next agent ka first objective code banana nahi, current staged C1 work ko safely preserve + commit/push + remote verification karna hai.
