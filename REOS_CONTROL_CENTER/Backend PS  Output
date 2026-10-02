@@ -1,46 +1,2221 @@
-=== ARCHITECTURE STATUS ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short -- architecture
-A  "architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan"
-A  architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
-R  architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json -> architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
-AM architecture/governance/architecture_integrity.py
-AM architecture/governance/test_architecture_integrity.py
-RM architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json -> architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== FRONTEND FILES ==="
-=== FRONTEND FILES ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Test-Path ".\architecture\frontend\plans\HOMIO_FRONTEND_EXECUTION_PLAN.json"
-True
-PS D:\HOMIO\REOS_CONTROL_CENTER> Test-Path ".\architecture\frontend\plans\HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json"
-True
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== BACKEND GOVERNANCE FILES ==="
-=== BACKEND GOVERNANCE FILES ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Test-Path ".\architecture\governance\architecture_integrity.py"
-True
-PS D:\HOMIO\REOS_CONTROL_CENTER> Test-Path ".\architecture\governance\test_architecture_integrity.py"
-True
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== MASTER ==="
-=== MASTER ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> Test-Path ".\architecture\master\HOMIO_REOS_MASTER_ARCHITECTURE.json"
-True
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "=== STAGED ARCHITECTURE DIFF ==="
-=== STAGED ARCHITECTURE DIFF ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --cached --name-status -- architecture
-A       REOS_CONTROL_CENTER/architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan
-A       REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
-R099    REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json   REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
-A       REOS_CONTROL_CENTER/architecture/governance/architecture_integrity.py
-A       REOS_CONTROL_CENTER/architecture/governance/test_architecture_integrity.py
-R099    REOS_CONTROL_CENTER/architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json    REOS_CONTROL_CENTER/architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
-PS D:\HOMIO\REOS_CONTROL_CENTER>
++# CORE-001 → CORE-008
++
++# CLOSURE, HARDENING & ARCHITECTURE INTEGRITY
++
++# ACTIVE EXECUTION PLAN
++
++**Project:** HOMIO / REOS
++**Branch:** `reos-development`
++**Plan Type:** Active Developer-Grade Closure Plan
++**Status:** ACTIVE
++**Scope:** CORE-001 through CORE-008 + cross-core architecture integrity
++**Purpose:** Close the existing CORE foundation without redesigning it, remove known integrity/wiring weaknesses, harden immutable historical truth, and formally resolve remaining canonical-authority ambiguities.
++
++---
++
++# 1. EXECUTION PRINCIPLE
++
++This plan is an implementation contract.
++
++A task is not COMPLETE because:
++
++* a file exists,
++* an import works once,
++* one test passes,
++* or a status is manually changed.
++
++Every closure item must satisfy:
++
++```text
++SOURCE/CONTRACT
++    ↓
++IMPLEMENTATION
++    ↓
++INTEGRATION
++    ↓
++TARGETED TEST
++    ↓
++ADVERSARIAL REGRESSION
++    ↓
++FULL CORE REGRESSION
++    ↓
++GIT INTEGRITY
++```
++
++No architecture decision may be hidden inside a convenience implementation.
++
++---
++
++# 2. AUTHORITATIVE BOUNDARIES
++
++The closure must preserve the canonical HOMIO / REOS authority model.
++
++## 2.1 REOS Control Center
++
++Control Center remains authoritative for:
++
++* execution state
++* gate/task state
++* verification
++* approval
++* canonical project state management
++
++No closure code may silently create a second execution-state authority.
++
++---
++
++# 2.2 Git / Repository
++
++Git remains authoritative for:
++
++* code
++* committed contracts
++* implementation history
++* architecture files stored in repository
++
++No local-only implementation is considered complete.
++
++---
++
++# 2.3 ACRL
++
++ACRL remains responsible for:
++
++* continuity
++* reconstruction
++* checkpoints
++* recovery
++* evidence required for continuity/reconstruction
++* integrity/recovery boundaries
++
++ACRL does NOT become owner of:
++
++* Deal state
++* Commission state
++* Customer state
++* Builder state
++* Inventory state
++* Lead state
++* Trust/Fraud/Governance state
++
++No domain state is moved into ACRL.
++
++---
++
++# 2.4 Core Layers
++
++Existing Core ownership remains:
++
++```text
++CORE-001  identity_tenant
++CORE-002  event_platform
++CORE-003  lead_ownership
++CORE-004  inventory
++CORE-005  search_matching
++CORE-006  deal_transaction
++CORE-007  trust_fraud_governance
++CORE-008  commission_financial
++```
++
++No CORE-009 is created by this closure plan.
++
++---
++
++# 3. NON-NEGOTIABLE PROHIBITIONS
++
++The closure MUST NOT create:
++
++* duplicate domain engines
++* duplicate source-of-truth stores
++* duplicate event buses
++* duplicate ownership engines
++* duplicate evidence engines
++* duplicate fraud engines
++* duplicate trust engines
++* duplicate commission engines
++* duplicate governance engines
++* duplicate ACRL runtime
++* duplicate Control Center state
++* second Master Architecture
++* second project-state file
++* AI final authority over irreversible business truth
++
++Existing canonical responsibility must be reused.
++
++---
++
++# 4. MASTER EXECUTION SEQUENCE
++
++```text
++C0 — Preflight & Influence Audit
++        ↓
++C1 — ARCH-039 Architecture Integrity
++        ↓
++C2 — Root CORE Package Wiring
++        ↓
++C3 — Historical / Financial Immutability
++        ↓
++C4 — Canonical Authority Boundary Closure
++        ↓
++C5 — Cross-Core Integration & Adversarial Regression
++        ↓
++C6 — Full CORE Regression
++        ↓
++C7 — Git / Architecture Integrity Gate
++        ↓
++FINAL CORE-001 → CORE-008 CLOSURE
++```
++
++The order is intentional.
++
++---
++
++# 5. C0 — PREFLIGHT & INFLUENCE AUDIT
++
++## Objective
++
++Before editing anything, identify the real influence surface.
++
++Do not patch from assumption.
++
++## T01 — Existing File Discovery
++
++Identify:
++
++* architecture validators
++* existing contracts
++* existing root package wiring
++* immutable/deep-freeze utilities
++* existing evidence contracts
++* existing communication contracts
++* existing customer references
++* existing builder/developer references
++* existing ACRL integration contracts
++* existing REOS integration contracts
++* relevant tests
++
++---
++
++## T02 — Import / Dependency Influence
++
++Trace:
++
++```text
++architecture
++    ↓
++Control Center references
++    ↓
++core/__init__.py
++    ↓
++CORE package imports
++    ↓
++cross-core integration
++    ↓
++ACRL / REOS contracts
++```
++
++Identify anything that would be affected before changing a shared file.
++
++---
++
++## T03 — Existing Authority Reuse Check
++
++For every new validator/helper/contract ask:
++
++```text
++Does an authoritative implementation already exist?
++```
++
++If YES:
++
++```text
++reuse / extend
++```
++
++If NO:
++
++```text
++create minimum necessary authority
++```
++
++Never create a second implementation for convenience.
++
++---
++
++## C0 GATE
++
++```text
++INFLUENCE MAP                 = PASS
++EXISTING AUTHORITY DISCOVERY  = PASS
++DUPLICATE AUTHORITY CHECK     = PASS
++CHANGE SURFACE IDENTIFIED     = PASS
++```
++
++**C0 STATUS:** `PENDING`
++
++---
++
++# 6. C1 — ARCH-039 ARCHITECTURE INTEGRITY
++
++## Objective
++
++Remove architecture-internal inconsistency while preserving Control Center authority.
++
++### Target
++
++```text
++REOS_CONTROL_CENTER/architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
++```
++
++---
++
++## T01 — Status Semantics
++
++Explicitly distinguish:
++
++```text
++architecture content state
++architecture node state
++Control Center execution/approval state
++```
++
++No field may silently substitute for another authority.
++
++---
++
++## T02 — Architecture Structure Contract
++
++Validate:
++
++* architecture identity
++* architecture version
++* unique node IDs
++* required nodes
++* required sections
++* canonical authority section
++* canonical truth rules
++* global invariants
++* architecture change policy
++* autonomy boundary
++
++---
++
++## T03 — ARCH-039 Closure
++
++Resolve:
++
++```text
++top-level = FINAL_ARCHITECTURE_CONTENT
++ARCH-039  = PENDING
++```
++
++without inventing a new approval authority.
++
++---
++
++## T04 — Architecture Adversarial Tests
++
++Must reject:
++
++```text
++duplicate architecture ID
++duplicate node ID
++missing mandatory node
++invalid version
++invalid status combination
++missing authority
++missing canonical truth definition
++second Master Architecture
++malformed JSON
++unexpected structure
++```
++
++---
++
++## C1 GATE
++
++```text
++STRICT JSON                 = PASS
++STATUS CONSISTENCY          = PASS
++ARCHITECTURE STRUCTURE      = PASS
++MASTER UNIQUENESS            = PASS
++AUTHORITY INTEGRITY          = PASS
++ADVERSARIAL VALIDATION       = PASS
++```
++
++**C1 STATUS:** `PENDING`
++
++---
++
++# 7. C2 — ROOT CORE PACKAGE WIRING
++
++## Objective
++
++Make the eight bounded Core packages correctly discoverable without creating a mega-module.
++
++### Target
++
++```text
++AUTONOMY_ENGINE/core/__init__.py
++```
++
++---
++
++## T01 — Existing Import Compatibility
++
++Audit all existing use of:
++
++```text
++AUTONOMY_ENGINE.core
++AUTONOMY_ENGINE.core.<package>
++```
++
++Preserve working compatibility.
++
++---
++
++## T02 — Eight-Package Wiring
++
++Root package must correctly identify:
++
++```text
++identity_tenant
++event_platform
++lead_ownership
++inventory
++search_matching
++deal_transaction
++trust_fraud_governance
++commission_financial
++```
++
++---
++
++## T03 — Import Safety
++
++Protect against:
++
++* circular imports
++* accidental eager loading
++* hidden import side effects
++* package initialization order problems
++
++---
++
++## T04 — API Boundary
++
++Root `core` is:
++
++```text
++namespace / package discovery / controlled public API
++```
++
++It is NOT:
++
++```text
++domain manager
++global service layer
++business engine
++second authority
++```
++
++---
++
++## T05 — Wiring Tests
++
++Validate:
++
++```text
++root import
++all 8 package imports
++package discovery
++import isolation
++circular import resistance
++existing compatibility imports
++```
++
++---
++
++## C2 GATE
++
++```text
++ROOT IMPORT                 = PASS
++8 PACKAGE DISCOVERY         = PASS
++IMPORT SAFETY               = PASS
++CIRCULAR IMPORT CHECK       = PASS
++PUBLIC API BOUNDARY         = PASS
++COMPATIBILITY               = PASS
++```
++
++**C2 STATUS:** `PENDING`
++
++---
++
++# 8. C3 — IMMUTABILITY & HISTORICAL TRUTH HARDENING
++
++## Principle
++
++Frozen dataclass ≠ deeply immutable historical state.
++
++The goal is to guarantee that canonical historical/financial representations cannot be silently altered after creation.
++
++---
++
++# 8A. CORE-006 DEAL AUDIT
++
++### Target
++
++```text
++AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
++```
++
++### Object
++
++```text
++DealAuditEntry
++```
++
++### Target
++
++```text
++metadata
++```
++
++---
++
++## T01 — Immutable Mechanism Reuse
++
++Locate existing authoritative deep-freeze mechanism.
++
++Reuse it.
++
++No duplicate immutable framework.
++
++---
++
++## T02 — Deep Immutability
++
++Protect:
++
++```text
++top-level metadata
++nested dictionaries
++nested lists
++nested sets/composites
++```
++
++---
++
++## T03 — Serialization
++
++Preserve:
++
++```text
++to_dict()
++audit serialization
++evidence representation
++existing contracts
++```
++
++Immutable internal structures must still serialize correctly.
++
++---
++
++## T04 — Historical Stability
++
++After construction:
++
++```text
++audit metadata
++    ↓
++cannot silently mutate
++    ↓
++historical representation remains stable
++```
++
++---
++
++# 8B. CORE-008 COMMISSION CALCULATION
++
++### Target
++
++```text
++AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
++```
++
++### Targets
++
++```text
++CommissionCalculation.metadata
++CommissionCalculation.immutable_fingerprint
++```
++
++---
++
++## T05 — Deep Metadata Immutability
++
++Protect all nested structures.
++
++---
++
++## T06 — Fingerprint Stability
++
++Required invariant:
++
++```text
++construction
++   ↓
++fingerprint
++   ↓
++metadata immutable
++   ↓
++fingerprint unchanged
++```
++
++---
++
++## T07 — Financial Serialization Integrity
++
++Validate consistency of:
++
++```text
++calculation
++metadata
++to_dict()
++fingerprint
++```
++
++Do not rewrite commission calculation rules.
++
++---
++
++## T08 — Adversarial Testing
++
++Attempt:
++
++```text
++top-level mutation
++nested dict mutation
++nested list mutation
++nested composite mutation
++post-construction mutation
++serialization mutation
++fingerprint drift
++```
++
++Expected:
++
++```text
++mutation blocked
++historical state stable
++fingerprint stable
++serialization preserved
++```
++
++---
++
++## C3 GATE
++
++```text
++CORE-006 IMMUTABILITY       = PASS
++CORE-006 HISTORY STABILITY  = PASS
++CORE-008 IMMUTABILITY       = PASS
++CORE-008 FINGERPRINT        = PASS
++SERIALIZATION               = PASS
++ADVERSARIAL TESTS           = PASS
++```
++
++**C3 STATUS:** `PENDING`
++
++---
++
++# 9. C4 — CANONICAL AUTHORITY BOUNDARY CLOSURE
++
++This section addresses the four architecture gaps found during the deep audit.
++
++The solution is NOT “make four new engines.”
++
++The solution is to make ownership explicit.
++
++---
++
++# 9A. CUSTOMER AUTHORITY
++
++## Problem
++
++Master Architecture identifies Customer as canonical business truth, but CORE-001 → CORE-008 does not visibly contain a clear dedicated Customer authoritative domain.
++
++## T01 — Locate Existing Customer Authority
++
++Search repository for:
++
++```text
++Customer
++CustomerDomain
++customer lifecycle
++customer identity authority
++customer profile authority
++```
++
++Determine whether authority already exists outside current Core.
++
++---
++
++## T02 — Ownership Decision
++
++Exactly one of these must become explicit:
++
++```text
++A. Existing external/adjacent domain owns Customer
++OR
++B. A future dedicated Customer domain is required
++```
++
++CORE-003 MUST NOT silently become Customer authority just because Lead contains `customer_id`.
++
++---
++
++## T03 — Integration Contract
++
++Where Customer is externally owned, Core may reference:
++
++```text
++customer_id
++customer identity reference
++customer snapshot/reference contract
++customer events
++```
++
++but must not duplicate Customer lifecycle/business truth.
++
++### Gate
++
++```text
++CUSTOMER AUTHORITY = EXPLICIT
++NO DUPLICATE CUSTOMER ENGINE = PASS
++```
++
++---
++
++# 9B. BUILDER AUTHORITY
++
++## Problem
++
++Architecture recognizes Builder as canonical business truth, but current Core primarily stores references such as developer/builder identifiers.
++
++---
++
++## T04 — Locate Existing Builder Authority
++
++Search repository for:
++
++```text
++Builder
++Developer
++builder lifecycle
++builder organization
++builder profile authority
++```
++
++Separate frontend/sample models from backend canonical authority.
++
++---
++
++## T05 — Ownership Decision
++
++Exactly one authoritative owner must be documented.
++
++Core references are allowed.
++
++Core duplication is not.
++
++---
++
++## T06 — Integration Contract
++
++Builder-consuming layers may use:
++
++```text
++builder_id
++builder reference
++builder events
++builder snapshot/reference contract
++```
++
++without taking over Builder domain ownership.
++
++### Gate
++
++```text
++BUILDER AUTHORITY = EXPLICIT
++NO DUPLICATE BUILDER ENGINE = PASS
++```
++
++---
++
++# 9C. COMMUNICATION AUTHORITY
++
++## Problem
++
++CORE-003 has communication evidence hooks, not a full Communication Engine.
++
++That is correct if Communication is owned elsewhere, but the architecture boundary must be explicit.
++
++---
++
++## T07 — Locate Communication Authority
++
++Search for:
++
++```text
++communication
++message
++conversation
++channel
++delivery
++communication evidence
++```
++
++Identify whether communication storage/runtime is:
++
++```text
++existing canonical service/domain
++external system
++future architecture capability
++```
++
++---
++
++## T08 — Boundary Contract
++
++CORE-003 communication hooks remain:
++
++```text
++reference / event / evidence integration
++```
++
++and do not become a second messaging engine.
++
++Define:
++
++```text
++who owns communication content
++who owns delivery
++who owns history
++who owns evidence linkage
++```
++
++### Gate
++
++```text
++COMMUNICATION AUTHORITY = EXPLICIT
++NO DUPLICATE COMMUNICATION ENGINE = PASS
++```
++
++---
++
++# 9D. EVIDENCE AUTHORITY
++
++## Problem
++
++Evidence references appear across:
++
++```text
++CORE-003
++CORE-006
++CORE-007
++CORE-008
++ACRL integrations
++```
++
++This is acceptable only when those layers reference evidence rather than independently owning canonical evidence storage.
++
++---
++
++## T09 — Locate Existing Evidence Authority
++
++Search for:
++
++```text
++evidence repository
++evidence contract
++evidence service
++consent evidence
++audit evidence
++visit evidence
++proof record
++```
++
++---
++
++## T10 — Canonical Evidence Ownership
++
++Exactly one canonical evidence authority must be established or explicitly marked as an architecture-level future boundary.
++
++Existing Cores may retain:
++
++```text
++evidence_id
++evidence reference
++evidence link
++evidence event
++evidence validation result
++```
++
++but must not create parallel evidence truth.
++
++---
++
++## T11 — ACRL Evidence Boundary
++
++Explicitly distinguish:
++
++```text
++business evidence authority
++vs
++ACRL evidence/checkpoint/reconstruction usage
++```
++
++ACRL can preserve/reconstruct evidence context without becoming a duplicate business evidence database.
++
++### Gate
++
++```text
++EVIDENCE AUTHORITY = EXPLICIT
++ACRL BOUNDARY       = EXPLICIT
++NO DUPLICATE ENGINE = PASS
++```
++
++---
++
++# 9E. C4 GLOBAL AUTHORITY INVARIANT
++
++The architecture must satisfy:
++
++```text
++ONE BUSINESS RESPONSIBILITY
++        ↓
++ONE CANONICAL OWNER
++        ↓
++MANY AUTHORIZED CONSUMERS
++        ↓
++NO SILENT WRITE OWNERSHIP
++```
++
++Cross-core references do not create ownership.
++
++---
++
++## C4 GATE
++
++```text
++CUSTOMER AUTHORITY          = PASS
++BUILDER AUTHORITY           = PASS
++COMMUNICATION AUTHORITY     = PASS
++EVIDENCE AUTHORITY          = PASS
++ACRL BOUNDARY               = PASS
++NO DUPLICATE OWNERSHIP      = PASS
++```
++
++**C4 STATUS:** `PENDING`
++
++---
++
++# 10. C5 — CROSS-CORE INTEGRATION & ADVERSARIAL REGRESSION
++
++This stage proves that closure work did not damage the architecture.
++
++Test boundaries between:
++
++```text
++CORE-001 ↔ CORE-002
++CORE-002 ↔ CORE-003
++CORE-003 ↔ CORE-004
++CORE-004 ↔ CORE-005
++CORE-005 ↔ CORE-006
++CORE-006 ↔ CORE-007
++CORE-007 ↔ CORE-008
++```
++
++and their:
++
++```text
++REOS integrations
++ACRL integrations
++```
++
++---
++
++## Required Invariants
++
++### Identity
++
++No tenant context:
++
++```text
++DENY
++```
++
++### Ownership
++
++Lead/deal ownership cannot silently mutate.
++
++### Inventory
++
++Inventory references remain canonical.
++
++### Search
++
++Search/index remains derived, never business truth.
++
++### Deal
++
++Deal remains owner of deal lifecycle only.
++
++### Trust/Fraud/Governance
++
++No takeover of identity, event platform, ACRL, or Control Center.
++
++### Commission
++
++Commission/financial domain does not silently become payment gateway execution or external ledger authority.
++
++### ACRL
++
++No domain-state ownership.
++
++---
++
++## C5 GATE
++
++```text
++CROSS-CORE INTEGRATION       = PASS
++BOUNDARY REGRESSION          = PASS
++ACRL REGRESSION              = PASS
++REOS REGRESSION              = PASS
++ADVERSARIAL REGRESSION       = PASS
++```
++
++**C5 STATUS:** `PENDING`
++
++---
++
++# 11. C6 — FULL CORE REGRESSION
++
++After all targeted closure tests are green:
++
++```powershell
++python -m pytest ".\AUTONOMY_ENGINE\core" -q
++```
++
++This must protect the complete existing foundation:
++
++```text
++CORE-001
++CORE-002
++CORE-003
++CORE-004
++CORE-005
++CORE-006
++CORE-007
++CORE-008
++```
++
++The existing green baseline is treated as a compatibility baseline.
++
++A new closure fix cannot be considered successful if it breaks unrelated existing behavior.
++
++### C6 GATE
++
++```text
++FULL CORE REGRESSION = PASS
++```
++
++**C6 STATUS:** `PENDING`
++
++---
++
++# 12. C7 — GIT / ARCHITECTURE INTEGRITY GATE
++
++Before final completion inspect:
++
++```text
++git status
++git diff
++changed files
++new files
++deleted files
++```
++
++Verify:
++
++```text
++ONLY APPROVED CHANGES
++NO UNRELATED FILE MODIFICATION
++NO CORE REDESIGN
++NO DUPLICATE ENGINE
++NO DUPLICATE SOURCE OF TRUTH
++NO ACRL OWNERSHIP DRIFT
++NO CONTROL CENTER DRIFT
++NO STATE AUTHORITY DRIFT
++NO ACCIDENTAL ARCHITECTURE COPY
++```
++
++Then verify:
++
++```text
++commit
++commit SHA
++working tree state
++```
++
++### C7 GATE
++
++```text
++GIT DIFF AUDIT      = PASS
++ARCHITECTURE DRIFT  = NONE
++AUTHORITY DRIFT     = NONE
++```
++
++**C7 STATUS:** `PENDING`
++
++---
++
++# 13. FINAL CLOSURE GATE
++
++CORE-001 → CORE-008 closure is COMPLETE only when:
++
++```text
++C0 PREFLIGHT                   = PASS
++C1 ARCHITECTURE INTEGRITY     = PASS
++C2 ROOT CORE WIRING           = PASS
++C3 IMMUTABILITY HARDENING     = PASS
++C4 AUTHORITY BOUNDARIES       = PASS
++C5 CROSS-CORE REGRESSION      = PASS
++C6 FULL CORE REGRESSION       = PASS
++C7 GIT INTEGRITY              = PASS
++```
++
++Final architectural invariants:
++
++```text
++ONE MASTER ARCHITECTURE       = PASS
++ONE EXECUTION AUTHORITY       = PASS
++ONE OWNER PER DOMAIN          = PASS
++NO DUPLICATE ENGINES          = PASS
++NO SILENT OWNERSHIP TRANSFER  = PASS
++ACRL BOUNDARY PRESERVED       = PASS
++REOS BOUNDARY PRESERVED       = PASS
++HISTORICAL TRUTH IMMUTABLE    = PASS
++DERIVED SYSTEMS NOT TRUTH     = PASS
++FULL CORE REGRESSION          = PASS
++```
++
++---
++
++# 14. LIVE STATUS BOARD
++
++## C0 — PREFLIGHT
++
++Status: `PENDING`
++
++## C1 — ARCH-039 INTEGRITY
++
++Status: `PENDING`
++
++## C2 — ROOT CORE WIRING
++
++Status: `PENDING`
++
++## C3 — IMMUTABILITY
++
++Status: `PENDING`
++
++## C4 — AUTHORITY BOUNDARIES
++
++Status: `PENDING`
++
++## C5 — CROSS-CORE REGRESSION
++
++Status: `PENDING`
++
++## C6 — FULL CORE REGRESSION
++
++Status: `PENDING`
++
++## C7 — GIT INTEGRITY
++
++Status: `PENDING`
++
++## FINAL CLOSURE
++
++Status: `NOT COMPLETE`
++
++---
++
++# 15. DEVELOPER DECISION RULE
++
++When implementation reveals a new issue, do NOT immediately create a file or engine.
++
++First classify the issue:
++
++```text
++1. Existing implementation bug
++2. Existing contract gap
++3. Existing wiring gap
++4. Existing immutability/integrity gap
++5. Architecture ownership ambiguity
++6. Genuine new domain responsibility
++```
++
++Then:
++
++```text
++1–4 → repair existing authority
++5   → resolve architecture boundary
++6   → stop and require architecture-level decision
++```
++
++This prevents accidental architecture growth.
++
++---
++
++# 16. DEFINITION OF DONE
++
++This closure is NOT considered successful merely because tests are green.
++
++Definition of Done:
++
++```text
++ARCHITECTURE
++    internally consistent
++
++CORE
++    correctly wired
++
++DOMAIN OWNERSHIP
++    explicit and unique
++
++HISTORICAL TRUTH
++    immutable
++
++FINANCIAL TRUTH
++    immutable and fingerprint-stable
++
++DERIVED SYSTEMS
++    remain derived
++
++ACRL
++    remains continuity/recovery boundary
++
++REOS
++    remains canonical execution/governance framework
++
++TESTS
++    targeted + adversarial + full regression green
++
++GIT
++    changes intentional and verified
++```
++
++---
++
++# 17. FINAL LOCK
++
++This file remains the active implementation reference for this closure cycle.
++
++Do not declare completion until every mandatory gate is PASS.
++
++The objective is:
++
++```text
++CORE-001 → CORE-008
++        ↓
++TECHNICALLY HARDENED
++        +
++ARCHITECTURALLY CONSISTENT
++        +
++AUTHORITY BOUNDARIES EXPLICIT
++        +
++ACRL / REOS ALIGNED
++        +
++ADVERSARIALLY PROTECTED
++        +
++FULL REGRESSION GREEN
++        +
++GIT VERIFIED
++```
++
++**PLAN STATUS: ACTIVE**
++**EXECUTION STATUS: PENDING**
++**FINAL CLOSURE: NOT COMPLETE**
+diff --git a/REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json b/REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
+new file mode 100644
+index 0000000..8f2b206
+--- /dev/null
++++ b/REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
+@@ -0,0 +1,1097 @@
++{
++"document": {
++"name": "HOMIO Frontend Execution Plan",
++"version": "1.0",
++"status": "ACTIVE_EXECUTION_PLAN",
++"purpose": "Provide a durable, new-chat-safe implementation plan for the complete HOMIO F01-F13 frontend layer, including production modules, routes, state boundaries, REOS bindings, testing, dependency order and definition of done.",
++"scope": "Production frontend implementation only. Covers F01 through F13, shared frontend engineering modules, prototype migration, REOS integration boundaries, verification and delivery sequence.",
++"authority": {
++"frontend_blueprint": "REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json remains the canonical frontend experience and UX boundary.",
++"this_plan": "This document is the canonical frontend coding execution plan and module registry. It does not become a second architecture.",
++"master_architecture": "REOS_CONTROL_CENTER/architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json remains the canonical overall architecture and business authority.",
++"project_state": "REOS_CONTROL_CENTER/data/state.json remains the canonical project-state and execution-state authority.",
++"code": "Git branch and implementation workspaces remain the canonical code reference.",
++"acrl": "ACRL remains an engineering-time continuity, repository-intelligence, impact-analysis, diagnosis, repair and verification boundary. It is not a frontend runtime dependency.",
++"control_center": "Control Center remains authoritative for project execution, verification and approval state.",
++"chat": "Chat is communication only and never becomes project state."
++},
++"implementation_boundary": {
++"production_frontend_root": "REOS_CONTROL_CENTER/Frontend",
++"engineering_worktree": "D:\HOMIO_FRONTEND_WORK",
++"engineering_branch": "frontend-development",
++"canonical_integration_branch": "reos-development",
++"prototype": "REOS_CONTROL_CENTER/Frontend/index.html",
++"prototype_role": "Visual and interaction reference only. It is not production architecture or canonical business data.",
++"approved_runtime": "ARCH-038 approved Next.js, React, TypeScript and Node.js stack."
++}
++},
++
++"execution_invariants": {
++"single_frontend_execution_plan": true,
++"single_frontend_blueprint": true,
++"single_master_architecture": true,
++"single_business_source_of_truth_per_responsibility": true,
++"frontend_is_not_business_authority": true,
++"frontend_does_not_duplicate_core_engines": true,
++"frontend_does_not_duplicate_search_engine": true,
++"frontend_does_not_duplicate_inventory_authority": true,
++"frontend_does_not_duplicate_lead_or_ownership_authority": true,
++"frontend_does_not_duplicate_deal_authority": true,
++"frontend_does_not_duplicate_trust_fraud_governance": true,
++"frontend_does_not_duplicate_commission_financial_logic": true,
++"frontend_does_not_duplicate_identity_or_tenant_authority": true,
++"frontend_does_not_use_acrl_at_runtime": true,
++"frontend_does_not_use_state_json_as_runtime_data": true,
++"frontend_does_not_use_master_architecture_json_as_runtime_data": true,
++"frontend_does_not_invent_unverified_api_contracts": true,
++"frontend_does_not_store_canonical_business_truth_in_browser_state": true,
++"frontend_must_fail_safely_on_unknown_capability": true
++},
++
++"production_structure": {
++"root": "REOS_CONTROL_CENTER/Frontend",
++"target_structure": {
++"config": [
++"package.json",
++"next.config.ts",
++"tsconfig.json",
++"eslint.config.*"
++],
++"app": [
++"src/app/layout.tsx",
++"src/app/page.tsx",
++"src/app/search/page.tsx",
++"src/app/property/[propertyId]/page.tsx",
++"src/app/project/[projectId]/page.tsx",
++"src/app/market/[marketId]/page.tsx",
++"src/app/saved/page.tsx",
++"src/app/compare/page.tsx",
++"src/app/my/page.tsx",
++"src/app/ai/page.tsx",
++"src/app/visit/[visitId]/page.tsx",
++"src/app/deal/[dealId]/page.tsx",
++"src/app/pro/page.tsx",
++"src/app/pro/leads/page.tsx",
++"src/app/pro/inventory/page.tsx",
++"src/app/pro/communications/page.tsx",
++"src/app/pro/deals/page.tsx"
++],
++"components": [
++"src/components/ui",
++"src/components/shell",
++"src/components/navigation",
++"src/components/search",
++"src/components/property",
++"src/components/project",
++"src/components/compare",
++"src/components/journey",
++"src/components/ai",
++"src/components/action",
++"src/components/professional"
++],
++"features": [
++"src/features/f01_experience_foundation",
++"src/features/f02_home_discovery",
++"src/features/f03_search",
++"src/features/f04_property",
++"src/features/f05_project_collection",
++"src/features/f06_save_compare",
++"src/features/f07_my_homio",
++"src/features/f08_ai_context",
++"src/features/f09_enquiry_visit",
++"src/features/f10_transaction_journey",
++"src/features/f11_professional_saas",
++"src/features/f12_globalization",
++"src/features/f13_production_quality"
++],
++"lib": [
++"src/lib/reos",
++"src/lib/frontend-state",
++"src/lib/routing",
++"src/lib/formatting",
++"src/lib/media",
++"src/lib/security",
++"src/lib/observability",
++"src/lib/accessibility"
++],
++"types": [
++"src/types/reos",
++"src/types/frontend"
++],
++"tests": [
++"src/tests/unit",
++"src/tests/integration",
++"src/tests/e2e",
++"src/tests/accessibility",
++"src/tests/visual"
++]
++}
++},
++
++"shared_modules": {
++"SH01": {
++"name": "App Shell",
++"purpose": "Global visual and responsive application frame.",
++"modules": [
++"AppShell",
++"Header",
++"ContextBar",
++"ResponsiveNavigation",
++"PageContainer",
++"GlobalActionLayer"
++],
++"owns": [
++"layout composition",
++"responsive shell",
++"global navigation placement"
++],
++"must_not_own": [
++"business decisions",
++"domain lifecycle",
++"canonical business state"
++]
++},
++"SH02": {
++"name": "Design System",
++"purpose": "Reusable visual primitives and accessibility-safe UI building blocks.",
++"modules": [
++"Button",
++"Input",
++"SearchField",
++"Select",
++"Chip",
++"Badge",
++"Card",
++"PropertyCard",
++"ProjectCard",
++"Avatar",
++"Tabs",
++"Modal",
++"Drawer",
++"BottomSheet",
++"Toast",
++"Tooltip",
++"Skeleton",
++"EmptyState",
++"ErrorState"
++]
++},
++"SH03": {
++"name": "Navigation and Routing",
++"purpose": "Route composition, deep linking and safe context preservation.",
++"modules": [
++"RouteRegistry",
++"RouteGuardAdapter",
++"DeepLinkResolver",
++"ReturnContext",
++"SearchContextSerializer",
++"NavigationContext"
++],
++"boundary": "Authorization remains server-side; these modules only integrate with approved authorization/session capabilities."
++},
++"SH04": {
++"name": "Frontend State",
++"purpose": "UI and journey state only.",
++"modules": [
++"SearchViewState",
++"CompareViewState",
++"JourneyViewState",
++"NavigationViewState",
++"AIContextViewState",
++"NotificationViewState"
++],
++"forbidden": [
++"canonical ownership state",
++"canonical deal state",
++"canonical financial state",
++"canonical identity authority",
++"canonical inventory authority"
++]
++},
++"SH05": {
++"name": "REOS Binding Layer",
++"purpose": "Controlled frontend consumption of verified REOS capabilities.",
++"modules": [
++"REOS capability registry",
++"typed binding adapters",
++"response normalization adapters",
++"capability availability guards",
++"provenance/freshness adapters"
++],
++"rule": "No adapter may invent a backend contract. Every production binding must reference a verified REOS capability."
++},
++"SH06": {
++"name": "Security and Session Integration",
++"purpose": "Frontend-facing session and authorization integration.",
++"modules": [
++"SessionContext",
++"ProtectedRouteBoundary",
++"UnauthorizedState",
++"SessionExpiryRecovery",
++"SafeActionBoundary"
++],
++"rule": "Frontend visibility is never the authorization authority."
++},
++"SH07": {
++"name": "Media",
++"purpose": "Safe property/project media rendering.",
++"modules": [
++"ImageGallery",
++"ResponsiveMedia",
++"VideoFrame",
++"FloorPlanViewer",
++"VirtualTourFrame",
++"MediaPlaceholder",
++"MediaFailureState"
++]
++},
++"SH08": {
++"name": "Formatting",
++"purpose": "Display-only formatting of canonical data.",
++"modules": [
++"CurrencyFormatter",
++"AreaFormatter",
++"DateTimeFormatter",
++"LocationFormatter",
++"PropertyFactFormatter",
++"StatusFormatter"
++],
++"rule": "Formatting must never change canonical business meaning."
++},
++"SH09": {
++"name": "Observability",
++"purpose": "Frontend telemetry and diagnostics without becoming business truth.",
++"modules": [
++"ExperienceEventEmitter",
++"ErrorReporterAdapter",
++"PerformanceReporter",
++"NavigationTelemetry"
++]
++},
++"SH10": {
++"name": "Accessibility",
++"purpose": "Cross-product accessibility utilities and conventions.",
++"modules": [
++"FocusBoundary",
++"KeyboardNavigation",
++"AccessibleDialog",
++"AccessibleDrawer",
++"AriaStateHelpers",
++"ReducedMotion"
++]
++}
++},
++
++"f_layer_execution": {
++"F01": {
++"name": "HOMIO Experience Foundation",
++"goal": "Build the production frontend shell, runtime foundation, design system, responsive structure, routing foundation and shared primitives.",
++"primary_routes": [
++"/"
++],
++"modules": [
++"AppShell",
++"Header",
++"GlobalSearch",
++"ResponsiveNavigation",
++"ContextBar",
++"PageContainer",
++"Breadcrumbs",
++"Toast",
++"Modal",
++"Drawer",
++"BottomSheet",
++"Skeleton",
++"EmptyState",
++"ErrorState",
++"GlobalActionLayer"
++],
++"engineering_modules": [
++"Next.js App Router foundation",
++"root layout",
++"providers",
++"theme/tokens",
++"global styles",
++"responsive breakpoints",
++"error boundaries",
++"loading boundaries"
++],
++"depends_on": [],
++"outputs": [
++"production frontend shell",
++"shared design primitives",
++"responsive foundation",
++"route foundation",
++"test harness"
++],
++"verification": [
++"type check",
++"lint",
++"unit tests",
++"responsive checks",
++"accessibility checks",
++"production build"
++],
++"done_when": [
++"Production app starts.",
++"Global shell works on desktop/tablet/mobile.",
++"Shared primitives are reusable.",
++"No prototype monolith is carried into production architecture.",
++"No business engine exists in frontend foundation."
++]
++},
++
++```
++"F02": {
++  "name": "Global HOMIO Home and Discovery",
++  "goal": "Create the first useful entry into HOMIO and start a real discovery journey.",
++  "primary_routes": [
++    "/"
++  ],
++  "modules": [
++    "HomeHero",
++    "IntentSearch",
++    "CategorySelector",
++    "MarketCard",
++    "PropertyCard",
++    "ProjectCard",
++    "FeaturedDiscovery",
++    "ContinueJourneyCard",
++    "TrustSignal"
++  ],
++  "depends_on": [
++    "F01"
++  ],
++  "REOS_bindings": [
++    "verified discovery capabilities",
++    "verified market/property/project presentation capabilities",
++    "verified journey continuation capability where available"
++  ],
++  "forbidden": [
++    "hardcoded canonical inventory",
++    "fake market statistics",
++    "frontend recommendation engine"
++  ],
++  "done_when": [
++    "First-time user can start a useful search immediately.",
++    "Returning user can resume meaningful activity.",
++    "Home remains data-driven.",
++    "No mock business truth is shipped."
++  ]
++},
++
++"F03": {
++  "name": "Search Experience",
++  "goal": "Provide simple, powerful search while preserving context.",
++  "primary_routes": [
++    "/search"
++  ],
++  "modules": [
++    "SearchPage",
++    "SearchBar",
++    "IntentParserAdapter",
++    "SearchToolbar",
++    "FilterPanel",
++    "FilterDrawer",
++    "ResultGrid",
++    "ResultList",
++    "PropertyCard",
++    "ProjectCard",
++    "MapContext",
++    "SortControl",
++    "SearchContext",
++    "SaveSearchAction"
++  ],
++  "depends_on": [
++    "F01",
++    "F02"
++  ],
++  "REOS_bindings": [
++    "CORE-005 search/matching capability",
++    "verified location/search contracts"
++  ],
++  "state": [
++    "search intent",
++    "filters",
++    "sort",
++    "selected result",
++    "map viewport when relevant",
++    "return point"
++  ],
++  "done_when": [
++    "Useful results appear from verified REOS capability.",
++    "Search context survives property navigation.",
++    "Desktop/tablet/mobile search behavior is intentional.",
++    "No frontend search engine is created."
++  ]
++},
++
++"F04": {
++  "name": "Property Experience",
++  "goal": "Turn canonical property data into a deep but easy-to-understand decision experience.",
++  "primary_routes": [
++    "/property/[propertyId]"
++  ],
++  "modules": [
++    "PropertyPage",
++    "PropertyGallery",
++    "PropertySummary",
++    "PropertyFacts",
++    "PropertyCommercialSummary",
++    "PropertyLocation",
++    "PropertyProjectContext",
++    "PropertyTrustContext",
++    "PropertyAIContext",
++    "PropertyActions",
++    "SimilarProperties"
++  ],
++  "depends_on": [
++    "F03"
++  ],
++  "REOS_bindings": [
++    "CORE-004 inventory capability",
++    "CORE-005 search/matching capability",
++    "verified trust/evidence presentation capability"
++  ],
++  "done_when": [
++    "Property information is canonical and current.",
++    "Media works responsively.",
++    "Save/compare/action entry points exist.",
++    "Trust/evidence information is presented without becoming frontend authority."
++  ]
++},
++
++"F05": {
++  "name": "Project and Collection Experience",
++  "goal": "Connect individual property discovery to project-level and collection-level exploration.",
++  "primary_routes": [
++    "/project/[projectId]",
++    "/market/[marketId]"
++  ],
++  "modules": [
++    "ProjectPage",
++    "ProjectIdentity",
++    "ProjectOverview",
++    "ProjectFacts",
++    "ProjectLocation",
++    "ProjectInventorySummary",
++    "ProjectAmenities",
++    "ProjectInventoryGrid",
++    "RelatedProjects",
++    "MarketContext"
++  ],
++  "depends_on": [
++    "F03",
++    "F04"
++  ],
++  "REOS_bindings": [
++    "CORE-004 inventory capability",
++    "CORE-005 search/matching capability",
++    "verified market/project capabilities"
++  ],
++  "done_when": [
++    "Project and property navigation is seamless.",
++    "Inventory is canonical.",
++    "Project context does not create duplicate inventory ownership."
++  ]
++},
++
++"F06": {
++  "name": "Save, Compare and Return",
++  "goal": "Help users organize decisions without turning comparison into a database dump.",
++  "primary_routes": [
++    "/saved",
++    "/compare"
++  ],
++  "modules": [
++    "SaveAction",
++    "SavedCollection",
++    "CompareSelector",
++    "CompareTable",
++    "CompareCard",
++    "ComparisonGroup",
++    "DecisionSummary",
++    "ReturnToContext"
++  ],
++  "depends_on": [
++    "F03",
++    "F04",
++    "F05"
++  ],
++  "REOS_bindings": [
++    "verified saved-state capability",
++    "verified comparison-capable data"
++  ],
++  "state": [
++    "saved items",
++    "compare set",
++    "return context"
++  ],
++  "done_when": [
++    "Saving is simple.",
++    "Comparison focuses on meaningful decision attributes.",
++    "Signed-in state can persist through approved REOS capabilities.",
++    "No business ownership or inventory logic is duplicated."
++  ]
++},
++
++"F07": {
++  "name": "My HOMIO Journey",
++  "goal": "Give users one place to resume meaningful real-estate activity.",
++  "primary_routes": [
++    "/my"
++  ],
++  "modules": [
++    "MyHOMIOPage",
++    "ContinueJourney",
++    "RecentlyViewed",
++    "SavedProperties",
++    "SavedSearches",
++    "CompareResume",
++    "PendingActions",
++    "UpcomingVisit",
++    "ActiveConversation",
++    "JourneyTimeline"
++  ],
++  "depends_on": [
++    "F06"
++  ],
++  "REOS_bindings": [
++    "verified customer/journey capability",
++    "verified saved/visit/enquiry/deal references"
++  ],
++  "rule": "My HOMIO aggregates authorized references; it does not become a second business-state database.",
++  "done_when": [
++    "User can resume prior activity.",
++    "Journey state is traceable to canonical capabilities.",
++    "No frontend database becomes the source of truth."
++  ]
++},
++
++"F08": {
++  "name": "Contextual AI",
++  "goal": "Provide grounded AI assistance inside the user's current real-estate context.",
++  "primary_routes": [
++    "/ai"
++  ],
++  "modules": [
++    "AIContextPanel",
++    "AIMessageList",
++    "AIInput",
++    "ContextSummary",
++    "PropertyQuestionPanel",
++    "ComparisonExplanation",
++    "SearchRefinementAssistant",
++    "AIActionSuggestion"
++  ],
++  "depends_on": [
++    "F03",
++    "F04",
++    "F06",
++    "F07"
++  ],
++  "REOS_bindings": [
++    "verified intelligence capabilities",
++    "verified property/search/comparison context"
++  ],
++  "forbidden": [
++    "AI making final authorization decisions",
++    "AI inventing property facts",
++    "AI creating canonical deal/ownership/financial state",
++    "AI replacing normal UI where normal UI is safer or simpler"
++  ],
++  "done_when": [
++    "AI remains contextual.",
++    "Grounding/source context is preserved where available.",
++    "Unavailable actions are not falsely claimed.",
++    "AI cannot override REOS authority."
++  ]
++},
++
++"F09": {
++  "name": "Enquiry and Visit",
++  "goal": "Turn discovery into controlled real-world action.",
++  "primary_routes": [
++    "/visit/[visitId]"
++  ],
++  "modules": [
++    "EnquiryAction",
++    "EnquiryForm",
++    "ContactContext",
++    "VisitRequest",
++    "VisitSchedule",
++    "VisitStatus",
++    "VisitConfirmation",
++    "CommunicationEntry",
++    "ActionStatus"
++  ],
++  "depends_on": [
++    "F04",
++    "F07",
++    "F08"
++  ],
++  "REOS_bindings": [
++    "CORE-003 lead/ownership capability",
++    "verified communication capability",
++    "verified visit capability"
++  ],
++  "rule": "Frontend initiates authorized actions and displays authoritative results. It does not own lead, visit or communication truth.",
++  "done_when": [
++    "Enquiry flow is clear.",
++    "Visit flow handles loading, confirmation, failure and authorization.",
++    "Duplicate submissions are prevented where appropriate."
++  ]
++},
++
++"F10": {
++  "name": "Transaction Journey",
++  "goal": "Expose authorized transaction progress without recreating the transaction engine.",
++  "primary_routes": [
++    "/deal/[dealId]"
++  ],
++  "modules": [
++    "DealOverview",
++    "DealStatus",
++    "TransactionMilestones",
++    "RequiredActions",
++    "EvidenceContext",
++    "PartySummary",
++    "TransactionTimeline",
++    "DealDocuments",
++    "TransactionNextStep"
++  ],
++  "depends_on": [
++    "F07",
++    "F09"
++  ],
++  "REOS_bindings": [
++    "CORE-006 deal/transaction capability",
++    "CORE-007 trust/fraud/governance capability where surfaced",
++    "verified evidence references"
++  ],
++  "forbidden": [
++    "frontend deal state machine",
++    "frontend contract authority",
++    "frontend payment ledger",
++    "frontend ownership authority"
++  ],
++  "done_when": [
++    "Authorized transaction state is clearly displayed.",
++    "Milestones and next actions are grounded in REOS.",
++    "Historical/evidence references are presented safely."
++  ]
++},
++
++"F11": {
++  "name": "Professional SaaS",
++  "goal": "Provide role-appropriate professional workspaces without creating a second platform architecture.",
++  "primary_routes": [
++    "/pro",
++    "/pro/leads",
++    "/pro/inventory",
++    "/pro/communications",
++    "/pro/deals"
++  ],
++  "modules": [
++    "ProfessionalShell",
++    "RoleContext",
++    "LeadWorkspace",
++    "InventoryWorkspace",
++    "CommunicationWorkspace",
++    "DealWorkspace",
++    "ProfessionalDashboard",
++    "ProfessionalFilters",
++    "ProfessionalActionBar"
++  ],
++  "depends_on": [
++    "F01",
++    "F07",
++    "F09",
++    "F10"
++  ],
++  "REOS_bindings": [
++    "CORE-001 identity/tenant authority",
++    "CORE-003 lead/ownership authority",
++    "CORE-004 inventory authority",
++    "CORE-006 deal authority",
++    "CORE-007 governance/trust capability",
++    "future CORE-008 financial/commission capability where verified"
++  ],
++  "rule": "Professional SaaS is a frontend experience layer over existing authorities, never an additional domain engine.",
++  "done_when": [
++    "Role-aware workspace exists.",
++    "Authorization is server authoritative.",
++    "Professional actions map to verified REOS capabilities."
++  ]
++},
++
++"F12": {
++  "name": "Globalization and International Experience",
++  "goal": "Prepare HOMIO for multi-market, multilingual and localized real-estate experiences.",
++  "primary_routes": [
++    "locale-prefixed public routes where approved",
++    "market-aware discovery routes"
++  ],
++  "modules": [
++    "LocaleProvider",
++    "CurrencyDisplay",
++    "DateTimeLocalization",
++    "UnitLocalization",
++    "AddressLocalization",
++    "MarketContext",
++    "LanguageSelector",
++    "RegionSelector",
++    "RTLSupport",
++    "LocalizedSEO"
++  ],
++  "depends_on": [
++    "F01",
++    "F02",
++    "F03",
++    "F04",
++    "F05"
++  ],
++  "forbidden": [
++    "hardcoded country business rules in presentation components",
++    "duplicate currency truth",
++    "duplicate tax/legal authority"
++  ],
++  "done_when": [
++    "Locale display is consistent.",
++    "Market-specific presentation is configurable.",
++    "Canonical business rules remain in authoritative REOS capabilities."
++  ]
++},
++
++"F13": {
++  "name": "Production Quality and Launch Readiness",
++  "goal": "Turn the completed experience layer into a measurable production-quality frontend.",
++  "modules": [
++    "PerformanceBudget",
++    "ImageOptimization",
++    "CachingBoundary",
++    "ErrorRecovery",
++    "AccessibilityAudit",
++    "SecurityHardening",
++    "SEOValidation",
++    "VisualRegression",
++    "E2EJourney",
++    "TelemetryValidation",
++    "ProductionBuildGate"
++  ],
++  "depends_on": [
++    "F01",
++    "F02",
++    "F03",
++    "F04",
++    "F05",
++    "F06",
++    "F07",
++    "F08",
++    "F09",
++    "F10",
++    "F11",
++    "F12"
++  ],
++  "verification_layers": [
++    "unit",
++    "integration",
++    "navigation",
++    "responsive",
++    "accessibility",
++    "visual regression",
++    "critical E2E",
++    "performance",
++    "security",
++    "production build"
++  ],
++  "critical_journey": [
++    "Open HOMIO",
++    "Start search",
++    "View results",
++    "Open property",
++    "Save",
++    "Explore similar",
++    "Compare",
++    "Ask HOMIO",
++    "Start enquiry or visit",
++    "Open My HOMIO",
++    "Return and resume"
++  ],
++  "done_when": [
++    "Critical journey passes.",
++    "Production build passes.",
++    "No duplicate business authority exists.",
++    "No ACRL runtime dependency exists.",
++    "Responsive/accessibility/security checks pass.",
++    "Performance meets approved project targets."
++  ]
++}
++```
++
++},
++
++"f_layer_dependency_graph": {
++"foundation": [
++"F01"
++],
++"discovery": [
++"F02",
++"F03"
++],
++"exploration": [
++"F04",
++"F05"
++],
++"decision": [
++"F06",
++"F07"
++],
++"action_intelligence": [
++"F08",
++"F09"
++],
++"transaction_professional": [
++"F10",
++"F11"
++],
++"global_production": [
++"F12",
++"F13"
++],
++"primary_sequence": [
++"F01",
++"F02",
++"F03",
++"F04",
++"F05",
++"F06",
++"F07",
++"F08",
++"F09",
++"F10",
++"F11",
++"F12",
++"F13"
++],
++"parallelization_rule": "Only modules with no unresolved shared dependency may be developed in parallel. Shared primitives and REOS binding boundaries must stabilize before dependent slices proceed."
++},
++
++"reos_binding_registry": {
++"B01": {
++"consumer": "F03 Search",
++"authority": "CORE-005",
++"frontend_role": "search request/response presentation and context preservation"
++},
++"B02": {
++"consumer": "F04/F05 Property and Project",
++"authority": "CORE-004",
++"frontend_role": "inventory presentation"
++},
++"B03": {
++"consumer": "F09 Enquiry and Visit",
++"authority": "CORE-003 plus verified communication/visit capabilities",
++"frontend_role": "authorized action initiation and result presentation"
++},
++"B04": {
++"consumer": "F10 Transaction",
++"authority": "CORE-006",
++"frontend_role": "transaction state presentation"
++},
++"B05": {
++"consumer": "F10/F11 trust states",
++"authority": "CORE-007",
++"frontend_role": "authorized trust/governance information presentation"
++},
++"B06": {
++"consumer": "F11 Professional SaaS",
++"authority": "CORE-001 and relevant core authorities",
++"frontend_role": "role-aware experience boundary"
++},
++"B07": {
++"consumer": "F13 future financial surfaces",
++"authority": "CORE-008 when verified",
++"frontend_role": "financial presentation only"
++}
++},
++
++"frontend_state_model": {
++"canonical_business_state": "REOS",
++"frontend_owned_state": [
++"navigation state",
++"view state",
++"filter presentation state",
++"temporary form state",
++"loading state",
++"error state",
++"AI interaction state",
++"responsive UI state",
++"temporary optimistic UI where explicitly safe"
++],
++"persisted_user_state": "Only through approved REOS capabilities or approved frontend persistence for non-authoritative UX preferences.",
++"forbidden_persistence": [
++"canonical deal state",
++"canonical ownership state",
++"canonical financial truth",
++"canonical authorization state",
++"canonical inventory truth"
++]
++},
++
++"testing_strategy": {
++"unit": [
++"shared UI primitives",
++"formatters",
++"frontend state helpers",
++"route helpers",
++"display adapters"
++],
++"integration": [
++"REOS binding adapters",
++"authorization-aware views",
++"loading/empty/error states",
++"navigation/context persistence"
++],
++"e2e": [
++"search to property",
++"property to save",
++"property to compare",
++"property to enquiry",
++"visit journey",
++"My HOMIO resume",
++"transaction view",
++"professional workspace access"
+:
