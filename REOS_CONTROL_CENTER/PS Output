@@ -1,33 +1,33 @@
-ABORT: expected import block not found
+run_integrity_check import added
 PS D:\HOMIO\REOS_CONTROL_CENTER> cd D:\HOMIO\REOS_CONTROL_CENTER
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest architecture\governance\test_architecture_integrity.py -q
-.........F.                                                                                                                                          [100%]
-======================================================================== FAILURES =========================================================================
-_________________________________________________________ test_actual_repository_integrity_passes _________________________________________________________
-
-    def test_actual_repository_integrity_passes() -> None:
-        control_center_root = Path(__file__).resolve().parents[2]
-
->       report = run_integrity_check(
-                 ^^^^^^^^^^^^^^^^^^^
-            control_center_root
-        )
-E       NameError: name 'run_integrity_check' is not defined
-
-architecture\governance\test_architecture_integrity.py:341: NameError
-================================================================= short test summary info =================================================================
-FAILED architecture/governance/test_architecture_integrity.py::test_actual_repository_integrity_passes - NameError: name 'run_integrity_check' is not defined
-1 failed, 10 passed in 0.12s
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m py_compile reos_control_center.py
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py plan
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest architecture\governance\test_architecture_integrity.py -q
+...........                                                                                                                                          [100%]
+11 passed in 0.09s
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py status
 Traceback (most recent call last):
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1237, in <module>
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1236, in <module>
     main()
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1169, in main
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1168, in main
     parser = build_parser()
              ^^^^^^^^^^^^^^
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1148, in build_parser
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1147, in build_parser
+    p = sub.add_parser("repair-arch039-transition")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\argparse.py", line 1218, in add_parser
+    raise ArgumentError(self, _('conflicting subparser: %s') % name)
+argparse.ArgumentError: argument cmd: conflicting subparser: repair-arch039-transition
+PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py plan
+Traceback (most recent call last):
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1236, in <module>
+    main()
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1168, in main
+    parser = build_parser()
+             ^^^^^^^^^^^^^^
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1147, in build_parser
     p = sub.add_parser("repair-arch039-transition")
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\argparse.py", line 1218, in add_parser
@@ -35,12 +35,12 @@ Traceback (most recent call last):
 argparse.ArgumentError: argument cmd: conflicting subparser: repair-arch039-transition
 PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py gate
 Traceback (most recent call last):
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1237, in <module>
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1236, in <module>
     main()
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1169, in main
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1168, in main
     parser = build_parser()
              ^^^^^^^^^^^^^^
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1148, in build_parser
+  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1147, in build_parser
     p = sub.add_parser("repair-arch039-transition")
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\argparse.py", line 1218, in add_parser
@@ -48,6 +48,7 @@ Traceback (most recent call last):
 argparse.ArgumentError: argument cmd: conflicting subparser: repair-arch039-transition
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check
+warning: in the working copy of 'REOS_CONTROL_CENTER/architecture/governance/test_architecture_integrity.py', CRLF will be replaced by LF the next time Git touches it
 warning: in the working copy of 'REOS_CONTROL_CENTER/data/state.json', CRLF will be replaced by LF the next time Git touches it
 PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
  M AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py
@@ -58,10 +59,9 @@ A  "architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Archite
 A  architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
 R  architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json -> architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
 A  architecture/governance/architecture_integrity.py
-A  architecture/governance/test_architecture_integrity.py
+AM architecture/governance/test_architecture_integrity.py
 R  architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json -> architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
  M data/state.json
- M reos_control_center.py
 ?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/
 ?? ../FRONTEND_SYNC_BACKUP_20261002_113453/
 ?? AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py.before-fraud-compatibility-fix.bak
