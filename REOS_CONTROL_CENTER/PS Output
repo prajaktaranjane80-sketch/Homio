@@ -1,51 +1,72 @@
-run_integrity_check import added
-PS D:\HOMIO\REOS_CONTROL_CENTER> cd D:\HOMIO\REOS_CONTROL_CENTER
+remote: Enumerating objects: 33, done.
+remote: Counting objects: 100% (33/33), done.
+remote: Compressing objects: 100% (31/31), done.
+remote: Total 31 (delta 19), reused 0 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (31/31), 26.67 KiB | 200.00 KiB/s, done.
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+   f0545b8..3ed967b  reos-development -> origin/reos-development
 PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> cmd /c "git show origin/reos-development:REOS_CONTROL_CENTER/reos_control_center.py > reos_control_center.py"
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Select-String -Path .\reos_control_center.py -Pattern "repair-arch039-transition"
 PS D:\HOMIO\REOS_CONTROL_CENTER> python -m py_compile reos_control_center.py
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest architecture\governance\test_architecture_integrity.py -q
-...........                                                                                                                                          [100%]
-11 passed in 0.09s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py status
-Traceback (most recent call last):
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1236, in <module>
-    main()
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1168, in main
-    parser = build_parser()
-             ^^^^^^^^^^^^^^
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1147, in build_parser
-    p = sub.add_parser("repair-arch039-transition")
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\argparse.py", line 1218, in add_parser
-    raise ArgumentError(self, _('conflicting subparser: %s') % name)
-argparse.ArgumentError: argument cmd: conflicting subparser: repair-arch039-transition
+HOMIO / REOS CONTROL CENTER v7.0
+========================================================================
+Phase: PRE-CODING ARCHITECTURE
+Gate: CORE-008
+Task: CORE-008-T01: Implement commission domain.
+Status: CONTROL_CENTER_DRIVEN
+Subtask: CORE-008-T01
+Gate Status: CURRENT
+Subtasks: 10 Criteria: 6
+Approved: 39 Pending: 0
+State: D:\Homio\REOS_CONTROL_CENTER\data\state.json
 PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py plan
-Traceback (most recent call last):
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1236, in <module>
-    main()
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1168, in main
-    parser = build_parser()
-             ^^^^^^^^^^^^^^
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1147, in build_parser
-    p = sub.add_parser("repair-arch039-transition")
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\argparse.py", line 1218, in add_parser
-    raise ArgumentError(self, _('conflicting subparser: %s') % name)
-argparse.ArgumentError: argument cmd: conflicting subparser: repair-arch039-transition
+PLAN VERSION: 1.0
+MODE: AUTONOMOUS_SEQUENCE
+PLAN-001 | ARCH-036 | Business Operating Modes Architecture v1.0 | COMPLETE
+PLAN-002 | ARCH-037 | Database Final Schema Design v1.0 | COMPLETE
+PLAN-003 | ARCH-038 | Technology Stack Lock v1.0 | COMPLETE
+PLAN-004 | ARCH-039 | Master Blueprint v1.0 | COMPLETE
+PLAN-005 | REPO-001 | Repository Architecture & HOMIO Foundation | COMPLETE
+PLAN-006 | ENG-001 | Engineering Foundation | COMPLETE
+PLAN-007 | CORE-001 | Identity & Tenant Foundation | COMPLETE
+PLAN-008 | CORE-002 | Event Bus & Platform Events | COMPLETE
+PLAN-009 | CORE-003 | Lead & Ownership Core | COMPLETE
+PLAN-010 | CORE-004 | Inventory Core | COMPLETE
+PLAN-011 | CORE-005 | Search & Matching Core | COMPLETE
+PLAN-012 | CORE-006 | Deal & Transaction Core | COMPLETE
+PLAN-013 | CORE-007 | Trust, Fraud & Governance Core | COMPLETE
+PLAN-014 | CORE-008 | Commission & Financial Core | CURRENT
+PLAN-015 | AI-001 | AI Platform & Agents | FUTURE
+PLAN-016 | APP-001 | Buyer / Broker / Builder Applications | FUTURE
+PLAN-017 | REL-001 | Testing, Security & Release Gates | FUTURE
+PLAN-018 | SCALE-001 | Production Scale & International Rollout | FUTURE
 PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py gate
-Traceback (most recent call last):
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1236, in <module>
-    main()
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1168, in main
-    parser = build_parser()
-             ^^^^^^^^^^^^^^
-  File "D:\HOMIO\REOS_CONTROL_CENTER\reos_control_center.py", line 1147, in build_parser
-    p = sub.add_parser("repair-arch039-transition")
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\argparse.py", line 1218, in add_parser
-    raise ArgumentError(self, _('conflicting subparser: %s') % name)
-argparse.ArgumentError: argument cmd: conflicting subparser: repair-arch039-transition
+GATE: Commission & Financial Core
+STATUS: CURRENT
+CURRENT SUBTASK: CORE-008-T01
+SUBTASKS:
+CORE-008-T01 | Implement commission domain | CURRENT | CRITICAL
+CORE-008-T02 | Implement commission attribution and rules | PENDING | CRITICAL
+CORE-008-T03 | Implement split and participant logic | PENDING | CRITICAL
+CORE-008-T04 | Implement settlement and reconciliation lifecycle | PENDING | CRITICAL
+CORE-008-T05 | Implement dispute and reversal rules | PENDING | HIGH
+CORE-008-T06 | Implement financial audit and evidence | PENDING | CRITICAL
+CORE-008-T07 | Implement financial reporting hooks | PENDING | HIGH
+CORE-008-T08 | Run precision and concurrency tests | PENDING | CRITICAL
+CORE-008-T09 | Run financial security and approval review | PENDING | CRITICAL
+CORE-008-T10 | Freeze commission and financial core | PENDING | CRITICAL
+ACCEPTANCE CRITERIA:
+CORE-008-AC01 | PENDING | Commission source of truth is authoritative.
+CORE-008-AC02 | PENDING | Deal and ownership attribution is traceable.
+CORE-008-AC03 | PENDING | Financial amounts use safe fixed-precision semantics.
+CORE-008-AC04 | PENDING | Settlement and reversal are auditable.
+CORE-008-AC05 | PENDING | Critical financial actions require appropriate approval.
+CORE-008-AC06 | PENDING | Security and concurrency tests pass.
 PS D:\HOMIO\REOS_CONTROL_CENTER>
 PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check
 warning: in the working copy of 'REOS_CONTROL_CENTER/architecture/governance/test_architecture_integrity.py', CRLF will be replaced by LF the next time Git touches it
@@ -62,6 +83,7 @@ A  architecture/governance/architecture_integrity.py
 AM architecture/governance/test_architecture_integrity.py
 R  architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json -> architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
  M data/state.json
+ M reos_control_center.py
 ?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/
 ?? ../FRONTEND_SYNC_BACKUP_20261002_113453/
 ?? AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py.before-fraud-compatibility-fix.bak
@@ -77,6 +99,7 @@ R  architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json -> architecture/master/HOMIO
 ?? AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py.before-trustscore-fingerprint-rootfix.bak
 ?? reos_control_center.py.before-C1-parser-repair.bak
 ?? reos_control_center.py.before-duplicate-parser-fix-20261002_173140.bak
+?? reos_control_center.py.before-final-parser-repair-20261002_173554.bak
 ?? snapshots/state_20261001_183859_268694.json
 ?? snapshots/state_20261002_111929_382983.json
 ?? ../REOS_LAYER_BACKUP_CORE007_ROOTFIX_20261001_185255/
