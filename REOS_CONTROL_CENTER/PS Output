@@ -1,37 +1,4 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/__init__.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_allocation.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_calculation_basis.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_concurrency.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_entitlement.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_protection.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/financial_ledger_boundary.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/architecture/governance/test_architecture_integrity.py', CRLF will be replaced by LF the next time Git touches it
-warning: in the working copy of 'REOS_CONTROL_CENTER/data/state.json', CRLF will be replaced by LF the next time Git touches it
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m py_compile reos_control_center.py
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest architecture\governance\test_architecture_integrity.py -q
-...........                                                                                                                                          [100%]
-11 passed in 0.09s
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python reos_control_center.py status
-HOMIO / REOS CONTROL CENTER v7.0
-========================================================================
-Phase: PRE-CODING ARCHITECTURE
-Gate: CORE-008
-Task: CORE-008-T01: Implement commission domain.
-Status: CONTROL_CENTER_DRIVEN
-Subtask: CORE-008-T01
-Gate Status: CURRENT
-Subtasks: 10 Criteria: 6
-Approved: 39 Pending: 0
-State: D:\Homio\REOS_CONTROL_CENTER\data\state.json
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
- M AUTONOMY_ENGINE/core/commission_financial/__init__.py
+M AUTONOMY_ENGINE/core/commission_financial/__init__.py
  M AUTONOMY_ENGINE/core/commission_financial/commission_allocation.py
  M AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
  M AUTONOMY_ENGINE/core/commission_financial/commission_calculation_basis.py
@@ -52,8 +19,16 @@ AM architecture/governance/test_architecture_integrity.py
 R  architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json -> architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
  M data/state.json
  M reos_control_center.py
-?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/
-?? ../FRONTEND_SYNC_BACKUP_20261002_113453/
+?? "../ARCHITECTURE_SYNC_BACKUP_20261002_112330/architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan"
+?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/architecture/freeze_guard.py
+?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
+?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
+?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/architecture/governance/architecture_integrity.py
+?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/architecture/governance/test_architecture_integrity.py
+?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
+?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/architecture/registry.py
+?? ../FRONTEND_SYNC_BACKUP_20261002_113453/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
+?? ../FRONTEND_SYNC_BACKUP_20261002_113453/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
 ?? AUTONOMY_ENGINE/core/commission_financial/commission_allocation.py.before-financial-deep-freeze-extension.bak
 ?? AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py.before-financial-deep-freeze-rootfix.bak
 ?? AUTONOMY_ENGINE/core/commission_financial/commission_calculation_basis.py.before-financial-deep-freeze-rootfix.bak
@@ -78,5 +53,8 @@ R  architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json -> architecture/master/HOMIO
 ?? reos_control_center.py.before-final-parser-repair-20261002_173554.bak
 ?? snapshots/state_20261001_183859_268694.json
 ?? snapshots/state_20261002_111929_382983.json
-?? ../REOS_LAYER_BACKUP_CORE007_ROOTFIX_20261001_185255/
+?? ../REOS_LAYER_BACKUP_CORE007_ROOTFIX_20261001_185255/AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py
+?? ../REOS_LAYER_BACKUP_CORE007_ROOTFIX_20261001_185255/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
+?? ../REOS_LAYER_BACKUP_CORE007_ROOTFIX_20261001_185255/AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py
+?? ../REOS_LAYER_BACKUP_CORE007_ROOTFIX_20261001_185255/AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py
 PS D:\HOMIO\REOS_CONTROL_CENTER>
