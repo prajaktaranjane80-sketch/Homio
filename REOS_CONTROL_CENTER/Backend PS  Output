@@ -1,39 +1,127 @@
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "C1 architecture integrity tests FAILED."
->> }
-C1 architecture integrity tests FAILED.
-At line:2 char:5
-+     throw "C1 architecture integrity tests FAILED."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (C1 architecture integrity tests FAILED.:String) [], RuntimeException
-    + FullyQualifiedErrorId : C1 architecture integrity tests FAILED.
+Get-Content : Cannot find path '.\architecture\governance\architecture_integrity.py' because it does not exist.
+At line:1 char:6
++ $c = Get-Content -Raw -LiteralPath $P
++      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (.\architecture\...re_integrity.py:String) [Get-Content], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetContentCommand
 
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -c "import sys; sys.path.insert(0,'.'); from architecture.architecture_integrity import run_integrity_check; from pathlib import Path; r=run_integrity_check(Path('.')); print('C1 ARCHITECTURE INTEGRITY:','PASS' if r.ok else 'FAIL'); [print(f'[{x.code}] {x.message}') for x in r.issues]"
-Traceback (most recent call last):
-  File "<string>", line 1, in <module>
-ModuleNotFoundError: No module named 'architecture.architecture_integrity'
+PS D:\HOMIO\REOS_CONTROL_CENTER> $c = $c.Replace(
+>> 'control_center_root
+>>         / "architecture"
+>>         / CANONICAL_ARCHITECTURE_FILENAME',
+>> 'control_center_root
+>>         / "architecture"
+>>         / "master"
+>>         / CANONICAL_ARCHITECTURE_FILENAME'
+>> )
+You cannot call a method on a null-valued expression.
+At line:1 char:1
++ $c = $c.Replace(
++ ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : InvokeMethodOnNull
+
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check -- ".\architecture\architecture_integrity.py" ".\architecture\test_architecture_integrity.py"
+PS D:\HOMIO\REOS_CONTROL_CENTER> $c = $c.Replace(
+>> '''        path
+>>         for path in architecture_dir.iterdir()
+>>         if (
+>>             path.is_file()
+>>             and "MASTER_ARCHITECTURE"
+>>             in path.name.upper()
+>>             and path.suffix.lower()
+>>             == ".json"
+>>         )''',
+>> '''        path
+>>         for path in architecture_dir.rglob("*.json")
+>>         if (
+>>             path.is_file()
+>>             and "MASTER_ARCHITECTURE"
+>>             in path.name.upper()
+>>         )'''
+>> )
+You cannot call a method on a null-valued expression.
+At line:1 char:1
++ $c = $c.Replace(
++ ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : InvokeMethodOnNull
+
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
- M AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py
- M AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
- M AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py
- M AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py
- M data/state.json
- M reos_control_center.py
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py.before-fraud-compatibility-fix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-condition-shape-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-determinism-key-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-disabled-rule-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-evaluation-freeze-fix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-fraud-evidence-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-trust-model-evidence-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-trust-scope-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py.before-fraud-fixture-scope-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py.before-metadata-fix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py.before-trustscore-fingerprint-rootfix.bak
-?? reos_control_center.py.before-C1-parser-repair.bak
-?? snapshots/state_20261001_183859_268694.json
-?? ../REOS_LAYER_BACKUP_CORE007_ROOTFIX_20261001_185255/
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Content -LiteralPath $P -Value $c -NoNewline
+Set-Content : Could not find a part of the path 'D:\HOMIO\REOS_CONTROL_CENTER\architecture\governance\architecture_integrity.py'.
+At line:1 char:1
++ Set-Content -LiteralPath $P -Value $c -NoNewline
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (D:\HOMIO\REOS_C...re_integrity.py:String) [Set-Content], DirectoryNotFoundException
+    + FullyQualifiedErrorId : GetContentWriterDirectoryNotFoundError,Microsoft.PowerShell.Commands.SetContentCommand
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $T = ".\architecture\governance\test_architecture_integrity.py"
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $t = Get-Content -Raw -LiteralPath $T
+Get-Content : Cannot find path '.\architecture\governance\test_architecture_integrity.py' because it does not exist.
+At line:1 char:6
++ $t = Get-Content -Raw -LiteralPath $T
++      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (.\architecture\...re_integrity.py:String) [Get-Content], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetContentCommand
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $t = $t.Replace(
+>> 'from architecture.architecture_integrity import',
+>> 'from architecture.governance.architecture_integrity import'
+>> )
+You cannot call a method on a null-valued expression.
+At line:1 char:1
++ $t = $t.Replace(
++ ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : InvokeMethodOnNull
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> $t = $t.Replace(
+>> '    architecture_dir.mkdir()
+>>
+>>     canonical = (
+>>         architecture_dir
+>>         / "HOMIO_REOS_MASTER_ARCHITECTURE.json"
+>>     )',
+>> '    architecture_dir.mkdir()
+>>
+>>     master_dir = (
+>>         architecture_dir / "master"
+>>     )
+>>     master_dir.mkdir()
+>>
+>>     canonical = (
+>>         master_dir
+>>         / "HOMIO_REOS_MASTER_ARCHITECTURE.json"
+>>     )'
+>> )
+You cannot call a method on a null-valued expression.
+At line:1 char:1
++ $t = $t.Replace(
++ ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : InvokeMethodOnNull
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Content -LiteralPath $T -Value $t -NoNewline
+Set-Content : Cannot bind argument to parameter 'LiteralPath' because it is null.
+At line:1 char:26
++ Set-Content -LiteralPath $T -Value $t -NoNewline
++                          ~~
+    + CategoryInfo          : InvalidData: (:) [Set-Content], ParameterBindingValidationException
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Microsoft.PowerShell.Commands.SetContentCommand
+
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check -- `
+>> ".\architecture\governance\architecture_integrity.py" `
+>> ".\architecture\governance\test_architecture_integrity.py"
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest ".\architecture\governance\test_architecture_integrity.py" -q
+
+no tests ran in 0.01s
+ERROR: file or directory not found: .\architecture\governance\test_architecture_integrity.py
