@@ -1,127 +1,52 @@
-Get-Content : Cannot find path '.\architecture\governance\architecture_integrity.py' because it does not exist.
-At line:1 char:6
-+ $c = Get-Content -Raw -LiteralPath $P
-+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (.\architecture\...re_integrity.py:String) [Get-Content], ItemNotFoundException
-    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetContentCommand
+PS D:\HOMIO\REOS_CONTROL_CENTER> cd D:\HOMIO\REOS_CONTROL_CENTER
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
+remote: Enumerating objects: 86, done.
+remote: Counting objects: 100% (86/86), done.
+remote: Compressing objects: 100% (78/78), done.
+remote: Total 80 (delta 19), reused 0 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (80/80), 38.91 KiB | 129.00 KiB/s, done.
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+   5d7c9ec..acf6cc9  reos-development -> origin/reos-development
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short -- architecture
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git restore --source=origin/reos-development -- architecture
+PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== ARCHITECTURE TREE ==="
+
+=== ARCHITECTURE TREE ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Get-ChildItem .\architecture -Recurse -File |
+>>     Select-Object FullName |
+>>     Sort-Object FullName
+
+FullName
+--------
+D:\HOMIO\REOS_CONTROL_CENTER\architecture\backend\plans\CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan
+D:\HOMIO\REOS_CONTROL_CENTER\architecture\freeze_guard.py
+D:\HOMIO\REOS_CONTROL_CENTER\architecture\frontend\plans\HOMIO_FRONTEND_EXECUTION_PLAN.json
+D:\HOMIO\REOS_CONTROL_CENTER\architecture\frontend\plans\HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
+D:\HOMIO\REOS_CONTROL_CENTER\architecture\governance\architecture_integrity.py
+D:\HOMIO\REOS_CONTROL_CENTER\architecture\governance\test_architecture_integrity.py
+D:\HOMIO\REOS_CONTROL_CENTER\architecture\master\HOMIO_REOS_MASTER_ARCHITECTURE.json
+D:\HOMIO\REOS_CONTROL_CENTER\architecture\registry.py
+
 
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $c = $c.Replace(
->> 'control_center_root
->>         / "architecture"
->>         / CANONICAL_ARCHITECTURE_FILENAME',
->> 'control_center_root
->>         / "architecture"
->>         / "master"
->>         / CANONICAL_ARCHITECTURE_FILENAME'
->> )
-You cannot call a method on a null-valued expression.
-At line:1 char:1
-+ $c = $c.Replace(
-+ ~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
-    + FullyQualifiedErrorId : InvokeMethodOnNull
+PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== REQUIRED FILES ==="
 
+=== REQUIRED FILES ===
+PS D:\HOMIO\REOS_CONTROL_CENTER> Test-Path .\architecture\master\HOMIO_REOS_MASTER_ARCHITECTURE.json
+True
+PS D:\HOMIO\REOS_CONTROL_CENTER> Test-Path .\architecture\governance\architecture_integrity.py
+True
+PS D:\HOMIO\REOS_CONTROL_CENTER> Test-Path .\architecture\governance\test_architecture_integrity.py
+True
+PS D:\HOMIO\REOS_CONTROL_CENTER> Test-Path ".\architecture\backend\plans\CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan"
+True
+PS D:\HOMIO\REOS_CONTROL_CENTER> Test-Path .\architecture\frontend\plans\HOMIO_FRONTEND_EXECUTION_PLAN.json
+True
+PS D:\HOMIO\REOS_CONTROL_CENTER> Test-Path .\architecture\frontend\plans\HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
+True
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $c = $c.Replace(
->> '''        path
->>         for path in architecture_dir.iterdir()
->>         if (
->>             path.is_file()
->>             and "MASTER_ARCHITECTURE"
->>             in path.name.upper()
->>             and path.suffix.lower()
->>             == ".json"
->>         )''',
->> '''        path
->>         for path in architecture_dir.rglob("*.json")
->>         if (
->>             path.is_file()
->>             and "MASTER_ARCHITECTURE"
->>             in path.name.upper()
->>         )'''
->> )
-You cannot call a method on a null-valued expression.
-At line:1 char:1
-+ $c = $c.Replace(
-+ ~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
-    + FullyQualifiedErrorId : InvokeMethodOnNull
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Content -LiteralPath $P -Value $c -NoNewline
-Set-Content : Could not find a part of the path 'D:\HOMIO\REOS_CONTROL_CENTER\architecture\governance\architecture_integrity.py'.
-At line:1 char:1
-+ Set-Content -LiteralPath $P -Value $c -NoNewline
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (D:\HOMIO\REOS_C...re_integrity.py:String) [Set-Content], DirectoryNotFoundException
-    + FullyQualifiedErrorId : GetContentWriterDirectoryNotFoundError,Microsoft.PowerShell.Commands.SetContentCommand
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $T = ".\architecture\governance\test_architecture_integrity.py"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $t = Get-Content -Raw -LiteralPath $T
-Get-Content : Cannot find path '.\architecture\governance\test_architecture_integrity.py' because it does not exist.
-At line:1 char:6
-+ $t = Get-Content -Raw -LiteralPath $T
-+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (.\architecture\...re_integrity.py:String) [Get-Content], ItemNotFoundException
-    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetContentCommand
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $t = $t.Replace(
->> 'from architecture.architecture_integrity import',
->> 'from architecture.governance.architecture_integrity import'
->> )
-You cannot call a method on a null-valued expression.
-At line:1 char:1
-+ $t = $t.Replace(
-+ ~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
-    + FullyQualifiedErrorId : InvokeMethodOnNull
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $t = $t.Replace(
->> '    architecture_dir.mkdir()
->>
->>     canonical = (
->>         architecture_dir
->>         / "HOMIO_REOS_MASTER_ARCHITECTURE.json"
->>     )',
->> '    architecture_dir.mkdir()
->>
->>     master_dir = (
->>         architecture_dir / "master"
->>     )
->>     master_dir.mkdir()
->>
->>     canonical = (
->>         master_dir
->>         / "HOMIO_REOS_MASTER_ARCHITECTURE.json"
->>     )'
->> )
-You cannot call a method on a null-valued expression.
-At line:1 char:1
-+ $t = $t.Replace(
-+ ~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
-    + FullyQualifiedErrorId : InvokeMethodOnNull
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Content -LiteralPath $T -Value $t -NoNewline
-Set-Content : Cannot bind argument to parameter 'LiteralPath' because it is null.
-At line:1 char:26
-+ Set-Content -LiteralPath $T -Value $t -NoNewline
-+                          ~~
-    + CategoryInfo          : InvalidData: (:) [Set-Content], ParameterBindingValidationException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Microsoft.PowerShell.Commands.SetContentCommand
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check -- `
->> ".\architecture\governance\architecture_integrity.py" `
->> ".\architecture\governance\test_architecture_integrity.py"
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest ".\architecture\governance\test_architecture_integrity.py" -q
-
-no tests ran in 0.01s
-ERROR: file or directory not found: .\architecture\governance\test_architecture_integrity.py
