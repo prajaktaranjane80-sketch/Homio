@@ -1,40 +1,46 @@
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> gh api "repos/$Repo/git/trees/$TreeSha?recursive=1"
+{
+  "message": "Not Found",
+  "documentation_url": "https://docs.github.com/rest/git/trees#get-a-tree",
+  "status": "404"
+}
+gh: Not Found (HTTP 404)
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $ErrorActionPreference = "Stop"
 PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # Fresh tree read from freshly verified tree SHA.
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $Repo   = "prajaktaranjane80-sketch/Homio"
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $Branch = "reos-development"
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # ------------------------------------------------------------
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # SYNC-01: Resolve CURRENT BRANCH TREE directly.
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # No stale commit SHA.
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # No stale tree SHA.
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # No ?recursive=1 in endpoint.
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> # ------------------------------------------------------------
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
 PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $TreeOutput = @(
->>     & gh api "repos/$Repo/git/trees/$FreshTreeSha?recursive=1" 2>&1
+>>     & gh api `
+>>         --method GET `
+>>         "repos/$Repo/git/trees/$Branch" `
+>>         -f "recursive=1" `
+>>         -H "Accept: application/vnd.github+json" `
+>>         -H "X-GitHub-Api-Version: 2026-03-10" `
+>>         2>&1
 >> )
-gh.exe : gh: Not Found (HTTP 404)
-At line:2 char:5
-+     & gh api "repos/$Repo/git/trees/$FreshTreeSha?recursive=1" 2>&1
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (gh: Not Found (HTTP 404):String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
-
 PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
 PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> if ($LASTEXITCODE -ne 0) {
->>     throw "SYNC-01 TREE READ FAILED:`n$($TreeOutput -join "`n")"
+>>     Write-Host ($TreeOutput -join "`n")
+>>     throw "SYNC-01 CURRENT BRANCH TREE READ FAILED"
 >> }
-SYNC-01 TREE READ FAILED:
-At line:2 char:5
-+     throw "SYNC-01 TREE READ FAILED:`n$($TreeOutput -join "`n")"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (SYNC-01 TREE READ FAILED:
-:String) [], RuntimeException
-    + FullyQualifiedErrorId : SYNC-01 TREE READ FAILED:
-
 PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
 PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $Tree = ($TreeOutput -join "`n") | ConvertFrom-Json
 PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> if (-not $Tree.tree) {
->>     throw "SYNC-01 TREE RESPONSE EMPTY"
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> if (-not $Tree.sha) {
+>>     throw "SYNC-01 CURRENT TREE SHA MISSING"
 >> }
-SYNC-01 TREE RESPONSE EMPTY
-At line:2 char:5
-+     throw "SYNC-01 TREE RESPONSE EMPTY"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (SYNC-01 TREE RESPONSE EMPTY:String) [], RuntimeException
-    + FullyQualifiedErrorId : SYNC-01 TREE RESPONSE EMPTY
-
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> if (-not $Tree.tree) {
+>>     throw "SYNC-01 CURRENT TREE CONTENT MISSING"
+>> }
 PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
 PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $RootGitignore = $Tree.tree |
 >>     Where-Object {
@@ -46,29 +52,27 @@ PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
 PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> if (-not $RootGitignore) {
 >>     throw "SYNC-01 ROOT .gitignore NOT FOUND"
 >> }
-SYNC-01 ROOT .gitignore NOT FOUND
-At line:2 char:5
-+     throw "SYNC-01 ROOT .gitignore NOT FOUND"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (SYNC-01 ROOT .gitignore NOT FOUND:String) [], RuntimeException
-    + FullyQualifiedErrorId : SYNC-01 ROOT .gitignore NOT FOUND
-
 PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
 PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host ""
 
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "============================================="
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "=============================================" -ForegroundColor Cyan
 =============================================
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "SYNC ERROR 01 = FIXED" -ForegroundColor Green
-SYNC ERROR 01 = FIXED
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "REMOTE HEAD   = $FreshHeadSha"
-REMOTE HEAD   = ee428c08fd756ad5b2fd749d056b6455e388dccf
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "REMOTE TREE   = $FreshTreeSha"
-REMOTE TREE   = 8b9cf4073d29164fd0b48e16a6c8fce378d5dfce
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "TREE READ     = PASS"
-TREE READ     = PASS
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "SYNC ERROR 01 = PASS" -ForegroundColor Green
+SYNC ERROR 01 = PASS
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "REPOSITORY      = $Repo"
+REPOSITORY      = prajaktaranjane80-sketch/Homio
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "BRANCH          = $Branch"
+BRANCH          = reos-development
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "CURRENT TREE    = $($Tree.sha)"
+CURRENT TREE    = e1dfaa5fbdd78dda143cd2a5b119b0e2fda6dd37
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "TREE READ       = PASS"
+TREE READ       = PASS
 PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "ROOT .gitignore = FOUND"
 ROOT .gitignore = FOUND
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "STALE VARIABLES = NOT USED"
-STALE VARIABLES = NOT USED
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "============================================="
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "STALE SHA       = NOT USED"
+STALE SHA       = NOT USED
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "ENDPOINT MODE   = BRANCH DIRECT"
+ENDPOINT MODE   = BRANCH DIRECT
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "=============================================" -ForegroundColor Cyan
 =============================================
+PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
