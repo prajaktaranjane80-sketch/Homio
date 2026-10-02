@@ -1,4 +1,30 @@
-M AUTONOMY_ENGINE/core/commission_financial/__init__.py
+PS D:\HOMIO\REOS_CONTROL_CENTER> git diff --check
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/__init__.py', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_allocation.py', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_calculation_basis.py', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_concurrency.py', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_entitlement.py', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_protection.py', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/financial_ledger_boundary.py', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'REOS_CONTROL_CENTER/architecture/governance/test_architecture_integrity.py', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'REOS_CONTROL_CENTER/data/state.json', CRLF will be replaced by LF the next time Git touches it
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m py_compile reos_control_center.py
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest ".\AUTONOMY_ENGINE\core" -q
+.................................................................................................................................................... [ 15%]
+.................................................................................................................................................... [ 30%]
+.................................................................................................................................................... [ 45%]
+.................................................................................................................................................... [ 60%]
+.................................................................................................................................................... [ 75%]
+.................................................................................................................................................... [ 90%]
+..........................................................................................                                                           [100%]
+978 passed in 7.76s
+PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest architecture\governance\test_architecture_integrity.py -q
+...........                                                                                                                                          [100%]
+11 passed in 0.15s
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
+ M AUTONOMY_ENGINE/core/commission_financial/__init__.py
  M AUTONOMY_ENGINE/core/commission_financial/commission_allocation.py
  M AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
  M AUTONOMY_ENGINE/core/commission_financial/commission_calculation_basis.py
@@ -19,42 +45,246 @@ AM architecture/governance/test_architecture_integrity.py
 R  architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json -> architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
  M data/state.json
  M reos_control_center.py
-?? "../ARCHITECTURE_SYNC_BACKUP_20261002_112330/architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan"
-?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/architecture/freeze_guard.py
-?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
-?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
-?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/architecture/governance/architecture_integrity.py
-?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/architecture/governance/test_architecture_integrity.py
-?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
-?? ../ARCHITECTURE_SYNC_BACKUP_20261002_112330/architecture/registry.py
-?? ../FRONTEND_SYNC_BACKUP_20261002_113453/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
-?? ../FRONTEND_SYNC_BACKUP_20261002_113453/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
-?? AUTONOMY_ENGINE/core/commission_financial/commission_allocation.py.before-financial-deep-freeze-extension.bak
-?? AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py.before-financial-deep-freeze-rootfix.bak
-?? AUTONOMY_ENGINE/core/commission_financial/commission_calculation_basis.py.before-financial-deep-freeze-rootfix.bak
-?? AUTONOMY_ENGINE/core/commission_financial/commission_concurrency.py.before-financial-concurrency-deep-freeze-rootfix.bak
-?? AUTONOMY_ENGINE/core/commission_financial/commission_entitlement.py.before-financial-deep-freeze-rootfix.bak
-?? AUTONOMY_ENGINE/core/commission_financial/commission_protection.py.before-financial-deep-freeze-extension.bak
-?? AUTONOMY_ENGINE/core/commission_financial/financial_ledger_boundary.py.before-financial-deep-freeze-extension.bak
-?? AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py.before-audit-deep-freeze-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py.before-fraud-compatibility-fix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-condition-shape-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-determinism-key-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-disabled-rule-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-evaluation-freeze-fix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-fraud-evidence-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-trust-model-evidence-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py.before-trust-scope-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py.before-fraud-fixture-scope-rootfix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py.before-metadata-fix.bak
-?? AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py.before-trustscore-fingerprint-rootfix.bak
-?? reos_control_center.py.before-C1-parser-repair.bak
-?? reos_control_center.py.before-duplicate-parser-fix-20261002_173140.bak
-?? reos_control_center.py.before-final-parser-repair-20261002_173554.bak
-?? snapshots/state_20261001_183859_268694.json
-?? snapshots/state_20261002_111929_382983.json
-?? ../REOS_LAYER_BACKUP_CORE007_ROOTFIX_20261001_185255/AUTONOMY_ENGINE/core/trust_fraud_governance/fraud_detection.py
-?? ../REOS_LAYER_BACKUP_CORE007_ROOTFIX_20261001_185255/AUTONOMY_ENGINE/core/trust_fraud_governance/risk_rules.py
-?? ../REOS_LAYER_BACKUP_CORE007_ROOTFIX_20261001_185255/AUTONOMY_ENGINE/core/trust_fraud_governance/test_core007_t03_risk_rules.py
-?? ../REOS_LAYER_BACKUP_CORE007_ROOTFIX_20261001_185255/AUTONOMY_ENGINE/core/trust_fraud_governance/trust_score.py
+ D snapshots/state_20260815_163728_888022.json
+ D snapshots/state_20260815_164440_465044.json
+ D snapshots/state_20260815_164912_664103.json
+ D snapshots/state_20260815_165023_795374.json
+ D snapshots/state_20260815_165105_156474.json
+ D snapshots/state_20260815_165154_321030.json
+ D snapshots/state_20260815_165325_573913.json
+ D snapshots/state_20260815_165504_678832.json
+ D snapshots/state_20260815_173349_001164.json
+ D snapshots/state_20260815_175715_720236.json
+ D snapshots/state_20260815_181355_488919.json
+ D snapshots/state_20260815_182036_555469.json
+ D snapshots/state_20260815_182036_735932.json
+ D snapshots/state_20260815_182036_901961.json
+ D snapshots/state_20260815_182037_060898.json
+ D snapshots/state_20260815_182037_212480.json
+ D snapshots/state_20260815_182037_375792.json
+ D snapshots/state_20260815_182037_570055.json
+ D snapshots/state_20260815_182037_746962.json
+ D snapshots/state_20260815_182037_919487.json
+ D snapshots/state_20260815_182038_103547.json
+ D snapshots/state_20260815_182040_285461.json
+ D snapshots/state_20260815_182050_414496.json
+ D snapshots/state_20260815_182135_650167.json
+ D snapshots/state_20260815_182135_659664.json
+ D snapshots/state_20260815_182908_189121.json
+ D snapshots/state_20260815_182946_386480.json
+ D snapshots/state_20260815_183052_373767.json
+ D snapshots/state_20260815_183434_299877.json
+ D snapshots/state_20260815_184019_308180.json
+ D snapshots/state_20260815_184227_102820.json
+ D snapshots/state_20260815_191212_223086.json
+ D snapshots/state_20260815_194721_888877.json
+ D snapshots/state_20260815_194857_631682.json
+ D snapshots/state_20260815_194857_906220.json
+ D snapshots/state_20260815_194858_171539.json
+ D snapshots/state_20260815_194858_381953.json
+ D snapshots/state_20260815_194858_605458.json
+ D snapshots/state_20260815_194858_841820.json
+ D snapshots/state_20260815_194859_086312.json
+ D snapshots/state_20260815_194859_342554.json
+ D snapshots/state_20260815_194900_907061.json
+ D snapshots/state_20260815_194920_476579.json
+ D snapshots/state_20260815_195005_121576.json
+ D snapshots/state_20260815_195005_135640.json
+ D snapshots/state_20260815_195058_514816.json
+ D snapshots/state_20260815_195136_774653.json
+ D snapshots/state_20260815_195216_357814.json
+ D snapshots/state_20260815_195311_612883.json
+ D snapshots/state_20260815_195436_794134.json
+ D snapshots/state_20260815_195754_131639.json
+ D snapshots/state_20260815_195912_137159.json
+ D snapshots/state_20260815_200112_625143.json
+ D snapshots/state_20260815_200112_878184.json
+ D snapshots/state_20260815_200113_129302.json
+ D snapshots/state_20260815_200113_350507.json
+ D snapshots/state_20260815_200113_577771.json
+ D snapshots/state_20260815_200115_315827.json
+ D snapshots/state_20260815_200126_316161.json
+ D snapshots/state_20260815_200639_820845.json
+ D snapshots/state_20260815_200639_830077.json
+ D snapshots/state_20260815_200723_044262.json
+ D snapshots/state_20260815_201024_980912.json
+ D snapshots/state_20260815_201206_724721.json
+ D snapshots/state_20260815_201346_811065.json
+ D snapshots/state_20260815_201447_359293.json
+ D snapshots/state_20260815_201608_272702.json
+ D snapshots/state_20260815_201917_539874.json
+ D snapshots/state_20260815_202101_081296.json
+ D snapshots/state_20260815_202238_222611.json
+ D snapshots/state_20260815_202551_537007.json
+ D snapshots/state_20260815_202551_784679.json
+ D snapshots/state_20260815_202552_031279.json
+ D snapshots/state_20260815_202552_267665.json
+ D snapshots/state_20260815_202552_489343.json
+ D snapshots/state_20260815_202552_731181.json
+ D snapshots/state_20260815_202552_960553.json
+ D snapshots/state_20260815_202554_293969.json
+ D snapshots/state_20260815_202601_810943.json
+ D snapshots/state_20260815_202743_195687.json
+ D snapshots/state_20260815_202743_212329.json
+ D snapshots/state_20260815_202904_637560.json
+ D snapshots/state_20260815_203055_981590.json
+ D snapshots/state_20260815_203248_062897.json
+ D snapshots/state_20260815_203356_918514.json
+ D snapshots/state_20260815_203603_298729.json
+ D snapshots/state_20260815_203715_051481.json
+ D snapshots/state_20260815_203812_667141.json
+ D snapshots/state_20260815_203952_672944.json
+ D snapshots/state_20260815_204130_422443.json
+ D snapshots/state_20260815_204335_909706.json
+ D snapshots/state_20260815_204336_156890.json
+ D snapshots/state_20260815_204336_416874.json
+ D snapshots/state_20260815_204336_677726.json
+ D snapshots/state_20260815_204336_937489.json
+ D snapshots/state_20260815_204337_193451.json
+ D snapshots/state_20260815_204337_469547.json
+ D snapshots/state_20260815_204339_796040.json
+ D snapshots/state_20260815_204359_811711.json
+ D snapshots/state_20260815_204409_083945.json
+ D snapshots/state_20260815_204409_095085.json
+ D snapshots/state_20260815_205156_920267.json
+ D snapshots/state_20260815_205319_458844.json
+ D snapshots/state_20260815_205537_390638.json
+ D snapshots/state_20260816_121321_701943.json
+ D snapshots/state_20260816_122907_007468.json
+ D snapshots/state_20260816_125924_512302.json
+ D snapshots/state_20260816_131742_856796.json
+ D snapshots/state_20260816_135438_093703.json
+ D snapshots/state_20260816_140614_170177.json
+ D snapshots/state_20260816_142802_518235.json
+ D snapshots/state_20260816_142802_684797.json
+ D snapshots/state_20260816_142802_864344.json
+ D snapshots/state_20260816_142803_051044.json
+ D snapshots/state_20260816_142803_211059.json
+ D snapshots/state_20260816_142803_388992.json
+ D snapshots/state_20260816_142804_827916.json
+ D snapshots/state_20260816_142837_032697.json
+ D snapshots/state_20260816_142900_967524.json
+ D snapshots/state_20260816_142900_975506.json
+ D snapshots/state_20260816_143155_806443.json
+ D snapshots/state_20260816_154953_427454.json
+ D snapshots/state_20260816_160113_615382.json
+ D snapshots/state_20260816_164530_049113.json
+ D snapshots/state_20260816_170434_646282.json
+ D snapshots/state_20260816_180249_898284.json
+ D snapshots/state_20260816_180440_088767.json
+ D snapshots/state_20260816_183432_225031.json
+ D snapshots/state_20260816_211640_598681.json
+ D snapshots/state_20260816_213137_605263.json
+ D snapshots/state_20260816_213137_785750.json
+ D snapshots/state_20260816_213138_072227.json
+ D snapshots/state_20260816_213138_253617.json
+ D snapshots/state_20260816_213138_463009.json
+ D snapshots/state_20260816_213138_650625.json
+ D snapshots/state_20260816_213139_420989.json
+ D snapshots/state_20260816_213151_812844.json
+ D snapshots/state_20260816_213204_599832.json
+ D snapshots/state_20260816_213204_611715.json
+ D snapshots/state_20260816_213403_103759.json
+ D snapshots/state_20260816_213513_990840.json
+ D snapshots/state_20260816_213754_908245.json
+ D snapshots/state_20260816_213955_702793.json
+ D snapshots/state_20260816_214257_137023.json
+ D snapshots/state_20260816_214523_424571.json
+ D snapshots/state_20260816_214702_692343.json
+ D snapshots/state_20260816_220557_762195.json
+ D snapshots/state_20260817_025600_696082.json
+ D snapshots/state_20260817_143754_516531.json
+ D snapshots/state_20260817_145107_365214.json
+ D snapshots/state_20260817_145130_494104.json
+ D snapshots/state_20260817_145130_506996.json
+ D snapshots/state_20260829_180205_702502.json
+ D snapshots/state_20260829_215658_337613.json
+ D snapshots/state_20260829_220251_447002.json
+ D snapshots/state_20260830_163236_409187.json
+ D snapshots/state_20260830_165801_414881.json
+ D snapshots/state_20260831_193007_981943.json
+ D snapshots/state_20260831_193956_584266.json
+ D snapshots/state_20260831_194019_375677.json
+ D snapshots/state_20260831_194602_887738.json
+ D snapshots/state_20260831_195523_975630.json
+ D snapshots/state_20260831_195551_701655.json
+ D snapshots/state_20260831_195551_988890.json
+ D snapshots/state_20260831_195552_881751.json
+ D snapshots/state_20260831_195552_897727.json
+ D snapshots/state_20260923_161315_485001.json
+ D snapshots/state_20260923_162404_189597.json
+ D snapshots/state_20260923_180726_043694.json
+ D snapshots/state_20260923_185419_756835.json
+ D snapshots/state_20260923_193323_298297.json
+ D snapshots/state_20260923_195704_509449.json
+ D snapshots/state_20260923_201520_253427.json
+ D snapshots/state_20260923_202052_728724.json
+ D snapshots/state_20260923_202438_366355.json
+ D snapshots/state_20260923_204233_128196.json
+ D snapshots/state_20260923_204315_639535.json
+ D snapshots/state_20260923_204324_226795.json
+ D snapshots/state_20260923_204454_887391.json
+ D snapshots/state_20260923_204454_900139.json
+ D snapshots/state_20260923_205735_470444.json
+ D snapshots/state_20260923_210940_680814.json
+ D snapshots/state_20260923_213138_927057.json
+ D snapshots/state_20260923_223349_496861.json
+ D snapshots/state_20260924_101820_265169.json
+ D snapshots/state_before_arch039_transition_repair.json
+ D snapshots/state_before_autonomous_merge_audit_20260817_193436.json
+ D snapshots/state_before_eng001_repair.json
+ D snapshots/state_before_recovery.json
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal.py.PRE_REBUILD_20260924_154507.bak
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal.py.T06_FAILED_20260924_113317.bak
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal.py.T06_WORKING_SOURCE.bak
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal.py.before-TO_DICT-REPAIR-20260924_161946.bak
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_deal.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_deal_authorization.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_deal_concurrency.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_deal_consistency.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_deal_evidence_audit.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_deal_external_contracts.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_deal_freeze.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_deal_integrity.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_deal_offer_negotiation.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_deal_ownership_integration.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_deal_transaction_events.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_deal_transaction_milestones.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_deal_transaction_replay.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_deal_transaction_workflow.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_test_deal.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_test_deal_evidence_audit.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_test_deal_final_hardening.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_test_deal_offer_negotiation.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_test_deal_ownership_integration.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_test_deal_parties.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_test_deal_transaction_events.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/deal_transaction_test_deal_transaction_milestones.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_inventory.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_inventory_concurrency.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_inventory_consistency.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_inventory_core_freeze.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_inventory_evidence.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_inventory_history.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_inventory_history_evidence.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_inventory_indexing.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_inventory_verification.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_project.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_test_inventory_availability.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_test_inventory_concurrency.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_test_inventory_consistency.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_test_inventory_core_freeze.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_test_inventory_domain.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_test_inventory_evidence.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_test_inventory_history.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_test_inventory_history_evidence.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_test_inventory_indexing.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_test_inventory_lifecycle.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_test_inventory_verification.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/inventory_test_project_domain.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/search_matching_matching.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/search_matching_search_filters.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/search_matching_search_ranking.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/search_matching_search_rebuild.py_old
+ D ../REOS_LAYER_BACKUP_20260924_201807/search_matching_search_visibility.py_old
 PS D:\HOMIO\REOS_CONTROL_CENTER>
