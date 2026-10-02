@@ -1,100 +1,24 @@
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "CREATING REMOTE TREE..."
-CREATING REMOTE TREE...
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $TreeJson = gh api `
->>     -X POST `
->>     "repos/$Repo/git/trees" `
->>     --input $PayloadPath | ConvertFrom-Json
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $NewTreeSha = $TreeJson.sha
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> if (-not $NewTreeSha) {
->>     throw "REMOTE TREE CREATION FAILED"
->> }
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "REMOTE TREE = $NewTreeSha"
-REMOTE TREE = 1d56b85b93518a53cda59dbefced7504eedd77ce
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $CommitPayload = @{
->>     message = "Build F01 Experience Foundation"
->>     tree    = $NewTreeSha
->>     parents = @($HeadSha)
->> } | ConvertTo-Json -Depth 10
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> [System.IO.File]::WriteAllText(
->>     $PayloadPath,
->>     $CommitPayload,
->>     [System.Text.UTF8Encoding]::new($false)
->> )
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "CREATING REMOTE COMMIT..."
-CREATING REMOTE COMMIT...
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $NewCommitJson = gh api `
->>     -X POST `
->>     "repos/$Repo/git/commits" `
->>     --input $PayloadPath | ConvertFrom-Json
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $NewCommitSha = $NewCommitJson.sha
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> if (-not $NewCommitSha) {
->>     throw "REMOTE COMMIT CREATION FAILED"
->> }
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "REMOTE COMMIT = $NewCommitSha"
-REMOTE COMMIT = 125ff95633df4af0fd64921efb4cd0022fef2e57
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "UPDATING REMOTE BRANCH..."
-UPDATING REMOTE BRANCH...
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $RefPayload = @{
->>     sha   = $NewCommitSha
->>     force = $false
->> } | ConvertTo-Json
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> [System.IO.File]::WriteAllText(
->>     $PayloadPath,
->>     $RefPayload,
->>     [System.Text.UTF8Encoding]::new($false)
->> )
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $RefResult = gh api `
->>     -X PATCH `
->>     "repos/$Repo/git/refs/heads/$Branch" `
->>     --input $PayloadPath | ConvertFrom-Json
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> if ($RefResult.object.sha -ne $NewCommitSha) {
->>     throw "REMOTE BRANCH UPDATE VERIFICATION FAILED"
->> }
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Remove-Item -LiteralPath $PayloadPath -Force -ErrorAction SilentlyContinue
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host ""
+EXPECTED MISPLACED F01 FILE NOT FOUND: eslint.config.mjs
+At line:3 char:9
++         throw "EXPECTED MISPLACED F01 FILE NOT FOUND: $required"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (EXPECTED MISPLA...lint.config.mjs:String) [], RuntimeException
+    + FullyQualifiedErrorId : EXPECTED MISPLACED F01 FILE NOT FOUND: eslint.config.mjs
 
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "=============================================="
-==============================================
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "F01 REMOTE GIT WRITE = SUCCESS"
-F01 REMOTE GIT WRITE = SUCCESS
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "BRANCH  = $Branch"
-BRANCH  = reos-development
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "COMMIT  = $NewCommitSha"
-COMMIT  = 125ff95633df4af0fd64921efb4cd0022fef2e57
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "FILES   = $($Files.Count)"
-FILES   = 37
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "LOCAL   = NOT MODIFIED"
-LOCAL   = NOT MODIFIED
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "INDEX   = NOT USED"
-INDEX   = NOT USED
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "PUSH    = NOT USED"
-PUSH    = NOT USED
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> Write-Host "=============================================="
-==============================================
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> $remotePath = $relativePath -replace '\\','/'
-PS D:\HOMIO_FRONTEND_WORK\REOS_CONTROL_CENTER\Frontend> -replace "\\","/"
--replace : The term '-replace' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or
-if a path was included, verify that the path is correct and try again.
-At line:1 char:1
-+ -replace "\\","/"
-+ ~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (-replace:String) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : CommandNotFoundException
+
+
+
+ORIGINAL ROOT .gitignore BLOB NOT FOUND
+At line:2 char:5
++     throw "ORIGINAL ROOT .gitignore BLOB NOT FOUND"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ORIGINAL ROOT .gitignore BLOB NOT FOUND:String) [], RuntimeException
+    + FullyQualifiedErrorId : ORIGINAL ROOT .gitignore BLOB NOT FOUND
+
+
+CORRECTIVE TREE CREATION FAILED
+At line:2 char:5
++     throw "CORRECTIVE TREE CREATION FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (CORRECTIVE TREE CREATION FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : CORRECTIVE TREE CREATION FAILED
