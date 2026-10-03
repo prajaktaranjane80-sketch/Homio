@@ -1,0 +1,103 @@
+.header {
+  position: relative;
+  z-index: 30;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid var(--homio-border);
+  backdrop-filter: blur(14px);
+}
+
+.inner {
+  min-height: 72px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+}
+
+.logoMark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--homio-brand);
+  color: var(--homio-text-inverse);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.logoText {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+}
+
+.navigation a,
+.actionLink {
+  color: var(--homio-text-soft);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  transition: color var(--ease-standard);
+}
+
+.navigation a:hover,
+.actionLink:hover {
+  color: var(--homio-text);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.accountButton {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--homio-brand);
+  color: var(--homio-text-inverse);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .inner {
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+  }
+
+  .navigation {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .inner {
+    min-height: 64px;
+  }
+
+  .actionLink {
+    display: none;
+  }
+
+  .logoText {
+    font-size: 0.95rem;
+  }
+}
