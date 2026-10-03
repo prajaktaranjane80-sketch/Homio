@@ -7,6 +7,9 @@ import PopularLocalities from "@/components/home/PopularLocalities";
 import FeaturedProjects from "@/components/home/FeaturedProjects";
 import NewProjectCollections from "@/components/home/NewProjectCollections";
 import FreshProperties from "@/components/home/FreshProperties";
+import OwnerProperties from "@/components/home/OwnerProperties";
+import VerifiedProperties from "@/components/home/VerifiedProperties";
+import PropertyCollections from "@/components/home/PropertyCollections";
 
 export default function HomePage() {
   return (
@@ -28,6 +31,12 @@ export default function HomePage() {
         <NewProjectCollections />
 
         <FreshProperties />
+
+        <OwnerProperties />
+
+        <VerifiedProperties />
+
+        <PropertyCollections />
 
         <section id="commercial" className="homio-section">
           <div className="homio-container">
