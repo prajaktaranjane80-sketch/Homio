@@ -194,7 +194,7 @@ class DealAuditEntry:
         object.__setattr__(
             self,
             "metadata",
-            dict(self.metadata),
+            deep_freeze(self.metadata),
         )
 
     @classmethod
@@ -231,7 +231,7 @@ class DealAuditEntry:
             self.action,
             self.actor_id,
             self.outcome,
-            dict(self.metadata),
+            deep_thaw(self.metadata),
         )
 
     def assert_scope(
@@ -258,6 +258,6 @@ class DealAuditEntry:
             "created_at": self.created_at,
             "deal_version": self.deal_version,
             "outcome": self.outcome,
-            "metadata": dict(self.metadata),
+            "metadata": deep_thaw(self.metadata),
             "source_of_truth": self.source_of_truth,
         }
