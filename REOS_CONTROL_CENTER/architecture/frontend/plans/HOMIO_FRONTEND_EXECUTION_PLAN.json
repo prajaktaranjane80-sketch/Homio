@@ -1,29 +1,33 @@
 {
 "document": {
 "name": "HOMIO Frontend Execution Plan",
-"version": "1.0",
+"version": "2.0",
 "status": "ACTIVE_EXECUTION_PLAN",
-"purpose": "Provide a durable, new-chat-safe implementation plan for the complete HOMIO F01-F13 frontend layer, including production modules, routes, state boundaries, REOS bindings, testing, dependency order and definition of done.",
-"scope": "Production frontend implementation only. Covers F01 through F13, shared frontend engineering modules, prototype migration, REOS integration boundaries, verification and delivery sequence.",
+"purpose": "Provide a durable, new-chat-safe implementation plan for the complete HOMIO F01-F13 frontend layer, with an India-first real-estate marketplace experience inspired by familiar Indian property-search information architecture while preserving HOMIO ownership of UX, implementation, brand, data presentation and interaction design.",
+"scope": "Production frontend implementation only. Covers F01 through F13, shared frontend engineering modules, India marketplace discovery UX, search and filtering, property and project exploration, save and compare, My HOMIO, contextual AI, enquiry and visit, transaction journey, professional SaaS, globalization, production quality, responsive behavior, accessibility, SEO, media governance and REOS integration boundaries.",
+"experience_strategy": "India-first launch experience with global extensibility. HOMIO should feel immediately familiar to an Indian property-search user, but the visual system, wording, interaction details, component implementation, media, information presentation and product identity remain independently authored by HOMIO.",
+"reference_strategy": "Use Magicbricks and other established Indian real-estate marketplace patterns as functional UX references only. Reproduce useful task flows and information hierarchy, not proprietary implementation, distinctive visual trade dress, text, logos, icons, screenshots, listings, user data or unlicensed media.",
 "authority": {
-"frontend_blueprint": "REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json remains the canonical frontend experience and UX boundary.",
-"this_plan": "This document is the canonical frontend coding execution plan and module registry. It does not become a second architecture.",
 "master_architecture": "REOS_CONTROL_CENTER/architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json remains the canonical overall architecture and business authority.",
+"frontend_blueprint": "REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json remains the canonical frontend experience and UX architecture boundary.",
+"this_plan": "This document is the canonical frontend coding execution plan, module registry, UI/UX execution registry and delivery sequence. It does not become a second architecture.",
 "project_state": "REOS_CONTROL_CENTER/data/state.json remains the canonical project-state and execution-state authority.",
-"code": "Git branch and implementation workspaces remain the canonical code reference.",
+"code": "Git branch and implementation workspaces remain the canonical implementation reference.",
 "acrl": "ACRL remains an engineering-time continuity, repository-intelligence, impact-analysis, diagnosis, repair and verification boundary. It is not a frontend runtime dependency.",
-"control_center": "Control Center remains authoritative for project execution, verification and approval state.",
+"control_center": "REOS Control Center remains authoritative for project execution, verification and approval state.",
 "chat": "Chat is communication only and never becomes project state."
+}
 },
+
 "implementation_boundary": {
 "production_frontend_root": "REOS_CONTROL_CENTER/Frontend",
 "engineering_worktree": "D:\HOMIO_FRONTEND_WORK",
 "engineering_branch": "frontend-development",
 "canonical_integration_branch": "reos-development",
 "prototype": "REOS_CONTROL_CENTER/Frontend/index.html",
-"prototype_role": "Visual and interaction reference only. It is not production architecture or canonical business data.",
-"approved_runtime": "ARCH-038 approved Next.js, React, TypeScript and Node.js stack."
-}
+"prototype_role": "Visual and interaction reference only. It is not production architecture, canonical business data or a source of business truth.",
+"approved_runtime": "ARCH-038 approved Next.js, React, TypeScript and Node.js stack.",
+"runtime_boundary": "The browser consumes approved presentation-ready capabilities and does not read Control Center state, master architecture documents, ACRL repositories or backend source files directly."
 },
 
 "execution_invariants": {
@@ -45,7 +49,453 @@
 "frontend_does_not_use_master_architecture_json_as_runtime_data": true,
 "frontend_does_not_invent_unverified_api_contracts": true,
 "frontend_does_not_store_canonical_business_truth_in_browser_state": true,
-"frontend_must_fail_safely_on_unknown_capability": true
+"frontend_must_fail_safely_on_unknown_capability": true,
+"frontend_must_prefer_progressive_disclosure": true,
+"frontend_must_preserve_search_context": true,
+"frontend_must_support_india_first_property_search_patterns": true,
+"frontend_must_keep_brand_and_visual_identity_independently_authored": true,
+"frontend_must_use_owned_or_licensed_media": true
+},
+
+"india_marketplace_reference_architecture": {
+"status": "APPROVED_FRONTEND_PRODUCT_REFERENCE",
+"change_class": "experience_shared",
+"architecture_impact": "No change to Master Architecture business authority, tenant authority, governance authority, REOS ownership model or Control Center authority.",
+"reference_basis": [
+"India-first property marketplace discovery",
+"Buy and Rent intent selection",
+"New Projects discovery",
+"Commercial discovery",
+"PG and Plot discovery",
+"City, locality, project and landmark search",
+"Property type and BHK selection",
+"Budget and area filtering",
+"Search results with property cards",
+"Project and property grouping",
+"Owner and professional discovery",
+"Fresh and availability-oriented discovery",
+"Save and compare",
+"Locality and market exploration",
+"Property tools and advice",
+"Post-property entry for authorized professional flows"
+],
+"allowed_inspiration": [
+"search-first homepage",
+"intent tabs",
+"location/project/landmark search",
+"property type filters",
+"BHK filters",
+"budget controls",
+"area controls",
+"search result cards",
+"project cards",
+"property detail hierarchy",
+"save and compare controls",
+"locality and market discovery",
+"tool and advice discovery",
+"professional property submission entry",
+"responsive filter drawer",
+"mobile sticky action behavior"
+],
+"forbidden_copying": [
+"pixel-for-pixel visual cloning",
+"proprietary HTML",
+"proprietary CSS",
+"proprietary JavaScript",
+"distinctive page composition copied without independent design treatment",
+"Magicbricks logos",
+"Magicbricks brand marks",
+"Magicbricks proprietary text or marketing copy",
+"Magicbricks screenshots",
+"Magicbricks listing data",
+"scraped user data",
+"scraped property media",
+"third-party media without confirmed rights"
+],
+"homio_ownership": [
+"HOMIO brand identity",
+"HOMIO design tokens",
+"HOMIO component implementation",
+"HOMIO navigation wording",
+"HOMIO page composition",
+"HOMIO illustrations",
+"HOMIO icons or licensed icon library",
+"HOMIO property and project imagery",
+"HOMIO microcopy",
+"HOMIO interaction states",
+"HOMIO animation language",
+"HOMIO accessibility implementation"
+],
+"india_first_navigation": [
+"Buy",
+"Rent",
+"New Projects",
+"Commercial",
+"Saved",
+"My HOMIO"
+],
+"secondary_discovery": [
+"PG",
+"Plot",
+"Land",
+"Localities",
+"Projects",
+"Market",
+"Tools",
+"Advice"
+]
+},
+
+"product_information_architecture": {
+"homepage": {
+"purpose": "Get the user into a useful property search within one screen.",
+"primary_navigation": [
+"Buy",
+"Rent",
+"New Projects",
+"Commercial",
+"Saved",
+"My HOMIO"
+],
+"secondary_navigation": [
+"PG",
+"Plot",
+"Localities",
+"Projects",
+"Tools",
+"Advice"
+],
+"hero_sequence": [
+"intent selection",
+"location/project search",
+"property type",
+"budget",
+"primary search action"
+],
+"search_fields": [
+"City",
+"Locality",
+"Project",
+"Landmark"
+],
+"quick_filters": [
+"Property Type",
+"BHK",
+"Budget",
+"Area",
+"Availability"
+],
+"discovery_sections": [
+"Popular Cities",
+"Featured Projects",
+"Fresh Properties",
+"Owner Properties",
+"Verified Properties",
+"Popular Localities",
+"Residential Collections",
+"Commercial Collections",
+"Plot and Land Collections",
+"Tools and Advice",
+"Property News and Insights",
+"Post Property"
+],
+"homepage_rule": "The homepage must never feel like an architectural dashboard. It should feel like a simple consumer real-estate marketplace."
+},
+
+```
+"search": {
+  "primary_route": "/search",
+  "desktop_layout": [
+    "global header",
+    "search intent bar",
+    "location/project search",
+    "filter rail",
+    "result summary",
+    "sort and view controls",
+    "result list or grid",
+    "optional map/context panel"
+  ],
+  "mobile_layout": [
+    "compact header",
+    "sticky search",
+    "horizontal quick filters",
+    "single-column results",
+    "bottom-sheet advanced filters",
+    "sticky sort/filter action",
+    "preserved search context"
+  ],
+  "filter_groups": [
+    "Buy or Rent",
+    "City",
+    "Locality",
+    "Project or Builder",
+    "Property Type",
+    "BHK",
+    "Budget",
+    "Area",
+    "Furnishing",
+    "Availability",
+    "Possession or Ready to Move",
+    "Posted or Freshness",
+    "Verified attributes",
+    "Developer or Owner",
+    "Commercial subtype",
+    "Plot or Land subtype"
+  ],
+  "result_card_priority": [
+    "property image",
+    "listing or property type",
+    "BHK or key category facts",
+    "price or rental terms",
+    "area",
+    "locality",
+    "availability",
+    "trust/freshness signal",
+    "save",
+    "compare",
+    "open details"
+  ],
+  "result_behaviors": [
+    "fast scan",
+    "clear price hierarchy",
+    "clear locality hierarchy",
+    "one-tap save",
+    "one-tap compare",
+    "open full detail",
+    "preserve filters on return",
+    "safe empty state",
+    "safe loading state",
+    "safe error state"
+  ],
+  "search_rules": [
+    "Search uses verified REOS capability.",
+    "Frontend does not score or rank canonical inventory itself.",
+    "Frontend may request approved sort or ranking modes but does not implement the search engine.",
+    "Every filter shown in production must map to a verified capability.",
+    "Unavailable filters are hidden or explicitly marked unavailable rather than simulated."
+  ]
+},
+
+"property_detail": {
+  "route": "/property/[propertyId]",
+  "section_order": [
+    "media gallery",
+    "title and location",
+    "price and core commercial terms",
+    "BHK/type/area facts",
+    "availability",
+    "trust and verification context",
+    "key amenities or features",
+    "description",
+    "location and locality context",
+    "project context when applicable",
+    "similar properties",
+    "save/compare",
+    "enquiry",
+    "visit",
+    "AI assistance"
+  ],
+  "mobile_priority": [
+    "image",
+    "price",
+    "type and BHK",
+    "area",
+    "location",
+    "primary action",
+    "save",
+    "compare"
+  ],
+  "detail_rule": "Property detail should answer what it is, where it is, what it costs, what evidence is available, and what the user can do next."
+},
+
+"project_detail": {
+  "route": "/project/[projectId]",
+  "section_order": [
+    "project identity",
+    "hero media",
+    "location",
+    "project facts",
+    "price range where verified",
+    "unit or inventory summary",
+    "configuration",
+    "amenities",
+    "builder/developer context",
+    "availability",
+    "project media",
+    "related properties",
+    "similar projects",
+    "locality context",
+    "enquiry",
+    "visit"
+  ]
+},
+
+"market_and_locality": {
+  "route": "/market/[marketId]",
+  "sections": [
+    "market identity",
+    "locality overview",
+    "property discovery",
+    "popular configurations",
+    "verified pricing information where available",
+    "nearby localities",
+    "projects",
+    "properties",
+    "market trends",
+    "tools",
+    "guides"
+  ],
+  "rule": "Market information is display-only unless supplied by an authoritative REOS capability."
+},
+
+"saved_and_compare": {
+  "saved_route": "/saved",
+  "compare_route": "/compare",
+  "saved_sections": [
+    "saved properties",
+    "saved projects",
+    "saved searches where capability exists",
+    "recently viewed",
+    "continue discovery"
+  ],
+  "compare_sections": [
+    "selected properties",
+    "price",
+    "area",
+    "BHK/type",
+    "location",
+    "availability",
+    "key amenities",
+    "project context",
+    "trust/freshness signals",
+    "next actions"
+  ]
+},
+
+"my_homio": {
+  "route": "/my",
+  "purpose": "One simple place to continue the user's real-estate journey.",
+  "sections": [
+    "continue where you left off",
+    "saved",
+    "recently viewed",
+    "saved searches",
+    "compare",
+    "enquiries",
+    "visits",
+    "conversations",
+    "transaction references"
+  ],
+  "rule": "My HOMIO aggregates canonical references. It does not create a second user-business database."
+},
+
+"tools_and_advice": {
+  "purpose": "Expose useful decision-support utilities without turning the homepage into a cluttered portal.",
+  "tool_types": [
+    "EMI calculator",
+    "home-loan discovery",
+    "property affordability helper",
+    "interiors budget helper",
+    "property valuation information",
+    "property rates and trends",
+    "locality insights",
+    "research reports",
+    "legal and process guides"
+  ],
+  "placement_rule": "Tools and advice remain secondary to discovery and search on the consumer journey."
+},
+
+"professional_surface": {
+  "routes": [
+    "/pro",
+    "/pro/leads",
+    "/pro/inventory",
+    "/pro/communications",
+    "/pro/deals"
+  ],
+  "purpose": "Role-aware professional SaaS experience over existing REOS authorities.",
+  "professional_navigation": [
+    "Dashboard",
+    "Leads",
+    "Inventory",
+    "Communications",
+    "Deals",
+    "Performance",
+    "Profile"
+  ],
+  "rule": "Professional navigation is role-aware and capability-driven; it does not duplicate backend domain engines."
+}
+```
+
+},
+
+"visual_ux_system": {
+"product_character": [
+"simple",
+"familiar",
+"clean",
+"high-trust",
+"India-first",
+"mobile-friendly",
+"search-first",
+"information-dense without visual overload",
+"professional but consumer-friendly"
+],
+"design_direction": {
+"surface": "Light-first SaaS marketplace interface.",
+"primary_accent": "HOMIO-owned brand accent.",
+"backgrounds": "White and soft neutral surfaces.",
+"cards": "Clear bordered or softly elevated cards with restrained radius.",
+"typography": "Highly readable sans-serif hierarchy.",
+"buttons": "Clear primary, secondary and tertiary hierarchy.",
+"icons": "HOMIO-owned or properly licensed icon system.",
+"imagery": "Owned, commissioned or properly licensed property and city imagery.",
+"density": "Medium information density on desktop; simplified density on mobile."
+},
+"layout_rules": [
+"One clear primary task per page.",
+"Search remains visually dominant on discovery screens.",
+"Primary CTA is visually stronger than secondary actions.",
+"Cards prioritize scanability.",
+"Use whitespace to separate journeys, not to create unnecessary luxury styling.",
+"Do not reproduce another marketplace's exact spacing or composition.",
+"Responsive layout changes interaction model, not only width.",
+"Do not hide important property facts behind decorative UI."
+],
+"micro_interactions": [
+"button pending states",
+"save confirmation",
+"compare confirmation",
+"filter applied feedback",
+"search loading",
+"image loading",
+"empty state recovery",
+"error recovery",
+"visit submission state",
+"enquiry submission state"
+]
+},
+
+"media_governance": {
+"allowed_media": [
+"HOMIO-owned imagery",
+"commissioned photography",
+"properly licensed stock imagery",
+"builder-provided media with documented rights",
+"licensed video",
+"licensed floorplans",
+"licensed virtual-tour assets"
+],
+"forbidden_media": [
+"scraped Magicbricks images",
+"Magicbricks screenshots",
+"unlicensed property listing images",
+"copied marketplace banners",
+"copied logos",
+"copied proprietary illustrations"
+],
+"remote_image_rule": "Remote URLs may only be used when their licensing and production suitability are known and approved.",
+"fallback_behavior": "If valid media is unavailable, render a controlled HOMIO placeholder rather than inventing or borrowing imagery."
 },
 
 "production_structure": {
@@ -83,11 +533,13 @@
 "src/components/search",
 "src/components/property",
 "src/components/project",
+"src/components/market",
 "src/components/compare",
 "src/components/journey",
 "src/components/ai",
 "src/components/action",
-"src/components/professional"
+"src/components/professional",
+"src/components/tools"
 ],
 "features": [
 "src/features/f01_experience_foundation",
@@ -125,45 +577,54 @@
 "src/tests/accessibility",
 "src/tests/visual"
 ]
-}
+},
+"module_rule": "One named production module maps to one source file for F01-F13 unless an explicit framework/config/test/generated-file exception exists."
 },
 
 "shared_modules": {
 "SH01": {
-"name": "App Shell",
-"purpose": "Global visual and responsive application frame.",
+"name": "Marketplace App Shell",
+"purpose": "Global consumer marketplace frame.",
 "modules": [
 "AppShell",
 "Header",
-"ContextBar",
-"ResponsiveNavigation",
+"PrimaryNavigation",
+"LocationContext",
 "PageContainer",
+"ResponsiveNavigation",
 "GlobalActionLayer"
 ],
 "owns": [
 "layout composition",
+"navigation placement",
 "responsive shell",
-"global navigation placement"
+"global UI state"
 ],
 "must_not_own": [
 "business decisions",
-"domain lifecycle",
-"canonical business state"
+"canonical inventory",
+"canonical ownership",
+"canonical transactions"
 ]
 },
 "SH02": {
 "name": "Design System",
-"purpose": "Reusable visual primitives and accessibility-safe UI building blocks.",
+"purpose": "Reusable visual primitives and accessibility-safe UI components.",
 "modules": [
 "Button",
+"IconButton",
 "Input",
 "SearchField",
 "Select",
+"Checkbox",
+"Radio",
+"Range",
 "Chip",
 "Badge",
 "Card",
 "PropertyCard",
 "ProjectCard",
+"MarketCard",
 "Avatar",
 "Tabs",
 "Modal",
@@ -177,19 +638,39 @@
 ]
 },
 "SH03": {
+"name": "Search and Filter UI",
+"purpose": "Presentation and interaction primitives for marketplace search.",
+"modules": [
+"SearchBar",
+"SearchIntentTabs",
+"LocationSelector",
+"PropertyTypeSelector",
+"BHKSelector",
+"BudgetSelector",
+"AreaSelector",
+"FilterChipBar",
+"FilterPanel",
+"FilterDrawer",
+"SortControl",
+"ViewModeControl",
+"AppliedFilters",
+"FilterSummary"
+],
+"rule": "These are UI modules only. Search computation remains REOS-owned."
+},
+"SH04": {
 "name": "Navigation and Routing",
 "purpose": "Route composition, deep linking and safe context preservation.",
 "modules": [
 "RouteRegistry",
-"RouteGuardAdapter",
 "DeepLinkResolver",
 "ReturnContext",
 "SearchContextSerializer",
 "NavigationContext"
 ],
-"boundary": "Authorization remains server-side; these modules only integrate with approved authorization/session capabilities."
+"boundary": "Authorization remains server-side."
 },
-"SH04": {
+"SH05": {
 "name": "Frontend State",
 "purpose": "UI and journey state only.",
 "modules": [
@@ -198,7 +679,8 @@
 "JourneyViewState",
 "NavigationViewState",
 "AIContextViewState",
-"NotificationViewState"
+"NotificationViewState",
+"FilterViewState"
 ],
 "forbidden": [
 "canonical ownership state",
@@ -208,21 +690,22 @@
 "canonical inventory authority"
 ]
 },
-"SH05": {
+"SH06": {
 "name": "REOS Binding Layer",
 "purpose": "Controlled frontend consumption of verified REOS capabilities.",
 "modules": [
-"REOS capability registry",
-"typed binding adapters",
-"response normalization adapters",
-"capability availability guards",
-"provenance/freshness adapters"
+"REOSCapabilityRegistry",
+"TypedBindingAdapters",
+"ResponseNormalizationAdapters",
+"CapabilityAvailabilityGuards",
+"ProvenanceAdapter",
+"FreshnessAdapter"
 ],
-"rule": "No adapter may invent a backend contract. Every production binding must reference a verified REOS capability."
+"rule": "No adapter may invent a backend contract."
 },
-"SH06": {
-"name": "Security and Session Integration",
-"purpose": "Frontend-facing session and authorization integration.",
+"SH07": {
+"name": "Security and Session",
+"purpose": "Frontend-facing session integration.",
 "modules": [
 "SessionContext",
 "ProtectedRouteBoundary",
@@ -230,11 +713,11 @@
 "SessionExpiryRecovery",
 "SafeActionBoundary"
 ],
-"rule": "Frontend visibility is never the authorization authority."
+"rule": "Frontend visibility is never authorization authority."
 },
-"SH07": {
+"SH08": {
 "name": "Media",
-"purpose": "Safe property/project media rendering.",
+"purpose": "Safe responsive property and project media rendering.",
 "modules": [
 "ImageGallery",
 "ResponsiveMedia",
@@ -245,7 +728,7 @@
 "MediaFailureState"
 ]
 },
-"SH08": {
+"SH09": {
 "name": "Formatting",
 "purpose": "Display-only formatting of canonical data.",
 "modules": [
@@ -256,21 +739,25 @@
 "PropertyFactFormatter",
 "StatusFormatter"
 ],
-"rule": "Formatting must never change canonical business meaning."
-},
-"SH09": {
-"name": "Observability",
-"purpose": "Frontend telemetry and diagnostics without becoming business truth.",
-"modules": [
-"ExperienceEventEmitter",
-"ErrorReporterAdapter",
-"PerformanceReporter",
-"NavigationTelemetry"
-]
+"rule": "Formatting never changes canonical business meaning."
 },
 "SH10": {
+"name": "Tools and Advice UI",
+"purpose": "Reusable consumer-facing decision-support surfaces.",
+"modules": [
+"ToolCard",
+"EMICalculator",
+"AffordabilitySummary",
+"RateTrendCard",
+"ResearchCard",
+"AdviceCard",
+"GuideCard"
+],
+"rule": "Calculators may be display or interaction helpers only unless an approved REOS capability owns the canonical financial calculation."
+},
+"SH11": {
 "name": "Accessibility",
-"purpose": "Cross-product accessibility utilities and conventions.",
+"purpose": "Cross-product accessibility utilities.",
 "modules": [
 "FocusBoundary",
 "KeyboardNavigation",
@@ -279,38 +766,64 @@
 "AriaStateHelpers",
 "ReducedMotion"
 ]
+},
+"SH12": {
+"name": "Observability",
+"purpose": "Frontend telemetry and diagnostics without becoming business truth.",
+"modules": [
+"ExperienceEventEmitter",
+"ErrorReporterAdapter",
+"PerformanceReporter",
+"NavigationTelemetry"
+]
 }
 },
 
 "f_layer_execution": {
 "F01": {
-"name": "HOMIO Experience Foundation",
-"goal": "Build the production frontend shell, runtime foundation, design system, responsive structure, routing foundation and shared primitives.",
+"name": "HOMIO Marketplace Experience Foundation",
+"goal": "Build the India-first production marketplace shell, brand system, navigation, responsive primitives and reusable search UI foundation.",
 "primary_routes": [
 "/"
 ],
 "modules": [
 "AppShell",
 "Header",
-"GlobalSearch",
+"PrimaryNavigation",
+"LocationContext",
+"SearchBar",
+"IntentTabs",
 "ResponsiveNavigation",
-"ContextBar",
 "PageContainer",
-"Breadcrumbs",
-"Toast",
-"Modal",
-"Drawer",
+"FilterChip",
 "BottomSheet",
+"Drawer",
 "Skeleton",
 "EmptyState",
 "ErrorState",
 "GlobalActionLayer"
 ],
+"navigation": [
+"Buy",
+"Rent",
+"New Projects",
+"Commercial",
+"Saved",
+"My HOMIO"
+],
+"secondary_navigation": [
+"PG",
+"Plot",
+"Localities",
+"Projects",
+"Tools",
+"Advice"
+],
 "engineering_modules": [
 "Next.js App Router foundation",
 "root layout",
 "providers",
-"theme/tokens",
+"HOMIO design tokens",
 "global styles",
 "responsive breakpoints",
 "error boundaries",
@@ -318,89 +831,182 @@
 ],
 "depends_on": [],
 "outputs": [
-"production frontend shell",
-"shared design primitives",
+"production marketplace shell",
+"India-first design system baseline",
 "responsive foundation",
-"route foundation",
+"navigation foundation",
+"search primitive foundation",
 "test harness"
 ],
 "verification": [
-"type check",
+"strict TypeScript check",
 "lint",
 "unit tests",
-"responsive checks",
-"accessibility checks",
+"responsive desktop check",
+"responsive tablet check",
+"responsive mobile check",
+"accessibility check",
 "production build"
 ],
 "done_when": [
-"Production app starts.",
-"Global shell works on desktop/tablet/mobile.",
-"Shared primitives are reusable.",
-"No prototype monolith is carried into production architecture.",
-"No business engine exists in frontend foundation."
+"The application starts as a clean property marketplace.",
+"Primary property-search intents are immediately visible.",
+"Shell works on desktop, tablet and mobile.",
+"The design is independently authored by HOMIO.",
+"No business engine exists in F01."
 ]
 },
 
 ```
 "F02": {
-  "name": "Global HOMIO Home and Discovery",
-  "goal": "Create the first useful entry into HOMIO and start a real discovery journey.",
+  "name": "Home and Property Discovery",
+  "goal": "Create a familiar India-first property marketplace homepage that gets users into search quickly.",
   "primary_routes": [
     "/"
   ],
   "modules": [
     "HomeHero",
-    "IntentSearch",
-    "CategorySelector",
-    "MarketCard",
+    "IntentTabs",
+    "LocationSearch",
+    "PropertyTypeSelector",
+    "BHKSelector",
+    "BudgetSelector",
+    "AreaSelector",
+    "SearchCTA",
+    "PopularCityCard",
+    "FeaturedProjectCard",
     "PropertyCard",
-    "ProjectCard",
-    "FeaturedDiscovery",
-    "ContinueJourneyCard",
-    "TrustSignal"
+    "OwnerPropertyCard",
+    "VerifiedPropertyCard",
+    "FreshPropertyCard",
+    "LocalityCard",
+    "ToolCard",
+    "AdviceCard",
+    "PostPropertyEntry"
+  ],
+  "home_sections": [
+    "search hero",
+    "popular cities",
+    "featured projects",
+    "fresh properties",
+    "owner properties",
+    "verified properties",
+    "popular localities",
+    "residential collections",
+    "commercial collections",
+    "plot and land collections",
+    "tools and advice",
+    "research and insights",
+    "post property"
+  ],
+  "search_entry": [
+    "Buy",
+    "Rent",
+    "New Projects",
+    "Commercial",
+    "PG",
+    "Plot"
   ],
   "depends_on": [
     "F01"
   ],
   "REOS_bindings": [
     "verified discovery capabilities",
-    "verified market/property/project presentation capabilities",
-    "verified journey continuation capability where available"
+    "verified market/property/project presentation capabilities"
   ],
   "forbidden": [
     "hardcoded canonical inventory",
-    "fake market statistics",
-    "frontend recommendation engine"
+    "fake property statistics",
+    "frontend recommendation engine",
+    "invented availability",
+    "fake verified badges"
   ],
   "done_when": [
-    "First-time user can start a useful search immediately.",
-    "Returning user can resume meaningful activity.",
-    "Home remains data-driven.",
+    "First-time user can begin search immediately.",
+    "Returning user can access meaningful continuation where approved.",
+    "Home is data-driven.",
+    "Discovery sections remain visually subordinate to the primary search.",
     "No mock business truth is shipped."
   ]
 },
 
 "F03": {
-  "name": "Search Experience",
-  "goal": "Provide simple, powerful search while preserving context.",
+  "name": "Marketplace Search and Results",
+  "goal": "Provide the primary property-search experience with familiar filters and highly scannable results.",
   "primary_routes": [
     "/search"
   ],
   "modules": [
     "SearchPage",
-    "SearchBar",
-    "IntentParserAdapter",
     "SearchToolbar",
+    "SearchBar",
+    "SearchIntentTabs",
+    "LocationSelector",
     "FilterPanel",
     "FilterDrawer",
+    "PropertyTypeFilter",
+    "BHKFilter",
+    "BudgetFilter",
+    "AreaFilter",
+    "AvailabilityFilter",
+    "ResultSummary",
     "ResultGrid",
     "ResultList",
     "PropertyCard",
     "ProjectCard",
-    "MapContext",
     "SortControl",
-    "SearchContext",
-    "SaveSearchAction"
+    "ViewModeControl",
+    "MapContext",
+    "SaveSearchAction",
+    "AppliedFilters"
+  ],
+  "desktop_model": [
+    "top search bar",
+    "intent tabs",
+    "left filter rail",
+    "result summary",
+    "sort/view controls",
+    "results area",
+    "optional map context"
+  ],
+  "mobile_model": [
+    "compact search bar",
+    "sticky quick filters",
+    "single-column results",
+    "bottom-sheet advanced filters",
+    "sticky sort/filter actions"
+  ],
+  "filters": [
+    "Buy/Rent",
+    "City",
+    "Locality",
+    "Project",
+    "Builder",
+    "Property Type",
+    "BHK",
+    "Budget",
+    "Area",
+    "Furnishing",
+    "Availability",
+    "Ready to Move",
+    "Possession",
+    "Developer/Owner",
+    "Verified attributes",
+    "Commercial type",
+    "Plot/Land type"
+  ],
+  "card_priority": [
+    "image",
+    "type",
+    "BHK",
+    "price",
+    "area",
+    "locality",
+    "availability",
+    "trust/freshness",
+    "save",
+    "compare",
+    "details"
   ],
   "depends_on": [
     "F01",
@@ -408,27 +1014,21 @@
   ],
   "REOS_bindings": [
     "CORE-005 search/matching capability",
-    "verified location/search contracts"
-  ],
-  "state": [
-    "search intent",
-    "filters",
-    "sort",
-    "selected result",
-    "map viewport when relevant",
-    "return point"
+    "verified location/search contracts",
+    "verified inventory presentation capability"
   ],
   "done_when": [
-    "Useful results appear from verified REOS capability.",
-    "Search context survives property navigation.",
-    "Desktop/tablet/mobile search behavior is intentional.",
+    "Verified search results appear.",
+    "Filters map to verified capability.",
+    "Search context survives navigation.",
+    "Desktop/tablet/mobile behavior is deliberate.",
     "No frontend search engine is created."
   ]
 },
 
 "F04": {
-  "name": "Property Experience",
-  "goal": "Turn canonical property data into a deep but easy-to-understand decision experience.",
+  "name": "Property Detail Experience",
+  "goal": "Turn canonical property information into an easy decision experience.",
   "primary_routes": [
     "/property/[propertyId]"
   ],
@@ -441,9 +1041,30 @@
     "PropertyLocation",
     "PropertyProjectContext",
     "PropertyTrustContext",
-    "PropertyAIContext",
     "PropertyActions",
-    "SimilarProperties"
+    "SimilarProperties",
+    "PropertyTools",
+    "EnquiryEntry",
+    "VisitEntry",
+    "AIEntry"
+  ],
+  "section_order": [
+    "gallery",
+    "title/location",
+    "price",
+    "BHK/type/area",
+    "availability",
+    "trust",
+    "amenities/features",
+    "description",
+    "location",
+    "project context",
+    "similar properties",
+    "save",
+    "compare",
+    "enquiry",
+    "visit",
+    "AI"
   ],
   "depends_on": [
     "F03"
@@ -454,16 +1075,16 @@
     "verified trust/evidence presentation capability"
   ],
   "done_when": [
-    "Property information is canonical and current.",
+    "Property facts are canonical.",
     "Media works responsively.",
-    "Save/compare/action entry points exist.",
-    "Trust/evidence information is presented without becoming frontend authority."
+    "Save and compare entry points exist.",
+    "Trust information is presented without becoming frontend authority."
   ]
 },
 
 "F05": {
-  "name": "Project and Collection Experience",
-  "goal": "Connect individual property discovery to project-level and collection-level exploration.",
+  "name": "Projects, Collections and Localities",
+  "goal": "Connect property discovery to projects, collections, localities and market context.",
   "primary_routes": [
     "/project/[projectId]",
     "/market/[marketId]"
@@ -478,7 +1099,12 @@
     "ProjectAmenities",
     "ProjectInventoryGrid",
     "RelatedProjects",
-    "MarketContext"
+    "MarketContext",
+    "LocalityOverview",
+    "LocalityPropertyRail",
+    "LocalityProjectRail",
+    "MarketTools",
+    "MarketInsights"
   ],
   "depends_on": [
     "F03",
@@ -492,13 +1118,14 @@
   "done_when": [
     "Project and property navigation is seamless.",
     "Inventory is canonical.",
-    "Project context does not create duplicate inventory ownership."
+    "Locality and market content is traceable to approved capabilities.",
+    "No duplicate inventory ownership is introduced."
   ]
 },
 
 "F06": {
-  "name": "Save, Compare and Return",
-  "goal": "Help users organize decisions without turning comparison into a database dump.",
+  "name": "Save, Compare and Search Continuity",
+  "goal": "Help users organize property decisions and return to active search context.",
   "primary_routes": [
     "/saved",
     "/compare"
@@ -506,12 +1133,25 @@
   "modules": [
     "SaveAction",
     "SavedCollection",
+    "SavedSearches",
     "CompareSelector",
     "CompareTable",
     "CompareCard",
     "ComparisonGroup",
     "DecisionSummary",
-    "ReturnToContext"
+    "ReturnToSearch",
+    "ContinueDiscovery"
+  ],
+  "compare_attributes": [
+    "price",
+    "area",
+    "BHK/type",
+    "locality",
+    "availability",
+    "project",
+    "amenities",
+    "trust/freshness",
+    "next action"
   ],
   "depends_on": [
     "F03",
@@ -522,22 +1162,17 @@
     "verified saved-state capability",
     "verified comparison-capable data"
   ],
-  "state": [
-    "saved items",
-    "compare set",
-    "return context"
-  ],
   "done_when": [
-    "Saving is simple.",
-    "Comparison focuses on meaningful decision attributes.",
-    "Signed-in state can persist through approved REOS capabilities.",
-    "No business ownership or inventory logic is duplicated."
+    "Save is one-step and understandable.",
+    "Compare focuses on meaningful property attributes.",
+    "Search context is preserved.",
+    "No ownership or inventory logic is duplicated."
   ]
 },
 
 "F07": {
-  "name": "My HOMIO Journey",
-  "goal": "Give users one place to resume meaningful real-estate activity.",
+  "name": "My HOMIO",
+  "goal": "Give users one simple place to resume their real-estate journey.",
   "primary_routes": [
     "/my"
   ],
@@ -546,11 +1181,13 @@
     "ContinueJourney",
     "RecentlyViewed",
     "SavedProperties",
+    "SavedProjects",
     "SavedSearches",
     "CompareResume",
     "PendingActions",
     "UpcomingVisit",
     "ActiveConversation",
+    "TransactionReference",
     "JourneyTimeline"
   ],
   "depends_on": [
@@ -560,17 +1197,17 @@
     "verified customer/journey capability",
     "verified saved/visit/enquiry/deal references"
   ],
-  "rule": "My HOMIO aggregates authorized references; it does not become a second business-state database.",
+  "rule": "My HOMIO aggregates authorized references and never becomes a second business-state database.",
   "done_when": [
     "User can resume prior activity.",
     "Journey state is traceable to canonical capabilities.",
-    "No frontend database becomes the source of truth."
+    "The frontend does not become the source of truth."
   ]
 },
 
 "F08": {
   "name": "Contextual AI",
-  "goal": "Provide grounded AI assistance inside the user's current real-estate context.",
+  "goal": "Provide grounded AI assistance inside property, search and comparison contexts.",
   "primary_routes": [
     "/ai"
   ],
@@ -582,6 +1219,7 @@
     "PropertyQuestionPanel",
     "ComparisonExplanation",
     "SearchRefinementAssistant",
+    "LocalityExplanation",
     "AIActionSuggestion"
   ],
   "depends_on": [
@@ -595,15 +1233,17 @@
     "verified property/search/comparison context"
   ],
   "forbidden": [
-    "AI making final authorization decisions",
     "AI inventing property facts",
-    "AI creating canonical deal/ownership/financial state",
-    "AI replacing normal UI where normal UI is safer or simpler"
+    "AI inventing availability",
+    "AI overriding REOS authorization",
+    "AI creating canonical ownership state",
+    "AI creating canonical transaction state",
+    "AI replacing a safer standard UI action"
   ],
   "done_when": [
-    "AI remains contextual.",
-    "Grounding/source context is preserved where available.",
-    "Unavailable actions are not falsely claimed.",
+    "AI is contextual.",
+    "Grounding information is preserved where available.",
+    "Unavailable capabilities are represented honestly.",
     "AI cannot override REOS authority."
   ]
 },
@@ -638,8 +1278,9 @@
   "rule": "Frontend initiates authorized actions and displays authoritative results. It does not own lead, visit or communication truth.",
   "done_when": [
     "Enquiry flow is clear.",
-    "Visit flow handles loading, confirmation, failure and authorization.",
-    "Duplicate submissions are prevented where appropriate."
+    "Visit flow has loading, success, error and unauthorized states.",
+    "Duplicate submissions are prevented where appropriate.",
+    "User always knows what happens next."
   ]
 },
 
@@ -678,13 +1319,13 @@
   "done_when": [
     "Authorized transaction state is clearly displayed.",
     "Milestones and next actions are grounded in REOS.",
-    "Historical/evidence references are presented safely."
+    "Evidence references are presented safely."
   ]
 },
 
 "F11": {
   "name": "Professional SaaS",
-  "goal": "Provide role-appropriate professional workspaces without creating a second platform architecture.",
+  "goal": "Provide role-appropriate professional workspaces over existing REOS authorities.",
   "primary_routes": [
     "/pro",
     "/pro/leads",
@@ -695,13 +1336,23 @@
   "modules": [
     "ProfessionalShell",
     "RoleContext",
+    "ProfessionalDashboard",
     "LeadWorkspace",
     "InventoryWorkspace",
     "CommunicationWorkspace",
     "DealWorkspace",
-    "ProfessionalDashboard",
     "ProfessionalFilters",
-    "ProfessionalActionBar"
+    "ProfessionalActionBar",
+    "ProfessionalEmptyState"
+  ],
+  "navigation": [
+    "Dashboard",
+    "Leads",
+    "Inventory",
+    "Communications",
+    "Deals",
+    "Performance",
+    "Profile"
   ],
   "depends_on": [
     "F01",
@@ -715,9 +1366,9 @@
     "CORE-004 inventory authority",
     "CORE-006 deal authority",
     "CORE-007 governance/trust capability",
-    "future CORE-008 financial/commission capability where verified"
+    "CORE-008 financial/commission capability when verified"
   ],
-  "rule": "Professional SaaS is a frontend experience layer over existing authorities, never an additional domain engine.",
+  "rule": "Professional SaaS is an experience layer, never an additional domain engine.",
   "done_when": [
     "Role-aware workspace exists.",
     "Authorization is server authoritative.",
@@ -726,8 +1377,8 @@
 },
 
 "F12": {
-  "name": "Globalization and International Experience",
-  "goal": "Prepare HOMIO for multi-market, multilingual and localized real-estate experiences.",
+  "name": "Globalization and International Expansion",
+  "goal": "Prepare the frontend for multiple countries, currencies, languages, units and local market conventions without breaking the India-first product.",
   "primary_routes": [
     "locale-prefixed public routes where approved",
     "market-aware discovery routes"
@@ -759,13 +1410,14 @@
   "done_when": [
     "Locale display is consistent.",
     "Market-specific presentation is configurable.",
-    "Canonical business rules remain in authoritative REOS capabilities."
+    "India remains a first-class launch market.",
+    "Canonical business rules remain in REOS."
   ]
 },
 
 "F13": {
   "name": "Production Quality and Launch Readiness",
-  "goal": "Turn the completed experience layer into a measurable production-quality frontend.",
+  "goal": "Make the complete HOMIO marketplace frontend production-safe, responsive, accessible, measurable and maintainable.",
   "modules": [
     "PerformanceBudget",
     "ImageOptimization",
@@ -803,32 +1455,501 @@
     "critical E2E",
     "performance",
     "security",
+    "SEO",
     "production build"
   ],
-  "critical_journey": [
+  "critical_consumer_journey": [
     "Open HOMIO",
-    "Start search",
-    "View results",
+    "Choose Buy or Rent",
+    "Select city/location",
+    "Set property type or BHK",
+    "Set budget",
+    "Search",
+    "Apply additional filters",
+    "Scan results",
     "Open property",
     "Save",
-    "Explore similar",
     "Compare",
+    "Explore project/locality context",
     "Ask HOMIO",
     "Start enquiry or visit",
     "Open My HOMIO",
     "Return and resume"
   ],
+  "critical_professional_journey": [
+    "Open professional workspace",
+    "Authenticate",
+    "View dashboard",
+    "Open leads",
+    "Open inventory",
+    "Open communication context",
+    "Open deal context",
+    "Perform approved action",
+    "Verify safe result"
+  ],
   "done_when": [
-    "Critical journey passes.",
+    "Critical consumer journey passes.",
+    "Critical professional journey passes.",
     "Production build passes.",
     "No duplicate business authority exists.",
     "No ACRL runtime dependency exists.",
-    "Responsive/accessibility/security checks pass.",
-    "Performance meets approved project targets."
+    "Responsive checks pass.",
+    "Accessibility checks pass.",
+    "Security checks pass.",
+    "Performance meets approved targets.",
+    "Media rights are compliant."
   ]
 }
 ```
 
+},
+
+"marketplace_ui_ux_workstream": {
+"MP01": {
+"maps_to": [
+"F01"
+],
+"name": "Marketplace Shell Alignment",
+"goal": "Align the existing HOMIO foundation with a familiar Indian property-marketplace interaction model.",
+"deliverables": [
+"simple HOMIO header",
+"Buy/Rent/New Projects/Commercial primary navigation",
+"Saved and My HOMIO entry",
+"location context",
+"search-first shell",
+"responsive navigation",
+"responsive filter primitives",
+"HOMIO-owned visual tokens"
+],
+"forbidden": [
+"exact competitor page clone",
+"competitor assets",
+"competitor CSS copy"
+]
+},
+"MP02": {
+"maps_to": [
+"F02"
+],
+"name": "India Home Discovery",
+"goal": "Build the homepage around the same broad task sequence users expect from Indian property portals while keeping HOMIO's own identity.",
+"deliverables": [
+"intent tabs",
+"location/project search",
+"property type",
+"BHK",
+"budget",
+"area",
+"popular cities",
+"featured projects",
+"fresh properties",
+"owner properties",
+"verified properties",
+"popular localities",
+"tools and advice",
+"post-property entry"
+]
+},
+"MP03": {
+"maps_to": [
+"F03"
+],
+"name": "Search Results System",
+"goal": "Build a powerful but simple property-results experience.",
+"deliverables": [
+"desktop filter rail",
+"mobile filter drawer",
+"applied filter chips",
+"result count",
+"sort",
+"list/grid",
+"property card",
+"project card",
+"save",
+"compare",
+"optional map context",
+"empty/loading/error states"
+]
+},
+"MP04": {
+"maps_to": [
+"F04",
+"F05"
+],
+"name": "Property, Project and Locality Exploration",
+"goal": "Connect property details to project and locality context.",
+"deliverables": [
+"property detail",
+"project detail",
+"locality context",
+"similar properties",
+"similar projects",
+"market context",
+"tools",
+"insights"
+]
+},
+"MP05": {
+"maps_to": [
+"F06",
+"F07"
+],
+"name": "Decision Continuity",
+"goal": "Make save, compare and resume behavior feel natural across the product.",
+"deliverables": [
+"save states",
+"saved collections",
+"saved search",
+"compare",
+"recently viewed",
+"continue journey",
+"My HOMIO"
+]
+},
+"MP06": {
+"maps_to": [
+"F08",
+"F09"
+],
+"name": "Intelligence and Action",
+"goal": "Add AI, enquiry and visit actions only after discovery flows are stable.",
+"deliverables": [
+"contextual AI",
+"search refinement",
+"property explanation",
+"enquiry",
+"visit",
+"communication entry",
+"safe action states"
+]
+},
+"MP07": {
+"maps_to": [
+"F11"
+],
+"name": "Professional Marketplace Workspace",
+"goal": "Extend familiar marketplace workflows into SaaS-grade professional tools.",
+"deliverables": [
+"lead workspace",
+"inventory workspace",
+"communications workspace",
+"deal workspace",
+"role-aware navigation",
+"professional filters"
+]
+},
+"copyright_safe_execution": {
+"rule_01": "Functional similarity is acceptable only when independently implemented.",
+"rule_02": "All HTML/CSS/TypeScript must be HOMIO-authored.",
+"rule_03": "All page copy must be HOMIO-authored.",
+"rule_04": "All visuals must be owned, commissioned or properly licensed.",
+"rule_05": "Do not scrape competitor inventory or media.",
+"rule_06": "Do not reproduce competitor branding.",
+"rule_07": "Use competitor research for task-flow learning, not asset reuse."
+}
+},
+
+"frontend_state_model": {
+"canonical_business_state": "REOS",
+"frontend_owned_state": [
+"navigation state",
+"view state",
+"filter presentation state",
+"temporary form state",
+"loading state",
+"error state",
+"AI interaction state",
+"responsive UI state",
+"temporary optimistic UI where explicitly safe",
+"return context"
+],
+"persisted_user_state": "Only through approved REOS capabilities or approved frontend persistence for non-authoritative UX preferences.",
+"forbidden_persistence": [
+"canonical deal state",
+"canonical ownership state",
+"canonical financial truth",
+"canonical authorization state",
+"canonical inventory truth",
+"canonical lead ownership truth"
+]
+},
+
+"reos_binding_registry": {
+"B01": {
+"consumer": "F03 Search",
+"authority": "CORE-005",
+"frontend_role": "search request/response presentation, filter UI and context preservation"
+},
+"B02": {
+"consumer": "F04/F05 Property and Project",
+"authority": "CORE-004",
+"frontend_role": "canonical inventory presentation"
+},
+"B03": {
+"consumer": "F09 Enquiry and Visit",
+"authority": "CORE-003 plus verified communication/visit capabilities",
+"frontend_role": "authorized action initiation and result presentation"
+},
+"B04": {
+"consumer": "F10 Transaction",
+"authority": "CORE-006",
+"frontend_role": "transaction state presentation"
+},
+"B05": {
+"consumer": "F10/F11 trust surfaces",
+"authority": "CORE-007",
+"frontend_role": "authorized trust/governance presentation"
+},
+"B06": {
+"consumer": "F11 Professional SaaS",
+"authority": "CORE-001 and relevant core authorities",
+"frontend_role": "role-aware experience boundary"
+},
+"B07": {
+"consumer": "F11 financial surfaces",
+"authority": "CORE-008 when verified",
+"frontend_role": "financial presentation only"
+}
+},
+
+"responsive_model": {
+"desktop": {
+"layout": [
+"full navigation",
+"wide search",
+"filter rail",
+"multi-column result grids where appropriate",
+"project and market context panels"
+],
+"interaction": [
+"hover where useful",
+"keyboard support",
+"parallel comparison",
+"persistent context"
+]
+},
+"tablet": {
+"layout": [
+"compressed navigation",
+"adaptive search",
+"collapsible filters",
+"two-column or adaptive cards",
+"contextual drawers"
+]
+},
+"mobile": {
+"layout": [
+"compact header",
+"sticky search",
+"single-column results",
+"horizontal quick filters",
+"bottom-sheet advanced filters",
+"sticky primary action where appropriate",
+"thumb-friendly controls"
+],
+"rules": [
+"Do not simply shrink desktop UI.",
+"Reduce simultaneous information.",
+"Keep price, type, location and primary action immediately visible.",
+"Use drawers or sheets for secondary complexity."
+]
+}
+},
+
+"loading_empty_error_model": {
+"loading": {
+"rule": "Use skeletons that preserve final layout shape.",
+"forbidden": [
+"layout jumping",
+"fake results",
+"fake property facts"
+]
+},
+"empty": {
+"rule": "Explain why the result is empty and offer the next useful action.",
+"actions": [
+"remove filters",
+"change location",
+"change budget",
+"change property type",
+"start new search"
+]
+},
+"error": {
+"rule": "Never hide failed data behind fake UI.",
+"actions": [
+"retry",
+"return to previous context",
+"continue with available content where safe"
+]
+},
+"unauthorized": {
+"rule": "Show safe sign-in or access-required states without revealing protected information."
+}
+},
+
+"seo_and_public_discovery": {
+"public_routes": [
+"/",
+"/search",
+"/property/[propertyId]",
+"/project/[projectId]",
+"/market/[marketId]"
+],
+"requirements": [
+"semantic page structure",
+"canonical metadata",
+"Open Graph data",
+"structured property/project metadata where approved",
+"indexability rules",
+"sitemap compatibility",
+"local market discoverability",
+"fast public rendering"
+],
+"forbidden": [
+"invented property facts in metadata",
+"misleading SEO landing pages",
+"duplicate thin route generation"
+]
+},
+
+"accessibility": {
+"requirements": [
+"keyboard navigation",
+"visible focus",
+"semantic headings",
+"labels for search and filters",
+"ARIA only where necessary",
+"screen-reader compatible drawers",
+"screen-reader compatible bottom sheets",
+"accessible form errors",
+"color contrast",
+"reduced-motion support",
+"touch target size"
+],
+"critical_components": [
+"SearchBar",
+"IntentTabs",
+"FilterPanel",
+"FilterDrawer",
+"PropertyCard",
+"CompareSelector",
+"EnquiryForm",
+"VisitRequest",
+"AIInput"
+]
+},
+
+"testing_strategy": {
+"unit": [
+"shared UI primitives",
+"formatters",
+"frontend state helpers",
+"route helpers",
+"display adapters",
+"filter serializers",
+"search-context serializers"
+],
+"integration": [
+"REOS binding adapters",
+"authorization-aware views",
+"loading/empty/error states",
+"navigation/context persistence",
+"save and compare flows",
+"search filter rendering"
+],
+"e2e": [
+"homepage to search",
+"search to property",
+"property to save",
+"property to compare",
+"property to project",
+"property to enquiry",
+"property to visit",
+"My HOMIO resume",
+"transaction view",
+"professional workspace access"
+],
+"visual": [
+"desktop home",
+"tablet home",
+"mobile home",
+"desktop search",
+"mobile search",
+"property card",
+"project card",
+"filter drawer",
+"property detail",
+"project detail",
+"saved",
+"compare",
+"My HOMIO",
+"professional workspace"
+],
+"accessibility": [
+"keyboard",
+"focus",
+"ARIA",
+"dialogs",
+"drawers",
+"forms",
+"reduced motion",
+"mobile touch targets"
+],
+"performance": [
+"initial shell",
+"homepage image loading",
+"search results",
+"property media",
+"route transitions",
+"mobile network behavior"
+],
+"security": [
+"protected routes",
+"session expiry",
+"unauthorized action blocking",
+"safe rendering",
+"sensitive data handling"
+]
+},
+
+"coding_rules": {
+"rule_01": "Before creating a module, check whether a shared module already solves the requirement.",
+"rule_02": "Feature modules own presentation and UX composition, not canonical business logic.",
+"rule_03": "Use adapters only for verified REOS capabilities.",
+"rule_04": "Do not create generic Manager, Service or Engine classes merely for naming symmetry.",
+"rule_05": "Do not mirror CORE-001 through CORE-008 structure inside frontend features.",
+"rule_06": "Do not import ACRL into production frontend code.",
+"rule_07": "Do not read state.json from the browser.",
+"rule_08": "Do not read Master Architecture JSON from the browser.",
+"rule_09": "Do not invent API endpoints because a UI needs data.",
+"rule_10": "A missing backend capability becomes a clear unavailable/error state, not a fabricated frontend implementation.",
+"rule_11": "Preserve user search and journey context wherever practical.",
+"rule_12": "Every action requires clear pending, success, failure and unauthorized handling where relevant.",
+"rule_13": "Mobile, tablet and desktop are intentional interaction modes.",
+"rule_14": "Accessibility is implemented with the feature.",
+"rule_15": "Prototype visual quality may be reused only as inspiration; prototype architecture is not production architecture.",
+"rule_16": "Marketplace familiarity must never become visual cloning.",
+"rule_17": "Do not copy competitor copy, imagery, logos, screenshots or proprietary assets.",
+"rule_18": "Do not use unlicensed remote image URLs in production.",
+"rule_19": "Every property card must answer what it is, where it is and what it costs before secondary information.",
+"rule_20": "Every search page must make the current search context visible.",
+"rule_21": "Every page must have one obvious next useful action.",
+"rule_22": "Secondary tools and advice must not visually overpower property discovery.",
+"rule_23": "If a capability is not verified, remove the interaction rather than simulate it.",
+"rule_24": "Keep consumer UX simple even when backend architecture is complex."
+},
+
+"delivery_gates": {
+"G01": "F01 marketplace shell complete and production build valid.",
+"G02": "F02 India-first home discovery functional.",
+"G03": "F03 search and results functional.",
+"G04": "F04-F05 property, project and locality exploration functional.",
+"G05": "F06-F07 save, compare and My HOMIO continuity functional.",
+"G06": "F08-F09 AI, enquiry and visit flows functional.",
+"G07": "F10-F11 transaction and professional surfaces functional.",
+"G08": "F12 globalization baseline complete.",
+"G09": "F13 full production verification complete."
 },
 
 "f_layer_dependency_graph": {
@@ -874,169 +1995,31 @@
 "F12",
 "F13"
 ],
+"marketplace_sequence": [
+"MP01",
+"MP02",
+"MP03",
+"MP04",
+"MP05",
+"MP06",
+"MP07"
+],
 "parallelization_rule": "Only modules with no unresolved shared dependency may be developed in parallel. Shared primitives and REOS binding boundaries must stabilize before dependent slices proceed."
-},
-
-"reos_binding_registry": {
-"B01": {
-"consumer": "F03 Search",
-"authority": "CORE-005",
-"frontend_role": "search request/response presentation and context preservation"
-},
-"B02": {
-"consumer": "F04/F05 Property and Project",
-"authority": "CORE-004",
-"frontend_role": "inventory presentation"
-},
-"B03": {
-"consumer": "F09 Enquiry and Visit",
-"authority": "CORE-003 plus verified communication/visit capabilities",
-"frontend_role": "authorized action initiation and result presentation"
-},
-"B04": {
-"consumer": "F10 Transaction",
-"authority": "CORE-006",
-"frontend_role": "transaction state presentation"
-},
-"B05": {
-"consumer": "F10/F11 trust states",
-"authority": "CORE-007",
-"frontend_role": "authorized trust/governance information presentation"
-},
-"B06": {
-"consumer": "F11 Professional SaaS",
-"authority": "CORE-001 and relevant core authorities",
-"frontend_role": "role-aware experience boundary"
-},
-"B07": {
-"consumer": "F13 future financial surfaces",
-"authority": "CORE-008 when verified",
-"frontend_role": "financial presentation only"
-}
-},
-
-"frontend_state_model": {
-"canonical_business_state": "REOS",
-"frontend_owned_state": [
-"navigation state",
-"view state",
-"filter presentation state",
-"temporary form state",
-"loading state",
-"error state",
-"AI interaction state",
-"responsive UI state",
-"temporary optimistic UI where explicitly safe"
-],
-"persisted_user_state": "Only through approved REOS capabilities or approved frontend persistence for non-authoritative UX preferences.",
-"forbidden_persistence": [
-"canonical deal state",
-"canonical ownership state",
-"canonical financial truth",
-"canonical authorization state",
-"canonical inventory truth"
-]
-},
-
-"testing_strategy": {
-"unit": [
-"shared UI primitives",
-"formatters",
-"frontend state helpers",
-"route helpers",
-"display adapters"
-],
-"integration": [
-"REOS binding adapters",
-"authorization-aware views",
-"loading/empty/error states",
-"navigation/context persistence"
-],
-"e2e": [
-"search to property",
-"property to save",
-"property to compare",
-"property to enquiry",
-"visit journey",
-"My HOMIO resume",
-"transaction view",
-"professional workspace access"
-],
-"visual": [
-"home",
-"search",
-"property",
-"project",
-"compare",
-"My HOMIO",
-"professional workspace"
-],
-"accessibility": [
-"keyboard",
-"focus",
-"ARIA",
-"dialogs",
-"drawers",
-"forms",
-"reduced motion"
-],
-"performance": [
-"initial shell",
-"route transitions",
-"large property media",
-"long search results",
-"mobile network behavior"
-],
-"security": [
-"protected routes",
-"session expiry",
-"unauthorized action blocking",
-"safe rendering",
-"sensitive data handling"
-]
-},
-
-"coding_rules": {
-"rule_01": "Before creating a module, check whether a shared module or existing REOS capability already solves the requirement.",
-"rule_02": "Feature modules own presentation and UX composition, not canonical business logic.",
-"rule_03": "Use adapters only for verified capabilities.",
-"rule_04": "Do not create generic Manager, Service or Engine classes merely for naming symmetry.",
-"rule_05": "Do not mirror CORE-001 through CORE-008 structure inside frontend features.",
-"rule_06": "Do not import ACRL into production frontend code.",
-"rule_07": "Do not read state.json from the browser.",
-"rule_08": "Do not read Master Architecture JSON from the browser.",
-"rule_09": "Do not invent API endpoints because a UI needs data.",
-"rule_10": "A missing backend capability becomes a clear unavailable/error state, not a fabricated frontend implementation.",
-"rule_11": "Preserve user search and journey context wherever practical.",
-"rule_12": "Every action requires clear pending, success, failure and unauthorized handling where relevant.",
-"rule_13": "Mobile, tablet and desktop are intentional interaction modes.",
-"rule_14": "Accessibility is implemented with the feature, not after it.",
-"rule_15": "Prototype visual quality may be reused, but prototype architecture is not."
-},
-
-"delivery_gates": {
-"G01": "F01 foundation complete and production build valid.",
-"G02": "F02-F03 discovery flow functional.",
-"G03": "F04-F05 property/project exploration functional.",
-"G04": "F06-F07 decision and journey continuity functional.",
-"G05": "F08-F09 AI and action flows functional.",
-"G06": "F10-F11 transaction and professional surfaces functional.",
-"G07": "F12 globalization baseline complete.",
-"G08": "F13 full production quality verification complete."
 },
 
 "new_chat_bootstrap": {
 "read_first": [
-"REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json",
-"REOS_CONTROL_CENTER/architecture/HOMIO_FRONTEND_EXECUTION_PLAN.json",
 "REOS_CONTROL_CENTER/architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json",
+"REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json",
+"REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json",
 "REOS_CONTROL_CENTER/data/state.json"
 ],
 "then_check": [
 "current frontend branch",
 "current frontend worktree",
 "current F-layer status in this plan",
-"latest relevant frontend verification output"
+"latest relevant frontend verification output",
+"latest verified REOS capabilities required by the active F-layer"
 ],
 "never_assume": [
 "current F-layer completion",
@@ -1044,7 +2027,9 @@
 "backend contract shape",
 "frontend branch cleanliness",
 "ACRL runtime availability",
-"business ownership from UI references"
+"business ownership from UI references",
+"media licensing status",
+"competitor assets may be reused"
 ],
 "continuation_rule": "Resume from the first incomplete F-layer gate. Do not restart completed F-layers without evidence of regression."
 },
@@ -1063,6 +2048,13 @@
 "F11": "PENDING",
 "F12": "PENDING",
 "F13": "PENDING",
+"MP01": "PENDING",
+"MP02": "PENDING",
+"MP03": "PENDING",
+"MP04": "PENDING",
+"MP05": "PENDING",
+"MP06": "PENDING",
+"MP07": "PENDING",
 "overall": "NOT_COMPLETE"
 },
 
@@ -1070,13 +2062,30 @@
 "architecture": [
 "Frontend remains subordinate to the Master Architecture.",
 "Frontend does not create a second business architecture.",
-"No duplicate canonical domain engine exists."
+"No duplicate canonical domain engine exists.",
+"Frontend Blueprint remains the experience authority.",
+"This execution plan remains the implementation authority."
+],
+"marketplace_ux": [
+"Homepage is search-first.",
+"Buy, Rent, New Projects and Commercial are immediately understandable.",
+"PG and Plot discovery paths exist where approved.",
+"Location, project and landmark discovery is clear.",
+"Property type, BHK, budget and area filters are usable.",
+"Search results are scannable.",
+"Property cards expose key facts clearly.",
+"Save and compare work consistently.",
+"Project and locality context is discoverable.",
+"Tools and advice are useful but secondary.",
+"Mobile filter and action behavior is intentional."
 ],
 "implementation": [
-"F01-F13 are implemented according to the module registry.",
+"F01-F13 are implemented according to this registry.",
+"MP01-MP07 marketplace alignment work is implemented.",
 "All production routes are intentional and verified.",
 "REOS bindings are explicit.",
-"Prototype is migrated without carrying monolithic architecture into production."
+"Prototype is migrated without carrying monolithic architecture into production.",
+"No competitor proprietary assets are embedded."
 ],
 "quality": [
 "Unit tests pass.",
@@ -1085,13 +2094,22 @@
 "Accessibility verification passes.",
 "Responsive verification passes.",
 "Security verification passes.",
+"SEO verification passes.",
 "Production build passes.",
-"Performance verification passes."
+"Performance verification passes.",
+"Visual regression verification passes."
+],
+"media_and_brand": [
+"Brand identity is HOMIO-owned.",
+"UI implementation is HOMIO-authored.",
+"Copy is HOMIO-authored.",
+"Images and media are owned, commissioned or properly licensed.",
+"No scraped competitor media is used."
 ],
 "continuity": [
 "This plan remains in the repository.",
 "Current F-layer status is maintained here.",
-"New chats can resume from this plan without reconstructing the entire frontend strategy."
+"New chats can resume from this plan without reconstructing frontend strategy."
 ]
 }
 }
