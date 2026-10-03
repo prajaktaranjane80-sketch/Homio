@@ -1,0 +1,208 @@
+.section {
+  padding-block: var(--space-20);
+  background: var(--homio-surface);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr);
+  gap: var(--space-10);
+  align-items: center;
+}
+
+.intro {
+  max-width: 620px;
+}
+
+.eyebrow,
+.bottomLabel {
+  display: block;
+  color: var(--homio-accent);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.intro h2 {
+  margin: var(--space-3) 0 0;
+  font-size: clamp(2.3rem, 4.5vw, 4rem);
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.intro > p {
+  margin: var(--space-6) 0 0;
+  color: var(--homio-text-soft);
+  font-size: var(--text-lg);
+  line-height: 1.7;
+}
+
+.primaryAction,
+.bottomAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding-inline: var(--space-5);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.primaryAction {
+  margin-top: var(--space-7);
+  background: var(--homio-brand);
+  color: #ffffff;
+}
+
+.facts {
+  display: grid;
+  gap: 10px;
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--homio-border);
+}
+
+.fact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--homio-text-soft);
+  font-size: var(--text-sm);
+}
+
+.factIcon {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--homio-surface-soft);
+  color: var(--homio-success);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.card {
+  overflow: hidden;
+  border: 1px solid var(--homio-border);
+  border-radius: var(--radius-xl);
+  background: var(--homio-bg);
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform var(--ease-slow),
+    box-shadow var(--ease-slow);
+}
+
+.card:first-child {
+  grid-row: span 2;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.imageWrap {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--homio-surface-soft);
+}
+
+.card:first-child .imageWrap {
+  aspect-ratio: 4 / 5;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 450ms ease;
+}
+
+.card:hover .image {
+  transform: scale(1.035);
+}
+
+.cardBody {
+  padding: var(--space-5);
+}
+
+.cardBody h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  line-height: 1.1;
+}
+
+.cardBody p {
+  margin: var(--space-3) 0 0;
+  color: var(--homio-text-soft);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+
+.cardLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  margin-top: var(--space-8);
+  padding: var(--space-5) var(--space-6);
+  border: 1px solid var(--homio-border);
+  border-radius: var(--radius-xl);
+  background: var(--homio-bg);
+}
+
+.bottom strong {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--text-lg);
+}
+
+.bottomAction {
+  flex: 0 0 auto;
+  background: var(--homio-brand);
+  color: #ffffff;
+}
+
+@media (max-width: 950px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 650px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .card:first-child {
+    grid-row: auto;
+  }
+
+  .card:first-child .imageWrap {
+    aspect-ratio: 4 / 3;
+  }
+
+  .bottom {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
