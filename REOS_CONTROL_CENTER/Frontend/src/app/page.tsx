@@ -1,32 +1,54 @@
-import { HomeHeader } from "@/components/home/HomeHeader";
-import { HomeHero } from "@/components/home/HomeHero";
-import { HomeQuickDiscovery } from "@/components/home/HomeQuickDiscovery";
-import { HomeSecondaryNav } from "@/components/home/HomeSecondaryNav";
-import { AppShell } from "@/components/shell/AppShell";
+import HomeHeader from "@/components/home/HomeHeader";
+import HomeSecondaryNav from "@/components/home/HomeSecondaryNav";
+import HomeHero from "@/components/home/HomeHero";
+import HomeQuickDiscovery from "@/components/home/HomeQuickDiscovery";
 
 export default function HomePage() {
   return (
-    <AppShell header={<HomeHeader />}>
-      <main id="main-content" className="page-shell">
-        <HomeSecondaryNav />
+    <>
+      <HomeHeader />
+      <HomeSecondaryNav />
+
+      <main>
         <HomeHero />
         <HomeQuickDiscovery />
 
-        <section className="home-build-next" aria-labelledby="next-sections-title">
-          <div className="page-container">
-            <span className="home-eyebrow">HOMIO DISCOVERY</span>
+        <section id="locations" className="homio-section">
+          <div className="homio-container">
+            <h2>Global locations</h2>
+          </div>
+        </section>
 
-            <h2 id="next-sections-title">
-              Projects, properties, localities and the HOMIO brokerage journey.
-            </h2>
+        <section id="projects" className="homio-section">
+          <div className="homio-container">
+            <h2>Featured projects</h2>
+          </div>
+        </section>
 
-            <p>
-              These discovery sections are added in sequence from the HOMIO
-              Website Master File.
-            </p>
+        <section id="commercial" className="homio-section">
+          <div className="homio-container">
+            <h2>Commercial real estate</h2>
+          </div>
+        </section>
+
+        <section id="tools" className="homio-section">
+          <div className="homio-container">
+            <h2>Property tools</h2>
+          </div>
+        </section>
+
+        <section id="advice" className="homio-section">
+          <div className="homio-container">
+            <h2>HOMIO advice</h2>
+          </div>
+        </section>
+
+        <section id="post-property" className="homio-section">
+          <div className="homio-container">
+            <h2>List a property with HOMIO</h2>
           </div>
         </section>
       </main>
-    </AppShell>
+    </>
   );
 }
