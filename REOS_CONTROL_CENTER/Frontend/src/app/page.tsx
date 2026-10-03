@@ -13,6 +13,9 @@ import PropertyCollections from "@/components/home/PropertyCollections";
 import CommercialSection from "@/components/home/CommercialSection";
 import ResidentialCollections from "@/components/home/ResidentialCollections";
 import RentalSection from "@/components/home/RentalSection";
+import PlotLandSection from "@/components/home/PlotLandSection";
+import PropertyTools from "@/components/home/PropertyTools";
+import MarketIntelligence from "@/components/home/MarketIntelligence";
 
 export default function HomePage() {
   return (
@@ -47,11 +50,11 @@ export default function HomePage() {
 
         <RentalSection />
 
-        <section id="tools" className="homio-section">
-          <div className="homio-container">
-            <h2>Property tools</h2>
-          </div>
-        </section>
+        <PlotLandSection />
+
+        <PropertyTools />
+
+        <MarketIntelligence />
 
         <section id="advice" className="homio-section">
           <div className="homio-container">
