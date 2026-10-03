@@ -10,6 +10,9 @@ import FreshProperties from "@/components/home/FreshProperties";
 import OwnerProperties from "@/components/home/OwnerProperties";
 import VerifiedProperties from "@/components/home/VerifiedProperties";
 import PropertyCollections from "@/components/home/PropertyCollections";
+import CommercialSection from "@/components/home/CommercialSection";
+import ResidentialCollections from "@/components/home/ResidentialCollections";
+import RentalSection from "@/components/home/RentalSection";
 
 export default function HomePage() {
   return (
@@ -38,11 +41,11 @@ export default function HomePage() {
 
         <PropertyCollections />
 
-        <section id="commercial" className="homio-section">
-          <div className="homio-container">
-            <h2>Commercial real estate</h2>
-          </div>
-        </section>
+        <CommercialSection />
+
+        <ResidentialCollections />
+
+        <RentalSection />
 
         <section id="tools" className="homio-section">
           <div className="homio-container">
