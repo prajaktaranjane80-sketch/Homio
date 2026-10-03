@@ -10,6 +10,12 @@ CANONICAL_ARCHITECTURE_FILENAME = (
     "HOMIO_REOS_MASTER_ARCHITECTURE.json"
 )
 
+CANONICAL_MASTER_RELATIVE_PATH = (
+    Path("architecture")
+    / "master"
+    / CANONICAL_ARCHITECTURE_FILENAME
+)
+
 EXPECTED_ARCHITECTURE_ID = "ARCH-039"
 EXPECTED_ARCHITECTURE_NAME = "HOMIO / REOS Master Architecture"
 EXPECTED_SCHEMA_VERSION = "1.0"
@@ -50,6 +56,29 @@ REQUIRED_AUTHORITY_VALUES = {
     ),
     "chat_is_authority": False,
     "parallel_master_architecture_forbidden": True,
+}
+
+REQUIRED_AUTHORITY_BOUNDARIES = {
+    "customer": {
+        "owner": "FUTURE_DEDICATED_CUSTOMER_DOMAIN",
+        "status": "FUTURE_ARCHITECTURE_BOUNDARY",
+    },
+    "builder": {
+        "owner": "FUTURE_DEDICATED_BUILDER_DOMAIN",
+        "status": "FUTURE_ARCHITECTURE_BOUNDARY",
+    },
+    "communication": {
+        "owner": "ARCH-009",
+        "status": "APPROVED_ARCHITECTURE_NODE",
+    },
+    "evidence": {
+        "owner": "ARCH-014",
+        "status": "APPROVED_ARCHITECTURE_NODE",
+    },
+    "acrl": {
+        "owner": "ACRL",
+        "status": "CONTINUITY_RECONSTRUCTION_BOUNDARY",
+    },
 }
 
 REQUIRED_GLOBAL_INVARIANTS = frozenset(
@@ -294,6 +323,64 @@ def validate_master_architecture(
                     "authority.role",
                 )
             )
+
+    authority_boundaries = architecture.get(
+        "authority_boundaries"
+    )
+
+    if not isinstance(
+        authority_boundaries,
+        dict,
+    ):
+        issues.append(
+            IntegrityIssue(
+                "AUTHORITY_BOUNDARIES_MISSING",
+                "Explicit authority_boundaries are required.",
+                "authority_boundaries",
+            )
+        )
+    else:
+        for boundary_name, requirements in (
+            REQUIRED_AUTHORITY_BOUNDARIES.items()
+        ):
+            boundary = authority_boundaries.get(
+                boundary_name
+            )
+
+            if not isinstance(
+                boundary,
+                dict,
+            ):
+                issues.append(
+                    IntegrityIssue(
+                        "AUTHORITY_BOUNDARY_MISSING",
+                        (
+                            f"Authority boundary {boundary_name!r} "
+                            "must be an object."
+                        ),
+                        f"authority_boundaries.{boundary_name}",
+                    )
+                )
+                continue
+
+            for field_name, expected in (
+                requirements.items()
+            ):
+                if boundary.get(field_name) != expected:
+                    issues.append(
+                        IntegrityIssue(
+                            "INVALID_AUTHORITY_BOUNDARY",
+                            (
+                                f"authority_boundaries."
+                                f"{boundary_name}.{field_name} "
+                                "does not match the canonical authority contract."
+                            ),
+                            (
+                                f"authority_boundaries."
+                                f"{boundary_name}.{field_name}"
+                            ),
+                        )
+                    )
 
     nodes_raw = architecture.get(
         "architecture_nodes"
@@ -1006,8 +1093,8 @@ def validate_repository_master_uniqueness(
     )
 
     canonical_path = (
-        architecture_dir
-        / CANONICAL_ARCHITECTURE_FILENAME
+        control_center_root
+        / CANONICAL_MASTER_RELATIVE_PATH
     )
 
     if not architecture_dir.exists():
@@ -1024,15 +1111,30 @@ def validate_repository_master_uniqueness(
             ),
         )
 
+    if not canonical_path.parent.exists():
+        return IntegrityReport(
+            ok=False,
+            issues=(
+                IntegrityIssue(
+                    "MASTER_ARCHITECTURE_DIRECTORY_MISSING",
+                    (
+                        "Canonical Master Architecture directory "
+                        f"is missing: {canonical_path.parent}"
+                    ),
+                    str(canonical_path.parent),
+                ),
+            ),
+        )
+
     master_candidates = sorted(
         path
-        for path in architecture_dir.iterdir()
+        for path in architecture_dir.rglob(
+            "*.json"
+        )
         if (
             path.is_file()
             and "MASTER_ARCHITECTURE"
             in path.name.upper()
-            and path.suffix.lower()
-            == ".json"
         )
     )
 
@@ -1044,7 +1146,7 @@ def validate_repository_master_uniqueness(
                 "CANONICAL_MASTER_MISSING",
                 (
                     "Canonical Master Architecture file "
-                    "is not present."
+                    f"is not present at {canonical_path}."
                 ),
                 str(canonical_path),
             )
@@ -1056,7 +1158,8 @@ def validate_repository_master_uniqueness(
                 "SECOND_MASTER_ARCHITECTURE",
                 (
                     "Exactly one Master Architecture JSON is "
-                    f"allowed; found {len(master_candidates)}."
+                    f"allowed under architecture; found "
+                    f"{len(master_candidates)}."
                 ),
                 str(architecture_dir),
             )
@@ -1073,8 +1176,7 @@ def run_integrity_check(
 ) -> IntegrityReport:
     master_path = (
         control_center_root
-        / "architecture"
-        / CANONICAL_ARCHITECTURE_FILENAME
+        / CANONICAL_MASTER_RELATIVE_PATH
     )
 
     state_path = (
@@ -1135,9 +1237,11 @@ def run_integrity_check(
 __all__ = [
     "ArchitectureIntegrityError",
     "CANONICAL_ARCHITECTURE_FILENAME",
+    "CANONICAL_MASTER_RELATIVE_PATH",
     "EXPECTED_ARCHITECTURE_ID",
     "IntegrityIssue",
     "IntegrityReport",
+    "REQUIRED_AUTHORITY_BOUNDARIES",
     "run_integrity_check",
     "validate_master_architecture",
     "validate_repository_master_uniqueness",
