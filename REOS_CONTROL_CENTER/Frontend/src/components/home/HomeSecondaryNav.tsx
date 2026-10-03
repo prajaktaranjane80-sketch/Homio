@@ -1,31 +1,28 @@
 import Link from "next/link";
+import styles from "./HomeSecondaryNav.module.css";
 
-const items = [
-  ["PG", "/search?intent=pg"],
-  ["Plot", "/search?intent=plot"],
-  ["Localities", "/market"],
-  ["Projects", "/project"],
-  ["Home Loans", "#tools"],
-  ["Interiors", "#services"],
-  ["Tools", "#tools"],
-  ["Advice", "#advice"],
-  ["Help", "#help"],
-] as const;
+const links = [
+  { label: "Explore", href: "#explore" },
+  { label: "Locations", href: "#locations" },
+  { label: "Projects", href: "#projects" },
+  { label: "Commercial", href: "#commercial" },
+  { label: "Tools", href: "#tools" },
+  { label: "Advice", href: "#advice" },
+];
 
-export function HomeSecondaryNav() {
+export default function HomeSecondaryNav() {
   return (
-    <nav
-      className="home-secondary-nav"
-      aria-label="HOMIO discovery navigation"
-    >
-      <div className="page-container home-secondary-nav__inner">
-        <div className="home-secondary-nav__rail">
-          {items.map(([label, href]) => (
-            <Link key={label} href={href}>
-              {label}
-            </Link>
-          ))}
-        </div>
+    <nav className={styles.bar} aria-label="HOMIO discovery navigation">
+      <div className={`homio-container ${styles.inner}`}>
+        {links.map((link) => (
+          <Link key={link.href} href={link.href} className={styles.link}>
+            {link.label}
+          </Link>
+        ))}
+
+        <Link href="#post-property" className={styles.postLink}>
+          List a Property
+        </Link>
       </div>
     </nav>
   );
