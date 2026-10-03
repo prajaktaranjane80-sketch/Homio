@@ -4,6 +4,9 @@ import HomeHero from "@/components/home/HomeHero";
 import HomeQuickDiscovery from "@/components/home/HomeQuickDiscovery";
 import PopularCities from "@/components/home/PopularCities";
 import PopularLocalities from "@/components/home/PopularLocalities";
+import FeaturedProjects from "@/components/home/FeaturedProjects";
+import NewProjectCollections from "@/components/home/NewProjectCollections";
+import FreshProperties from "@/components/home/FreshProperties";
 
 export default function HomePage() {
   return (
@@ -20,11 +23,11 @@ export default function HomePage() {
 
         <PopularLocalities />
 
-        <section id="projects" className="homio-section">
-          <div className="homio-container">
-            <h2>Featured projects</h2>
-          </div>
-        </section>
+        <FeaturedProjects />
+
+        <NewProjectCollections />
+
+        <FreshProperties />
 
         <section id="commercial" className="homio-section">
           <div className="homio-container">
