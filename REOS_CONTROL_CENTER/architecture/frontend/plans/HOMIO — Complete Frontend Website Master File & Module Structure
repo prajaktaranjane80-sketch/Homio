@@ -1,0 +1,1430 @@
+# HOMIO — Complete Frontend Website Master File & Module Structure
+
+## 1. Canonical Frontend Root
+
+```text
+REOS_CONTROL_CENTER/Frontend/
+```
+
+Complete production structure:
+
+```text
+REOS_CONTROL_CENTER/Frontend/
+│
+├── package.json
+├── next.config.ts
+├── tsconfig.json
+├── eslint.config.mjs
+├── next-env.d.ts
+├── index.html
+│
+├── scripts/
+│   ├── verify-frontend.mjs
+│   ├── verify-routes.mjs
+│   ├── verify-build.mjs
+│   ├── verify-accessibility.mjs
+│   └── verify-media.mjs
+│
+└── src/
+```
+
+The existing runtime/config files above remain part of the project. They are not to be duplicated.
+
+---
+
+# 2. APP ROUTES — COMPLETE WEBSITE
+
+```text
+src/app/
+│
+├── layout.tsx
+├── page.tsx
+├── globals.css
+├── loading.tsx
+├── error.tsx
+├── not-found.tsx
+│
+├── search/
+│   ├── page.tsx
+│   ├── loading.tsx
+│   └── error.tsx
+│
+├── property/
+│   └── [propertyId]/
+│       ├── page.tsx
+│       ├── loading.tsx
+│       └── error.tsx
+│
+├── project/
+│   └── [projectId]/
+│       ├── page.tsx
+│       ├── loading.tsx
+│       └── error.tsx
+│
+├── market/
+│   └── [marketId]/
+│       ├── page.tsx
+│       ├── loading.tsx
+│       └── error.tsx
+│
+├── saved/
+│   ├── page.tsx
+│   ├── loading.tsx
+│   └── error.tsx
+│
+├── compare/
+│   ├── page.tsx
+│   ├── loading.tsx
+│   └── error.tsx
+│
+├── my/
+│   ├── page.tsx
+│   ├── loading.tsx
+│   └── error.tsx
+│
+├── ai/
+│   ├── page.tsx
+│   ├── loading.tsx
+│   └── error.tsx
+│
+├── visit/
+│   └── [visitId]/
+│       ├── page.tsx
+│       ├── loading.tsx
+│       └── error.tsx
+│
+├── deal/
+│   └── [dealId]/
+│       ├── page.tsx
+│       ├── loading.tsx
+│       └── error.tsx
+│
+└── pro/
+    ├── page.tsx
+    ├── loading.tsx
+    ├── error.tsx
+    │
+    ├── leads/
+    │   ├── page.tsx
+    │   ├── loading.tsx
+    │   └── error.tsx
+    │
+    ├── inventory/
+    │   ├── page.tsx
+    │   ├── loading.tsx
+    │   └── error.tsx
+    │
+    ├── communications/
+    │   ├── page.tsx
+    │   ├── loading.tsx
+    │   └── error.tsx
+    │
+    └── deals/
+        ├── page.tsx
+        ├── loading.tsx
+        └── error.tsx
+```
+
+---
+
+# 3. HOME / LANDING PAGE — COMPLETE 30 PARTS
+
+```text
+src/components/home/
+│
+├── HomeHeader.tsx
+├── HomeSecondaryNav.tsx
+│
+├── HomeHero.tsx
+├── HomeSearch.tsx
+├── HomeIntentTabs.tsx
+├── HomeQuickDiscovery.tsx
+│
+├── PopularCities.tsx
+├── PopularLocalities.tsx
+│
+├── FeaturedProjects.tsx
+├── NewProjectCollections.tsx
+├── FreshProperties.tsx
+├── OwnerProperties.tsx
+├── VerifiedProperties.tsx
+├── PropertyCollections.tsx
+│
+├── CommercialSection.tsx
+├── ResidentialCollections.tsx
+├── RentalSection.tsx
+├── PlotLandSection.tsx
+│
+├── PropertyTools.tsx
+├── MarketIntelligence.tsx
+├── HomioAdvice.tsx
+├── HomeServices.tsx
+├── BuilderProjects.tsx
+│
+├── SaveCompareSection.tsx
+├── HomioAISection.tsx
+├── BrokerageCTA.tsx
+├── PostPropertySection.tsx
+│
+├── WhyHomio.tsx
+├── TrustSection.tsx
+├── MyHomioSection.tsx
+├── HelpSupport.tsx
+└── HomeFooter.tsx
+```
+
+### Landing page mapping
+
+```text
+LP01  → HomeHeader
+LP02  → HomeSecondaryNav
+LP03  → HomeHero + HomeSearch + HomeIntentTabs
+LP04  → HomeQuickDiscovery
+LP05  → PopularCities
+LP06  → PopularLocalities
+LP07  → FeaturedProjects
+LP08  → NewProjectCollections
+LP09  → FreshProperties
+LP10  → OwnerProperties
+LP11  → VerifiedProperties
+LP12  → PropertyCollections
+LP13  → CommercialSection
+LP14  → ResidentialCollections
+LP15  → RentalSection
+LP16  → PlotLandSection
+LP17  → PropertyTools
+LP18  → MarketIntelligence
+LP19  → HomioAdvice
+LP20  → HomeServices
+LP21  → BuilderProjects
+LP22  → SaveCompareSection
+LP23  → HomioAISection
+LP24  → BrokerageCTA
+LP25  → PostPropertySection
+LP26  → WhyHomio
+LP27  → TrustSection
+LP28  → MyHomioSection
+LP29  → HelpSupport
+LP30  → HomeFooter
+```
+
+---
+
+# 4. SHARED UI SYSTEM
+
+```text
+src/components/ui/
+│
+├── Button.tsx
+├── IconButton.tsx
+├── Input.tsx
+├── SearchField.tsx
+├── Select.tsx
+├── Checkbox.tsx
+├── Radio.tsx
+├── Range.tsx
+├── Textarea.tsx
+│
+├── Chip.tsx
+├── Badge.tsx
+├── Tag.tsx
+│
+├── Card.tsx
+├── PropertyCard.tsx
+├── ProjectCard.tsx
+├── MarketCard.tsx
+├── LocalityCard.tsx
+├── ToolCard.tsx
+├── AdviceCard.tsx
+│
+├── Tabs.tsx
+├── Accordion.tsx
+├── Modal.tsx
+├── Drawer.tsx
+├── BottomSheet.tsx
+├── Dropdown.tsx
+├── Tooltip.tsx
+├── Toast.tsx
+│
+├── Skeleton.tsx
+├── EmptyState.tsx
+├── ErrorState.tsx
+├── SuccessState.tsx
+└── ProgressState.tsx
+```
+
+---
+
+# 5. APP SHELL
+
+```text
+src/components/shell/
+│
+├── AppShell.tsx
+├── Header.tsx
+├── ResponsiveNavigation.tsx
+├── ContextBar.tsx
+├── PageContainer.tsx
+├── Breadcrumbs.tsx
+├── GlobalActionLayer.tsx
+└── FooterShell.tsx
+```
+
+---
+
+# 6. NAVIGATION
+
+```text
+src/components/navigation/
+│
+├── GlobalNavigation.tsx
+├── PrimaryNavigation.tsx
+├── SecondaryNavigation.tsx
+├── MobileNavigation.tsx
+├── ProfileNavigation.tsx
+├── GlobalSearch.tsx
+├── SearchTrigger.tsx
+├── LocationTrigger.tsx
+└── NavigationContext.tsx
+```
+
+---
+
+# 7. SEARCH MODULES
+
+```text
+src/components/search/
+│
+├── SearchBar.tsx
+├── SearchIntentTabs.tsx
+├── SearchInput.tsx
+├── LocationSearch.tsx
+├── ProjectSearch.tsx
+├── LandmarkSearch.tsx
+├── BuilderSearch.tsx
+│
+├── PropertyTypeSelector.tsx
+├── BHKSelector.tsx
+├── BudgetSelector.tsx
+├── AreaSelector.tsx
+├── AvailabilitySelector.tsx
+│
+├── FilterChipBar.tsx
+├── AppliedFilters.tsx
+├── FilterPanel.tsx
+├── FilterDrawer.tsx
+├── AdvancedFilters.tsx
+│
+├── SearchResultHeader.tsx
+├── SortControl.tsx
+├── ViewModeControl.tsx
+├── ResultCount.tsx
+│
+├── ResultGrid.tsx
+├── ResultList.tsx
+├── MapContext.tsx
+├── SearchEmptyState.tsx
+└── SearchErrorState.tsx
+```
+
+---
+
+# 8. PROPERTY MODULES
+
+```text
+src/components/property/
+│
+├── PropertyCard.tsx
+├── PropertyImage.tsx
+├── PropertyGallery.tsx
+├── PropertySummary.tsx
+├── PropertyFacts.tsx
+├── PropertyPrice.tsx
+├── PropertyLocation.tsx
+├── PropertyAmenities.tsx
+├── PropertyAvailability.tsx
+├── PropertyTrustSignal.tsx
+├── PropertyActions.tsx
+├── PropertyDescription.tsx
+├── PropertyProjectContext.tsx
+├── PropertyMarketContext.tsx
+├── PropertySimilar.tsx
+├── PropertySaveAction.tsx
+├── PropertyCompareAction.tsx
+├── PropertyEnquiryAction.tsx
+├── PropertyVisitAction.tsx
+└── PropertyMediaFailure.tsx
+```
+
+---
+
+# 9. PROJECT MODULES
+
+```text
+src/components/project/
+│
+├── ProjectCard.tsx
+├── ProjectGallery.tsx
+├── ProjectIdentity.tsx
+├── ProjectOverview.tsx
+├── ProjectFacts.tsx
+├── ProjectPrice.tsx
+├── ProjectLocation.tsx
+├── ProjectBuilder.tsx
+├── ProjectConfigurations.tsx
+├── ProjectAmenities.tsx
+├── ProjectStatus.tsx
+├── ProjectInventorySummary.tsx
+├── ProjectInventoryGrid.tsx
+├── ProjectTrustSignal.tsx
+├── ProjectActions.tsx
+├── ProjectSimilar.tsx
+└── ProjectEnquiryAction.tsx
+```
+
+---
+
+# 10. MARKET / LOCALITY MODULES
+
+```text
+src/components/market/
+│
+├── MarketCard.tsx
+├── MarketHeader.tsx
+├── MarketOverview.tsx
+├── MarketStats.tsx
+├── MarketPriceTrends.tsx
+├── MarketRentalTrends.tsx
+├── MarketLocalities.tsx
+├── MarketProjects.tsx
+├── MarketProperties.tsx
+├── MarketInfrastructure.tsx
+├── MarketInsights.tsx
+├── LocalityCard.tsx
+├── LocalityHeader.tsx
+├── LocalityOverview.tsx
+├── LocalityProperties.tsx
+├── LocalityProjects.tsx
+└── LocalityInsights.tsx
+```
+
+---
+
+# 11. SAVE / COMPARE
+
+```text
+src/components/compare/
+│
+├── SaveAction.tsx
+├── SavedPropertyCard.tsx
+├── SavedProjectCard.tsx
+├── SavedSearchCard.tsx
+├── SavedCollection.tsx
+├── CompareSelector.tsx
+├── CompareBar.tsx
+├── CompareCard.tsx
+├── CompareTable.tsx
+├── CompareAttributes.tsx
+├── CompareEmptyState.tsx
+└── CompareSummary.tsx
+```
+
+---
+
+# 12. USER JOURNEY / MY HOMIO
+
+```text
+src/components/journey/
+│
+├── MyHOMIOHeader.tsx
+├── ContinueJourney.tsx
+├── RecentlyViewed.tsx
+├── SavedProperties.tsx
+├── SavedProjects.tsx
+├── SavedSearches.tsx
+├── CompareResume.tsx
+├── PendingActions.tsx
+├── UpcomingVisit.tsx
+├── ActiveConversation.tsx
+├── TransactionReference.tsx
+├── JourneyTimeline.tsx
+└── JourneyEmptyState.tsx
+```
+
+---
+
+# 13. AI MODULES
+
+```text
+src/components/ai/
+│
+├── AIContextPanel.tsx
+├── AIMessageList.tsx
+├── AIMessage.tsx
+├── AIInput.tsx
+├── AIConversation.tsx
+├── ContextSummary.tsx
+├── SearchRefinementAssistant.tsx
+├── PropertyQuestionPanel.tsx
+├── ComparisonExplanation.tsx
+├── LocalityExplanation.tsx
+├── AIActionSuggestion.tsx
+└── AISourceContext.tsx
+```
+
+---
+
+# 14. ACTION / ENQUIRY / VISIT MODULES
+
+```text
+src/components/action/
+│
+├── EnquiryAction.tsx
+├── EnquiryForm.tsx
+├── EnquiryConfirmation.tsx
+├── VisitRequest.tsx
+├── VisitSchedule.tsx
+├── VisitStatus.tsx
+├── VisitConfirmation.tsx
+├── CommunicationEntry.tsx
+├── ActionStatus.tsx
+├── ActionPending.tsx
+├── ActionSuccess.tsx
+├── ActionError.tsx
+└── UnauthorizedAction.tsx
+```
+
+---
+
+# 15. TRANSACTION MODULES
+
+```text
+src/components/journey/transaction/
+│
+├── DealOverview.tsx
+├── DealStatus.tsx
+├── TransactionMilestones.tsx
+├── RequiredActions.tsx
+├── EvidenceContext.tsx
+├── PartySummary.tsx
+├── TransactionTimeline.tsx
+├── DealDocuments.tsx
+├── TransactionNextStep.tsx
+└── TransactionErrorState.tsx
+```
+
+---
+
+# 16. PROFESSIONAL SaaS MODULES
+
+```text
+src/components/professional/
+│
+├── ProfessionalShell.tsx
+├── ProfessionalHeader.tsx
+├── ProfessionalNavigation.tsx
+├── RoleContext.tsx
+├── ProfessionalDashboard.tsx
+│
+├── LeadWorkspace.tsx
+├── LeadTable.tsx
+├── LeadFilters.tsx
+├── LeadDetail.tsx
+├── LeadTimeline.tsx
+│
+├── InventoryWorkspace.tsx
+├── InventoryTable.tsx
+├── InventoryFilters.tsx
+├── InventoryDetail.tsx
+│
+├── CommunicationWorkspace.tsx
+├── CommunicationThread.tsx
+├── CommunicationComposer.tsx
+│
+├── DealWorkspace.tsx
+├── DealTable.tsx
+├── DealDetail.tsx
+├── DealTimeline.tsx
+│
+├── ProfessionalFilters.tsx
+├── ProfessionalActionBar.tsx
+└── ProfessionalEmptyState.tsx
+```
+
+---
+
+# 17. TOOLS MODULES
+
+```text
+src/components/tools/
+│
+├── ToolCard.tsx
+├── EMICalculator.tsx
+├── AffordabilityCalculator.tsx
+├── HomeLoanExplorer.tsx
+├── PropertyValuation.tsx
+├── PropertyRates.tsx
+├── MarketTrendTool.tsx
+├── InteriorBudgetTool.tsx
+└── InvestmentHelper.tsx
+```
+
+---
+
+# 18. FEATURE FOLDERS — F01 TO F13
+
+These folders represent the execution slices. They do not duplicate backend CORE architecture.
+
+```text
+src/features/
+│
+├── f01_experience_foundation/
+│   ├── foundation-config.ts
+│   ├── responsive-breakpoints.ts
+│   ├── error-boundary.tsx
+│   └── loading-boundary.tsx
+│
+├── f02_home_discovery/
+│   ├── home-config.ts
+│   ├── home-discovery-context.ts
+│   ├── home-section-registry.ts
+│   └── home-data-adapter.ts
+│
+├── f03_search/
+│   ├── search-context.ts
+│   ├── search-state.ts
+│   ├── search-request-adapter.ts
+│   ├── search-response-adapter.ts
+│   ├── search-filter-serializer.ts
+│   └── search-context-serializer.ts
+│
+├── f04_property/
+│   ├── property-context.ts
+│   ├── property-data-adapter.ts
+│   ├── property-media-adapter.ts
+│   ├── property-action-adapter.ts
+│   └── property-return-context.ts
+│
+├── f05_project_collection/
+│   ├── project-context.ts
+│   ├── project-data-adapter.ts
+│   ├── project-inventory-adapter.ts
+│   ├── market-context.ts
+│   └── locality-context.ts
+│
+├── f06_save_compare/
+│   ├── save-context.ts
+│   ├── save-adapter.ts
+│   ├── compare-context.ts
+│   ├── compare-adapter.ts
+│   └── decision-context.ts
+│
+├── f07_my_homio/
+│   ├── my-homio-context.ts
+│   ├── journey-adapter.ts
+│   ├── recently-viewed-adapter.ts
+│   ├── saved-state-adapter.ts
+│   └── continuation-adapter.ts
+│
+├── f08_ai_context/
+│   ├── ai-context.ts
+│   ├── ai-capability-adapter.ts
+│   ├── ai-source-adapter.ts
+│   ├── ai-action-adapter.ts
+│   └── ai-session-state.ts
+│
+├── f09_enquiry_visit/
+│   ├── enquiry-context.ts
+│   ├── enquiry-adapter.ts
+│   ├── visit-context.ts
+│   ├── visit-adapter.ts
+│   └── communication-adapter.ts
+│
+├── f10_transaction_journey/
+│   ├── deal-context.ts
+│   ├── deal-adapter.ts
+│   ├── milestone-adapter.ts
+│   ├── evidence-adapter.ts
+│   └── transaction-context.ts
+│
+├── f11_professional_saas/
+│   ├── professional-context.ts
+│   ├── role-adapter.ts
+│   ├── lead-adapter.ts
+│   ├── inventory-adapter.ts
+│   ├── communication-adapter.ts
+│   └── professional-deal-adapter.ts
+│
+├── f12_globalization/
+│   ├── locale-context.ts
+│   ├── currency-context.ts
+│   ├── unit-context.ts
+│   ├── address-localization.ts
+│   └── market-localization.ts
+│
+└── f13_production_quality/
+    ├── production-config.ts
+    ├── performance-budget.ts
+    ├── security-checks.ts
+    ├── accessibility-checks.ts
+    ├── seo-checks.ts
+    └── media-checks.ts
+```
+
+---
+
+# 19. REOS BINDING LAYER
+
+```text
+src/lib/reos/
+│
+├── client.ts
+├── capability-registry.ts
+├── capability-guards.ts
+├── request-adapter.ts
+├── response-adapter.ts
+├── error-adapter.ts
+├── provenance-adapter.ts
+├── freshness-adapter.ts
+├── authorization-adapter.ts
+├── session-adapter.ts
+└── unavailable-capability.ts
+```
+
+Rules:
+
+```text
+REOS binding layer
+≠
+business engine
+```
+
+It only consumes approved REOS capabilities.
+
+---
+
+# 20. FRONTEND STATE
+
+```text
+src/lib/frontend-state/
+│
+├── search-view-state.ts
+├── filter-view-state.ts
+├── compare-view-state.ts
+├── navigation-view-state.ts
+├── journey-view-state.ts
+├── ai-view-state.ts
+├── notification-view-state.ts
+├── modal-view-state.ts
+└── return-context-state.ts
+```
+
+Forbidden:
+
+```text
+canonical inventory state
+canonical ownership state
+canonical lead state
+canonical deal state
+canonical commission state
+canonical authorization state
+```
+
+---
+
+# 21. ROUTING LIBRARY
+
+```text
+src/lib/routing/
+│
+├── route-registry.ts
+├── route-builder.ts
+├── deep-link-resolver.ts
+├── return-context.ts
+├── search-context-serializer.ts
+├── navigation-context.ts
+└── route-error.ts
+```
+
+---
+
+# 22. FORMATTING
+
+```text
+src/lib/formatting/
+│
+├── currency-formatter.ts
+├── area-formatter.ts
+├── date-time-formatter.ts
+├── location-formatter.ts
+├── property-fact-formatter.ts
+├── project-fact-formatter.ts
+├── status-formatter.ts
+└── price-range-formatter.ts
+```
+
+---
+
+# 23. MEDIA SYSTEM
+
+```text
+src/lib/media/
+│
+├── media-registry.ts
+├── media-policy.ts
+├── media-url-validator.ts
+├── media-source-resolver.ts
+├── image-optimizer.ts
+├── video-policy.ts
+├── floorplan-policy.ts
+└── media-fallback.ts
+```
+
+Production rule:
+
+```text
+Owned
+or
+Commissioned
+or
+Properly Licensed
+```
+
+No scraped competitor media.
+
+---
+
+# 24. SECURITY
+
+```text
+src/lib/security/
+│
+├── session-context.ts
+├── authorization-visibility.ts
+├── protected-route.ts
+├── safe-action.ts
+├── session-expiry.ts
+├── sensitive-data-policy.ts
+└── safe-rendering.ts
+```
+
+Frontend visibility never becomes authorization authority.
+
+---
+
+# 25. OBSERVABILITY
+
+```text
+src/lib/observability/
+│
+├── experience-event-emitter.ts
+├── navigation-telemetry.ts
+├── error-reporter.ts
+├── performance-reporter.ts
+├── page-performance.ts
+└── action-telemetry.ts
+```
+
+No frontend telemetry becomes canonical business truth.
+
+---
+
+# 26. ACCESSIBILITY
+
+```text
+src/lib/accessibility/
+│
+├── focus-boundary.ts
+├── keyboard-navigation.ts
+├── accessible-dialog.ts
+├── accessible-drawer.ts
+├── accessible-sheet.ts
+├── aria-state-helpers.ts
+├── reduced-motion.ts
+└── touch-target-policy.ts
+```
+
+---
+
+# 27. TYPES — REOS
+
+```text
+src/types/reos/
+│
+├── capability.ts
+├── search.ts
+├── property.ts
+├── project.ts
+├── market.ts
+├── locality.ts
+├── saved.ts
+├── compare.ts
+├── customer.ts
+├── enquiry.ts
+├── visit.ts
+├── communication.ts
+├── deal.ts
+├── evidence.ts
+├── trust.ts
+├── professional.ts
+└── financial.ts
+```
+
+These are frontend representations of verified contracts, not new business authorities.
+
+---
+
+# 28. TYPES — FRONTEND
+
+```text
+src/types/frontend/
+│
+├── navigation.ts
+├── search-view.ts
+├── filter-view.ts
+├── card.ts
+├── media.ts
+├── journey.ts
+├── ai.ts
+├── action.ts
+├── loading.ts
+├── error.ts
+├── responsive.ts
+└── common.ts
+```
+
+---
+
+# 29. TEST STRUCTURE
+
+```text
+src/tests/
+│
+├── unit/
+│   ├── ui/
+│   ├── search/
+│   ├── formatting/
+│   ├── routing/
+│   ├── state/
+│   ├── adapters/
+│   └── media/
+│
+├── integration/
+│   ├── home/
+│   ├── search/
+│   ├── property/
+│   ├── project/
+│   ├── save/
+│   ├── compare/
+│   ├── my-homio/
+│   ├── ai/
+│   ├── enquiry/
+│   ├── visit/
+│   ├── transaction/
+│   └── professional/
+│
+├── e2e/
+│   ├── consumer-search.spec.ts
+│   ├── property-discovery.spec.ts
+│   ├── save-compare.spec.ts
+│   ├── project-discovery.spec.ts
+│   ├── enquiry.spec.ts
+│   ├── visit.spec.ts
+│   ├── my-homio.spec.ts
+│   ├── transaction.spec.ts
+│   └── professional.spec.ts
+│
+├── accessibility/
+│   ├── home.a11y.spec.ts
+│   ├── search.a11y.spec.ts
+│   ├── property.a11y.spec.ts
+│   ├── project.a11y.spec.ts
+│   ├── my-homio.a11y.spec.ts
+│   └── professional.a11y.spec.ts
+│
+└── visual/
+    ├── home.visual.spec.ts
+    ├── search.visual.spec.ts
+    ├── property.visual.spec.ts
+    ├── project.visual.spec.ts
+    ├── compare.visual.spec.ts
+    └── professional.visual.spec.ts
+```
+
+---
+
+# 30. TEST FIXTURES / SAFE SAMPLE DATA
+
+Only for frontend tests; never canonical production inventory.
+
+```text
+src/tests/fixtures/
+│
+├── search-fixtures.ts
+├── property-fixtures.ts
+├── project-fixtures.ts
+├── market-fixtures.ts
+├── locality-fixtures.ts
+├── compare-fixtures.ts
+├── journey-fixtures.ts
+├── ai-fixtures.ts
+├── enquiry-fixtures.ts
+├── visit-fixtures.ts
+└── professional-fixtures.ts
+```
+
+---
+
+# 31. PUBLIC ASSET STRUCTURE
+
+```text
+REOS_CONTROL_CENTER/Frontend/public/
+│
+├── brand/
+│   ├── logo.svg
+│   ├── logo-mark.svg
+│   └── favicon.svg
+│
+├── icons/
+│   ├── property.svg
+│   ├── project.svg
+│   ├── location.svg
+│   ├── search.svg
+│   ├── save.svg
+│   ├── compare.svg
+│   └── verified.svg
+│
+├── cities/
+│   ├── mumbai/
+│   ├── pune/
+│   ├── bengaluru/
+│   ├── delhi-ncr/
+│   ├── hyderabad/
+│   ├── chennai/
+│   ├── kolkata/
+│   └── ahmedabad/
+│
+├── home/
+│   ├── hero/
+│   ├── projects/
+│   ├── properties/
+│   ├── localities/
+│   └── commercial/
+│
+└── placeholders/
+    ├── property-placeholder.svg
+    ├── project-placeholder.svg
+    ├── city-placeholder.svg
+    └── media-error.svg
+```
+
+Only approved/owned/licensed production media goes here.
+
+---
+
+# 32. HOME PAGE COMPOSITION
+
+The actual `src/app/page.tsx` should remain small.
+
+```text
+src/app/page.tsx
+```
+
+Composition:
+
+```tsx
+<AppShell>
+  <HomeHeader />
+  <HomeSecondaryNav />
+
+  <HomeHero />
+  <HomeQuickDiscovery />
+
+  <PopularCities />
+  <PopularLocalities />
+
+  <FeaturedProjects />
+  <NewProjectCollections />
+
+  <FreshProperties />
+  <OwnerProperties />
+  <VerifiedProperties />
+  <PropertyCollections />
+
+  <CommercialSection />
+  <ResidentialCollections />
+  <RentalSection />
+  <PlotLandSection />
+
+  <PropertyTools />
+  <MarketIntelligence />
+  <HomioAdvice />
+  <HomeServices />
+  <BuilderProjects />
+
+  <SaveCompareSection />
+  <HomioAISection />
+
+  <BrokerageCTA />
+  <PostPropertySection />
+
+  <WhyHomio />
+  <TrustSection />
+  <MyHomioSection />
+  <HelpSupport />
+
+  <HomeFooter />
+</AppShell>
+```
+
+`page.tsx` mein business logic nahi hoga.
+
+---
+
+# 33. COMPLETE WEBSITE SURFACE MAP
+
+```text
+PUBLIC CONSUMER
+│
+├── /
+│   └── Complete HOMIO Home
+│
+├── /search
+│   └── Search Results
+│
+├── /property/[propertyId]
+│   └── Property Detail
+│
+├── /project/[projectId]
+│   └── Project Detail
+│
+└── /market/[marketId]
+    └── Market / Locality Detail
+
+PERSONAL JOURNEY
+│
+├── /saved
+├── /compare
+├── /my
+└── /ai
+
+ACTION JOURNEY
+│
+├── /visit/[visitId]
+└── /deal/[dealId]
+
+PROFESSIONAL
+│
+├── /pro
+├── /pro/leads
+├── /pro/inventory
+├── /pro/communications
+└── /pro/deals
+```
+
+---
+
+# 34. F-LAYER TO FILE OWNERSHIP
+
+```text
+F01 — Experience Foundation
+→ shell
+→ ui
+→ navigation
+→ accessibility
+→ basic routing
+
+F02 — Home Discovery
+→ components/home/*
+→ home feature adapters
+
+F03 — Search
+→ components/search/*
+→ search feature adapters
+
+F04 — Property
+→ components/property/*
+→ property feature adapters
+
+F05 — Project / Collection
+→ components/project/*
+→ components/market/*
+→ project/market feature adapters
+
+F06 — Save / Compare
+→ components/compare/*
+→ save/compare feature adapters
+
+F07 — My HOMIO
+→ components/journey/*
+→ journey adapters
+
+F08 — AI
+→ components/ai/*
+→ AI feature adapters
+
+F09 — Enquiry / Visit
+→ components/action/*
+→ enquiry/visit feature adapters
+
+F10 — Transaction
+→ components/journey/transaction/*
+→ deal/evidence adapters
+
+F11 — Professional SaaS
+→ components/professional/*
+→ professional feature adapters
+
+F12 — Globalization
+→ formatting
+→ localization
+→ market localization
+
+F13 — Production Quality
+→ scripts
+→ tests
+→ accessibility
+→ performance
+→ security
+→ SEO
+```
+
+---
+
+# 35. SINGLE-BROKER-CENTRIC RULE
+
+HOMIO website can have:
+
+```text
+Buy
+Rent
+New Projects
+Commercial
+PG
+Plot
+Projects
+Builders
+Owner Properties
+Verified Properties
+```
+
+But consumer business identity remains:
+
+```text
+HOMIO
+  ↓
+HOMIO Discovery
+  ↓
+HOMIO / Authorized Inventory
+  ↓
+HOMIO Lead
+  ↓
+HOMIO Brokerage
+  ↓
+HOMIO Visit
+  ↓
+HOMIO Deal
+  ↓
+HOMIO Commission
+```
+
+The frontend must NOT create:
+
+```text
+Broker Directory
+Broker Comparison
+Broker Bidding
+Lead Auction
+Competing Broker Marketplace
+```
+
+---
+
+# 36. FILE CREATION RULE
+
+Permanent rule:
+
+```text
+1 named production module
+=
+1 primary source file
+```
+
+Exceptions only for:
+
+```text
+framework entry files
+configuration
+barrel/index files
+tests
+generated files
+```
+
+Do not create:
+
+```text
+MegaHome.tsx
+MegaSearch.tsx
+RealEstateManager.tsx
+PropertyEngine.tsx
+MarketplaceEngine.tsx
+BrokerEngine.tsx
+CommissionEngine.tsx
+```
+
+---
+
+# 37. IMPLEMENTATION ORDER
+
+The files will be added in controlled batches.
+
+```text
+BATCH 01
+F01
+Shell + UI + Navigation foundation
+
+BATCH 02
+LP01-LP04
+Header + Secondary Nav + Hero + Search + Quick Discovery
+
+BATCH 03
+LP05-LP06
+Cities + Localities
+
+BATCH 04
+LP07-LP12
+Projects + Fresh + Owner + Verified + Collections
+
+BATCH 05
+LP13-LP16
+Commercial + Residential + Rental + Plot/Land
+
+BATCH 06
+LP17-LP21
+Tools + Market + Advice + Services + Builder
+
+BATCH 07
+LP22-LP25
+Save + Compare + AI + HOMIO Brokerage + Post Property
+
+BATCH 08
+LP26-LP30
+Why HOMIO + Trust + My HOMIO + Help + Footer
+
+BATCH 09
+F03
+Complete Search page
+
+BATCH 10
+F04
+Property page
+
+BATCH 11
+F05
+Project + Market pages
+
+BATCH 12
+F06
+Saved + Compare
+
+BATCH 13
+F07
+My HOMIO
+
+BATCH 14
+F08
+AI
+
+BATCH 15
+F09
+Enquiry + Visit
+
+BATCH 16
+F10
+Transaction
+
+BATCH 17
+F11
+Professional SaaS
+
+BATCH 18
+F12
+Globalization
+
+BATCH 19
+F13
+Production Quality
+```
+
+---
+
+# 38. DEFINITION OF COMPLETE WEBSITE
+
+The frontend structure is considered structurally complete when:
+
+```text
+✓ All public consumer routes exist
+✓ Complete landing page exists
+✓ All LP01-LP30 modules exist
+✓ Search exists
+✓ Property detail exists
+✓ Project detail exists
+✓ Market/locality exists
+✓ Save exists
+✓ Compare exists
+✓ My HOMIO exists
+✓ AI exists
+✓ Enquiry exists
+✓ Visit exists
+✓ Transaction exists
+✓ Professional SaaS exists
+✓ Globalization foundation exists
+✓ Production verification exists
+✓ Accessibility exists
+✓ Security boundary exists
+✓ Media governance exists
+✓ REOS bindings are explicit
+✓ No frontend business engine exists
+✓ No ACRL runtime dependency exists
+✓ No multi-broker marketplace model is introduced
+```
+
+---
+
+# 39. MASTER RULE FOR FUTURE FILE ADDITIONS
+
+Future frontend work must follow this registry.
+
+Example:
+
+```text
+"LP07 ki 3 files do"
+```
+
+means only the approved LP07 / Featured Projects files.
+
+```text
+"F03 next files do"
+```
+
+means only Search-layer files that are not already present.
+
+```text
+"Property card ka next module do"
+```
+
+means the existing `components/property/` registry is checked first; a duplicate file is not created.
+
+```text
+"new section banana hai"
+```
+
+means first map it to the existing LP/F-layer responsibility before creating a new file.
+
+No random frontend folders.
+
+No duplicate components.
+
+No second architecture.
+
+No second landing-page plan.
