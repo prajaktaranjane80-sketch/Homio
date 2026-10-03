@@ -1,39 +1,31 @@
 "use client";
 
 import { useState } from "react";
+import styles from "./HomeIntentTabs.module.css";
 
-const intents = [
-  ["Buy", "buy"],
-  ["Rent", "rent"],
-  ["New Projects", "new-projects"],
-  ["Commercial", "commercial"],
-  ["PG", "pg"],
-  ["Plot", "plot"],
-] as const;
+const intents = ["Buy", "Rent", "Commercial", "Projects", "Land"];
 
-export function HomeIntentTabs() {
-  const [activeIntent, setActiveIntent] = useState("buy");
+export default function HomeIntentTabs() {
+  const [activeIntent, setActiveIntent] = useState("Buy");
 
   return (
-    <div
-      className="home-intent-tabs"
-      aria-label="Choose property search intent"
-    >
-      {intents.map(([label, intent]) => (
-        <button
-          key={intent}
-          type="button"
-          className={
-            activeIntent === intent
-              ? "home-intent-tab home-intent-tab--active"
-              : "home-intent-tab"
-          }
-          onClick={() => setActiveIntent(intent)}
-          aria-pressed={activeIntent === intent}
-        >
-          {label}
-        </button>
-      ))}
+    <div className={styles.tabs} role="tablist" aria-label="Property intent">
+      {intents.map((intent) => {
+        const active = activeIntent === intent;
+
+        return (
+          <button
+            key={intent}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            className={`${styles.tab} ${active ? styles.active : ""}`}
+            onClick={() => setActiveIntent(intent)}
+          >
+            {intent}
+          </button>
+        );
+      })}
     </div>
   );
 }
