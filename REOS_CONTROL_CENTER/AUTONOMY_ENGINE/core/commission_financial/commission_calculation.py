@@ -7,7 +7,11 @@ from enum import Enum
 from typing import Any, Mapping
 from uuid import uuid4
 
-from ..contract_primitives import fingerprint
+from ..contract_primitives import (
+    deep_freeze,
+    deep_thaw,
+    fingerprint,
+)
 from .commission_contract import (
     CommissionContract,
     CommissionRateType,
@@ -298,7 +302,7 @@ class CommissionCalculation:
         object.__setattr__(
             self,
             "metadata",
-            dict(metadata),
+            deep_freeze(metadata),
         )
 
         if (
@@ -394,7 +398,7 @@ class CommissionCalculation:
                 self.idempotency_key
             ),
             "state": self.state.value,
-            "metadata": dict(self.metadata),
+            "metadata": deep_thaw(self.metadata),
         }
 
         if include_fingerprint:
