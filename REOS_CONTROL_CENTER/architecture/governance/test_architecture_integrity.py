@@ -1,12 +1,8 @@
 from __future__ import annotations
 
-import copy
-import json
 from pathlib import Path
 
-import pytest
-
-from architecture.architecture_integrity import (
+from architecture.governance.architecture_integrity import (
     EXPECTED_ARCHITECTURE_ID,
     validate_master_architecture,
     validate_repository_master_uniqueness,
@@ -53,6 +49,28 @@ def _master() -> dict:
             ),
             "chat_is_authority": False,
             "parallel_master_architecture_forbidden": True,
+        },
+        "authority_boundaries": {
+            "customer": {
+                "owner": "FUTURE_DEDICATED_CUSTOMER_DOMAIN",
+                "status": "FUTURE_ARCHITECTURE_BOUNDARY",
+            },
+            "builder": {
+                "owner": "FUTURE_DEDICATED_BUILDER_DOMAIN",
+                "status": "FUTURE_ARCHITECTURE_BOUNDARY",
+            },
+            "communication": {
+                "owner": "ARCH-009",
+                "status": "APPROVED_ARCHITECTURE_NODE",
+            },
+            "evidence": {
+                "owner": "ARCH-014",
+                "status": "APPROVED_ARCHITECTURE_NODE",
+            },
+            "acrl": {
+                "owner": "ACRL",
+                "status": "CONTINUITY_RECONSTRUCTION_BOUNDARY",
+            },
         },
         "architecture_nodes": nodes,
         "canonical_graphs": [
@@ -217,21 +235,59 @@ def test_invalid_node_status_is_rejected() -> None:
     )
 
 
+def test_canonical_master_location_is_accepted(
+    tmp_path: Path,
+) -> None:
+    master_dir = (
+        tmp_path
+        / "architecture"
+        / "master"
+    )
+
+    master_dir.mkdir(
+        parents=True
+    )
+
+    canonical = (
+        master_dir
+        / "HOMIO_REOS_MASTER_ARCHITECTURE.json"
+    )
+
+    canonical.write_text(
+        "{}",
+        encoding="utf-8",
+    )
+
+    report = (
+        validate_repository_master_uniqueness(
+            tmp_path
+        )
+    )
+
+    assert report.ok is True
+    assert report.issues == ()
+
+
 def test_second_master_architecture_is_rejected(
     tmp_path: Path,
 ) -> None:
-    architecture_dir = (
-        tmp_path / "architecture"
+    master_dir = (
+        tmp_path
+        / "architecture"
+        / "master"
     )
-    architecture_dir.mkdir()
+
+    master_dir.mkdir(
+        parents=True
+    )
 
     canonical = (
-        architecture_dir
+        master_dir
         / "HOMIO_REOS_MASTER_ARCHITECTURE.json"
     )
 
     duplicate = (
-        architecture_dir
+        master_dir
         / "SECOND_MASTER_ARCHITECTURE.json"
     )
 
@@ -316,6 +372,44 @@ def test_clean_preapproval_alignment_passes() -> None:
 
     assert report.ok is True
     assert report.issues == ()
+
+
+def test_missing_authority_boundary_is_rejected() -> None:
+    architecture = _master()
+
+    architecture["authority_boundaries"].pop(
+        "customer"
+    )
+
+    report = validate_master_architecture(
+        architecture
+    )
+
+    assert report.ok is False
+    assert any(
+        issue.code
+        == "AUTHORITY_BOUNDARY_MISSING"
+        for issue in report.issues
+    )
+
+
+def test_invalid_authority_boundary_is_rejected() -> None:
+    architecture = _master()
+
+    architecture["authority_boundaries"][
+        "evidence"
+    ]["owner"] = "DUPLICATE_EVIDENCE_ENGINE"
+
+    report = validate_master_architecture(
+        architecture
+    )
+
+    assert report.ok is False
+    assert any(
+        issue.code
+        == "INVALID_AUTHORITY_BOUNDARY"
+        for issue in report.issues
+    )
 
 
 def test_invalid_master_authority_fails_closed() -> None:
