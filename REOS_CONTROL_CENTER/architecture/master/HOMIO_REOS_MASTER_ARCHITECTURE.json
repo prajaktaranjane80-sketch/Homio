@@ -423,6 +423,33 @@
     ],
     "rule": "Derived systems can consume canonical truth and events, but cannot silently become business source of truth."
   },
+  "authority_boundaries": {
+    "customer": {
+      "owner": "FUTURE_DEDICATED_CUSTOMER_DOMAIN",
+      "status": "FUTURE_ARCHITECTURE_BOUNDARY",
+      "rule": "CORE-001 through CORE-008 may reference customer identity, attribution and customer references, but no existing Core owns Customer lifecycle or business truth."
+    },
+    "builder": {
+      "owner": "FUTURE_DEDICATED_BUILDER_DOMAIN",
+      "status": "FUTURE_ARCHITECTURE_BOUNDARY",
+      "rule": "CORE-001 through CORE-008 may reference builder or developer identity and commercial relationships, but no existing Core owns Builder lifecycle or business truth."
+    },
+    "communication": {
+      "owner": "ARCH-009",
+      "status": "APPROVED_ARCHITECTURE_NODE",
+      "rule": "Communication content, delivery and communication history remain owned by the approved Communication Engine boundary; Core communication hooks are references, events and evidence linkage only."
+    },
+    "evidence": {
+      "owner": "ARCH-014",
+      "status": "APPROVED_ARCHITECTURE_NODE",
+      "rule": "Business evidence, consent, visit, enquiry and proof records remain under the approved Evidence boundary; Core layers reference and validate evidence without creating parallel evidence truth."
+    },
+    "acrl": {
+      "owner": "ACRL",
+      "status": "CONTINUITY_RECONSTRUCTION_BOUNDARY",
+      "rule": "ACRL may preserve, checkpoint and reconstruct evidence context, but does not own Customer, Builder, Deal, Commission or other business domain state."
+    }
+  },
   "core_006_deal_architecture": {
     "aggregate": "Deal",
     "owns": [
