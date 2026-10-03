@@ -1,0 +1,135 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--homio-bg);
+  color: var(--homio-text);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  border: 0;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(197, 155, 99, 0.55);
+  outline-offset: 3px;
+}
+
+.homio-container {
+  width: min(100% - (var(--container-padding) * 2), var(--container-width));
+  margin-inline: auto;
+}
+
+.homio-section {
+  padding-block: var(--space-20);
+}
+
+.homio-section--compact {
+  padding-block: var(--space-12);
+}
+
+.homio-grid {
+  display: grid;
+}
+
+.homio-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.homio-row {
+  display: flex;
+  align-items: center;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition:
+    transform var(--ease-standard),
+    box-shadow var(--ease-standard),
+    background var(--ease-standard);
+}
+
+.button:hover {
+  transform: translateY(-1px);
+}
+
+.button--primary {
+  background: var(--homio-brand);
+  color: var(--homio-text-inverse);
+}
+
+.button--secondary {
+  background: var(--homio-surface);
+  border: 1px solid var(--homio-border);
+  color: var(--homio-text);
+}
+
+.card {
+  background: var(--homio-surface);
+  border: 1px solid var(--homio-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 768px) {
+  .homio-section {
+    padding-block: var(--space-12);
+  }
+}
