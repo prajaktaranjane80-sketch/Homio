@@ -1,0 +1,54 @@
+.bar {
+  position: relative;
+  z-index: 20;
+  background: var(--homio-surface);
+  border-bottom: 1px solid var(--homio-border);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: 50px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.inner::-webkit-scrollbar {
+  display: none;
+}
+
+.link,
+.postLink {
+  flex: 0 0 auto;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.link {
+  color: var(--homio-text-soft);
+  transition: color var(--ease-standard);
+}
+
+.link:hover {
+  color: var(--homio-text);
+}
+
+.postLink {
+  margin-left: auto;
+  padding: 8px 14px;
+  border: 1px solid var(--homio-border-strong);
+  border-radius: var(--radius-pill);
+  color: var(--homio-text);
+}
+
+@media (max-width: 768px) {
+  .inner {
+    gap: var(--space-5);
+  }
+
+  .postLink {
+    margin-left: 0;
+  }
+}
