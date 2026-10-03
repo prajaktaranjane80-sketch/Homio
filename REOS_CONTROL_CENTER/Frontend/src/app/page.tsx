@@ -1,197 +1,243 @@
 import Link from "next/link";
 
-import { AppShell } from "@/components/shell/AppShell";
-import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
-import { Badge } from "@/components/ui/Badge";
+import { GlobalSearch } from "@/components/navigation/GlobalSearch";
 import { Card } from "@/components/ui/Card";
+import { AppShell } from "@/components/shell/AppShell";
+
+const cityCards = [
+  {
+    name: "Mumbai",
+    region: "Maharashtra",
+    image:
+      "https://images.unsplash.com/photo-1769556863948-f78da394a94e?auto=format&fit=crop&w=1400&q=82",
+  },
+  {
+    name: "Pune",
+    region: "Maharashtra",
+    image:
+      "https://images.unsplash.com/photo-1553064483-f10fe837615f?auto=format&fit=crop&w=1200&q=82",
+  },
+  {
+    name: "Bengaluru",
+    region: "Karnataka",
+    image:
+      "https://images.unsplash.com/photo-1782977697822-aa50585579a9?auto=format&fit=crop&w=1200&q=82",
+  },
+  {
+    name: "Delhi NCR",
+    region: "Delhi",
+    image:
+      "https://images.unsplash.com/photo-1657693221998-ffe0bf5cb424?auto=format&fit=crop&w=1200&q=82",
+  },
+];
+
+const categories = [
+  "Buy",
+  "Rent",
+  "Commercial",
+  "New Projects",
+];
 
 export default function HomePage() {
   return (
     <AppShell>
       <main id="main-content" className="page-shell">
-        <div className="page-container">
-          <Breadcrumbs
-            items={[
-              {
-                label: "HOMIO",
-                href: "/",
-              },
-            ]}
-          />
+        <section className="home-hero" aria-labelledby="home-title">
+          <div className="page-container home-hero__grid">
+            <div className="home-hero__content">
+              <span className="home-kicker">INDIA REAL ESTATE</span>
 
-          <section
-            id="foundation"
-            className="hero-section"
-            aria-labelledby="hero-title"
-          >
-            <div className="hero-copy">
-              <span className="eyebrow">GLOBAL REAL-ESTATE EXPERIENCE</span>
-
-              <h1 id="hero-title">
-                Global real estate.
-                <span className="hero-highlight">
-                  One clear journey.
-                </span>
+              <h1 id="home-title">
+                Find a place that
+                <span>fits your life.</span>
               </h1>
 
-              <p className="hero-description">
-                HOMIO turns the complexity of a global real-estate platform
-                into a clear experience built around the way people actually
-                discover, evaluate and move forward.
+              <p>
+                Search homes, rentals, commercial spaces and new projects
+                across India ? in one simple place.
               </p>
 
-              <div className="hero-actions">
-                <Link className="button button--primary" href="#experience">
-                  Explore the experience
-                </Link>
+              <div id="search" className="home-search">
+                <div className="home-search__tabs" aria-label="Property intent">
+                  {categories.map((category, index) => (
+                    <span
+                      className={
+                        index === 0
+                          ? "home-search__tab home-search__tab--active"
+                          : "home-search__tab"
+                      }
+                      key={category}
+                    >
+                      {category}
+                    </span>
+                  ))}
+                </div>
 
-                <Link className="button button--secondary" href="#boundary">
-                  See how HOMIO works
-                </Link>
+                <GlobalSearch />
+              </div>
+
+              <div className="home-quick-links" aria-label="Popular cities">
+                <span>Popular cities</span>
+                <a href="#cities">Mumbai</a>
+                <a href="#cities">Pune</a>
+                <a href="#cities">Bengaluru</a>
+                <a href="#cities">Delhi NCR</a>
               </div>
             </div>
 
-            <aside className="hero-status" aria-label="HOMIO experience model">
-              <Badge tone="success">HOMIO EXPERIENCE</Badge>
+            <div className="home-hero__visual" aria-hidden="true">
+              <div
+                className="home-hero__image"
+                style={{
+                  backgroundImage:
+                    "url('https://images.unsplash.com/photo-1769556863948-f78da394a94e?auto=format&fit=crop&w=1600&q=84')",
+                }}
+              />
 
-              <p>One continuous journey</p>
-
-              <span>
-                Discover ? Explore ? Decide ? Act ? Return
-              </span>
-            </aside>
-          </section>
-
-          <section
-            id="experience"
-            className="foundation-grid"
-            aria-labelledby="experience-title"
-          >
-            <div className="sr-only">
-              <h2 id="experience-title">The HOMIO experience</h2>
-            </div>
-
-            <Card>
-              <span className="card-kicker">01 ? DISCOVER</span>
-              <h2>Start from intent</h2>
-              <p>
-                The experience begins with what the user wants to achieve,
-                rather than forcing them to understand platform structure.
-              </p>
-            </Card>
-
-            <Card>
-              <span className="card-kicker">02 ? EXPLORE</span>
-              <h2>Understand what matters</h2>
-              <p>
-                Property, project, market and contextual information can grow
-                deeper without changing the surrounding experience.
-              </p>
-            </Card>
-
-            <Card>
-              <span className="card-kicker">03 ? DECIDE</span>
-              <h2>Keep the decision clear</h2>
-              <p>
-                Saving, comparison and return paths belong to the experience
-                layer while authoritative business state remains elsewhere.
-              </p>
-            </Card>
-
-            <Card>
-              <span className="card-kicker">04 ? ACT</span>
-              <h2>Move forward safely</h2>
-              <p>
-                Enquiry, visits and future transaction actions can enter the
-                same journey without moving authority into the browser.
-              </p>
-            </Card>
-
-            <Card>
-              <span className="card-kicker">05 ? RETURN</span>
-              <h2>Never lose the journey</h2>
-              <p>
-                HOMIO is designed so users can come back to context instead
-                of rebuilding the same decision from the beginning.
-              </p>
-            </Card>
-          </section>
-
-          <section
-            id="boundary"
-            className="principles-section"
-            aria-labelledby="boundary-title"
-          >
-            <div>
-              <span className="eyebrow">PRODUCT BOUNDARY</span>
-              <h2 id="boundary-title">
-                Complexity stays behind the product.
-              </h2>
-            </div>
-
-            <ul className="principles-list">
-              <li>
-                <strong>HOMIO owns the experience.</strong>
-                <br />
-                Navigation, presentation, interaction, loading, error and
-                journey context stay inside the frontend boundary.
-              </li>
-
-              <li>
-                <strong>REOS owns canonical business authority.</strong>
-                <br />
-                Inventory, identity, ownership, transactions, financial truth
-                and other authoritative business capabilities remain outside
-                the presentation layer.
-              </li>
-
-              <li>
-                <strong>AI assists; it does not become authority.</strong>
-                <br />
-                Contextual intelligence can help explain, refine and guide
-                without inventing facts or bypassing governed capabilities.
-              </li>
-
-              <li>
-                <strong>ACRL remains an engineering-time boundary.</strong>
-                <br />
-                Continuity and recovery engineering do not become a runtime
-                dependency of the production frontend.
-              </li>
-
-              <li>
-                <strong>Every next feature plugs into the same foundation.</strong>
-                <br />
-                The shell, responsive behavior, accessibility patterns and
-                shared primitives are established once and reused across F01?F13.
-              </li>
-            </ul>
-          </section>
-
-          <section className="principles-section" aria-labelledby="next-title">
-            <div>
-              <span className="eyebrow">FOUNDATION</span>
-              <h2 id="next-title">
-                Ready for verified discovery capabilities.
-              </h2>
-            </div>
-
-            <div>
-              <p className="hero-description">
-                F01 establishes the production experience boundary. Future
-                discovery capabilities can plug into this foundation without
-                rebuilding the application shell or introducing a second
-                business authority.
-              </p>
-
-              <div className="hero-actions">
-                <Link className="button button--primary" href="#main-content">
-                  Back to top
-                </Link>
+              <div className="home-hero__visual-card">
+                <span>HOMIO</span>
+                <strong>Search less. Understand more.</strong>
               </div>
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
+
+        <section className="home-categories" aria-labelledby="category-title">
+          <div className="page-container">
+            <div className="section-heading">
+              <div>
+                <span className="section-kicker">START HERE</span>
+                <h2 id="category-title">What are you looking for?</h2>
+              </div>
+
+              <p>
+                Clear starting points for the most common property journeys.
+              </p>
+            </div>
+
+            <div className="category-grid">
+              <Link className="category-card category-card--active" href="#search">
+                <span>01</span>
+                <strong>Buy a home</strong>
+                <small>Flats, houses and more</small>
+              </Link>
+
+              <Link className="category-card" href="#search">
+                <span>02</span>
+                <strong>Rent a home</strong>
+                <small>Find a place that suits you</small>
+              </Link>
+
+              <Link className="category-card" href="#search">
+                <span>03</span>
+                <strong>Commercial</strong>
+                <small>Office and business spaces</small>
+              </Link>
+
+              <Link className="category-card" href="#search">
+                <span>04</span>
+                <strong>New projects</strong>
+                <small>Explore upcoming communities</small>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section id="cities" className="home-cities" aria-labelledby="city-title">
+          <div className="page-container">
+            <div className="section-heading">
+              <div>
+                <span className="section-kicker">EXPLORE INDIA</span>
+                <h2 id="city-title">Popular cities</h2>
+              </div>
+
+              <p>
+                Start with a market you know. Your search journey stays simple
+                as you go deeper.
+              </p>
+            </div>
+
+            <div className="city-grid">
+              {cityCards.map((city) => (
+                <Link
+                  href="#search"
+                  className="city-card"
+                  key={city.name}
+                  aria-label={`Explore ${city.name} real estate`}
+                >
+                  <div
+                    className="city-card__image"
+                    style={{
+                      backgroundImage: `url('${city.image}')`,
+                    }}
+                  />
+                  <div className="city-card__overlay" />
+                  <div className="city-card__content">
+                    <span>{city.region}</span>
+                    <strong>{city.name}</strong>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="home-simple" aria-labelledby="simple-title">
+          <div className="page-container">
+            <Card className="simple-card">
+              <div>
+                <span className="section-kicker">THE HOMIO APPROACH</span>
+                <h2 id="simple-title">Real estate should feel simple.</h2>
+              </div>
+
+              <div className="simple-steps">
+                <div>
+                  <strong>Search</strong>
+                  <span>Tell HOMIO what you need.</span>
+                </div>
+
+                <div>
+                  <strong>Explore</strong>
+                  <span>Understand the options.</span>
+                </div>
+
+                <div>
+                  <strong>Decide</strong>
+                  <span>Save and compare what matters.</span>
+                </div>
+
+                <div>
+                  <strong>Move forward</strong>
+                  <span>Take the next approved action.</span>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </section>
+
+        <footer className="home-footer">
+          <div className="page-container">
+            <div className="home-footer__main">
+              <div>
+                <strong>HOMIO</strong>
+                <p>
+                  A simple India-first real-estate experience powered by REOS.
+                </p>
+              </div>
+
+              <nav aria-label="Footer navigation">
+                <a href="#search">Search</a>
+                <a href="#cities">Cities</a>
+                <a href="#category-title">Explore</a>
+              </nav>
+            </div>
+
+            <div className="home-footer__bottom">
+              <span>? HOMIO</span>
+              <span>Experience layer powered by REOS</span>
+            </div>
+          </div>
+        </footer>
       </main>
     </AppShell>
   );
