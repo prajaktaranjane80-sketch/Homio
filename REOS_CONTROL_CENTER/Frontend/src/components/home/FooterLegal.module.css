@@ -1,0 +1,31 @@
+.wrapper {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--space-6);
+  min-height: 76px;
+  color: rgba(255, 255, 255, 0.38);
+  font-size: var(--text-xs);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.links a {
+  color: inherit;
+}
+
+.links a:hover {
+  color: #fff;
+}
+
+@media (max-width: 650px) {
+  .wrapper {
+    grid-template-columns: 1fr;
+    align-items: start;
+    padding-block: var(--space-5);
+  }
+}
