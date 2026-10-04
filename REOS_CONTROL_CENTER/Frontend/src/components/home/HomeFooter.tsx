@@ -1,7 +1,12 @@
 import Link from "next/link";
+import FooterLinkGroup, {
+  type FooterLink,
+} from "./FooterLinkGroup";
+import FooterRegions from "./FooterRegions";
+import FooterLegal from "./FooterLegal";
 import styles from "./HomeFooter.module.css";
 
-const exploreLinks = [
+const exploreLinks: FooterLink[] = [
   { label: "Buy", href: "/search?intent=buy" },
   { label: "Rent", href: "/search?intent=rent" },
   { label: "Projects", href: "/search?intent=projects" },
@@ -9,7 +14,7 @@ const exploreLinks = [
   { label: "Plots & Land", href: "/search?intent=land" },
 ];
 
-const marketLinks = [
+const marketLinks: FooterLink[] = [
   { label: "Dubai", href: "/market/dubai" },
   { label: "Singapore", href: "/market/singapore" },
   { label: "Tokyo", href: "/market/tokyo" },
@@ -17,7 +22,7 @@ const marketLinks = [
   { label: "New York", href: "/market/new-york" },
 ];
 
-const companyLinks = [
+const companyLinks: FooterLink[] = [
   { label: "About HOMIO", href: "/about" },
   { label: "HOMIO AI", href: "/ai" },
   { label: "Advice", href: "/advice" },
@@ -25,7 +30,7 @@ const companyLinks = [
   { label: "Contact", href: "/help/contact" },
 ];
 
-const professionalLinks = [
+const professionalLinks: FooterLink[] = [
   { label: "HOMIO Pro", href: "/pro" },
   { label: "Inventory", href: "/pro/inventory" },
   { label: "Leads", href: "/pro/leads" },
@@ -55,45 +60,13 @@ export default function HomeFooter() {
           </div>
 
           <div className={styles.columns}>
-            <div className={styles.column}>
-              <h3>Explore</h3>
-
-              {exploreLinks.map((link) => (
-                <Link key={link.label} href={link.href}>
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-
-            <div className={styles.column}>
-              <h3>Markets</h3>
-
-              {marketLinks.map((link) => (
-                <Link key={link.label} href={link.href}>
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-
-            <div className={styles.column}>
-              <h3>HOMIO</h3>
-
-              {companyLinks.map((link) => (
-                <Link key={link.label} href={link.href}>
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-
-            <div className={styles.column}>
-              <h3>For Professionals</h3>
-
-              {professionalLinks.map((link) => (
-                <Link key={link.label} href={link.href}>
-                  {link.label}
-                </Link>
-              ))}
-            </div>
+            <FooterLinkGroup title="Explore" links={exploreLinks} />
+            <FooterLinkGroup title="Markets" links={marketLinks} />
+            <FooterLinkGroup title="HOMIO" links={companyLinks} />
+            <FooterLinkGroup
+              title="For Professionals"
+              links={professionalLinks}
+            />
           </div>
         </div>
 
@@ -107,32 +80,10 @@ export default function HomeFooter() {
             </strong>
           </div>
 
-          <div className={styles.regions}>
-            <span>Americas</span>
-            <span>Europe</span>
-            <span>Middle East</span>
-            <span>Asia Pacific</span>
-          </div>
+          <FooterRegions />
         </div>
 
-        <div className={styles.bottom}>
-          <span>
-            © {new Date().getFullYear()} HOMIO. All rights reserved.
-          </span>
-
-          <div className={styles.legal}>
-            <Link href="/privacy">Privacy</Link>
-            <Link href="/terms">Terms</Link>
-            <Link href="/cookies">Cookies</Link>
-            <Link href="/accessibility">Accessibility</Link>
-          </div>
-
-          <div className={styles.social}>
-            <Link href="/social" aria-label="HOMIO social channels">
-              Social
-            </Link>
-          </div>
-        </div>
+        <FooterLegal />
       </div>
     </footer>
   );
