@@ -1,23 +1,31 @@
 import Link from "next/link";
+import TrustSignalCard, {
+  type TrustSignalCardData,
+} from "./TrustSignalCard";
+import TrustDisclaimer from "./TrustDisclaimer";
 import styles from "./TrustSection.module.css";
 
-const signals = [
+const signals: TrustSignalCardData[] = [
   {
+    number: "01",
     title: "Clear source context",
     description:
       "Understand where the property or project information comes from.",
   },
   {
+    number: "02",
     title: "Useful property facts",
     description:
       "See the details that matter before moving into an enquiry.",
   },
   {
+    number: "03",
     title: "Journey continuity",
     description:
       "Your saved searches, properties and actions remain connected.",
   },
   {
+    number: "04",
     title: "Structured next steps",
     description:
       "Move from discovery to enquiry, visit and transaction with context.",
@@ -46,34 +54,13 @@ export default function TrustSection() {
           </div>
 
           <div className={styles.signalGrid}>
-            {signals.map((signal, index) => (
-              <article key={signal.title} className={styles.signal}>
-                <div className={styles.top}>
-                  <span className={styles.number}>
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-
-                  <span className={styles.check} aria-hidden="true">
-                    ✓
-                  </span>
-                </div>
-
-                <h3>{signal.title}</h3>
-
-                <p>{signal.description}</p>
-              </article>
+            {signals.map((signal) => (
+              <TrustSignalCard key={signal.number} signal={signal} />
             ))}
           </div>
         </div>
 
-        <div className={styles.bottom}>
-          <span>
-            <strong>Important:</strong> trust signals support informed
-            decisions; they do not replace independent due diligence.
-          </span>
-
-          <Link href="/trust">Read trust principles</Link>
-        </div>
+        <TrustDisclaimer />
       </div>
     </section>
   );
