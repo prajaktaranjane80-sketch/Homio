@@ -1,14 +1,16 @@
-remote: Enumerating objects: 9, done.
-remote: Counting objects: 100% (9/9), done.
-remote: Compressing objects: 100% (7/7), done.
-remote: Total 7 (delta 4), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (7/7), 2.98 KiB | 70.00 KiB/s, done.
+PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
+remote: Enumerating objects: 7, done.
+remote: Counting objects: 100% (7/7), done.
+remote: Compressing objects: 100% (4/4), done.
+remote: Total 4 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (4/4), 2.07 KiB | 111.00 KiB/s, done.
 From https://github.com/prajaktaranjane80-sketch/Homio
  * branch            reos-development -> FETCH_HEAD
-   d1418ce..3c9a97b  reos-development -> origin/reos-development
+   3c9a97b..2e46e2f  reos-development -> origin/reos-development
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git restore --source=origin/reos-development -- ".\AUTONOMY_ENGINE\core\__init__.py"
+PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short -- ".\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py" ".\AUTONOMY_ENGINE\core\commission_financial\commission_calculation.py"
 PS D:\HOMIO\REOS_CONTROL_CENTER>
+PS D:\HOMIO\REOS_CONTROL_CENTER> git diff -- ".\AUTONOMY_ENGINE\core\deal_transaction\deal_evidence_audit.py" ".\AUTONOMY_ENGINE\core\commission_financial\commission_calculation.py"
 PS D:\HOMIO\REOS_CONTROL_CENTER> python -m pytest ".\AUTONOMY_ENGINE\core\test_closure_c2_c3.py" -q
 ...F.FF.                                                                                                                                             [100%]
 ======================================================================== FAILURES =========================================================================
@@ -122,4 +124,4 @@ AUTONOMY_ENGINE\core\test_closure_c2_c3.py:348: AssertionError
 FAILED AUTONOMY_ENGINE/core/test_closure_c2_c3.py::test_deal_audit_metadata_is_deeply_immutable - AssertionError: assert 'tampered' == 'broker'
 FAILED AUTONOMY_ENGINE/core/test_closure_c2_c3.py::test_commission_metadata_is_deeply_immutable - AssertionError: assert '9999.00' == '1000.00'
 FAILED AUTONOMY_ENGINE/core/test_closure_c2_c3.py::test_commission_fingerprint_and_serialization_remain_stable - AssertionError: assert '952bfad12449...50cd73dc1a520' == '86ef19bdf524...9c4febcbc2bae'
-3 failed, 5 passed in 0.67s
+3 failed, 5 passed in 0.66s
