@@ -1,35 +1,46 @@
 import Link from "next/link";
+import MyHomioFeatureCard, {
+  type MyHomioFeatureData,
+} from "./MyHomioFeatureCard";
+import MyHomioSignInCTA from "./MyHomioSignInCTA";
 import styles from "./MyHomioSection.module.css";
 
-const journeyItems = [
+const journeyItems: MyHomioFeatureData[] = [
   {
+    number: "01",
     title: "Saved properties",
     description: "Keep the homes and projects you want to revisit.",
     href: "/saved",
   },
   {
+    number: "02",
     title: "Saved searches",
     description: "Return to searches without rebuilding your criteria.",
     href: "/my",
   },
   {
+    number: "03",
     title: "Compare",
     description: "Continue evaluating the properties on your shortlist.",
     href: "/compare",
   },
   {
+    number: "04",
     title: "Upcoming visits",
     description: "Stay on top of scheduled property visits and actions.",
     href: "/my",
   },
   {
+    number: "05",
     title: "Active conversations",
     description: "Continue relevant HOMIO enquiries and communication.",
     href: "/my",
   },
   {
+    number: "06",
     title: "Transaction journey",
-    description: "Follow important deal milestones when you move forward.",
+    description:
+      "Follow important deal milestones when you move forward.",
     href: "/my",
   },
 ];
@@ -58,36 +69,12 @@ export default function MyHomioSection() {
           </div>
 
           <div className={styles.grid}>
-            {journeyItems.map((item, index) => (
-              <Link key={item.title} href={item.href} className={styles.card}>
-                <div className={styles.cardTop}>
-                  <span className={styles.number}>
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-
-                  <span className={styles.arrow} aria-hidden="true">
-                    ↗
-                  </span>
-                </div>
-
-                <h3>{item.title}</h3>
-
-                <p>{item.description}</p>
-              </Link>
+            {journeyItems.map((item) => (
+              <MyHomioFeatureCard key={item.number} item={item} />
             ))}
           </div>
 
-          <div className={styles.signIn}>
-            <div>
-              <strong>Pick up where you left off.</strong>
-              <p>
-                Sign in to keep your discovery and brokerage journey connected
-                across devices.
-              </p>
-            </div>
-
-            <Link href="/my">Continue to My HOMIO</Link>
-          </div>
+          <MyHomioSignInCTA />
         </div>
       </div>
     </section>
