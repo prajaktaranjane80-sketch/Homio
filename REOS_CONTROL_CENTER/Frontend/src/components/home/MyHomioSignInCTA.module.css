@@ -1,0 +1,47 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+  padding: var(--space-5);
+  border-radius: var(--radius-xl);
+  background: var(--homio-brand);
+  color: #fff;
+}
+
+.wrapper strong {
+  display: block;
+  font-size: var(--text-lg);
+}
+
+.wrapper p {
+  margin: 5px 0 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: var(--text-sm);
+}
+
+.wrapper a {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: var(--space-5);
+  border-radius: var(--radius-pill);
+  background: #fff;
+  color: var(--homio-text);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+@media (max-width: 620px) {
+  .wrapper {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .wrapper a {
+    width: 100%;
+    justify-content: center;
+  }
+}
