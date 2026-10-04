@@ -1,0 +1,301 @@
+.section {
+  padding-block: var(--space-20);
+  background: var(--homio-bg);
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(380px, 1.1fr);
+  gap: var(--space-8);
+  padding: clamp(28px, 5vw, 64px);
+  overflow: hidden;
+  border-radius: 28px;
+  background: var(--homio-brand);
+  color: #ffffff;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.eyebrow {
+  color: var(--homio-accent);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.content h2 {
+  margin: var(--space-4) 0 0;
+  font-size: clamp(2.8rem, 6vw, 5.2rem);
+  line-height: 0.94;
+  letter-spacing: -0.055em;
+}
+
+.content > p {
+  max-width: 620px;
+  margin: var(--space-6) 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: var(--text-lg);
+  line-height: 1.7;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-7);
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding-inline: var(--space-5);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.primary {
+  background: #ffffff;
+  color: var(--homio-text);
+}
+
+.secondary {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.suggestions {
+  margin-top: var(--space-8);
+}
+
+.suggestionLabel {
+  display: block;
+  color: rgba(255, 255, 255, 0.46);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.chips a {
+  padding: 8px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: var(--text-xs);
+}
+
+.aiPanel {
+  align-self: center;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: var(--shadow-lg);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.aiMark {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--homio-text);
+  font-size: var(--text-sm);
+  font-weight: 800;
+}
+
+.panelHeader strong {
+  display: block;
+  font-size: var(--text-sm);
+}
+
+.panelHeader span {
+  display: block;
+}
+
+.panelHeader div:nth-child(2) span {
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: var(--text-xs);
+}
+
+.live {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding: 5px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 10px !important;
+}
+
+.live span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--homio-success);
+}
+
+.messages {
+  display: grid;
+  gap: 11px;
+  padding-block: 18px;
+}
+
+.message {
+  max-width: 80%;
+  padding: 12px 14px;
+  border-radius: 15px;
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+
+.userMessage {
+  justify-self: end;
+  background: #ffffff;
+  color: var(--homio-text);
+  border-bottom-right-radius: 5px;
+}
+
+.aiMessage {
+  justify-self: start;
+  background: rgba(255, 255, 255, 0.075);
+  color: rgba(255, 255, 255, 0.82);
+  border-bottom-left-radius: 5px;
+}
+
+.contextBox {
+  padding: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.contextBox > span {
+  color: rgba(255, 255, 255, 0.48);
+  font-size: var(--text-xs);
+}
+
+.contextGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.contextGrid div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: var(--text-xs);
+}
+
+.contextCheck {
+  color: var(--homio-accent);
+}
+
+.input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 7px 7px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(255, 255, 255, 0.42);
+  font-size: var(--text-xs);
+}
+
+.input span {
+  min-width: 0;
+  flex: 1;
+}
+
+.input button {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--homio-text);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin-top: var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--homio-border);
+  border-radius: var(--radius-xl);
+  background: var(--homio-surface);
+  color: var(--homio-text-soft);
+  font-size: var(--text-sm);
+}
+
+.bottom strong {
+  color: var(--homio-text);
+}
+
+.bottom a {
+  flex: 0 0 auto;
+  font-weight: 700;
+}
+
+@media (max-width: 950px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .aiPanel {
+    width: 100%;
+  }
+}
+
+@media (max-width: 620px) {
+  .shell {
+    padding: var(--space-6);
+  }
+
+  .message {
+    max-width: 92%;
+  }
+
+  .bottom {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
