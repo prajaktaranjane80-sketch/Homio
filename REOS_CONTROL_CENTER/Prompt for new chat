@@ -1,0 +1,329 @@
+Haan bhai. Current audit ke hisaab se new chat mein seedha kaam continue ho sakta hai; repeat audit/old files dene ki zarurat nahi honi chahiye.
+
+Abhi actual status
+Area	Status	Kya baki hai
+C0 Preflight / Influence Audit	Substantive audit done	Formal closure evidence later
+C1 ARCH-039 Integrity	✅ 11 passed in 0.13s	No code work; LOCKED
+C2 Root Core Wiring	Implementation present	Targeted regression verify
+C3 Immutability	Implementation present	Targeted regression verify
+C4 Authority Boundaries	Changes prepared/saved during current cycle	Final targeted verification
+C5 Cross-Core Integration	Earlier evidence: 248 passed	Must rerun after final closure changes
+C6 Full Core Regression	Earlier evidence: 978 passed	Must rerun after closure changes
+C7 Git / Architecture Integrity	❌ Not closed	diff audit + commit + final integrity
+Final Closure	❌ Not complete	C0–C7 all PASS
+Important actual blocker
+
+AUTONOMY_ENGINE\core\test_closure_c2_c3.py local mein:
+
+False
+
+Isliye C2/C3 targeted closure test abhi run hi nahi hua.
+
+Aur ab 7 unique closure files ke bahar koi new file/engine nahi banana hai.
+
+Remaining actual work
+1. test_closure_c2_c3.py local save
+2. C2/C3 targeted tests
+3. C4 targeted/adversarial verification
+4. C5 cross-core regression
+5. C6 full CORE regression
+6. C7 git/diff/architecture integrity
+7. Final closure only after all above PASS
+
+Core-008 ko reopen nahi karna. C3 ka commission hardening closure-only hai; business implementation dobara nahi karna.
+
+Ye prompt next chat ke first message mein paste karo:
+
+HOMIO / REOS New-Chat Bootstrap — Closure Continuation
+
+You are continuing the HOMIO / REOS project.
+
+Repository:
+https://github.com/prajaktaranjane80-sketch/Homio
+
+Branch:
+reos-development
+
+Project:
+HOMIO / REOS — Global AI Real Estate OS + International Brokerage + SaaS
+
+NON-NEGOTIABLE PROJECT RULES
+Do NOT mix Imperium AI with HOMIO / REOS.
+REOS_CONTROL_CENTER/data/state.json is canonical machine-readable project state.
+GitHub branch reos-development is canonical code/history/reference.
+Local PowerShell output is verification evidence only.
+Chat is communication only.
+ACRL is continuity / reconstruction / checkpoint / recovery authority only.
+ACRL does NOT own business domain state.
+Control Center remains execution-state / gate / verification / approval authority.
+No duplicate engines.
+No duplicate source-of-truth stores.
+No duplicate evidence engine.
+No duplicate communication engine.
+No duplicate Customer/Builder domain authority.
+No new CORE-009.
+Do not redesign already completed CORE layers.
+Do not reopen CORE-008 implementation. Only closure/hardening work permitted.
+Do not invent tests or claim tests passed without real output.
+Do not repeatedly give files that are already complete.
+Do not use fragile PowerShell scripts with variables/helpers for simple file work.
+User saves complete file contents manually to GitHub. Give full file content when a file must be created/replaced.
+Work directly; do not give a plan instead of doing the actual work.
+Use existing authoritative mechanisms instead of creating duplicate helpers/frameworks.
+ACTIVE CLOSURE PLAN
+
+File:
+
+REOS_CONTROL_CENTER/architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan
+
+Sequence:
+
+C0 — Preflight & Influence Audit
+C1 — ARCH-039 Architecture Integrity
+C2 — Root CORE Package Wiring
+C3 — Historical / Financial Immutability
+C4 — Canonical Authority Boundary Closure
+C5 — Cross-Core Integration & Adversarial Regression
+C6 — Full CORE Regression
+C7 — Git / Architecture Integrity Gate
+FINAL CLOSURE
+
+Definition of Done:
+
+SOURCE/CONTRACT
+→ IMPLEMENTATION
+→ INTEGRATION
+→ TARGETED TEST
+→ ADVERSARIAL REGRESSION
+→ FULL CORE REGRESSION
+→ GIT INTEGRITY
+CLOSURE FILE SET
+
+There are exactly 7 unique files in the C1–C4 closure work:
+
+1. REOS_CONTROL_CENTER/architecture/governance/architecture_integrity.py
+
+2. REOS_CONTROL_CENTER/architecture/governance/test_architecture_integrity.py
+
+3. REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__init__.py
+
+4. REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
+
+5. REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
+
+6. REOS_CONTROL_CENTER/architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
+
+7. REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_closure_c2_c3.py
+
+Do NOT create duplicate versions of these files.
+
+CURRENT VERIFIED STATUS
+C1 — ARCH-039 Architecture Integrity
+
+LOCAL VERIFIED:
+
+11 passed in 0.13s
+
+C1 is LOCKED.
+
+Do not unnecessarily modify C1 again.
+
+A genuine architecture consistency issue found during audit was that the validator must use the actual canonical path:
+
+REOS_CONTROL_CENTER/architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json
+
+not:
+
+REOS_CONTROL_CENTER/architecture/HOMIO_REOS_MASTER_ARCHITECTURE.json
+
+The canonical integrity validator/test must remain aligned with the real repository path.
+
+C2 — Root Core Wiring
+
+Implementation exists in:
+
+AUTONOMY_ENGINE/core/__init__.py
+
+Required bounded packages:
+
+identity_tenant
+event_platform
+lead_ownership
+inventory
+search_matching
+deal_transaction
+trust_fraud_governance
+commission_financial
+
+Root package must remain:
+
+namespace / package discovery / controlled compatibility API
+
+NOT:
+
+domain manager
+mega module
+global service layer
+second authority
+
+Lazy loading was introduced to avoid eager Core-package import side effects.
+
+C3 — Historical / Financial Immutability
+
+CORE-006 target:
+
+AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
+
+DealAuditEntry.metadata must use the existing authoritative deep-freeze mechanism.
+
+Do NOT create another immutable framework.
+
+Existing mechanism:
+
+AUTONOMY_ENGINE/core/deal_transaction/deal_contract.py
+
+CORE-008 target:
+
+AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
+
+CommissionCalculation.metadata must use the existing:
+
+AUTONOMY_ENGINE/core/contract_primitives.py
+
+deep-freeze/fingerprint mechanism.
+
+Required invariants:
+
+nested mutation blocked
+serialization preserved
+fingerprint stable
+historical state immutable
+
+Do NOT rewrite CORE-008 business rules.
+
+C4 — Authority Boundary Closure
+
+No new four-engine architecture.
+
+Explicit ownership boundaries are:
+
+Customer
+→ FUTURE_DEDICATED_CUSTOMER_DOMAIN
+→ FUTURE_ARCHITECTURE_BOUNDARY
+
+Builder
+→ FUTURE_DEDICATED_BUILDER_DOMAIN
+→ FUTURE_ARCHITECTURE_BOUNDARY
+
+Communication
+→ ARCH-009
+→ APPROVED_ARCHITECTURE_NODE
+
+Evidence
+→ ARCH-014
+→ APPROVED_ARCHITECTURE_NODE
+
+ACRL
+→ ACRL
+→ CONTINUITY_RECONSTRUCTION_BOUNDARY
+
+Rules:
+
+Core layers may reference Customer/Builder.
+Core layers must not silently become Customer/Builder owners.
+
+CORE communication hooks remain hooks/references/events/evidence linkage.
+They must not become a second messaging engine.
+
+Evidence remains under the canonical Evidence boundary.
+Core layers may reference/validate evidence but must not create parallel evidence truth.
+
+ACRL may preserve/reconstruct evidence context.
+ACRL must not become business evidence ownership.
+CURRENT BLOCKER
+
+The new closure regression file is NOT yet saved locally.
+
+Current verification was:
+
+Test-Path ".\AUTONOMY_ENGINE\core\test_closure_c2_c3.py"
+False
+
+Therefore this has NOT yet been run:
+
+python -m pytest ".\AUTONOMY_ENGINE\core\test_closure_c2_c3.py" -q
+
+Do not treat “no tests ran / file not found” as a test failure. It means the test file was missing.
+
+EARLIER REAL REGRESSION EVIDENCE
+
+These are historical user-provided results, NOT fresh results for the current cycle:
+
+C5 cross-core / integration / adversarial:
+248 passed in 2.83s
+
+C6 full CORE:
+978 passed in previous closure runs
+
+CORE-006 targeted evidence/audit:
+11 passed in 0.22s
+
+CORE-008 C3 financial hardening:
+48 passed in 0.77s
+
+C4 canonical authority regression:
+170 passed in 1.05s
+
+Do NOT report these as freshly verified until rerun after the current closure files are finalized.
+
+REMAINING WORK — EXECUTE, DON'T REPLAN
+Save/create:
+AUTONOMY_ENGINE/core/test_closure_c2_c3.py
+Run:
+python -m pytest ".\AUTONOMY_ENGINE\core\test_closure_c2_c3.py" -q
+Verify C4 targeted architecture-boundary tests.
+Run C5 cross-core regression after closure changes.
+Run C6:
+python -m pytest ".\AUTONOMY_ENGINE\core" -q
+Perform C7 Git/diff/architecture integrity audit.
+Only when every gate is actually verified:
+C0 PASS
+C1 PASS
+C2 PASS
+C3 PASS
+C4 PASS
+C5 PASS
+C6 PASS
+C7 PASS
+
+declare:
+
+CORE-001 → CORE-008 CLOSURE COMPLETE
+MOST IMPORTANT WORKING STYLE
+
+The user is not a developer and wants precise developer-grade execution.
+
+Do NOT:
+
+repeat already solved errors
+introduce PowerShell variable/helper scripts for simple edits
+give duplicate files
+reopen completed Core layers
+fabricate test results
+ask unnecessary clarification questions
+give another generic architecture plan
+
+Do:
+
+inspect the existing file before changing it
+preserve existing passing behavior
+fix root causes rather than symptoms
+give complete file content when manual GitHub save is needed
+work in one coherent verification cycle
+state exactly what is complete and what remains
+never call an implementation “PASS” without actual evidence
+keep HOMIO / REOS strictly separate from Imperium AI
+
+Start from the CURRENT BLOCKER and continue actual closure work.
+
+Bhai, new chat ka starting state clear hai: C1 done, C2/C3 implementation done-but-targeted-proof pending, C4 verification pending, C5–C7 remaining, final closure pending.
