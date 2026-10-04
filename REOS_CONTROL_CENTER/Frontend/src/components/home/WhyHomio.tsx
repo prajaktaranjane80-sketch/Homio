@@ -1,7 +1,11 @@
 import Link from "next/link";
+import WhyHomioPillar, {
+  type WhyHomioPillarData,
+} from "./WhyHomioPillar";
+import WhyHomioStatement from "./WhyHomioStatement";
 import styles from "./WhyHomio.module.css";
 
-const pillars = [
+const pillars: WhyHomioPillarData[] = [
   {
     number: "01",
     title: "One connected journey",
@@ -52,28 +56,11 @@ export default function WhyHomio() {
 
         <div className={styles.grid}>
           {pillars.map((pillar) => (
-            <article key={pillar.number} className={styles.card}>
-              <span className={styles.number}>{pillar.number}</span>
-
-              <h3>{pillar.title}</h3>
-
-              <p>{pillar.description}</p>
-            </article>
+            <WhyHomioPillar key={pillar.number} pillar={pillar} />
           ))}
         </div>
 
-        <div className={styles.statement}>
-          <span className={styles.quoteMark}>“</span>
-
-          <div>
-            <p>
-              From finding a property to completing a transaction, every step
-              should feel like part of the same journey.
-            </p>
-
-            <span>— The HOMIO experience principle</span>
-          </div>
-        </div>
+        <WhyHomioStatement />
       </div>
     </section>
   );
