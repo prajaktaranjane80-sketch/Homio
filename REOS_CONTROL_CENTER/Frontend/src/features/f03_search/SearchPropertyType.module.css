@@ -1,0 +1,48 @@
+.fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.fieldset legend {
+  margin-bottom: 12px;
+  color: #111111;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.option {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #e2e5ea;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #667085;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.option:hover {
+  border-color: #c8cdd5;
+  color: #111111;
+}
+
+.selected {
+  border-color: #111111;
+  background: #111111;
+  color: #ffffff;
+}
+
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
