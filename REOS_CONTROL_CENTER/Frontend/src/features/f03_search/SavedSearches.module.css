@@ -1,0 +1,124 @@
+.section {
+  padding: 40px 0;
+}
+
+.header {
+  margin-bottom: 18px;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 7px;
+  color: #667085;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.header h2 {
+  margin: 0;
+  color: #111111;
+  font-size: 24px;
+  letter-spacing: -0.025em;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.card {
+  padding: 18px;
+  border: 1px solid #e7e9ee;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.badge,
+.alertBadge {
+  padding: 6px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.badge {
+  background: #f3f4f6;
+  color: #475467;
+}
+
+.alertBadge {
+  background: #111111;
+  color: #ffffff;
+}
+
+.card h3 {
+  margin: 15px 0 0;
+  color: #111111;
+  font-size: 17px;
+}
+
+.card p {
+  min-height: 42px;
+  margin: 7px 0 0;
+  color: #667085;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 17px;
+}
+
+.primary,
+.secondary,
+.remove {
+  min-height: 38px;
+  padding: 0 11px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary {
+  border: 1px solid #111111;
+  background: #111111;
+  color: #ffffff;
+}
+
+.secondary,
+.remove {
+  border: 1px solid #dfe3e8;
+  background: #ffffff;
+  color: #667085;
+}
+
+.secondary:hover,
+.remove:hover {
+  color: #111111;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
