@@ -1,0 +1,64 @@
+.fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.fieldset legend {
+  margin-bottom: 12px;
+  color: #111111;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  gap: 9px;
+  padding: 8px 12px;
+  border: 1px solid #e2e5ea;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #667085;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.option:hover {
+  color: #111111;
+}
+
+.selected {
+  border-color: #111111;
+  background: #f8f9fb;
+  color: #111111;
+}
+
+.indicator {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border: 1px solid #98a2b3;
+  border-radius: 50%;
+}
+
+.selected .indicator {
+  border-color: #111111;
+  background: #111111;
+}
+
+@media (max-width: 620px) {
+  .options {
+    grid-template-columns: 1fr;
+  }
+}
