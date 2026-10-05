@@ -1,0 +1,72 @@
+.fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.fieldset legend {
+  margin-bottom: 12px;
+  color: #111111;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: end;
+  gap: 10px;
+}
+
+.inputGroup {
+  display: grid;
+  gap: 6px;
+}
+
+.inputGroup > span {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.inputWrap {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  gap: 6px;
+  padding: 0 12px;
+  border: 1px solid #e2e5ea;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #667085;
+}
+
+.inputWrap input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: #111111;
+  font: inherit;
+}
+
+.inputWrap input::placeholder {
+  color: #98a2b3;
+}
+
+.separator {
+  padding-bottom: 13px;
+  color: #98a2b3;
+  font-size: 12px;
+}
+
+@media (max-width: 620px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+
+  .separator {
+    display: none;
+  }
+}
