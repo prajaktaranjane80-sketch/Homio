@@ -1,0 +1,39 @@
+.summary {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 0 8px;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #8a94a1;
+}
+
+.summary h2 {
+  margin: 0;
+  font-size: clamp(22px, 3vw, 32px);
+  line-height: 1.15;
+  color: #17212b;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  color: #6e7885;
+  font-size: 13px;
+}
+
+@media (max-width: 700px) {
+  .summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
