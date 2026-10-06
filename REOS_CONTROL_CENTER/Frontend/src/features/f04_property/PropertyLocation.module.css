@@ -1,0 +1,115 @@
+.section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 20px;
+  padding: 34px 0;
+  border-top: 1px solid #e5e9ee;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 7px;
+  color: #89929d;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.section h2 {
+  margin: 0;
+  color: #17212b;
+  font-size: 28px;
+}
+
+.section p {
+  margin: 12px 0 0;
+  color: #697480;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.map {
+  min-height: 260px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #dfe4e9;
+  border-radius: 16px;
+  background:
+    linear-gradient(25deg, transparent 47%, rgb(255 255 255 / 58%) 48%, transparent 49%),
+    linear-gradient(125deg, transparent 47%, rgb(255 255 255 / 58%) 48%, transparent 49%),
+    linear-gradient(#d8dde2 1px, transparent 1px),
+    linear-gradient(90deg, #d8dde2 1px, transparent 1px),
+    #eef1f3;
+  background-size: auto, auto, 28px 28px, 28px 28px;
+}
+
+.marker {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transform: translate(-50%, -50%);
+}
+
+.marker span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #17212b;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.marker strong {
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 4px 18px rgb(10 16 24 / 14%);
+  color: #34414d;
+  font-size: 12px;
+}
+
+.nearby {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.nearby div {
+  padding: 14px;
+  border-radius: 12px;
+  background: #f6f7f9;
+}
+
+.nearby span,
+.nearby strong {
+  display: block;
+}
+
+.nearby span {
+  color: #89929d;
+  font-size: 10px;
+}
+
+.nearby strong {
+  margin-top: 5px;
+  color: #34414d;
+  font-size: 13px;
+}
+
+@media (max-width: 800px) {
+  .section {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .nearby {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
