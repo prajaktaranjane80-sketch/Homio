@@ -1,0 +1,147 @@
+.section {
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 14px;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: #89929d;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.header h2 {
+  margin: 0;
+  color: #17212b;
+  font-size: clamp(20px, 3vw, 28px);
+}
+
+.counter {
+  color: #697480;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.viewer {
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid #e3e7ec;
+  background: #eef1f4;
+}
+
+.mainMedia {
+  position: relative;
+  min-height: 470px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 28px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 78% 24%, rgb(255 255 255 / 72%), transparent 24%),
+    radial-gradient(circle at 20% 82%, rgb(210 218 227 / 90%), transparent 32%),
+    linear-gradient(135deg, #d7dde3, #edf0f3 55%, #cbd2da);
+}
+
+.floor-plan {
+  background:
+    linear-gradient(135deg, #e8e8e2, #f7f7f2 55%, #dcdcd5);
+}
+
+.video {
+  background:
+    radial-gradient(circle at 70% 30%, rgb(255 255 255 / 70%), transparent 20%),
+    linear-gradient(135deg, #b7c3cd, #e6ebef 56%, #9ca9b4);
+}
+
+.virtual {
+  background:
+    radial-gradient(circle at 40% 30%, rgb(255 255 255 / 70%), transparent 20%),
+    linear-gradient(135deg, #d2c7bc, #f2ede7 54%, #b7aaa0);
+}
+
+.mediaGlow {
+  position: absolute;
+  inset: auto 8% 10% 8%;
+  height: 35%;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 38%);
+  filter: blur(30px);
+}
+
+.mediaType,
+.mainMedia strong {
+  position: relative;
+  z-index: 1;
+}
+
+.mediaType {
+  width: fit-content;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 72%);
+  color: #4f5a66;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mainMedia strong {
+  color: #17212b;
+  font-size: 26px;
+}
+
+.thumbs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.thumb {
+  min-height: 58px;
+  padding: 8px 10px;
+  border: 1px solid #e1e5ea;
+  border-radius: 10px;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.thumb span {
+  display: block;
+  margin-bottom: 3px;
+  color: #89929d;
+  font-size: 10px;
+}
+
+.thumb strong {
+  color: #34414d;
+  font-size: 12px;
+}
+
+.thumbActive {
+  border-color: #17212b;
+  box-shadow: inset 0 0 0 1px #17212b;
+}
+
+@media (max-width: 720px) {
+  .mainMedia {
+    min-height: 330px;
+  }
+
+  .thumbs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
