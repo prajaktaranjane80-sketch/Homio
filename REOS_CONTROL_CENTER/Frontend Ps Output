@@ -1,19 +1,14 @@
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "==================================================" -ForegroundColor Cyan
-==================================================
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "F01 ACTUAL WORK = PASS" -ForegroundColor Green
-F01 ACTUAL WORK = PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "FILES UPDATED    = $($Files.Count)"
-FILES UPDATED    = 4
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "TARGET           = REOS_CONTROL_CENTER/Frontend"
-TARGET           = REOS_CONTROL_CENTER/Frontend
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "COMMIT           = $NewCommitSha"
-COMMIT           = a821b583df90a1c010015be92975d41fb24a0d65
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "TREE VERIFIED    = $VerifyTreeSha"
-TREE VERIFIED    = 66a7210c786b000e53ecd4811a55faa0bb3d3941
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE ONLY      = TRUE"
-REMOTE ONLY      = TRUE
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "BACKEND TOUCHED  = FALSE"
-BACKEND TOUCHED  = FALSE
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CORE TOUCHED     = FALSE"
-CORE TOUCHED     = FALSE
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "===================
+F03 VERIFY = FAIL: Required F03 file missing: src/app/search/page.tsx
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> git fetch origin reos-development
+remote: Enumerating objects: 153, done.
+remote: Counting objects: 100% (153/153), done.
+remote: Compressing objects: 100% (141/141), done.
+remote: Total 143 (delta 88), reused 0 (delta 0), pack-reused 0 (from 0)
+Receiving objects: 100% (143/143), 35.79 KiB | 1.23 MiB/s, done.
+Resolving deltas: 100% (88/88), completed with 6 local objects.
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+   55e621c..ec88299  reos-development -> origin/reos-development
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> git cat-file -e origin/reos-development:REOS_CONTROL_CENTER/Frontend/src/app/search/page.tsx
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "REMOTE_F03_PAGE_CHECK_EXIT_CODE=$LASTEXITCODE"
+REMOTE_F03_PAGE_CHECK_EXIT_CODE=0
