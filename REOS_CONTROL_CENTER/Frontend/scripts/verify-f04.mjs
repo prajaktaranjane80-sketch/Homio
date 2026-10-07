@@ -12,6 +12,8 @@ const requiredFiles = [
   "src/app/property/[propertyId]/loading.tsx",
   "src/app/property/[propertyId]/loading.module.css",
   "src/app/property/[propertyId]/not-found.tsx",
+  "src/app/property/[propertyId]/error.tsx",
+  "src/app/property/[propertyId]/error.module.css",
 
   "src/features/f04_property/README.md",
   "src/features/f04_property/PropertyAI.tsx",
@@ -79,7 +81,12 @@ for (const relativePath of requiredFiles) {
 const propertyPage = read("src/features/f04_property/PropertyPage.tsx");
 const propertyData = read("src/features/f04_property/property.data.ts");
 const route = read("src/app/property/[propertyId]/page.tsx");
-const pageCss = read("src/features/f04_property/PropertyPage.module.css");
+const pageCss = read(
+  "src/features/f04_property/PropertyPage.module.css",
+);
+const errorRoute = read(
+  "src/app/property/[propertyId]/error.tsx",
+);
 
 for (const component of [
   "PropertyGallery",
@@ -118,7 +125,22 @@ assert(
 
 assert(
   route.includes("notFound"),
-  "Property route does not fail safely for unavailable property references.",
+  "Property route does not fail safely for unavailable references.",
+);
+
+assert(
+  route.includes("generateMetadata"),
+  "Property route metadata is missing.",
+);
+
+assert(
+  route.includes("canonical"),
+  "Property route canonical metadata is missing.",
+);
+
+assert(
+  errorRoute.includes("reset"),
+  "Property route error recovery is missing.",
 );
 
 assert(
@@ -128,12 +150,12 @@ assert(
 
 assert(
   propertyData.includes("Experience preview"),
-  "Preview property data must be clearly identified as preview data.",
+  "Preview property data must be clearly identified.",
 );
 
 assert(
   !pageCss.includes(".ai"),
-  "PropertyPage.module.css still contains legacy AI styling.",
+  "Legacy AI styling remains in PropertyPage.module.css.",
 );
 
 for (const forbidden of forbiddenRuntimeReferences) {
@@ -146,11 +168,17 @@ for (const forbidden of forbiddenRuntimeReferences) {
     !route.includes(forbidden),
     `Forbidden runtime reference in property route: ${forbidden}`,
   );
+
+  assert(
+    !errorRoute.includes(forbidden),
+    `Forbidden runtime reference in property error route: ${forbidden}`,
+  );
 }
 
 console.log("F04 PROPERTY EXPERIENCE = PASS");
 console.log(`FILES VERIFIED = ${requiredFiles.length}`);
 console.log("PROPERTY ROUTE = PASS");
+console.log("SEO METADATA = PASS");
 console.log("PROPERTY COMPOSITION = PASS");
 console.log("FACTS + DETAILS = PASS");
 console.log("PROJECT + LOCATION = PASS");
@@ -158,6 +186,7 @@ console.log("TRUST + DISCLOSURE = PASS");
 console.log("AI + SIMILAR DISCOVERY = PASS");
 console.log("ENQUIRY + VISIT ENTRY = PASS");
 console.log("LOADING + NOT FOUND = PASS");
+console.log("ERROR RECOVERY = PASS");
 console.log("PREVIEW DATA NON-AUTHORITATIVE = PASS");
 console.log("NO ACRL RUNTIME = PASS");
 console.log("NO STATE.JSON RUNTIME = PASS");
