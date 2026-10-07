@@ -1,5 +1,12 @@
 import type { PropertyRecord } from "./property.types";
 
+/**
+ * F04 experience preview only.
+ *
+ * This object is not canonical property inventory and must not be treated
+ * as authoritative business data. A verified REOS property capability
+ * will replace this preview adapter when the integration contract is ready.
+ */
 export const PROPERTY_PREVIEW: PropertyRecord = {
   id: "pune-kalyani-nagar-001",
   title: "Contemporary 3 BHK Residence",
@@ -9,9 +16,9 @@ export const PROPERTY_PREVIEW: PropertyRecord = {
   city: "Pune",
   country: "India",
   propertyType: "Apartment",
-  status: "Ready to move",
+  status: "Preview / Ready-to-move experience",
   price: "₹2.35 Cr",
-  priceContext: "Indicative property value",
+  priceContext: "Experience preview value",
   area: "1,850 sq.ft.",
   bedrooms: 3,
   bathrooms: 3,
@@ -19,11 +26,11 @@ export const PROPERTY_PREVIEW: PropertyRecord = {
   furnishing: "Semi-furnished",
   possession: "Ready now",
   projectName: "HOMIO Kalyani Residences",
-  builderName: "Authorized project partner",
+  builderName: "Experience preview",
   description:
-    "A refined urban residence designed for buyers who want a connected Pune location, generous living areas and a considered everyday lifestyle.",
-  verified: true,
-  verificationLabel: "HOMIO Verified information",
+    "A HOMIO property-experience preview used to validate the production information hierarchy, media flow, trust treatment and consumer actions before verified REOS property data is connected.",
+  verified: false,
+  verificationLabel: "Verification pending",
   media: [
     {
       id: "media-01",
@@ -48,33 +55,36 @@ export const PROPERTY_PREVIEW: PropertyRecord = {
   ],
   amenities: [
     { label: "Parking", value: "2 covered spaces" },
-    { label: "Lift", value: "Available" },
-    { label: "Security", value: "24/7" },
-    { label: "Gym", value: "Residents' gym" },
-    { label: "Swimming Pool", value: "Available" },
-    { label: "Power Backup", value: "Full common-area backup" },
-    { label: "Balcony", value: "Yes" },
-    { label: "Clubhouse", value: "Available" },
+    { label: "Lift", value: "Preview information" },
+    { label: "Security", value: "Preview information" },
+    { label: "Gym", value: "Preview information" },
+    { label: "Swimming Pool", value: "Preview information" },
+    { label: "Power Backup", value: "Preview information" },
+    { label: "Balcony", value: "Preview information" },
+    { label: "Clubhouse", value: "Preview information" },
   ],
   highlights: [
-    "Connected to major Pune business and lifestyle districts",
-    "Ready-to-move positioning",
-    "Large 3-bedroom format",
-    "HOMIO-verified presentation layer",
+    "Connected-location property discovery experience",
+    "Clear 3-bedroom information hierarchy",
+    "Structured property decision support",
+    "Safe verification treatment",
   ],
   nearby: [
-    { label: "Airport", value: "Approx. 15 min" },
-    { label: "Business district", value: "Approx. 10 min" },
-    { label: "Schools", value: "Multiple nearby options" },
-    { label: "Retail & dining", value: "Immediate locality access" },
+    { label: "Airport", value: "Preview information" },
+    { label: "Business district", value: "Preview information" },
+    { label: "Schools", value: "Preview information" },
+    { label: "Retail & dining", value: "Preview information" },
   ],
 };
 
 export function getPropertyPreview(
   propertyId: string,
-): PropertyRecord {
+): PropertyRecord | null {
+  if (propertyId !== PROPERTY_PREVIEW.id) {
+    return null;
+  }
+
   return {
     ...PROPERTY_PREVIEW,
-    id: propertyId || PROPERTY_PREVIEW.id,
   };
 }
