@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation";
+
 import PropertyPage from "@/features/f04_property/PropertyPage";
 import { getPropertyPreview } from "@/features/f04_property/property.data";
 
@@ -12,6 +14,10 @@ export default async function PropertyRoute({
 }: PropertyRouteProps) {
   const { propertyId } = await params;
   const property = getPropertyPreview(propertyId);
+
+  if (!property) {
+    notFound();
+  }
 
   return <PropertyPage property={property} />;
 }
