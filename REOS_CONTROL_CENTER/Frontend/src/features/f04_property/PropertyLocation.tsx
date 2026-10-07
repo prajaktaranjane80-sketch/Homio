@@ -14,7 +14,7 @@ export default function PropertyLocation({
         <span className={styles.eyebrow}>LOCATION</span>
         <h2>{property.location}</h2>
         <p>
-          Understand the surrounding area and the property's wider
+          Understand the surrounding area and the property&apos;s wider
           city context before taking the next step.
         </p>
       </div>
