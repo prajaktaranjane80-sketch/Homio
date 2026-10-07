@@ -1,0 +1,68 @@
+.section {
+  padding: 34px 0;
+  border-top: 1px solid #e5e9ee;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 7px;
+  color: #89929d;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.header h2 {
+  margin: 0;
+  color: #17212b;
+  font-size: clamp(22px, 3vw, 30px);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid #e3e7ec;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #eef1f4;
+  color: #34414d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.card strong {
+  color: #34414d;
+  font-size: 13px;
+}
+
+.card p {
+  margin: 7px 0 0;
+  color: #697480;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+@media (max-width: 700px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}
