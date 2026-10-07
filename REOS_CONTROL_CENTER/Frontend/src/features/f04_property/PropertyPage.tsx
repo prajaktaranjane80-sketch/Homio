@@ -1,19 +1,21 @@
 import Link from "next/link";
+
 import PropertyActionBar from "./PropertyActionBar";
+import PropertyAI from "./PropertyAI";
 import PropertyAmenities from "./PropertyAmenities";
 import PropertyDetails from "./PropertyDetails";
+import PropertyDisclosure from "./PropertyDisclosure";
+import PropertyFacts from "./PropertyFacts";
 import PropertyGallery from "./PropertyGallery";
 import PropertyLocation from "./PropertyLocation";
-import PropertySummary from "./PropertySummary";
-import PropertyTrust from "./PropertyTrust";
-import type { PropertyRecord } from "./property.types";
-import styles from "./PropertyPage.module.css";
-import PropertyAI from "./PropertyAI";
 import PropertyNextStep from "./PropertyNextStep";
 import PropertyProjectContext from "./PropertyProjectContext";
-import PropertyUnavailable from "./PropertyUnavailable";
+import PropertySummary from "./PropertySummary";
+import PropertyTrust from "./PropertyTrust";
 import SimilarProperties from "./SimilarProperties";
+import type { PropertyRecord } from "./property.types";
 
+import styles from "./PropertyPage.module.css";
 
 type PropertyPageProps = Readonly<{
   property: PropertyRecord;
@@ -27,9 +29,9 @@ export default function PropertyPage({
       <div className="homio-container">
         <nav className={styles.breadcrumbs} aria-label="Breadcrumb">
           <Link href="/">HOMIO</Link>
-          <span>›</span>
+          <span aria-hidden="true">›</span>
           <Link href="/search">Search</Link>
-          <span>›</span>
+          <span aria-hidden="true">›</span>
           <span>{property.shortTitle}</span>
         </nav>
 
@@ -42,33 +44,41 @@ export default function PropertyPage({
           </aside>
         </div>
 
+        <PropertyFacts property={property} />
+
         <PropertyDetails property={property} />
+
         <PropertyProjectContext property={property} />
+
         <PropertyAmenities property={property} />
+
         <PropertyLocation property={property} />
+
         <PropertyTrust property={property} />
+
+        <PropertyDisclosure
+          verified={property.verified}
+          verificationLabel={property.verificationLabel}
+        />
+
         <PropertyAI />
+
         <SimilarProperties property={property} />
+
         <PropertyNextStep />
 
-        <section className={styles.ai}>
-          <span className={styles.eyebrow}>HOMIO AI</span>
-          <h2>Need help deciding what matters?</h2>
-          <p>
-            Ask HOMIO to explain the property, compare it with another
-            option or help you understand the next step.
-          </p>
-          <button type="button">Ask HOMIO</button>
-        </section>
-
         <section className={styles.related}>
-          <div>
+          <div className={styles.relatedHeader}>
             <span className={styles.eyebrow}>CONTINUE DISCOVERY</span>
+
             <h2>Explore more around this property.</h2>
           </div>
 
           <div className={styles.relatedGrid}>
-            <Link href="/search?city=Pune" className={styles.relatedCard}>
+            <Link
+              href="/search?city=Pune"
+              className={styles.relatedCard}
+            >
               <strong>More Pune properties</strong>
               <span>Continue property discovery</span>
             </Link>
@@ -81,7 +91,10 @@ export default function PropertyPage({
               <span>See locality opportunities</span>
             </Link>
 
-            <Link href="/search?intent=projects" className={styles.relatedCard}>
+            <Link
+              href="/search?intent=projects"
+              className={styles.relatedCard}
+            >
               <strong>View projects</strong>
               <span>Explore project-led discovery</span>
             </Link>
