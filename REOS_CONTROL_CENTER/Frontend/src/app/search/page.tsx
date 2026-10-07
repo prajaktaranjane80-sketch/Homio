@@ -162,8 +162,11 @@ export default function SearchPage() {
   const [comparedIds, setComparedIds] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<string>();
 
-  useEffect(() => {
+    useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+
+    // The URL is an external browser source; syncing it into local UI state here is intentional.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setState(searchStateFromParams(params));
   }, []);
 
