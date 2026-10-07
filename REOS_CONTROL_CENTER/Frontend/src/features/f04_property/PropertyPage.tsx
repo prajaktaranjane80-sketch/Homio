@@ -8,6 +8,12 @@ import PropertySummary from "./PropertySummary";
 import PropertyTrust from "./PropertyTrust";
 import type { PropertyRecord } from "./property.types";
 import styles from "./PropertyPage.module.css";
+import PropertyAI from "./PropertyAI";
+import PropertyNextStep from "./PropertyNextStep";
+import PropertyProjectContext from "./PropertyProjectContext";
+import PropertyUnavailable from "./PropertyUnavailable";
+import SimilarProperties from "./SimilarProperties";
+
 
 type PropertyPageProps = Readonly<{
   property: PropertyRecord;
@@ -37,9 +43,13 @@ export default function PropertyPage({
         </div>
 
         <PropertyDetails property={property} />
+        <PropertyProjectContext property={property} />
         <PropertyAmenities property={property} />
         <PropertyLocation property={property} />
         <PropertyTrust property={property} />
+        <PropertyAI />
+        <SimilarProperties property={property} />
+        <PropertyNextStep />
 
         <section className={styles.ai}>
           <span className={styles.eyebrow}>HOMIO AI</span>
