@@ -1,0 +1,180 @@
+.section {
+  margin-top: 18px;
+  padding: 28px;
+  border: 1px solid #e1e6eb;
+  border-radius: 20px;
+  background: #ffffff;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.eyebrow {
+  color: #89929d;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.header h2 {
+  margin: 8px 0 0;
+  color: #17212b;
+  font-size: 25px;
+}
+
+.header p {
+  max-width: 700px;
+  margin: 9px 0 0;
+  color: #697480;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.projectRef {
+  flex: 0 0 auto;
+  color: #89929d;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.card {
+  overflow: hidden;
+  border: 1px solid #e5e8ec;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.media {
+  min-height: 150px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 16px;
+  background:
+    linear-gradient(
+      135deg,
+      #eef1f3,
+      #d8dde1
+    );
+}
+
+.media span {
+  color: #67727d;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.media strong {
+  color: #17212b;
+  font-size: 18px;
+}
+
+.body {
+  padding: 18px;
+}
+
+.status {
+  color: #89929d;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.body h3 {
+  margin: 8px 0 0;
+  color: #17212b;
+  font-size: 17px;
+}
+
+.body p {
+  margin: 7px 0 0;
+  color: #697480;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.meta div {
+  padding: 10px;
+  border-radius: 10px;
+  background: #f6f7f9;
+}
+
+.meta span {
+  display: block;
+  color: #8a949e;
+  font-size: 8px;
+}
+
+.meta strong {
+  display: block;
+  margin-top: 4px;
+  color: #34414d;
+  font-size: 11px;
+}
+
+.action,
+.disabledAction {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  margin-top: 14px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.action {
+  background: #17212b;
+  color: #ffffff;
+}
+
+.disabledAction {
+  background: #f1f3f5;
+  color: #8a949e;
+}
+
+@media (max-width: 860px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .section {
+    padding: 22px;
+  }
+
+  .header {
+    display: block;
+  }
+
+  .projectRef {
+    display: block;
+    margin-top: 10px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
