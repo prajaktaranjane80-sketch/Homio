@@ -1,44 +1,14 @@
-PS D:\> cd D:\HOMIO_FRONTEND_VERIFY_LATEST
-PS D:\HOMIO_FRONTEND_VERIFY_LATEST>
-PS D:\HOMIO_FRONTEND_VERIFY_LATEST> git config core.protectNTFS false
-PS D:\HOMIO_FRONTEND_VERIFY_LATEST>
-PS D:\HOMIO_FRONTEND_VERIFY_LATEST> git sparse-checkout init --cone
-PS D:\HOMIO_FRONTEND_VERIFY_LATEST> git sparse-checkout set REOS_CONTROL_CENTER/Frontend
-PS D:\HOMIO_FRONTEND_VERIFY_LATEST>
-PS D:\HOMIO_FRONTEND_VERIFY_LATEST> git checkout reos-development
-remote: Enumerating objects: 279, done.
-remote: Counting objects: 100% (39/39), done.
-remote: Compressing objects: 100% (39/39), done.
-remote: Total 279 (delta 2), reused 0 (delta 0), pack-reused 240 (from 2)
-Receiving objects: 100% (279/279), 179.56 KiB | 9.45 MiB/s, done.
-Resolving deltas: 100% (90/90), done.
-Updating files: 100% (282/282), done.
-Already on 'reos-development'
-Your branch is up to date with 'origin/reos-development'.
-PS D:\HOMIO_FRONTEND_VERIFY_LATEST>
-PS D:\HOMIO_FRONTEND_VERIFY_LATEST> cd .\REOS_CONTROL_CENTER\Frontend
-PS D:\HOMIO_FRONTEND_VERIFY_LATEST\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_VERIFY_LATEST\REOS_CONTROL_CENTER\Frontend> npm install
-npm warn deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
-
-added 342 packages, and audited 343 packages in 26s
-
-140 packages are looking for funding
-  run `npm fund` for details
-
-8 vulnerabilities (7 high, 1 critical)
-
-To address all issues (including breaking changes), run:
-  npm audit fix --force
-
-Run `npm audit` for details.
-npm warn allow-scripts 2 packages have install scripts not yet covered by allowScripts:
-npm warn allow-scripts   unrs-resolver@1.12.2 (postinstall: node postinstall.js)
-npm warn allow-scripts   sharp@0.34.5 (install: node install/check.js || npm run build)
-npm warn allow-scripts
-npm warn allow-scripts Run `npm install-scripts ls` to review, or `npm install-scripts approve <pkg>` to allow.
-PS D:\HOMIO_FRONTEND_VERIFY_LATEST\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_VERIFY_LATEST\REOS_CONTROL_CENTER\Frontend> npm run typecheck
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git rev-parse HEAD
+e3ab16b4024c75ef3bb07c113b5fffdab89fe28b
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git rev-parse origin/reos-development
+e3ab16b4024c75ef3bb07c113b5fffdab89fe28b
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git ls-files -- "src/features/f03_search/SearchFurnishingFilter.*"
+src/features/f03_search/SearchFurnishingFilter.mod
+src/features/f03_search/SearchFurnishingFilter.ts
+src/features/f03_search/SearchFurnishingFilter.tsx
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> npm run typecheck
 
 > homio-frontend@0.1.0 typecheck
 > tsc --noEmit
@@ -160,8 +130,3 @@ src/features/f03_search/SearchFurnishingFilter.ts:50:1 - error TS1128: Declarati
 
 
 Found 23 errors in the same file, starting at: src/features/f03_search/SearchFurnishingFilter.ts:26
-
-PS D:\HOMIO_FRONTEND_VERIFY_LATEST\REOS_CONTROL_CENTER\Frontend> npm run lint
-
-> homio-frontend@0.1.0 lint
-> eslint .
