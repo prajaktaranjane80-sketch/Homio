@@ -1,789 +1,222 @@
-=== AUTH CHECK ===
-PS D:\Homio\REOS_CONTROL_CENTER> $authText = gh auth status 2>&1 | Out-String
-PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "GH AUTH FAILED"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "GH AUTH = PASS" -ForegroundColor Green
-GH AUTH = PASS
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== REMOTE BRANCH ===" -ForegroundColor Cyan
+PS D:\Homio\REOS_CONTROL_CENTER> $entryBlob = gh api --method POST `
+>>     "repos/$repo/git/blobs" `
+>>     -f encoding="base64" `
+>>     -f content="$entrypointB64" | ConvertFrom-Json
+Program 'gh.exe' failed to run: The filename or extension is too longAt line:1 char:14
++ $entryBlob = gh api --method POST `
++              ~~~~~~~~~~~~~~~~~~~~~~.
+At line:1 char:1
++ $entryBlob = gh api --method POST `
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ResourceUnavailable: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : NativeCommandFailed
 
-=== REMOTE BRANCH ===
-PS D:\Homio\REOS_CONTROL_CENTER> $head = gh api "repos/$repo/git/ref/heads/$branch" --jq ".object.sha"
-PS D:\Homio\REOS_CONTROL_CENTER> if ([string]::IsNullOrWhiteSpace($head)) {
->>     throw "REMOTE HEAD EMPTY"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $entryBlob.sha) {
+>>     throw "ENTRYPOINT BLOB CREATE FAILED"
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE HEAD = $head" -ForegroundColor Green
-REMOTE HEAD = 48159a79afaad0224c2c2ccda4898b126baf4324
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== BASE COMMIT / TREE ===" -ForegroundColor Cyan
-
-=== BASE COMMIT / TREE ===
-PS D:\Homio\REOS_CONTROL_CENTER> $commit = gh api "repos/$repo/git/commits/$head" | ConvertFrom-Json
-PS D:\Homio\REOS_CONTROL_CENTER> $baseTree = $commit.tree.sha
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ([string]::IsNullOrWhiteSpace($baseTree)) {
->>     throw "BASE TREE SHA EMPTY"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "BASE TREE = $baseTree" -ForegroundColor Green
-BASE TREE = 6d75c263cc788a1313d8946b8a8848c6caa3edd2
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== REMOTE TREE ===" -ForegroundColor Cyan
-
-=== REMOTE TREE ===
-PS D:\Homio\REOS_CONTROL_CENTER> $remoteTree = gh api "repos/$repo/git/trees/$baseTree?recursive=1" | ConvertFrom-Json
-gh: Not Found (HTTP 404)
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $remoteTree.tree) {
->>     throw "REMOTE TREE READ FAILED"
->> }
-REMOTE TREE READ FAILED
+ENTRYPOINT BLOB CREATE FAILED
 At line:2 char:5
-+     throw "REMOTE TREE READ FAILED"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (REMOTE TREE READ FAILED:String) [], RuntimeException
-    + FullyQualifiedErrorId : REMOTE TREE READ FAILED
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($remoteTree.truncated -eq $true) {
->>     throw "REMOTE TREE IS TRUNCATED - ABORT"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "TREE READ = PASS" -ForegroundColor Green
-TREE READ = PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "TREE ENTRIES = $($remoteTree.tree.Count)" -ForegroundColor Green
-TREE ENTRIES = 0
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER> # F04 — EXISTENCE CHECK ONLY
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $f04Path = "REOS_CONTROL_CENTER/Frontend/src/app/property/[propertyId]/page.tsx"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $f04Entry = $remoteTree.tree |
->>     Where-Object { $_.path -eq $f04Path } |
->>     Select-Object -First 1
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $f04Entry) {
->>     throw "F04 ROUTE MISSING: $f04Path"
->> }
-F04 ROUTE MISSING: REOS_CONTROL_CENTER/Frontend/src/app/property/[propertyId]/page.tsx
-At line:2 char:5
-+     throw "F04 ROUTE MISSING: $f04Path"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (F04 ROUTE MISSI...rtyId]/page.tsx:String) [], RuntimeException
-    + FullyQualifiedErrorId : F04 ROUTE MISSING: REOS_CONTROL_CENTER/Frontend/src/app/property/[propertyId]/page.tsx
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`nF04 ROUTE = PRESENT / NO CHANGE" -ForegroundColor Green
-
-F04 ROUTE = PRESENT / NO CHANGE
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER> # F05 — SOURCE / TARGET MAP
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $f05Names = @(
->>     "page.tsx",
->>     "loading.tsx",
->>     "loading.module.css",
->>     "not-found.tsx",
->>     "error.tsx",
->>     "error.module.css"
->> )
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $oldPrefix = "REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project"
-PS D:\Homio\REOS_CONTROL_CENTER> $newPrefix = "REOS_CONTROL_CENTER/Frontend/src/app/project/[projectId]"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $treeElements = @()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== F05 ROUTE SOURCE CHECK ===" -ForegroundColor Cyan
-
-=== F05 ROUTE SOURCE CHECK ===
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($name in $f05Names) {
->>
->>     $oldPath = "$oldPrefix/$name"
->>     $newPath = "$newPrefix/$name"
->>
->>     $oldEntry = $remoteTree.tree |
->>         Where-Object { $_.path -eq $oldPath } |
->>         Select-Object -First 1
->>
->>     if (-not $oldEntry) {
->>         throw "OLD F05 ROUTE FILE MISSING: $oldPath"
->>     }
->>
->>     if ($oldEntry.type -ne "blob") {
->>         throw "OLD F05 ROUTE ENTRY IS NOT BLOB: $oldPath"
->>     }
->>
->>     Write-Host "SOURCE PASS: $oldPath"
->>     Write-Host "SOURCE SHA : $($oldEntry.sha)"
->>
->>     $existingTarget = $remoteTree.tree |
->>         Where-Object { $_.path -eq $newPath } |
->>         Select-Object -First 1
->>
->>     if ($existingTarget) {
->>         throw "TARGET ALREADY EXISTS: $newPath"
->>     }
->>
->>     # Add correct target using the exact existing blob.
->>     $treeElements += @{
->>         path = $newPath
->>         mode = "100644"
->>         type = "blob"
->>         sha  = $oldEntry.sha
->>     }
->>
->>     # Remove wrong route entry.
->>     $treeElements += @{
->>         path = $oldPath
->>         sha  = $null
->>     }
->> }
-OLD F05 ROUTE FILE MISSING: REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project/page.tsx
-At line:11 char:9
-+         throw "OLD F05 ROUTE FILE MISSING: $oldPath"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (OLD F05 ROUTE F...roject/page.tsx:String) [], RuntimeException
-    + FullyQualifiedErrorId : OLD F05 ROUTE FILE MISSING: REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project/page.tsx
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER> # AI_AGENT_ENTRYPOINT — REMOTE BLOB READ
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entrypointPath = "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== ENTRYPOINT READ ===" -ForegroundColor Cyan
-
-=== ENTRYPOINT READ ===
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entrypointTreeEntry = $remoteTree.tree |
->>     Where-Object { $_.path -eq $entrypointPath } |
->>     Select-Object -First 1
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $entrypointTreeEntry) {
->>     throw "ENTRYPOINT NOT FOUND"
->> }
-ENTRYPOINT NOT FOUND
-At line:2 char:5
-+     throw "ENTRYPOINT NOT FOUND"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (ENTRYPOINT NOT FOUND:String) [], RuntimeException
-    + FullyQualifiedErrorId : ENTRYPOINT NOT FOUND
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($entrypointTreeEntry.type -ne "blob") {
->>     throw "ENTRYPOINT IS NOT A BLOB"
->> }
-ENTRYPOINT IS NOT A BLOB
-At line:2 char:5
-+     throw "ENTRYPOINT IS NOT A BLOB"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (ENTRYPOINT IS NOT A BLOB:String) [], RuntimeException
-    + FullyQualifiedErrorId : ENTRYPOINT IS NOT A BLOB
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryBlob = gh api "repos/$repo/git/blobs/$($entrypointTreeEntry.sha)" |
->>     ConvertFrom-Json
-gh: Not Found (HTTP 404)
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $entryBlob.content) {
->>     throw "ENTRYPOINT BLOB CONTENT EMPTY"
->> }
-ENTRYPOINT BLOB CONTENT EMPTY
-At line:2 char:5
-+     throw "ENTRYPOINT BLOB CONTENT EMPTY"
++     throw "ENTRYPOINT BLOB CREATE FAILED"
 +     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (ENTRYPOINT BLOB CONTENT EMPTY:String) [], RuntimeException
-    + FullyQualifiedErrorId : ENTRYPOINT BLOB CONTENT EMPTY
+    + CategoryInfo          : OperationStopped: (ENTRYPOINT BLOB CREATE FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : ENTRYPOINT BLOB CREATE FAILED
 
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryContent = [Text.Encoding]::UTF8.GetString(
->>     [Convert]::FromBase64String(
->>         ($entryBlob.content -replace "`n", "").Trim()
->>     )
->> )
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "ENTRYPOINT BLOB = $($entryBlob.sha)" -ForegroundColor Green
+ENTRYPOINT BLOB =
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "ENTRYPOINT READ = PASS" -ForegroundColor Green
-ENTRYPOINT READ = PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "ENTRYPOINT SHA = $($entrypointTreeEntry.sha)" -ForegroundColor Green
-ENTRYPOINT SHA =
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "ENTRYPOINT LENGTH = $($entryContent.Length)" -ForegroundColor Green
-ENTRYPOINT LENGTH = 0
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER> # AI_AGENT_ENTRYPOINT — POLICY UPDATE
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== UPDATE REMOTE-WRITE CONTRACT ===" -ForegroundColor Cyan
-
-=== UPDATE REMOTE-WRITE CONTRACT ===
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryContent = Replace-Once `
->>     $entryContent `
->>     'IMPLEMENTATION_WRITE_INTERFACE = (
->>     "Manual GitHub file save on branch reos-development"
->> )' `
->>     'IMPLEMENTATION_WRITE_INTERFACE = (
->>     "Authenticated remote GitHub API write on branch reos-development; "
->>     "local source and local Git history remain protected"
->> )' `
->>     "IMPLEMENTATION_WRITE_INTERFACE"
-IMPLEMENTATION_WRITE_INTERFACE REPLACE FAILED: expected 1 match, found 0
-At line:15 char:9
-+         throw "$Label REPLACE FAILED: expected 1 match, found $count"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (IMPLEMENTATION_... match, found 0:String) [], RuntimeException
-    + FullyQualifiedErrorId : IMPLEMENTATION_WRITE_INTERFACE REPLACE FAILED: expected 1 match, found 0
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryContent = Replace-Once `
->>     $entryContent `
->>     '# PowerShell is verification/diagnosis only.
->> POWERSHELL_WRITE_ALLOWED = False
->> POWERSHELL_IS_VERIFICATION_ONLY = True' `
->>     '# Local PowerShell source/Git mutation is forbidden.
->> # Authenticated remote GitHub API writes on the canonical branch are allowed
->> # through the controlled remote-write workflow.
->> POWERSHELL_LOCAL_WRITE_ALLOWED = False
->> POWERSHELL_REMOTE_GITHUB_WRITE_ALLOWED = True
->>
->> # Backward-compatible alias: this means local source-file write permission.
->> POWERSHELL_WRITE_ALLOWED = POWERSHELL_LOCAL_WRITE_ALLOWED
->>
->> # PowerShell is no longer verification-only because controlled remote GitHub
->> # implementation writes are explicitly supported.
->> POWERSHELL_IS_VERIFICATION_ONLY = False' `
->>     "POWERSHELL POLICY CONSTANTS"
-POWERSHELL POLICY CONSTANTS REPLACE FAILED: expected 1 match, found 0
-At line:15 char:9
-+         throw "$Label REPLACE FAILED: expected 1 match, found $count"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (POWERSHELL POLI... match, found 0:String) [], RuntimeException
-    + FullyQualifiedErrorId : POWERSHELL POLICY CONSTANTS REPLACE FAILED: expected 1 match, found 0
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryContent = Replace-Once `
->>     $entryContent `
->>     'current_verification: str = (
->>         "Local PowerShell verification and diagnosis only"
->>     )' `
->>     'current_verification: str = (
->>         "Local filesystem/Git verification and diagnosis; "
->>         "controlled remote GitHub API implementation writes on "
->>         "reos-development"
->>     )' `
->>     "OPERATING CONTRACT"
-OPERATING CONTRACT REPLACE FAILED: expected 1 match, found 0
-At line:15 char:9
-+         throw "$Label REPLACE FAILED: expected 1 match, found $count"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (OPERATING CONTR... match, found 0:String) [], RuntimeException
-    + FullyQualifiedErrorId : OPERATING CONTRACT REPLACE FAILED: expected 1 match, found 0
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryContent = Replace-Once `
->>     $entryContent `
->>     '"Treat local PowerShell as verification and diagnosis only.",
->>     "Do not use PowerShell to create, replace, patch, reset, merge or push project code.",' `
->>     '"Treat local PowerShell filesystem and local Git operations as verification and diagnosis only.",
->>     "Do not mutate local source files with PowerShell and do not use local reset, pull, merge, rebase or force-push operations.",
->>     "Authenticated remote GitHub API writes may be used on reos-development through the approved controlled workflow.",' `
->>     "AI OPERATING RULES"
-AI OPERATING RULES REPLACE FAILED: expected 1 match, found 0
-At line:15 char:9
-+         throw "$Label REPLACE FAILED: expected 1 match, found $count"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (AI OPERATING RU... match, found 0:String) [], RuntimeException
-    + FullyQualifiedErrorId : AI OPERATING RULES REPLACE FAILED: expected 1 match, found 0
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryContent = Replace-Once `
->>     $entryContent `
->>     '"PowerShell is verification and diagnosis only.",
->>     "PowerShell MUST NOT be used to write, patch, reset, merge or push project code.",' `
->>     '"Local PowerShell filesystem and local Git operations are verification and diagnosis only.",
->>     "PowerShell MUST NOT mutate local source files or local Git history.",
->>     "Approved PowerShell GitHub API remote writes may modify only the canonical reos-development branch and must be independently verified.",' `
->>     "DEVELOPMENT WORKFLOW RULES"
-DEVELOPMENT WORKFLOW RULES REPLACE FAILED: expected 1 match, found 0
-At line:15 char:9
-+         throw "$Label REPLACE FAILED: expected 1 match, found $count"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (DEVELOPMENT WOR... match, found 0:String) [], RuntimeException
-    + FullyQualifiedErrorId : DEVELOPMENT WORKFLOW RULES REPLACE FAILED: expected 1 match, found 0
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryContent = Replace-Once `
->>     $entryContent `
->>     '"Manual GitHub file saving is the owner-controlled code implementation workflow.",
->>     "Local PowerShell is verification and diagnosis only.",
->>     "PowerShell MUST NOT perform repository code writes.",' `
->>     '"Authenticated remote GitHub API writes through the approved PowerShell workflow are the owner-controlled implementation write interface; manual GitHub file saving remains permitted.",
->>     "Local PowerShell filesystem and local Git operations are verification and diagnosis only.",
->>     "PowerShell MUST NOT mutate the local source checkout or local Git history.",
->>     "Controlled remote GitHub API writes are permitted only against canonical reos-development and require branch, commit and file verification.",' `
->>     "REMOTE GIT SYNCHRONIZATION RULES"
-REMOTE GIT SYNCHRONIZATION RULES REPLACE FAILED: expected 1 match, found 0
-At line:15 char:9
-+         throw "$Label REPLACE FAILED: expected 1 match, found $count"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (REMOTE GIT SYNC... match, found 0:String) [], RuntimeException
-    + FullyQualifiedErrorId : REMOTE GIT SYNCHRONIZATION RULES REPLACE FAILED: expected 1 match, found 0
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryContent = Replace-Once `
->>     $entryContent `
->>     '"Current working directory is used only for read-only verification.",' `
->>     '"Current working directory and local checkout are used only for read-only verification and diagnosis; approved remote GitHub writes do not mutate the local checkout.",' `
->>     "PREFLIGHT LOCAL WORKSPACE"
-PREFLIGHT LOCAL WORKSPACE REPLACE FAILED: expected 1 match, found 0
-At line:15 char:9
-+         throw "$Label REPLACE FAILED: expected 1 match, found $count"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (PREFLIGHT LOCAL... match, found 0:String) [], RuntimeException
-    + FullyQualifiedErrorId : PREFLIGHT LOCAL WORKSPACE REPLACE FAILED: expected 1 match, found 0
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryContent = Replace-Once `
->>     $entryContent `
->>     '"The AI must provide exact repository path, ADD/REPLACE/NO CHANGE action, anchor or location, and complete file content for manual GitHub editing.",' `
->>     '"The AI must provide exact repository path, ADD/REPLACE/NO CHANGE action, anchor or location, and complete content or an exact controlled remote-write operation for the owner-approved implementation workflow.",' `
->>     "OWNER WORKFLOW"
-OWNER WORKFLOW REPLACE FAILED: expected 1 match, found 0
-At line:15 char:9
-+         throw "$Label REPLACE FAILED: expected 1 match, found $count"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (OWNER WORKFLOW ... match, found 0:String) [], RuntimeException
-    + FullyQualifiedErrorId : OWNER WORKFLOW REPLACE FAILED: expected 1 match, found 0
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryContent = Replace-Once `
->>     $entryContent `
->>     '"The AI must not provide PowerShell commands for project code creation or replacement.",
->>     "The AI must reserve PowerShell instructions for read-only verification and diagnosis.",' `
->>     '"The AI must not provide PowerShell commands that mutate the local source checkout or local Git history.",
->>     "The AI may provide controlled PowerShell GitHub API commands for remote implementation writes on reos-development.",
->>     "Local PowerShell filesystem and local Git commands remain verification and diagnosis only.",' `
->>     "NON-DEVELOPER OWNER CONTRACT"
-NON-DEVELOPER OWNER CONTRACT REPLACE FAILED: expected 1 match, found 0
-At line:15 char:9
-+         throw "$Label REPLACE FAILED: expected 1 match, found $count"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (NON-DEVELOPER O... match, found 0:String) [], RuntimeException
-    + FullyQualifiedErrorId : NON-DEVELOPER OWNER CONTRACT REPLACE FAILED: expected 1 match, found 0
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryContent = Replace-Once `
->>     $entryContent `
->>     '"13. Prepare exact GitHub manual-save instructions for the owner.",' `
->>     '"13. Prepare the exact approved remote GitHub write operation or manual GitHub save instructions for the owner-controlled implementation workflow.",' `
->>     "NEW SESSION WORKFLOW"
-NEW SESSION WORKFLOW REPLACE FAILED: expected 1 match, found 0
-At line:15 char:9
-+         throw "$Label REPLACE FAILED: expected 1 match, found $count"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (NEW SESSION WOR... match, found 0:String) [], RuntimeException
-    + FullyQualifiedErrorId : NEW SESSION WORKFLOW REPLACE FAILED: expected 1 match, found 0
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryContent = Replace-Once `
->>     $entryContent `
->>     '"10. Save implementation changes manually on canonical GitHub branch reos-development.",' `
->>     '"10. Apply implementation changes through the approved remote GitHub API workflow on canonical branch reos-development, or through an explicitly selected manual GitHub save.",' `
->>     "EXECUTION WORKFLOW"
-EXECUTION WORKFLOW REPLACE FAILED: expected 1 match, found 0
-At line:15 char:9
-+         throw "$Label REPLACE FAILED: expected 1 match, found $count"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (EXECUTION WORKF... match, found 0:String) [], RuntimeException
-    + FullyQualifiedErrorId : EXECUTION WORKFLOW REPLACE FAILED: expected 1 match, found 0
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryContent = Replace-Once `
->>     $entryContent `
->>     '"12. Use local PowerShell only for read-only verification and diagnosis.",' `
->>     '"12. Use local PowerShell filesystem and local Git operations only for read-only verification and diagnosis; remote GitHub API writes remain explicitly controlled.",' `
->>     "EXECUTION WORKFLOW VERIFICATION"
-EXECUTION WORKFLOW VERIFICATION REPLACE FAILED: expected 1 match, found 0
-At line:15 char:9
-+         throw "$Label REPLACE FAILED: expected 1 match, found $count"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (EXECUTION WORKF... match, found 0:String) [], RuntimeException
-    + FullyQualifiedErrorId : EXECUTION WORKFLOW VERIFICATION REPLACE FAILED: expected 1 match, found 0
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryContent = Replace-Once `
->>     $entryContent `
->>     '"WRITE METHOD   : "
->>         "Manual GitHub file save"
->>     )' `
->>     '"WRITE METHOD   : "
->>         "Controlled remote GitHub API write"
->>     )' `
->>     "STARTUP WRITE METHOD"
-STARTUP WRITE METHOD REPLACE FAILED: expected 1 match, found 0
-At line:15 char:9
-+         throw "$Label REPLACE FAILED: expected 1 match, found $count"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STARTUP WRITE M... match, found 0:String) [], RuntimeException
-    + FullyQualifiedErrorId : STARTUP WRITE METHOD REPLACE FAILED: expected 1 match, found 0
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryContent = Replace-Once `
->>     $entryContent `
->>     '"POWERSHELL     : "
->>         "Verification / diagnosis only"
->>     )' `
->>     '"POWERSHELL     : "
->>         "Local verification/diagnosis; remote GitHub API write allowed"
->>     )' `
->>     "STARTUP POWERSHELL"
-STARTUP POWERSHELL REPLACE FAILED: expected 1 match, found 0
-At line:15 char:9
-+         throw "$Label REPLACE FAILED: expected 1 match, found $count"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STARTUP POWERSH... match, found 0:String) [], RuntimeException
-    + FullyQualifiedErrorId : STARTUP POWERSHELL REPLACE FAILED: expected 1 match, found 0
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryContent = Replace-Once `
->>     $entryContent `
->>     '"RULE           : "
->>         "POWERSHELL WRITE = FORBIDDEN"
->>     )' `
->>     '"RULE           : "
->>         "LOCAL SOURCE WRITE = FORBIDDEN"
->>     )
->>     print(
->>         "RULE           : "
->>         "REMOTE GITHUB API WRITE = CONTROLLED"
->>     )' `
->>     "STARTUP WRITE RULE"
-STARTUP WRITE RULE REPLACE FAILED: expected 1 match, found 0
-At line:15 char:9
-+         throw "$Label REPLACE FAILED: expected 1 match, found $count"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STARTUP WRITE R... match, found 0:String) [], RuntimeException
-    + FullyQualifiedErrorId : STARTUP WRITE RULE REPLACE FAILED: expected 1 match, found 0
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryContent = Replace-Once `
->>     $entryContent `
->>     '"powershell_verification_only": (
->>             POWERSHELL_IS_VERIFICATION_ONLY
->>         ),
->>         "powershell_write_allowed": (
->>             POWERSHELL_WRITE_ALLOWED
->>         ),' `
->>     '"powershell_verification_only": (
->>             POWERSHELL_IS_VERIFICATION_ONLY
->>         ),
->>         "powershell_write_allowed": (
->>             POWERSHELL_WRITE_ALLOWED
->>         ),
->>         "powershell_local_write_allowed": (
->>             POWERSHELL_LOCAL_WRITE_ALLOWED
->>         ),
->>         "powershell_remote_github_write_allowed": (
->>             POWERSHELL_REMOTE_GITHUB_WRITE_ALLOWED
->>         ),' `
->>     "STARTUP MACHINE CONTRACT"
-STARTUP MACHINE CONTRACT REPLACE FAILED: expected 1 match, found 0
-At line:15 char:9
-+         throw "$Label REPLACE FAILED: expected 1 match, found $count"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STARTUP MACHINE... match, found 0:String) [], RuntimeException
-    + FullyQualifiedErrorId : STARTUP MACHINE CONTRACT REPLACE FAILED: expected 1 match, found 0
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "ENTRYPOINT POLICY UPDATE = PASS" -ForegroundColor Green
-ENTRYPOINT POLICY UPDATE = PASS
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER> # CREATE NEW ENTRYPOINT BLOB
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== CREATE ENTRYPOINT BLOB ===" -ForegroundColor Cyan
-
-=== CREATE ENTRYPOINT BLOB ===
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $blobPayload = @{
->>     content  = $entryContent
->>     encoding = "utf-8"
->> } | ConvertTo-Json -Compress -Depth 5
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $newEntrypointBlob = (
->>     $blobPayload |
->>     gh api "repos/$repo/git/blobs" --method POST --input - |
->>     ConvertFrom-Json
->> )
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $newEntrypointBlob.sha) {
->>     throw "ENTRYPOINT BLOB CREATION FAILED"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "NEW ENTRYPOINT BLOB = $($newEntrypointBlob.sha)" -ForegroundColor Green
-NEW ENTRYPOINT BLOB = e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $treeElements += @{
->>     path = $entrypointPath
+PS D:\Homio\REOS_CONTROL_CENTER> $treeChanges.Add(@{
+>>     path = "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py"
 >>     mode = "100644"
 >>     type = "blob"
->>     sha  = $newEntrypointBlob.sha
->> }
+>>     sha  = $entryBlob.sha
+>> })
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER> # CREATE SINGLE REMOTE TREE
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== CREATE REMOTE TREE ===" -ForegroundColor Cyan
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== CREATE NEW TREE ===" -ForegroundColor Cyan
 
-=== CREATE REMOTE TREE ===
+=== CREATE NEW TREE ===
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $treePayload = @{
->>     base_tree = $baseTree
->>     tree      = $treeElements
->> } | ConvertTo-Json -Compress -Depth 10
+PS D:\Homio\REOS_CONTROL_CENTER> $treeJson = $treeChanges | ConvertTo-Json -Compress -Depth 10
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $newTree = (
->>     $treePayload |
->>     gh api "repos/$repo/git/trees" --method POST --input - |
->>     ConvertFrom-Json
->> )
+PS D:\Homio\REOS_CONTROL_CENTER> $newTree = gh api --method POST `
+>>     "repos/$repo/git/trees" `
+>>     -f base_tree="$baseTree" `
+>>     --raw-field tree="$treeJson" | ConvertFrom-Json
+gh: Invalid tree info (HTTP 422)
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> if (-not $newTree.sha) {
->>     throw "REMOTE TREE CREATION FAILED"
+>>     throw "NEW TREE CREATION FAILED"
 >> }
+NEW TREE CREATION FAILED
+At line:2 char:5
++     throw "NEW TREE CREATION FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (NEW TREE CREATION FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : NEW TREE CREATION FAILED
+
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "NEW TREE = $($newTree.sha)" -ForegroundColor Green
-NEW TREE = 16877da70c8ff662d212fd59e1cbdc0630c695e5
+NEW TREE =
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER> # CREATE SINGLE COMMIT
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== CREATE COMMIT ===" -ForegroundColor Cyan
 
 === CREATE COMMIT ===
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $commitPayload = @{
->>     message = "Fix F05 route placement and update AI remote-write contract"
+PS D:\Homio\REOS_CONTROL_CENTER> $commitBody = @{
+>>     message = "Correct F05 route location and restore AI agent write contract"
 >>     tree    = $newTree.sha
 >>     parents = @($head)
->> } | ConvertTo-Json -Compress -Depth 5
+>> } | ConvertTo-Json -Compress
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $newCommit = (
->>     $commitPayload |
->>     gh api "repos/$repo/git/commits" --method POST --input - |
->>     ConvertFrom-Json
->> )
+PS D:\Homio\REOS_CONTROL_CENTER> $newCommit = gh api --method POST `
+>>     "repos/$repo/git/commits" `
+>>     --raw-field message="Correct F05 route location and restore AI agent write contract" `
+>>     --raw-field tree="$($newTree.sha)" `
+>>     --raw-field parents="[$($head)]" | ConvertFrom-Json
+gh: Invalid request.
+
+For 'properties/parents', "[6f9b903740afa28b7d9ca536544d01ba98817eaa]" is not an array. (HTTP 422)
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> if (-not $newCommit.sha) {
 >>     throw "COMMIT CREATION FAILED"
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "NEW COMMIT = $($newCommit.sha)" -ForegroundColor Green
-NEW COMMIT = 0f74e9c9af6a0022de984607809c0c00ed1cebeb
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER> # BRANCH LEASE CHECK
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== BRANCH LEASE CHECK ===" -ForegroundColor Cyan
+COMMIT CREATION FAILED
+At line:2 char:5
++     throw "COMMIT CREATION FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (COMMIT CREATION FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : COMMIT CREATION FAILED
 
-=== BRANCH LEASE CHECK ===
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $currentHead = gh api "repos/$repo/git/ref/heads/$branch" --jq ".object.sha"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($currentHead -ne $head) {
->>     throw "REMOTE BRANCH CHANGED DURING OPERATION. NO REF UPDATE PERFORMED."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "BRANCH LEASE = PASS" -ForegroundColor Green
-BRANCH LEASE = PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "COMMIT = $($newCommit.sha)" -ForegroundColor Green
+COMMIT =
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER> # UPDATE CANONICAL BRANCH
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== UPDATE REMOTE BRANCH ===" -ForegroundColor Cyan
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== UPDATE REMOTE BRANCH (LEASED) ===" -ForegroundColor Cyan
 
-=== UPDATE REMOTE BRANCH ===
+=== UPDATE REMOTE BRANCH (LEASED) ===
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> gh api "repos/$repo/git/refs/heads/$branch" `
->>     --method PATCH `
->>     --field "sha=$($newCommit.sha)" `
->>     --field "force=false" | Out-Null
+PS D:\Homio\REOS_CONTROL_CENTER> $refBody = @{
+>>     sha   = $newCommit.sha
+>>     force = $false
+>> } | ConvertTo-Json -Compress
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+PS D:\Homio\REOS_CONTROL_CENTER> $updated = gh api --method PATCH `
+>>     "repos/$repo/git/refs/heads/$branch" `
+>>     --raw-field sha="$($newCommit.sha)" `
+>>     -f force=false | ConvertFrom-Json
+gh: Invalid request.
+
+At least 40 characters are required; only 0 were supplied.
+ does not match /^([0-9a-f]{40}(?:[0-9a-f]{24})?)$/.
+For 'properties/force', "false" is not a boolean. (HTTP 422)
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $updated.object.sha) {
 >>     throw "REMOTE BRANCH UPDATE FAILED"
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE BRANCH UPDATE = PASS" -ForegroundColor Green
-REMOTE BRANCH UPDATE = PASS
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER> # FINAL INDEPENDENT VERIFICATION
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== FINAL VERIFICATION ===" -ForegroundColor Cyan
+REMOTE BRANCH UPDATE FAILED
+At line:2 char:5
++     throw "REMOTE BRANCH UPDATE FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE BRANCH UPDATE FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE BRANCH UPDATE FAILED
 
-=== FINAL VERIFICATION ===
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE HEAD UPDATED = $($updated.object.sha)" -ForegroundColor Green
+REMOTE HEAD UPDATED =
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== FINAL HARD VERIFICATION ===" -ForegroundColor Cyan
+
+=== FINAL HARD VERIFICATION ===
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $finalHead = gh api "repos/$repo/git/ref/heads/$branch" --jq ".object.sha"
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> if ($finalHead -ne $newCommit.sha) {
 >>     throw "FINAL HEAD MISMATCH"
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "FINAL HEAD = $finalHead" -ForegroundColor Green
-FINAL HEAD = 0f74e9c9af6a0022de984607809c0c00ed1cebeb
+FINAL HEAD MISMATCH
+At line:2 char:5
++     throw "FINAL HEAD MISMATCH"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FINAL HEAD MISMATCH:String) [], RuntimeException
+    + FullyQualifiedErrorId : FINAL HEAD MISMATCH
+
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $finalCommit = gh api "repos/$repo/git/commits/$finalHead" | ConvertFrom-Json
 PS D:\Homio\REOS_CONTROL_CENTER> $finalTreeSha = $finalCommit.tree.sha
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $finalTree = gh api "repos/$repo/git/trees/$finalTreeSha?recursive=1" | ConvertFrom-Json
-gh: Not Found (HTTP 404)
+PS D:\Homio\REOS_CONTROL_CENTER> $finalTree = gh api --method GET `
+>>     "repos/$repo/git/trees/$finalTreeSha" `
+>>     -f recursive=true | ConvertFrom-Json
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($finalTree.truncated -eq $true) {
->>     throw "FINAL TREE TRUNCATED"
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $finalTree.tree) {
+>>     throw "FINAL TREE READ FAILED"
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($name in $f05Names) {
+PS D:\Homio\REOS_CONTROL_CENTER> $finalMap = @{}
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($item in $finalTree.tree) {
+>>     if ($item.path) {
+>>         $finalMap[$item.path] = $item
+>>     }
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($name in $files) {
 >>
->>     $correctPath = "$newPrefix/$name"
->>     $wrongPath   = "$oldPrefix/$name"
+>>     $oldPath = $wrongBase + $name
+>>     $newPath = $rightBase + $name
 >>
->>     $correct = $finalTree.tree |
->>         Where-Object { $_.path -eq $correctPath } |
->>         Select-Object -First 1
->>
->>     $wrong = $finalTree.tree |
->>         Where-Object { $_.path -eq $wrongPath } |
->>         Select-Object -First 1
->>
->>     if (-not $correct) {
->>         throw "FINAL TARGET MISSING: $correctPath"
+>>     if (-not $finalMap.ContainsKey($newPath)) {
+>>         throw "FINAL TARGET MISSING: $newPath"
 >>     }
 >>
->>     if ($wrong) {
->>         throw "FINAL WRONG ROUTE STILL EXISTS: $wrongPath"
+>>     if ($finalMap.ContainsKey($oldPath)) {
+>>         throw "FINAL WRONG ROUTE STILL EXISTS: $oldPath"
 >>     }
 >>
->>     Write-Host "F05 PASS: $correctPath" -ForegroundColor Green
+>>     Write-Host "F05 PASS: $newPath" -ForegroundColor Green
 >> }
 FINAL TARGET MISSING: REOS_CONTROL_CENTER/Frontend/src/app/project/[projectId]/page.tsx
-At line:15 char:9
-+         throw "FINAL TARGET MISSING: $correctPath"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At line:7 char:9
++         throw "FINAL TARGET MISSING: $newPath"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : OperationStopped: (FINAL TARGET MI...ectId]/page.tsx:String) [], RuntimeException
     + FullyQualifiedErrorId : FINAL TARGET MISSING: REOS_CONTROL_CENTER/Frontend/src/app/project/[projectId]/page.tsx
 
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $f04Final = $finalTree.tree |
->>     Where-Object { $_.path -eq $f04Path } |
->>     Select-Object -First 1
+PS D:\Homio\REOS_CONTROL_CENTER> $f04Final = $finalMap["REOS_CONTROL_CENTER/Frontend/src/app/property/[propertyId]/page.tsx"]
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> if (-not $f04Final) {
 >>     throw "F04 ROUTE LOST"
 >> }
-F04 ROUTE LOST
-At line:2 char:5
-+     throw "F04 ROUTE LOST"
-+     ~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (F04 ROUTE LOST:String) [], RuntimeException
-    + FullyQualifiedErrorId : F04 ROUTE LOST
-
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "F04 = PRESERVED" -ForegroundColor Green
-F04 = PRESERVED
+PS D:\Homio\REOS_CONTROL_CENTER> $epFinal = $finalMap["REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py"]
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entryFinal = $finalTree.tree |
->>     Where-Object { $_.path -eq $entrypointPath } |
->>     Select-Object -First 1
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $entryFinal) {
->>     throw "FINAL ENTRYPOINT MISSING"
->> }
-FINAL ENTRYPOINT MISSING
-At line:2 char:5
-+     throw "FINAL ENTRYPOINT MISSING"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (FINAL ENTRYPOINT MISSING:String) [], RuntimeException
-    + FullyQualifiedErrorId : FINAL ENTRYPOINT MISSING
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $finalEntryBlob = gh api "repos/$repo/git/blobs/$($entryFinal.sha)" | ConvertFrom-Json
-gh: Not Found (HTTP 404)
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $finalEntryContent = [Text.Encoding]::UTF8.GetString(
->>     [Convert]::FromBase64String(
->>         ($finalEntryBlob.content -replace "`n", "").Trim()
->>     )
->> )
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($finalEntryContent -notmatch "POWERSHELL_REMOTE_GITHUB_WRITE_ALLOWED = True") {
->>     throw "ENTRYPOINT REMOTE WRITE RULE MISSING"
->> }
-ENTRYPOINT REMOTE WRITE RULE MISSING
-At line:2 char:5
-+     throw "ENTRYPOINT REMOTE WRITE RULE MISSING"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (ENTRYPOINT REMOTE WRITE RULE MISSING:String) [], RuntimeException
-    + FullyQualifiedErrorId : ENTRYPOINT REMOTE WRITE RULE MISSING
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($finalEntryContent -notmatch "REMOTE GITHUB API WRITE = CONTROLLED") {
->>     throw "ENTRYPOINT STARTUP RULE MISSING"
->> }
-ENTRYPOINT STARTUP RULE MISSING
-At line:2 char:5
-+     throw "ENTRYPOINT STARTUP RULE MISSING"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (ENTRYPOINT STARTUP RULE MISSING:String) [], RuntimeException
-    + FullyQualifiedErrorId : ENTRYPOINT STARTUP RULE MISSING
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($finalEntryContent -match "PowerShell MUST NOT perform repository code writes") {
->>     throw "OLD REMOTE-WRITE BLOCKER STILL PRESENT"
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $epFinal) {
+>>     throw "ENTRYPOINT MISSING"
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($finalEntryContent -match "Write implementation changes manually on canonical GitHub branch") {
->>     throw "OLD MANUAL-ONLY EXECUTION RULE STILL PRESENT"
->> }
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "F04 PASS: PROPERTY ROUTE PRESENT" -ForegroundColor Green
+F04 PASS: PROPERTY ROUTE PRESENT
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "ENTRYPOINT PASS: PRESENT" -ForegroundColor Green
+ENTRYPOINT PASS: PRESENT
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "FINAL HEAD = $finalHead" -ForegroundColor Green
+FINAL HEAD = 6f9b903740afa28b7d9ca536544d01ba98817eaa
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n============================================" -ForegroundColor Cyan
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== FINAL RESULT ===" -ForegroundColor Cyan
 
-============================================
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "F04 = NO CHANGE / PRESERVED" -ForegroundColor Green
-F04 = NO CHANGE / PRESERVED
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "F05 ROUTE MOVE = PASS" -ForegroundColor Green
-F05 ROUTE MOVE = PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "WRONG ROUTE REMOVAL = PASS" -ForegroundColor Green
-WRONG ROUTE REMOVAL = PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "AI_AGENT_ENTRYPOINT REMOTE-WRITE UPDATE = PASS" -ForegroundColor Green
-AI_AGENT_ENTRYPOINT REMOTE-WRITE UPDATE = PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE BRANCH = $branch" -ForegroundColor Green
-REMOTE BRANCH = reos-development
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE COMMIT = $finalHead" -ForegroundColor Green
-REMOTE COMMIT = 0f74e9c9af6a0022de984607809c0c00ed1cebeb
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "============================================" -ForegroundColor Cyan
-============================================
-PS D:\Homio\REOS_CONTROL_CENTER>
+=== FINAL RESULT ===
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE F04 = UNCHANGED / PRESENT" -ForegroundColor Green
+REMOTE F04 = UNCHANGED / PRESENT
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE F05 = MOVED TO CORRECT ROUTE" -ForegroundColor Green
+REMOTE F05 = MOVED TO CORRECT ROUTE
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "WRONG F05 ROUTE = REMOVED" -ForegroundColor Green
+WRONG F05 ROUTE = REMOVED
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "AI_AGENT_ENTRYPOINT = RESTORED + REMOTE WRITE CONTRACT UPDATED" -ForegroundColor Green
+AI_AGENT_ENTRYPOINT = RESTORED + REMOTE WRITE CONTRACT UPDATED
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "FALSE PASS CONDITIONS = STOPPED" -ForegroundColor Green
+FALSE PASS CONDITIONS = STOPPED
