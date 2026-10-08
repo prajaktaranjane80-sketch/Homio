@@ -1,51 +1,26 @@
-=== LOCAL GIT IDENTITY ===
-PS D:\Homio\REOS_CONTROL_CENTER> git -C $root rev-parse --show-toplevel
-D:/Homio
-PS D:\Homio\REOS_CONTROL_CENTER> git -C $root branch --show-current
-reos-development
-PS D:\Homio\REOS_CONTROL_CENTER> git -C $root rev-parse HEAD
+PS D:\Homio\REOS_CONTROL_CENTER> $repo="D:\Homio"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== LOCAL HEAD ==="
+
+=== LOCAL HEAD ===
+PS D:\Homio\REOS_CONTROL_CENTER> git -C $repo rev-parse HEAD
 036f907195b5423a5405ea3cf7780a6689886176
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== LOCAL F05 FEATURE ==="
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== LOCAL BRANCH ==="
 
-=== LOCAL F05 FEATURE ===
-PS D:\Homio\REOS_CONTROL_CENTER> if (Test-Path -LiteralPath "$root\src\features\f05_project") {
->>     Get-ChildItem -LiteralPath "$root\src\features\f05_project" -File |
->>         Select-Object Name
->> } else {
->>     "MISSING"
->> }
-MISSING
+=== LOCAL BRANCH ===
+PS D:\Homio\REOS_CONTROL_CENTER> git -C $repo branch --show-current
+reos-development
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== LOCAL WRONG ROUTE ==="
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== REMOTE ORIGIN ==="
 
-=== LOCAL WRONG ROUTE ===
-PS D:\Homio\REOS_CONTROL_CENTER> if (Test-Path -LiteralPath "$root\src\app\features\f05_project") {
->>     Get-ChildItem -LiteralPath "$root\src\app\features\f05_project" -File |
->>         Select-Object Name
->> } else {
->>     "MISSING"
->> }
-MISSING
+=== REMOTE ORIGIN ===
+PS D:\Homio\REOS_CONTROL_CENTER> git -C $repo config --get remote.origin.url
+https://prajaktaranjane80-sketch@github.com/prajaktaranjane80-sketch/Homio.git
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== LOCAL CORRECT F05 ROUTE ==="
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== FETCH-ONLY REMOTE CHECK ==="
 
-=== LOCAL CORRECT F05 ROUTE ===
-PS D:\Homio\REOS_CONTROL_CENTER> if (Test-Path -LiteralPath "$root\src\app\project\[projectId]") {
->>     Get-ChildItem -LiteralPath "$root\src\app\project\[projectId]" -File |
->>         Select-Object Name
->> } else {
->>     "MISSING"
->> }
-MISSING
+=== FETCH-ONLY REMOTE CHECK ===
+PS D:\Homio\REOS_CONTROL_CENTER> git -C $repo ls-remote origin refs/heads/reos-development
+c78742e92589ba3c2bbb17dafafa23c9d6a165b4        refs/heads/reos-development
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== LOCAL F04 ROUTE ==="
-
-=== LOCAL F04 ROUTE ===
-PS D:\Homio\REOS_CONTROL_CENTER> if (Test-Path -LiteralPath "$root\src\app\property\[propertyId]") {
->>     Get-ChildItem -LiteralPath "$root\src\app\property\[propertyId]" -File |
->>         Select-Object Name
->> } else {
->>     "MISSING"
->> }
-MISSING
