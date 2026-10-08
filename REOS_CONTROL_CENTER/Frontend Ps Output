@@ -1,26 +1,124 @@
-PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git fetch origin reos-development
-remote: Enumerating objects: 23, done.
-remote: Counting objects: 100% (23/23), done.
-remote: Compressing objects: 100% (17/17), done.
-remote: Total 17 (delta 12), reused 0 (delta 0), pack-reused 0 (from 0)
-Receiving objects: 100% (17/17), 3.45 KiB | 705.00 KiB/s, done.
-Resolving deltas: 100% (12/12), completed with 5 local objects.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   e3ab16b..a9dac89  reos-development -> origin/reos-development
-PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git rev-parse HEAD
-e3ab16b4024c75ef3bb07c113b5fffdab89fe28b
-PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git rev-parse origin/reos-development
-a9dac891ecdfa90a97ce30cea84aff33c86fe067
-PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
 PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git ls-tree -r --name-only origin/reos-development -- "src/features/f03_search/SearchFurnishingFilter*"
 PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git status --short
-Refresh index: 100% (1666/1666), done.
- D "../../Project: HOMIO"
- M package.json
- M src/features/f01_experience_foundation/README.md
- M tsconfig.json
-?? ../../Project
-?? package-lock.json
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> npm run typecheck
+
+> homio-frontend@0.1.0 typecheck
+> tsc --noEmit
+
+src/features/f03_search/SearchFurnishingFilter.ts:26:15 - error TS1005: '>' expected.
+
+26     <fieldset className={styles.fieldset}>
+                 ~~~~~~~~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:26:24 - error TS1005: ')' expected.
+
+26     <fieldset className={styles.fieldset}>
+                          ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:26:32 - error TS1005: ',' expected.
+
+26     <fieldset className={styles.fieldset}>
+                                  ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:27:26 - error TS1161: Unterminated regular expression literal.
+
+27       <legend>Furnishing</legend>
+                            ~~~~~~~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:29:12 - error TS1005: ';' expected.
+
+29       <div className={styles.options}>
+              ~~~~~~~~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:29:29 - error TS1005: ',' expected.
+
+29       <div className={styles.options}>
+                               ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:30:17 - error TS1005: ',' expected.
+
+30         {options.map((option) => {
+                   ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:35:15 - error TS1005: '>' expected.
+
+35               key={option}
+                 ~~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:35:18 - error TS1005: ')' expected.
+
+35               key={option}
+                    ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:37:27 - error TS1005: ';' expected.
+
+37               aria-pressed={selected}
+                             ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:38:26 - error TS1136: Property assignment expected.
+
+38               className={`${styles.option} ${
+                            ~~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:41:15 - error TS1005: ',' expected.
+
+41               onClick={() => toggle(option)}
+                 ~~~~~~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:41:24 - error TS1136: Property assignment expected.
+
+41               onClick={() => toggle(option)}
+                          ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:41:27 - error TS1005: ',' expected.
+
+41               onClick={() => toggle(option)}
+                             ~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:41:44 - error TS1005: ',' expected.
+
+41               onClick={() => toggle(option)}
+                                              ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:44:14 - error TS1161: Unterminated regular expression literal.
+
+44             </button>
+                ~~~~~~~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:45:11 - error TS1128: Declaration or statement expected.
+
+45           );
+             ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:46:10 - error TS1128: Declaration or statement expected.
+
+46         })}
+            ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:46:11 - error TS1128: Declaration or statement expected.
+
+46         })}
+             ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:47:8 - error TS1110: Type expected.
+
+47       </div>
+          ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:48:6 - error TS1161: Unterminated regular expression literal.
+
+48     </fieldset>
+        ~~~~~~~~~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:49:3 - error TS1128: Declaration or statement expected.
+
+49   );
+     ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:50:1 - error TS1128: Declaration or statement expected.
+
+50 }
+   ~
+
+
+Found 23 errors in the same file, starting at: src/features/f03_search/SearchFurnishingFilter.ts:26
