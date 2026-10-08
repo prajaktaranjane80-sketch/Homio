@@ -1,34 +1,424 @@
-=== BRANCH HEAD ===
-PS D:\Homio\REOS_CONTROL_CENTER> $head = gh api "repos/$repo/git/ref/heads/$branch" --jq ".object.sha"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ([string]::IsNullOrWhiteSpace($head)) {
->>     throw "HEAD SHA EMPTY"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "HEAD = $head" -ForegroundColor Green
-HEAD = a81a535f1dddd74e3e7db44c745ccc9012b63a14
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== COMMIT TREE SHA ===" -ForegroundColor Cyan
+NEITHER SOURCE NOR TARGET EXISTS: page.tsx
+At line:18 char:9
++         throw "NEITHER SOURCE NOR TARGET EXISTS: $file"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (NEITHER SOURCE ...XISTS: page.tsx:String) [], RuntimeException
+    + FullyQualifiedErrorId : NEITHER SOURCE NOR TARGET EXISTS: page.tsx
 
-=== COMMIT TREE SHA ===
-PS D:\Homio\REOS_CONTROL_CENTER> $treeSha = gh api "repos/$repo/git/commits/$head" --jq ".tree.sha"
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ([string]::IsNullOrWhiteSpace($treeSha)) {
->>     throw "TREE SHA EMPTY"
->> }
+PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER> # ENTRYPOINT — PERMANENT REMOTE-WRITE WORKFLOW UPDATE
+PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "TREE SHA = $treeSha" -ForegroundColor Green
-TREE SHA = f37e9b734251d997e9fcb76c4ab00331d8abd148
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== DIRECT TREE API ===" -ForegroundColor Cyan
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== AI_AGENT_ENTRYPOINT.py UPDATE ===" -ForegroundColor Cyan
 
-=== DIRECT TREE API ===
-PS D:\Homio\REOS_CONTROL_CENTER> $treeCheck = gh api "repos/$repo/git/trees/$treeSha" --jq "{sha:.sha, entries:(.tree | length), truncated:.truncated}"
+=== AI_AGENT_ENTRYPOINT.py UPDATE ===
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ([string]::IsNullOrWhiteSpace($treeCheck)) {
->>     throw "TREE API RETURNED EMPTY"
+PS D:\Homio\REOS_CONTROL_CENTER> $entryPath = "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py"
+PS D:\Homio\REOS_CONTROL_CENTER> $entryRemote = Get-RemoteFile $entryPath
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $entryRemote) {
+>>     throw "AI_AGENT_ENTRYPOINT.py NOT FOUND"
 >> }
+AI_AGENT_ENTRYPOINT.py NOT FOUND
+At line:2 char:5
++     throw "AI_AGENT_ENTRYPOINT.py NOT FOUND"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (AI_AGENT_ENTRYPOINT.py NOT FOUND:String) [], RuntimeException
+    + FullyQualifiedErrorId : AI_AGENT_ENTRYPOINT.py NOT FOUND
+
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "TREE API = $treeCheck" -ForegroundColor Green
-TREE API = {"entries":5,"sha":"f37e9b734251d997e9fcb76c4ab00331d8abd148","truncated":false}
+PS D:\Homio\REOS_CONTROL_CENTER> $entry = [Text.Encoding]::UTF8.GetString(
+>>     [Convert]::FromBase64String(
+>>         ($entryRemote.content -replace "`n","")
+>>     )
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $entry = Assert-SingleReplacement `
+>>     $entry `
+>>     @'
+>> # Manual owner-controlled development workflow.
+>> IMPLEMENTATION_WRITE_INTERFACE = (
+>>     "Manual GitHub file save on branch reos-development"
+>> )
+>>
+>> # PowerShell is verification/diagnosis only.
+>> POWERSHELL_WRITE_ALLOWED = False
+>> POWERSHELL_IS_VERIFICATION_ONLY = True
+>> '@ `
+>>     @'
+>> # Approved implementation write interfaces.
+>> IMPLEMENTATION_WRITE_INTERFACE = (
+>>     "Authenticated remote GitHub API write via PowerShell "
+>>     "on branch reos-development or manual GitHub file save"
+>> )
+>>
+>> # PowerShell write scope is explicitly split between the local machine
+>> # and the canonical remote GitHub repository.
+>> POWERSHELL_WRITE_ALLOWED = True
+>> POWERSHELL_LOCAL_SOURCE_WRITE_ALLOWED = False
+>> POWERSHELL_REMOTE_GITHUB_WRITE_ALLOWED = True
+>> POWERSHELL_LOCAL_GIT_SYNC_ALLOWED = False
+>> POWERSHELL_IS_VERIFICATION_ONLY = False
+>> '@ `
+>>     "write-interface constants"
+ENTRYPOINT ANCHOR NOT FOUND: write-interface constants
+At line:13 char:9
++         throw "ENTRYPOINT ANCHOR NOT FOUND: $Label"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ENTRYPOINT ANCH...rface constants:String) [], RuntimeException
+    + FullyQualifiedErrorId : ENTRYPOINT ANCHOR NOT FOUND: write-interface constants
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $entry = Assert-SingleReplacement `
+>>     $entry `
+>>     @'
+>>     "Manual GitHub file saving is the approved owner-controlled implementation write workflow.",
+>>     "PowerShell is verification and diagnosis only.",
+>>     "PowerShell MUST NOT be used to write, patch, reset, merge or push project code.",
+>> '@ `
+>>     @'
+>>     "Manual GitHub file saving and authenticated remote GitHub API writes via PowerShell are approved implementation write workflows.",
+>>     "PowerShell may write only to the canonical remote GitHub repository through the authenticated GitHub API.",
+>>     "PowerShell MUST NOT write, patch or generate project source files in the local workspace.",
+>>     "PowerShell MUST NOT use local git reset, pull, merge, rebase or force-push as a synchronization mechanism.",
+>> '@ `
+>>     "development workflow rules"
+ENTRYPOINT ANCHOR NOT FOUND: development workflow rules
+At line:13 char:9
++         throw "ENTRYPOINT ANCHOR NOT FOUND: $Label"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ENTRYPOINT ANCH... workflow rules:String) [], RuntimeException
+    + FullyQualifiedErrorId : ENTRYPOINT ANCHOR NOT FOUND: development workflow rules
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $entry = Assert-SingleReplacement `
+>>     $entry `
+>>     @'
+>>     "10. Save implementation changes manually on canonical GitHub branch reos-development.",
+>>     "11. Independently verify the remote branch and changed files after the manual GitHub save.",
+>>     "12. Use local PowerShell only for read-only verification and diagnosis.",
+>> '@ `
+>>     @'
+>>     "10. Save implementation changes on canonical GitHub branch reos-development using manual GitHub save or the approved authenticated remote GitHub API workflow.",
+>>     "11. Independently verify the remote branch, commit and changed files after every remote write.",
+>>     "12. Use local PowerShell only for verification/diagnosis or approved remote GitHub API operations; never for local source-file writes or local repository synchronization.",
+>> '@ `
+>>     "execution workflow rules"
+ENTRYPOINT ANCHOR NOT FOUND: execution workflow rules
+At line:13 char:9
++         throw "ENTRYPOINT ANCHOR NOT FOUND: $Label"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ENTRYPOINT ANCH... workflow rules:String) [], RuntimeException
+    + FullyQualifiedErrorId : ENTRYPOINT ANCHOR NOT FOUND: execution workflow rules
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $entry = Assert-SingleReplacement `
+>>     $entry `
+>>     @'
+>>     "13. Prepare exact GitHub manual-save instructions for the owner.",
+>>     "14. Verify the remote GitHub result.",
+>>     "15. Use PowerShell only for verification or diagnosis.",
+>> '@ `
+>>     @'
+>>     "13. Prepare exact canonical GitHub write instructions or an approved remote GitHub API operation.",
+>>     "14. Verify the remote GitHub result independently.",
+>>     "15. Use PowerShell for read-only verification/diagnosis and, when authorized, authenticated remote GitHub API writes only.",
+>> '@ `
+>>     "new-session workflow rules"
+ENTRYPOINT ANCHOR NOT FOUND: new-session workflow rules
+At line:13 char:9
++         throw "ENTRYPOINT ANCHOR NOT FOUND: $Label"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ENTRYPOINT ANCH... workflow rules:String) [], RuntimeException
+    + FullyQualifiedErrorId : ENTRYPOINT ANCHOR NOT FOUND: new-session workflow rules
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $entry = Assert-SingleReplacement `
+>>     $entry `
+>>     @'
+>>     "Manual GitHub file saving is the owner-controlled code implementation workflow.",
+>>     "Local PowerShell is verification and diagnosis only.",
+>>     "PowerShell MUST NOT perform repository code writes.",
+>>     "AI_AGENT_ENTRYPOINT.py is a descriptive repository contract and MUST NOT execute Git writes.",
+>> '@ `
+>>     @'
+>>     "Manual GitHub file saving and authenticated remote GitHub API writes via PowerShell are approved code implementation workflows.",
+>>     "Local PowerShell filesystem source writes are forbidden.",
+>>     "Local git reset, pull, merge, rebase and force-push synchronization are forbidden.",
+>>     "Authenticated remote GitHub API writes may create, replace or delete files on canonical branch reos-development only.",
+>>     "Every remote write must use an explicit branch-head lease/expected SHA and independent post-write verification.",
+>>     "AI_AGENT_ENTRYPOINT.py is a repository contract; it does not itself execute Git writes.",
+>> '@ `
+>>     "remote synchronization rules"
+ENTRYPOINT ANCHOR NOT FOUND: remote synchronization rules
+At line:13 char:9
++         throw "ENTRYPOINT ANCHOR NOT FOUND: $Label"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ENTRYPOINT ANCH...onization rules:String) [], RuntimeException
+    + FullyQualifiedErrorId : ENTRYPOINT ANCHOR NOT FOUND: remote synchronization rules
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $entry = Assert-SingleReplacement `
+>>     $entry `
+>>     @'
+>>     "The AI must not provide PowerShell commands for project code creation or replacement.",
+>>     "The AI must reserve PowerShell instructions for read-only verification and diagnosis.",
+>> '@ `
+>>     @'
+>>     "The AI may provide PowerShell commands for authenticated remote GitHub API implementation writes on canonical branch reos-development.",
+>>     "The AI must not provide PowerShell commands that create or replace project source files in the local filesystem.",
+>>     "The AI must not use local git reset, pull, merge, rebase or force-push as a synchronization fix.",
+>>     "The AI must reserve remote write instructions for explicit canonical-path operations followed by independent remote verification.",
+>> '@ `
+>>     "non-developer owner contract"
+ENTRYPOINT ANCHOR NOT FOUND: non-developer owner contract
+At line:13 char:9
++         throw "ENTRYPOINT ANCHOR NOT FOUND: $Label"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ENTRYPOINT ANCH... owner contract:String) [], RuntimeException
+    + FullyQualifiedErrorId : ENTRYPOINT ANCHOR NOT FOUND: non-developer owner contract
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $entry = Assert-SingleReplacement `
+>>     $entry `
+>>     @'
+>>         "WRITE METHOD   : "
+>>         "Manual GitHub file save"
+>> '@ `
+>>     @'
+>>         "WRITE METHOD   : "
+>>         "GitHub manual save or authenticated remote API via PowerShell"
+>> '@ `
+>>     "startup write method"
+ENTRYPOINT ANCHOR NOT FOUND: startup write method
+At line:13 char:9
++         throw "ENTRYPOINT ANCHOR NOT FOUND: $Label"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ENTRYPOINT ANCH...up write method:String) [], RuntimeException
+    + FullyQualifiedErrorId : ENTRYPOINT ANCHOR NOT FOUND: startup write method
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $entry = Assert-SingleReplacement `
+>>     $entry `
+>>     @'
+>>         "POWERSHELL     : "
+>>         "Verification / diagnosis only"
+>> '@ `
+>>     @'
+>>         "POWERSHELL     : "
+>>         "Remote GitHub API write allowed; local source writes and local Git sync forbidden"
+>> '@ `
+>>     "startup PowerShell status"
+ENTRYPOINT ANCHOR NOT FOUND: startup PowerShell status
+At line:13 char:9
++         throw "ENTRYPOINT ANCHOR NOT FOUND: $Label"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ENTRYPOINT ANCH...werShell status:String) [], RuntimeException
+    + FullyQualifiedErrorId : ENTRYPOINT ANCHOR NOT FOUND: startup PowerShell status
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $entry = Assert-SingleReplacement `
+>>     $entry `
+>>     @'
+>>         "RULE           : "
+>>         "POWERSHELL WRITE = FORBIDDEN"
+>> '@ `
+>>     @'
+>>         "RULE           : "
+>>         "POWERSHELL LOCAL SOURCE WRITE = FORBIDDEN"
+>>     )
+>>     print(
+>>         "RULE           : "
+>>         "REMOTE GITHUB API WRITE = CONTROLLED"
+>> '@ `
+>>     "startup rule display"
+ENTRYPOINT ANCHOR NOT FOUND: startup rule display
+At line:13 char:9
++         throw "ENTRYPOINT ANCHOR NOT FOUND: $Label"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ENTRYPOINT ANCH...up rule display:String) [], RuntimeException
+    + FullyQualifiedErrorId : ENTRYPOINT ANCHOR NOT FOUND: startup rule display
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Updating remote AI_AGENT_ENTRYPOINT.py..." -ForegroundColor Cyan
+Updating remote AI_AGENT_ENTRYPOINT.py...
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $entryWrite = Write-RemoteFile `
+>>     -Path $entryPath `
+>>     -Content $entry `
+>>     -Message "Allow controlled remote GitHub API writes through PowerShell" `
+>>     -ExistingSha $entryRemote.sha
+Invoke-RestMethod : {"message":"Invalid request.\n\n\"sha\" wasn't
+supplied.","documentation_url":"https://docs.github.com/rest/repos/contents#create-or-update-file-contents","status":"422"}
+At line:26 char:12
++     return Invoke-RestMethod `
++            ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $entryVerifyRemote = Get-RemoteFile $entryPath
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $entryVerifyRemote) {
+>>     throw "ENTRYPOINT VERIFICATION FAILED"
+>> }
+ENTRYPOINT VERIFICATION FAILED
+At line:2 char:5
++     throw "ENTRYPOINT VERIFICATION FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ENTRYPOINT VERIFICATION FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : ENTRYPOINT VERIFICATION FAILED
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $entryVerify = [Text.Encoding]::UTF8.GetString(
+>>     [Convert]::FromBase64String(
+>>         ($entryVerifyRemote.content -replace "`n","")
+>>     )
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $entryVerify.Contains(
+>>     "POWERSHELL_REMOTE_GITHUB_WRITE_ALLOWED = True"
+>> )) {
+>>     throw "ENTRYPOINT REMOTE-WRITE RULE MISSING"
+>> }
+ENTRYPOINT REMOTE-WRITE RULE MISSING
+At line:4 char:5
++     throw "ENTRYPOINT REMOTE-WRITE RULE MISSING"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ENTRYPOINT REMOTE-WRITE RULE MISSING:String) [], RuntimeException
+    + FullyQualifiedErrorId : ENTRYPOINT REMOTE-WRITE RULE MISSING
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $entryVerify.Contains(
+>>     "POWERSHELL_LOCAL_SOURCE_WRITE_ALLOWED = False"
+>> )) {
+>>     throw "ENTRYPOINT LOCAL-WRITE PROTECTION MISSING"
+>> }
+ENTRYPOINT LOCAL-WRITE PROTECTION MISSING
+At line:4 char:5
++     throw "ENTRYPOINT LOCAL-WRITE PROTECTION MISSING"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ENTRYPOINT LOCA...TECTION MISSING:String) [], RuntimeException
+    + FullyQualifiedErrorId : ENTRYPOINT LOCAL-WRITE PROTECTION MISSING
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "ENTRYPOINT UPDATED + VERIFIED" -ForegroundColor Green
+ENTRYPOINT UPDATED + VERIFIED
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER> # FINAL REMOTE VERIFICATION
+PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== FINAL REMOTE STRUCTURE ===" -ForegroundColor Cyan
+
+=== FINAL REMOTE STRUCTURE ===
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($file in $moveFiles) {
+>>     $correct = "$rightRoot/$file"
+>>     $wrong   = "$wrongRoot/$file"
+>>
+>>     if (-not (Get-RemoteFile $correct)) {
+>>         throw "CORRECT F05 ROUTE MISSING: $correct"
+>>     }
+>>
+>>     if (Get-RemoteFile $wrong) {
+>>         throw "WRONG F05 ROUTE STILL EXISTS: $wrong"
+>>     }
+>>
+>>     Write-Host "F05 OK  $correct" -ForegroundColor Green
+>>     Write-Host "F05 CLEAN  $wrong" -ForegroundColor Green
+>> }
+CORRECT F05 ROUTE MISSING: REOS_CONTROL_CENTER/Frontend/src/app/project/[projectId]/page.tsx
+At line:6 char:9
++         throw "CORRECT F05 ROUTE MISSING: $correct"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (CORRECT F05 ROU...ectId]/page.tsx:String) [], RuntimeException
+    + FullyQualifiedErrorId : CORRECT F05 ROUTE MISSING: REOS_CONTROL_CENTER/Frontend/src/app/project/[projectId]/page.tsx
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # F04 must remain at canonical location.
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not (Get-RemoteFile $f04Route)) {
+>>     throw "F04 ROUTE MISSING AFTER REPAIR"
+>> }
+F04 ROUTE MISSING AFTER REPAIR
+At line:2 char:5
++     throw "F04 ROUTE MISSING AFTER REPAIR"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (F04 ROUTE MISSING AFTER REPAIR:String) [], RuntimeException
+    + FullyQualifiedErrorId : F04 ROUTE MISSING AFTER REPAIR
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Entry-point final markers.
+PS D:\Homio\REOS_CONTROL_CENTER> $finalEntry = Get-RemoteFile $entryPath
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $finalEntry) {
+>>     throw "FINAL ENTRYPOINT MISSING"
+>> }
+FINAL ENTRYPOINT MISSING
+At line:2 char:5
++     throw "FINAL ENTRYPOINT MISSING"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FINAL ENTRYPOINT MISSING:String) [], RuntimeException
+    + FullyQualifiedErrorId : FINAL ENTRYPOINT MISSING
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $finalEntryText = [Text.Encoding]::UTF8.GetString(
+>>     [Convert]::FromBase64String(
+>>         ($finalEntry.content -replace "`n","")
+>>     )
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (
+>>     -not $finalEntryText.Contains(
+>>         "Authenticated remote GitHub API write via PowerShell"
+>>     )
+>> ) {
+>>     throw "FINAL ENTRYPOINT WRITE INTERFACE NOT VERIFIED"
+>> }
+FINAL ENTRYPOINT WRITE INTERFACE NOT VERIFIED
+At line:6 char:5
++     throw "FINAL ENTRYPOINT WRITE INTERFACE NOT VERIFIED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FINAL ENTRYPOIN...CE NOT VERIFIED:String) [], RuntimeException
+    + FullyQualifiedErrorId : FINAL ENTRYPOINT WRITE INTERFACE NOT VERIFIED
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER> # FINAL BRANCH STATE
+PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $finalHead = Get-BranchHead
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`nREMOTE HEAD BEFORE = $startHead" -ForegroundColor Yellow
+
+REMOTE HEAD BEFORE = de6c1e4aeba709ded016879877db9d6b73bbf4e3
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE HEAD AFTER  = $finalHead" -ForegroundColor Green
+REMOTE HEAD AFTER  = de6c1e4aeba709ded016879877db9d6b73bbf4e3
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($startHead -eq $finalHead) {
+>>     throw "REMOTE BRANCH DID NOT CHANGE"
+>> }
+REMOTE BRANCH DID NOT CHANGE
+At line:2 char:5
++     throw "REMOTE BRANCH DID NOT CHANGE"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE BRANCH DID NOT CHANGE:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE BRANCH DID NOT CHANGE
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== SYNC RESULT ===" -ForegroundColor Cyan
+
+=== SYNC RESULT ===
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "F04 LOCATION       = PASS" -ForegroundColor Green
+F04 LOCATION       = PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "F05 ROUTE LOCATION = PASS" -ForegroundColor Green
+F05 ROUTE LOCATION = PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "WRONG F05 ROUTE    = REMOVED" -ForegroundColor Green
+WRONG F05 ROUTE    = REMOVED
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "ENTRYPOINT POLICY  = PASS" -ForegroundColor Green
+ENTRYPOINT POLICY  = PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE BRANCH      = $branch" -ForegroundColor Green
+REMOTE BRANCH      = reos-development
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE SYNC        = PASS" -ForegroundColor Green
+REMOTE SYNC        = PASS
 PS D:\Homio\REOS_CONTROL_CENTER>
