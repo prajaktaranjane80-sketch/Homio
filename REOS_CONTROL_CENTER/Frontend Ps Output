@@ -1,59 +1,42 @@
-=== REMOTE TREE ===
-PS D:\Homio\REOS_CONTROL_CENTER> $commit = gh api "repos/$repo/git/commits/$head" | ConvertFrom-Json
-PS D:\Homio\REOS_CONTROL_CENTER> $treeSha = $commit.tree.sha
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "TREE READ = PASS" -ForegroundColor Green
+TREE READ = PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "TREE ENTRIES = $($tree.tree.Count)" -ForegroundColor Green
+TREE ENTRIES = 0
+PS D:\Homio\REOS_CONTROL_CENTER> $repo="prajaktaranjane80-sketch/Homio"
+PS D:\Homio\REOS_CONTROL_CENTER> $branch="reos-development"
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $tree = gh api "repos/$repo/git/trees/$treeSha?recursive=1" | ConvertFrom-Json
-gh: Not Found (HTTP 404)
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "=== BRANCH HEAD ===" -ForegroundColor Cyan
+=== BRANCH HEAD ===
+PS D:\Homio\REOS_CONTROL_CENTER> $head = gh api "repos/$repo/git/ref/heads/$branch" --jq ".object.sha"
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $sourcePath = "REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project/page.tsx"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $entry = $tree.tree |
->>     Where-Object { $_.path -eq $sourcePath } |
->>     Select-Object -First 1
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $entry) {
->>     throw "SOURCE NOT FOUND IN REMOTE TREE: $sourcePath"
+PS D:\Homio\REOS_CONTROL_CENTER> if ([string]::IsNullOrWhiteSpace($head)) {
+>>     throw "HEAD SHA EMPTY"
 >> }
-SOURCE NOT FOUND IN REMOTE TREE: REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project/page.tsx
-At line:2 char:5
-+     throw "SOURCE NOT FOUND IN REMOTE TREE: $sourcePath"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (SOURCE NOT FOUN...roject/page.tsx:String) [], RuntimeException
-    + FullyQualifiedErrorId : SOURCE NOT FOUND IN REMOTE TREE: REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project/page.tsx
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "HEAD = $head" -ForegroundColor Green
+HEAD = dd93777163d81b0224f08defa1daa9a513da4cdd
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== COMMIT TREE SHA ===" -ForegroundColor Cyan
 
+=== COMMIT TREE SHA ===
+PS D:\Homio\REOS_CONTROL_CENTER> $treeSha = gh api "repos/$repo/git/commits/$head" --jq ".tree.sha"
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "SOURCE SHA = $($entry.sha)" -ForegroundColor Green
-SOURCE SHA =
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== REMOTE BLOB ===" -ForegroundColor Cyan
-
-=== REMOTE BLOB ===
-PS D:\Homio\REOS_CONTROL_CENTER> $blob = gh api "repos/$repo/git/blobs/$($entry.sha)" | ConvertFrom-Json
-gh: Not Found (HTTP 404)
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $blob.content) {
->>     throw "REMOTE BLOB CONTENT MISSING"
+PS D:\Homio\REOS_CONTROL_CENTER> if ([string]::IsNullOrWhiteSpace($treeSha)) {
+>>     throw "TREE SHA EMPTY"
 >> }
-REMOTE BLOB CONTENT MISSING
-At line:2 char:5
-+     throw "REMOTE BLOB CONTENT MISSING"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (REMOTE BLOB CONTENT MISSING:String) [], RuntimeException
-    + FullyQualifiedErrorId : REMOTE BLOB CONTENT MISSING
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "TREE SHA = $treeSha" -ForegroundColor Green
+TREE SHA = 6701e342650f7be21eacc3ea7d2972d682f7d79a
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== DIRECT TREE API ===" -ForegroundColor Cyan
 
+=== DIRECT TREE API ===
+PS D:\Homio\REOS_CONTROL_CENTER> $treeCheck = gh api "repos/$repo/git/trees/$treeSha" --jq "{sha:.sha, entries:(.tree | length), truncated:.truncated}"
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $content = [Text.Encoding]::UTF8.GetString(
->>     [Convert]::FromBase64String(
->>         ($blob.content -replace "`n","")
->>     )
->> )
+PS D:\Homio\REOS_CONTROL_CENTER> if ([string]::IsNullOrWhiteSpace($treeCheck)) {
+>>     throw "TREE API RETURNED EMPTY"
+>> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "BLOB READ = PASS" -ForegroundColor Green
-BLOB READ = PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CONTENT LENGTH = $($content.Length)" -ForegroundColor Green
-CONTENT LENGTH = 0
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== FIRST ERROR FIX = PASS ===" -ForegroundColor Green
-
-=== FIRST ERROR FIX = PASS ===
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "TREE API = $treeCheck" -ForegroundColor Green
+TREE API = {"entries":5,"sha":"6701e342650f7be21eacc3ea7d2972d682f7d79a","truncated":false}
 PS D:\Homio\REOS_CONTROL_CENTER>
