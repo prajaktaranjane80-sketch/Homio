@@ -1,55 +1,43 @@
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "=== GET-REMOTEFILE DEFINITION ===" -ForegroundColor Cyan
-=== GET-REMOTEFILE DEFINITION ===
-PS D:\Homio\REOS_CONTROL_CENTER> (Get-Command Get-RemoteFile -ErrorAction Stop).CommandType
-Function
-PS D:\Homio\REOS_CONTROL_CENTER> (Get-Command Get-RemoteFile -ErrorAction Stop).Definition
-
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Path
-    )
-
-    $repo  = "prajaktaranjane80-sketch/Homio"
-    $branch = "reos-development"
-
-    $encodedPath = (($Path -split "/") | ForEach-Object {
-        [System.Uri]::EscapeDataString($_)
-    }) -join "/"
-
-    $token = gh auth token
-    if ([string]::IsNullOrWhiteSpace($token)) {
-        throw "GITHUB AUTH TOKEN NOT AVAILABLE"
-    }
-
-    $headers = @{
-        Authorization = "Bearer $token"
-        Accept        = "application/vnd.github+json"
-        "X-GitHub-Api-Version" = "2022-11-28"
-    }
-
-    $uri = "https://api.github.com/repos/$repo/contents/$encodedPath?ref=$branch"
-
-    try {
-        return Invoke-RestMethod `
-            -Uri $uri `
-            -Headers $headers `
-            -Method Get `
-            -ErrorAction Stop
-    }
-    catch {
-        $status = $null
-
-        if ($_.Exception.Response) {
-            try {
-                $status = [int]$_.Exception.Response.StatusCode
-            } catch {}
-        }
-
-        if ($status -eq 404) {
-            return $null
-        }
-
-        throw "REMOTE FILE READ FAILED: $Path | HTTP $status | $($_.Exception.Message)"
-    }
-
+PS D:\Homio\REOS_CONTROL_CENTER> $repo="prajaktaranjane80-sketch/Homio"
+PS D:\Homio\REOS_CONTROL_CENTER> $branch="reos-development"
+PS D:\Homio\REOS_CONTROL_CENTER> $path="REOS_CONTROL_CENTER/Frontend Ps Output"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $token = gh auth token
+PS D:\Homio\REOS_CONTROL_CENTER> if ([string]::IsNullOrWhiteSpace($token)) {
+>>     throw "GITHUB TOKEN NOT AVAILABLE"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $headers = @{
+>>     Authorization = "Bearer $token"
+>>     Accept = "application/vnd.github+json"
+>>     "X-GitHub-Api-Version" = "2022-11-28"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $encodedPath = (($path -split "/") | ForEach-Object {
+>>     [Uri]::EscapeDataString($_)
+>> }) -join "/"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $uri = "https://api.github.com/repos/$repo/contents/$encodedPath?ref=$branch"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "URI = $uri" -ForegroundColor Cyan
+URI = https://api.github.com/repos/prajaktaranjane80-sketch/Homio/contents/=reos-development
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $r = Invoke-RestMethod `
+>>     -Uri $uri `
+>>     -Headers $headers `
+>>     -Method Get `
+>>     -ErrorAction Stop
+Invoke-RestMethod : {"message":"Not Found","documentation_url":"https://docs.github.com/rest/repos/contents#get-repository-content","status":"404"}
+At line:1 char:6
++ $r = Invoke-RestMethod `
++      ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE READ = PASS" -ForegroundColor Green
+REMOTE READ = PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE SHA = $($r.sha)" -ForegroundColor Green
+REMOTE SHA =
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE NAME = $($r.name)" -ForegroundColor Green
+REMOTE NAME =
 PS D:\Homio\REOS_CONTROL_CENTER>
