@@ -36,7 +36,7 @@ export type SearchFilters = {
   amenities: string[];
   project?: string;
   builder?: string;
-  possession?: string[];
+  possession: string[];
   verifiedOnly?: boolean;
 };
 
