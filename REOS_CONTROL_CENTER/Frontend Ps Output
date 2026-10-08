@@ -1,144 +1,53 @@
-PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> cd D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend
-PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git fetch origin reos-development
-remote: Enumerating objects: 5, done.
-remote: Counting objects: 100% (5/5), done.
-remote: Compressing objects: 100% (3/3), done.
-remote: Total 3 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
-Receiving objects: 100% (3/3), 980 bytes | 245.00 KiB/s, done.
-Resolving deltas: 100% (2/2), completed with 2 local objects.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   a9dac89..fc2e169  reos-development -> origin/reos-development
-PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git rev-parse HEAD
-e3ab16b4024c75ef3bb07c113b5fffdab89fe28b
-PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git rev-parse origin/reos-development
-fc2e1698df680b982154c8e7aadfdd0281d775eb
-PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git ls-tree -r --name-only origin/reos-development -- "src/features/f03_search/SearchFurnishingFilter*"
-PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
-PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> npm run typecheck
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> cd D:\
+PS D:\>
+PS D:\> git fetch origin reos-development
+fatal: not a git repository (or any of the parent directories): .git
+PS D:\> git worktree add D:\HOMIO_FRONTEND_VERIFY_03 origin/reos-development
+fatal: not a git repository (or any of the parent directories): .git
+PS D:\>
+PS D:\> cd D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend
+cd : Cannot find path 'D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend' because it does not exist.
+At line:1 char:1
++ cd D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (D:\HOMIO_FRONTE...CENTER\Frontend:String) [Set-Location], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.SetLocationCommand
 
-> homio-frontend@0.1.0 typecheck
-> tsc --noEmit
-
-src/features/f03_search/SearchFurnishingFilter.ts:26:15 - error TS1005: '>' expected.
-
-26     <fieldset className={styles.fieldset}>
-                 ~~~~~~~~~
-
-src/features/f03_search/SearchFurnishingFilter.ts:26:24 - error TS1005: ')' expected.
-
-26     <fieldset className={styles.fieldset}>
-                          ~
-
-src/features/f03_search/SearchFurnishingFilter.ts:26:32 - error TS1005: ',' expected.
-
-26     <fieldset className={styles.fieldset}>
-                                  ~
-
-src/features/f03_search/SearchFurnishingFilter.ts:27:26 - error TS1161: Unterminated regular expression literal.
-
-27       <legend>Furnishing</legend>
-                            ~~~~~~~~
-
-src/features/f03_search/SearchFurnishingFilter.ts:29:12 - error TS1005: ';' expected.
-
-29       <div className={styles.options}>
-              ~~~~~~~~~
-
-src/features/f03_search/SearchFurnishingFilter.ts:29:29 - error TS1005: ',' expected.
-
-29       <div className={styles.options}>
-                               ~
-
-src/features/f03_search/SearchFurnishingFilter.ts:30:17 - error TS1005: ',' expected.
-
-30         {options.map((option) => {
-                   ~
-
-src/features/f03_search/SearchFurnishingFilter.ts:35:15 - error TS1005: '>' expected.
-
-35               key={option}
-                 ~~~
-
-src/features/f03_search/SearchFurnishingFilter.ts:35:18 - error TS1005: ')' expected.
-
-35               key={option}
-                    ~
-
-src/features/f03_search/SearchFurnishingFilter.ts:37:27 - error TS1005: ';' expected.
-
-37               aria-pressed={selected}
-                             ~
-
-src/features/f03_search/SearchFurnishingFilter.ts:38:26 - error TS1136: Property assignment expected.
-
-38               className={`${styles.option} ${
-                            ~~~
-
-src/features/f03_search/SearchFurnishingFilter.ts:41:15 - error TS1005: ',' expected.
-
-41               onClick={() => toggle(option)}
-                 ~~~~~~~
-
-src/features/f03_search/SearchFurnishingFilter.ts:41:24 - error TS1136: Property assignment expected.
-
-41               onClick={() => toggle(option)}
-                          ~
-
-src/features/f03_search/SearchFurnishingFilter.ts:41:27 - error TS1005: ',' expected.
-
-41               onClick={() => toggle(option)}
-                             ~~
-
-src/features/f03_search/SearchFurnishingFilter.ts:41:44 - error TS1005: ',' expected.
-
-41               onClick={() => toggle(option)}
-                                              ~
-
-src/features/f03_search/SearchFurnishingFilter.ts:44:14 - error TS1161: Unterminated regular expression literal.
-
-44             </button>
-                ~~~~~~~~
-
-src/features/f03_search/SearchFurnishingFilter.ts:45:11 - error TS1128: Declaration or statement expected.
-
-45           );
-             ~
-
-src/features/f03_search/SearchFurnishingFilter.ts:46:10 - error TS1128: Declaration or statement expected.
-
-46         })}
-            ~
-
-src/features/f03_search/SearchFurnishingFilter.ts:46:11 - error TS1128: Declaration or statement expected.
-
-46         })}
-             ~
-
-src/features/f03_search/SearchFurnishingFilter.ts:47:8 - error TS1110: Type expected.
-
-47       </div>
-          ~
-
-src/features/f03_search/SearchFurnishingFilter.ts:48:6 - error TS1161: Unterminated regular expression literal.
-
-48     </fieldset>
-        ~~~~~~~~~~
-
-src/features/f03_search/SearchFurnishingFilter.ts:49:3 - error TS1128: Declaration or statement expected.
-
-49   );
-     ~
-
-src/features/f03_search/SearchFurnishingFilter.ts:50:1 - error TS1128: Declaration or statement expected.
-
-50 }
-   ~
-
-
-Found 23 errors in the same file, starting at: src/features/f03_search/SearchFurnishingFilter.ts:26
-
-PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
+PS D:\>
+PS D:\> git rev-parse HEAD
+fatal: not a git repository (or any of the parent directories): .git
+PS D:\> git ls-files -- "src/features/f03_search/SearchFurnishingFilter.*"
+fatal: not a git repository (or any of the parent directories): .git
+PS D:\>
+PS D:\> npm install
+npm error code EPERM
+npm error syscall mkdir
+npm error path D:\
+npm error errno -4048
+npm error Error: EPERM: operation not permitted, mkdir 'D:\'
+npm error     at async mkdir (node:internal/fs/promises:856:10)
+npm error     at async Arborist.reify (C:\Users\Sandip RanjanePatil\AppData\Roaming\npm\node_modules\npm\node_modules\@npmcli\arborist\lib\arborist\reify.js:113:7)
+npm error     at async Install.exec (C:\Users\Sandip RanjanePatil\AppData\Roaming\npm\node_modules\npm\lib\commands\install.js:158:5)
+npm error     at async Npm.exec (C:\Users\Sandip RanjanePatil\AppData\Roaming\npm\node_modules\npm\lib\npm.js:193:9)
+npm error     at async module.exports (C:\Users\Sandip RanjanePatil\AppData\Roaming\npm\node_modules\npm\lib\cli\entry.js:67:5) {
+npm error   errno: -4048,
+npm error   code: 'EPERM',
+npm error   syscall: 'mkdir',
+npm error   path: 'D:\\'
+npm error }
+npm error
+npm error The operation was rejected by your operating system.
+npm error It's possible that the file was already in use (by a text editor or antivirus), or that you lack permissions to access it.
+npm error
+npm error If you believe this might be a permissions issue, please double-check the permissions of the file and its containing directories, or try running the command again as root/Administrator.
+npm error A complete log of this run can be found in: C:\Users\Sandip RanjanePatil\AppData\Local\npm-cache\_logs\2026-10-08T06_27_44_570Z-debug-0.log
+PS D:\> npm run typecheck
+npm error code ENOENT
+npm error syscall open
+npm error path D:\package.json
+npm error errno -4058
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open 'D:\package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: C:\Users\Sandip RanjanePatil\AppData\Local\npm-cache\_logs\2026-10-08T06_27_59_921Z-debug-0.log
+PS D:\>
