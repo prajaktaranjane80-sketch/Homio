@@ -1,64 +1,50 @@
-PS D:\Homio\REOS_CONTROL_CENTER> $headers = @{
->>     Accept = "application/vnd.github+json"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "=== BRANCH HEAD ===" -ForegroundColor Cyan
-=== BRANCH HEAD ===
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $branchUri = "https://api.github.com/repos/$repo/branches/$branch"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $b = Invoke-RestMethod `
->>     -Uri $branchUri `
+PS D:\Homio\REOS_CONTROL_CENTER> $rt = Invoke-RestMethod `
+>>     -Uri $recursiveUri `
 >>     -Headers $headers `
 >>     -Method Get `
 >>     -ErrorAction Stop
+Invoke-RestMethod : {"message":"Not Found","documentation_url":"https://docs.github.com/rest/git/trees#get-a-tree","status":"404"}
+At line:1 char:7
++ $rt = Invoke-RestMethod `
++       ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $head = $b.commit.sha
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "HEAD = $head" -ForegroundColor Green
-HEAD = 3fa05baec18092fa193f2f2c96d29a361715499a
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== COMMIT TREE ===" -ForegroundColor Cyan
+PS D:\Homio\REOS_CONTROL_CENTER> if ($null -eq $rt.tree) {
+>>     throw "RECURSIVE TREE ARRAY MISSING"
+>> }
+RECURSIVE TREE ARRAY MISSING
+At line:2 char:5
++     throw "RECURSIVE TREE ARRAY MISSING"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (RECURSIVE TREE ARRAY MISSING:String) [], RuntimeException
+    + FullyQualifiedErrorId : RECURSIVE TREE ARRAY MISSING
 
-=== COMMIT TREE ===
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $commitUri = "https://api.github.com/repos/$repo/git/commits/$head"
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "RECURSIVE TREE = PASS" -ForegroundColor Green
+RECURSIVE TREE = PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "ENTRIES = $($rt.tree.Count)" -ForegroundColor Green
+ENTRIES = 0
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "TRUNCATED = $($rt.truncated)" -ForegroundColor Green
+TRUNCATED =
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $c = Invoke-RestMethod `
->>     -Uri $commitUri `
->>     -Headers $headers `
->>     -Method Get `
->>     -ErrorAction Stop
+PS D:\Homio\REOS_CONTROL_CENTER> $sourcePath = "REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project/page.tsx"
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $treeSha = $c.tree.sha
+PS D:\Homio\REOS_CONTROL_CENTER> $sourceEntry = $rt.tree |
+>>     Where-Object { $_.path -eq $sourcePath } |
+>>     Select-Object -First 1
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ([string]::IsNullOrWhiteSpace($treeSha)) {
->>     throw "TREE SHA EMPTY"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($null -eq $sourceEntry) {
+>>     throw "SOURCE PATH NOT FOUND IN RECURSIVE TREE: $sourcePath"
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "TREE SHA = $treeSha" -ForegroundColor Green
-TREE SHA = 0046c42dfdbab209e8482942618102b1e1819141
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== TREE READ ===" -ForegroundColor Cyan
+SOURCE PATH NOT FOUND IN RECURSIVE TREE: REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project/page.tsx
+At line:2 char:5
++     throw "SOURCE PATH NOT FOUND IN RECURSIVE TREE: $sourcePath"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (SOURCE PATH NOT...roject/page.tsx:String) [], RuntimeException
+    + FullyQualifiedErrorId : SOURCE PATH NOT FOUND IN RECURSIVE TREE: REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project/page.tsx
 
-=== TREE READ ===
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $treeUri = "https://api.github.com/repos/$repo/git/trees/$treeSha"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $t = Invoke-RestMethod `
->>     -Uri $treeUri `
->>     -Headers $headers `
->>     -Method Get `
->>     -ErrorAction Stop
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($null -eq $t.tree) {
->>     throw "TREE ARRAY MISSING"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "TREE READ = PASS" -ForegroundColor Green
-TREE READ = PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "TREE ENTRIES = $($t.tree.Count)" -ForegroundColor Green
-TREE ENTRIES = 5
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "TREE TRUNCATED = $($t.truncated)" -ForegroundColor Green
-TREE TRUNCATED = False
-PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "SOURCE PATH = PASS" -ForegroundColor Green
+SOURCE PATH = PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "SOURCE SHA = $($sourceEntry.sha)" -ForegroundColor Green
