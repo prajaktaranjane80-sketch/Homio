@@ -1,51 +1,3 @@
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== CHECK GITHUB AUTH ===" -ForegroundColor Cyan
-
-=== CHECK GITHUB AUTH ===
-PS D:\Homio\REOS_CONTROL_CENTER> gh auth status
-github.com
-  ✓ Logged in to github.com account prajaktaranjane80-sketch (keyring)
-  - Active account: true
-  - Git operations protocol: https
-  - Token: gho_************************************
-  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
-
-  ✓ Logged in to github.com account sandyranjane-hash (keyring)
-  - Active account: false
-  - Git operations protocol: https
-  - Token: gho_************************************
-  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== READ REMOTE FILES ===" -ForegroundColor Cyan
-
-=== READ REMOTE FILES ===
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $items = @()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($file in $files) {
->>     $oldPath = "$oldBase/$file"
->>     $newPath = "$newBase/$file"
->>
->>     $encodedOldPath = ($oldPath -replace ' ', '%20' -replace '\[', '%5B' -replace '\]', '%5D')
->>
->>     $item = gh api `
->>         "repos/$repo/contents/$encodedOldPath?ref=$branch" |
->>         ConvertFrom-Json
->>
->>     if (-not $item.sha -or -not $item.content) {
->>         throw "SOURCE FILE READ FAILED: $oldPath"
->>     }
->>
->>     $items += [PSCustomObject]@{
->>         File     = $file
->>         OldPath  = $oldPath
->>         NewPath  = $newPath
->>         Sha      = $item.sha
->>         Content  = ($item.content -replace "`n","")
->>     }
->>
->>     Write-Host "FOUND: $oldPath" -ForegroundColor Green
->> }
-gh: Not Found (HTTP 404)
 SOURCE FILE READ FAILED: REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project/page.tsx
 At line:12 char:9
 +         throw "SOURCE FILE READ FAILED: $oldPath"
@@ -171,3 +123,311 @@ PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== F05 ROUTE FIX COMPLETE ===" -ForegroundColor Green
 
 === F05 ROUTE FIX COMPLETE ===
+PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $repo   = "prajaktaranjane80-sketch/Homio"
+PS D:\Homio\REOS_CONTROL_CENTER> $branch = "reos-development"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $oldBase = "REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project"
+PS D:\Homio\REOS_CONTROL_CENTER> $newBase = "REOS_CONTROL_CENTER/Frontend/src/app/project/[projectId]"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $files = @(
+>>     "page.tsx",
+>>     "loading.tsx",
+>>     "loading.module.css",
+>>     "not-found.tsx",
+>>     "error.tsx",
+>>     "error.module.css"
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== GITHUB AUTH ===" -ForegroundColor Cyan
+
+=== GITHUB AUTH ===
+PS D:\Homio\REOS_CONTROL_CENTER> gh auth status
+github.com
+  ✓ Logged in to github.com account prajaktaranjane80-sketch (keyring)
+  - Active account: true
+  - Git operations protocol: https
+  - Token: gho_************************************
+  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
+
+  ✓ Logged in to github.com account sandyranjane-hash (keyring)
+  - Active account: false
+  - Git operations protocol: https
+  - Token: gho_************************************
+  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== REMOTE BRANCH HEAD ===" -ForegroundColor Cyan
+
+=== REMOTE BRANCH HEAD ===
+PS D:\Homio\REOS_CONTROL_CENTER> $ref = gh api "repos/$repo/git/ref/heads/$branch" | ConvertFrom-Json
+PS D:\Homio\REOS_CONTROL_CENTER> $headSha = $ref.object.sha
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $headSha) {
+>>     throw "REMOTE BRANCH HEAD NOT FOUND"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "HEAD = $headSha" -ForegroundColor Green
+HEAD = 1c523445785edb6a4840c16d302f97a1967fb420
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== CURRENT COMMIT TREE ===" -ForegroundColor Cyan
+
+=== CURRENT COMMIT TREE ===
+PS D:\Homio\REOS_CONTROL_CENTER> $commit = gh api "repos/$repo/git/commits/$headSha" | ConvertFrom-Json
+PS D:\Homio\REOS_CONTROL_CENTER> $baseTreeSha = $commit.tree.sha
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $baseTreeSha) {
+>>     throw "CURRENT TREE NOT FOUND"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "TREE = $baseTreeSha" -ForegroundColor Green
+TREE = aad5bf1774e096daa5be1fef80fcd32b6a03b4f4
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== REMOTE TREE AUDIT ===" -ForegroundColor Cyan
+
+=== REMOTE TREE AUDIT ===
+PS D:\Homio\REOS_CONTROL_CENTER> $tree = gh api "repos/$repo/git/trees/$baseTreeSha?recursive=1" | ConvertFrom-Json
+gh: Not Found (HTTP 404)
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $map = @{}
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($entry in $tree.tree) {
+>>     $map[$entry.path] = $entry
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($file in $files) {
+>>     $oldPath = "$oldBase/$file"
+>>     $newPath = "$newBase/$file"
+>>
+>>     if (-not $map.ContainsKey($oldPath)) {
+>>         throw "SOURCE FILE MISSING ON GITHUB: $oldPath"
+>>     }
+>>
+>>     if ($map.ContainsKey($newPath)) {
+>>         throw "TARGET ALREADY EXISTS — FAIL CLOSED: $newPath"
+>>     }
+>>
+>>     if ($map[$oldPath].type -ne "blob") {
+>>         throw "SOURCE IS NOT A FILE: $oldPath"
+>>     }
+>>
+>>     Write-Host "SOURCE OK: $oldPath" -ForegroundColor Green
+>> }
+SOURCE FILE MISSING ON GITHUB: REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project/page.tsx
+At line:6 char:9
++         throw "SOURCE FILE MISSING ON GITHUB: $oldPath"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (SOURCE FILE MIS...roject/page.tsx:String) [], RuntimeException
+    + FullyQualifiedErrorId : SOURCE FILE MISSING ON GITHUB: REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project/page.tsx
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== BUILD REMOTE TREE CHANGE ===" -ForegroundColor Cyan
+
+=== BUILD REMOTE TREE CHANGE ===
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $changes = @()
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($file in $files) {
+>>
+>>     $oldPath = "$oldBase/$file"
+>>     $newPath = "$newBase/$file"
+>>     $blobSha = $map[$oldPath].sha
+>>
+>>     # ADD correct route path using the existing blob.
+>>     $changes += @{
+>>         path = $newPath
+>>         mode = "100644"
+>>         type = "blob"
+>>         sha  = $blobSha
+>>     }
+>>
+>>     # DELETE wrong route path.
+>>     $changes += @{
+>>         path = $oldPath
+>>         mode = "100644"
+>>         type = "blob"
+>>         sha  = $null
+>>     }
+>>
+>>     Write-Host "SYNC: $oldPath  ->  $newPath" -ForegroundColor Yellow
+>> }
+SYNC: REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project/page.tsx  ->  REOS_CONTROL_CENTER/Frontend/src/app/project/[projectId]/page.tsx
+SYNC: REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project/loading.tsx  ->  REOS_CONTROL_CENTER/Frontend/src/app/project/[projectId]/loading.tsx
+SYNC: REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project/loading.module.css  ->  REOS_CONTROL_CENTER/Frontend/src/app/project/[projectId]/loading.module.css
+SYNC: REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project/not-found.tsx  ->  REOS_CONTROL_CENTER/Frontend/src/app/project/[projectId]/not-found.tsx
+SYNC: REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project/error.tsx  ->  REOS_CONTROL_CENTER/Frontend/src/app/project/[projectId]/error.tsx
+SYNC: REOS_CONTROL_CENTER/Frontend/src/app/features/f05_project/error.module.css  ->  REOS_CONTROL_CENTER/Frontend/src/app/project/[projectId]/error.module.css
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $treePayload = @{
+>>     base_tree = $baseTreeSha
+>>     tree      = $changes
+>> } | ConvertTo-Json -Depth 20 -Compress
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== CREATE REMOTE TREE ===" -ForegroundColor Cyan
+
+=== CREATE REMOTE TREE ===
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $newTree = $treePayload |
+>>     gh api `
+>>         --method POST `
+>>         "repos/$repo/git/trees" `
+>>         --input - |
+>>     ConvertFrom-Json
+gh: GitRPC::BadObjectState (HTTP 422)
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $newTreeSha = $newTree.sha
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $newTreeSha) {
+>>     throw "REMOTE TREE CREATION FAILED"
+>> }
+REMOTE TREE CREATION FAILED
+At line:2 char:5
++     throw "REMOTE TREE CREATION FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE TREE CREATION FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE TREE CREATION FAILED
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "NEW TREE = $newTreeSha" -ForegroundColor Green
+NEW TREE =
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== CREATE REMOTE COMMIT ===" -ForegroundColor Cyan
+
+=== CREATE REMOTE COMMIT ===
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $commitPayload = @{
+>>     message = "Fix F05 project route path"
+>>     tree    = $newTreeSha
+>>     parents = @($headSha)
+>> } | ConvertTo-Json -Depth 10 -Compress
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $newCommit = $commitPayload |
+>>     gh api `
+>>         --method POST `
+>>         "repos/$repo/git/commits" `
+>>         --input - |
+>>     ConvertFrom-Json
+gh: Invalid request.
+
+For 'properties/tree', nil is not a string. (HTTP 422)
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $newCommitSha = $newCommit.sha
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $newCommitSha) {
+>>     throw "REMOTE COMMIT CREATION FAILED"
+>> }
+REMOTE COMMIT CREATION FAILED
+At line:2 char:5
++     throw "REMOTE COMMIT CREATION FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE COMMIT CREATION FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE COMMIT CREATION FAILED
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "NEW COMMIT = $newCommitSha" -ForegroundColor Green
+NEW COMMIT =
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== BRANCH LEASE CHECK ===" -ForegroundColor Cyan
+
+=== BRANCH LEASE CHECK ===
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $currentRef = gh api "repos/$repo/git/ref/heads/$branch" | ConvertFrom-Json
+PS D:\Homio\REOS_CONTROL_CENTER> $currentHead = $currentRef.object.sha
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($currentHead -ne $headSha) {
+>>     throw "BRANCH MOVED DURING OPERATION. NOTHING PUSHED."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "LEASE OK" -ForegroundColor Green
+LEASE OK
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== UPDATE GITHUB BRANCH ===" -ForegroundColor Cyan
+
+=== UPDATE GITHUB BRANCH ===
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $refPayload = @{
+>>     sha   = $newCommitSha
+>>     force = $false
+>> } | ConvertTo-Json -Compress
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $updatedRef = $refPayload |
+>>     gh api `
+>>         --method PATCH `
+>>         "repos/$repo/git/refs/heads/$branch" `
+>>         --input -
+gh: Invalid request.
+
+For 'properties/sha', nil is not a string. (HTTP 422)
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $updatedRef) {
+>>     throw "REMOTE BRANCH UPDATE FAILED"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "GITHUB BRANCH UPDATED" -ForegroundColor Green
+GITHUB BRANCH UPDATED
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== FINAL REMOTE VERIFICATION ===" -ForegroundColor Cyan
+
+=== FINAL REMOTE VERIFICATION ===
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $verifyRef = gh api "repos/$repo/git/ref/heads/$branch" | ConvertFrom-Json
+PS D:\Homio\REOS_CONTROL_CENTER> $verifyHead = $verifyRef.object.sha
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($verifyHead -ne $newCommitSha) {
+>>     throw "FINAL HEAD VERIFICATION FAILED"
+>> }
+FINAL HEAD VERIFICATION FAILED
+At line:2 char:5
++     throw "FINAL HEAD VERIFICATION FAILED"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FINAL HEAD VERIFICATION FAILED:String) [], RuntimeException
+    + FullyQualifiedErrorId : FINAL HEAD VERIFICATION FAILED
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $verifyCommit = gh api "repos/$repo/git/commits/$verifyHead" | ConvertFrom-Json
+PS D:\Homio\REOS_CONTROL_CENTER> $verifyTreeSha = $verifyCommit.tree.sha
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $verifyTree = gh api "repos/$repo/git/trees/$verifyTreeSha?recursive=1" | ConvertFrom-Json
+gh: Not Found (HTTP 404)
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $verifyMap = @{}
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($entry in $verifyTree.tree) {
+>>     $verifyMap[$entry.path] = $entry
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($file in $files) {
+>>
+>>     $oldPath = "$oldBase/$file"
+>>     $newPath = "$newBase/$file"
+>>
+>>     if (-not $verifyMap.ContainsKey($newPath)) {
+>>         throw "NEW ROUTE FILE MISSING AFTER COMMIT: $newPath"
+>>     }
+>>
+>>     if ($verifyMap.ContainsKey($oldPath)) {
+>>         throw "OLD ROUTE FILE STILL EXISTS: $oldPath"
+>>     }
+>>
+>>     Write-Host "PASS: $newPath" -ForegroundColor Green
+>> }
+NEW ROUTE FILE MISSING AFTER COMMIT: REOS_CONTROL_CENTER/Frontend/src/app/project/[projectId]/page.tsx
+At line:7 char:9
++         throw "NEW ROUTE FILE MISSING AFTER COMMIT: $newPath"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (NEW ROUTE FILE ...ectId]/page.tsx:String) [], RuntimeException
+    + FullyQualifiedErrorId : NEW ROUTE FILE MISSING AFTER COMMIT: REOS_CONTROL_CENTER/Frontend/src/app/project/[projectId]/page.tsx
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n========================================" -ForegroundColor Green
+
+========================================
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "F05 ROUTE PATH SYNC = PASS" -ForegroundColor Green
+F05 ROUTE PATH SYNC = PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "OLD ROUTE REMOVED  = PASS" -ForegroundColor Green
+OLD ROUTE REMOVED  = PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "NEW ROUTE PRESENT   = PASS" -ForegroundColor Green
+NEW ROUTE PRESENT   = PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE COMMIT       = $newCommitSha" -ForegroundColor Green
+REMOTE COMMIT       =
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "========================================" -ForegroundColor Green
+========================================
