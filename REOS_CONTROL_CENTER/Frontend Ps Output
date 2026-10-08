@@ -1,32 +1,31 @@
+remote: Enumerating objects: 23, done.
+remote: Counting objects: 100% (23/23), done.
+remote: Compressing objects: 100% (17/17), done.
+remote: Total 17 (delta 11), reused 0 (delta 0), pack-reused 0 (from 0)
+Receiving objects: 100% (17/17), 4.83 KiB | 707.00 KiB/s, done.
+Resolving deltas: 100% (11/11), completed with 5 local objects.
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+   8e1acb0..e9ee592  reos-development -> origin/reos-development
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> cd D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend
+PS D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend> git switch --detach origin/reos-development
+remote: Enumerating objects: 2, done.
+remote: Counting objects: 100% (2/2), done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 2 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+Receiving objects: 100% (2/2), 973 bytes | 139.00 KiB/s, done.
+M       REOS_CONTROL_CENTER/Frontend/package.json
+M       REOS_CONTROL_CENTER/Frontend/src/features/f01_experience_foundation/README.md
+M       REOS_CONTROL_CENTER/Frontend/tsconfig.json
+Previous HEAD position was 8e1acb0 Update Frontend Ps Output
+HEAD is now at e9ee592 Update Frontend Ps Output
+PS D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend> git rev-parse HEAD
+e9ee592eb71a295909b48cb7af268d3edf78fc0b
+PS D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend> npm run typecheck
 
 > homio-frontend@0.1.0 typecheck
 > tsc --noEmit
-
-src/features/f03_search/search.utils.ts:22:12 - error TS18048: 'filters.possession' is possibly 'undefined'.
-
-22   count += filters.possession.length;
-              ~~~~~~~~~~~~~~~~~~
-
-src/features/f03_search/search.utils.ts:241:51 - error TS2345: Argument of type 'string[] | undefined' is not assignable to parameter of type '(string | number)[]'.
-  Type 'undefined' is not assignable to type '(string | number)[]'.
-
-241   writeList(params, SEARCH_QUERY_KEYS.possession, state.filters.possession);
-                                                      ~~~~~~~~~~~~~~~~~~~~~~~~
-
-src/features/f03_search/SearchAdvancedFilters.tsx:129:13 - error TS2322: Type 'string[] | undefined' is not assignable to type 'string[]'.
-  Type 'undefined' is not assignable to type 'string[]'.
-
-129             value={filters.possession}
-                ~~~~~
-
-  src/features/f03_search/SearchPossessionFilter.tsx:6:3
-    6   value: string[];
-        ~~~~~
-    The expected type comes from property 'value' which is declared here on type 'IntrinsicAttributes & Readonly<{ value: string[]; onChange: (value: string[]) => void; }>'
-
-
-Found 3 errors in 2 files.
-
-Errors  Files
-     2  src/features/f03_search/search.utils.ts:22
-     1  src/features/f03_search/SearchAdvancedFilters.tsx:129
