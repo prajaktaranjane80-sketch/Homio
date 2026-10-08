@@ -1,0 +1,146 @@
+.section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 18px;
+  margin-top: 18px;
+  padding: 28px;
+  border-radius: 20px;
+  border: 1px solid #e1e6eb;
+  background: #ffffff;
+}
+
+.eyebrow {
+  color: #89929d;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.left h2 {
+  margin: 8px 0 0;
+  color: #17212b;
+  font-size: 28px;
+}
+
+.left p {
+  max-width: 520px;
+  margin: 10px 0 0;
+  color: #697480;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.nearby {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-top: 20px;
+}
+
+.nearby div {
+  padding: 12px;
+  border-radius: 11px;
+  background: #f6f7f9;
+}
+
+.nearby span {
+  display: block;
+  color: #8a949e;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.nearby strong {
+  display: block;
+  margin-top: 4px;
+  color: #34414d;
+  font-size: 11px;
+}
+
+.map {
+  position: relative;
+  min-height: 330px;
+  overflow: hidden;
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      135deg,
+      #e8ecef,
+      #d5dbe0
+    );
+}
+
+.map::before,
+.map::after {
+  content: "";
+  position: absolute;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.map::before {
+  width: 120%;
+  height: 18px;
+  top: 32%;
+  left: -10%;
+  transform: rotate(-9deg);
+}
+
+.map::after {
+  width: 140%;
+  height: 12px;
+  top: 61%;
+  left: -20%;
+  transform: rotate(18deg);
+}
+
+.pin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  gap: 3px;
+  min-width: 150px;
+  transform: translate(-50%, -50%);
+  padding: 14px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(23, 33, 43, 0.14);
+}
+
+.pin span {
+  color: #8a949e;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.pin strong {
+  color: #17212b;
+  font-size: 14px;
+}
+
+.pin small {
+  color: #89929d;
+  font-size: 9px;
+}
+
+@media (max-width: 800px) {
+  .section {
+    grid-template-columns: 1fr;
+  }
+
+  .map {
+    min-height: 260px;
+  }
+}
+
+@media (max-width: 500px) {
+  .section {
+    padding: 22px;
+  }
+
+  .nearby {
+    grid-template-columns: 1fr;
+  }
+}
