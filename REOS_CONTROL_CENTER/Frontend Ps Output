@@ -1,19 +1,54 @@
+PS D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend> cd D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git fetch origin reos-development
+remote: Enumerating objects: 22, done.
+remote: Counting objects: 100% (22/22), done.
+remote: Compressing objects: 100% (16/16), done.
+remote: Total 16 (delta 10), reused 0 (delta 0), pack-reused 0 (from 0)
+Receiving objects: 100% (16/16), 4.13 KiB | 423.00 KiB/s, done.
+Resolving deltas: 100% (10/10), completed with 4 local objects.
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+   e9ee592..74b55b0  reos-development -> origin/reos-development
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> cd D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend
+PS D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend> git switch --detach origin/reos-development
+remote: Enumerating objects: 2, done.
+remote: Counting objects: 100% (2/2), done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 2 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+Receiving objects: 100% (2/2), 1.60 KiB | 149.00 KiB/s, done.
+Updating files: 100% (2/2), done.
+M       REOS_CONTROL_CENTER/Frontend/package.json
+M       REOS_CONTROL_CENTER/Frontend/src/features/f01_experience_foundation/README.md
+M       REOS_CONTROL_CENTER/Frontend/tsconfig.json
+Previous HEAD position was e9ee592 Update Frontend Ps Output
+HEAD is now at 74b55b0 Update FeaturedProjects.tsx
+PS D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend> git rev-parse HEAD
+74b55b0cef3da2289b2b3c212aa39de578148ba8
+PS D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_VERIFY_03\REOS_CONTROL_CENTER\Frontend> npm run build
+
 > homio-frontend@0.1.0 build
 > next build
 
 ▲ Next.js 16.2.11 (Turbopack)
 
   Creating an optimized production build ...
-✓ Compiled successfully in 14.5s
-✓ Finished TypeScript in 11.7s
-✓ Collecting page data using 6 workers in 1245ms
-Error occurred prerendering page "/". Read more: https://nextjs.org/docs/messages/prerender-error
-Error: Event handlers cannot be passed to Client Component props.
-  {type: "button", className: ..., aria-label: ..., onClick: function onClick, children: ...}
-                                                             ^^^^^^^^^^^^^^^^
-If you need interactivity, consider converting part of this to a Client Component.
-    at stringify (<anonymous>) {
-  digest: '1341906743'
-}
-Export encountered an error on /page: /, exiting the build.
-⨯ Next.js build worker exited with code: 1 and signal: null
+✓ Compiled successfully in 2.6s
+✓ Finished TypeScript in 5.2s
+✓ Collecting page data using 6 workers in 557ms
+✓ Generating static pages using 6 workers (4/4) in 674ms
+✓ Finalizing page optimization in 33ms
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /property/[propertyId]
+└ ○ /search
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
