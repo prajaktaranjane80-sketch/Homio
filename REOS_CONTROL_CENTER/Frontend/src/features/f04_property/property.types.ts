@@ -27,6 +27,7 @@ export type PropertyRecord = {
   parking: string;
   furnishing: string;
   possession: string;
+  projectId?: string;
   projectName?: string;
   builderName?: string;
   description: string;
