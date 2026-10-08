@@ -1,325 +1,75 @@
-
-=== 1. REMOTE SYNC PREFLIGHT ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
-remote: Enumerating objects: 583, done.
-remote: Counting objects: 100% (209/209), done.
-remote: Compressing objects: 100% (71/71), done.
-remote: Total 583 (delta 183), reused 137 (delta 137), pack-reused 374 (from 1)
-Receiving objects: 100% (583/583), 192.01 KiB | 7.38 MiB/s, done.
-Resolving deltas: 100% (402/402), completed with 7 local objects.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   560eddb..d205f80  reos-development -> origin/reos-development
-Enumerating objects: 1658, done.
-Counting objects: 100% (1651/1651), done.
-Delta compression using up to 12 threads
-Compressing objects: 100% (521/521), done.
-Writing objects: 100% (1651/1651), done.
-Total 1651 (delta 1133), reused 1624 (delta 1106), pack-reused 0 (from 0)
+TEMP REPAIR WORKTREE REMOVED
+PS D:\HOMIO\REOS_CONTROL_CENTER> npm install
+npm error code ENOENT
+npm error syscall open
+npm error path D:\HOMIO\REOS_CONTROL_CENTER\package.json
+npm error errno -4058
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open 'D:\HOMIO\REOS_CONTROL_CENTER\package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: C:\Users\Sandip RanjanePatil\AppData\Local\npm-cache\_logs\2026-10-08T21_58_27_325Z-debug-0.log
 PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $branch = git branch --show-current
-PS D:\HOMIO\REOS_CONTROL_CENTER> $remoteSha = (git rev-parse origin/reos-development).Trim()
-PS D:\HOMIO\REOS_CONTROL_CENTER> $localSha = (git rev-parse HEAD).Trim()
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "LOCAL  : $localSha"
-LOCAL  : 036f907195b5423a5405ea3cf7780a6689886176
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE : $remoteSha"
-REMOTE : d205f807adbf1a09a8f2928e8bb84ddfd3c98161
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "BRANCH : $branch"
-BRANCH : reos-development
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($branch -ne "reos-development") {
->>     throw "STOP: current branch is not reos-development."
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $status = git status --porcelain
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($status) {
->>     Write-Host "`nSTOP: working tree is not clean:" -ForegroundColor Red
->>     $status
->>     throw "Clean the working tree before synchronization."
->> }
-
-STOP: working tree is not clean:
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__init__.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/contract_primitives.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
- M REOS_CONTROL_CENTER/data/state.json
-?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_closure_c2_c3.py
-?? REOS_CONTROL_CENTER/Frontend/.next/
-?? REOS_CONTROL_CENTER/Frontend/eslint.config.mjs
-?? REOS_CONTROL_CENTER/Frontend/next-env.d.ts
-?? REOS_CONTROL_CENTER/Frontend/next.config.ts
-?? REOS_CONTROL_CENTER/Frontend/node_modules/
-?? REOS_CONTROL_CENTER/Frontend/package-lock.json
-?? REOS_CONTROL_CENTER/Frontend/package.json
-?? REOS_CONTROL_CENTER/Frontend/scripts/
-?? REOS_CONTROL_CENTER/Frontend/src/
-?? REOS_CONTROL_CENTER/Frontend/tsconfig.json
-?? REOS_CONTROL_CENTER/Frontend/tsconfig.tsbuildinfo
-?? REOS_CONTROL_CENTER/package-lock.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210705_675096.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210705_920438.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_186837.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_460015.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_697927.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_990397.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210707_222976.json
-Clean the working tree before synchronization.
-At line:4 char:5
-+     throw "Clean the working tree before synchronization."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Clean the worki...ynchronization.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Clean the working tree before synchronization.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git pull --ff-only origin reos-development
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-hint: Diverging branches can't be fast-forwarded, you need to either:
-hint:
-hint:   git merge --no-ff
-hint:
-hint: or:
-hint:
-hint:   git rebase
-hint:
-hint: Disable this message with "git config set advice.diverging false"
-fatal: Not possible to fast-forward, aborting.
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 2. ENTRYPOINT CONTRACT RESTORE ===" -ForegroundColor Cyan
-
-=== 2. ENTRYPOINT CONTRACT RESTORE ===
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $path = Join-Path $repo "AI_AGENT_ENTRYPOINT.py"
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not (Test-Path $path)) {
->>     throw "AI_AGENT_ENTRYPOINT.py not found."
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $text = Get-Content $path -Raw
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $replacements = @(
->>     @{
->>         Old = '    "Manual GitHub file saving is the approved owner-controlled implementation write workflow.",
->>     "PowerShell is verification and diagnosis only.",
->>     "PowerShell MUST NOT be used to write, patch, reset, merge or push project code.",'
->>         New = '    "Authorized PowerShell execution is the owner-controlled implementation workflow, coordinated through the applicable ACRL execution and Git transaction boundaries.",
->>     "PowerShell is the implementation execution and current-working-tree verification interface when authorized.",
->>     "PowerShell MUST NOT create a second synchronization engine, bypass ACRL authorization, or bypass Control Center authority.",'
->>     },
->>     @{
->>         Old = '    "After a manual GitHub save, the remote branch and changed file must be independently verified before PASS is declared.",
->>     "Local PowerShell verification may be used only after the canonical GitHub state is established.",'
->>         New = '    "After an authorized PowerShell Git transaction, the remote branch, commit and changed files must be independently verified before PASS is declared.",
->>     "Authorized PowerShell execution is allowed after canonical branch, target-path, architecture and execution authority are established.",'
->>     },
->>     @{
->>         Old = '    "GitHub branch reos-development remains the canonical code source.",
->>     "Manual GitHub file saving is the owner-controlled code implementation workflow.",
->>     "Local PowerShell is verification and diagnosis only.",
->>     "PowerShell MUST NOT perform repository code writes.",
->>     "AI_AGENT_ENTRYPOINT.py is a descriptive repository contract and MUST NOT execute Git writes.",'
->>         New = '    "GitHub branch reos-development remains the canonical code source.",
->>     "Authorized PowerShell execution is the owner-controlled code implementation workflow when permitted by the applicable ACRL boundaries.",
->>     "Local PowerShell is the execution and current-working-tree verification interface.",
->>     "PowerShell MUST NOT create a second Git synchronization engine or bypass ACRL/Control Center authority.",
->>     "AI_AGENT_ENTRYPOINT.py is a descriptive repository contract and MUST NOT itself execute Git writes.",'
->>     },
->>     @{
->>         Old = '    "10. Save implementation changes manually on canonical GitHub branch reos-development.",
->>     "11. Independently verify the remote branch and changed files after the manual GitHub save.",
->>     "12. Use local PowerShell only for read-only verification and diagnosis.",
->>     "13. Run focused verification for the changed scope.",'
->>         New = '    "10. Execute the authorized implementation change through PowerShell.",
->>     "11. Coordinate repository mutation through the applicable ACRL T21/T22 boundaries.",
->>     "12. Independently verify the remote branch, commit and changed files.",
->>     "13. Run focused verification for the changed scope.",'
->>     },
->>     @{
->>         Old = '    "13. Prepare exact GitHub manual-save instructions for the owner.",
->>     "14. Verify the remote GitHub result.",
->>     "15. Use PowerShell only for verification or diagnosis.",
->>     "16. Run relevant regression tests.",'
->>         New = '    "13. Prepare exact PowerShell execution commands for the owner.",
->>     "14. Execute only after applicable ACRL authorization and target-path verification.",
->>     "15. Verify the remote GitHub result, including branch, commit and changed files.",
->>     "16. Run relevant regression tests.",'
->>     },
->>     @{
->>         Old = '    "The AI must not provide PowerShell commands for project code creation or replacement.",
->>     "The AI must reserve PowerShell instructions for read-only verification and diagnosis.",'
->>         New = '    "The AI may provide exact PowerShell commands for authorized project code creation, replacement and Git transaction.",
->>     "PowerShell instructions must preserve ACRL authorization, Control Center authority, branch verification and independent remote verification.",'
->>     },
->>     @{
->>         Old = '    "If local and remote repository evidence differs, treat canonical GitHub state as implementation authority and use local PowerShell only to diagnose the difference.",'
->>         New = '    "If local and remote repository evidence differs, treat canonical GitHub state as implementation authority and reconcile the local workspace through authorized PowerShell execution rather than guessing or force-overwriting unknown remote state.",'
->>     }
->> )
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> foreach ($r in $replacements) {
->>     if (-not $text.Contains($r.Old)) {
->>         throw "STOP: expected entrypoint anchor was not found."
->>     }
->>     $text = $text.Replace($r.Old, $r.New)
->> }
-STOP: expected entrypoint anchor was not found.
-At line:3 char:9
-+         throw "STOP: expected entrypoint anchor was not found."
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STOP: expected ... was not found.:String) [], RuntimeException
-    + FullyQualifiedErrorId : STOP: expected entrypoint anchor was not found.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Set-Content -Path $path -Value $text -Encoding UTF8 -NoNewline
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 3. ENTRYPOINT CHECK ===" -ForegroundColor Cyan
-
-=== 3. ENTRYPOINT CHECK ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> $check = Get-Content $path -Raw
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($check.Contains('"PowerShell is verification and diagnosis only."')) {
->>     throw "STOP: old read-only PowerShell contract still exists."
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($check.Contains('"PowerShell MUST NOT be used to write, patch, reset, merge or push project code."')) {
->>     throw "STOP: old PowerShell write prohibition still exists."
->> }
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $check.Contains('"Authorized PowerShell execution is the owner-controlled implementation workflow')) {
->>     throw "STOP: restored execution contract not found."
->> }
-STOP: restored execution contract not found.
-At line:2 char:5
-+     throw "STOP: restored execution contract not found."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STOP: restored ...ract not found.:String) [], RuntimeException
-    + FullyQualifiedErrorId : STOP: restored execution contract not found.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "ENTRYPOINT CONTRACT = RESTORED" -ForegroundColor Green
-ENTRYPOINT CONTRACT = RESTORED
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 4. GIT COMMIT + PUSH ===" -ForegroundColor Cyan
-
-=== 4. GIT COMMIT + PUSH ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git status --short
- M AI_AGENT_ENTRYPOINT.py
- M AUTONOMY_ENGINE/core/__init__.py
- M AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
- M AUTONOMY_ENGINE/core/contract_primitives.py
- M AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
- M data/state.json
-?? AUTONOMY_ENGINE/core/test_closure_c2_c3.py
-?? Frontend/.next/
-?? Frontend/eslint.config.mjs
-?? Frontend/next-env.d.ts
-?? Frontend/next.config.ts
-?? Frontend/node_modules/
-?? Frontend/package-lock.json
-?? Frontend/package.json
-?? Frontend/scripts/
-?? Frontend/src/
-?? Frontend/tsconfig.json
-?? Frontend/tsconfig.tsbuildinfo
-?? package-lock.json
-?? snapshots/state_20261002_210705_675096.json
-?? snapshots/state_20261002_210705_920438.json
-?? snapshots/state_20261002_210706_186837.json
-?? snapshots/state_20261002_210706_460015.json
-?? snapshots/state_20261002_210706_697927.json
-?? snapshots/state_20261002_210706_990397.json
-?? snapshots/state_20261002_210707_222976.json
-PS D:\HOMIO\REOS_CONTROL_CENTER> git diff -- AI_AGENT_ENTRYPOINT.py
-diff --git a/REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py b/REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
-index 15ddd54..6a44fb6 100644
---- a/REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
-+++ b/REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
-@@ -1,5 +1,5 @@
--"""
--HOMIO / REOS ΓÇö AI AGENT ENTRYPOINT
-+﻿"""
-+HOMIO / REOS Î“Ã‡Ã¶ AI AGENT ENTRYPOINT
- ==================================
-
- Purpose
-@@ -696,7 +696,7 @@ def print_startup_context() -> None:
-     """Print a compact new-AI startup contract."""
-
-     print("=" * 72)
--    print("HOMIO / REOS ΓÇö AI AGENT ENTRYPOINT")
-+    print("HOMIO / REOS Î“Ã‡Ã¶ AI AGENT ENTRYPOINT")
-     print("=" * 72)
-     print(f"PROJECT        : {PROJECT_NAME}")
-     print(f"AUTHORITY      : {CONTROL_CENTER_NAME}")
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git add AI_AGENT_ENTRYPOINT.py
-PS D:\HOMIO\REOS_CONTROL_CENTER> git commit -m "Restore authorized PowerShell Git execution contract"
-[reos-development db30343] Restore authorized PowerShell Git execution contract
- 1 file changed, 3 insertions(+), 3 deletions(-)
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> git push origin reos-development
-To https://github.com/prajaktaranjane80-sketch/Homio.git
- ! [rejected]        reos-development -> reos-development (non-fast-forward)
-error: failed to push some refs to 'https://github.com/prajaktaranjane80-sketch/Homio.git'
-hint: Updates were rejected because the tip of your current branch is behind
-hint: its remote counterpart. If you want to integrate the remote changes,
-hint: use 'git pull' before pushing again.
-hint: See the 'Note about fast-forwards' in 'git push --help' for details.
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`n=== 5. REMOTE VERIFICATION ===" -ForegroundColor Cyan
-
-=== 5. REMOTE VERIFICATION ===
-PS D:\HOMIO\REOS_CONTROL_CENTER> git fetch origin reos-development
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $finalLocal  = (git rev-parse HEAD).Trim()
-PS D:\HOMIO\REOS_CONTROL_CENTER> $finalRemote = (git rev-parse origin/reos-development).Trim()
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "FINAL LOCAL  : $finalLocal"
-FINAL LOCAL  : db3034391207fdb38dc273e62041cdcdbbc5c56a
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "FINAL REMOTE : $finalRemote"
-FINAL REMOTE : d205f807adbf1a09a8f2928e8bb84ddfd3c98161
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($finalLocal -ne $finalRemote) {
->>     throw "STOP: local and remote SHA do not match."
->> }
-STOP: local and remote SHA do not match.
-At line:2 char:5
-+     throw "STOP: local and remote SHA do not match."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STOP: local and remote SHA do not match.:String) [], RuntimeException
-    + FullyQualifiedErrorId : STOP: local and remote SHA do not match.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> $remoteEntry = (git show "origin/reos-development:REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py" | Out-String)
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if ($remoteEntry.Contains("PowerShell is verification and diagnosis only.")) {
->>     throw "STOP: remote entrypoint still has old PowerShell restriction."
->> }
-STOP: remote entrypoint still has old PowerShell restriction.
-At line:2 char:5
-+     throw "STOP: remote entrypoint still has old PowerShell restricti ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STOP: remote en...ll restriction.:String) [], RuntimeException
-    + FullyQualifiedErrorId : STOP: remote entrypoint still has old PowerShell restriction.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> if (-not $remoteEntry.Contains("Authorized PowerShell execution is the owner-controlled implementation workflow")) {
->>     throw "STOP: remote execution contract was not restored."
->> }
-STOP: remote execution contract was not restored.
-At line:2 char:5
-+     throw "STOP: remote execution contract was not restored."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STOP: remote ex...s not restored.:String) [], RuntimeException
-    + FullyQualifiedErrorId : STOP: remote execution contract was not restored.
-
-PS D:\HOMIO\REOS_CONTROL_CENTER>
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "`nSYNC PASS" -ForegroundColor Green
-
-SYNC PASS
-PS D:\HOMIO\REOS_CONTROL_CENTER> Write-Host "REMOTE HEAD = $finalRemote"
-REMOTE HEAD = d205f807adbf1a09a8f2928e8bb84ddfd3c98161
+PS D:\HOMIO\REOS_CONTROL_CENTER> npm run verify:foundation
+npm error code ENOENT
+npm error syscall open
+npm error path D:\HOMIO\REOS_CONTROL_CENTER\package.json
+npm error errno -4058
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open 'D:\HOMIO\REOS_CONTROL_CENTER\package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: C:\Users\Sandip RanjanePatil\AppData\Local\npm-cache\_logs\2026-10-08T21_58_29_040Z-debug-0.log
+PS D:\HOMIO\REOS_CONTROL_CENTER> npm run verify:f03
+npm error code ENOENT
+npm error syscall open
+npm error path D:\HOMIO\REOS_CONTROL_CENTER\package.json
+npm error errno -4058
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open 'D:\HOMIO\REOS_CONTROL_CENTER\package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: C:\Users\Sandip RanjanePatil\AppData\Local\npm-cache\_logs\2026-10-08T21_58_29_549Z-debug-0.log
+PS D:\HOMIO\REOS_CONTROL_CENTER> npm run verify:f04
+npm error code ENOENT
+npm error syscall open
+npm error path D:\HOMIO\REOS_CONTROL_CENTER\package.json
+npm error errno -4058
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open 'D:\HOMIO\REOS_CONTROL_CENTER\package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: C:\Users\Sandip RanjanePatil\AppData\Local\npm-cache\_logs\2026-10-08T21_58_30_020Z-debug-0.log
+PS D:\HOMIO\REOS_CONTROL_CENTER> npm run verify:f05
+npm error code ENOENT
+npm error syscall open
+npm error path D:\HOMIO\REOS_CONTROL_CENTER\package.json
+npm error errno -4058
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open 'D:\HOMIO\REOS_CONTROL_CENTER\package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: C:\Users\Sandip RanjanePatil\AppData\Local\npm-cache\_logs\2026-10-08T21_58_30_521Z-debug-0.log
+PS D:\HOMIO\REOS_CONTROL_CENTER> npm run typecheck
+npm error code ENOENT
+npm error syscall open
+npm error path D:\HOMIO\REOS_CONTROL_CENTER\package.json
+npm error errno -4058
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open 'D:\HOMIO\REOS_CONTROL_CENTER\package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: C:\Users\Sandip RanjanePatil\AppData\Local\npm-cache\_logs\2026-10-08T21_58_31_002Z-debug-0.log
+PS D:\HOMIO\REOS_CONTROL_CENTER> npm run lint
+npm error code ENOENT
+npm error syscall open
+npm error path D:\HOMIO\REOS_CONTROL_CENTER\package.json
+npm error errno -4058
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open 'D:\HOMIO\REOS_CONTROL_CENTER\package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: C:\Users\Sandip RanjanePatil\AppData\Local\npm-cache\_logs\2026-10-08T21_58_31_491Z-debug-0.log
+PS D:\HOMIO\REOS_CONTROL_CENTER> npm run build
+npm error code ENOENT
+npm error syscall open
+npm error path D:\HOMIO\REOS_CONTROL_CENTER\package.json
+npm error errno -4058
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open 'D:\HOMIO\REOS_CONTROL_CENTER\package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: C:\Users\Sandip RanjanePatil\AppData\Local\npm-cache\_logs\2026-10-08T21_58_35_175Z-debug-0.log
 PS D:\HOMIO\REOS_CONTROL_CENTER>
