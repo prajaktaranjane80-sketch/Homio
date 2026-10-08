@@ -1,5 +1,5 @@
 """
-HOMIO / REOS ΓÇö AI AGENT ENTRYPOINT
+HOMIO / REOS — AI AGENT ENTRYPOINT
 ==================================
 
 Purpose
@@ -25,11 +25,12 @@ AUTHORITATIVE PROJECT SOURCES
 1. REOS_CONTROL_CENTER/data/state.json
    -> canonical machine-readable project state
 
-2. Git repository / current branch
-   -> canonical code, history, architecture reference and repository evidence
+2. GitHub repository branch reos-development
+   -> canonical implementation source, code, history, architecture
+      reference and repository evidence
 
 3. Local PowerShell execution
-   -> canonical current verification of the actual working tree
+   -> verification and diagnosis only
 
 4. ACRL
    -> continuity, reconstruction, evidence, checkpoint, drift,
@@ -39,8 +40,12 @@ CHAT HISTORY
 ------------
 Chat history is communication only.
 It is NOT project memory.
-A new GPT session MUST NOT assume that previous chat context is available,
-correct, current, or authoritative.
+
+A new GPT session MUST NOT assume that previous chat context is:
+    - available
+    - correct
+    - current
+    - authoritative
 
 IMPORTANT
 ---------
@@ -48,6 +53,17 @@ This entrypoint does not contain a copy of the project state.
 
 It tells an AI HOW TO DISCOVER the authoritative state and HOW TO WORK
 inside the existing REOS / ACRL system.
+
+The implementation workflow must protect against:
+    - stale local workspaces
+    - duplicate files
+    - duplicate routes
+    - duplicate components
+    - duplicate engines
+    - unnecessary reopening of completed layers
+    - blind replacement
+    - guessed repository structure
+    - accidental PowerShell code mutation
 """
 
 from __future__ import annotations
@@ -74,10 +90,31 @@ CONTROL_CENTER_PATH = Path(__file__).resolve().parent
 # Canonical local repository identity.
 # Descriptive/read-only contract only.
 CANONICAL_LOCAL_WORKSPACE = Path(r"D:\HOMIO")
-CANONICAL_CONTROL_CENTER = CANONICAL_LOCAL_WORKSPACE / CONTROL_CENTER_NAME
+CANONICAL_CONTROL_CENTER = (
+    CANONICAL_LOCAL_WORKSPACE / CONTROL_CENTER_NAME
+)
+
 REPOSITORY_FULL_NAME = "prajaktaranjane80-sketch/Homio"
+
 EXPECTED_BRANCH = "reos-development"
-EXPECTED_ORIGIN = "https://github.com/prajaktaranjane80-sketch/Homio.git"
+
+EXPECTED_ORIGIN = (
+    "https://github.com/prajaktaranjane80-sketch/Homio.git"
+)
+
+# Canonical implementation source.
+CANONICAL_CODE_SOURCE = (
+    "GitHub repository branch reos-development"
+)
+
+# Manual owner-controlled development workflow.
+IMPLEMENTATION_WRITE_INTERFACE = (
+    "Manual GitHub file save on branch reos-development"
+)
+
+# PowerShell is verification/diagnosis only.
+POWERSHELL_WRITE_ALLOWED = False
+POWERSHELL_IS_VERIFICATION_ONLY = True
 
 # PowerShell Output is evidence only.
 PS_OUTPUT_IS_EVIDENCE_ONLY = True
@@ -88,14 +125,20 @@ GENERATED_ARTIFACT_PATTERNS: tuple[str, ...] = (
     "*.pyo",
 )
 
-STATE_PATH = CONTROL_CENTER_PATH / "data" / "state.json"
+STATE_PATH = (
+    CONTROL_CENTER_PATH
+    / "data"
+    / "state.json"
+)
 
 AUTONOMY_ENGINE_PATH = (
     CONTROL_CENTER_PATH / "AUTONOMY_ENGINE"
 )
 
 ACRL_PATH = (
-    AUTONOMY_ENGINE_PATH / "continuity" / "acrl"
+    AUTONOMY_ENGINE_PATH
+    / "continuity"
+    / "acrl"
 )
 
 
@@ -164,6 +207,7 @@ class REOSAgentOperatingContract:
     """
 
     project: str = PROJECT_NAME
+
     project_description: str = PROJECT_DESCRIPTION
 
     authoritative_state: str = (
@@ -171,11 +215,15 @@ class REOSAgentOperatingContract:
     )
 
     authoritative_code_reference: str = (
-        "Git repository / active REOS branch"
+        "GitHub repository branch reos-development"
+    )
+
+    implementation_write_interface: str = (
+        IMPLEMENTATION_WRITE_INTERFACE
     )
 
     current_verification: str = (
-        "Local PowerShell execution"
+        "Local PowerShell verification and diagnosis only"
     )
 
     continuity_system: str = "ACRL"
@@ -185,9 +233,8 @@ class REOSAgentOperatingContract:
     control_authority: str = "REOS_CONTROL_CENTER"
 
     execution_authority: str = (
-        "ACRL T18 authorization -> T20 repair verification -> "
-        "PowerShell executor -> T21 Git transaction -> T22 checkpoint -> "
-        "T23 evidence resolution -> T24 continuity recovery"
+        "REOS Control Center and applicable ACRL authorization, "
+        "repair-verification, evidence and checkpoint boundaries"
     )
 
     ai_role: str = (
@@ -202,10 +249,22 @@ class REOSAgentOperatingContract:
 AI_OPERATING_RULES: tuple[str, ...] = (
     "Treat REOS_CONTROL_CENTER as the project control authority.",
     "Treat data/state.json as canonical machine-readable project state.",
-    "Treat Git as canonical code/history/reference.",
-    "Treat local PowerShell execution as current verification.",
+    "Treat GitHub branch reos-development as the canonical code and implementation source.",
     "Treat chat history as communication only, never as project truth.",
+    "Treat local PowerShell as verification and diagnosis only.",
+    "Do not use PowerShell to create, replace, patch, reset, merge or push project code.",
     "Before changing code, reconstruct the current repository state.",
+    "Before proposing a file change, inspect the exact target path on the canonical GitHub branch.",
+    "Before creating a new file, confirm that the target path is actually absent on the canonical branch.",
+    "Before creating a new component, route or module, confirm that an existing component, route or module does not already own the responsibility.",
+    "Classify every requested file action as ADD, REPLACE or NO CHANGE before providing implementation instructions.",
+    "Do not create a duplicate file merely because a stale local workspace does not contain the file.",
+    "Do not create a duplicate route when an existing route already owns the experience.",
+    "Do not create a duplicate component when an existing component already owns the responsibility.",
+    "Do not reopen a completed feature layer unless repository evidence shows a real dependency, regression or required integration change.",
+    "When a new layer depends on a completed layer, reuse the completed layer instead of rebuilding it.",
+    "Do not assume that a local checkout is current merely because it exists.",
+    "Do not allow stale local repository state to override canonical GitHub repository evidence.",
     "Use existing ACRL continuity mechanisms instead of inventing new continuity.",
     "Use T07 New Chat Bootstrap for new-session continuity.",
     "Use T14 Repository Intelligence Context for repository-aware context.",
@@ -217,11 +276,8 @@ AI_OPERATING_RULES: tuple[str, ...] = (
     "Do not create a second Control Center.",
     "Do not create a second ACRL.",
     "Do not create duplicate business engines.",
-    "Do not replace existing modules when an existing module already owns the responsibility.",
-    "Do not infer local files merely because they exist in Git history or a remote snapshot.",
-    "Verify the actual local working tree before depending on a file.",
     "Do not blindly patch from assumptions.",
-    "Use targeted evidence before making a change.",
+    "Use targeted repository evidence before making a change.",
     "Prefer the smallest architecture-consistent change.",
     "Run focused verification after a change.",
     "Run relevant regression verification before declaring success.",
@@ -234,25 +290,52 @@ AI_OPERATING_RULES: tuple[str, ...] = (
 
 
 # ---------------------------------------------------------------------------
+# DEVELOPMENT WORKFLOW CONTRACT
+# ---------------------------------------------------------------------------
+
+DEVELOPMENT_WORKFLOW_RULES: tuple[str, ...] = (
+    "GitHub branch reos-development is the canonical implementation source.",
+    "Manual GitHub file saving is the approved owner-controlled implementation write workflow.",
+    "PowerShell is verification and diagnosis only.",
+    "PowerShell MUST NOT be used to write, patch, reset, merge or push project code.",
+    "Before every requested change, inspect the canonical GitHub repository state.",
+    "Every requested file must be classified as ADD, REPLACE or NO CHANGE.",
+    "ADD means the exact target path is absent on the canonical branch and no existing owner satisfies the responsibility.",
+    "REPLACE means the exact target path exists and the requested change belongs in that existing file.",
+    "NO CHANGE means the existing implementation already satisfies the requested responsibility or no repository evidence justifies modification.",
+    "A completed layer must not be rebuilt merely because a dependent layer is being started.",
+    "A new layer must reuse completed-layer routes, components and contracts wherever the architecture allows.",
+    "A stale local workspace must never be used as proof that a canonical GitHub file is missing.",
+    "The AI must provide exact repository path, ADD/REPLACE/NO CHANGE action, anchor or location, and complete file content for manual GitHub editing.",
+    "When a full replacement is required, the AI must provide the complete replacement file rather than an inferred patch.",
+    "When only a small verified change is required, the AI may still provide complete replacement content when the owner is safer using full-file replacement.",
+    "After a manual GitHub save, the remote branch and changed file must be independently verified before PASS is declared.",
+    "Local PowerShell verification may be used only after the canonical GitHub state is established.",
+)
+
+
+# ---------------------------------------------------------------------------
 # REMOTE GIT SYNCHRONIZATION CONTRACT
 # ---------------------------------------------------------------------------
 
 REMOTE_GIT_SYNCHRONIZATION_RULES: tuple[str, ...] = (
     "REOS_CONTROL_CENTER remains the project control authority.",
     "REOS_CONTROL_CENTER/data/state.json remains the canonical project state.",
-    "ACRL T18 is the execution-authorization boundary.",
-    "ACRL T20 is the repair and patch-verification boundary.",
-    "Local PowerShell is the actual execution and current-working-tree verification interface.",
-    "ACRL T21 is the Git repository read/write transaction boundary.",
-    "ACRL T22 is the immutable commit execution checkpoint boundary.",
-    "ACRL T23 is the authority for missing, stale or conflicting evidence resolution.",
-    "ACRL T24 is the authority for continuity and recovery snapshots.",
-    "PowerShell MUST NOT create a second synchronization engine.",
-    "AI_AGENT_ENTRYPOINT.py is descriptive contract only and MUST NOT execute Git writes.",
+    "GitHub branch reos-development remains the canonical code source.",
+    "Manual GitHub file saving is the owner-controlled code implementation workflow.",
+    "Local PowerShell is verification and diagnosis only.",
+    "PowerShell MUST NOT perform repository code writes.",
+    "AI_AGENT_ENTRYPOINT.py is a descriptive repository contract and MUST NOT execute Git writes.",
+    "ACRL T18 remains the execution-authorization boundary where applicable.",
+    "ACRL T20 remains the repair and patch-verification boundary where applicable.",
+    "ACRL T21 remains the Git repository coordination boundary for ACRL-controlled Git transactions.",
+    "ACRL T22 remains the immutable checkpoint boundary where required.",
+    "ACRL T23 remains the authority for missing, stale or conflicting evidence resolution.",
+    "ACRL T24 remains the authority for continuity and recovery snapshots.",
     "A remote write is successful only after independent branch, commit and file evidence verification.",
-    "The active REOS branch MUST be verified before any repository write.",
+    "The active REOS branch MUST be verified before repository work is considered authoritative.",
     "A failed, ambiguous or conflicting operation MUST fail closed.",
-    "Do not create a second Git sync engine.",
+    "Do not create a second Git synchronization engine.",
     "Do not create a second checkpoint engine.",
     "Do not create a second evidence engine.",
     "Do not create a second continuity engine.",
@@ -260,25 +343,28 @@ REMOTE_GIT_SYNCHRONIZATION_RULES: tuple[str, ...] = (
     "Do not bypass REOS Control Center authority.",
 )
 
+
 # ---------------------------------------------------------------------------
 # REPOSITORY PREFLIGHT CONTRACT
 # ---------------------------------------------------------------------------
 
 REPOSITORY_PREFLIGHT_RULES: tuple[str, ...] = (
-    "Canonical workspace is D:\\HOMIO.",
+    "Canonical local workspace is D:\\HOMIO.",
     "Canonical Control Center is D:\\HOMIO\\REOS_CONTROL_CENTER.",
-    "Git repository root is D:\\HOMIO.",
     "Expected repository is prajaktaranjane80-sketch/Homio.",
     "Expected branch is reos-development.",
     "Expected origin resolves to the canonical GitHub repository.",
-    "Current working directory must be the canonical Control Center.",
-    "Repository root must resolve to the canonical Control Center.",
+    "GitHub reos-development is the implementation source of truth.",
+    "Local workspace may be stale and must not override canonical GitHub evidence.",
+    "Current working directory is used only for read-only verification.",
     "Generated Python caches are artifacts, never project source or state.",
     "PS Output is evidence only.",
     "AI_AGENT_ENTRYPOINT.py does not own Git synchronization.",
-    "ACRL T21 is the single Git repository read/write coordination authority.",
-    "ACRL T21 performs branch/HEAD/push/remote verification for Git transactions.",
+    "AI_AGENT_ENTRYPOINT.py does not perform implementation writes.",
+    "ACRL T21 remains the Git coordination authority for ACRL-controlled transactions.",
     "T07 remains the new-chat bootstrap authority.",
+    "T14 remains the repository-intelligence context authority.",
+    "T15 remains the AI-operator boundary authority.",
     "T18 remains the execution-authorization authority.",
     "T20 remains the repair-verification authority.",
     "T22 remains the immutable checkpoint authority.",
@@ -286,25 +372,48 @@ REPOSITORY_PREFLIGHT_RULES: tuple[str, ...] = (
     "T24 remains the continuity/recovery authority.",
 )
 
+
 # ---------------------------------------------------------------------------
-# EXECUTION / SYNCHRONIZATION WORKFLOW
+# FILE CHANGE CLASSIFICATION
+# ---------------------------------------------------------------------------
+
+FILE_CHANGE_CLASSIFICATION: tuple[str, ...] = (
+    "ADD = exact target path is absent from canonical GitHub branch reos-development and no existing owner performs the required responsibility.",
+    "REPLACE = exact target path already exists and the required responsibility belongs in that existing file.",
+    "NO CHANGE = exact target path already exists and repository evidence shows that changing it is unnecessary.",
+    "Existing route/component/module ownership takes precedence over creating a new duplicate.",
+    "A missing file in a stale local checkout is NOT sufficient evidence for ADD.",
+    "A new feature layer does NOT automatically justify changes to a completed previous layer.",
+    "A previous layer may be changed only when a verified dependency, integration requirement or regression requires it.",
+)
+
+
+# ---------------------------------------------------------------------------
+# EXECUTION / IMPLEMENTATION WORKFLOW
 # ---------------------------------------------------------------------------
 
 EXECUTION_WORKFLOW: tuple[str, ...] = (
-    "1. Discover canonical state from REOS_CONTROL_CENTER/data/state.json.",
-    "2. Resolve the authoritative current gate/task/subtask through REOS Control Center.",
-    "3. Resolve architecture and dependency ownership before changing code.",
-    "4. Obtain execution authorization through existing ACRL T18.",
-    "5. Verify the proposed repair/patch through existing ACRL T20.",
-    "6. Execute the authorized local change through PowerShell.",
-    "7. Verify the changed working tree and focused tests locally.",
-    "8. Coordinate Git mutation through existing ACRL T21.",
-    "9. Create/verify the immutable execution checkpoint through T22 when required.",
-    "10. Resolve execution evidence through T23.",
-    "11. Preserve/recover continuity through T24 when required.",
-    "12. Update canonical project state only through the existing REOS Control Center workflow.",
-    "13. Never report PASS without independent verification evidence.",
+    "1. Discover canonical project state from REOS_CONTROL_CENTER/data/state.json.",
+    "2. Verify the active branch and canonical GitHub repository reference.",
+    "3. Inspect the exact requested target paths on canonical GitHub.",
+    "4. Inspect existing related routes, components, modules and verifiers.",
+    "5. Determine responsibility ownership before creating anything new.",
+    "6. Classify every requested file as ADD, REPLACE or NO CHANGE.",
+    "7. Resolve architecture and dependency ownership before implementation.",
+    "8. Apply applicable ACRL authorization and repair-verification boundaries.",
+    "9. Prepare exact implementation instructions for the non-developer owner.",
+    "10. Save implementation changes manually on canonical GitHub branch reos-development.",
+    "11. Independently verify the remote branch and changed files after the manual GitHub save.",
+    "12. Use local PowerShell only for read-only verification and diagnosis.",
+    "13. Run focused verification for the changed scope.",
+    "14. Run relevant regression verification before declaring success.",
+    "15. Resolve evidence through T23 when evidence is missing, stale or conflicting.",
+    "16. Preserve checkpoint / continuity information through the applicable ACRL boundary.",
+    "17. Update canonical project state only through the existing REOS Control Center workflow.",
+    "18. Never report PASS without independent verification evidence.",
 )
+
+
 # ---------------------------------------------------------------------------
 # REQUIRED NEW-SESSION WORKFLOW
 # ---------------------------------------------------------------------------
@@ -314,17 +423,21 @@ NEW_SESSION_WORKFLOW: tuple[str, ...] = (
     "2. Read this entrypoint.",
     "3. Discover the existing ACRL T07 New Chat Bootstrap.",
     "4. Reconstruct current project state from REOS_CONTROL_CENTER.",
-    "5. Inspect the current gate, task and subtask from canonical state.",
-    "6. Inspect relevant architecture and dependency authority.",
-    "7. Inspect the actual local repository tree before assuming files exist.",
-    "8. Inspect relevant implementation and existing tests.",
-    "9. Determine the smallest valid change.",
-    "10. Execute only through the existing REOS-controlled workflow.",
-    "11. Verify the changed scope.",
-    "12. Run relevant regression tests.",
-    "13. Update project state only through the existing Control Center workflow.",
-    "14. Preserve checkpoint / continuity information when required.",
-    "15. Report evidence, result and next controlled step.",
+    "5. Verify canonical GitHub branch reos-development.",
+    "6. Inspect the active gate, task and subtask from canonical state.",
+    "7. Inspect relevant architecture and dependency authority.",
+    "8. Inspect the exact canonical GitHub paths relevant to the active work.",
+    "9. Inspect existing routes, modules, components and tests before proposing additions.",
+    "10. Classify required file actions as ADD, REPLACE or NO CHANGE.",
+    "11. Do not infer missing files from a stale local workspace.",
+    "12. Determine the smallest valid architecture-consistent change.",
+    "13. Prepare exact GitHub manual-save instructions for the owner.",
+    "14. Verify the remote GitHub result.",
+    "15. Use PowerShell only for verification or diagnosis.",
+    "16. Run relevant regression tests.",
+    "17. Update project state only through the existing Control Center workflow.",
+    "18. Preserve checkpoint / continuity information when required.",
+    "19. Report evidence, result and next controlled step.",
 )
 
 
@@ -333,10 +446,22 @@ NEW_SESSION_WORKFLOW: tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 
 SOURCE_OF_TRUTH: dict[str, str] = {
-    "project_state": "REOS_CONTROL_CENTER/data/state.json",
-    "code_and_history": "Git repository",
-    "current_execution_evidence": "Local PowerShell",
-    "continuity": "AUTONOMY_ENGINE/continuity/acrl",
+    "project_state": (
+        "REOS_CONTROL_CENTER/data/state.json"
+    ),
+    "code_and_history": (
+        "GitHub repository branch reos-development"
+    ),
+    "implementation_write_interface": (
+        "Manual GitHub file save on branch reos-development"
+    ),
+    "current_execution_evidence": (
+        "Local PowerShell verification and diagnosis"
+    ),
+    "ps_output": "Evidence only",
+    "continuity": (
+        "AUTONOMY_ENGINE/continuity/acrl"
+    ),
     "new_session_bootstrap": (
         "AUTONOMY_ENGINE/continuity/acrl/"
         "T07_New_Chat_Bootstrap/new_chat_bootstrap.py"
@@ -373,10 +498,6 @@ SOURCE_OF_TRUTH: dict[str, str] = {
         "AUTONOMY_ENGINE/continuity/acrl/"
         "T24_Cross_Chat_Continuity_Recovery_Engine"
     ),
-
-
-
-
     "chat_history": "NON_AUTHORITATIVE",
 }
 
@@ -387,13 +508,19 @@ SOURCE_OF_TRUTH: dict[str, str] = {
 
 NON_DEVELOPER_OWNER_CONTRACT: tuple[str, ...] = (
     "The project owner is not required to write or debug implementation code manually.",
-    "The AI must provide exact repository paths for every requested file change.",
+    "The AI must inspect the canonical GitHub branch before instructing the owner to change a file.",
+    "The AI must classify every requested file as ADD, REPLACE or NO CHANGE.",
+    "The AI must provide the exact repository path for every requested file change.",
+    "The AI must clearly state ADD, REPLACE or NO CHANGE for every requested file.",
+    "The AI must provide an exact anchor, section or location when a targeted change is appropriate.",
     "The AI must provide complete replacement content when a full file replacement is required.",
-    "The AI must provide exact PowerShell commands for file creation or replacement.",
+    "The AI must not require the owner to construct code from inferred patches.",
+    "The AI must not provide PowerShell commands for project code creation or replacement.",
+    "The AI must reserve PowerShell instructions for read-only verification and diagnosis.",
     "The AI must avoid asking the owner to perform unnecessary manual code editing.",
-    "The AI must verify before instructing the owner to replace a file.",
-    "The AI must never hide a structural uncertainty behind a generic recommendation.",
-    "If the repository evidence is insufficient, the AI must request targeted evidence rather than guess.",
+    "The AI must verify the repository state before instructing the owner to replace a file.",
+    "The AI must never hide structural uncertainty behind a generic recommendation.",
+    "If repository evidence is insufficient, the AI must request targeted evidence rather than guess.",
 )
 
 
@@ -402,10 +529,17 @@ NON_DEVELOPER_OWNER_CONTRACT: tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 
 CHANGE_DECISION_RULES: tuple[str, ...] = (
-    "FIRST: determine whether an existing module already owns the required responsibility.",
-    "SECOND: determine whether the existing module can be minimally extended.",
-    "THIRD: add a new module only when no existing owner exists and architecture permits it.",
+    "FIRST: inspect the current canonical GitHub repository state.",
+    "SECOND: determine whether an existing file, route, component or module already owns the required responsibility.",
+    "THIRD: classify the requested action as ADD, REPLACE or NO CHANGE.",
+    "FOURTH: determine whether the existing owner can be minimally extended.",
+    "FIFTH: add a new file or module only when no existing owner exists and architecture permits it.",
+    "SIXTH: verify the change against completed-layer boundaries before implementation.",
     "NEVER: create a duplicate module merely because discovery is inconvenient.",
+    "NEVER: create a duplicate route when an existing route owns the experience.",
+    "NEVER: create a duplicate component when an existing component owns the responsibility.",
+    "NEVER: treat a stale local checkout as proof that a file is missing.",
+    "NEVER: reopen a completed layer without repository evidence.",
     "NEVER: create a parallel source of truth.",
     "NEVER: create a parallel execution path.",
 )
@@ -416,14 +550,18 @@ CHANGE_DECISION_RULES: tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 
 FAILURE_RULES: tuple[str, ...] = (
-    "If repository state is unclear, reconstruct it before editing.",
+    "If canonical repository state is unclear, reconstruct it before editing.",
+    "If the exact target path has not been checked on canonical GitHub, do not classify it as ADD.",
     "If architecture authority is unclear, stop before architectural change.",
-    "If local and remote repository evidence differs, verify locally.",
+    "If local and remote repository evidence differs, treat canonical GitHub state as implementation authority and use local PowerShell only to diagnose the difference.",
+    "If a file exists remotely but not locally, do not recreate it merely to repair the local checkout.",
     "If tests fail, diagnose the actual failure before patching.",
     "If an existing implementation is approved and green, do not redesign it without evidence.",
     "If a proposed change creates duplicate responsibility, reject the change.",
-    "If execution authority is unavailable, fail closed.",
+    "If a proposed change unnecessarily reopens a completed layer, reject the change.",
+    "If execution authority is unavailable for a change that requires it, fail closed.",
     "If project state cannot be safely reconstructed, do not manufacture state.",
+    "If a remote manual GitHub save cannot be independently verified, do not report PASS.",
 )
 
 
@@ -435,23 +573,31 @@ def repository_paths() -> dict[str, str]:
     """Return important repository paths without reading or mutating state."""
 
     return {
-        "control_center": str(CONTROL_CENTER_PATH),
+        "control_center": str(
+            CONTROL_CENTER_PATH
+        ),
         "state": str(STATE_PATH),
-        "autonomy_engine": str(AUTONOMY_ENGINE_PATH),
+        "autonomy_engine": str(
+            AUTONOMY_ENGINE_PATH
+        ),
         "acrl": str(ACRL_PATH),
         "t07": str(ACRL_ENTRYPOINT),
         "t14": str(ACRL_REPOSITORY_CONTEXT),
         "t15": str(ACRL_OPERATOR_AUTONOMY),
         "t18": str(ACRL_EXECUTION_AUTHORIZATION),
         "t20": str(ACRL_REPAIR_VERIFICATION),
-        "t21": str(ACRL_GIT_REPOSITORY_COORDINATION),
-        "t22": str(ACRL_COMMIT_CHECKPOINT_COORDINATION),
-        "t23": str(ACRL_EVIDENCE_RESOLUTION),
-        "t24": str(ACRL_CONTINUITY_RECOVERY),
-
-
-
-
+        "t21": str(
+            ACRL_GIT_REPOSITORY_COORDINATION
+        ),
+        "t22": str(
+            ACRL_COMMIT_CHECKPOINT_COORDINATION
+        ),
+        "t23": str(
+            ACRL_EVIDENCE_RESOLUTION
+        ),
+        "t24": str(
+            ACRL_CONTINUITY_RECOVERY
+        ),
     }
 
 
@@ -478,22 +624,54 @@ def startup_instructions() -> dict[str, Any]:
     return {
         "entrypoint": "AI_AGENT_ENTRYPOINT.py",
         "project": operating_contract.project,
-        "project_description": operating_contract.project_description,
+        "project_description": (
+            operating_contract.project_description
+        ),
         "authority": operating_contract.control_authority,
         "continuity": operating_contract.continuity_system,
-        "chat_history_authority": operating_contract.chat_history_authority,
+        "chat_history_authority": (
+            operating_contract.chat_history_authority
+        ),
+        "canonical_code_source": CANONICAL_CODE_SOURCE,
+        "implementation_write_interface": (
+            IMPLEMENTATION_WRITE_INTERFACE
+        ),
+        "powershell_verification_only": (
+            POWERSHELL_IS_VERIFICATION_ONLY
+        ),
+        "powershell_write_allowed": (
+            POWERSHELL_WRITE_ALLOWED
+        ),
         "source_of_truth": dict(SOURCE_OF_TRUTH),
         "paths": repository_paths(),
-        "operating_rules": list(AI_OPERATING_RULES),
-        "repository_preflight_rules": list(REPOSITORY_PREFLIGHT_RULES),
+        "operating_rules": list(
+            AI_OPERATING_RULES
+        ),
+        "development_workflow_rules": list(
+            DEVELOPMENT_WORKFLOW_RULES
+        ),
+        "file_change_classification": list(
+            FILE_CHANGE_CLASSIFICATION
+        ),
+        "repository_preflight_rules": list(
+            REPOSITORY_PREFLIGHT_RULES
+        ),
         "git_preflight": git_preflight(),
-        "new_session_workflow": list(NEW_SESSION_WORKFLOW),
-        "execution_workflow": list(EXECUTION_WORKFLOW),
-        "change_decision_rules": list(CHANGE_DECISION_RULES),
+        "new_session_workflow": list(
+            NEW_SESSION_WORKFLOW
+        ),
+        "execution_workflow": list(
+            EXECUTION_WORKFLOW
+        ),
+        "change_decision_rules": list(
+            CHANGE_DECISION_RULES
+        ),
         "remote_git_synchronization_rules": list(
             REMOTE_GIT_SYNCHRONIZATION_RULES
         ),
-        "failure_rules": list(FAILURE_RULES),
+        "failure_rules": list(
+            FAILURE_RULES
+        ),
         "non_developer_owner_contract": list(
             NON_DEVELOPER_OWNER_CONTRACT
         ),
@@ -501,7 +679,9 @@ def startup_instructions() -> dict[str, Any]:
 
 
 def _run_git(*args: str) -> tuple[int, str, str]:
-    """Run a read-only Git command from the canonical Control Center."""
+    """
+    Run a read-only Git command from the canonical Control Center.
+    """
 
     import subprocess
 
@@ -531,19 +711,30 @@ def _normalize_origin(value: str) -> str:
     origin = value.strip()
 
     if origin.startswith("git@github.com:"):
-        origin = "https://github.com/" + origin.split(":", 1)[1]
+        origin = (
+            "https://github.com/"
+            + origin.split(":", 1)[1]
+        )
 
     elif origin.startswith("ssh://git@github.com/"):
         origin = (
             "https://github.com/"
-            + origin.split("ssh://git@github.com/", 1)[1]
+            + origin.split(
+                "ssh://git@github.com/",
+                1,
+            )[1]
         )
 
     if origin.startswith("https://"):
         parsed = urlsplit(origin)
+        hostname = (
+            parsed.hostname.lower()
+            if parsed.hostname
+            else ""
+        )
         origin = (
             "https://"
-            + parsed.hostname.lower()
+            + hostname
             + parsed.path
         )
 
@@ -558,7 +749,7 @@ def git_preflight() -> dict[str, Any]:
     Return a read-only local repository identity/preflight report.
 
     Git synchronization, transaction, commit and remote verification
-    remain owned exclusively by ACRL T21.
+    remain owned by the applicable repository workflow boundaries.
     """
 
     result: dict[str, Any] = {
@@ -626,14 +817,18 @@ def git_preflight() -> dict[str, Any]:
 
     result["origin"] = origin
 
+    normalized_origin = _normalize_origin(
+        origin
+    )
+
+    normalized_expected_origin = _normalize_origin(
+        EXPECTED_ORIGIN
+    )
+
     result["origin_ok"] = (
         code == 0
-        and (
-            origin.rstrip("/").removesuffix(".git").lower()
-            == EXPECTED_ORIGIN.rstrip(
-                "/"
-            ).removesuffix(".git").lower()
-        )
+        and normalized_origin
+        == normalized_expected_origin
     )
 
     code, local_head, _ = _run_git(
@@ -668,7 +863,10 @@ def git_preflight() -> dict[str, Any]:
 
 
 def validate_entrypoint() -> bool:
-    """Return True only when structural and repository preflight is clean."""
+    """
+    Return True only when structural and local read-only
+    repository preflight is clean.
+    """
 
     if not CONTROL_CENTER_PATH.is_dir():
         return False
@@ -685,7 +883,9 @@ def validate_entrypoint() -> bool:
     if not ACRL_ENTRYPOINT.is_file():
         return False
 
-    return bool(git_preflight()["ready"])
+    return bool(
+        git_preflight()["ready"]
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -696,46 +896,143 @@ def print_startup_context() -> None:
     """Print a compact new-AI startup contract."""
 
     print("=" * 72)
-    print("HOMIO / REOS ΓÇö AI AGENT ENTRYPOINT")
+    print("HOMIO / REOS — AI AGENT ENTRYPOINT")
     print("=" * 72)
+
     print(f"PROJECT        : {PROJECT_NAME}")
-    print(f"AUTHORITY      : {CONTROL_CENTER_NAME}")
+    print(
+        f"AUTHORITY      : {CONTROL_CENTER_NAME}"
+    )
     print("CONTINUITY     : ACRL")
     print("CHAT HISTORY   : NON-AUTHORITATIVE")
-    print("STATE          : REOS_CONTROL_CENTER/data/state.json")
-    print("CODE           : Git repository")
-    print("VERIFICATION   : Local PowerShell")
-    print(f"WORKSPACE      : {CANONICAL_LOCAL_WORKSPACE}")
-    print(f"CONTROL CENTER : {CANONICAL_CONTROL_CENTER}")
-    print(f"BRANCH         : {EXPECTED_BRANCH}")
-    print(f"REPOSITORY     : {REPOSITORY_FULL_NAME}")
+    print(
+        "STATE          : "
+        "REOS_CONTROL_CENTER/data/state.json"
+    )
+    print(
+        "CODE SOURCE    : "
+        "GitHub / reos-development"
+    )
+    print(
+        "WRITE METHOD   : "
+        "Manual GitHub file save"
+    )
+    print(
+        "POWERSHELL     : "
+        "Verification / diagnosis only"
+    )
+    print(
+        f"WORKSPACE      : "
+        f"{CANONICAL_LOCAL_WORKSPACE}"
+    )
+    print(
+        f"CONTROL CENTER : "
+        f"{CANONICAL_CONTROL_CENTER}"
+    )
+    print(
+        f"BRANCH         : "
+        f"{EXPECTED_BRANCH}"
+    )
+    print(
+        f"REPOSITORY     : "
+        f"{REPOSITORY_FULL_NAME}"
+    )
 
     preflight = git_preflight()
 
-    print(f"CWD CHECK      : {preflight['cwd_ok']}")
-    print(f"BRANCH CHECK   : {preflight['branch_ok']}")
-    print(f"ORIGIN CHECK   : {preflight['origin_ok']}")
+    print(
+        f"CWD CHECK      : "
+        f"{preflight['cwd_ok']}"
+    )
+    print(
+        f"BRANCH CHECK   : "
+        f"{preflight['branch_ok']}"
+    )
+    print(
+        f"ORIGIN CHECK   : "
+        f"{preflight['origin_ok']}"
+    )
     print(
         f"T21 AUTHORITY  : "
         f"{preflight['t21_authority_ok']}"
     )
-    print("T07            : New Chat Bootstrap")
-    print("T14            : Repository Intelligence Context")
-    print("T15            : AI Operator Autonomy")
-    print("T18            : Safe Execution Authorization")
-    print("T20            : Repair / Patch Verification")
-    print("T21            : Git Repository Coordination")
-    print("T22            : Commit Execution Checkpoint")
-    print("T23            : Evidence Resolution")
-    print("T24            : Continuity Recovery")
+
+    print(
+        "T07            : New Chat Bootstrap"
+    )
+    print(
+        "T14            : Repository Intelligence Context"
+    )
+    print(
+        "T15            : AI Operator Autonomy"
+    )
+    print(
+        "T18            : Safe Execution Authorization"
+    )
+    print(
+        "T20            : Repair / Patch Verification"
+    )
+    print(
+        "T21            : Git Repository Coordination"
+    )
+    print(
+        "T22            : Commit Execution Checkpoint"
+    )
+    print(
+        "T23            : Evidence Resolution"
+    )
+    print(
+        "T24            : Continuity Recovery"
+    )
+
     print("-" * 72)
-    print("RULE           : DISCOVER BEFORE MODIFY")
-    print("RULE           : NO DUPLICATE ENGINES")
-    print("RULE           : NO DUPLICATE STATE")
-    print("RULE           : NO BLIND PATCHING")
-    print("RULE           : FAIL CLOSED ON UNCERTAINTY")
+
+    print(
+        "RULE           : "
+        "AUDIT BEFORE MODIFY"
+    )
+    print(
+        "RULE           : "
+        "ADD / REPLACE / NO CHANGE"
+    )
+    print(
+        "RULE           : "
+        "CANONICAL GITHUB STATE FIRST"
+    )
+    print(
+        "RULE           : "
+        "NO DUPLICATE FILES"
+    )
+    print(
+        "RULE           : "
+        "NO DUPLICATE ROUTES"
+    )
+    print(
+        "RULE           : "
+        "NO DUPLICATE ENGINES"
+    )
+    print(
+        "RULE           : "
+        "NO BLIND PATCHING"
+    )
+    print(
+        "RULE           : "
+        "POWERSHELL WRITE = FORBIDDEN"
+    )
+    print(
+        "RULE           : "
+        "FAIL CLOSED ON UNCERTAINTY"
+    )
+
     print("-" * 72)
-    print("STATUS         :", "READY" if validate_entrypoint() else "VERIFY")
+
+    print(
+        "STATUS         :",
+        "READY"
+        if validate_entrypoint()
+        else "VERIFY",
+    )
+
     print("=" * 72)
 
 
