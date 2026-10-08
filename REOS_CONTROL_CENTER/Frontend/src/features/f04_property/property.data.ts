@@ -25,6 +25,7 @@ export const PROPERTY_PREVIEW: PropertyRecord = {
   parking: "2 covered",
   furnishing: "Semi-furnished",
   possession: "Ready now",
+  projectId: "homio-kalyani-residences-001",
   projectName: "HOMIO Kalyani Residences",
   builderName: "Experience preview",
   description:
