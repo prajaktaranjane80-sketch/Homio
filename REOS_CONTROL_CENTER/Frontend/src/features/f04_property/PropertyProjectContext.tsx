@@ -1,4 +1,7 @@
+import Link from "next/link";
+
 import type { PropertyRecord } from "./property.types";
+
 import styles from "./PropertyProjectContext.module.css";
 
 type PropertyProjectContextProps = Readonly<{
@@ -16,23 +19,35 @@ export default function PropertyProjectContext({
     <section className={styles.section}>
       <div className={styles.header}>
         <div>
-          <span className={styles.eyebrow}>PROJECT CONTEXT</span>
+          <span className={styles.eyebrow}>
+            PROJECT CONTEXT
+          </span>
+
           <h2>{property.projectName}</h2>
+
           <p>
             Understand the wider project around this individual property.
           </p>
         </div>
 
-        <button type="button" className={styles.linkButton}>
-          View project
-          <span aria-hidden="true">→</span>
-        </button>
+        {property.projectId ? (
+          <Link
+            href={`/project/${property.projectId}`}
+            className={styles.linkButton}
+          >
+            View project
+            <span aria-hidden="true">→</span>
+          </Link>
+        ) : null}
       </div>
 
       <div className={styles.grid}>
         <div>
           <span>Builder / partner</span>
-          <strong>{property.builderName ?? "Authorized project partner"}</strong>
+          <strong>
+            {property.builderName ??
+              "Authorized project partner"}
+          </strong>
         </div>
 
         <div>
