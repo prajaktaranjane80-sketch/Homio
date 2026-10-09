@@ -1,15 +1,35 @@
-PS D:\Homio\REOS_CONTROL_CENTER> Get-Location
-
-Path
-----
-D:\Homio\REOS_CONTROL_CENTER
-
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Test-Path ".\architecture\governance\test_architecture_integrity.py"
-False
-PS D:\Homio\REOS_CONTROL_CENTER> Test-Path ".\REOS_CONTROL_CENTER\architecture\governance\test_architecture_integrity.py"
-False
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> Get-ChildItem -Path . -Filter "test_architecture_integrity.py" -File -Recurse -ErrorAction SilentlyContinue |
 >>     Select-Object -ExpandProperty FullName
+PS D:\Homio\REOS_CONTROL_CENTER> git rev-parse --show-toplevel
+D:/Homio
+PS D:\Homio\REOS_CONTROL_CENTER> git branch --show-current
+reos-development
+PS D:\Homio\REOS_CONTROL_CENTER> git ls-files "*test_architecture_integrity.py"
+PS D:\Homio\REOS_CONTROL_CENTER> git status --short
+ M AUTONOMY_ENGINE/core/__init__.py
+ M AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
+ M AUTONOMY_ENGINE/core/contract_primitives.py
+ M AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
+ M data/state.json
+?? AUTONOMY_ENGINE/core/test_closure_c2_c3.py
+?? Frontend/.next/
+?? Frontend/eslint.config.mjs
+?? Frontend/next-env.d.ts
+?? Frontend/next.config.ts
+?? Frontend/node_modules/
+?? Frontend/package-lock.json
+?? Frontend/package.json
+?? Frontend/scripts/
+?? Frontend/src/
+?? Frontend/tsconfig.json
+?? Frontend/tsconfig.tsbuildinfo
+?? package-lock.json
+?? snapshots/state_20261002_210705_675096.json
+?? snapshots/state_20261002_210705_920438.json
+?? snapshots/state_20261002_210706_186837.json
+?? snapshots/state_20261002_210706_460015.json
+?? snapshots/state_20261002_210706_697927.json
+?? snapshots/state_20261002_210706_990397.json
+?? snapshots/state_20261002_210707_222976.json
+PS D:\Homio\REOS_CONTROL_CENTER>
