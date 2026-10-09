@@ -192,8 +192,8 @@ export default function SearchShell() {
   const filteredResults = useMemo(() => {
     let results = [...SAMPLE_RESULTS];
 
-    // The current fixtures only model buy-property examples.
-    // Never relabel them as rental, commercial or land inventory.
+    // These fixtures model buy-property examples only.
+    // Do not present them as rental, commercial or land inventory.
     if (state.intent !== "buy") {
       return [];
     }
@@ -256,7 +256,8 @@ export default function SearchShell() {
       results.sort((a, b) => areaValue(b.area) - areaValue(a.area));
     }
 
-    // Fixtures have no trustworthy timestamps, so "Newest" keeps source order.
+    // No trustworthy publication timestamps exist in these fixtures.
+    // "Newest" therefore preserves source order instead of inventing dates.
     return results;
   }, [state]);
 
@@ -310,18 +311,6 @@ export default function SearchShell() {
       ...current,
       viewMode: nextView,
     }));
-  }
-
-  function changePage(nextPage: number) {
-    setState((current) => ({
-      ...current,
-      page: Math.max(1, Math.min(nextPage, totalPages)),
-    }));
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
   }
 
   return (
