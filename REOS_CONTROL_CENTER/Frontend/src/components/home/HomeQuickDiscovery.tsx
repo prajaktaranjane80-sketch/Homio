@@ -1,26 +1,27 @@
 import Link from "next/link";
+
 import styles from "./HomeQuickDiscovery.module.css";
 
 const discoveries = [
   {
-    title: "Luxury Homes",
-    description: "Discover premium residences in global destinations.",
-    href: "/search?collection=luxury",
+    title: "Premium Homes",
+    description: "Explore premium residences in the current preview inventory.",
+    href: "/search?q=premium",
   },
   {
     title: "New Projects",
-    description: "Explore upcoming and newly launched developments.",
+    description: "Explore project-oriented property discovery.",
     href: "/search?intent=projects",
   },
   {
     title: "Commercial",
-    description: "Office, retail, hospitality and investment opportunities.",
+    description: "Open the commercial property search context.",
     href: "/search?intent=commercial",
   },
   {
-    title: "Verified",
-    description: "Browse inventory with stronger trust signals.",
-    href: "/search?filter=verified",
+    title: "Ready to Move",
+    description: "Explore preview properties marked ready to move.",
+    href: "/search?status=Ready%20to%20move",
   },
 ];
 
@@ -42,7 +43,11 @@ export default function HomeQuickDiscovery() {
 
         <div className={styles.grid}>
           {discoveries.map((item) => (
-            <Link key={item.title} href={item.href} className={styles.card}>
+            <Link
+              key={item.title}
+              href={item.href}
+              className={styles.card}
+            >
               <span className={styles.arrow} aria-hidden="true">
                 ↗
               </span>
