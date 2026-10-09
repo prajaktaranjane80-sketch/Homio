@@ -1,158 +1,18 @@
-PS D:\Homio\REOS_CONTROL_CENTER> if (!(Test-Path (Join-Path $frontend "package.json"))) {
->>     throw "Safety stop: expected Frontend folder nahi mila. Kuch delete nahi hua."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $branch = (& git -C $frontend branch --show-current).Trim()
-PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0 -or $branch -ne "reos-development") {
->>     throw "Safety stop: current branch '$branch' hai, reos-development nahi. Kuch delete nahi hua."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $paths = @(
->>     "src/components/home/AIConversationPreview.tsx",
->>     "src/components/home/AIConversationPreview.module.css",
->>     "src/components/home/AIIntro.tsx",
->>     "src/components/home/AIIntro.module.css",
->>     "src/components/home/BrokerageJourney.tsx",
->>     "src/components/home/BrokerageJourney.module.css",
->>     "src/components/home/BrokerageTrustNote.tsx",
->>     "src/components/home/BrokerageTrustNote.module.css",
->>     "src/components/home/BuilderDiscoveryPanel.tsx",
->>     "src/components/home/BuilderDiscoveryPanel.module.css",
->>     "src/components/home/BuilderPartnerCTA.tsx",
->>     "src/components/home/BuilderPartnerCTA.module.css",
->>     "src/components/home/ComparePreview.tsx",
->>     "src/components/home/ComparePreview.module.css",
->>     "src/components/home/SaveCompareCTA.tsx",
->>     "src/components/home/SaveCompareCTA.module.css",
->>     "src/components/home/SavedPreviewCard.tsx",
->>     "src/components/home/SavedPreviewCard.module.css",
->>     "src/components/home/PropertySubmissionBenefits.tsx",
->>     "src/components/home/PropertySubmissionBenefits.module.css",
->>     "src/components/home/PropertySubmissionCTA.module.css"
->> )
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> git -C $frontend fetch origin reos-development
-remote: Enumerating objects: 587, done.
-remote: Counting objects: 100% (413/413), done.
-remote: Compressing objects: 100% (255/255), done.
-remote: Total 587 (delta 314), reused 155 (delta 155), pack-reused 174 (from 1)
-Receiving objects: 100% (587/587), 119.47 KiB | 9.19 MiB/s, done.
-Resolving deltas: 100% (411/411), completed with 5 local objects.
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch            reos-development -> FETCH_HEAD
-   74b55b0..3776681  reos-development -> origin/reos-development
-PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) { throw "Fetch fail hua. Koi deletion nahi ki." }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $localSha = (& git -C $frontend rev-parse HEAD).Trim()
-PS D:\Homio\REOS_CONTROL_CENTER> $remoteSha = (& git -C $frontend rev-parse origin/reos-development).Trim()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($localSha -ne $remoteSha) {
->>     throw "Safety stop: local branch GitHub se match nahi karti. Koi deletion nahi ki."
->> }
-Safety stop: local branch GitHub se match nahi karti. Koi deletion nahi ki.
-At line:2 char:5
-+     throw "Safety stop: local branch GitHub se match nahi karti. Koi  ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Safety stop: lo...letion nahi ki.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Safety stop: local branch GitHub se match nahi karti. Koi deletion nahi ki.
+remote: Enumerating objects: 13471, done.
+remote: Counting objects: 100% (321/321), done.
+remote: Compressing objects: 100% (310/310), done.
+remote: Total 13471 (delta 192), reused 8 (delta 8), pack-reused 13150 (from 2)
+Receiving objects: 100% (13471/13471), 5.54 MiB | 5.90 MiB/s, done.
+Resolving deltas: 100% (8469/8469), done.
+error: invalid path 'Project: HOMIO'
+fatal: unable to checkout working tree
+warning: Clone succeeded, but checkout failed.
+You can inspect what was checked out with 'git status'
+and retry with 'git restore --source=HEAD :/'
 
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> git -C $frontend diff --cached --quiet
-PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "Safety stop: pehle se staged changes hain. Koi deletion nahi ki."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $changedTargets = @(& git -C $frontend status --porcelain -- $paths)
-PS D:\Homio\REOS_CONTROL_CENTER> if ($changedTargets.Count -gt 0) {
->>     $changedTargets
->>     throw "Safety stop: target files mein local changes hain. Koi deletion nahi ki."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($path in $paths) {
->>     git -C $frontend ls-files --error-unmatch -- $path *> $null
->>     if ($LASTEXITCODE -ne 0) {
->>         throw "Safety stop: tracked file verify nahi hui: $path. Koi deletion nahi ki."
->>     }
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> git -C $frontend rm -- $paths
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/AIConversationPreview.module.css'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/AIConversationPreview.tsx'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/AIIntro.module.css'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/AIIntro.tsx'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/BrokerageJourney.module.css'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/BrokerageJourney.tsx'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/BrokerageTrustNote.module.css'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/BrokerageTrustNote.tsx'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/BuilderDiscoveryPanel.module.css'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/BuilderDiscoveryPanel.tsx'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/BuilderPartnerCTA.module.css'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/BuilderPartnerCTA.tsx'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/ComparePreview.module.css'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/ComparePreview.tsx'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/PropertySubmissionBenefits.module.css'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/PropertySubmissionBenefits.tsx'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/PropertySubmissionCTA.module.css'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/SaveCompareCTA.module.css'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/SaveCompareCTA.tsx'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/SavedPreviewCard.module.css'
-rm 'REOS_CONTROL_CENTER/Frontend/src/components/home/SavedPreviewCard.tsx'
-PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) { throw "git rm fail hua. Output check karo." }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> git -C $frontend commit -m "chore(frontend): remove obsolete homepage prototype duplicates"
-[reos-development 9b1c966] chore(frontend): remove obsolete homepage prototype duplicates
- 21 files changed, 1037 deletions(-)
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/AIConversationPreview.module.css
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/AIConversationPreview.tsx
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/AIIntro.module.css
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/AIIntro.tsx
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/BrokerageJourney.module.css
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/BrokerageJourney.tsx
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/BrokerageTrustNote.module.css
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/BrokerageTrustNote.tsx
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/BuilderDiscoveryPanel.module.css
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/BuilderDiscoveryPanel.tsx
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/BuilderPartnerCTA.module.css
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/BuilderPartnerCTA.tsx
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/ComparePreview.module.css
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/ComparePreview.tsx
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/PropertySubmissionBenefits.module.css
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/PropertySubmissionBenefits.tsx
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/PropertySubmissionCTA.module.css
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/SaveCompareCTA.module.css
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/SaveCompareCTA.tsx
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/SavedPreviewCard.module.css
- delete mode 100644 REOS_CONTROL_CENTER/Frontend/src/components/home/SavedPreviewCard.tsx
-PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "Commit complete nahi hua. Changes staged ho sakte hain; output bhejo."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> git -C $frontend push origin reos-development
-To https://github.com/prajaktaranjane80-sketch/Homio
- ! [rejected]        reos-development -> reos-development (non-fast-forward)
-error: failed to push some refs to 'https://github.com/prajaktaranjane80-sketch/Homio'
-hint: Updates were rejected because the tip of your current branch is behind
-hint: its remote counterpart. If you want to integrate the remote changes,
-hint: use 'git pull' before pushing again.
-hint: See the 'Note about fast-forwards' in 'git push --help' for details.
-PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "Push fail hua. Force-push mat karna; output bhejo."
->> }
-Push fail hua. Force-push mat karna; output bhejo.
-At line:2 char:5
-+     throw "Push fail hua. Force-push mat karna; output bhejo."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Push fail hua. ...; output bhejo.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Push fail hua. Force-push mat karna; output bhejo.
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`nSUCCESS: 21 reviewed prototype files deleted and pushed to reos-development."
-
-SUCCESS: 21 reviewed prototype files deleted and pushed to reos-development.
-PS D:\Homio\REOS_CONTROL_CENTER> git -C $frontend status --short
- D "../../Project: HOMIO"
- M package.json
- M src/features/f01_experience_foundation/README.md
- M tsconfig.json
-?? ../../Project
-?? package-lock.json
+Clone fail hua. Aage koi deletion nahi ki.
+At line:13 char:9
++         throw "Clone fail hua. Aage koi deletion nahi ki."
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Clone fail hua....letion nahi ki.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Clone fail hua. Aage koi deletion nahi ki.
