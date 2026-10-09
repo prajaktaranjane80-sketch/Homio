@@ -1,23 +1,212 @@
-remote: Enumerating objects: 7, done.
-remote: Counting objects: 100% (7/7), done.
-remote: Compressing objects: 100% (4/4), done.
-remote: Total 4 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (4/4), 1.48 KiB | 60.00 KiB/s, done.
-From https://github.com/prajaktaranjane80-sketch/Homio
-   78e0e9d..c08481b  reos-development -> origin/reos-development
-Enumerating objects: 13, done.
-Counting objects: 100% (13/13), done.
-Delta compression using up to 12 threads
-Compressing objects: 100% (7/7), done.
-Writing objects: 100% (7/7), 736 bytes | 368.00 KiB/s, done.
-Total 7 (delta 4), reused 0 (delta 0), pack-reused 0 (from 0)
-remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
-To https://github.com/prajaktaranjane80-sketch/Homio.git
-   c08481b..2fb0514  2fb0514746bbd74da1752288a938500925e7c376 -> reos-development
-From https://github.com/prajaktaranjane80-sketch/Homio
-   c08481b..2fb0514  reos-development -> origin/reos-development
+PS D:\Homio\REOS_CONTROL_CENTER> $SecureToken = Read-Host "GitHub fine-grained token (input hidden)" -AsSecureString
+GitHub fine-grained token (input hidden):
+PS D:\Homio\REOS_CONTROL_CENTER> $Ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecureToken)
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> try {
+>>     $Token = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($Ptr)
+>> }
+>> finally {
+>>     [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($Ptr)
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Headers = @{
+>>     Authorization = "Bearer $Token"
+>>     Accept = "application/vnd.github+json"
+>>     "X-GitHub-Api-Version" = "2022-11-28"
+>>     "User-Agent" = "HOMIO-REOS-Remote-Audit"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> function Invoke-HomioApi {
+>>     param(
+>>         [Parameter(Mandatory)][string]$Method,
+>>         [Parameter(Mandatory)][string]$Endpoint
+>>     )
+>>
+>>     try {
+>>         Invoke-RestMethod `
+>>             -Method $Method `
+>>             -Uri "$script:Base$Endpoint" `
+>>             -Headers $script:Headers `
+>>             -ErrorAction Stop
+>>     }
+>>     catch {
+>>         $Status = "unknown"
+>>         $Message = $_.ErrorDetails.Message
+>>
+>>         if ($_.Exception.Response) {
+>>             $Status = [int]$_.Exception.Response.StatusCode
+>>         }
+>>
+>>         if ([string]::IsNullOrWhiteSpace($Message)) {
+>>             $Message = $_.Exception.Message
+>>         }
+>>
+>>         throw "GitHub API HTTP $Status | $Method $Endpoint | $Message"
+>>     }
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> function Get-HomioRemoteFile {
+>>     param(
+>>         [Parameter(Mandatory)][string]$Path,
+>>         [string]$Ref = $script:Branch
+>>     )
+>>
+>>     $EncodedPath = (
+>>         $Path.Trim("/") -split "/" |
+>>         ForEach-Object { [uri]::EscapeDataString($_) }
+>>     ) -join "/"
+>>
+>>     $EncodedRef = [uri]::EscapeDataString($Ref)
+>>
+>>     Invoke-HomioApi `
+>>         -Method GET `
+>>         -Endpoint "/repos/$script:Owner/$script:Repo/contents/$EncodedPath?ref=$EncodedRef"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== AUTHENTICATED ACCOUNT ===" -ForegroundColor Cyan
 
-VERIFIED: 21 files GitHub reos-development se delete hui.
-REMOTE SHA: 2fb0514746bbd74da1752288a938500925e7c376
-DELETE COMMIT: 2fb0514746bbd74da1752288a938500925e7c376
+=== AUTHENTICATED ACCOUNT ===
+PS D:\Homio\REOS_CONTROL_CENTER> $Me = Invoke-HomioApi GET "/user"
+GitHub API HTTP 401 | GET /user | The remote server returned an error: (401) Unauthorized.
+At line:26 char:9
++         throw "GitHub API HTTP $Status | $Method $Endpoint | $Message ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (GitHub API HTTP...) Unauthorized.:String) [], RuntimeException
+    + FullyQualifiedErrorId : GitHub API HTTP 401 | GET /user | The remote server returned an error: (401) Unauthorized.
+
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Authenticated as: $($Me.login)"
+Authenticated as:
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== REPOSITORY ACCESS ===" -ForegroundColor Cyan
+
+=== REPOSITORY ACCESS ===
+PS D:\Homio\REOS_CONTROL_CENTER> $Repository = Invoke-HomioApi GET "/repos/$Owner/$Repo"
+GitHub API HTTP 401 | GET /repos/prajaktaranjane80-sketch/Homio | The remote server returned an error: (401) Unauthorized.
+At line:26 char:9
++         throw "GitHub API HTTP $Status | $Method $Endpoint | $Message ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (GitHub API HTTP...) Unauthorized.:String) [], RuntimeException
+    + FullyQualifiedErrorId : GitHub API HTTP 401 | GET /repos/prajaktaranjane80-sketch/Homio | The remote server returned an error: (401) Unauthorized.
+
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Repository: $($Repository.full_name)"
+Repository:
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Default branch: $($Repository.default_branch)"
+Default branch:
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Account push permission: $($Repository.permissions.push)"
+Account push permission:
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== CANONICAL BRANCH ===" -ForegroundColor Cyan
+
+=== CANONICAL BRANCH ===
+PS D:\Homio\REOS_CONTROL_CENTER> $Ref = Invoke-HomioApi GET "/repos/$Owner/$Repo/git/ref/heads/$Branch"
+GitHub API HTTP 401 | GET /repos/prajaktaranjane80-sketch/Homio/git/ref/heads/reos-development | The remote server returned an error: (401) Unauthorized.
+At line:26 char:9
++         throw "GitHub API HTTP $Status | $Method $Endpoint | $Message ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (GitHub API HTTP...) Unauthorized.:String) [], RuntimeException
+    + FullyQualifiedErrorId : GitHub API HTTP 401 | GET /repos/prajaktaranjane80-sketch/Homio/git/ref/heads/reos-development | The remote server returned
+   an error: (401) Unauthorized.
+
+PS D:\Homio\REOS_CONTROL_CENTER> $Head = $Ref.object.sha
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch: $Branch"
+Branch: reos-development
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Remote HEAD: $Head"
+Remote HEAD:
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Paths = @(
+>>     "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py",
+>>     "REOS_CONTROL_CENTER/data/state.json",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/authorization_models.py",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/patch_verification.py",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_transaction.py",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/t21.contract.json",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/t22.contract.json",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/t23.contract.json",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T24_Cross_Chat_Continuity_Recovery_Engine/t24.contract.json",
+>>     "REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json"
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== REMOTE FILE AUDIT ===" -ForegroundColor Cyan
+
+=== REMOTE FILE AUDIT ===
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Audit = foreach ($Path in $Paths) {
+>>     try {
+>>         $File = Get-HomioRemoteFile -Path $Path
+>>
+>>         [pscustomobject]@{
+>>             Path   = $Path
+>>             Status = "FOUND"
+>>             SHA    = $File.sha
+>>             Size   = $File.size
+>>         }
+>>     }
+>>     catch {
+>>         [pscustomobject]@{
+>>             Path   = $Path
+>>             Status = $_.Exception.Message
+>>             SHA    = ""
+>>             Size   = ""
+>>         }
+>>     }
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Audit | Format-Table -Wrap -AutoSize
+
+Path                                                                                                               Status
+----                                                                                                               ------
+REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py                                                                         GitHub API HTTP 401 | GET /repos/prajakt
+                                                                                                                   aranjane80-sketch/Homio/contents/=reos-d
+                                                                                                                   evelopment | The remote server returned
+                                                                                                                   an error: (401) Unauthorized.
+REOS_CONTROL_CENTER/data/state.json                                                                                GitHub API HTTP 401 | GET /repos/prajakt
+                                                                                                                   aranjane80-sketch/Homio/contents/=reos-d
+                                                                                                                   evelopment | The remote server returned
+                                                                                                                   an error: (401) Unauthorized.
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/authorization_models.py GitHub API HTTP 401 | GET /repos/prajakt
+                                                                                                                   aranjane80-sketch/Homio/contents/=reos-d
+                                                                                                                   evelopment | The remote server returned
+                                                                                                                   an error: (401) Unauthorized.
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/patch_verification.py GitHub API HTTP 401 | GET /repos/prajakt
+                                                                                                                   aranjane80-sketch/Homio/contents/=reos-d
+                                                                                                                   evelopment | The remote server returned
+                                                                                                                   an error: (401) Unauthorized.
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_transaction.py  GitHub API HTTP 401 | GET /repos/prajakt
+                                                                                                                   aranjane80-sketch/Homio/contents/=reos-d
+                                                                                                                   evelopment | The remote server returned
+                                                                                                                   an error: (401) Unauthorized.
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/t21.contract.json   GitHub API HTTP 401 | GET /repos/prajakt
+                                                                                                                   aranjane80-sketch/Homio/contents/=reos-d
+                                                                                                                   evelopment | The remote server returned
+                                                                                                                   an error: (401) Unauthorized.
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/t22.contract.json GitHub API HTTP 401 | GET /repos/prajakt
+                                                                                                                   aranjane80-sketch/Homio/contents/=reos-d
+                                                                                                                   evelopment | The remote server returned
+                                                                                                                   an error: (401) Unauthorized.
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/t23.contract.json     GitHub API HTTP 401 | GET /repos/prajakt
+                                                                                                                   aranjane80-sketch/Homio/contents/=reos-d
+                                                                                                                   evelopment | The remote server returned
+                                                                                                                   an error: (401) Unauthorized.
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T24_Cross_Chat_Continuity_Recovery_Engine/t24.contract.json    GitHub API HTTP 401 | GET /repos/prajakt
+                                                                                                                   aranjane80-sketch/Homio/contents/=reos-d
+                                                                                                                   evelopment | The remote server returned
+                                                                                                                   an error: (401) Unauthorized.
+REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json                                 GitHub API HTTP 401 | GET /repos/prajakt
+                                                                                                                   aranjane80-sketch/Homio/contents/=reos-d
+                                                                                                                   evelopment | The remote server returned
+                                                                                                                   an error: (401) Unauthorized.
+
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== REMOTE AUDIT COMPLETE ===" -ForegroundColor Green
+
+=== REMOTE AUDIT COMPLETE ===
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "No local repository was read or changed."
+No local repository was read or changed.
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "No remote file was modified and no commit was created."
+No remote file was modified and no commit was created.
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Token = $null
+PS D:\Homio\REOS_CONTROL_CENTER> $SecureToken = $null
+PS D:\Homio\REOS_CONTROL_CENTER> $Headers = $null
 PS D:\Homio\REOS_CONTROL_CENTER>
