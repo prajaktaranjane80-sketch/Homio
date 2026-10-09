@@ -6,10 +6,10 @@ type NavigationItem = {
 };
 
 const primaryItems: NavigationItem[] = [
-  { label: "Buy", href: "/search?q=buy" },
-  { label: "Rent", href: "/search?q=rent" },
-  { label: "Commercial", href: "/search?q=commercial" },
-  { label: "Projects", href: "/project/homio-kalyani-residences-001" },
+  { label: "Buy", href: "/search?intent=buy" },
+  { label: "Rent", href: "/search?intent=rent" },
+  { label: "Commercial", href: "/search?intent=commercial" },
+  { label: "Projects", href: "/search?intent=projects" },
 ];
 
 export function ResponsiveNavigation({
