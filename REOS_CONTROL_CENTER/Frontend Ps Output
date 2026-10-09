@@ -1,47 +1,3 @@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Audit | Format-Table -AutoSize -Wrap
-
-Status  SHA Path
-------  --- ----
-MISSING     REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
-MISSING     REOS_CONTROL_CENTER/data/state.json
-MISSING     REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/authorization_models.py
-MISSING     REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/patch_verification.py
-MISSING     REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_transaction.py
-MISSING     REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_policy.py
-MISSING     REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_scope.py
-MISSING     REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/t21.contract.json
-MISSING     REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/t22.contract.json
-MISSING     REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/t23.contract.json
-MISSING     REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T24_Cross_Chat_Continuity_Recovery_Engine/t24.contract.json
-MISSING     REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
-MISSING     REOS_CONTROL_CENTER/Frontend/src/app/search/page.tsx
-MISSING     REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchResults.tsx
-MISSING     REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchShell.tsx
-
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== FRONTEND ROUTES ===" -ForegroundColor Cyan
-
-=== FRONTEND ROUTES ===
-PS D:\Homio\REOS_CONTROL_CENTER> $Tree.tree |
->>     Where-Object {
->>         $_.path -match '^REOS_CONTROL_CENTER/Frontend/src/app/.*/?page\.(tsx|ts|jsx|js)$' -or
->>         $_.path -match '^REOS_CONTROL_CENTER/Frontend/src/app/page\.(tsx|ts|jsx|js)$'
->>     } |
->>     Select-Object -ExpandProperty path
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== F02 MIGRATION CHECK ===" -ForegroundColor Cyan
-
-=== F02 MIGRATION CHECK ===
-PS D:\Homio\REOS_CONTROL_CENTER> $Tree.tree |
->>     Where-Object {
->>         $_.path -like "REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/*"
->>     } |
->>     Select-Object -ExpandProperty path
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== AUDIT COMPLETE ===" -ForegroundColor Green
-
 === AUDIT COMPLETE ===
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE HEAD VERIFIED: $Head"
 REMOTE HEAD VERIFIED: eaf1eff6356060db7747f73a99b5a34e977f8007
@@ -49,4 +5,140 @@ PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "No local project files were read or
 No local project files were read or changed.
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "No GitHub writes or commits were made."
 No GitHub writes or commits were made.
+PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Repo   = "prajaktaranjane80-sketch/Homio"
+PS D:\Homio\REOS_CONTROL_CENTER> $Branch = "reos-development"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 1. Pin the current remote commit
+PS D:\Homio\REOS_CONTROL_CENTER> $Head = gh api "repos/$Repo/git/ref/heads/$Branch" --jq '.object.sha'
+PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($Head)) {
+>>     throw "STOP: Cannot read remote branch HEAD."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE HEAD = $Head"
+REMOTE HEAD = 7e0a6e3332cfde85312dd364b63feec31d742ed3
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 2. Resolve the tree for that exact commit
+PS D:\Homio\REOS_CONTROL_CENTER> $TreeSha = gh api "repos/$Repo/git/commits/$Head" --jq '.tree.sha'
+PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($TreeSha)) {
+>>     throw "STOP: Cannot read remote commit tree SHA."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 3. Check that the recursive tree is complete
+PS D:\Homio\REOS_CONTROL_CENTER> $Truncated = gh api "repos/$Repo/git/trees/$TreeSha?recursive=1" --jq '.truncated'
+gh: Not Found (HTTP 404)
+PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "STOP: Cannot read remote tree metadata."
+>> }
+STOP: Cannot read remote tree metadata.
+At line:2 char:5
++     throw "STOP: Cannot read remote tree metadata."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STOP: Cannot read remote tree metadata.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: Cannot read remote tree metadata.
+
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Truncated.Trim() -ne "false") {
+>>     throw "STOP: Remote tree is truncated or its response is invalid."
+>> }
+STOP: Remote tree is truncated or its response is invalid.
+At line:2 char:5
++     throw "STOP: Remote tree is truncated or its response is invalid. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STOP: Remote tr...nse is invalid.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: Remote tree is truncated or its response is invalid.
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 4. Read paths directly; no ConvertFrom-Json or local Git
+PS D:\Homio\REOS_CONTROL_CENTER> $TreePaths = @(gh api "repos/$Repo/git/trees/$TreeSha?recursive=1" --jq '.tree[].path')
+gh: Not Found (HTTP 404)
+PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0 -or $TreePaths.Count -eq 0) {
+>>     throw "STOP: Remote tree paths could not be loaded."
+>> }
+STOP: Remote tree paths could not be loaded.
+At line:2 char:5
++     throw "STOP: Remote tree paths could not be loaded."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STOP: Remote tr... not be loaded.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: Remote tree paths could not be loaded.
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE TREE PATH COUNT = $($TreePaths.Count)"
+REMOTE TREE PATH COUNT = 1
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 5. Exact, case-sensitive remote path checks
+PS D:\Homio\REOS_CONTROL_CENTER> $Required = @(
+>>     "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py",
+>>     "REOS_CONTROL_CENTER/data/state.json",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/authorization_models.py",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/patch_verification.py",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_transaction.py",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_policy.py",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_scope.py",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/t21.contract.json",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/t22.contract.json",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/t23.contract.json",
+>>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T24_Cross_Chat_Continuity_Recovery_Engine/t24.contract.json",
+>>     "REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json",
+>>     "REOS_CONTROL_CENTER/Frontend/src/app/search/page.tsx",
+>>     "REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchResults.tsx",
+>>     "REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchShell.tsx"
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Audit = foreach ($Path in $Required) {
+>>     if ($TreePaths -ccontains $Path) {
+>>         [pscustomobject]@{ Status = "FOUND"; Path = $Path }
+>>     }
+>>     else {
+>>         [pscustomobject]@{ Status = "MISSING"; Path = $Path }
+>>     }
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Audit | Format-Table -AutoSize -Wrap
+
+Status  Path
+------  ----
+MISSING REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
+MISSING REOS_CONTROL_CENTER/data/state.json
+MISSING REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/authorization_models.py
+MISSING REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/patch_verification.py
+MISSING REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_transaction.py
+MISSING REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_policy.py
+MISSING REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_scope.py
+MISSING REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/t21.contract.json
+MISSING REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination/t22.contract.json
+MISSING REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/t23.contract.json
+MISSING REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T24_Cross_Chat_Continuity_Recovery_Engine/t24.contract.json
+MISSING REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
+MISSING REOS_CONTROL_CENTER/Frontend/src/app/search/page.tsx
+MISSING REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchResults.tsx
+MISSING REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchShell.tsx
+
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== ROUTES ON REMOTE ==="
+
+=== ROUTES ON REMOTE ===
+PS D:\Homio\REOS_CONTROL_CENTER> $TreePaths | Where-Object {
+>>     $_ -match '^REOS_CONTROL_CENTER/Frontend/src/app/page\.(tsx|ts|jsx|js)$' -or
+>>     $_ -match '^REOS_CONTROL_CENTER/Frontend/src/app/.+/page\.(tsx|ts|jsx|js)$'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== F02 REMOTE PATHS ==="
+
+=== F02 REMOTE PATHS ===
+PS D:\Homio\REOS_CONTROL_CENTER> $TreePaths | Where-Object {
+>>     $_.StartsWith(
+>>         "REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/",
+>>         [System.StringComparison]::Ordinal
+>>     )
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`nREMOTE AUDIT COMPLETE — READ ONLY"
+
+REMOTE AUDIT COMPLETE — READ ONLY
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "HEAD VERIFIED = $Head"
+HEAD VERIFIED = 7e0a6e3332cfde85312dd364b63feec31d742ed3
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "No local files changed. No GitHub writes made."
+No local files changed. No GitHub writes made.
 PS D:\Homio\REOS_CONTROL_CENTER>
