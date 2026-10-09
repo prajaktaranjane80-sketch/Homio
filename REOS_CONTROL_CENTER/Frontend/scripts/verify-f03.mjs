@@ -8,8 +8,8 @@ const frontendRoot = path.resolve(__dirname, "..");
 
 const requiredFiles = [
   "src/app/search/page.tsx",
-  "src/app/search/page.module.css",
   "src/features/f03_search/SearchShell.tsx",
+  "src/features/f03_search/SearchShell.module.css",
   "src/features/f03_search/SearchResults.tsx",
   "src/features/f03_search/SearchFilterDrawer.tsx",
   "src/features/f03_search/SearchSortBar.tsx",
@@ -50,23 +50,39 @@ for (const relativePath of requiredFiles) {
   );
 }
 
-const page = read("src/app/search/page.tsx");
+assert(
+  !fs.existsSync(absolute("src/app/search/page.module.css")),
+  "Search route must not own feature styling.",
+);
+
+const route = read("src/app/search/page.tsx");
+const searchShell = read("src/features/f03_search/SearchShell.tsx");
 const results = read("src/features/f03_search/SearchResults.tsx");
 const drawer = read("src/features/f03_search/SearchFilterDrawer.tsx");
+const featureCss = read("src/features/f03_search/SearchShell.module.css");
 
 assert(
-  page.includes("SearchResults"),
-  "Search route is not wired to SearchResults.",
+  route.includes('from "@/features/f03_search/SearchShell"') &&
+    route.includes("<SearchShell />"),
+  "Search route must compose the F03 SearchShell.",
 );
 
 assert(
-  page.includes("SearchFilterDrawer"),
-  "Search route is not wired to SearchFilterDrawer.",
+  !route.includes("SAMPLE_RESULTS") &&
+    !route.includes("useState") &&
+    !route.includes("SearchResults"),
+  "Search route must not own search orchestration or result state.",
 );
 
 assert(
-  results.includes("SearchListView") &&
-    results.includes("SearchMapView"),
+  searchShell.includes("SAMPLE_RESULTS") &&
+    searchShell.includes("SearchResults") &&
+    searchShell.includes("SearchFilterDrawer"),
+  "F03 SearchShell must own search orchestration, results and filters.",
+);
+
+assert(
+  results.includes("SearchListView") && results.includes("SearchMapView"),
   "SearchResults does not expose both list and map modes.",
 );
 
@@ -75,27 +91,37 @@ assert(
   "SearchFilterDrawer is not wired to SearchAdvancedFilters.",
 );
 
+assert(
+  !searchShell.includes("verified: true") &&
+    searchShell.includes("verified: false"),
+  "Preview search data must not manufacture verification.",
+);
+
+assert(
+  featureCss.includes(".toolbar") && featureCss.includes(".pageNote"),
+  "Feature stylesheet is missing search layout styles.",
+);
+
 for (const forbidden of forbiddenRuntimeReferences) {
-  assert(
-    !page.includes(forbidden),
-    `Forbidden runtime reference found in search/page.tsx: ${forbidden}`,
-  );
-
-  assert(
-    !results.includes(forbidden),
-    `Forbidden runtime reference found in SearchResults.tsx: ${forbidden}`,
-  );
-
-  assert(
-    !drawer.includes(forbidden),
-    `Forbidden runtime reference found in SearchFilterDrawer.tsx: ${forbidden}`,
-  );
+  for (const [name, content] of [
+    ["search route", route],
+    ["SearchShell.tsx", searchShell],
+    ["SearchResults.tsx", results],
+    ["SearchFilterDrawer.tsx", drawer],
+  ]) {
+    assert(
+      !content.includes(forbidden),
+      `Forbidden runtime reference in ${name}: ${forbidden}`,
+    );
+  }
 }
 
 console.log("F03 SEARCH INTEGRATION = PASS");
 console.log(`FILES VERIFIED = ${requiredFiles.length}`);
-console.log("SEARCH ROUTE = PASS");
+console.log("ROUTE COMPOSITION = PASS");
+console.log("SEARCH ORCHESTRATION OWNER = SearchShell");
 console.log("LIST + MAP = PASS");
 console.log("FILTER DRAWER = PASS");
+console.log("PREVIEW DOES NOT CLAIM VERIFIED = PASS");
 console.log("NO STATE.JSON RUNTIME = PASS");
 console.log("NO ACRL RUNTIME = PASS");
