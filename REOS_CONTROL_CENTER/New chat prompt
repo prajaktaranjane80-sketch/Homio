@@ -1,0 +1,203 @@
+# HOMIO / REOS — CONTINUE ACTUAL REMOTE AUDIT AND FIXES
+
+## 1. Canonical repository and working rules
+
+Repository: https://github.com/prajaktaranjane80-sketch/Homio
+
+Canonical branch: `reos-development`
+
+Canonical frontend root: `REOS_CONTROL_CENTER/Frontend`
+
+Canonical project state: `REOS_CONTROL_CENTER/data/state.json`
+
+The canonical implementation source is GitHub, not the local computer.
+
+**Strict user instructions:**
+
+* Do not perform development or source-file work on the local computer.
+* Do not use local Git, local test runs, `git add`, `git commit`, `git push`, reset, merge, or force-pull as the project workflow.
+* Use PowerShell with GitHub CLI/API GET requests for remote-only inspection and diagnosis.
+* PowerShell must not write, patch, or mutate project code.
+* Do not provide downloadable files.
+* Provide implementation content directly in chat for the user to save manually through GitHub.
+* For each code change, specify the exact repository path, `ADD` or `REPLACE`, the exact location/anchor, and complete file content.
+* Fix one verified error per cycle. Do not repeat a failed command or replace files based on guesses.
+* Before every new task, refresh the live branch HEAD and inspect current canonical GitHub contents. Previously recorded SHAs can become stale when a new GitHub save creates another commit.
+* Do not claim that a test passed merely because a script or source file exists.
+
+## 2. Verified current findings
+
+At the last live remote inspection, branch HEAD was:
+
+`c0284a04ab019cc193fcebb59aa987a287083146`
+
+Always refresh HEAD before continuing.
+
+The GitHub recursive tree was successfully read with 1,810 paths and `truncated=false`. The previous audit falsely marked existing files as missing because its tree request failed. That audit-fetch issue is resolved.
+
+The previous TypeScript report `SearchFurnishingFilter.ts:50:1 — TS1128` is not currently reproducible from the canonical GitHub file list. The current files are:
+
+* `REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchFurnishingFilter.tsx`
+* `REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchFurnishingFilter.module.css`
+
+Do not recreate or replace a nonexistent `SearchFurnishingFilter.ts` file unless fresh remote evidence establishes that the canonical repository actually needs it.
+
+The live tree has these four app routes:
+
+* `/`
+* `/search`
+* `/property/[propertyId]`
+* `/project/[projectId]`
+
+The `src/features/f02_home_discovery/` directory has no files. The existing homepage components remain under `src/components/home/`; 43 TSX files were found there in the last tree audit.
+
+The canonical frontend plan records these outstanding statuses:
+
+* F01: shared shell mounted, verification pending.
+* F02: migration and duplicate cleanup required.
+* F03: search route/feature exist, regression verification pending.
+* F04: property route adapter must resolve all homepage property IDs.
+* F05: project route exists, regression verification pending.
+
+`REOS_CONTROL_CENTER/Frontend/package.json` includes:
+`verify:foundation`, `verify:f03`, `verify:f04`, `verify:f05`, `typecheck`, `lint`, `build`, and a combined `verify` script.
+
+The last remote tree audit found no `.github/workflows/` files. Because local test execution is out of scope, remote verification must be established using GitHub Actions or another verified GitHub-hosted execution path. Do not declare build/typecheck/lint PASS until actual execution evidence exists.
+
+## 3. Required references — read current versions before changes
+
+### Project authority and frontend plan
+
+1. Project state:
+   https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/data/state.json
+
+2. Frontend execution plan:
+   https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json
+
+3. Canonical frontend blueprint:
+   https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json
+
+4. Frontend package and verification scripts:
+   https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/Frontend/package.json
+
+5. Existing frontend PowerShell audit evidence:
+   https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/Frontend%20Ps%20Output
+
+### F01–F05 actual implementation
+
+6. Homepage route:
+   https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/Frontend/src/app/page.tsx
+
+7. F01 verifier:
+   https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/Frontend/scripts/verify-foundation.mjs
+
+8. F03 verifier:
+   https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/Frontend/scripts/verify-f03.mjs
+
+9. F04 verifier:
+   https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/Frontend/scripts/verify-f04.mjs
+
+10. F05 verifier:
+    https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/Frontend/scripts/verify-f05.mjs
+
+11. Search furnishing component:
+    https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchFurnishingFilter.tsx
+
+12. Property preview adapter:
+    https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/Frontend/src/features/f04_property/property.data.ts
+
+13. Property route:
+    https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/Frontend/src/app/property/%5BpropertyId%5D/page.tsx
+
+14. Project preview adapter:
+    https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/Frontend/src/features/f05_project/project.data.ts
+
+15. Project route:
+    https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/Frontend/src/app/project/%5BprojectId%5D/page.tsx
+
+### Final-stage T21 and ACRL references
+
+16. T21 policy:
+    https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_policy.py
+
+17. T21 scope:
+    https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_scope.py
+
+18. T21 models:
+    https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_models.py
+
+19. T21 transaction:
+    https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_transaction.py
+
+20. T21 contract:
+    https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/t21.contract.json
+
+21. AI Agent EntryPoint:
+    https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-development/REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
+
+Read the relevant T18 authorization, T20 patch-verification, and T22/T23/T24 contracts before the final ACRL integration review. Do not modify these components prematurely.
+
+## 4. Required order of actual work
+
+### Stage A — finish remote-only F01–F05 audit first
+
+Inspect current GitHub source and verify actual dependencies, imports, routes, IDs, and interactions.
+
+F01: verify required shell, navigation, shared UI components, boundaries, and duplicate ownership.
+
+F02: inspect homepage imports, current `src/components/home/` ownership, and the empty target feature directory. Prepare a safe migration plan backed by the exact current source. Do not move or duplicate components blindly.
+
+F03: inspect SearchShell, SearchResults, filter components, query parameters, result navigation and the actual TypeScript imports. Confirm whether furnishing, builder, collection, source and type filters work consistently. Do not touch the nonexistent `.ts` path based on the stale TS1128 report.
+
+F04: match every property ID linked from the homepage and search experience to the preview adapter. Ensure unsupported IDs fail safely and previews do not claim real verification, authoritative prices, or availability.
+
+F05: audit project and collection links, related-project IDs, project inventory links to properties, route fallbacks, metadata and error recovery.
+
+Across F01–F05, audit homepage actions and links against the four real routes. Previously reported examples of potentially unimplemented paths include market, tools, advice, services, help, pro, AI, saved items, comparison and account/My HOMIO routes. Verify these against the live files; do not assume the earlier list remains fully accurate. Replace fictional routes only after identifying intended behavior and the right existing destination.
+
+### Stage B — establish real GitHub-hosted verification
+
+Because local tests are not permitted and no workflow file was found, determine the safest minimal GitHub Actions configuration to run the existing frontend verification scripts. It should use the repository's actual Node requirement and existing package scripts.
+
+Have the user save any new workflow manually in GitHub. Then inspect the actual GitHub Actions run, its job logs, and every failure. Do not declare success before the execution result is available.
+
+Fix genuine F01–F05 errors individually, then run the remote checks again. Avoid re-running unchanged checks unnecessarily.
+
+### Stage C — last task only: T21, ACRL, EntryPoint and state alignment
+
+The user explicitly requires this stage to happen last so that no further development update causes another mismatch.
+
+Two known T21 policy issues are pending:
+
+1. `normalize_path()` lowercases repository paths. Review case-sensitive Git paths and case collisions; do not make paths case-insensitive in a way that changes or disguises real repository paths.
+2. `t21.contract.json` forbids architecture mutation, but the executable GitPolicy protection does not yet enforce the architecture path boundary consistently.
+
+Inspect the current implementations, relevant tests and contracts before choosing exact changes. Add regression tests for the actual policy guarantees. Also inspect `git_transaction.py` to ensure its behavior matches the T18/T20 and T21 contract; report any additional evidenced defect without widening the changes blindly.
+
+Only after the frontend fixes and remote regression results are stable:
+
+* Resolve the `state.json` execution mismatch based on verified Control Center authority and accepted project evidence.
+* Align `AI_AGENT_ENTRYPOINT.py` and applicable ACRL contracts with the final approved workflow.
+* Verify the exact remote SHAs and read the updated files back.
+* Confirm no duplicate files, contradictory rules, or false PASS claims remain.
+
+## 5. Important authority mismatch to carry forward
+
+The current `state.json` reads `execution.current_gate = CORE-008`, `execution.current_task = CORE-008-T01`, and `phases.current = PRE-CODING ARCHITECTURE`, while the current frontend execution plan and actual branch show F01–F05 implementation work.
+
+This mismatch must be recorded and resolved as part of the final coordinated authority-alignment stage—not silently overwritten during the frontend audit. Follow the canonical Control Center's authority rules and obtain repository evidence for any required state transition.
+
+## 6. How to continue the conversation
+
+Start by refreshing the current branch HEAD and inspecting the relevant live GitHub files. Continue with the actual F01–F05 audit and remote test setup, not a generic plan.
+
+For each error:
+
+1. State the actual remote evidence and exact source path.
+2. Identify the smallest architecture-consistent fix.
+3. Give the exact `ADD`/`REPLACE` instruction and complete content for the user to save in GitHub.
+4. After the save, re-fetch the canonical file and confirm the new commit.
+5. Verify the fix using GitHub-hosted execution where relevant.
+6. Only then move to the next error.
+
+Do not work on the local computer, do not provide downloads, do not modify the T21/EntryPoint/ACRL alignment prematurely, and do not claim unrun tests passed.
