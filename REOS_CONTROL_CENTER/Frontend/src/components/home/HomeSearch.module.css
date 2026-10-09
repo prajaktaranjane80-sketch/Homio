@@ -1,6 +1,6 @@
 .search {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: stretch;
   gap: var(--space-2);
   padding: var(--space-2);
@@ -61,27 +61,15 @@
   outline: none;
 }
 
-.filterButton,
 .searchButton {
+  min-width: 112px;
   min-height: 56px;
   padding-inline: var(--space-5);
   border-radius: var(--radius-lg);
-  cursor: pointer;
-  font-weight: 700;
-}
-
-.filterButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--homio-surface-soft);
-  color: var(--homio-text);
-}
-
-.searchButton {
-  min-width: 112px;
   background: var(--homio-brand);
   color: var(--homio-text-inverse);
+  cursor: pointer;
+  font-weight: 700;
   transition:
     transform var(--ease-standard),
     background var(--ease-standard);
@@ -101,7 +89,6 @@
     min-height: 58px;
   }
 
-  .filterButton,
   .searchButton {
     width: 100%;
   }
