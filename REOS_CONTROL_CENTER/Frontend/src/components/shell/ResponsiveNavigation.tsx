@@ -5,27 +5,30 @@ type NavigationItem = {
   href: string;
 };
 
-const foundationItems: NavigationItem[] = [
-  {
-    label: "Experience",
-    href: "#experience",
-  },
-  {
-    label: "Boundary",
-    href: "#boundary",
-  },
+const primaryItems: NavigationItem[] = [
+  { label: "Buy", href: "/search?q=buy" },
+  { label: "Rent", href: "/search?q=rent" },
+  { label: "Commercial", href: "/search?q=commercial" },
+  { label: "Projects", href: "/project/homio-kalyani-residences-001" },
 ];
 
 export function ResponsiveNavigation({
-  items = foundationItems,
-}: {
+  items = primaryItems,
+}: Readonly<{
   items?: NavigationItem[];
-}) {
+}>) {
   return (
     <div>
-      <nav className="responsive-nav__desktop" aria-label="Primary navigation">
+      <nav
+        className="responsive-nav__desktop"
+        aria-label="Primary navigation"
+      >
         {items.map((item) => (
-          <Link className="responsive-nav__link" href={item.href} key={item.href}>
+          <Link
+            className="responsive-nav__link"
+            href={item.href}
+            key={item.href}
+          >
             {item.label}
           </Link>
         ))}
