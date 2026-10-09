@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import type { PropertyRecord } from "./property.types";
 import styles from "./SimilarProperties.module.css";
 
@@ -7,18 +9,21 @@ type SimilarPropertiesProps = Readonly<{
 
 const similar = [
   {
+    id: "pune-viman-nagar-004",
     title: "Premium 3 BHK Residence",
     location: "Viman Nagar, Pune",
     price: "₹1.95 Cr",
     area: "1,640 sq.ft.",
   },
   {
+    id: "pune-aundh-008",
     title: "Elegant 4 BHK Residence",
     location: "Aundh, Pune",
     price: "₹2.85 Cr",
     area: "2,250 sq.ft.",
   },
   {
+    id: "pune-baner-003",
     title: "Modern 2 BHK City Home",
     location: "Baner, Pune",
     price: "₹1.28 Cr",
@@ -44,13 +49,13 @@ export default function SimilarProperties({
 
       <div className={styles.grid}>
         {similar.map((item) => (
-          <article key={item.title} className={styles.card}>
+          <article key={item.id} className={styles.card}>
             <div className={styles.media}>
-              <span>HOMIO PROPERTY</span>
+              <span>HOMIO PROPERTY PREVIEW</span>
             </div>
 
             <div className={styles.body}>
-              <span className={styles.type}>Residential</span>
+              <span className={styles.type}>Experience preview</span>
               <h3>{item.title}</h3>
               <p>{item.location}</p>
 
@@ -59,7 +64,9 @@ export default function SimilarProperties({
                 <span>{item.area}</span>
               </div>
 
-              <button type="button">View property →</button>
+              <Link href={`/property/${item.id}`}>
+                View property →
+              </Link>
             </div>
           </article>
         ))}
