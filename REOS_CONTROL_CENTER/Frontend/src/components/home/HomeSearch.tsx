@@ -1,13 +1,33 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import type { FormEvent } from "react";
+
+import type { HomeIntent } from "./HomeHero";
 import styles from "./HomeSearch.module.css";
 
-export default function HomeSearch() {
+type HomeSearchProps = Readonly<{
+  intent: HomeIntent;
+}>;
+
+export default function HomeSearch({ intent }: HomeSearchProps) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    const params = new URLSearchParams();
+    params.set("intent", intent);
+
+    const normalizedQuery = query.trim();
+
+    if (normalizedQuery) {
+      params.set("q", normalizedQuery);
+    }
+
+    router.push(`/search?${params.toString()}`);
   }
 
   return (
@@ -18,9 +38,13 @@ export default function HomeSearch() {
         </span>
 
         <div className={styles.field}>
-          <label htmlFor="homio-search">Location, project or landmark</label>
+          <label htmlFor="homio-search">
+            City, locality, project or landmark
+          </label>
+
           <input
             id="homio-search"
+            name="q"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Dubai, Singapore, Tokyo..."
@@ -28,11 +52,6 @@ export default function HomeSearch() {
           />
         </div>
       </div>
-
-      <button type="button" className={styles.filterButton}>
-        <span>Filters</span>
-        <span aria-hidden="true">⌄</span>
-      </button>
 
       <button type="submit" className={styles.searchButton}>
         Search
