@@ -37,7 +37,6 @@ export function ResponsiveNavigation({
       <div className="responsive-nav__mobile">
         <details>
           <summary>Menu</summary>
-
           <nav
             className="responsive-nav__mobile-menu"
             aria-label="Mobile primary navigation"
