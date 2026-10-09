@@ -6,10 +6,8 @@ import { Header } from "@/components/shell/Header";
 
 export function AppShell({
   children,
-  header,
 }: Readonly<{
   children: ReactNode;
-  header?: ReactNode;
 }>) {
   return (
     <>
@@ -17,14 +15,14 @@ export function AppShell({
         Skip to content
       </a>
 
-      {header ?? <Header />}
+      <Header />
 
       <ContextBar
-        primary="HOMIO · India-first real-estate experience"
+        primary="HOMIO · Global property discovery"
         secondary="REOS remains the canonical business authority"
       />
 
-      {children}
+      <div id="main-content">{children}</div>
 
       <GlobalActionLayer />
     </>
