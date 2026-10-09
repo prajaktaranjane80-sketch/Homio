@@ -1,28 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import type { HomeIntent } from "./HomeHero";
 import styles from "./HomeIntentTabs.module.css";
 
-const intents = ["Buy", "Rent", "Commercial", "Projects", "Land"];
+const intents: Array<{
+  label: string;
+  value: HomeIntent;
+}> = [
+  { label: "Buy", value: "buy" },
+  { label: "Rent", value: "rent" },
+  { label: "Commercial", value: "commercial" },
+  { label: "Projects", value: "projects" },
+  { label: "Land", value: "land" },
+];
 
-export default function HomeIntentTabs() {
-  const [activeIntent, setActiveIntent] = useState("Buy");
+type HomeIntentTabsProps = Readonly<{
+  activeIntent: HomeIntent;
+  onIntentChange: (intent: HomeIntent) => void;
+}>;
 
+export default function HomeIntentTabs({
+  activeIntent,
+  onIntentChange,
+}: HomeIntentTabsProps) {
   return (
-    <div className={styles.tabs} role="tablist" aria-label="Property intent">
+    <div
+      className={styles.tabs}
+      role="tablist"
+      aria-label="Property intent"
+    >
       {intents.map((intent) => {
-        const active = activeIntent === intent;
+        const active = activeIntent === intent.value;
 
         return (
           <button
-            key={intent}
+            key={intent.value}
             type="button"
             role="tab"
             aria-selected={active}
             className={`${styles.tab} ${active ? styles.active : ""}`}
-            onClick={() => setActiveIntent(intent)}
+            onClick={() => onIntentChange(intent.value)}
           >
-            {intent}
+            {intent.label}
           </button>
         );
       })}
