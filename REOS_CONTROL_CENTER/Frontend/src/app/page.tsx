@@ -1,4 +1,3 @@
-import HomeHeader from "@/components/home/HomeHeader";
 import HomeSecondaryNav from "@/components/home/HomeSecondaryNav";
 import HomeHero from "@/components/home/HomeHero";
 import HomeQuickDiscovery from "@/components/home/HomeQuickDiscovery";
@@ -32,8 +31,6 @@ import HomeFooter from "@/components/home/HomeFooter";
 export default function HomePage() {
   return (
     <>
-      <HomeHeader />
-
       <HomeSecondaryNav />
 
       <main>
@@ -43,16 +40,16 @@ export default function HomePage() {
         {/* LP04 — Quick Discovery */}
         <HomeQuickDiscovery />
 
-        {/* LP05 — Global Cities */}
+        {/* LP05 — Cities */}
         <PopularCities />
 
-        {/* LP06 — Popular Localities */}
+        {/* LP06 — Localities */}
         <PopularLocalities />
 
         {/* LP07 — Featured Projects */}
         <FeaturedProjects />
 
-        {/* LP08 — New Project Collections */}
+        {/* LP08 — Project Collections */}
         <NewProjectCollections />
 
         {/* LP09 — Fresh Properties */}
@@ -73,10 +70,10 @@ export default function HomePage() {
         {/* LP14 — Residential */}
         <ResidentialCollections />
 
-        {/* LP15 — Rental */}
+        {/* LP15 — Rentals */}
         <RentalSection />
 
-        {/* LP16 — Plots & Land */}
+        {/* LP16 — Plots and Land */}
         <PlotLandSection />
 
         {/* LP17 — Property Tools */}
@@ -88,13 +85,13 @@ export default function HomePage() {
         {/* LP19 — HOMIO Advice */}
         <HomioAdvice />
 
-        {/* LP20 — HOMIO Services */}
+        {/* LP20 — Home Services */}
         <HomeServices />
 
         {/* LP21 — Builder Projects */}
         <BuilderProjects />
 
-        {/* LP22 — Save & Compare */}
+        {/* LP22 — Save and Compare */}
         <SaveCompareSection />
 
         {/* LP23 — HOMIO AI */}
@@ -115,7 +112,7 @@ export default function HomePage() {
         {/* LP28 — My HOMIO */}
         <MyHomioSection />
 
-        {/* LP29 — Help & Support */}
+        {/* LP29 — Help and Support */}
         <HelpSupport />
       </main>
 
