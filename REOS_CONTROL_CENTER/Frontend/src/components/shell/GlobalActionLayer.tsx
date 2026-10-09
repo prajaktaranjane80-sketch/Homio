@@ -1,18 +1,23 @@
+import Link from "next/link";
+
 export function GlobalActionLayer() {
   return (
     <aside className="global-actions" aria-label="Global quick actions">
       <div className="global-actions__panel">
-        <a className="global-actions__link" href="#main-content">
+        <Link className="global-actions__link" href="/">
           Home
-        </a>
+        </Link>
 
-        <a className="global-actions__link" href="#experience">
-          Experience
-        </a>
+        <Link className="global-actions__link" href="/search">
+          Search
+        </Link>
 
-        <a className="global-actions__link" href="#boundary">
-          Boundary
-        </a>
+        <Link
+          className="global-actions__link"
+          href="/project/homio-kalyani-residences-001"
+        >
+          Projects
+        </Link>
       </div>
     </aside>
   );
