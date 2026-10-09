@@ -8,7 +8,7 @@ export function Header() {
       <div className="site-header__inner">
         <Link className="brand" href="/" aria-label="HOMIO home">
           <span className="brand__name">HOMIO</span>
-          <span className="brand__descriptor">INDIA REAL ESTATE</span>
+          <span className="brand__descriptor">GLOBAL REAL ESTATE</span>
         </Link>
 
         <ResponsiveNavigation />
