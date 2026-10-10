@@ -182,20 +182,30 @@ def execute_git_transaction(
             explanation=str(exc),
         )
 
-    if repair_result is not None:
-        if getattr(
+        if repair_result is not None:
+        repair_decision = getattr(
             repair_result,
             "decision",
             None,
-        ).value != "VERIFIED":
+        )
+
+        repair_decision_value = getattr(
+            repair_decision,
+            "value",
+            repair_decision,
+        )
+
+        if repair_decision_value != "VERIFIED":
             return _result(
                 request=request,
                 decision=GitDecision.BLOCKED,
                 reason=GitReason.REPAIR_NOT_VERIFIED,
                 before=before,
                 after=before,
-                explanation="T21 write requires T20 VERIFIED repair.",
-            )
+                explanation=(
+                    "T21 write requires T20 VERIFIED repair; "
+                    "decision is missing or not verified."
+                ),
 
         if (
             getattr(
