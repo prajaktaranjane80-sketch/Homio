@@ -1,0 +1,46 @@
+name: HOMIO Frontend CI
+
+on:
+  push:
+    branches:
+      - reos-development
+    paths:
+      - "REOS_CONTROL_CENTER/Frontend/**"
+      - ".github/workflows/frontend-ci.yml"
+  pull_request:
+    branches:
+      - reos-development
+    paths:
+      - "REOS_CONTROL_CENTER/Frontend/**"
+      - ".github/workflows/frontend-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: homio-frontend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend-verify:
+    name: Frontend verification
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: REOS_CONTROL_CENTER/Frontend
+
+    steps:
+      - name: Checkout canonical branch
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install frontend dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run F01-F05, TypeScript, lint and production build
+        run: npm run verify
