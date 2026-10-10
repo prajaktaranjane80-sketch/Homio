@@ -4,43 +4,61 @@ import os
 from pathlib import Path
 
 
-class GitTransactionLockError(
-    RuntimeError
-):
+class GitTransactionLockError(RuntimeError):
     pass
 
 
 class GitTransactionLock:
+    """Atomic, exclusive lock for one T21 repository transaction."""
+
     def __init__(
         self,
         repository_root: Path | str,
     ) -> None:
-        root = Path(
-            repository_root
-        ).resolve()
+        root = Path(repository_root).resolve()
 
-        self.path = (
-            root
-            / ".reos_t21_transaction.lock"
-        )
-
+        self.path = root / ".reos_t21_transaction.lock"
         self._owned = False
 
     def acquire(self) -> None:
-        if self.path.exists():
-            raise GitTransactionLockError(
-                "Another T21 transaction is active."
-            )
+        flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
+
+        if hasattr(os, "O_BINARY"):
+            flags |= os.O_BINARY
 
         try:
-            self.path.write_text(
-                f"{os.getpid()}\n",
-                encoding="utf-8",
-                newline="\n",
+            descriptor = os.open(
+                self.path,
+                flags,
+                0o600,
             )
+        except FileExistsError as exc:
+            raise GitTransactionLockError(
+                "Another T21 transaction is active."
+            ) from exc
         except OSError as exc:
             raise GitTransactionLockError(
                 "Unable to acquire T21 transaction lock."
+            ) from exc
+
+        try:
+            with os.fdopen(
+                descriptor,
+                "w",
+                encoding="utf-8",
+                newline="\n",
+            ) as lock_file:
+                lock_file.write(f"{os.getpid()}\n")
+                lock_file.flush()
+                os.fsync(lock_file.fileno())
+        except OSError as exc:
+            try:
+                self.path.unlink(missing_ok=True)
+            except OSError:
+                pass
+
+            raise GitTransactionLockError(
+                "Unable to initialize T21 transaction lock."
             ) from exc
 
         self._owned = True
@@ -50,13 +68,15 @@ class GitTransactionLock:
             return
 
         try:
-            self.path.unlink(
-                missing_ok=True
-            )
-        finally:
+            self.path.unlink(missing_ok=True)
+        except OSError as exc:
+            raise GitTransactionLockError(
+                "Unable to release T21 transaction lock."
+            ) from exc
+        else:
             self._owned = False
 
-    def __enter__(self):
+    def __enter__(self) -> GitTransactionLock:
         self.acquire()
         return self
 
@@ -65,5 +85,5 @@ class GitTransactionLock:
         exc_type,
         exc,
         traceback,
-    ):
+    ) -> None:
         self.release()
