@@ -182,7 +182,7 @@ def execute_git_transaction(
             explanation=str(exc),
         )
 
-        if repair_result is not None:
+          if repair_result is not None:
         repair_decision = getattr(
             repair_result,
             "decision",
@@ -206,6 +206,7 @@ def execute_git_transaction(
                     "T21 write requires T20 VERIFIED repair; "
                     "decision is missing or not verified."
                 ),
+            )
 
         if (
             getattr(
