@@ -4,7 +4,13 @@ from .git_models import GitPolicy
 
 
 def normalize_path(value: str) -> str:
-    return value.replace("\\", "/").strip().lower()
+    """Normalize separators without changing case-sensitive path identity."""
+    normalized = value.replace("\\", "/").strip()
+
+    while normalized.startswith("./"):
+        normalized = normalized[2:]
+
+    return normalized.rstrip("/")
 
 
 def validate_policy(policy: GitPolicy) -> None:
@@ -45,7 +51,33 @@ def is_protected_path(
 ) -> bool:
     normalized = normalize_path(path)
 
-    return normalized in {
+    if not normalized:
+        return False
+
+    protected_paths = {
         normalize_path(item)
         for item in policy.protected_paths
     }
+
+    # Protect each declared path and all descendants.
+    for protected in protected_paths:
+        if normalized == protected:
+            return True
+
+        if normalized.startswith(protected + "/"):
+            return True
+
+    # T21 contract forbids architecture mutations.
+    architecture_roots = (
+        "architecture",
+        "REOS_CONTROL_CENTER/architecture",
+    )
+
+    for root in architecture_roots:
+        if (
+            normalized == root
+            or normalized.startswith(root + "/")
+        ):
+            return True
+
+    return False
