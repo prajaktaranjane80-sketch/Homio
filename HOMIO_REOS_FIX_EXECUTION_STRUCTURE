@@ -1,0 +1,122 @@
+# HOMIO / REOS — Fix Execution Structure
+
+**Status:** ACTIVE EXECUTION PLAN — BASELINE CAPTURED, WF-01 OPEN  
+**Scope:** Workflow consistency, authentication, security verification, CI, T21 Git-policy handling, and final EntryPoint/ACRL alignment.  
+**Canonical repository:** `prajaktaranjane80-sketch/Homio`  
+**Canonical branch:** `reos-development`
+
+## 1. Authority and operating rules
+
+1. GitHub branch `reos-development` is the canonical code and history source.
+2. `REOS_CONTROL_CENTER/data/state.json` remains the authoritative machine-readable execution/gate state. This document is a human-readable work plan only; it must never override or silently rewrite machine state.
+3. Re-read current branch HEAD and relevant files before acting. Old chat notes and PowerShell output files are diagnostic evidence, not current source truth.
+4. Work one issue at a time: reproduce/inspect → establish root cause → make one bounded correction → run targeted verification → record PASS/FAIL with evidence.
+5. Do not claim PASS without a real result. Do not bypass, suppress, or relabel failures to obtain a green result.
+6. PowerShell is for read-only diagnosis and verification only. Do not use PowerShell to write, patch, reset, merge, or push code.
+7. Do not reset, force-pull, or merge a stale local checkout. Prefer canonical GitHub source and the agreed manual GitHub file-edit workflow.
+8. For each requested manual GitHub edit, provide the exact path, ADD/REPLACE operation, insertion anchor where applicable, and complete file contents. Avoid inferred or partial patches.
+9. Do not duplicate existing files or re-implement completed work without evidence.
+10. Keep HOMIO / REOS separate from the user's Imperium AI project.
+
+## 2. Fix execution sequence
+
+### Phase 0 — Current GitHub baseline
+
+**ID:** BASE-01  
+**Action:** Confirm current `reos-development` HEAD, inspect only relevant files and current failure evidence, and distinguish current errors from stale logs.  
+**Exit condition:** The current baseline and the evidence for the first issue are recorded.
+
+### Phase 1 — Workflow and state consistency
+
+**ID:** WF-01  
+**Action:** Compare `REOS_CONTROL_CENTER/data/state.json` fields such as `execution`, `phases.current`, and `gate_plans` with current controller validation rules, relevant tests, and repository evidence. Investigate any conflict before changing state.  
+**Exit condition:** The correct current task/gate is evidenced and any supported correction passes relevant checks. Do not guess which field should win.
+
+### Phase 2 — Authentication implementation audit
+
+**ID:** AUTH-01  
+**Action:** Inventory existing frontend routes, API/backend entrypoints, packages, environment/config examples, auth/session code, identity modules, and tenant boundaries. Verify the current implementation on the canonical branch.  
+**Exit condition:** A path-specific list distinguishes missing, implemented, and broken pieces. Do not select an auth provider before checking the actual stack and existing configuration.
+
+### Phase 3 — Authentication foundation
+
+**ID:** AUTH-02  
+**Action:** Based on the audit, settle the compatible auth provider/service and establish credential verification, session/callback behavior, secure configuration, and integration with identity and tenant boundaries. Keep secrets out of source files.  
+**Exit condition:** The chosen design matches the existing repository and its required configuration is explicit.
+
+### Phase 4 — Login, signup, and My HOMIO user flow
+
+**ID:** AUTH-03  
+**Action:** Implement only the verified missing routes and flows: login, signup/account verification as required, callback/session handling, protected `/my`, logout, and account recovery where supported by the selected foundation.  
+**Exit condition:** Implemented routes have targeted evidence for expected success and denial behavior.
+
+### Phase 5 — Security and regression tests
+
+**ID:** SEC-01  
+**Action:** Add or repair relevant tests for valid/invalid credentials, signup/verification, expired sessions, logout, disabled accounts, unauthorized API calls, and cross-tenant access denial. Adapt the list to the actual implemented auth provider and supported flows.  
+**Exit condition:** Relevant tests pass and failures are not hidden or bypassed.
+
+### Phase 6 — CI and workflow verification
+
+**ID:** CI-01  
+**Action:** Connect appropriate authentication regression tests to CI and verify workflow/gate checks. A passing frontend build or unrelated CI run is not proof that authentication works.  
+**Exit condition:** The required checks execute against the intended branch and their results are inspectable.
+
+### Phase 7 — T21 Git repository policy errors
+
+**ID:** T21-01  
+**Action:** Keep this work near the end, as previously requested. Inspect existing T21 code and reproduce/classify the actual operation failure before changing anything. Review handling and tests for HTTP 401, 403, 404, 407, and 429; authentication/authorization distinction; network/TLS errors; push rejection; bounded retries; write verification; safe failure behavior; and secret redaction.  
+**Exit condition:** Changes are minimal, match the existing T21 contracts, and the relevant failure-mode tests support the result. A connector permission/scope error must not automatically be labelled a bad repository token.
+
+### Phase 8 — Final AI Agent EntryPoint + ACRL alignment
+
+**ID:** FINAL-01  
+**Action:** Do this last, after preceding fixes are stable. Align `AI_AGENT_ENTRYPOINT.py`, ACRL policy/contracts, Git workflow rules, and verified canonical repository state without duplicating engines or shifting domain ownership into ACRL.  
+**Exit condition:** Relevant alignment checks and tests pass, and EntryPoint/state references match current GitHub evidence.
+
+## 3. Initial issue register
+
+Statuses below reflect the initial read-only audit of the canonical branch on 2026-10-10. This register is not proof that an item is currently failing; re-check after any new commit.
+
+| ID | Area | First required action | Status |
+|---|---|---|---|
+| BASE-01 | GitHub baseline | HEAD verified: `13d3350d512b5242accc01a311ff2c4098e9bfe1`; canonical state/controller evidence collected | PASS (READ-ONLY BASELINE) |
+| WF-01 | State/gate consistency | Diagnose phase projection and semantic-validation gap; do not edit state speculatively | IN PROGRESS |
+| AUTH-01 | Auth inventory | Locate current auth routes, service/API code, dependencies, and configuration | NOT STARTED |
+| AUTH-02 | Auth foundation | Select a compatible approach only after the inventory | BLOCKED BY AUTH-01 |
+| AUTH-03 | Login/signup/My HOMIO | Implement confirmed missing functionality | BLOCKED BY AUTH-02 |
+| SEC-01 | Security tests | Test actual supported auth flows and tenant boundaries | BLOCKED BY AUTH-02/AUTH-03 |
+| CI-01 | CI integration | Run the relevant checks on the intended branch | BLOCKED BY REQUIRED TESTS |
+| T21-01 | Git error policy | Reproduce and classify the actual operation failure | RESERVED FOR PHASE 7 |
+| FINAL-01 | EntryPoint/ACRL | Final alignment after earlier fixes stabilize | RESERVED FOR PHASE 8 |
+
+## 4. Per-fix completion record
+
+For each issue, record:
+
+- **Issue ID and exact path(s):**
+- **Observed failure and evidence:**
+- **Confirmed root cause:**
+- **Exact change made (or required manual GitHub action):**
+- **Targeted verification command/check and actual result:**
+- **Final status:** PASS / FAIL / BLOCKED / NOT STARTED
+- **Next action:** one specific action only
+
+A status may be marked PASS only when the relevant result is available and tied to the current canonical change. When verification fails, stay on the same issue and correct that failure before moving forward.
+
+## 5. Immediate next action
+
+**BASE-01 baseline captured:** current branch HEAD was `13d3350d512b5242accc01a311ff2c4098e9bfe1`. Continue with **WF-01**: establish the intended phase-to-gate mapping, add a semantic consistency check and targeted regression coverage if confirmed necessary, then reconcile derived state only through the approved Control Center flow. Do not classify execution-plan and architecture-lifecycle statuses as contradictory without semantic proof. Proceed to **AUTH-01** only after WF-01 is resolved or explicitly shown not to require a change.
+
+**This plan controls the order of investigation only. It does not itself mark any gate, test, authentication flow, or repository policy as complete.**
+
+
+## 6. Initial read-only audit notes — 2026-10-10
+
+- Canonical branch HEAD observed: `13d3350d512b5242accc01a311ff2c4098e9bfe1` (`Create backend-ci.yml`). Re-fetch HEAD before any later change.
+- `REOS_CONTROL_CENTER/data/state.json` reports `execution.current_gate = CORE-008`, `execution.current_subtask = CORE-008-T01`, while `phases.current = PRE-CODING ARCHITECTURE`. Treat this as suspected phase-projection drift until the gate-to-phase contract is confirmed.
+- `reos_control_center.py` `cmd_verify_state` checks the stored SHA-256 against the calculated hash only. A hash `PASS` is not a semantic consistency verdict.
+- `context/control_plane.py` verifies canonical path, state hash, authority declaration, and the presence of gate/task/subtask, but does not currently verify phase-to-gate coherence. Its tests cover authority/integrity and basic execution-position existence.
+- `REOS_CONTROL_CENTER/reos_state.json` exists with an older state (`updated_at = 2026-08-13`, current gate `ARCH-037`). Canonical declarations point to `data/state.json`; trace references to `reos_state.json` before any retirement/deletion decision.
+- The state shows `ARCH-039` as `COMPLETE` in `execution_plan` and `PENDING` under `architecture`. The existing `test_semantic_consistency.py` explicitly treats `execution_plan.status` and `architecture.status` as different lifecycle dimensions (`NOT_COMPARABLE`), so this difference is **not** declared a defect by this audit.
+- No repository files were modified by this audit. GitHub file creation for this plan was rejected by the active integration with HTTP 403, so the plan is available as a file for manual addition to the canonical branch.
