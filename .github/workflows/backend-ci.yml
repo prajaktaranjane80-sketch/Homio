@@ -1,0 +1,54 @@
+name: HOMIO T21 CI
+
+on:
+  push:
+    branches:
+      - reos-development
+    paths:
+      - "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**"
+      - ".github/workflows/backend-ci.yml"
+  pull_request:
+    branches:
+      - reos-development
+    paths:
+      - "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**"
+      - ".github/workflows/backend-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: homio-t21-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  t21-verification:
+    name: T21 syntax and regression
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: REOS_CONTROL_CENTER
+
+    steps:
+      - name: Checkout canonical branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check pytest
+
+      - name: Compile T21 Python modules
+        run: >-
+          python -m compileall -q
+          AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination
+
+      - name: Run T21 regression tests
+        run: >-
+          python -m pytest -q
+          AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination
