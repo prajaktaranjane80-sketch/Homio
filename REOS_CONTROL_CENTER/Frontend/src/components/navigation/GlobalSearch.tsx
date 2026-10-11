@@ -1,9 +1,11 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import type { FormEvent } from "react";
 
-import { SearchField } from "@/components/ui/SearchField";
 import { Button } from "@/components/ui/Button";
+import { SearchField } from "@/components/ui/SearchField";
 
 export function GlobalSearch({
   onSubmitQuery,
@@ -12,6 +14,7 @@ export function GlobalSearch({
   onSubmitQuery?: (query: string) => void;
   disabled?: boolean;
 }) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
 
@@ -21,7 +24,7 @@ export function GlobalSearch({
     const normalized = query.trim();
 
     if (!normalized) {
-      setStatus("Enter a real-estate search intent.");
+      setStatus("Enter a property, project or location to search.");
       return;
     }
 
@@ -31,7 +34,10 @@ export function GlobalSearch({
       return;
     }
 
-    setStatus("Search binding will activate in F03.");
+    const params = new URLSearchParams({ q: normalized });
+
+    setStatus("");
+    router.push(`/search?${params.toString()}`);
   }
 
   return (
@@ -39,10 +45,12 @@ export function GlobalSearch({
       <form className="global-search__form" onSubmit={submit} noValidate>
         <SearchField
           aria-label="Search HOMIO"
-          placeholder="Search HOMIO by property, place or intent"
+          name="q"
+          placeholder="Search homes, projects or locations"
           value={query}
           onChange={(event) => {
             setQuery(event.target.value);
+
             if (status) {
               setStatus("");
             }
@@ -60,7 +68,7 @@ export function GlobalSearch({
         </Button>
       </form>
 
-      <div className="global-search__status" aria-live="polite">
+      <div className="global-search__status" role="status" aria-live="polite">
         {status}
       </div>
     </div>
