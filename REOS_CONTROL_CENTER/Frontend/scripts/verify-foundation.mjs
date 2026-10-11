@@ -63,6 +63,12 @@ function read(relativePath) {
   return fs.readFileSync(absolutePath, "utf8");
 }
 
+function requireContains(source, requiredText, context) {
+  if (!source.includes(requiredText)) {
+    fail(`${context}: required contract missing: ${requiredText}`);
+  }
+}
+
 for (const relativePath of requiredFiles) {
   if (!fs.existsSync(path.join(root, relativePath))) {
     fail(`Required F01 file missing: ${relativePath}`);
@@ -76,9 +82,21 @@ const headerSource = read("src/components/shell/Header.tsx");
 const navigationSource = read(
   "src/components/shell/ResponsiveNavigation.tsx",
 );
+const actionLayerSource = read(
+  "src/components/shell/GlobalActionLayer.tsx",
+);
 const globalSearchSource = read(
   "src/components/navigation/GlobalSearch.tsx",
 );
+const searchFieldSource = read(
+  "src/components/ui/SearchField.tsx",
+);
+const inputSource = read("src/components/ui/Input.tsx");
+const selectSource = read("src/components/ui/Select.tsx");
+const modalSource = read("src/components/ui/Modal.tsx");
+const drawerSource = read("src/components/ui/Drawer.tsx");
+const bottomSheetSource = read("src/components/ui/BottomSheet.tsx");
+const focusHookSource = read("src/components/ui/useDialogFocus.ts");
 const searchConstantsSource = read(
   "src/features/f03_search/search.constants.ts",
 );
@@ -87,6 +105,43 @@ const globalStyles = read("src/app/globals.css");
 const baseStyles = read("src/app/styles/base.css");
 const tokenStyles = read("src/app/styles/tokens.css");
 const foundationStyles = read("src/app/styles/foundation.css");
+
+//
+// 1. Root application and document contract
+//
+
+if (
+  !layoutSource.includes('import "./globals.css";') ||
+  !layoutSource.includes("<AppShell>{children}</AppShell>")
+) {
+  fail("Root layout does not load global CSS and the shared shell.");
+}
+
+requireContains(layoutSource, '<html lang="en">', "Root document language");
+requireContains(layoutSource, "export const metadata", "Root metadata");
+requireContains(layoutSource, "export const viewport", "Root viewport");
+
+if (!appShellSource.includes('href="#main-content"')) {
+  fail("Accessible skip-to-content link is missing.");
+}
+
+if (
+  !appShellSource.includes('id="main-content"') ||
+  !/\btabIndex=\{-1\}/.test(appShellSource)
+) {
+  fail("Skip-link target must exist and be programmatically focusable.");
+}
+
+if (
+  !globalStyles.includes("#main-content") ||
+  !/scroll-margin-top:\s*8rem/.test(globalStyles)
+) {
+  fail("Skip-link target must have an offset for the sticky header.");
+}
+
+//
+// 2. Global styles must load in their required order
+//
 
 const requiredStyleImports = [
   '@import "./styles/tokens.css";',
@@ -110,23 +165,24 @@ for (const styleImport of requiredStyleImports) {
   previousImportPosition = position;
 }
 
-if (
-  !layoutSource.includes('import "./globals.css";') ||
-  !layoutSource.includes("<AppShell>{children}</AppShell>")
-) {
-  fail("Root layout does not load the shared shell and global CSS.");
+if (globalStyles.indexOf(requiredStyleImports[0]) !==
+    globalStyles.lastIndexOf(requiredStyleImports[0])) {
+  fail("Token stylesheet must be imported exactly once.");
 }
 
-if (!appShellSource.includes('href="#main-content"')) {
-  fail("Accessible skip-to-content link is missing.");
+if (globalStyles.indexOf(requiredStyleImports[1]) !==
+    globalStyles.lastIndexOf(requiredStyleImports[1])) {
+  fail("Base stylesheet must be imported exactly once.");
 }
 
-if (
-  !appShellSource.includes('id="main-content"') ||
-  !/\btabIndex=\{-1\}/.test(appShellSource)
-) {
-  fail("Skip-link target must exist and be programmatically focusable.");
+if (globalStyles.indexOf(requiredStyleImports[2]) !==
+    globalStyles.lastIndexOf(requiredStyleImports[2])) {
+  fail("Foundation stylesheet must be imported exactly once.");
 }
+
+//
+// 3. Shared header, search and navigation must remain connected
+//
 
 if (
   !headerSource.includes("<GlobalSearch />") ||
@@ -135,9 +191,66 @@ if (
   fail("Shared header must mount global search and responsive navigation.");
 }
 
-if (!navigationSource.includes('className="responsive-nav"')) {
-  fail("Responsive navigation styling hook is missing.");
+requireContains(
+  navigationSource,
+  'className="responsive-nav"',
+  "Responsive navigation",
+);
+requireContains(navigationSource, "<details>", "Keyboard-operable mobile menu");
+requireContains(
+  navigationSource,
+  "<summary>Menu</summary>",
+  "Keyboard-operable mobile menu trigger",
+);
+requireContains(
+  navigationSource,
+  'aria-label="Primary navigation"',
+  "Desktop navigation landmark",
+);
+requireContains(
+  navigationSource,
+  'aria-label="Mobile primary navigation"',
+  "Mobile navigation landmark",
+);
+
+const requiredNavigationDestinations = [
+  'href: "/search?intent=buy"',
+  'href: "/search?intent=rent"',
+  'href: "/search?intent=commercial"',
+  'href: "/search?intent=projects"',
+];
+
+for (const destination of requiredNavigationDestinations) {
+  requireContains(
+    navigationSource,
+    destination,
+    "Primary navigation route contract",
+  );
 }
+
+const requiredActionLinks = [
+  'href="/"',
+  'href="/search"',
+  'href="/search?intent=projects"',
+];
+
+for (const destination of requiredActionLinks) {
+  requireContains(
+    actionLayerSource,
+    destination,
+    "Global quick-action route contract",
+  );
+}
+
+requireContains(
+  actionLayerSource,
+  'aria-label="Global quick actions"',
+  "Global quick-action landmark",
+);
+
+//
+// 4. Global search must keep the F03 query contract and accessible feedback
+//
 
 const requiredSearchContract = [
   "useRouter",
@@ -146,12 +259,18 @@ const requiredSearchContract = [
   "router.push(`/search?${params.toString()}`)",
   "aria-invalid={status ? true : undefined}",
   "aria-describedby={status ? statusId : undefined}",
+  'role="status"',
+  'aria-live="polite"',
+  "query.trim()",
+  "if (!normalized)",
 ];
 
 for (const contract of requiredSearchContract) {
-  if (!globalSearchSource.includes(contract)) {
-    fail(`Global search contract is missing: ${contract}`);
-  }
+  requireContains(
+    globalSearchSource,
+    contract,
+    "Global search contract",
+  );
 }
 
 if (
@@ -160,6 +279,150 @@ if (
 ) {
   fail("Global search and F03 query parameter contract do not match.");
 }
+
+requireContains(
+  searchFieldSource,
+  'type="search"',
+  "Shared search field",
+);
+requireContains(
+  searchFieldSource,
+  'className={`search-field ${className}`.trim()}',
+  "Shared search field styling hook",
+);
+
+//
+// 5. Shared Input must have unique IDs and accessible error/hint association
+//
+
+requireContains(inputSource, "useId", "Shared Input identity");
+requireContains(
+  inputSource,
+  "const inputId = id ?? generatedId;",
+  "Shared Input identity",
+);
+requireContains(
+  inputSource,
+  '"aria-describedby": ariaDescribedBy',
+  "Shared Input description merge",
+);
+requireContains(
+  inputSource,
+  "aria-describedby={describedBy}",
+  "Shared Input description association",
+);
+requireContains(
+  inputSource,
+  'id={`${inputId}-hint`}',
+  "Shared Input hint association",
+);
+requireContains(
+  inputSource,
+  'id={`${inputId}-error`}',
+  "Shared Input error association",
+);
+requireContains(
+  inputSource,
+  'role="alert"',
+  "Shared Input error announcement",
+);
+
+//
+// 6. Shared Select must have unique IDs and accessible error/hint association
+//
+
+requireContains(selectSource, "useId", "Shared Select identity");
+requireContains(
+  selectSource,
+  "const selectId = id ?? generatedId;",
+  "Shared Select identity",
+);
+requireContains(
+  selectSource,
+  '"aria-describedby": ariaDescribedBy',
+  "Shared Select description merge",
+);
+requireContains(
+  selectSource,
+  "aria-describedby={describedBy}",
+  "Shared Select description association",
+);
+requireContains(
+  selectSource,
+  "const hintId = `${selectId}-hint`;",
+  "Shared Select hint identity",
+);
+requireContains(
+  selectSource,
+  "const errorId = `${selectId}-error`;",
+  "Shared Select error identity",
+);
+requireContains(
+  selectSource,
+  'id={hintId}',
+  "Shared Select hint association",
+);
+requireContains(
+  selectSource,
+  'id={errorId}',
+  "Shared Select error association",
+);
+requireContains(
+  selectSource,
+  'role="alert"',
+  "Shared Select error announcement",
+);
+
+//
+// 7. Modal, drawer and bottom sheet must use the same focus contract
+//
+
+const dialogComponents = [
+  ["Modal", modalSource],
+  ["Drawer", drawerSource],
+  ["BottomSheet", bottomSheetSource],
+];
+
+for (const [componentName, componentSource] of dialogComponents) {
+  const requiredDialogContract = [
+    "useDialogFocus",
+    'role="dialog"',
+    'aria-modal="true"',
+    "aria-labelledby={titleId}",
+    "tabIndex={-1}",
+    "onOpenChange(false)",
+  ];
+
+  for (const contract of requiredDialogContract) {
+    requireContains(
+      componentSource,
+      contract,
+      `${componentName} dialog contract`,
+    );
+  }
+}
+
+const requiredFocusHookContract = [
+  'event.key === "Escape"',
+  'event.key !== "Tab"',
+  'document.body.style.overflow = "hidden"',
+  "previousActiveElement.focus",
+  "!element.closest('[aria-hidden=\"true\"], [inert]')",
+  "element.getClientRects().length > 0",
+  "focusableElements.length === 0",
+];
+
+for (const contract of requiredFocusHookContract) {
+  requireContains(
+    focusHookSource,
+    contract,
+    "Shared dialog focus management",
+  );
+}
+
+//
+// 8. Required shared foundation selectors must exist
+//
 
 const requiredFoundationSelectors = [
   ".skip-link",
@@ -193,10 +456,47 @@ const requiredFoundationSelectors = [
 ];
 
 for (const selector of requiredFoundationSelectors) {
-  if (!foundationStyles.includes(selector)) {
-    fail(`Shared foundation style is missing: ${selector}`);
-  }
+  requireContains(
+    foundationStyles,
+    selector,
+    "Shared foundation stylesheet",
+  );
 }
+
+requireContains(
+  baseStyles,
+  ":focus-visible",
+  "Visible keyboard focus",
+);
+requireContains(
+  foundationStyles,
+  "env(safe-area-inset-bottom)",
+  "Mobile safe-area spacing",
+);
+requireContains(
+  foundationStyles,
+  "#main-content { padding-bottom: 5.25rem; }",
+  "Content clearance for fixed global actions",
+);
+
+if (
+  !/@media\s*\(max-width:\s*900px\)[\s\S]*?\.responsive-nav__desktop\s*\{\s*display:\s*none;/.test(
+    foundationStyles,
+  ) ||
+  !/@media\s*\(max-width:\s*900px\)[\s\S]*?\.responsive-nav__mobile\s*\{\s*display:\s*block;/.test(
+    foundationStyles,
+  )
+) {
+  fail("Responsive navigation desktop/mobile breakpoint contract is missing.");
+}
+
+if (!/min-width:\s*320px/.test(globalStyles)) {
+  fail("Global styles must retain the 320px minimum layout width.");
+}
+
+//
+// 9. Every used shared CSS token must be declared
+//
 
 const definedTokens = new Set(
   [...tokenStyles.matchAll(/--([a-z0-9-]+)\s*:/gi)].map(
@@ -222,6 +522,10 @@ if (missingTokens.length > 0) {
   );
 }
 
+//
+// 10. Runtime and architecture boundaries
+//
+
 const requiredScripts = [
   "dev",
   "build",
@@ -229,6 +533,10 @@ const requiredScripts = [
   "lint",
   "typecheck",
   "verify:foundation",
+  "verify:f02",
+  "verify:f03",
+  "verify:f04",
+  "verify:f05",
   "verify",
 ];
 
@@ -236,6 +544,25 @@ for (const scriptName of requiredScripts) {
   if (!packageJson.scripts?.[scriptName]) {
     fail(`Required npm script missing: ${scriptName}`);
   }
+}
+
+const requiredVerifyCommands = [
+  "npm run verify:foundation",
+  "npm run verify:f02",
+  "npm run verify:f03",
+  "npm run verify:f04",
+  "npm run verify:f05",
+  "npm run typecheck",
+  "npm run lint",
+  "npm run build",
+];
+
+for (const command of requiredVerifyCommands) {
+  requireContains(
+    packageJson.scripts.verify,
+    command,
+    "Combined frontend verification pipeline",
+  );
 }
 
 if (!String(packageJson.engines?.node ?? "").startsWith(">=24")) {
@@ -309,11 +636,17 @@ for (const file of sourceFiles) {
     fail(`Frontend runtime reads Master Architecture JSON: ${relativePath}`);
   }
 
-  if (/\bfrom\s+["'][^"']*ACRL/i.test(content)) {
+  if (
+    /(?:\bfrom\s*|\bimport\s*(?:\(\s*)?)["'][^"']*ACRL/i.test(content)
+  ) {
     fail(`Possible ACRL runtime import: ${relativePath}`);
   }
 
-  if (/\bimport\s+["'][^"']*AUTONOMY_ENGINE/i.test(content)) {
+  if (
+    /(?:\bfrom\s*|\bimport\s*(?:\(\s*)?)["'][^"']*AUTONOMY_ENGINE/i.test(
+      content,
+    )
+  ) {
     fail(`Possible backend/autonomy runtime import: ${relativePath}`);
   }
 }
@@ -327,18 +660,23 @@ if (prototypeImports.length > 0) {
 }
 
 console.log("");
-console.log("===============================================");
-console.log("F01 FOUNDATION CONTRACT = PASS");
-console.log(`FILES VERIFIED           = ${requiredFiles.length}`);
-console.log("ROOT SHELL MOUNTING      = PASS");
-console.log("SKIP LINK FOCUS TARGET   = PASS");
-console.log("GLOBAL SEARCH ROUTING    = PASS");
-console.log("GLOBAL CSS IMPORT ORDER  = PASS");
-console.log("CSS TOKEN RESOLUTION     = PASS");
-console.log("SHARED FOUNDATION CSS    = PASS");
-console.log("NODE / REACT FOUNDATION  = PASS");
-console.log("NO STATE.JSON RUNTIME    = PASS");
-console.log("NO MASTER ARCH RUNTIME   = PASS");
-console.log("NO ACRL RUNTIME          = PASS");
-console.log("NO PROTOTYPE IMPORT      = PASS");
-console.log("===============================================");
+console.log("==================================================");
+console.log("F01 FOUNDATION CONTRACT         = PASS");
+console.log(`FILES VERIFIED                  = ${requiredFiles.length}`);
+console.log("ROOT DOCUMENT AND SHELL         = PASS");
+console.log("SKIP LINK AND STICKY OFFSET     = PASS");
+console.log("RESPONSIVE NAVIGATION           = PASS");
+console.log("GLOBAL SEARCH AND F03 CONTRACT  = PASS");
+console.log("UNIQUE INPUT IDS / ARIA         = PASS");
+console.log("UNIQUE SELECT IDS / ARIA        = PASS");
+console.log("DIALOG ACCESSIBILITY CONTRACT   = PASS");
+console.log("KEYBOARD FOCUS MANAGEMENT       = PASS");
+console.log("CSS IMPORT ORDER                = PASS");
+console.log("CSS TOKEN RESOLUTION            = PASS");
+console.log("MOBILE SAFE-AREA / MOTION       = PASS");
+console.log("COMBINED CI PIPELINE            = PASS");
+console.log("NO STATE.JSON RUNTIME           = PASS");
+console.log("NO MASTER ARCH RUNTIME          = PASS");
+console.log("NO ACRL / AUTONOMY RUNTIME      = PASS");
+console.log("NO PROTOTYPE IMPORT             = PASS");
+console.log("==================================================");
