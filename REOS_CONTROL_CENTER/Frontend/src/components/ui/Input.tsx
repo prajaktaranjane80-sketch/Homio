@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes } from "react";
+import { useId, type InputHTMLAttributes } from "react";
 
 export function Input({
   label,
@@ -6,6 +6,8 @@ export function Input({
   error,
   id,
   className = "",
+  "aria-describedby": ariaDescribedBy,
+  "aria-invalid": ariaInvalid,
   ...props
 }: Readonly<
   InputHTMLAttributes<HTMLInputElement> & {
@@ -14,13 +16,17 @@ export function Input({
     error?: string;
   }
 >) {
-  const inputId = id ?? `input-${label?.toLowerCase().replace(/\s+/g, "-") ?? "field"}`;
-  const describedBy = [
-    hint ? `${inputId}-hint` : "",
-    error ? `${inputId}-error` : "",
-  ]
-    .filter(Boolean)
-    .join(" ") || undefined;
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
+
+  const describedBy =
+    [
+      ariaDescribedBy,
+      hint ? `${inputId}-hint` : "",
+      error ? `${inputId}-error` : "",
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined;
 
   return (
     <div className="field-group">
@@ -33,7 +39,7 @@ export function Input({
       <input
         id={inputId}
         className={`input-field ${className}`.trim()}
-        aria-invalid={error ? true : undefined}
+        aria-invalid={error ? true : ariaInvalid}
         aria-describedby={describedBy}
         {...props}
       />
