@@ -1,26 +1,202 @@
-github.com
-  ✓ Logged in to github.com account prajaktaranjane80-sketch (keyring)
-  - Active account: true
-  - Git operations protocol: https
-  - Token: gho_************************************
-  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
+PS C:\Users\Sandip RanjanePatil> ```powershell
+`powershell : The term '`powershell' is not recognized as the name of a cmdlet, function, script file, or operable
+program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ ```powershell
++ ~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (`powershell:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
 
-  ✓ Logged in to github.com account sandyranjane-hash (keyring)
-  - Active account: false
-  - Git operations protocol: https
-  - Token: gho_************************************
-  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> gh api repos/prajaktaranjane80-sketch/Homio `
->>   --jq '{full_name: .full_name, private: .private, default_branch: .default_branch}'
-{
-  "default_branch": "main",
-  "full_name": "prajaktaranjane80-sketch/Homio",
-  "private": false
-}
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> gh api 'repos/prajaktaranjane80-sketch/Homio/branches/reos-development' `
->>   --jq '{name: .name, sha: .commit.sha}'
-{
-  "name": "reos-development",
-  "sha": "bbd1938ecf82e638e8834735ffd067a611d4a89a"
+PS C:\Users\Sandip RanjanePatil> Set-Location "D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend"
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git fetch origin reos-development
+remote: Enumerating objects: 183, done.
+remote: Counting objects: 100% (179/179), done.
+remote: Compressing objects: 100% (164/164), done.
+remote: Total 183 (delta 117), reused 13 (delta 12), pack-reused 4 (from 1)
+Receiving objects: 100% (183/183), 49.44 KiB | 1.30 MiB/s, done.
+Resolving deltas: 100% (117/117), completed with 4 local objects.
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+   3776681..fe86966  reos-development -> origin/reos-development
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git switch reos-development
+M       REOS_CONTROL_CENTER/Frontend/package.json
+M       REOS_CONTROL_CENTER/Frontend/src/features/f01_experience_foundation/README.md
+M       REOS_CONTROL_CENTER/Frontend/tsconfig.json
+Already on 'reos-development'
+Your branch and 'origin/reos-development' have diverged,
+and have 1 and 162 different commits each, respectively.
+  (use "git pull" if you want to integrate the remote branch with yours)
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git pull --ff-only origin reos-development
+From https://github.com/prajaktaranjane80-sketch/Homio
+ * branch            reos-development -> FETCH_HEAD
+hint: Diverging branches can't be fast-forwarded, you need to either:
+hint:
+hint:   git merge --no-ff
+hint:
+hint: or:
+hint:
+hint:   git rebase
+hint:
+hint: Disable this message with "git config set advice.diverging false"
+fatal: Not possible to fast-forward, aborting.
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> Write-Host "`n=== CURRENT GITHUB COMMIT ==="
+
+=== CURRENT GITHUB COMMIT ===
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git rev-parse HEAD
+9b1c96687f0c5c6dac388c2609ad9350d0ad4268
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git rev-parse origin/reos-development
+fe869663128678c156e8eecbcfe18d3e9dcdc144
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> Write-Host "`n=== F03 FILE STATUS ==="
+
+=== F03 FILE STATUS ===
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git status --short
+ D "../../Project: HOMIO"
+ M package.json
+ M src/features/f01_experience_foundation/README.md
+ M tsconfig.json
+?? ../../Project
+?? package-lock.json
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> git ls-files "src/features/f03_search/SearchFurnishingFilter*"
+src/features/f03_search/SearchFurnishingFilter.mod
+src/features/f03_search/SearchFurnishingFilter.ts
+src/features/f03_search/SearchFurnishingFilter.tsx
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> Write-Host "`n=== TYPESCRIPT CHECK ==="
+
+=== TYPESCRIPT CHECK ===
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> npm run typecheck
+
+> homio-frontend@0.1.0 typecheck
+> tsc --noEmit
+
+src/features/f03_search/SearchFurnishingFilter.ts:26:15 - error TS1005: '>' expected.
+
+26     <fieldset className={styles.fieldset}>
+                 ~~~~~~~~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:26:24 - error TS1005: ')' expected.
+
+26     <fieldset className={styles.fieldset}>
+                          ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:26:32 - error TS1005: ',' expected.
+
+26     <fieldset className={styles.fieldset}>
+                                  ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:27:26 - error TS1161: Unterminated regular expression literal.
+
+27       <legend>Furnishing</legend>
+                            ~~~~~~~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:29:12 - error TS1005: ';' expected.
+
+29       <div className={styles.options}>
+              ~~~~~~~~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:29:29 - error TS1005: ',' expected.
+
+29       <div className={styles.options}>
+                               ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:30:17 - error TS1005: ',' expected.
+
+30         {options.map((option) => {
+                   ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:35:15 - error TS1005: '>' expected.
+
+35               key={option}
+                 ~~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:35:18 - error TS1005: ')' expected.
+
+35               key={option}
+                    ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:37:27 - error TS1005: ';' expected.
+
+37               aria-pressed={selected}
+                             ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:38:26 - error TS1136: Property assignment expected.
+
+38               className={`${styles.option} ${
+                            ~~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:41:15 - error TS1005: ',' expected.
+
+41               onClick={() => toggle(option)}
+                 ~~~~~~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:41:24 - error TS1136: Property assignment expected.
+
+41               onClick={() => toggle(option)}
+                          ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:41:27 - error TS1005: ',' expected.
+
+41               onClick={() => toggle(option)}
+                             ~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:41:44 - error TS1005: ',' expected.
+
+41               onClick={() => toggle(option)}
+                                              ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:44:14 - error TS1161: Unterminated regular expression literal.
+
+44             </button>
+                ~~~~~~~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:45:11 - error TS1128: Declaration or statement expected.
+
+45           );
+             ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:46:10 - error TS1128: Declaration or statement expected.
+
+46         })}
+            ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:46:11 - error TS1128: Declaration or statement expected.
+
+46         })}
+             ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:47:8 - error TS1110: Type expected.
+
+47       </div>
+          ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:48:6 - error TS1161: Unterminated regular expression literal.
+
+48     </fieldset>
+        ~~~~~~~~~~
+
+src/features/f03_search/SearchFurnishingFilter.ts:49:3 - error TS1128: Declaration or statement expected.
+
+49   );
+     ~
+
+src/features/f03_search/SearchFurnishingFilter.ts:50:1 - error TS1128: Declaration or statement expected.
+
+50 }
+   ~
+
+
+Found 23 errors in the same file, starting at: src/features/f03_search/SearchFurnishingFilter.ts:26
+
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend> ```
+`` : The term '``' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was
+included, verify that the path is correct and try again.
+At line:1 char:1
++ ```
++ ~~~
+    + CategoryInfo          : ObjectNotFound: (``:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\HOMIO_FRONTEND_VERIFY_02\REOS_CONTROL_CENTER\Frontend>
