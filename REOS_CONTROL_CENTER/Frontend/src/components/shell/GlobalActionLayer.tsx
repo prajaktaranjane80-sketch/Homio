@@ -14,7 +14,7 @@ export function GlobalActionLayer() {
 
         <Link
           className="global-actions__link"
-          href="/project/homio-kalyani-residences-001"
+          href="/search?intent=projects"
         >
           Projects
         </Link>
