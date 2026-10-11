@@ -1,4 +1,8 @@
-import type { ReactNode, SelectHTMLAttributes } from "react";
+import {
+  useId,
+  type ReactNode,
+  type SelectHTMLAttributes,
+} from "react";
 
 export function Select({
   label,
@@ -7,6 +11,8 @@ export function Select({
   id,
   children,
   className = "",
+  "aria-describedby": ariaDescribedBy,
+  "aria-invalid": ariaInvalid,
   ...props
 }: Readonly<
   SelectHTMLAttributes<HTMLSelectElement> & {
@@ -16,8 +22,19 @@ export function Select({
     children: ReactNode;
   }
 >) {
-  const selectId =
-    id ?? `select-${label?.toLowerCase().replace(/\s+/g, "-") ?? "field"}`;
+  const generatedId = useId();
+  const selectId = id ?? generatedId;
+  const hintId = `${selectId}-hint`;
+  const errorId = `${selectId}-error`;
+
+  const describedBy =
+    [
+      ariaDescribedBy,
+      hint ? hintId : "",
+      error ? errorId : "",
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined;
 
   return (
     <div className="field-group">
@@ -30,16 +47,21 @@ export function Select({
       <select
         id={selectId}
         className={`select-field ${className}`.trim()}
-        aria-invalid={error ? true : undefined}
+        aria-invalid={error ? true : ariaInvalid}
+        aria-describedby={describedBy}
         {...props}
       >
         {children}
       </select>
 
-      {hint ? <span className="field-hint">{hint}</span> : null}
+      {hint ? (
+        <span className="field-hint" id={hintId}>
+          {hint}
+        </span>
+      ) : null}
 
       {error ? (
-        <span className="field-error" role="alert">
+        <span className="field-error" id={errorId} role="alert">
           {error}
         </span>
       ) : null}
