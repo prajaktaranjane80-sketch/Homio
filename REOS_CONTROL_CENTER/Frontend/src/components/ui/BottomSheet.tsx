@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useId, type ReactNode } from "react";
+import { useId, useRef, type ReactNode } from "react";
+
+import { useDialogFocus } from "@/components/ui/useDialogFocus";
 
 export function BottomSheet({
   open,
@@ -14,28 +16,9 @@ export function BottomSheet({
   onOpenChange: (open: boolean) => void;
 }>) {
   const titleId = useId();
+  const panelRef = useRef<HTMLElement | null>(null);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    const previousOverflow = document.body.style.overflow;
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onOpenChange(false);
-      }
-    };
-
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [onOpenChange, open]);
+  useDialogFocus({ open, onOpenChange, panelRef });
 
   if (!open) {
     return null;
@@ -52,10 +35,12 @@ export function BottomSheet({
       }}
     >
       <section
+        ref={panelRef}
         className="overlay__panel sheet-overlay__panel"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        tabIndex={-1}
       >
         <div className="overlay__header">
           <h2 className="overlay__title" id={titleId}>
