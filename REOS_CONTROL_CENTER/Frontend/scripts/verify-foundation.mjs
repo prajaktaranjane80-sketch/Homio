@@ -16,6 +16,7 @@ const requiredFiles = [
   "src/app/error.tsx",
   "src/app/not-found.tsx",
   "src/app/globals.css",
+  "src/app/styles/foundation.css",
   "src/components/shell/AppShell.tsx",
   "src/components/shell/Header.tsx",
   "src/components/shell/ResponsiveNavigation.tsx",
@@ -42,8 +43,6 @@ const requiredFiles = [
   "src/features/f01_experience_foundation/README.md",
 ];
 
-const packagePath = path.join(root, "package.json");
-
 function fail(message) {
   console.error(`FAIL-CLOSED: ${message}`);
   process.exit(1);
@@ -58,8 +57,59 @@ for (const relativePath of requiredFiles) {
 }
 
 const packageJson = JSON.parse(
-  fs.readFileSync(packagePath, "utf8"),
+  fs.readFileSync(path.join(root, "package.json"), "utf8"),
 );
+
+const globalStylesPath = path.join(root, "src/app/globals.css");
+const foundationStylesPath = path.join(
+  root,
+  "src/app/styles/foundation.css",
+);
+
+const globalStyles = fs.readFileSync(globalStylesPath, "utf8");
+const foundationStyles = fs.readFileSync(
+  foundationStylesPath,
+  "utf8",
+);
+
+if (!globalStyles.includes('@import "./styles/foundation.css";')) {
+  fail("Shared foundation stylesheet is not imported by globals.css.");
+}
+
+const requiredFoundationSelectors = [
+  ".skip-link",
+  ".site-header",
+  ".responsive-nav__desktop",
+  ".responsive-nav__mobile-menu",
+  ".site-header__search",
+  ".global-search__form",
+  ".context-bar",
+  ".global-actions",
+  ".page-container",
+  ".field-group",
+  ".input-field",
+  ".search-field",
+  ".select-field",
+  ".button--small",
+  ".button--ghost",
+  ".badge",
+  ".chip",
+  ".tabs",
+  ".overlay",
+  ".drawer-overlay__panel",
+  ".sheet-overlay__panel",
+  ".toast",
+  ".skeleton",
+  ".empty-state",
+  ".error-state",
+  "@media (prefers-reduced-motion: reduce)",
+];
+
+for (const selector of requiredFoundationSelectors) {
+  if (!foundationStyles.includes(selector)) {
+    fail(`Shared foundation style is missing: ${selector}`);
+  }
+}
 
 const requiredScripts = [
   "dev",
@@ -93,7 +143,9 @@ if (!packageJson.devDependencies?.typescript) {
 }
 
 function walk(directory) {
-  const entries = fs.readdirSync(directory, { withFileTypes: true });
+  const entries = fs.readdirSync(directory, {
+    withFileTypes: true,
+  });
 
   const files = [];
 
@@ -120,31 +172,29 @@ function walk(directory) {
 }
 
 const sourceRoot = path.join(root, "src");
+
 const sourceFiles = walk(sourceRoot).filter((file) =>
   /\.(ts|tsx|js|jsx|mjs)$/.test(file),
 );
 
 for (const file of sourceFiles) {
   const content = fs.readFileSync(file, "utf8");
+  const relativePath = path.relative(root, file);
 
   if (content.includes("REOS_CONTROL_CENTER/data/state.json")) {
-    fail(`Frontend runtime reads state.json: ${path.relative(root, file)}`);
+    fail(`Frontend runtime reads state.json: ${relativePath}`);
   }
 
   if (content.includes("HOMIO_REOS_MASTER_ARCHITECTURE.json")) {
-    fail(
-      `Frontend runtime reads Master Architecture JSON: ${path.relative(root, file)}`,
-    );
+    fail(`Frontend runtime reads Master Architecture JSON: ${relativePath}`);
   }
 
   if (/\bfrom\s+["'][^"']*ACRL/i.test(content)) {
-    fail(`Possible ACRL runtime import: ${path.relative(root, file)}`);
+    fail(`Possible ACRL runtime import: ${relativePath}`);
   }
 
   if (/\bimport\s+["'][^"']*AUTONOMY_ENGINE/i.test(content)) {
-    fail(
-      `Possible backend/autonomy runtime import: ${path.relative(root, file)}`,
-    );
+    fail(`Possible backend/autonomy runtime import: ${relativePath}`);
   }
 }
 
@@ -160,6 +210,7 @@ console.log("");
 console.log("===============================================");
 console.log("F01 FOUNDATION CONTRACT = PASS");
 console.log(`FILES VERIFIED           = ${requiredFiles.length}`);
+console.log("SHARED FOUNDATION CSS    = PASS");
 console.log("NEXT/REACT FOUNDATION    = PASS");
 console.log("NO STATE.JSON RUNTIME    = PASS");
 console.log("NO MASTER ARCH RUNTIME   = PASS");
