@@ -6,52 +6,52 @@ const markets = [
     city: "Dubai",
     country: "UAE",
     trend: "Residential",
-    value: "Prime market",
+    value: "Market preview",
     detail: "Luxury · New projects · Investment",
-    href: "/market/dubai",
+    href: "/search?city=Dubai",
   },
   {
     city: "Singapore",
     country: "Singapore",
     trend: "Residential",
-    value: "Core market",
+    value: "Market preview",
     detail: "Urban living · Prime districts · Commercial",
-    href: "/market/singapore",
+    href: "/search?city=Singapore",
   },
   {
     city: "London",
     country: "UK",
     trend: "Residential",
-    value: "Prime market",
+    value: "Market preview",
     detail: "Prime homes · Investment · Commercial",
-    href: "/market/london",
+    href: "/search?city=London",
   },
   {
     city: "Tokyo",
     country: "Japan",
     trend: "Residential",
-    value: "Urban market",
+    value: "Market preview",
     detail: "City homes · Prime districts · Investment",
-    href: "/market/tokyo",
+    href: "/search?city=Tokyo",
   },
 ];
 
 const signals = [
   {
     label: "Price context",
-    value: "Location-based",
+    value: "Preview only",
   },
   {
     label: "Rental context",
-    value: "Market-based",
+    value: "Not connected",
   },
   {
     label: "Project activity",
-    value: "Discovery signal",
+    value: "Preview only",
   },
   {
     label: "Locality insight",
-    value: "Area context",
+    value: "Location context",
   },
 ];
 
@@ -66,14 +66,14 @@ export default function MarketIntelligence() {
             <h2>See the market around the property.</h2>
 
             <p>
-              HOMIO connects property discovery with location and market
-              context so you can understand where an opportunity sits before
-              moving into an enquiry.
+              Explore property-search context across global cities. Live
+              market statistics, authoritative price trends and confirmed
+              inventory are not connected in this frontend preview.
             </p>
           </div>
 
-          <Link href="/market" className={styles.viewAll}>
-            Explore markets
+          <Link href="/search" className={styles.viewAll}>
+            Explore property search
             <span aria-hidden="true">↗</span>
           </Link>
         </div>
@@ -128,8 +128,9 @@ export default function MarketIntelligence() {
             </div>
 
             <p>
-              A property is more useful when you can see the location,
-              neighbourhood, project and market signals around it.
+              A property is more useful when its location, neighbourhood
+              and project context are clear. The signals below describe
+              this experience preview, not verified market data.
             </p>
 
             <div className={styles.signals}>
@@ -141,8 +142,8 @@ export default function MarketIntelligence() {
               ))}
             </div>
 
-            <Link href="/market" className={styles.panelAction}>
-              Open market intelligence
+            <Link href="/search" className={styles.panelAction}>
+              Open property search
               <span aria-hidden="true">→</span>
             </Link>
           </div>
