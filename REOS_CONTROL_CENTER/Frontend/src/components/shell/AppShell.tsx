@@ -22,7 +22,9 @@ export function AppShell({
         secondary="REOS remains the canonical business authority"
       />
 
-      <div id="main-content">{children}</div>
+      <div id="main-content" tabIndex={-1}>
+        {children}
+      </div>
 
       <GlobalActionLayer />
     </>
