@@ -33,6 +33,16 @@ function walk(directory) {
   return files;
 }
 
+function read(relativePath) {
+  const absolutePath = path.join(root, relativePath);
+
+  if (!fs.existsSync(absolutePath)) {
+    fail(`Required F02 file missing: ${relativePath}`);
+  }
+
+  return fs.readFileSync(absolutePath, "utf8");
+}
+
 if (!fs.existsSync(path.join(featureRoot, "HomeDiscoveryPage.tsx"))) {
   fail("F02 HomeDiscoveryPage.tsx is missing.");
 }
@@ -71,6 +81,16 @@ for (const component of componentFiles) {
   }
 }
 
+for (const styleFile of styleFiles) {
+  const css = fs.readFileSync(styleFile, "utf8");
+
+  if (!css.trim()) {
+    fail(
+      `Empty CSS module: ${path.relative(root, styleFile)}.`,
+    );
+  }
+}
+
 if (
   fs.existsSync(legacyRoot) &&
   fs.readdirSync(legacyRoot).length > 0
@@ -88,10 +108,58 @@ const routeContent = fs.readFileSync(routePath, "utf8");
 
 if (
   !routeContent.includes(
-    '@/features/f02_home_discovery/HomeDiscoveryPage',
+    "@/features/f02_home_discovery/HomeDiscoveryPage",
   )
 ) {
   fail("Homepage route is not connected to F02.");
+}
+
+const verifiedPropertiesSource = read(
+  "src/features/f02_home_discovery/VerifiedProperties.tsx",
+);
+
+if (
+  !/experience preview/i.test(verifiedPropertiesSource) ||
+  !/not verified/i.test(verifiedPropertiesSource)
+) {
+  fail(
+    "Property preview must visibly disclose its unverified status.",
+  );
+}
+
+if (
+  /HOMIO signal/i.test(verifiedPropertiesSource) ||
+  /availability confirmed/i.test(verifiedPropertiesSource)
+) {
+  fail(
+    "Unverified property previews cannot display verified or confirmed claims.",
+  );
+}
+
+const collectionsSource = read(
+  "src/features/f02_home_discovery/NewProjectCollections.tsx",
+);
+
+if (/\bcount\s*:\s*["'`]\d+\s+projects/i.test(collectionsSource)) {
+  fail(
+    "Project collections cannot display unsupported static inventory counts.",
+  );
+}
+
+const builderProjectsSource = read(
+  "src/features/f02_home_discovery/BuilderProjects.tsx",
+);
+
+if (/\bprojects\s*:\s*["'`]\d+\s+active projects/i.test(builderProjectsSource)) {
+  fail(
+    "Builder cards cannot claim unsupported active-project totals.",
+  );
+}
+
+if (builderProjectsSource.includes('href="/pro/inventory"')) {
+  fail(
+    "Builder homepage CTA links to the unsupported /pro/inventory route.",
+  );
 }
 
 const sourceFiles = walk(path.join(root, "src")).filter((file) =>
@@ -143,8 +211,11 @@ console.log("");
 console.log("===============================================");
 console.log("F02 HOME DISCOVERY CONTRACT = PASS");
 console.log("43 COMPONENTS               = PASS");
-console.log("43 CSS MODULES               = PASS");
+console.log("43 NON-EMPTY CSS MODULES    = PASS");
 console.log("FEATURE ROUTE COMPOSITION    = PASS");
 console.log("LEGACY DIRECTORY CLEANUP     = PASS");
 console.log("RELATIVE IMPORTS             = PASS");
+console.log("PROPERTY PREVIEW DISCLOSURE  = PASS");
+console.log("NO INVENTORY COUNT CLAIMS    = PASS");
+console.log("NO UNSUPPORTED BUILDER ROUTE = PASS");
 console.log("===============================================");
