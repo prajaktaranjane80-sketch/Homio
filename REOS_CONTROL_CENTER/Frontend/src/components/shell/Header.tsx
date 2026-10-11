@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { GlobalSearch } from "@/components/navigation/GlobalSearch";
 import { ResponsiveNavigation } from "@/components/shell/ResponsiveNavigation";
 
 export function Header() {
@@ -10,6 +11,10 @@ export function Header() {
           <span className="brand__name">HOMIO</span>
           <span className="brand__descriptor">GLOBAL REAL ESTATE</span>
         </Link>
+
+        <div className="site-header__search">
+          <GlobalSearch />
+        </div>
 
         <ResponsiveNavigation />
       </div>
