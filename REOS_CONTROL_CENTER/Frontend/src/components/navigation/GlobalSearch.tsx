@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { FormEvent } from "react";
 
 import { Button } from "@/components/ui/Button";
@@ -15,6 +15,7 @@ export function GlobalSearch({
   disabled?: boolean;
 }) {
   const router = useRouter();
+  const statusId = useId();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
 
@@ -45,6 +46,8 @@ export function GlobalSearch({
       <form className="global-search__form" onSubmit={submit} noValidate>
         <SearchField
           aria-label="Search HOMIO"
+          aria-invalid={status ? true : undefined}
+          aria-describedby={status ? statusId : undefined}
           name="q"
           placeholder="Search homes, projects or locations"
           value={query}
@@ -68,7 +71,12 @@ export function GlobalSearch({
         </Button>
       </form>
 
-      <div className="global-search__status" role="status" aria-live="polite">
+      <div
+        id={statusId}
+        className="global-search__status"
+        role="status"
+        aria-live="polite"
+      >
         {status}
       </div>
     </div>
