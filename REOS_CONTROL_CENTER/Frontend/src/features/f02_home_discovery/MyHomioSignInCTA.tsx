@@ -1,4 +1,3 @@
-import Link from "next/link";
 import styles from "./MyHomioSignInCTA.module.css";
 
 export default function MyHomioSignInCTA() {
@@ -8,12 +7,14 @@ export default function MyHomioSignInCTA() {
         <strong>Pick up where you left off.</strong>
 
         <p>
-          Sign in to keep your discovery and brokerage journey connected across
-          devices.
+          Persistent account access is planned for the My HOMIO journey.
+          Sign-in and synchronisation are not enabled in this preview.
         </p>
       </div>
 
-      <Link href="/my">Continue to My HOMIO</Link>
+      <span className={styles.status} aria-disabled="true">
+        Sign-in not active
+      </span>
     </div>
   );
 }
