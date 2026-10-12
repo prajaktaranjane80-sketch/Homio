@@ -13,7 +13,6 @@ const requiredFiles = [
   "src/app/project/[projectId]/not-found.tsx",
   "src/app/project/[projectId]/error.tsx",
   "src/app/project/[projectId]/error.module.css",
-
   "src/features/f05_project/README.md",
   "src/features/f05_project/ProjectPage.tsx",
   "src/features/f05_project/ProjectPage.module.css",
@@ -101,7 +100,12 @@ const propertyData = read(
   "src/features/f04_property/property.data.ts",
 );
 
-const normalizedRoute = normalizeWhitespace(route);
+// Ignore comments so prose does not decide whether metadata is configured.
+const routeWithoutComments = route
+  .replace(/\/\*[\s\S]*?\*\//g, "")
+  .replace(/^\s*\/\/.*$/gm, "");
+
+const normalizedRoute = normalizeWhitespace(routeWithoutComments);
 
 /*
  * FILE + COMPONENT CONTRACT
@@ -139,7 +143,8 @@ assert(
   normalizedRoute.includes("Project Experience Preview") &&
     normalizedRoute.includes("index: false") &&
     normalizedRoute.includes("follow: true") &&
-    !normalizedRoute.includes("canonical"),
+    !/\balternates\s*:/.test(normalizedRoute) &&
+    !/\bcanonical\s*:/.test(normalizedRoute),
   "Unverified project previews must be noindex and must not declare a canonical URL.",
 );
 
@@ -167,154 +172,4 @@ assert(
 assert(
   data.includes("verified: false") &&
     data.includes("Experience preview"),
-  "Project preview records must remain explicitly non-authoritative.",
-);
-
-assert(
-  actions.includes("navigator.share") &&
-    actions.includes("temporary experience controls"),
-  "Share support and temporary save/compare state disclosure are required.",
-);
-
-assert(
-  gallery.includes(
-    "Project media shown here is experience-preview content",
-  ) &&
-    gallery.includes("not connected"),
-  "Project media must clearly disclose unconnected preview placeholders.",
-);
-
-assert(
-  inventory.includes("Open property") &&
-    inventory.includes("Project preview opportunities") &&
-    inventory.includes("not asserted"),
-  "Project inventory must disclose preview status and only link supplied property references.",
-);
-
-assert(
-  nextStep.includes("Continue project discovery") &&
-    nextStep.includes("/search?intent=projects") &&
-    page.includes("#inventory"),
-  "Project discovery actions must lead to the correct search intent and inventory section.",
-);
-
-assert(
-  location.includes("Location preview") &&
-    trust.includes("verificationLabel"),
-  "Location and trust sections must retain their preview and verification context.",
-);
-
-/*
- * CATALOGUE ID INTEGRITY
- */
-assert(
-  catalog.includes("getProjectPreview") &&
-    catalog.includes("PROJECT_PREVIEW_IDS"),
-  "Project catalogue must reuse the F05 data adapter.",
-);
-
-const catalogBlock = catalog.match(
-  /const PROJECT_PREVIEW_IDS = \[([\s\S]*?)\] as const;/,
-);
-
-assert(
-  catalogBlock !== null,
-  "Project catalogue must declare its preview ID registry.",
-);
-
-const catalogIds = [
-  ...catalogBlock[1].matchAll(/"([^"]+)"/g),
-].map((match) => match[1]);
-
-assert(
-  catalogIds.length > 0 &&
-    new Set(catalogIds).size === catalogIds.length,
-  "Project preview IDs must be non-empty and unique.",
-);
-
-for (const id of catalogIds) {
-  assert(
-    data.includes(`id: "${id}"`),
-    `Project catalogue ID does not resolve in project.data.ts: ${id}`,
-  );
-}
-
-/*
- * RELATED PROJECT REFERENCES MUST RESOLVE
- */
-const relatedBlocks = [
-  ...data.matchAll(/relatedProjects:\s*\[([\s\S]*?)\]/g),
-].map((match) => match[1]);
-
-const relatedIds = relatedBlocks.flatMap((block) =>
-  [...block.matchAll(/id:\s*"([^"]+)"/g)].map(
-    (match) => match[1],
-  ),
-);
-
-for (const id of relatedIds) {
-  assert(
-    catalogIds.includes(id),
-    `Related project reference does not resolve through the F05 catalogue: ${id}`,
-  );
-}
-
-assert(
-  relatedProjects.includes('href={`/project/${item.id}`}') &&
-    relatedProjects.includes("project.relatedProjects.map"),
-  "Related-project links must be generated from supplied project references.",
-);
-
-/*
- * PROPERTY REFERENCES MUST RESOLVE THROUGH F04
- */
-const propertyIds = [
-  ...data.matchAll(/href:\s*"\/property\/([^"]+)"/g),
-].map((match) => match[1]);
-
-for (const propertyId of propertyIds) {
-  assert(
-    propertyData.includes(`id: "${propertyId}"`),
-    `Project inventory references an unresolved F04 property ID: ${propertyId}`,
-  );
-}
-
-/*
- * FRONTEND / BACKEND BOUNDARY
- */
-const featureSources = [
-  ["ProjectPage.tsx", page],
-  ["project route", route],
-  ["project.data.ts", data],
-  ["project-preview-catalog.ts", catalog],
-  ["ProjectActions.tsx", actions],
-  ["ProjectGallery.tsx", gallery],
-  ["ProjectInventory.tsx", inventory],
-  ["ProjectNextStep.tsx", nextStep],
-  ["ProjectLocation.tsx", location],
-  ["ProjectTrust.tsx", trust],
-  ["RelatedProjects.tsx", relatedProjects],
-  ["project error route", errorRoute],
-];
-
-for (const forbidden of forbiddenRuntimeReferences) {
-  for (const [name, content] of featureSources) {
-    assert(
-      !content.includes(forbidden),
-      `Forbidden runtime reference in ${name}: ${forbidden}`,
-    );
-  }
-}
-
-console.log("F05 PROJECT & COLLECTION CONTRACT GATE = PASS");
-console.log(`FILES VERIFIED = ${requiredFiles.length}`);
-console.log("PROJECT CATALOGUE + ROUTE = PASS");
-console.log("PREVIEW SEO + NOT-FOUND + ERROR RECOVERY = PASS");
-console.log("UNVERIFIED PROJECTS ARE NON-INDEXED = PASS");
-console.log("PROJECT MEDIA PREVIEW DISCLOSURE = PASS");
-console.log("INVENTORY DOES NOT CLAIM LIVE AVAILABILITY = PASS");
-console.log("RELATED PROJECT REFERENCES RESOLVE = PASS");
-console.log("PROPERTY REFERENCES RESOLVE THROUGH F04 = PASS");
-console.log("PROJECT DISCOVERY SEARCH DESTINATION = PASS");
-console.log("NO STATE.JSON RUNTIME = PASS");
-console.log("NO ACRL RUNTIME = PASS");
+  "Project preview records must remain explicitly non-authoritative
