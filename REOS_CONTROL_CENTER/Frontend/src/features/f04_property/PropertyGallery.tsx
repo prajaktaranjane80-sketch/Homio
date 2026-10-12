@@ -77,9 +77,10 @@ export default function PropertyGallery({
           lineHeight: 1.6,
         }}
       >
-        Preview placeholders only. No actual property photograph,
-        verified floor plan, video or virtual tour is supplied by
-        the current property data.
+        Preview placeholders only. Actual property media is not supplied
+        by the current property data. The current record contains labels,
+        not actual property photography, verified floor plans, video or
+        virtual-tour URLs.
       </p>
 
       <div className={styles.thumbs}>
