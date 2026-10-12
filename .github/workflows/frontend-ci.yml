@@ -44,8 +44,8 @@ jobs:
           node-version: 24
           package-manager-cache: false
 
-      - name: Install frontend dependencies
-        run: npm install --no-audit --no-fund
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
 
       - name: Run F01-F05, TypeScript, lint and production build
         run: npm run verify
