@@ -130,7 +130,7 @@ for (const component of [
 }
 
 assert(
-  !propertyPage.includes('className={styles.ai}'),
+  !propertyPage.includes("className={styles.ai}"),
   "Legacy duplicate AI section remains in PropertyPage.",
 );
 
@@ -175,7 +175,7 @@ assert(
 assert(
   propertyGallery.includes("Preview placeholders only") &&
     propertyGallery.includes("not supplied"),
-  "Property media must disclose when real media assets are absent.",
+  "Property media must disclose when actual media is not supplied.",
 );
 
 assert(
