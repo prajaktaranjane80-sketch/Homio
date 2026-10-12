@@ -1,10 +1,8 @@
-import Link from "next/link";
 import styles from "./HelpTopicCard.module.css";
 
 export type HelpTopicData = {
   title: string;
   description: string;
-  href: string;
 };
 
 type Props = {
@@ -13,7 +11,7 @@ type Props = {
 
 export default function HelpTopicCard({ item }: Props) {
   return (
-    <Link href={item.href} className={styles.card}>
+    <article className={styles.card} aria-disabled="true">
       <span className={styles.icon} aria-hidden="true">
         ?
       </span>
@@ -23,9 +21,8 @@ export default function HelpTopicCard({ item }: Props) {
       <p>{item.description}</p>
 
       <span className={styles.link}>
-        Learn more
-        <span aria-hidden="true">→</span>
+        Help article preview · not active
       </span>
-    </Link>
+    </article>
   );
 }
