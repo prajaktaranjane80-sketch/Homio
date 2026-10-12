@@ -6,33 +6,25 @@ const tools = [
     number: "01",
     title: "EMI Calculator",
     description:
-      "Understand estimated monthly payments from property price, loan amount and tenure.",
-    href: "/tools/emi-calculator",
-    action: "Calculate EMI",
+      "Preview how monthly payment estimates could fit into property discovery.",
   },
   {
     number: "02",
     title: "Affordability",
     description:
-      "Explore a realistic property budget based on income, savings and financing assumptions.",
-    href: "/tools/affordability",
-    action: "Check affordability",
+      "A concept for exploring a property budget using financing assumptions.",
   },
   {
     number: "03",
     title: "Property Valuation",
     description:
-      "Build a starting view of property value using location, property type and key facts.",
-    href: "/tools/property-valuation",
-    action: "Explore valuation",
+      "A preview of value context based on location, type and property facts.",
   },
   {
     number: "04",
     title: "Market Trends",
     description:
-      "Understand price and rental movement across locations and property categories.",
-    href: "/tools/market-trends",
-    action: "View trends",
+      "A concept for reviewing price and rental movement by location.",
   },
 ];
 
@@ -47,35 +39,38 @@ export default function PropertyTools() {
             <h2>Make better property decisions.</h2>
 
             <p>
-              Useful calculators and market tools sit alongside discovery, so
-              research becomes part of the HOMIO experience instead of a
-              separate destination.
+              These cards show the planned tool experience. Calculations,
+              valuations and market data are not active services in this
+              homepage preview.
             </p>
           </div>
 
-          <Link href="/tools" className={styles.viewAll}>
-            Explore all tools
-            <span aria-hidden="true">↗</span>
-          </Link>
+          <span className={styles.viewAll} aria-disabled="true">
+            Tools experience preview
+          </span>
         </div>
 
         <div className={styles.grid}>
           {tools.map((tool) => (
-            <Link key={tool.number} href={tool.href} className={styles.card}>
+            <article
+              key={tool.number}
+              className={styles.card}
+              aria-disabled="true"
+            >
               <div className={styles.top}>
                 <span className={styles.number}>{tool.number}</span>
-
                 <span className={styles.arrow} aria-hidden="true">
-                  ↗
+                  ◇
                 </span>
               </div>
 
               <h3>{tool.title}</h3>
-
               <p>{tool.description}</p>
 
-              <span className={styles.action}>{tool.action}</span>
-            </Link>
+              <span className={styles.action}>
+                Tool preview · not interactive
+              </span>
+            </article>
           ))}
         </div>
 
@@ -86,15 +81,16 @@ export default function PropertyTools() {
             <h3>Research first. Enquire when you are ready.</h3>
 
             <p>
-              HOMIO tools are designed to support discovery without interrupting
-              the consumer journey into brokerage.
+              Tools should support decisions with transparent assumptions.
+              No financial calculation or valuation is being performed by
+              these preview cards.
             </p>
           </div>
 
           <div className={styles.featureActions}>
-            <Link href="/tools" className={styles.primary}>
-              Open HOMIO tools
-            </Link>
+            <span className={styles.primary} aria-disabled="true">
+              Tools preview only
+            </span>
 
             <Link href="/search" className={styles.secondary}>
               Continue property search
