@@ -13,51 +13,42 @@ export default function SearchMapView({
   onSelect,
 }: SearchMapViewProps) {
   return (
-    <section className={styles.mapLayout} aria-label="Map property results">
+    <section
+      className={styles.mapLayout}
+      aria-label="Location preview and current search results"
+    >
       <div className={styles.mapSurface}>
         <div className={styles.mapHeader}>
-          <span>HOMIO MAP VIEW</span>
-          <small>Location-based discovery</small>
+          <span>LOCATION PREVIEW</span>
+          <small>Geographic map is not connected</small>
         </div>
 
-        <div className={styles.mapCanvas}>
-          <div className={styles.gridPattern} aria-hidden="true" />
-
-          {properties.slice(0, 12).map((property, index) => (
-            <button
-              key={property.id}
-              type="button"
-              className={`${styles.marker} ${
-                selectedId === property.id ? styles.selected : ""
-              }`}
-              style={{
-                left: `${15 + ((index * 17) % 72)}%`,
-                top: `${18 + ((index * 29) % 62)}%`,
-              }}
-              onClick={() => onSelect?.(property)}
-              aria-label={`View ${property.title}`}
-            >
-              <span>{property.price}</span>
-            </button>
-          ))}
-
-          {properties.length === 0 ? (
-            <div className={styles.empty}>
-              <strong>No mapped properties yet</strong>
-              <span>Broader map coverage will appear as inventory is added.</span>
-            </div>
-          ) : null}
+        <div
+          className={styles.mapCanvas}
+          role="status"
+          aria-live="polite"
+        >
+          <div className={styles.empty}>
+            <strong>Live map unavailable</strong>
+            <span>
+              These preview records do not provide authoritative
+              coordinates. HOMIO will not place estimated markers or
+              present a decorative grid as a real map.
+            </span>
+          </div>
         </div>
       </div>
 
-      <aside className={styles.sidePanel} aria-label="Map result list">
+      <aside className={styles.sidePanel} aria-label="Current results">
         <div className={styles.sideHeader}>
-          <strong>{properties.length.toLocaleString()} properties</strong>
-          <span>Map selection</span>
+          <strong>
+            {properties.length.toLocaleString()} results on this page
+          </strong>
+          <span>Choose a result to highlight it in the list.</span>
         </div>
 
         <div className={styles.items}>
-          {properties.slice(0, 8).map((property) => (
+          {properties.map((property) => (
             <button
               key={property.id}
               type="button"
@@ -65,9 +56,14 @@ export default function SearchMapView({
                 selectedId === property.id ? styles.itemSelected : ""
               }`}
               onClick={() => onSelect?.(property)}
+              aria-pressed={selectedId === property.id}
             >
-              <span className={styles.itemTitle}>{property.title}</span>
+              <span className={styles.itemTitle}>
+                {property.title}
+              </span>
+
               <span>{property.location}</span>
+
               <strong>{property.price}</strong>
             </button>
           ))}
