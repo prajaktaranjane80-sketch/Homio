@@ -9,7 +9,7 @@ export default function TrustDisclaimer() {
         they do not replace independent due diligence.
       </span>
 
-      <Link href="/trust">Read trust principles</Link>
+      <Link href="/">Back to top</Link>
     </div>
   );
 }
