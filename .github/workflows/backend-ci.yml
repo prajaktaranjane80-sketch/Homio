@@ -6,12 +6,14 @@ on:
       - reos-development
     paths:
       - "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**"
+      - "REOS_CONTROL_CENTER/requirements-auth.txt"
       - ".github/workflows/backend-ci.yml"
   pull_request:
     branches:
       - reos-development
     paths:
       - "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**"
+      - "REOS_CONTROL_CENTER/requirements-auth.txt"
       - ".github/workflows/backend-ci.yml"
   workflow_dispatch:
 
@@ -40,16 +42,19 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install test runner
-        run: python -m pip install --disable-pip-version-check pytest
+      - name: Install test runner and OIDC dependencies
+        run: |
+          python -m pip install --disable-pip-version-check pytest
+          python -m pip install --disable-pip-version-check -r requirements-auth.txt
 
       - name: Compile T21 Python modules
         run: >-
           python -m compileall -q
           AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination
 
-      - name: Run canonical sync integrity and T21 regression tests
+      - name: Run sync, OIDC authentication and T21 regression tests
         run: >-
           python -m pytest -q
           AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine
+          AUTONOMY_ENGINE/security/authentication
           AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination
