@@ -8,28 +8,83 @@ type SimilarPropertiesProps = Readonly<{
   property: PropertyRecord;
 }>;
 
+function normalize(value: string): string {
+  return value.trim().toLocaleLowerCase();
+}
+
 export default function SimilarProperties({
   property,
 }: SimilarPropertiesProps) {
-  const similar = getAllPropertyPreviews()
-    .filter(
-      (item) =>
-        item.id !== property.id &&
-        item.city.trim().toLowerCase() ===
-          property.city.trim().toLowerCase(),
-    )
-    .slice(0, 3);
+  const currentCity = normalize(property.city);
+  const currentCountry = normalize(property.country);
+  const currentLocality = normalize(property.locality);
+
+  const candidates =
+    currentCity && currentCountry
+      ? getAllPropertyPreviews()
+          .filter(
+            (item) =>
+              item.id !== property.id &&
+              normalize(item.city) === currentCity &&
+              normalize(item.country) === currentCountry,
+          )
+          .map((item, order) => {
+            const sameLocality =
+              currentLocality.length > 0 &&
+              normalize(item.locality) === currentLocality;
+
+            const sameType =
+              normalize(item.propertyType) ===
+              normalize(property.propertyType);
+
+            return {
+              item,
+              order,
+              sameLocality,
+              score:
+                (sameLocality ? 4 : 0) +
+                (sameType ? 2 : 0),
+            };
+          })
+          .sort(
+            (left, right) =>
+              right.score - left.score ||
+              left.order - right.order,
+          )
+      : [];
+
+  const similar = candidates
+    .slice(0, 3)
+    .map((candidate) => candidate.item);
+
+  const hasLocalityMatch = similar.some(
+    (item) =>
+      currentLocality.length > 0 &&
+      normalize(item.locality) === currentLocality,
+  );
+
+  const contextLabel = hasLocalityMatch
+    ? `Around ${property.locality}`
+    : `Other previews in ${property.city}`;
 
   return (
-    <section className={styles.section}>
+    <section
+      className={styles.section}
+      aria-labelledby="similar-properties-heading"
+    >
       <div className={styles.header}>
         <div>
-          <span className={styles.eyebrow}>SIMILAR DISCOVERY</span>
-          <h2>More properties worth exploring.</h2>
+          <span className={styles.eyebrow}>
+            SIMILAR DISCOVERY
+          </span>
+
+          <h2 id="similar-properties-heading">
+            More properties worth exploring.
+          </h2>
         </div>
 
         <span className={styles.context}>
-          Around {property.locality}
+          {contextLabel}
         </span>
       </div>
 
@@ -38,7 +93,9 @@ export default function SimilarProperties({
           {similar.map((item) => (
             <article key={item.id} className={styles.card}>
               <div className={styles.media}>
-                <span>PROPERTY EXPERIENCE PREVIEW</span>
+                <span>
+                  PROPERTY EXPERIENCE PREVIEW
+                </span>
               </div>
 
               <div className={styles.body}>
@@ -54,26 +111,23 @@ export default function SimilarProperties({
                   <span>{item.area}</span>
                 </div>
 
-                <Link href={`/property/${encodeURIComponent(item.id)}`}>
-                  View property →
+                <Link
+                  href={`/property/${encodeURIComponent(item.id)}`}
+                  className={styles.view}
+                  aria-label={`View ${item.title} property preview`}
+                >
+                  View property
+                  <span aria-hidden="true">→</span>
                 </Link>
               </div>
             </article>
           ))}
         </div>
       ) : (
-        <p
-          style={{
-            padding: 18,
-            border: "1px solid #e5e9ee",
-            borderRadius: 12,
-            color: "#667085",
-            fontSize: 13,
-            lineHeight: 1.6,
-          }}
-        >
+        <p className={styles.emptyState} role="note">
           No other same-city property previews are currently available.
-          HOMIO has not substituted unrelated locations to fill this section.
+          HOMIO has not substituted unrelated locations to fill this
+          section.
         </p>
       )}
     </section>
