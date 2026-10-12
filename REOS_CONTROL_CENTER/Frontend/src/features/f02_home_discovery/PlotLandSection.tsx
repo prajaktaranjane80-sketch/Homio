@@ -5,24 +5,24 @@ const categories = [
   {
     title: "Residential Plots",
     description:
-      "Land opportunities for villas, custom homes and future residential projects.",
-    href: "/search?intent=land&type=residential-plot",
+      "Preview the land-search journey for residential plots. Live plot inventory is not connected yet.",
+    href: "/search?intent=land&propertyType=Plot",
     image:
       "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1400&q=85",
   },
   {
     title: "Investment Land",
     description:
-      "Explore land opportunities around developing locations and long-term potential.",
-    href: "/search?intent=land&type=investment",
+      "Preview land discovery with investment-related search context. No live investment-land feed is connected.",
+    href: "/search?intent=land&propertyType=Land&q=investment",
     image:
       "https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1400&q=85",
   },
   {
     title: "Development Sites",
     description:
-      "Larger land parcels suited to development and commercial opportunities.",
-    href: "/search?intent=land&type=development",
+      "Preview search criteria for larger development parcels. Availability and permitted usage are not verified.",
+    href: "/search?intent=land&propertyType=Land&q=development",
     image:
       "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1400&q=85",
   },
@@ -32,34 +32,34 @@ const facts = [
   "Location-first discovery",
   "Plot size and land context",
   "Development and usage context",
-  "Direct HOMIO enquiry journey",
+  "Brokerage next-step design",
 ];
 
 export default function PlotLandSection() {
   return (
-    <section className={styles.section}>
+    <section className={styles.section} aria-labelledby="plot-land-heading">
       <div className="homio-container">
         <div className={styles.layout}>
           <div className={styles.intro}>
             <span className={styles.eyebrow}>PLOTS & LAND</span>
 
-            <h2>
+            <h2 id="plot-land-heading">
               Find the land behind
               <br />
               the next opportunity.
             </h2>
 
             <p>
-              Discover residential plots, investment land and development
-              opportunities with location, size and market context presented
-              before your enquiry.
+              Explore land-search criteria through the HOMIO experience.
+              The current F03 preview dataset contains buy-property examples
+              only; active plot and land inventory is not connected yet.
             </p>
 
             <Link
               href="/search?intent=land"
               className={styles.primaryAction}
             >
-              Explore plots & land
+              Open land-search preview
               <span aria-hidden="true">↗</span>
             </Link>
 
@@ -85,7 +85,7 @@ export default function PlotLandSection() {
                 <div className={styles.imageWrap}>
                   <img
                     src={category.image}
-                    alt={category.title}
+                    alt={`Illustrative image for ${category.title}`}
                     className={styles.image}
                     loading="lazy"
                   />
@@ -93,11 +93,10 @@ export default function PlotLandSection() {
 
                 <div className={styles.cardBody}>
                   <h3>{category.title}</h3>
-
                   <p>{category.description}</p>
 
                   <span className={styles.cardLink}>
-                    Explore
+                    Open search preview
                     <span aria-hidden="true">→</span>
                   </span>
                 </div>
@@ -110,8 +109,8 @@ export default function PlotLandSection() {
           <div>
             <span className={styles.bottomLabel}>LAND DISCOVERY</span>
             <strong>
-              Start with the location. Understand the opportunity. Then
-              connect with HOMIO.
+              Start with location. Understand the criteria. Verify availability
+              before taking action.
             </strong>
           </div>
 
@@ -119,7 +118,7 @@ export default function PlotLandSection() {
             href="/search?intent=land"
             className={styles.bottomAction}
           >
-            Start land search
+            Open land search
           </Link>
         </div>
       </div>
