@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { getAllPropertyPreviews } from "./property-preview-catalog";
 import type { PropertyRecord } from "./property.types";
 import styles from "./SimilarProperties.module.css";
 
@@ -7,33 +8,18 @@ type SimilarPropertiesProps = Readonly<{
   property: PropertyRecord;
 }>;
 
-const similar = [
-  {
-    id: "pune-viman-nagar-004",
-    title: "Premium 3 BHK Residence",
-    location: "Viman Nagar, Pune",
-    price: "₹1.95 Cr",
-    area: "1,640 sq.ft.",
-  },
-  {
-    id: "pune-aundh-008",
-    title: "Elegant 4 BHK Residence",
-    location: "Aundh, Pune",
-    price: "₹2.85 Cr",
-    area: "2,250 sq.ft.",
-  },
-  {
-    id: "pune-baner-003",
-    title: "Modern 2 BHK City Home",
-    location: "Baner, Pune",
-    price: "₹1.28 Cr",
-    area: "1,220 sq.ft.",
-  },
-];
-
 export default function SimilarProperties({
   property,
 }: SimilarPropertiesProps) {
+  const similar = getAllPropertyPreviews()
+    .filter(
+      (item) =>
+        item.id !== property.id &&
+        item.city.trim().toLowerCase() ===
+          property.city.trim().toLowerCase(),
+    )
+    .slice(0, 3);
+
   return (
     <section className={styles.section}>
       <div className={styles.header}>
@@ -47,30 +33,49 @@ export default function SimilarProperties({
         </span>
       </div>
 
-      <div className={styles.grid}>
-        {similar.map((item) => (
-          <article key={item.id} className={styles.card}>
-            <div className={styles.media}>
-              <span>HOMIO PROPERTY PREVIEW</span>
-            </div>
-
-            <div className={styles.body}>
-              <span className={styles.type}>Experience preview</span>
-              <h3>{item.title}</h3>
-              <p>{item.location}</p>
-
-              <div className={styles.meta}>
-                <strong>{item.price}</strong>
-                <span>{item.area}</span>
+      {similar.length > 0 ? (
+        <div className={styles.grid}>
+          {similar.map((item) => (
+            <article key={item.id} className={styles.card}>
+              <div className={styles.media}>
+                <span>PROPERTY EXPERIENCE PREVIEW</span>
               </div>
 
-              <Link href={`/property/${item.id}`}>
-                View property →
-              </Link>
-            </div>
-          </article>
-        ))}
-      </div>
+              <div className={styles.body}>
+                <span className={styles.type}>
+                  Preview · not verified
+                </span>
+
+                <h3>{item.title}</h3>
+                <p>{item.location}</p>
+
+                <div className={styles.meta}>
+                  <strong>{item.price}</strong>
+                  <span>{item.area}</span>
+                </div>
+
+                <Link href={`/property/${encodeURIComponent(item.id)}`}>
+                  View property →
+                </Link>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p
+          style={{
+            padding: 18,
+            border: "1px solid #e5e9ee",
+            borderRadius: 12,
+            color: "#667085",
+            fontSize: 13,
+            lineHeight: 1.6,
+          }}
+        >
+          No other same-city property previews are currently available.
+          HOMIO has not substituted unrelated locations to fill this section.
+        </p>
+      )}
     </section>
   );
 }
