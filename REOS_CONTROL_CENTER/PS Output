@@ -193,4 +193,130 @@ PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit: $($newCommit.sha)"
 Commit: 459ea7cb9b99d1f4a4361b3c94a34e4e9c116004
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "URL: https://github.com/$Repo/commit/$($newCommit.sha)"
 URL: https://github.com/prajaktaranjane80-sketch/Homio/commit/459ea7cb9b99d1f4a4361b3c94a34e4e9c116004
+PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
+PS D:\Homio\REOS_CONTROL_CENTER> $Repo = "prajaktaranjane80-sketch/Homio"
+PS D:\Homio\REOS_CONTROL_CENTER> $Branch = "reos-development"
+PS D:\Homio\REOS_CONTROL_CENTER> $Path = ".github/workflows/backend-ci.yml"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+>>     throw "BLOCKED: GitHub CLI gh nahi mila."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> & gh auth status
+github.com
+  ✓ Logged in to github.com account prajaktaranjane80-sketch (keyring)
+  - Active account: true
+  - Git operations protocol: https
+  - Token: gho_************************************
+  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
+
+  ✓ Logged in to github.com account sandyranjane-hash (keyring)
+  - Active account: false
+  - Git operations protocol: https
+  - Token: gho_************************************
+  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
+PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) { throw "BLOCKED: GitHub authentication failed." }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> function Invoke-Gh {
+>>     param([string]$Endpoint, [string]$Method = "GET", $Body = $null)
+>>     if ($null -eq $Body) {
+>>         $raw = (& gh api $Endpoint --method $Method 2>&1) -join "`n"
+>>     } else {
+>>         $json = ConvertTo-Json -InputObject $Body -Depth 30 -Compress
+>>         $raw = ($json | & gh api $Endpoint --method $Method --input - 2>&1) -join "`n"
+>>     }
+>>     if ($LASTEXITCODE -ne 0) {
+>>         throw "GitHub API failed: $Method $Endpoint`n$raw"
+>>     }
+>>     return ($raw | ConvertFrom-Json -ErrorAction Stop)
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Read the latest remote baseline.
+PS D:\Homio\REOS_CONTROL_CENTER> $branchRef = Invoke-Gh "repos/$Repo/git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> $BaseSha = [string]$branchRef.object.sha
+PS D:\Homio\REOS_CONTROL_CENTER> $baseCommit = Invoke-Gh "repos/$Repo/git/commits/$BaseSha"
+PS D:\Homio\REOS_CONTROL_CENTER> $BaseTreeSha = [string]$baseCommit.tree.sha
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $file = Invoke-Gh "repos/$Repo/contents/$Path`?ref=$BaseSha"
+PS D:\Homio\REOS_CONTROL_CENTER> $content = [Text.Encoding]::UTF8.GetString(
+>>     [Convert]::FromBase64String(([string]$file.content -replace "\s", ""))
+>> ).Replace("`r`n", "`n")
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Add the authoritative CORE-008 T01 focused test exactly once.
+PS D:\Homio\REOS_CONTROL_CENTER> $old = @'
+>>           AUTONOMY_ENGINE/security/authentication
+>>           AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $new = @'
+>>           AUTONOMY_ENGINE/security/authentication
+>>           AUTONOMY_ENGINE/core/commission_financial/test_core008_t01_financial_domain.py
+>>           AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $count = [regex]::Matches($content, [regex]::Escape($old)).Count
+PS D:\Homio\REOS_CONTROL_CENTER> if ($count -ne 1) {
+>>     throw "BLOCKED: Expected one CI test anchor, found $count. No commit made."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> $content = $content.Replace($old, $new)
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Prepare the single changed workflow file as a remote GitHub blob.
+PS D:\Homio\REOS_CONTROL_CENTER> $blob = Invoke-Gh "repos/$Repo/git/blobs" "POST" @{
+>>     content = $content
+>>     encoding = "utf-8"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $blob.sha) { throw "BLOCKED: Workflow blob creation failed." }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $newTree = Invoke-Gh "repos/$Repo/git/trees" "POST" @{
+>>     base_tree = $BaseTreeSha
+>>     tree = @(@{
+>>         path = $Path
+>>         mode = "100644"
+>>         type = "blob"
+>>         sha = [string]$blob.sha
+>>     })
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $newTree.sha) { throw "BLOCKED: GitHub tree creation failed." }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $newCommit = Invoke-Gh "repos/$Repo/git/commits" "POST" @{
+>>     message = "test(core-008): add T01 financial domain regression to CI"
+>>     tree = [string]$newTree.sha
+>>     parents = @($BaseSha)
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $newCommit.sha) { throw "BLOCKED: Commit creation failed." }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Do not update the branch if its head moved during preparation.
+PS D:\Homio\REOS_CONTROL_CENTER> $guard = Invoke-Gh "repos/$Repo/git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ([string]$guard.object.sha -ne $BaseSha) {
+>>     throw "BLOCKED: Branch changed during preparation. No branch update attempted."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Invoke-Gh "repos/$Repo/git/refs/heads/$Branch" "PATCH" @{
+>>     sha = [string]$newCommit.sha
+>>     force = $false
+>> } | Out-Null
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Verify the real branch head and committed workflow.
+PS D:\Homio\REOS_CONTROL_CENTER> $verifyRef = Invoke-Gh "repos/$Repo/git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ([string]$verifyRef.object.sha -ne [string]$newCommit.sha) {
+>>     throw "VERIFY FAILED: Remote branch head mismatch."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> $verifyCommit = Invoke-Gh "repos/$Repo/git/commits/$($verifyRef.object.sha)"
+PS D:\Homio\REOS_CONTROL_CENTER> $verifyTree = Invoke-Gh "repos/$Repo/git/trees/$($verifyCommit.tree.sha)?recursive=1"
+PS D:\Homio\REOS_CONTROL_CENTER> $entry = @($verifyTree.tree | Where-Object { $_.path -eq $Path -and $_.sha -eq $blob.sha })
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($entry.Count -ne 1) {
+>>     throw "VERIFY FAILED: Updated CI workflow not found on remote branch."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`nREMOTE COMMIT CREATED AND VERIFIED" -ForegroundColor Green
+
+REMOTE COMMIT CREATED AND VERIFIED
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch: $Branch"
+Branch: reos-development
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Previous head: $BaseSha"
+Previous head: 7081e21a186756abbcd4a9bc6c96a4d7d85d8fe9
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit: $($newCommit.sha)"
+Commit: ac90c95bbdb884a6b0d9beb959cb15e8e8100bb2
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "URL: https://github.com/$Repo/commit/$($newCommit.sha)"
+URL: https://github.com/prajaktaranjane80-sketch/Homio/commit/ac90c95bbdb884a6b0d9beb959cb15e8e8100bb2
 PS D:\Homio\REOS_CONTROL_CENTER>
