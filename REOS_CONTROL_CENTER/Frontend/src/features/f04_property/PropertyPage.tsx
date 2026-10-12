@@ -21,9 +21,39 @@ type PropertyPageProps = Readonly<{
   property: PropertyRecord;
 }>;
 
+type DiscoveryIntent = "buy" | "projects";
+
+function buildSearchHref(
+  property: PropertyRecord,
+  intent: DiscoveryIntent,
+  includeLocality = false,
+): string {
+  const params = new URLSearchParams();
+
+  params.set("intent", intent);
+
+  if (property.city.trim()) {
+    params.set("city", property.city.trim());
+  }
+
+  if (property.country.trim()) {
+    params.set("country", property.country.trim());
+  }
+
+  if (includeLocality && property.locality.trim()) {
+    params.set("locality", property.locality.trim());
+  }
+
+  return `/search?${params.toString()}`;
+}
+
 export default function PropertyPage({
   property,
 }: PropertyPageProps) {
+  const citySearchHref = buildSearchHref(property, "buy");
+  const localitySearchHref = buildSearchHref(property, "buy", true);
+  const projectSearchHref = buildSearchHref(property, "projects");
+
   return (
     <main className={styles.page}>
       <div className="homio-container">
@@ -32,11 +62,14 @@ export default function PropertyPage({
           <span aria-hidden="true">›</span>
           <Link href="/search">Search</Link>
           <span aria-hidden="true">›</span>
-          <span>{property.shortTitle}</span>
+          <span aria-current="page">{property.shortTitle}</span>
         </nav>
 
         <div className={styles.topGrid}>
-          <PropertyGallery media={property.media} />
+          <PropertyGallery
+            key={property.id}
+            media={property.media}
+          />
 
           <aside className={styles.summaryColumn}>
             <PropertySummary property={property} />
@@ -69,34 +102,48 @@ export default function PropertyPage({
 
         <section className={styles.related}>
           <div className={styles.relatedHeader}>
-            <span className={styles.eyebrow}>CONTINUE DISCOVERY</span>
+            <span className={styles.eyebrow}>
+              CONTINUE DISCOVERY
+            </span>
 
             <h2>Explore more around this property.</h2>
           </div>
 
           <div className={styles.relatedGrid}>
             <Link
-              href="/search?city=Pune"
+              href={citySearchHref}
               className={styles.relatedCard}
             >
-              <strong>More Pune properties</strong>
-              <span>Continue property discovery</span>
+              <strong>
+                Explore {property.city} property previews
+              </strong>
+              <span>
+                Discover more opportunities in this city
+              </span>
             </Link>
 
             <Link
-              href="/search?locality=Kalyani%20Nagar"
+              href={localitySearchHref}
               className={styles.relatedCard}
             >
-              <strong>Explore Kalyani Nagar</strong>
-              <span>See locality opportunities</span>
+              <strong>
+                Explore {property.locality}
+              </strong>
+              <span>
+                Continue discovery in this locality
+              </span>
             </Link>
 
             <Link
-              href="/search?intent=projects"
+              href={projectSearchHref}
               className={styles.relatedCard}
             >
-              <strong>View projects</strong>
-              <span>Explore project-led discovery</span>
+              <strong>
+                Explore projects in {property.city}
+              </strong>
+              <span>
+                Browse project and collection previews
+              </span>
             </Link>
           </div>
         </section>
