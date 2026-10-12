@@ -21,16 +21,20 @@ export default function SearchActions({
 }: SearchActionsProps) {
   const [shareStatus, setShareStatus] = useState("");
 
+  const hasFilters =
+    countActiveFilters(state.filters) > 0 ||
+    state.sort !== "relevance";
+
   async function handleShare() {
     if (typeof window === "undefined") {
       return;
     }
 
     const params = searchStateToParams(state);
-    const search = params.toString();
+    const queryString = params.toString();
     const url = new URL(window.location.href);
 
-    url.search = search;
+    url.search = queryString;
 
     const shareUrl = url.toString();
 
@@ -54,7 +58,7 @@ export default function SearchActions({
       }
 
       setShareStatus(
-        "Sharing is unavailable in this browser. Copy the page URL manually.",
+        "Automatic sharing is unavailable in this browser. Copy the page URL manually.",
       );
     } catch (error) {
       if (
@@ -69,8 +73,6 @@ export default function SearchActions({
       );
     }
   }
-
-  const hasFilters = countActiveFilters(state.filters) > 0;
 
   return (
     <div>
@@ -115,10 +117,12 @@ export default function SearchActions({
           margin: "8px 0 0",
           color: "#667085",
           fontSize: 11,
+          lineHeight: 1.5,
         }}
       >
-        Save search is disabled until account-backed My HOMIO persistence
-        is connected. No saved search will be created by this preview.
+        Save search is disabled until account-backed My HOMIO
+        persistence is connected. This preview will not create a saved
+        search.
       </p>
 
       <p
@@ -127,6 +131,7 @@ export default function SearchActions({
           margin: shareStatus ? "8px 0 0" : 0,
           color: "#34414d",
           fontSize: 11,
+          lineHeight: 1.5,
         }}
       >
         {shareStatus}
