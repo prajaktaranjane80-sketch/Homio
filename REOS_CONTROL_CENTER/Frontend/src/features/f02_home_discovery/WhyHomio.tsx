@@ -48,8 +48,8 @@ export default function WhyHomio() {
             </p>
           </div>
 
-          <Link href="/about" className={styles.aboutLink}>
-            About HOMIO
+          <Link href="/#trust" className={styles.aboutLink}>
+            Explore our trust approach
             <span aria-hidden="true">↗</span>
           </Link>
         </div>
