@@ -1,56 +1,98 @@
 .bar {
-  position: sticky;
-  bottom: 14px;
-  z-index: 20;
   display: flex;
   align-items: center;
-  gap: 8px;
   flex-wrap: wrap;
+  gap: 8px;
   padding: 10px;
   margin-top: 18px;
   border: 1px solid #dce2e8;
   border-radius: 14px;
-  background: rgb(255 255 255 / 94%);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 10px 28px rgb(10 16 24 / 10%);
+  background: rgb(255 255 255 / 96%);
+  box-shadow: 0 8px 22px rgb(10 16 24 / 6%);
 }
 
 .primary,
 .secondary,
 .ai {
+  display: inline-flex;
+  min-width: 0;
   min-height: 42px;
+  align-items: center;
+  justify-content: center;
   padding: 0 14px;
+  border: 1px solid transparent;
   border-radius: 9px;
+  font: inherit;
   font-size: 12px;
   font-weight: 800;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  overflow-wrap: anywhere;
   cursor: pointer;
 }
 
 .primary {
-  border: 1px solid #17212b;
+  border-color: #17212b;
   background: #17212b;
   color: #ffffff;
 }
 
 .secondary {
-  border: 1px solid #dce2e8;
+  border-color: #dce2e8;
   background: #ffffff;
   color: #34414d;
 }
 
 .secondary.active {
   border-color: #17212b;
+  background: #eef2f4;
   color: #17212b;
 }
 
 .ai {
-  border: 1px solid #cfd8df;
+  border-color: #cfd8df;
   background: #eef2f4;
   color: #27343f;
 }
 
+.primary:hover,
+.secondary:hover,
+.ai:hover {
+  filter: brightness(0.97);
+}
+
+.primary:focus-visible,
+.secondary:focus-visible,
+.ai:focus-visible {
+  outline: 3px solid #567ca4;
+  outline-offset: 3px;
+}
+
+.disclosure,
+.shareStatus {
+  flex: 1 0 100%;
+  color: #667085;
+  font-size: 11px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.shareStatus {
+  color: #34414d;
+}
+
 @media (max-width: 680px) {
-  .bar > * {
+  .bar > button,
+  .bar > a {
     flex: 1 1 calc(50% - 8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary,
+  .secondary,
+  .ai {
+    scroll-behavior: auto;
   }
 }
