@@ -1,4 +1,3 @@
-import Link from "next/link";
 import TrustSignalCard, {
   type TrustSignalCardData,
 } from "./TrustSignalCard";
@@ -10,25 +9,25 @@ const signals: TrustSignalCardData[] = [
     number: "01",
     title: "Clear source context",
     description:
-      "Understand where the property or project information comes from.",
+      "Understand where property or project information should come from.",
   },
   {
     number: "02",
     title: "Useful property facts",
     description:
-      "See the details that matter before moving into an enquiry.",
+      "Review the details that matter before taking a high-intent action.",
   },
   {
     number: "03",
     title: "Journey continuity",
     description:
-      "Your saved searches, properties and actions remain connected.",
+      "The planned experience keeps searches, properties and actions connected.",
   },
   {
     number: "04",
     title: "Structured next steps",
     description:
-      "Move from discovery to enquiry, visit and transaction with context.",
+      "The intended workflow connects discovery to enquiry, visit and transaction.",
   },
 ];
 
@@ -43,14 +42,14 @@ export default function TrustSection() {
             <h2>Trust should be visible in the experience.</h2>
 
             <p>
-              HOMIO is designed to surface useful signals and context before
-              consumers take high-intent actions.
+              This section previews the trust principles planned for HOMIO.
+              It does not assert that any sample listing has passed
+              ownership, identity or availability verification.
             </p>
 
-            <Link href="/trust" className={styles.action}>
-              Understand HOMIO trust
-              <span aria-hidden="true">↗</span>
-            </Link>
+            <span className={styles.action} aria-disabled="true">
+              Trust workflow preview
+            </span>
           </div>
 
           <div className={styles.signalGrid}>
