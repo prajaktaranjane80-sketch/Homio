@@ -48,7 +48,8 @@ jobs:
           python -m compileall -q
           AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination
 
-      - name: Run T21 regression tests
+      - name: Run canonical sync integrity and T21 regression tests
         run: >-
           python -m pytest -q
+          AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine
           AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination

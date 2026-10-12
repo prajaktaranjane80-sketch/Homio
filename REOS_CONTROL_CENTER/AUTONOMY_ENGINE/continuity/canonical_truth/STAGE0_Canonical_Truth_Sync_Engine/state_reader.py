@@ -25,6 +25,32 @@ class CanonicalStateReader:
             raise StateReadError(f"Canonical state invalid: {self.path}") from exc
         if not isinstance(data, dict):
             raise StateReadError("Canonical state root must be an object.")
+
+        integrity = data.get("integrity")
+        if not isinstance(integrity, dict):
+            raise StateReadError("Canonical state integrity metadata missing.")
+
+        stored_hash = integrity.get("sha256")
+        if not isinstance(stored_hash, str) or not stored_hash.strip():
+            raise StateReadError("Canonical state SHA-256 missing.")
+
+        try:
+            from reos_control_center import calculate_hash
+        except (ImportError, AttributeError) as exc:
+            raise StateReadError(
+                "Canonical Control Center hash verifier unavailable."
+            ) from exc
+
+        try:
+            calculated_hash = calculate_hash(data)
+        except (TypeError, ValueError) as exc:
+            raise StateReadError(
+                "Canonical state cannot be fingerprinted."
+            ) from exc
+
+        if stored_hash != calculated_hash:
+            raise StateReadError("Canonical state SHA-256 mismatch.")
+
         return data
 
     def digest(self, state: dict[str, Any]) -> str:
