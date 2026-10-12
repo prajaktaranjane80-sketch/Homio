@@ -1,5 +1,6 @@
 import {
   SEARCH_DEFAULTS,
+  SEARCH_MAX_PAGE_SIZE,
   SEARCH_QUERY_KEYS,
 } from "./search.constants";
 
