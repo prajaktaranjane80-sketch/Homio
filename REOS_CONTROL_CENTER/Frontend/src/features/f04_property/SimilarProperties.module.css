@@ -22,22 +22,25 @@
 .header h2 {
   margin: 0;
   color: #17212b;
-  font-size: 28px;
+  font-size: clamp(23px, 3vw, 28px);
+  line-height: 1.2;
 }
 
 .context {
   color: #89929d;
   font-size: 11px;
+  line-height: 1.5;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   margin-top: 18px;
 }
 
 .card {
+  min-width: 0;
   overflow: hidden;
   border: 1px solid #e3e7ec;
   border-radius: 15px;
@@ -50,17 +53,23 @@
   align-items: flex-end;
   padding: 14px;
   background:
-    radial-gradient(circle at 72% 22%, rgb(255 255 255 / 68%), transparent 20%),
+    radial-gradient(
+      circle at 72% 22%,
+      rgb(255 255 255 / 68%),
+      transparent 20%
+    ),
     linear-gradient(135deg, #d1d8de, #eef1f3);
 }
 
 .media span {
+  max-width: 100%;
   padding: 6px 8px;
   border-radius: 999px;
-  background: rgb(255 255 255 / 78%);
+  background: rgb(255 255 255 / 88%);
   color: #5d6873;
   font-size: 9px;
   font-weight: 800;
+  line-height: 1.5;
 }
 
 .body {
@@ -77,25 +86,31 @@
   margin: 7px 0 5px;
   color: #17212b;
   font-size: 16px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .body p {
   margin: 0;
   color: #697480;
   font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .meta {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   margin-top: 15px;
 }
 
 .meta strong {
   color: #17212b;
   font-size: 15px;
+  overflow-wrap: anywhere;
 }
 
 .meta span {
@@ -103,22 +118,54 @@
   font-size: 10px;
 }
 
-.body button {
+.view {
+  display: flex;
   width: 100%;
-  min-height: 38px;
+  min-height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin-top: 14px;
+  padding: 0 12px;
   border: 1px solid #dce2e8;
   border-radius: 9px;
   background: #ffffff;
   color: #34414d;
   font-size: 11px;
   font-weight: 800;
-  cursor: pointer;
+  text-decoration: none;
 }
 
-@media (max-width: 800px) {
+.view:hover {
+  border-color: #aeb9c3;
+  background: #f8f9fa;
+}
+
+.view:focus-visible {
+  outline: 3px solid #567ca4;
+  outline-offset: 3px;
+}
+
+.emptyState {
+  margin: 18px 0 0;
+  padding: 18px;
+  border: 1px solid #e5e9ee;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+@media (max-width: 900px) {
   .grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .header {
