@@ -28,7 +28,7 @@ export default function ProjectLocation({
   return (
     <section className={styles.section}>
       <div className={styles.left}>
-        <span className={styles.eyebrow}>LOCATION</span>
+        <span className={styles.eyebrow}>Location preview</span>
 
         <h2>{project.location}</h2>
 
