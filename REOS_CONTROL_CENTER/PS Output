@@ -1,30 +1,313 @@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 1. Capture current canonical baseline.
+PS D:\Homio\REOS_CONTROL_CENTER> $branchInfo = Invoke-GhJson "repos/$Repo/branches/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> $BaseSha = $branchInfo.commit.sha
+PS D:\Homio\REOS_CONTROL_CENTER> $BaseTreeSha = $branchInfo.commit.commit.tree.sha
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Repository: $Repo"
+Repository: prajaktaranjane80-sketch/Homio
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch:     $Branch"
+Branch:     reos-development
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Base HEAD:  $BaseSha"
+Base HEAD:  a1bc129a1285737f11dbed237339c4a2066e23da
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 2. Read existing remote files only.
+PS D:\Homio\REOS_CONTROL_CENTER> $controller = Get-RemoteText "REOS_CONTROL_CENTER/reos_control_center.py"
+PS D:\Homio\REOS_CONTROL_CENTER> $controlPlane = Get-RemoteText "REOS_CONTROL_CENTER/context/control_plane.py"
+PS D:\Homio\REOS_CONTROL_CENTER> $authorityTests = Get-RemoteText "REOS_CONTROL_CENTER/tets/test_l3_canonical_authority.py"
+PS D:\Homio\REOS_CONTROL_CENTER> $workflow = Get-RemoteText ".github/workflows/backend-ci.yml"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Normalize line endings in memory; nothing is written to the local project.
+PS D:\Homio\REOS_CONTROL_CENTER> $controller = $controller.Replace("`r`n", "`n")
+PS D:\Homio\REOS_CONTROL_CENTER> $controlPlane = $controlPlane.Replace("`r`n", "`n")
+PS D:\Homio\REOS_CONTROL_CENTER> $authorityTests = $authorityTests.Replace("`r`n", "`n")
+PS D:\Homio\REOS_CONTROL_CENTER> $workflow = $workflow.Replace("`r`n", "`n")
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 3. Shared gate -> phase projection rule.
+PS D:\Homio\REOS_CONTROL_CENTER> $phaseProjection = @'
+>> from __future__ import annotations
+>>
+>> from typing import Any
+>>
+>> PRE_CODING_PHASE = "PRE-CODING ARCHITECTURE"
+>>
+>>
+>> def expected_phase_for_gate(state: dict[str, Any]) -> str | None:
+>>     """Resolve the phase from the canonical execution-plan gate.
+>>
+>>     Unknown or unregistered gates fail closed: no phase is guessed.
+>>     """
+>>     execution = state.get("execution")
+>>     plan = state.get("execution_plan")
+>>     phases = state.get("phases")
+>>
+>>     if not isinstance(execution, dict):
+>>         return None
+>>     if not isinstance(plan, dict) or not isinstance(phases, dict):
+>>         return None
+>>
+>>     gate_id = execution.get("current_gate")
+>>     sequence = plan.get("authoritative_sequence")
+>>
+>>     if not isinstance(gate_id, str) or not isinstance(sequence, list):
+>>         return None
+>>
+>>     registered = any(
+>>         isinstance(step, dict) and step.get("gate") == gate_id
+>>         for step in sequence
+>>     )
+>>     if not registered:
+>>         return None
+>>
+>>     if gate_id.startswith(("ARCH-", "REPO-", "ENG-")):
+>>         return PRE_CODING_PHASE
+>>
+>>     if gate_id.startswith("CORE-"):
+>>         phase_key = "phase_1"
+>>     elif gate_id.startswith(("AI-", "APP-", "REL-", "SCALE-")):
+>>         phase_key = "phase_2"
+>>     else:
+>>         return None
+>>
+>>     phase = phases.get(phase_key)
+>>     return phase.strip() if isinstance(phase, str) and phase.strip() else None
+>>
+>>
+>> def is_phase_coherent(state: dict[str, Any]) -> bool:
+>>     """Return true only when phases.current matches the registered gate."""
+>>     expected = expected_phase_for_gate(state)
+>>     phases = state.get("phases")
+>>
+>>     return (
+>>         expected is not None
+>>         and isinstance(phases, dict)
+>>         and phases.get("current") == expected
+>>     )
+>>
+>>
+>> def synchronize_current_phase(state: dict[str, Any]) -> bool:
+>>     """Update the derived current-phase projection for a registered gate.
+>>
+>>     Returns true when a correction was made. An unknown gate is not changed.
+>>     """
+>>     expected = expected_phase_for_gate(state)
+>>     if expected is None:
+>>         return False
+>>
+>>     phases = state.setdefault("phases", {})
+>>     if not isinstance(phases, dict):
+>>         return False
+>>
+>>     if phases.get("current") == expected:
+>>         return False
+>>
+>>     phases["current"] = expected
+>>     return True
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 4. Connect the phase projection to the existing Control Center save flow.
+PS D:\Homio\REOS_CONTROL_CENTER> $controller = Replace-ExactlyOnce `
+>>     -Text $controller `
+>>     -Old "from typing import Any`n" `
+>>     -New ("from typing import Any`n" +
+>>           "`ntry:`n" +
+>>           "    from context.phase_projection import synchronize_current_phase`n" +
+>>           "except ImportError:`n" +
+>>           "    from REOS_CONTROL_CENTER.context.phase_projection import synchronize_current_phase`n") `
+>>     -What "Control Center phase-projection import"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $controller = Replace-ExactlyOnce `
+>>     -Text $controller `
+>>     -Old ("    execution = state.setdefault(`"execution`", {})`n" +
+>>           "    gate_id = execution.get(`"current_gate`")") `
+>>     -New ("    synchronize_current_phase(state)`n" +
+>>           "    execution = state.setdefault(`"execution`", {})`n" +
+>>           "    gate_id = execution.get(`"current_gate`")") `
+>>     -What "synchronize_execution_projection phase update"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 5. Expose a read-only semantic diagnostic in the canonical verifier.
+PS D:\Homio\REOS_CONTROL_CENTER> $controlPlane = Replace-ExactlyOnce `
+>>     -Text $controlPlane `
+>>     -Old "from typing import Any`n" `
+>>     -New ("from typing import Any`n" +
+>>           "`nfrom .phase_projection import is_phase_coherent`n") `
+>>     -What "Control Plane phase-check import"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $controlPlane = Replace-ExactlyOnce `
+>>     -Text $controlPlane `
+>>     -Old "    def _resolve_execution_position(`n" `
+>>     -New ("    def verify_phase_coherence(self) -> bool:`n" +
+>>           "        `"`"`"Check phases.current against the registered execution gate.`"`"`"`n" +
+>>           "        return self._state is not None and is_phase_coherent(self._state)`n" +
+>>           "`n" +
+>>           "    def _resolve_execution_position(`n") `
+>>     -What "CanonicalAuthorityVerifier phase diagnostic"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 6. Add regression coverage using in-memory state copies.
+PS D:\Homio\REOS_CONTROL_CENTER> $authorityTests = Replace-ExactlyOnce `
+>>     -Text $authorityTests `
+>>     -Old "from context.control_plane import CanonicalAuthorityVerifier`n" `
+>>     -New ("from context.control_plane import CanonicalAuthorityVerifier`n" +
+>>           "from context.phase_projection import (`n" +
+>>           "    expected_phase_for_gate,`n" +
+>>           "    is_phase_coherent,`n" +
+>>           "    synchronize_current_phase,`n" +
+>>           ")`n") `
+>>     -What "Authority-test imports"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $phaseTests = @'
+>>
+>> def test_core_gate_phase_mismatch_is_detected_and_projected():
+>>     state = load_canonical_state()
+>>     state["execution"]["current_gate"] = "CORE-008"
+>>     state["phases"]["current"] = "PRE-CODING ARCHITECTURE"
+>>
+>>     assert expected_phase_for_gate(state) == state["phases"]["phase_1"]
+>>     assert is_phase_coherent(state) is False
+>>
+>>     verifier = CanonicalAuthorityVerifier(
+>>         control_center_root=CONTROL_CENTER_ROOT,
+>>         state=state,
+>>     )
+>>     assert verifier.verify_phase_coherence() is False
+>>
+>>     assert synchronize_current_phase(state) is True
+>>     assert state["phases"]["current"] == state["phases"]["phase_1"]
+>>     assert is_phase_coherent(state) is True
+>>     assert verifier.verify_phase_coherence() is True
+>>
+>>
+>> def test_future_phase_uses_registered_execution_sequence():
+>>     state = load_canonical_state()
+>>     state["execution"]["current_gate"] = "AI-001"
+>>     state["phases"]["current"] = "PRE-CODING ARCHITECTURE"
+>>
+>>     assert expected_phase_for_gate(state) == state["phases"]["phase_2"]
+>>     assert synchronize_current_phase(state) is True
+>>     assert is_phase_coherent(state) is True
+>>
+>>
+>> def test_unknown_gate_does_not_guess_or_rewrite_phase():
+>>     state = load_canonical_state()
+>>     state["execution"]["current_gate"] = "UNKNOWN-999"
+>>     previous_phase = state["phases"]["current"]
+>>
+>>     assert expected_phase_for_gate(state) is None
+>>     assert synchronize_current_phase(state) is False
+>>     assert state["phases"]["current"] == previous_phase
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $authorityTests = Replace-ExactlyOnce `
+>>     -Text $authorityTests `
+>>     -Old "def test_complete_l3_verification():`n" `
+>>     -New ($phaseTests + "`n`ndef test_complete_l3_verification():`n") `
+>>     -What "Phase projection regression tests"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 7. Ensure backend CI runs these Control Center tests and compiles the changed code.
+PS D:\Homio\REOS_CONTROL_CENTER> $pathAnchor = '      - "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**"'
+PS D:\Homio\REOS_CONTROL_CENTER> $pathCount = ([regex]::Matches($workflow, [regex]::Escape($pathAnchor))).Count
+PS D:\Homio\REOS_CONTROL_CENTER> if ($pathCount -ne 2) {
+>>     throw "Expected exactly two CI path-filter anchors; found $pathCount"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $workflow = $workflow.Replace(
+>>     $pathAnchor,
+>>     ($pathAnchor + "`n" +
+>>      '      - "REOS_CONTROL_CENTER/context/**"' + "`n" +
+>>      '      - "REOS_CONTROL_CENTER/tets/**"' + "`n" +
+>>      '      - "REOS_CONTROL_CENTER/reos_control_center.py"')
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $compileOld = "          python -m compileall -q`n" +
+>>               "          AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination"
+PS D:\Homio\REOS_CONTROL_CENTER> $compileNew = "          python -m compileall -q`n" +
+>>               "          reos_control_center.py`n" +
+>>               "          context`n" +
+>>               "          AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $workflow = Replace-ExactlyOnce `
+>>     -Text $workflow `
+>>     -Old $compileOld `
+>>     -New $compileNew `
+>>     -What "backend CI compile step"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $pytestOld = "          AUTONOMY_ENGINE/core/commission_financial/test_core008_t01_financial_domain.py`n" +
+>>              "          AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination"
+PS D:\Homio\REOS_CONTROL_CENTER> $pytestNew = $pytestOld + "`n          tets/test_l3_canonical_authority.py"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $workflow = Replace-ExactlyOnce `
+>>     -Text $workflow `
+>>     -Old $pytestOld `
+>>     -New $pytestNew `
+>>     -What "backend CI regression test list"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 8. Build one commit from the current live HEAD.
+PS D:\Homio\REOS_CONTROL_CENTER> $changed = [ordered]@{
+>>     "REOS_CONTROL_CENTER/context/phase_projection.py" = $phaseProjection
+>>     "REOS_CONTROL_CENTER/context/control_plane.py" = $controlPlane
+>>     "REOS_CONTROL_CENTER/reos_control_center.py" = $controller
+>>     "REOS_CONTROL_CENTER/tets/test_l3_canonical_authority.py" = $authorityTests
+>>     ".github/workflows/backend-ci.yml" = $workflow
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $treeEntries = @()
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($path in $changed.Keys) {
+>>     $blob = New-RemoteBlob -Content $changed[$path]
+>>     $treeEntries += @{
+>>         path = $path
+>>         mode = "100644"
+>>         type = "blob"
+>>         sha  = $blob.sha
+>>     }
+>>     Write-Host "Prepared remote blob: $path"
+>> }
+Prepared remote blob: REOS_CONTROL_CENTER/context/phase_projection.py
+Prepared remote blob: REOS_CONTROL_CENTER/context/control_plane.py
+Prepared remote blob: REOS_CONTROL_CENTER/reos_control_center.py
+Prepared remote blob: REOS_CONTROL_CENTER/tets/test_l3_canonical_authority.py
+Prepared remote blob: .github/workflows/backend-ci.yml
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $tree = Invoke-GhJson "repos/$Repo/git/trees" "POST" @{
+>>     base_tree = $BaseTreeSha
+>>     tree      = $treeEntries
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $commit = Invoke-GhJson "repos/$Repo/git/commits" "POST" @{
+>>     message = "Add canonical phase projection consistency checks"
+>>     tree    = $tree.sha
+>>     parents = @($BaseSha)
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Re-check branch head before the guarded, non-force update.
+PS D:\Homio\REOS_CONTROL_CENTER> $headBeforePush = (Invoke-GhJson "repos/$Repo/branches/$Branch").commit.sha
+PS D:\Homio\REOS_CONTROL_CENTER> if ($headBeforePush -ne $BaseSha) {
+>>     throw "Branch HEAD changed during preparation. No branch update was attempted."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $null = Invoke-GhJson "repos/$Repo/git/refs/heads/$Branch" "PATCH" @{
+>>     sha   = $commit.sha
+>>     force = $false
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $headAfterPush = (Invoke-GhJson "repos/$Repo/branches/$Branch").commit.sha
+PS D:\Homio\REOS_CONTROL_CENTER> if ($headAfterPush -ne $commit.sha) {
+>>     throw "Remote verification failed: branch HEAD is not the expected commit."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
 
-PART 3 DIRECT GITHUB WRITE + REMOTE VERIFY: PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Account:          $($me.login)"
-Account:          prajaktaranjane80-sketch
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Repository:       $Repo"
-Repository:       prajaktaranjane80-sketch/Homio
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch:           $Branch"
-Branch:           reos-development
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Previous HEAD:    $BaseSha"
-Previous HEAD:    58d32eb75237cdbeb1fe0cea69f554dc1a54c276
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Previous blob:    $OriginalBlobSha"
-Previous blob:    ac9f5ae793b0c5038404436246abe66adac0b1e1
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "New blob:         $($verifyFile.Sha)"
-New blob:         b8b0f00a7849cdcce94fb82c763c355270b56b76
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "New commit:       $($newCommit.sha)"
-New commit:       1a8f7777680e289b9387141c15c55849b32eecf8
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit URL:       https://github.com/$Repo/commit/$($newCommit.sha)"
-Commit URL:       https://github.com/prajaktaranjane80-sketch/Homio/commit/1a8f7777680e289b9387141c15c55849b32eecf8
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Remote definition: PASS"
-Remote definition: PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Remote __all__:    PASS"
-Remote __all__:    PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch-head guard: PASS"
-Branch-head guard: PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Force push:        NO"
-Force push:        NO
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "PART 4 REMOTE COMMIT: PASS"
+PART 4 REMOTE COMMIT: PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit:     $($commit.sha)"
+Commit:     63d1b439ba152441f4a809f71836ca5c38ee5a93
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit URL: https://github.com/$Repo/commit/$($commit.sha)"
+Commit URL: https://github.com/prajaktaranjane80-sketch/Homio/commit/63d1b439ba152441f4a809f71836ca5c38ee5a93
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch HEAD guard: PASS"
+Branch HEAD guard: PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Force push: NO"
+Force push: NO
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Local project files written: NO"
 Local project files written: NO
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Next: inspect the backend GitHub Actions result."
-Next: inspect the backend GitHub Actions result.
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Next: inspect the new backend CI run before syncing canonical state."
+Next: inspect the new backend CI run before syncing canonical state.
+PS D:\Homio\REOS_CONTROL_CENTER>
