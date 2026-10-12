@@ -54,9 +54,14 @@ export default function SearchBudgetFilter({
   function handleCurrencyChange(
     event: ChangeEvent<HTMLSelectElement>,
   ) {
+    /*
+     * Currency conversion is deliberately not implied.
+     * Clear existing amounts so that changing currency never
+     * silently reinterprets an old-currency budget.
+     */
     onChange({
-      min,
-      max,
+      min: undefined,
+      max: undefined,
       currency: event.target.value as SearchCurrency,
     });
   }
@@ -69,7 +74,10 @@ export default function SearchBudgetFilter({
     <fieldset className={styles.fieldset}>
       <legend>Budget</legend>
 
-      <label className={styles.inputGroup} style={{ marginBottom: 12 }}>
+      <label
+        className={styles.inputGroup}
+        style={{ marginBottom: 12 }}
+      >
         <span>Budget currency</span>
 
         <select
@@ -100,6 +108,7 @@ export default function SearchBudgetFilter({
 
           <div className={styles.inputWrap}>
             <span>{currencySymbol}</span>
+
             <input
               type="number"
               min="0"
@@ -122,6 +131,7 @@ export default function SearchBudgetFilter({
 
           <div className={styles.inputWrap}>
             <span>{currencySymbol}</span>
+
             <input
               type="number"
               min="0"
@@ -145,8 +155,9 @@ export default function SearchBudgetFilter({
         }}
       >
         Enter the full amount in the selected currency. For example,
-        ₹2 crore is 20000000 INR. Unknown or unpriced preview records
-        are not treated as price matches.
+        ₹2 crore is 20000000 INR. Changing currency clears the budget
+        range; amounts are never automatically converted. Unknown or
+        unpriced preview records are not treated as price matches.
       </p>
     </fieldset>
   );
