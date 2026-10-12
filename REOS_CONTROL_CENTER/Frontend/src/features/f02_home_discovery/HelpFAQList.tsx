@@ -1,11 +1,26 @@
-import Link from "next/link";
 import styles from "./HelpFAQList.module.css";
 
 const questions = [
-  "How does a HOMIO enquiry work?",
-  "Can I save properties without completing an enquiry?",
-  "How does HOMIO handle property visits?",
-  "How can I contact HOMIO support?",
+  {
+    question: "How does a HOMIO enquiry work?",
+    answer:
+      "The intended journey connects a consumer's property interest with HOMIO brokerage. Enquiry submission and follow-up workflows are not connected in this homepage preview.",
+  },
+  {
+    question: "Can I save properties without completing an enquiry?",
+    answer:
+      "Saving is planned as part of the My HOMIO experience. Persistent saved-property storage is not active in this preview.",
+  },
+  {
+    question: "How does HOMIO handle property visits?",
+    answer:
+      "The intended journey provides context before a visit request. Real visit scheduling and confirmation are not connected in this preview.",
+  },
+  {
+    question: "How can I contact HOMIO support?",
+    answer:
+      "A dedicated support-contact workflow is not available in this preview. Do not treat the sample help cards as an active support channel.",
+  },
 ];
 
 export default function HelpFAQList() {
@@ -17,21 +32,28 @@ export default function HelpFAQList() {
       </div>
 
       <div className={styles.questions}>
-        {questions.map((question) => (
-          <Link key={question} href="/help" className={styles.question}>
-            <span>{question}</span>
-            <span aria-hidden="true">+</span>
-          </Link>
+        {questions.map((item) => (
+          <details key={item.question} className={styles.question}>
+            <summary>
+              <span>{item.question}</span>
+              <span className={styles.expandIcon} aria-hidden="true">
+                +
+              </span>
+            </summary>
+
+            <p className={styles.answer}>{item.answer}</p>
+          </details>
         ))}
       </div>
 
       <div className={styles.contact}>
         <div>
-          <strong>Still need help?</strong>
-          <p>Reach the HOMIO support experience.</p>
+          <strong>Support workflow preview</strong>
+          <p>
+            The help content is informational only; no support request is
+            submitted from this card.
+          </p>
         </div>
-
-        <Link href="/help/contact">Contact support</Link>
       </div>
     </div>
   );
