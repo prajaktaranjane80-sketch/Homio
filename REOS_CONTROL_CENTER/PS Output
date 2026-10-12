@@ -5,12 +5,23 @@ PS D:\Homio\REOS_CONTROL_CENTER> $Repo   = "prajaktaranjane80-sketch/Homio"
 PS D:\Homio\REOS_CONTROL_CENTER> $Branch = "reos-development"
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
->>     throw "BLOCKED: GitHub CLI (gh) is unavailable. No repository files were changed."
+>>     throw "BLOCKED: GitHub CLI is unavailable. No repository files changed."
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $authOutput = (& gh auth status 2>&1) -join "`n"
+PS D:\Homio\REOS_CONTROL_CENTER> & gh auth status
+github.com
+  ✓ Logged in to github.com account prajaktaranjane80-sketch (keyring)
+  - Active account: true
+  - Git operations protocol: https
+  - Token: gho_************************************
+  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
+
+  ✓ Logged in to github.com account sandyranjane-hash (keyring)
+  - Active account: false
+  - Git operations protocol: https
+  - Token: gho_************************************
+  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
 PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "BLOCKED: GitHub CLI authentication failed. No repository files were changed.`n$authOutput"
+>>     throw "BLOCKED: GitHub authentication failed. No repository files changed."
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> function Invoke-GhApi {
@@ -19,43 +30,36 @@ PS D:\Homio\REOS_CONTROL_CENTER> function Invoke-GhApi {
 >>         [string]$Method = "GET",
 >>         $Body = $null
 >>     )
->>
->>     $ghArgs = @("api", $Endpoint, "--method", $Method)
->>
+>>     $argsList = @("api", $Endpoint, "--method", $Method)
 >>     if ($null -eq $Body) {
->>         $raw = (& gh @ghArgs 2>&1) -join "`n"
->>     }
->>     else {
+>>         $raw = (& gh @argsList 2>&1) -join "`n"
+>>     } else {
 >>         $json = ConvertTo-Json -InputObject $Body -Depth 40 -Compress
->>         $raw = ($json | & gh @ghArgs --input - 2>&1) -join "`n"
+>>         $raw = ($json | & gh @argsList --input - 2>&1) -join "`n"
 >>     }
->>
 >>     if ($LASTEXITCODE -ne 0) {
 >>         throw "GitHub API failed: $Method $Endpoint`n$raw"
 >>     }
->>
 >>     try {
 >>         return ($raw | ConvertFrom-Json -ErrorAction Stop)
->>     }
->>     catch {
->>         throw "GitHub API returned an unreadable response for $Endpoint`n$raw"
+>>     } catch {
+>>         throw "Could not parse GitHub response for $Endpoint`n$raw"
 >>     }
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> function Get-RemoteFile {
->>     param([Parameter(Mandatory = $true)][string]$Path)
->>
->>     $remote = Invoke-GhApi "repos/$Repo/contents/$Path`?ref=$Branch"
+>>     param(
+>>         [Parameter(Mandatory = $true)][string]$Path,
+>>         [Parameter(Mandatory = $true)][string]$Ref
+>>     )
+>>     $remote = Invoke-GhApi "repos/$Repo/contents/$Path`?ref=$Ref"
 >>     $encoded = ([string]$remote.content) -replace "\s", ""
->>
 >>     if (-not $encoded) {
->>         throw "BLOCKED: Remote file content was unavailable: $Path"
+>>         throw "BLOCKED: No encoded content returned for $Path"
 >>     }
->>
 >>     $content = [Text.Encoding]::UTF8.GetString(
 >>         [Convert]::FromBase64String($encoded)
 >>     ).Replace("`r`n", "`n")
->>
 >>     return [pscustomobject]@{
 >>         Path    = $Path
 >>         Sha     = [string]$remote.sha
@@ -63,401 +67,581 @@ PS D:\Homio\REOS_CONTROL_CENTER> function Get-RemoteFile {
 >>     }
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> function Replace-ExactOnce {
+PS D:\Homio\REOS_CONTROL_CENTER> function Replace-ExactCount {
 >>     param(
 >>         [Parameter(Mandatory = $true)][string]$Text,
 >>         [Parameter(Mandatory = $true)][string]$Old,
 >>         [Parameter(Mandatory = $true)][string]$New,
+>>         [Parameter(Mandatory = $true)][int]$ExpectedCount,
 >>         [Parameter(Mandatory = $true)][string]$Label
 >>     )
->>
->>     $textNormal = $Text.Replace("`r`n", "`n")
->>     $oldNormal  = $Old.Replace("`r`n", "`n")
->>     $newNormal  = $New.Replace("`r`n", "`n")
->>
->>     $count = [regex]::Matches(
->>         $textNormal,
->>         [regex]::Escape($oldNormal)
->>     ).Count
->>
->>     if ($count -ne 1) {
->>         throw "BLOCKED: Expected exactly one anchor for '$Label', found $count. No branch update was attempted."
+>>     $source = $Text.Replace("`r`n", "`n")
+>>     $oldText = $Old.Replace("`r`n", "`n")
+>>     $newText = $New.Replace("`r`n", "`n")
+>>     $count = [regex]::Matches($source, [regex]::Escape($oldText)).Count
+>>     if ($count -ne $ExpectedCount) {
+>>         throw "BLOCKED: '$Label' expected $ExpectedCount matches, found $count. No branch update attempted."
 >>     }
->>
->>     return $textNormal.Replace($oldNormal, $newNormal)
+>>     return $source.Replace($oldText, $newText)
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== READ CANONICAL GITHUB BRANCH ===" -ForegroundColor Cyan
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== BASELINE ===" -ForegroundColor Cyan
 
-=== READ CANONICAL GITHUB BRANCH ===
+=== BASELINE ===
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $ref = Invoke-GhApi "repos/$Repo/git/ref/heads/$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER> $baseSha = [string]$ref.object.sha
+PS D:\Homio\REOS_CONTROL_CENTER> $branchRef = Invoke-GhApi "repos/$Repo/git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> $baseSha = [string]$branchRef.object.sha
 PS D:\Homio\REOS_CONTROL_CENTER> $baseCommit = Invoke-GhApi "repos/$Repo/git/commits/$baseSha"
 PS D:\Homio\REOS_CONTROL_CENTER> $baseTreeSha = [string]$baseCommit.tree.sha
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch: $Branch"
 Branch: reos-development
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Starting commit: $baseSha"
-Starting commit: bc559b539387d0d2541698d2d33b740dfc6a74f0
+Starting commit: 0688f8ab6b38a2d78013f40f31cffdfb7af1dafe
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $expected = @{
->>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine/state_reader.py" = "a7bd24386f58684948557b6dcf142500690abfbb"
->>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine/test_truth_controller.py" = "dc7398d8c814a20bbd5ed6b2475aaca2283e9e74"
->>     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine/test_integration.py" = "0987f20290ed45e0656eda8c31dc12223a78e6c4"
->>     ".github/workflows/backend-ci.yml" = "5842a810abd38cf25a5e031419b9f61d12741850"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $remoteFiles = @{}
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($path in $expected.Keys) {
->>     $file = Get-RemoteFile -Path $path
->>     if ($file.Sha -ne $expected[$path]) {
->>         throw "BLOCKED: Remote file changed since inspection: $path. Expected $($expected[$path]), found $($file.Sha). No branch update was attempted."
->>     }
->>     $remoteFiles[$path] = $file
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $newTestPath = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine/test_state_reader_integrity.py"
 PS D:\Homio\REOS_CONTROL_CENTER> $treeSnapshot = Invoke-GhApi "repos/$Repo/git/trees/$baseTreeSha`?recursive=1"
-PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> if ($treeSnapshot.truncated) {
->>     throw "BLOCKED: GitHub returned a truncated repository tree. No branch update was attempted."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER> if (@($treeSnapshot.tree | Where-Object { $_.path -eq $newTestPath }).Count -gt 0) {
->>     throw "BLOCKED: The new test path already exists. No branch update was attempted."
+>>     throw "BLOCKED: GitHub returned a truncated tree. No branch update attempted."
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $readerPath = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine/state_reader.py"
+PS D:\Homio\REOS_CONTROL_CENTER> $authDir = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication"
+PS D:\Homio\REOS_CONTROL_CENTER> $requirementsPath = "REOS_CONTROL_CENTER/requirements-auth.txt"
+PS D:\Homio\REOS_CONTROL_CENTER> $newPaths = @(
+>>     "$authDir/__init__.py",
+>>     "$authDir/oidc_config.py",
+>>     "$authDir/oidc_verifier.py",
+>>     "$authDir/test_oidc_verifier.py",
+>>     "$authDir/README.md",
+>>     $requirementsPath
+>> )
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $oldReaderAnchor = @'
->>         if not isinstance(data, dict):
->>             raise StateReadError("Canonical state root must be an object.")
->>         return data
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $newReaderBlock = @'
->>         if not isinstance(data, dict):
->>             raise StateReadError("Canonical state root must be an object.")
->>
->>         integrity = data.get("integrity")
->>         if not isinstance(integrity, dict):
->>             raise StateReadError("Canonical state integrity metadata missing.")
->>
->>         stored_hash = integrity.get("sha256")
->>         if not isinstance(stored_hash, str) or not stored_hash.strip():
->>             raise StateReadError("Canonical state SHA-256 missing.")
->>
->>         try:
->>             from reos_control_center import calculate_hash
->>         except (ImportError, AttributeError) as exc:
->>             raise StateReadError(
->>                 "Canonical Control Center hash verifier unavailable."
->>             ) from exc
->>
->>         try:
->>             calculated_hash = calculate_hash(data)
->>         except (TypeError, ValueError) as exc:
->>             raise StateReadError(
->>                 "Canonical state cannot be fingerprinted."
->>             ) from exc
->>
->>         if stored_hash != calculated_hash:
->>             raise StateReadError("Canonical state SHA-256 mismatch.")
->>
->>         return data
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $readerContent = Replace-ExactOnce `
->>     -Text $remoteFiles[$readerPath].Content `
->>     -Old $oldReaderAnchor `
->>     -New $newReaderBlock `
->>     -Label "canonical state integrity check"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $controllerTestPath = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine/test_truth_controller.py"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $controllerTestContent = @'
->> from pathlib import Path
->> from tempfile import TemporaryDirectory
->> import json
->>
->> from reos_control_center import calculate_hash
->> from .truth_sync_controller import CanonicalTruthSyncController
->>
->>
->> def _write_valid_state(root: Path) -> None:
->>     data_dir = root / "data"
->>     data_dir.mkdir(parents=True, exist_ok=True)
->>
->>     state = {
->>         "execution": {
->>             "current_gate": "CORE-005",
->>             "current_task": "task",
->>             "current_subtask": "CORE-005-T01",
->>             "status": "CONTROL_CENTER_DRIVEN",
->>         },
->>         "integrity": {"sha256": None},
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($path in $newPaths) {
+>>     if (@($treeSnapshot.tree | Where-Object { $_.path -eq $path }).Count -gt 0) {
+>>         throw "BLOCKED: Target already exists: $path. No branch update attempted."
 >>     }
->>     state["integrity"]["sha256"] = calculate_hash(state)
->>
->>     (data_dir / "state.json").write_text(
->>         json.dumps(state),
->>         encoding="utf-8",
->>     )
->>
->>
->> def test_controller_inspects_authority():
->>     with TemporaryDirectory() as tmp:
->>         root = Path(tmp)
->>         _write_valid_state(root)
->>
->>         controller = CanonicalTruthSyncController(root)
->>         result = controller.inspect()
->>
->>         assert result["manifest"].current_gate == "CORE-005"
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $integrationPath = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine/test_integration.py"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $integrationContent = @'
->> from pathlib import Path
->> from tempfile import TemporaryDirectory
->> import json
->>
->> from reos_control_center import calculate_hash
->> from .truth_sync_controller import CanonicalTruthSyncController
->>
->>
->> def _write_valid_state(root: Path) -> None:
->>     data_dir = root / "data"
->>     data_dir.mkdir(parents=True, exist_ok=True)
->>
->>     state = {
->>         "execution": {
->>             "current_gate": "CORE-005",
->>             "current_task": "Search filters",
->>             "current_subtask": "CORE-005-T01",
->>             "status": "CONTROL_CENTER_DRIVEN",
->>         },
->>         "integrity": {"sha256": None},
->>     }
->>     state["integrity"]["sha256"] = calculate_hash(state)
->>
->>     (data_dir / "state.json").write_text(
->>         json.dumps(state),
->>         encoding="utf-8",
->>     )
->>
->>
->> def test_end_to_end_sync():
->>     with TemporaryDirectory() as tmp:
->>         root = Path(tmp)
->>         _write_valid_state(root)
->>
->>         # Git metadata may be unavailable in an isolated fixture.
->>         # The canonical state itself must still pass its integrity check.
->>         controller = CanonicalTruthSyncController(root)
->>         bundle = controller.inspect()
->>
->>         assert bundle["plan"].blocked is False
->>         assert bundle["manifest"].current_gate == "CORE-005"
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $integrityTestContent = @'
->> from __future__ import annotations
->>
->> import json
->> from pathlib import Path
->> from tempfile import TemporaryDirectory
->>
->> import pytest
->>
->> from reos_control_center import calculate_hash
->> from .state_reader import CanonicalStateReader, StateReadError
->>
->>
->> def _state() -> dict:
->>     return {
->>         "execution": {
->>             "current_gate": "CORE-008",
->>             "current_task": "Commission domain",
->>             "current_subtask": "CORE-008-T01",
->>             "status": "CONTROL_CENTER_DRIVEN",
->>         }
->>     }
->>
->>
->> def _write(root: Path, state: dict) -> None:
->>     data_dir = root / "data"
->>     data_dir.mkdir(parents=True, exist_ok=True)
->>     (data_dir / "state.json").write_text(
->>         json.dumps(state),
->>         encoding="utf-8",
->>     )
->>
->>
->> def _sealed_state() -> dict:
->>     state = _state()
->>     state["integrity"] = {"sha256": None}
->>     state["integrity"]["sha256"] = calculate_hash(state)
->>     return state
->>
->>
->> def test_valid_state_integrity_is_accepted():
->>     with TemporaryDirectory() as tmp:
->>         root = Path(tmp)
->>         _write(root, _sealed_state())
->>
->>         loaded = CanonicalStateReader(root).read()
->>
->>         assert loaded["execution"]["current_gate"] == "CORE-008"
->>
->>
->> def test_missing_integrity_metadata_fails_closed():
->>     with TemporaryDirectory() as tmp:
->>         root = Path(tmp)
->>         _write(root, _state())
->>
->>         with pytest.raises(StateReadError, match="integrity metadata missing"):
->>             CanonicalStateReader(root).read()
->>
->>
->> def test_missing_sha256_fails_closed():
->>     with TemporaryDirectory() as tmp:
->>         root = Path(tmp)
->>         state = _state()
->>         state["integrity"] = {"sha256": None}
->>         _write(root, state)
->>
->>         with pytest.raises(StateReadError, match="SHA-256 missing"):
->>             CanonicalStateReader(root).read()
->>
->>
->> def test_tampered_state_fails_closed():
->>     with TemporaryDirectory() as tmp:
->>         root = Path(tmp)
->>         state = _sealed_state()
->>         state["execution"]["current_gate"] = "UNAUTHORIZED-GATE"
->>         _write(root, state)
->>
->>         with pytest.raises(StateReadError, match="SHA-256 mismatch"):
->>             CanonicalStateReader(root).read()
->> '@
+>> }
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $workflowPath = ".github/workflows/backend-ci.yml"
+PS D:\Homio\REOS_CONTROL_CENTER> $workflowFile = Get-RemoteFile -Path $workflowPath -Ref $baseSha
+PS D:\Homio\REOS_CONTROL_CENTER> $workflowContent = $workflowFile.Content
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $oldWorkflowTestStep = @'
->>       - name: Run T21 regression tests
->>         run: >-
->>           python -m pytest -q
->>           AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination
+PS D:\Homio\REOS_CONTROL_CENTER> # Track dependency changes in both push and pull_request workflows.
+PS D:\Homio\REOS_CONTROL_CENTER> $oldPaths = @'
+>>       - "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**"
+>>       - ".github/workflows/backend-ci.yml"
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER> $newPathsBlock = @'
+>>       - "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**"
+>>       - "REOS_CONTROL_CENTER/requirements-auth.txt"
+>>       - ".github/workflows/backend-ci.yml"
 >> '@
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $newWorkflowTestStep = @'
+PS D:\Homio\REOS_CONTROL_CENTER> $workflowContent = Replace-ExactCount `
+>>     -Text $workflowContent `
+>>     -Old $oldPaths `
+>>     -New $newPathsBlock `
+>>     -ExpectedCount 2 `
+>>     -Label "CI path filters"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $oldInstall = @'
+>>       - name: Install test runner
+>>         run: python -m pip install --disable-pip-version-check pytest
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER> $newInstall = @'
+>>       - name: Install test runner and OIDC dependencies
+>>         run: |
+>>           python -m pip install --disable-pip-version-check pytest
+>>           python -m pip install --disable-pip-version-check -r requirements-auth.txt
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $workflowContent = Replace-ExactCount `
+>>     -Text $workflowContent `
+>>     -Old $oldInstall `
+>>     -New $newInstall `
+>>     -ExpectedCount 1 `
+>>     -Label "CI dependency installation"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $oldTestStep = @'
 >>       - name: Run canonical sync integrity and T21 regression tests
 >>         run: >-
 >>           python -m pytest -q
 >>           AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine
 >>           AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination
 >> '@
+PS D:\Homio\REOS_CONTROL_CENTER> $newTestStep = @'
+>>       - name: Run sync, OIDC authentication and T21 regression tests
+>>         run: >-
+>>           python -m pytest -q
+>>           AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine
+>>           AUTONOMY_ENGINE/security/authentication
+>>           AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination
+>> '@
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $workflowContent = Replace-ExactOnce `
->>     -Text $remoteFiles[$workflowPath].Content `
->>     -Old $oldWorkflowTestStep `
->>     -New $newWorkflowTestStep `
->>     -Label "CI sync regression step"
+PS D:\Homio\REOS_CONTROL_CENTER> $workflowContent = Replace-ExactCount `
+>>     -Text $workflowContent `
+>>     -Old $oldTestStep `
+>>     -New $newTestStep `
+>>     -ExpectedCount 1 `
+>>     -Label "CI regression command"
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $updates = @(
->>     [pscustomobject]@{ Path = $readerPath; Content = $readerContent },
->>     [pscustomobject]@{ Path = $controllerTestPath; Content = $controllerTestContent },
->>     [pscustomobject]@{ Path = $integrationPath; Content = $integrationContent },
->>     [pscustomobject]@{ Path = $newTestPath; Content = $integrityTestContent },
->>     [pscustomobject]@{ Path = $workflowPath; Content = $workflowContent }
+PS D:\Homio\REOS_CONTROL_CENTER> $initContent = @'
+>> """Server-side OIDC authentication primitives for HOMIO / REOS."""
+>>
+>> from .oidc_config import OIDCConfigurationError, OIDCSettings
+>> from .oidc_verifier import AuthenticationError, AuthenticatedPrincipal, OIDCVerifier
+>>
+>> __all__ = [
+>>     "AuthenticationError",
+>>     "AuthenticatedPrincipal",
+>>     "OIDCConfigurationError",
+>>     "OIDCSettings",
+>>     "OIDCVerifier",
+>> ]
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $configContent = @'
+>> from __future__ import annotations
+>>
+>> import os
+>> from collections.abc import Mapping
+>> from dataclasses import dataclass
+>> from urllib.parse import urlsplit
+>>
+>>
+>> class OIDCConfigurationError(ValueError):
+>>     """Required OIDC trust configuration is missing or unsafe."""
+>>
+>>
+>> def _https_url(name: str, value: str) -> str:
+>>     parsed = urlsplit(value)
+>>     if (
+>>         parsed.scheme.lower() != "https"
+>>         or not parsed.hostname
+>>         or parsed.username is not None
+>>         or parsed.password is not None
+>>         or parsed.query
+>>         or parsed.fragment
+>>     ):
+>>         raise OIDCConfigurationError(
+>>             f"{name} must be an HTTPS URL without credentials, query, or fragment"
+>>         )
+>>     return value
+>>
+>>
+>> @dataclass(frozen=True, slots=True)
+>> class OIDCSettings:
+>>     issuer: str
+>>     audience: str
+>>     jwks_url: str
+>>     leeway_seconds: int = 30
+>>
+>>     def __post_init__(self) -> None:
+>>         if (
+>>             not isinstance(self.issuer, str)
+>>             or not self.issuer
+>>             or self.issuer != self.issuer.strip()
+>>         ):
+>>             raise OIDCConfigurationError("HOMIO_OIDC_ISSUER is required")
+>>         _https_url("HOMIO_OIDC_ISSUER", self.issuer)
+>>
+>>         if (
+>>             not isinstance(self.jwks_url, str)
+>>             or not self.jwks_url
+>>             or self.jwks_url != self.jwks_url.strip()
+>>         ):
+>>             raise OIDCConfigurationError("HOMIO_OIDC_JWKS_URL is required")
+>>         _https_url("HOMIO_OIDC_JWKS_URL", self.jwks_url)
+>>
+>>         if (
+>>             not isinstance(self.audience, str)
+>>             or not self.audience
+>>             or self.audience != self.audience.strip()
+>>             or len(self.audience) > 512
+>>             or any(ord(char) < 0x21 for char in self.audience)
+>>         ):
+>>             raise OIDCConfigurationError(
+>>                 "HOMIO_OIDC_AUDIENCE must be a non-empty audience identifier"
+>>             )
+>>
+>>         if type(self.leeway_seconds) is not int or not 0 <= self.leeway_seconds <= 120:
+>>             raise OIDCConfigurationError(
+>>                 "leeway_seconds must be an integer between 0 and 120"
+>>             )
+>>
+>>     @classmethod
+>>     def from_env(
+>>         cls,
+>>         environ: Mapping[str, str] | None = None,
+>>     ) -> "OIDCSettings":
+>>         source = os.environ if environ is None else environ
+>>         names = (
+>>             "HOMIO_OIDC_ISSUER",
+>>             "HOMIO_OIDC_AUDIENCE",
+>>             "HOMIO_OIDC_JWKS_URL",
+>>         )
+>>         values = {name: source.get(name, "").strip() for name in names}
+>>         missing = [name for name, value in values.items() if not value]
+>>         if missing:
+>>             raise OIDCConfigurationError(
+>>                 "Missing required OIDC configuration: " + ", ".join(missing)
+>>             )
+>>         return cls(
+>>             issuer=values["HOMIO_OIDC_ISSUER"],
+>>             audience=values["HOMIO_OIDC_AUDIENCE"],
+>>             jwks_url=values["HOMIO_OIDC_JWKS_URL"],
+>>         )
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $verifierContent = @'
+>> from __future__ import annotations
+>>
+>> from dataclasses import dataclass
+>> from typing import Any, Protocol
+>>
+>> import jwt
+>> from jwt import PyJWKClient
+>> from jwt.exceptions import PyJWTError
+>>
+>> from .oidc_config import OIDCSettings
+>>
+>> MAX_ACCESS_TOKEN_CHARS = 16_384
+>> ALLOWED_SIGNING_ALGORITHMS = ("RS256", "ES256")
+>>
+>>
+>> class AuthenticationError(RuntimeError):
+>>     """Safe, non-sensitive authentication failure code."""
+>>
+>>     def __init__(self, code: str) -> None:
+>>         self.code = code
+>>         super().__init__(code)
+>>
+>>
+>> @dataclass(frozen=True, slots=True)
+>> class AuthenticatedPrincipal:
+>>     """Principal derived only from a cryptographically verified token."""
+>>
+>>     issuer: str
+>>     subject: str
+>>     audiences: tuple[str, ...]
+>>     email: str | None = None
+>>     email_verified: bool = False
+>>
+>>
+>> class SigningKeyClient(Protocol):
+>>     def get_signing_key_from_jwt(self, token: str) -> Any: ...
+>>
+>>
+>> class OIDCVerifier:
+>>     """Fail-closed OIDC access-token verifier backed by the issuer JWKS."""
+>>
+>>     def __init__(
+>>         self,
+>>         settings: OIDCSettings,
+>>         jwks_client: SigningKeyClient | None = None,
+>>     ) -> None:
+>>         self._settings = settings
+>>         self._jwks_client = jwks_client or PyJWKClient(
+>>             settings.jwks_url,
+>>             cache_keys=True,
+>>             lifespan=300,
+>>             timeout=5,
+>>         )
+>>
+>>     def verify_access_token(self, token: str) -> AuthenticatedPrincipal:
+>>         if (
+>>             not isinstance(token, str)
+>>             or not token
+>>             or token != token.strip()
+>>             or len(token) > MAX_ACCESS_TOKEN_CHARS
+>>             or token.count(".") != 2
+>>         ):
+>>             raise AuthenticationError("malformed_access_token")
+>>
+>>         try:
+>>             header = jwt.get_unverified_header(token)
+>>         except PyJWTError as exc:
+>>             raise AuthenticationError("malformed_access_token") from exc
+>>
+>>         if header.get("alg") not in ALLOWED_SIGNING_ALGORITHMS:
+>>             raise AuthenticationError("unsupported_token_algorithm")
+>>
+>>         kid = header.get("kid")
+>>         if not isinstance(kid, str) or not kid or len(kid) > 255:
+>>             raise AuthenticationError("invalid_signing_key_id")
+>>
+>>         try:
+>>             signing_key = self._jwks_client.get_signing_key_from_jwt(token).key
+>>         except Exception as exc:
+>>             # Do not leak provider URLs, response bodies, tokens, or key details.
+>>             raise AuthenticationError("verification_key_unavailable") from exc
+>>
+>>         try:
+>>             claims = jwt.decode(
+>>                 token,
+>>                 signing_key,
+>>                 algorithms=list(ALLOWED_SIGNING_ALGORITHMS),
+>>                 issuer=self._settings.issuer,
+>>                 audience=self._settings.audience,
+>>                 leeway=self._settings.leeway_seconds,
+>>                 options={"require": ["exp", "iat", "iss", "aud", "sub"]},
+>>             )
+>>         except PyJWTError as exc:
+>>             raise AuthenticationError("invalid_access_token") from exc
+>>
+>>         subject = claims.get("sub")
+>>         if not isinstance(subject, str) or not subject.strip():
+>>             raise AuthenticationError("invalid_access_token")
+>>
+>>         raw_audience = claims.get("aud")
+>>         if isinstance(raw_audience, str):
+>>             audiences = (raw_audience,)
+>>         elif isinstance(raw_audience, list) and all(
+>>             isinstance(value, str) and value for value in raw_audience
+>>         ):
+>>             audiences = tuple(raw_audience)
+>>         else:
+>>             raise AuthenticationError("invalid_access_token")
+>>
+>>         if self._settings.audience not in audiences:
+>>             raise AuthenticationError("invalid_access_token")
+>>
+>>         raw_email = claims.get("email")
+>>         email = (
+>>             raw_email.strip()
+>>             if isinstance(raw_email, str) and raw_email.strip()
+>>             else None
+>>         )
+>>
+>>         return AuthenticatedPrincipal(
+>>             issuer=self._settings.issuer,
+>>             subject=subject,
+>>             audiences=audiences,
+>>             email=email,
+>>             email_verified=claims.get("email_verified") is True,
+>>         )
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $testsContent = @'
+>> from __future__ import annotations
+>>
+>> from types import SimpleNamespace
+>> import time
+>>
+>> import jwt
+>> import pytest
+>> from cryptography.hazmat.primitives.asymmetric import ec, rsa
+>>
+>> from .oidc_config import OIDCConfigurationError, OIDCSettings
+>> from .oidc_verifier import AuthenticationError, OIDCVerifier
+>>
+>> ISSUER = "https://identity.example.test/"
+>> AUDIENCE = "homio-api"
+>> SETTINGS = OIDCSettings(
+>>     issuer=ISSUER,
+>>     audience=AUDIENCE,
+>>     jwks_url="https://identity.example.test/.well-known/jwks.json",
 >> )
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== BUILD REMOTE GIT OBJECTS ===" -ForegroundColor Cyan
-
-=== BUILD REMOTE GIT OBJECTS ===
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $treeEntries = @()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($item in $updates) {
->>     $contentBase64 = [Convert]::ToBase64String(
->>         [Text.Encoding]::UTF8.GetBytes($item.Content.Replace("`r`n", "`n"))
+>>
+>>
+>> class FakeJwksClient:
+>>     def __init__(self, public_key, fail: bool = False):
+>>         self.public_key = public_key
+>>         self.fail = fail
+>>         self.calls = 0
+>>
+>>     def get_signing_key_from_jwt(self, token: str):
+>>         self.calls += 1
+>>         if self.fail:
+>>             raise RuntimeError("provider detail must not be exposed")
+>>         return SimpleNamespace(key=self.public_key)
+>>
+>>
+>> @pytest.fixture(scope="module")
+>> def rsa_key_pair():
+>>     private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+>>     return private_key, private_key.public_key()
+>>
+>>
+>> @pytest.fixture
+>> def verifier(rsa_key_pair):
+>>     client = FakeJwksClient(rsa_key_pair[1])
+>>     return OIDCVerifier(SETTINGS, client), client, rsa_key_pair[0]
+>>
+>>
+>> def mint(private_key, *, algorithm="RS256", **overrides):
+>>     now = int(time.time())
+>>     claims = {
+>>         "iss": ISSUER,
+>>         "aud": AUDIENCE,
+>>         "sub": "provider-subject-123",
+>>         "iat": now,
+>>         "exp": now + 300,
+>>         "email": "user@example.test",
+>>         "email_verified": True,
+>>     }
+>>     for name, value in overrides.items():
+>>         if value is None:
+>>             claims.pop(name, None)
+>>         else:
+>>             claims[name] = value
+>>     return jwt.encode(
+>>         claims,
+>>         private_key,
+>>         algorithm=algorithm,
+>>         headers={"kid": "test-key"},
 >>     )
 >>
->>     $blob = Invoke-GhApi `
->>         -Endpoint "repos/$Repo/git/blobs" `
->>         -Method "POST" `
->>         -Body @{
->>             content  = $contentBase64
->>             encoding = "base64"
->>         }
 >>
->>     $treeEntries += @{
->>         path = $item.Path
->>         mode = "100644"
->>         type = "blob"
->>         sha  = [string]$blob.sha
->>     }
+>> def test_valid_rs256_token_returns_minimal_principal(verifier):
+>>     instance, _client, private_key = verifier
+>>     principal = instance.verify_access_token(mint(private_key))
+>>     assert principal.issuer == ISSUER
+>>     assert principal.subject == "provider-subject-123"
+>>     assert principal.audiences == (AUDIENCE,)
+>>     assert principal.email == "user@example.test"
+>>     assert principal.email_verified is True
 >>
->>     Write-Host "Prepared remotely: $($item.Path)"
->> }
-Prepared remotely: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine/state_reader.py
-Prepared remotely: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine/test_truth_controller.py
-Prepared remotely: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine/test_integration.py
-Prepared remotely: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine/test_state_reader_integrity.py
-Prepared remotely: .github/workflows/backend-ci.yml
+>>
+>> def test_valid_es256_token_is_supported():
+>>     private_key = ec.generate_private_key(ec.SECP256R1())
+>>     client = FakeJwksClient(private_key.public_key())
+>>     principal = OIDCVerifier(SETTINGS, client).verify_access_token(
+>>         mint(private_key, algorithm="ES256")
+>>     )
+>>     assert principal.subject == "provider-subject-123"
+>>
+>>
+>> def test_wrong_issuer_is_rejected(verifier):
+>>     instance, _client, private_key = verifier
+>>     with pytest.raises(AuthenticationError) as error:
+>>         instance.verify_access_token(
+>>             mint(private_key, iss="https://attacker.example.test/")
+>>         )
+>>     assert error.value.code == "invalid_access_token"
+>>
+>>
+>> def test_wrong_audience_is_rejected(verifier):
+>>     instance, _client, private_key = verifier
+>>     with pytest.raises(AuthenticationError) as error:
+>>         instance.verify_access_token(mint(private_key, aud="another-api"))
+>>     assert error.value.code == "invalid_access_token"
+>>
+>>
+>> def test_expired_token_is_rejected(verifier):
+>>     instance, _client, private_key = verifier
+>>     now = int(time.time())
+>>     with pytest.raises(AuthenticationError) as error:
+>>         instance.verify_access_token(
+>>             mint(private_key, iat=now - 120, exp=now - 60)
+>>         )
+>>     assert error.value.code == "invalid_access_token"
+>>
+>>
+>> def test_not_yet_valid_token_is_rejected(verifier):
+>>     instance, _client, private_key = verifier
+>>     with pytest.raises(AuthenticationError) as error:
+>>         instance.verify_access_token(
+>>             mint(private_key, nbf=int(time.time()) + 120)
+>>         )
+>>     assert error.value.code == "invalid_access_token"
+>>
+>>
+>> def test_missing_required_subject_is_rejected(verifier):
+>>     instance, _client, private_key = verifier
+>>     with pytest.raises(AuthenticationError) as error:
+>>         instance.verify_access_token(mint(private_key, sub=None))
+>>     assert error.value.code == "invalid_access_token"
+>>
+>>
+>> def test_invalid_signature_is_rejected(verifier):
+>>     instance, _client, _private_key = verifier
+>>     other_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+>>     with pytest.raises(AuthenticationError) as error:
+>>         instance.verify_access_token(mint(other_key))
+>>     assert error.value.code == "invalid_access_token"
+>>
+>>
+>> def test_symmetric_algorithm_is_rejected_before_jwks_lookup(verifier):
+>>     instance, client, _private_key = verifier
+>>     token = mint(
+>>         "test-shared-secret-long-enough-to-meet-minimum-key-length",
+>>         algorithm="HS256",
+>>     )
+>>     with pytest.raises(AuthenticationError) as error:
+>>         instance.verify_access_token(token)
+>>     assert error.value.code == "unsupported_token_algorithm"
+>>     assert client.calls == 0
+>>
+>>
+>> def test_malformed_and_oversized_tokens_are_rejected(verifier):
+>>     instance, client, _private_key = verifier
+>>     for value in ("", "not-a-jwt", " " + "a.b.c", "x" * 16_385):
+>>         with pytest.raises(AuthenticationError):
+>>             instance.verify_access_token(value)
+>>     assert client.calls == 0
+>>
+>>
+>> def test_key_service_failure_fails_closed_without_leaking_detail(rsa_key_pair):
+>>     instance = OIDCVerifier(
+>>         SETTINGS,
+>>         FakeJwksClient(rsa_key_pair[1], fail=True),
+>>     )
+>>     with pytest.raises(AuthenticationError) as error:
+>>         instance.verify_access_token(mint(rsa_key_pair[0]))
+>>     assert error.value.code == "verification_key_unavailable"
+>>     assert "provider detail" not in str(error.value)
+>>
+>>
+>> def test_multiple_audiences_are_preserved_after_validation(verifier):
+>>     instance, _client, private_key = verifier
+>>     principal = instance.verify_access_token(
+>>         mint(private_key, aud=[AUDIENCE, "another-trusted-resource"])
+>>     )
+>>     assert principal.audiences == (AUDIENCE, "another-trusted-resource")
+>>
+>>
+>> def test_configuration_requires_all_trust_settings():
+>>     with pytest.raises(OIDCConfigurationError, match="HOMIO_OIDC_ISSUER"):
+>>         OIDCSettings.from_env({})
+>>
+>>
+>> def test_non_https_issuer_or_jwks_is_rejected():
+>>     with pytest.raises(OIDCConfigurationError):
+>>         OIDCSettings(
+>>             issuer="http://identity.example.test/",
+>>             audience=AUDIENCE,
+>>             jwks_url="https://identity.example.test/jwks",
+>>         )
+>>     with pytest.raises(OIDCConfigurationError):
+>>         OIDCSettings(
+>>             issuer=ISSUER,
+>>             audience=AUDIENCE,
+>>             jwks_url="http://identity.example.test/jwks",
+>>         )
+>> '@
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $newTree = Invoke-GhApi `
->>     -Endpoint "repos/$Repo/git/trees" `
->>     -Method "POST" `
->>     -Body @{
->>         base_tree = $baseTreeSha
->>         tree      = @($treeEntries)
->>     }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $newCommit = Invoke-GhApi `
->>     -Endpoint "repos/$Repo/git/commits" `
->>     -Method "POST" `
->>     -Body @{
->>         message = "fix(sync): verify canonical state integrity and test sync"
->>         tree    = [string]$newTree.sha
->>         parents = @($baseSha)
->>     }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $currentRef = Invoke-GhApi "repos/$Repo/git/ref/heads/$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ([string]$currentRef.object.sha -ne $baseSha) {
->>     throw "BLOCKED: Branch head changed during preparation. Nothing was pushed; rerun to rebuild against the latest branch."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Invoke-GhApi `
->>     -Endpoint "repos/$Repo/git/refs/heads/$Branch" `
->>     -Method "PATCH" `
->>     -Body @{
->>         sha   = [string]$newCommit.sha
->>         force = $false
->>     } | Out-Null
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`nREMOTE COMMIT CREATED" -ForegroundColor Green
-
-REMOTE COMMIT CREATED
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch: $Branch"
-Branch: reos-development
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit: $($newCommit.sha)"
-Commit: 6fd50f6e3bd30212b78e8f1d2667c9340b0a42d7
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "URL: https://github.com/$Repo/commit/$($newCommit.sha)"
-URL: https://github.com/prajaktaranjane80-sketch/Homio/commit/6fd50f6e3bd30212b78e8f1d2667c9340b0a42d7
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`nFiles committed:"
-
-Files committed:
-PS D:\Homio\REOS_CONTROL_CENTER> $updates | ForEach-Object { Write-Host " - $($_.Path)" }
- - REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine/state_reader.py
- - REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine/test_truth_controller.py
- - REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine/test_integration.py
- - REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine/test_state_reader_integrity.py
- - .github/workflows/backend-ci.yml
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`nGitHub Actions will verify the sync and T21 regression tests."
-
-GitHub Actions will verify the sync and T21 regression tests.
-PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $readmeContent = @'
+>> # HOMIO / REOS — OIDC access-token verification
+>>
+>> This package provides a server-side bearer-token verification boundary. It
+>> does not own canonical identity records or tenant membership.
+>>
+>> ## Required runtime configuration
+>>
+>> Set these variables in the deployed service environment, not in source code:
+>>
+>> - `HOMIO_OIDC_ISSUER`: exact HTTPS issuer identifier expected in the token.
+>> - `HOMIO_OIDC_AUDIENCE`: API/resource audience expected in the token.
+>> - `HOMIO_OIDC_JWKS_URL`: trusted HTTPS URL publishing the issuer's signing keys.
+>>
+>> The verifier fails closed when any setting is missing or unsafe. Use the
+>> issuer's official JWKS endpoint and configure the API's own audience.
+>>
+>> ## Use
+>>
+>> ```python
+>> from AUTONOMY_ENGINE.security.authentication import OIDCSettings, OIDCVerifier
+>>
+>> settings = OIDCSettings.from_env()
+>> verifier = OIDCVerifier(settings)
+>> principal = verifier.verify_access_token(access_token)
