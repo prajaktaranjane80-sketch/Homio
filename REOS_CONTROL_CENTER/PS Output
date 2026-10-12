@@ -1,464 +1,75 @@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`nREMOTE COMMIT CREATED AND VERIFIED" -ForegroundColor Green
 
-PS C:\Users\Sandip RanjanePatil> Set-Location "D:\Homio\REOS_CONTROL_CENTER"
+REMOTE COMMIT CREATED AND VERIFIED
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch: $Branch"
+Branch: reos-development
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Previous head: $BaseSha"
+Previous head: e8c6800df2282e8087953c7fbd0bad499865b9ed
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit: $($newCommit.sha)"
+Commit: bafd5b10c939344919754a2ac218658e937a9bee
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "URL: https://github.com/$Repo/commit/$($newCommit.sha)"
+URL: https://github.com/prajaktaranjane80-sketch/Homio/commit/bafd5b10c939344919754a2ac218658e937a9bee
 PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
-PS D:\Homio\REOS_CONTROL_CENTER> $Repo = "prajaktaranjane80-sketch/Homio"
-PS D:\Homio\REOS_CONTROL_CENTER> $Branch = "reos-development"
-PS D:\Homio\REOS_CONTROL_CENTER> $AuthDir = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication"
-PS D:\Homio\REOS_CONTROL_CENTER> $WorkflowPath = ".github/workflows/backend-ci.yml"
-PS D:\Homio\REOS_CONTROL_CENTER> $RequirementsPath = "REOS_CONTROL_CENTER/requirements-auth.txt"
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { throw "GitHub CLI gh nahi mila." }
-PS D:\Homio\REOS_CONTROL_CENTER> & gh auth status
-github.com
-  ✓ Logged in to github.com account prajaktaranjane80-sketch (keyring)
-  - Active account: true
-  - Git operations protocol: https
-  - Token: gho_************************************
-  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
-
-  ✓ Logged in to github.com account sandyranjane-hash (keyring)
-  - Active account: false
-  - Git operations protocol: https
-  - Token: gho_************************************
-  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
-PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) { throw "GitHub authentication failed." }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> function Invoke-GhApi {
->>     param([string]$Endpoint, [string]$Method = "GET", $Body = $null)
->>     $argsList = @("api", $Endpoint, "--method", $Method)
->>     if ($null -eq $Body) {
->>         $raw = (& gh @argsList 2>&1) -join "`n"
->>     } else {
->>         $json = ConvertTo-Json -InputObject $Body -Depth 40 -Compress
->>         $raw = ($json | & gh @argsList --input - 2>&1) -join "`n"
->>     }
->>     if ($LASTEXITCODE -ne 0) { throw "GitHub API error: $Method $Endpoint`n$raw" }
->>     try { return ($raw | ConvertFrom-Json -ErrorAction Stop) }
->>     catch { throw "GitHub response parse nahi hua: $Endpoint`n$raw" }
+PS D:\Homio\REOS_CONTROL_CENTER> # Confirm the previously staged 7 files are still in this PowerShell session.
+PS D:\Homio\REOS_CONTROL_CENTER> if ($null -eq $AuthFiles -or $AuthFiles.Count -ne 7) {
+>>     throw "Staged files are unavailable in this PowerShell window. No branch update attempted."
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Repo = "prajaktaranjane80-sketch/Homio"
+PS D:\Homio\REOS_CONTROL_CENTER> $Branch = "reos-development"
+PS D:\Homio\REOS_CONTROL_CENTER> $WorkflowPath = ".github/workflows/backend-ci.yml"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Fix the parser bug: ${Label} safely separates the variable from the colon.
 PS D:\Homio\REOS_CONTROL_CENTER> function Replace-ExactCount {
->>     param([string]$Text, [string]$Old, [string]$New, [int]$Expected, [string]$Label)
+>>     param(
+>>         [string]$Text,
+>>         [string]$Old,
+>>         [string]$New,
+>>         [int]$Expected,
+>>         [string]$Label
+>>     )
 >>     $Text = $Text.Replace("`r`n", "`n")
 >>     $Old = $Old.Replace("`r`n", "`n")
 >>     $New = $New.Replace("`r`n", "`n")
 >>     $count = [regex]::Matches($Text, [regex]::Escape($Old)).Count
->>     if ($count -ne $Expected) { throw "$Label: expected $Expected matches; found $count. No branch update." }
+>>     if ($count -ne $Expected) {
+>>         throw "${Label}: expected $Expected matches, found $count. No branch update attempted."
+>>     }
 >>     return $Text.Replace($Old, $New)
 >> }
-At line:7 char:40
-+     if ($count -ne $Expected) { throw "$Label: expected $Expected mat ...
-+                                        ~~~~~~~
-Variable reference is not valid. ':' was not followed by a valid variable name character. Consider using ${} to delimit the name.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : InvalidVariableReferenceWithDrive
-
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $branchRef = Invoke-GhApi "repos/$Repo/git/ref/heads/$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER> $BaseSha = [string]$branchRef.object.sha
-PS D:\Homio\REOS_CONTROL_CENTER> $baseCommit = Invoke-GhApi "repos/$Repo/git/commits/$BaseSha"
-PS D:\Homio\REOS_CONTROL_CENTER> $BaseTreeSha = [string]$baseCommit.tree.sha
-PS D:\Homio\REOS_CONTROL_CENTER> $treeSnapshot = Invoke-GhApi "repos/$Repo/git/trees/${BaseTreeSha}?recursive=1"
-PS D:\Homio\REOS_CONTROL_CENTER> if ($treeSnapshot.truncated) { throw "GitHub tree truncated; stopped safely." }
+PS D:\Homio\REOS_CONTROL_CENTER> # Get the fresh remote head; do not reuse the stale $BaseSha from the failed attempt.
+PS D:\Homio\REOS_CONTROL_CENTER> $liveRef = Invoke-GhApi "repos/$Repo/git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> $freshBaseSha = [string]$liveRef.object.sha
+PS D:\Homio\REOS_CONTROL_CENTER> $liveCommit = Invoke-GhApi "repos/$Repo/git/commits/$freshBaseSha"
+PS D:\Homio\REOS_CONTROL_CENTER> $freshTreeSha = [string]$liveCommit.tree.sha
+PS D:\Homio\REOS_CONTROL_CENTER> $liveTree = Invoke-GhApi "repos/$Repo/git/trees/${freshTreeSha}?recursive=1"
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $targets = @(
+PS D:\Homio\REOS_CONTROL_CENTER> if ($liveTree.truncated) {
+>>     throw "Remote tree is truncated. No branch update attempted."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($newPath in @(
 >>     "$AuthDir/__init__.py",
 >>     "$AuthDir/oidc_config.py",
 >>     "$AuthDir/oidc_verifier.py",
 >>     "$AuthDir/test_oidc_verifier.py",
 >>     "$AuthDir/README.md",
 >>     $RequirementsPath
->> )
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($path in $targets) {
->>     if (@($treeSnapshot.tree | Where-Object { $_.path -eq $path }).Count -gt 0) {
->>         throw "Target already exists; stopped without overwriting: $path"
+>> )) {
+>>     if (@($liveTree.tree | Where-Object { $_.path -eq $newPath }).Count -gt 0) {
+>>         throw "Target already exists on current branch: $newPath. No branch update attempted."
 >>     }
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $wf = Invoke-GhApi "repos/$Repo/contents/.github/workflows/backend-ci.yml?ref=$BaseSha"
-PS D:\Homio\REOS_CONTROL_CENTER> $WorkflowSha = [string]$wf.sha
-PS D:\Homio\REOS_CONTROL_CENTER> $WorkflowContent = [Text.Encoding]::UTF8.GetString(
+PS D:\Homio\REOS_CONTROL_CENTER> # Re-fetch current workflow from the exact fresh branch head.
+PS D:\Homio\REOS_CONTROL_CENTER> $wf = Invoke-GhApi "repos/$Repo/contents/$WorkflowPath`?ref=$freshBaseSha"
+PS D:\Homio\REOS_CONTROL_CENTER> $workflowContent = [Text.Encoding]::UTF8.GetString(
 >>     [Convert]::FromBase64String(([string]$wf.content -replace "\s", ""))
 >> ).Replace("`r`n", "`n")
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $AuthFiles = [ordered]@{}
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Baseline verified: $BaseSha" -ForegroundColor Green
-Baseline verified: e8c6800df2282e8087953c7fbd0bad499865b9ed
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Now run Block 2."
-Now run Block 2.
-PS D:\Homio\REOS_CONTROL_CENTER> $AuthFiles["$AuthDir/__init__.py"] = @'
->> """Server-side OIDC token verification primitives for HOMIO / REOS."""
->>
->> from .oidc_config import OIDCConfigurationError, OIDCSettings
->> from .oidc_verifier import AuthenticationError, AuthenticatedPrincipal, OIDCVerifier
->>
->> __all__ = [
->>     "AuthenticationError",
->>     "AuthenticatedPrincipal",
->>     "OIDCConfigurationError",
->>     "OIDCSettings",
->>     "OIDCVerifier",
->> ]
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $AuthFiles[$RequirementsPath] = "PyJWT[crypto]==2.15.1`n"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $AuthFiles["$AuthDir/README.md"] = @'
->> # HOMIO / REOS — OIDC token verification
->>
->> This is a server-side JWT verification boundary. It does not own canonical
->> identity records or tenant membership.
->>
->> Required deployment environment variables:
->> - HOMIO_OIDC_ISSUER: the exact trusted HTTPS issuer.
->> - HOMIO_OIDC_AUDIENCE: the API/resource audience.
->> - HOMIO_OIDC_JWKS_URL: the trusted HTTPS issuer signing-key endpoint.
->>
->> The verifier fails closed if configuration is absent or unsafe. Use the
->> identity provider's official JWKS endpoint. Never put credentials or secrets
->> in repository source files.
->>
->> Usage:
->>     from AUTONOMY_ENGINE.security.authentication import OIDCSettings, OIDCVerifier
->>     settings = OIDCSettings.from_env()
->>     verifier = OIDCVerifier(settings)
->>     principal = verifier.verify_access_token(access_token)
->>
->> Authorization, tenant membership, roles and scopes must still be checked by
->> the API before allowing an operation. Use (issuer, subject) as the stable
->> external identity key; never automatically link accounts using email alone.
->>
->> This package only verifies tokens. It is not a complete login system and does
->> not implement browser redirects, authorization-code/PKCE callbacks, signup,
->> refresh, logout, persistent application sessions or API routes.
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Package exports, dependency and README staged in PowerShell memory."
-Package exports, dependency and README staged in PowerShell memory.
-PS D:\Homio\REOS_CONTROL_CENTER> $AuthFiles["$AuthDir/oidc_config.py"] = @'
->> from __future__ import annotations
->>
->> import os
->> from collections.abc import Mapping
->> from dataclasses import dataclass
->> from urllib.parse import urlsplit
->>
->>
->> class OIDCConfigurationError(ValueError):
->>     """Required OIDC trust configuration is missing or unsafe."""
->>
->>
->> def _https_url(name: str, value: str) -> str:
->>     try:
->>         parsed = urlsplit(value)
->>         valid = (
->>             parsed.scheme.lower() == "https"
->>             and bool(parsed.hostname)
->>             and parsed.username is None
->>             and parsed.password is None
->>             and not parsed.query
->>             and not parsed.fragment
->>         )
->>         _ = parsed.port
->>     except ValueError as exc:
->>         raise OIDCConfigurationError(f"{name} must be a valid HTTPS URL") from exc
->>     if not valid:
->>         raise OIDCConfigurationError(
->>             f"{name} must be HTTPS without credentials, query or fragment"
->>         )
->>     return value
->>
->>
->> @dataclass(frozen=True, slots=True)
->> class OIDCSettings:
->>     issuer: str
->>     audience: str
->>     jwks_url: str
->>     leeway_seconds: int = 30
->>
->>     def __post_init__(self) -> None:
->>         if not isinstance(self.issuer, str) or not self.issuer or self.issuer != self.issuer.strip():
->>             raise OIDCConfigurationError("HOMIO_OIDC_ISSUER is required")
->>         _https_url("HOMIO_OIDC_ISSUER", self.issuer)
->>
->>         if not isinstance(self.jwks_url, str) or not self.jwks_url or self.jwks_url != self.jwks_url.strip():
->>             raise OIDCConfigurationError("HOMIO_OIDC_JWKS_URL is required")
->>         _https_url("HOMIO_OIDC_JWKS_URL", self.jwks_url)
->>
->>         if (
->>             not isinstance(self.audience, str)
->>             or not self.audience
->>             or self.audience != self.audience.strip()
->>             or len(self.audience) > 512
->>             or any(ord(char) < 0x21 for char in self.audience)
->>         ):
->>             raise OIDCConfigurationError("HOMIO_OIDC_AUDIENCE is invalid")
->>
->>         if type(self.leeway_seconds) is not int or not 0 <= self.leeway_seconds <= 120:
->>             raise OIDCConfigurationError("leeway_seconds must be between 0 and 120")
->>
->>     @classmethod
->>     def from_env(cls, environ: Mapping[str, str] | None = None) -> "OIDCSettings":
->>         source = os.environ if environ is None else environ
->>         names = ("HOMIO_OIDC_ISSUER", "HOMIO_OIDC_AUDIENCE", "HOMIO_OIDC_JWKS_URL")
->>         values = {name: source.get(name, "").strip() for name in names}
->>         missing = [name for name, value in values.items() if not value]
->>         if missing:
->>             raise OIDCConfigurationError("Missing configuration: " + ", ".join(missing))
->>         return cls(
->>             issuer=values["HOMIO_OIDC_ISSUER"],
->>             audience=values["HOMIO_OIDC_AUDIENCE"],
->>             jwks_url=values["HOMIO_OIDC_JWKS_URL"],
->>         )
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "OIDC configuration staged."
-OIDC configuration staged.
-PS D:\Homio\REOS_CONTROL_CENTER> $AuthFiles["$AuthDir/oidc_verifier.py"] = @'
->> from __future__ import annotations
->>
->> from dataclasses import dataclass
->> from typing import Any, Protocol
->>
->> import jwt
->> from jwt import PyJWKClient
->> from jwt.exceptions import PyJWTError
->>
->> from .oidc_config import OIDCSettings
->>
->> MAX_ACCESS_TOKEN_CHARS = 16_384
->> ALLOWED_SIGNING_ALGORITHMS = ("RS256", "ES256")
->>
->>
->> class AuthenticationError(RuntimeError):
->>     """Safe, non-sensitive authentication failure code."""
->>
->>     def __init__(self, code: str) -> None:
->>         self.code = code
->>         super().__init__(code)
->>
->>
->> @dataclass(frozen=True, slots=True)
->> class AuthenticatedPrincipal:
->>     issuer: str
->>     subject: str
->>     audiences: tuple[str, ...]
->>     email: str | None = None
->>     email_verified: bool = False
->>
->>
->> class SigningKeyClient(Protocol):
->>     def get_signing_key_from_jwt(self, token: str) -> Any: ...
->>
->>
->> class OIDCVerifier:
->>     """Fail-closed OIDC bearer-token verifier."""
->>
->>     def __init__(self, settings: OIDCSettings, jwks_client: SigningKeyClient | None = None) -> None:
->>         self._settings = settings
->>         self._jwks_client = jwks_client or PyJWKClient(
->>             settings.jwks_url, cache_keys=True, lifespan=300, timeout=5
->>         )
->>
->>     def verify_access_token(self, token: str) -> AuthenticatedPrincipal:
->>         if (
->>             not isinstance(token, str)
->>             or not token
->>             or token != token.strip()
->>             or len(token) > MAX_ACCESS_TOKEN_CHARS
->>             or token.count(".") != 2
->>         ):
->>             raise AuthenticationError("malformed_access_token")
->>
->>         try:
->>             header = jwt.get_unverified_header(token)
->>         except PyJWTError as exc:
->>             raise AuthenticationError("malformed_access_token") from exc
->>
->>         if header.get("alg") not in ALLOWED_SIGNING_ALGORITHMS:
->>             raise AuthenticationError("unsupported_token_algorithm")
->>         kid = header.get("kid")
->>         if not isinstance(kid, str) or not kid or len(kid) > 255:
->>             raise AuthenticationError("invalid_signing_key_id")
->>
->>         try:
->>             key = self._jwks_client.get_signing_key_from_jwt(token).key
->>         except Exception as exc:
->>             raise AuthenticationError("verification_key_unavailable") from exc
->>
->>         try:
->>             claims = jwt.decode(
->>                 token,
->>                 key,
->>                 algorithms=list(ALLOWED_SIGNING_ALGORITHMS),
->>                 issuer=self._settings.issuer,
->>                 audience=self._settings.audience,
->>                 leeway=self._settings.leeway_seconds,
->>                 options={"require": ["exp", "iat", "iss", "aud", "sub"]},
->>             )
->>         except PyJWTError as exc:
->>             raise AuthenticationError("invalid_access_token") from exc
->>
->>         subject = claims.get("sub")
->>         if not isinstance(subject, str) or not subject.strip():
->>             raise AuthenticationError("invalid_access_token")
->>
->>         raw_audience = claims.get("aud")
->>         if isinstance(raw_audience, str):
->>             audiences = (raw_audience,)
->>         elif isinstance(raw_audience, list) and all(
->>             isinstance(item, str) and item for item in raw_audience
->>         ):
->>             audiences = tuple(raw_audience)
->>         else:
->>             raise AuthenticationError("invalid_access_token")
->>
->>         if self._settings.audience not in audiences:
->>             raise AuthenticationError("invalid_access_token")
->>
->>         raw_email = claims.get("email")
->>         email = raw_email.strip() if isinstance(raw_email, str) and raw_email.strip() else None
->>         return AuthenticatedPrincipal(
->>             issuer=self._settings.issuer,
->>             subject=subject,
->>             audiences=audiences,
->>             email=email,
->>             email_verified=claims.get("email_verified") is True,
->>         )
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "OIDC token verifier staged."
-OIDC token verifier staged.
-PS D:\Homio\REOS_CONTROL_CENTER> $AuthFiles["$AuthDir/test_oidc_verifier.py"] = @'
->> from __future__ import annotations
->>
->> import time
->> from types import SimpleNamespace
->>
->> import jwt
->> import pytest
->> from cryptography.hazmat.primitives.asymmetric import ec, rsa
->>
->> from .oidc_config import OIDCConfigurationError, OIDCSettings
->> from .oidc_verifier import AuthenticationError, OIDCVerifier
->>
->> ISSUER = "https://identity.example.test/"
->> AUDIENCE = "homio-api"
->> SETTINGS = OIDCSettings(ISSUER, AUDIENCE, "https://identity.example.test/jwks")
->>
->>
->> class FakeJwksClient:
->>     def __init__(self, key, fail=False):
->>         self.key, self.fail, self.calls = key, fail, 0
->>
->>     def get_signing_key_from_jwt(self, token):
->>         self.calls += 1
->>         if self.fail:
->>             raise RuntimeError("sensitive provider detail")
->>         return SimpleNamespace(key=self.key)
->>
->>
->> @pytest.fixture(scope="module")
->> def rsa_pair():
->>     private = rsa.generate_private_key(public_exponent=65537, key_size=2048)
->>     return private, private.public_key()
->>
->>
->> @pytest.fixture
->> def verifier(rsa_pair):
->>     client = FakeJwksClient(rsa_pair[1])
->>     return OIDCVerifier(SETTINGS, client), client, rsa_pair[0]
->>
->>
->> def mint(key, algorithm="RS256", **changes):
->>     now = int(time.time())
->>     claims = {
->>         "iss": ISSUER, "aud": AUDIENCE, "sub": "provider-subject",
->>         "iat": now, "exp": now + 300,
->>         "email": "user@example.test", "email_verified": True,
->>     }
->>     for name, value in changes.items():
->>         if value is None:
->>             claims.pop(name, None)
->>         else:
->>             claims[name] = value
->>     return jwt.encode(claims, key, algorithm=algorithm, headers={"kid": "test-key"})
->>
->>
->> def test_valid_rs256(verifier):
->>     instance, _, key = verifier
->>     principal = instance.verify_access_token(mint(key))
->>     assert principal.subject == "provider-subject"
->>     assert principal.audiences == (AUDIENCE,)
->>     assert principal.email_verified is True
->>
->>
->> def test_valid_es256():
->>     key = ec.generate_private_key(ec.SECP256R1())
->>     principal = OIDCVerifier(SETTINGS, FakeJwksClient(key.public_key())).verify_access_token(
->>         mint(key, algorithm="ES256")
->>     )
->>     assert principal.subject == "provider-subject"
->>
->>
->> @pytest.mark.parametrize("changes", [
->>     {"iss": "https://attacker.example.test/"},
->>     {"aud": "other-api"},
->>     {"exp": int(time.time()) - 60, "iat": int(time.time()) - 120},
->>     {"nbf": int(time.time()) + 120},
->>     {"sub": None},
->> ])
->> def test_invalid_claims_rejected(verifier, changes):
->>     instance, _, key = verifier
->>     with pytest.raises(AuthenticationError):
->>         instance.verify_access_token(mint(key, **changes))
->>
->>
->> def test_bad_signature_rejected(verifier):
->>     instance, _, _ = verifier
->>     other = rsa.generate_private_key(public_exponent=65537, key_size=2048)
->>     with pytest.raises(AuthenticationError):
->>         instance.verify_access_token(mint(other))
->>
->>
->> def test_hs256_rejected_before_key_lookup(verifier):
->>     instance, client, _ = verifier
->>     token = mint("long-test-secret-that-is-not-used-as-a-real-key", algorithm="HS256")
->>     with pytest.raises(AuthenticationError, match="unsupported_token_algorithm"):
->>         instance.verify_access_token(token)
->>     assert client.calls == 0
->>
->>
->> def test_malformed_or_oversized_rejected(verifier):
->>     instance, client, _ = verifier
->>     for token in ("", "not-a-jwt", " " + "a.b.c", "x" * 16_385):
->>         with pytest.raises(AuthenticationError):
->>             instance.verify_access_token(token)
->>     assert client.calls == 0
->>
->>
->> def test_jwks_failure_fails_closed(rsa_pair):
->>     instance = OIDCVerifier(SETTINGS, FakeJwksClient(rsa_pair[1], fail=True))
->>     with pytest.raises(AuthenticationError, match="verification_key_unavailable") as exc:
->>         instance.verify_access_token(mint(rsa_pair[0]))
->>     assert "sensitive provider detail" not in str(exc.value)
->>
->>
->> def test_configuration_fails_closed():
->>     with pytest.raises(OIDCConfigurationError):
->>         OIDCSettings.from_env({})
->>     with pytest.raises(OIDCConfigurationError):
->>         OIDCSettings("http://identity.test/", AUDIENCE, "https://identity.test/jwks")
->>
->>
->> def test_multiple_audiences_preserved(verifier):
->>     instance, _, key = verifier
->>     principal = instance.verify_access_token(mint(key, aud=[AUDIENCE, "other-resource"]))
->>     assert principal.audiences == (AUDIENCE, "other-resource")
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "OIDC regression tests staged."
-OIDC regression tests staged.
 PS D:\Homio\REOS_CONTROL_CENTER> $oldPaths = @'
 >>       - "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**"
 >>       - ".github/workflows/backend-ci.yml"
@@ -468,15 +79,7 @@ PS D:\Homio\REOS_CONTROL_CENTER> $newPaths = @'
 >>       - "REOS_CONTROL_CENTER/requirements-auth.txt"
 >>       - ".github/workflows/backend-ci.yml"
 >> '@
-PS D:\Homio\REOS_CONTROL_CENTER> $WorkflowContent = Replace-ExactCount $WorkflowContent $oldPaths $newPaths 2 "CI path filters"
-Replace-ExactCount : The term 'Replace-ExactCount' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the
-spelling of the name, or if a path was included, verify that the path is correct and try again.
-At line:1 char:20
-+ $WorkflowContent = Replace-ExactCount $WorkflowContent $oldPaths $new ...
-+                    ~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (Replace-ExactCount:String) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : CommandNotFoundException
-
+PS D:\Homio\REOS_CONTROL_CENTER> $workflowContent = Replace-ExactCount $workflowContent $oldPaths $newPaths 2 "CI path filters"
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $oldInstall = @'
 >>       - name: Install test runner
@@ -488,15 +91,7 @@ PS D:\Homio\REOS_CONTROL_CENTER> $newInstall = @'
 >>           python -m pip install --disable-pip-version-check pytest
 >>           python -m pip install --disable-pip-version-check -r requirements-auth.txt
 >> '@
-PS D:\Homio\REOS_CONTROL_CENTER> $WorkflowContent = Replace-ExactCount $WorkflowContent $oldInstall $newInstall 1 "CI dependency install"
-Replace-ExactCount : The term 'Replace-ExactCount' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the
-spelling of the name, or if a path was included, verify that the path is correct and try again.
-At line:1 char:20
-+ $WorkflowContent = Replace-ExactCount $WorkflowContent $oldInstall $n ...
-+                    ~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (Replace-ExactCount:String) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : CommandNotFoundException
-
+PS D:\Homio\REOS_CONTROL_CENTER> $workflowContent = Replace-ExactCount $workflowContent $oldInstall $newInstall 1 "CI dependency installation"
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $oldTests = @'
 >>       - name: Run canonical sync integrity and T21 regression tests
@@ -513,124 +108,89 @@ PS D:\Homio\REOS_CONTROL_CENTER> $newTests = @'
 >>           AUTONOMY_ENGINE/security/authentication
 >>           AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination
 >> '@
-PS D:\Homio\REOS_CONTROL_CENTER> $WorkflowContent = Replace-ExactCount $WorkflowContent $oldTests $newTests 1 "CI test command"
-Replace-ExactCount : The term 'Replace-ExactCount' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the
-spelling of the name, or if a path was included, verify that the path is correct and try again.
-At line:1 char:20
-+ $WorkflowContent = Replace-ExactCount $WorkflowContent $oldTests $new ...
-+                    ~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (Replace-ExactCount:String) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : CommandNotFoundException
-
+PS D:\Homio\REOS_CONTROL_CENTER> $workflowContent = Replace-ExactCount $workflowContent $oldTests $newTests 1 "CI regression command"
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $AuthFiles[$WorkflowPath] = $WorkflowContent
+PS D:\Homio\REOS_CONTROL_CENTER> # Replace the previously staged stale workflow with this corrected version.
+PS D:\Homio\REOS_CONTROL_CENTER> $AuthFiles[$WorkflowPath] = $workflowContent
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($AuthFiles.Count -ne 7) { throw "Expected 7 staged files; got $($AuthFiles.Count)." }
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "All 7 files staged in memory. No repository changes have been made yet."
-All 7 files staged in memory. No repository changes have been made yet.
-PS D:\Homio\REOS_CONTROL_CENTER> $expected = @(
->>     "$AuthDir/__init__.py",
->>     "$AuthDir/oidc_config.py",
->>     "$AuthDir/oidc_verifier.py",
->>     "$AuthDir/test_oidc_verifier.py",
->>     "$AuthDir/README.md",
->>     $RequirementsPath,
->>     $WorkflowPath
->> )
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($path in $expected) {
->>     if (-not $AuthFiles.Contains($path)) { throw "Missing staged file: $path. No commit made." }
->> }
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Workflow anchors fixed. Fresh base: $freshBaseSha" -ForegroundColor Green
+Workflow anchors fixed. Fresh base: 153eb29075f5a6693cc3aadd876fb8a6d1b3420e
 PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Build blobs and a tree from the fresh canonical branch.
 PS D:\Homio\REOS_CONTROL_CENTER> $treeItems = @()
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($path in $expected) {
->>     $content = [string]$AuthFiles[$path]
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($path in $AuthFiles.Keys) {
 >>     $blob = Invoke-GhApi "repos/$Repo/git/blobs" -Method "POST" -Body @{
->>         content = $content
+>>         content = [string]$AuthFiles[$path]
 >>         encoding = "utf-8"
 >>     }
->>     if (-not $blob.sha) { throw "Blob creation failed for $path." }
->>     $treeItems += @{ path = $path; mode = "100644"; type = "blob"; sha = [string]$blob.sha }
+>>     if (-not $blob.sha) { throw "Blob creation failed for $path. Branch not updated." }
+>>     $treeItems += @{
+>>         path = [string]$path
+>>         mode = "100644"
+>>         type = "blob"
+>>         sha = [string]$blob.sha
+>>     }
 >>     Write-Host "Blob ready: $path"
 >> }
 Blob ready: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication/__init__.py
+Blob ready: REOS_CONTROL_CENTER/requirements-auth.txt
+Blob ready: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication/README.md
 Blob ready: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication/oidc_config.py
 Blob ready: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication/oidc_verifier.py
 Blob ready: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication/test_oidc_verifier.py
-Blob ready: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication/README.md
-Blob ready: REOS_CONTROL_CENTER/requirements-auth.txt
 Blob ready: .github/workflows/backend-ci.yml
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $newTree = Invoke-GhApi "repos/$Repo/git/trees" -Method "POST" -Body @{
->>     base_tree = $BaseTreeSha
+>>     base_tree = $freshTreeSha
 >>     tree = @($treeItems)
 >> }
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $newTree.sha) { throw "Tree creation failed. Branch not updated." }
+PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $newCommit = Invoke-GhApi "repos/$Repo/git/commits" -Method "POST" -Body @{
 >>     message = "feat(auth): add fail-closed OIDC token verification"
 >>     tree = [string]$newTree.sha
->>     parents = @($BaseSha)
+>>     parents = @($freshBaseSha)
 >> }
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $newCommit.sha) { throw "Commit creation failed. Branch not updated." }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Concurrency guard: stop if the canonical branch moved meanwhile.
-PS D:\Homio\REOS_CONTROL_CENTER> $checkRef = Invoke-GhApi "repos/$Repo/git/ref/heads/$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER> if ([string]$checkRef.object.sha -ne $BaseSha) {
->>     throw "Branch changed during preparation. Commit NOT applied to branch."
+PS D:\Homio\REOS_CONTROL_CENTER> # Guard against another push while this commit was being prepared.
+PS D:\Homio\REOS_CONTROL_CENTER> $guardRef = Invoke-GhApi "repos/$Repo/git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ([string]$guardRef.object.sha -ne $freshBaseSha) {
+>>     throw "Branch moved during preparation. New commit was not applied."
 >> }
-Branch changed during preparation. Commit NOT applied to branch.
-At line:2 char:5
-+     throw "Branch changed during preparation. Commit NOT applied to b ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Branch changed ...lied to branch.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Branch changed during preparation. Commit NOT applied to branch.
-
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> Invoke-GhApi "repos/$Repo/git/refs/heads/$Branch" -Method "PATCH" -Body @{
 >>     sha = [string]$newCommit.sha
 >>     force = $false
 >> } | Out-Null
-gh.exe : gh: Update is not a fast forward (HTTP 422)
-At line:8 char:25
-+         $raw = ($json | & gh @argsList --input - 2>&1) -join "`n"
-+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (gh: Update is n...ward (HTTP 422):String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
-
 PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Verify the actual remote ref and every staged file before reporting success.
 PS D:\Homio\REOS_CONTROL_CENTER> $verifyRef = Invoke-GhApi "repos/$Repo/git/ref/heads/$Branch"
 PS D:\Homio\REOS_CONTROL_CENTER> if ([string]$verifyRef.object.sha -ne [string]$newCommit.sha) {
->>     throw "Remote head verification failed."
+>>     throw "Remote head verification failed. Do not report success."
 >> }
-Remote head verification failed.
-At line:2 char:5
-+     throw "Remote head verification failed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Remote head verification failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Remote head verification failed.
-
+PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $verifyCommit = Invoke-GhApi "repos/$Repo/git/commits/$($verifyRef.object.sha)"
 PS D:\Homio\REOS_CONTROL_CENTER> $verifyTree = Invoke-GhApi "repos/$Repo/git/trees/$($verifyCommit.tree.sha)?recursive=1"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($verifyTree.truncated) { throw "Verification tree truncated; result not confirmed." }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($path in $expected) {
->>     if (@($verifyTree.tree | Where-Object { $_.path -eq $path -and $_.type -eq "blob" }).Count -ne 1) {
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($path in $AuthFiles.Keys) {
+>>     if (@($verifyTree.tree | Where-Object {
+>>         $_.path -eq $path -and $_.type -eq "blob"
+>>     }).Count -ne 1) {
 >>         throw "Remote verification failed for $path"
 >>     }
 >> }
-Remote verification failed for REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication/__init__.py
-At line:3 char:9
-+         throw "Remote verification failed for $path"
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Remote verifica...ion/__init__.py:String) [], RuntimeException
-    + FullyQualifiedErrorId : Remote verification failed for REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication/__init__.py
-
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`nREMOTE COMMIT CREATED AND VERIFIED" -ForegroundColor Green
 
 REMOTE COMMIT CREATED AND VERIFIED
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch: $Branch"
 Branch: reos-development
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Previous head: $BaseSha"
-Previous head: e8c6800df2282e8087953c7fbd0bad499865b9ed
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Previous head: $freshBaseSha"
+Previous head: 153eb29075f5a6693cc3aadd876fb8a6d1b3420e
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit: $($newCommit.sha)"
-Commit: bafd5b10c939344919754a2ac218658e937a9bee
+Commit: 459ea7cb9b99d1f4a4361b3c94a34e4e9c116004
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "URL: https://github.com/$Repo/commit/$($newCommit.sha)"
-URL: https://github.com/prajaktaranjane80-sketch/Homio/commit/bafd5b10c939344919754a2ac218658e937a9bee
+URL: https://github.com/prajaktaranjane80-sketch/Homio/commit/459ea7cb9b99d1f4a4361b3c94a34e4e9c116004
 PS D:\Homio\REOS_CONTROL_CENTER>
