@@ -11,6 +11,7 @@ import SearchProjectFilter from "./SearchProjectFilter";
 import SearchPropertyStatus from "./SearchPropertyStatus";
 import SearchPropertyType from "./SearchPropertyType";
 import SearchVerificationFilter from "./SearchVerificationFilter";
+
 import type { SearchFilters } from "./search.types";
 import styles from "./SearchAdvancedFilters.module.css";
 
@@ -38,12 +39,11 @@ export default function SearchAdvancedFilters({
       <div className={styles.header}>
         <div>
           <span className={styles.eyebrow}>REFINE SEARCH</span>
-
           <h2 id="advanced-search-filters">Find a closer match.</h2>
-
           <p>
-            Refine your HOMIO search using property, budget, availability and
-            trust signals.
+            Filters operate only on preview fields that are actually
+            present in the current catalogue. Unknown facts are not
+            assumed to be a match.
           </p>
         </div>
       </div>
@@ -60,10 +60,12 @@ export default function SearchAdvancedFilters({
           <SearchBudgetFilter
             min={filters.budgetMin}
             max={filters.budgetMax}
-            onChange={({ min, max }) =>
+            currency={filters.budgetCurrency}
+            onChange={({ min, max, currency }) =>
               update({
                 budgetMin: min,
                 budgetMax: max,
+                budgetCurrency: currency,
               })
             }
           />
