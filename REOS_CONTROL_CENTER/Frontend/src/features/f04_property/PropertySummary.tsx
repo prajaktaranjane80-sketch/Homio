@@ -9,18 +9,28 @@ export default function PropertySummary({
   property,
 }: PropertySummaryProps) {
   return (
-    <section className={styles.section}>
+    <section
+      className={styles.section}
+      aria-labelledby="property-summary-title"
+    >
       <div className={styles.topline}>
-        <span className={styles.type}>{property.propertyType}</span>
+        <span className={styles.type}>
+          {property.propertyType}
+        </span>
 
         {property.verified ? (
           <span className={styles.verified}>
             {property.verificationLabel}
           </span>
-        ) : null}
+        ) : (
+          <span className={styles.previewBadge}>
+            {property.verificationLabel ||
+              "Experience preview — not verified"}
+          </span>
+        )}
       </div>
 
-      <h1>{property.title}</h1>
+      <h1 id="property-summary-title">{property.title}</h1>
 
       <p className={styles.location}>
         {property.location} · {property.city}, {property.country}
@@ -31,15 +41,18 @@ export default function PropertySummary({
         <span>{property.priceContext}</span>
       </div>
 
-      <div className={styles.facts}>
+      <div
+        className={styles.facts}
+        aria-label="At-a-glance property information"
+      >
         <div>
           <strong>{property.bedrooms}</strong>
-          <span>Beds</span>
+          <span>Bedrooms</span>
         </div>
 
         <div>
           <strong>{property.bathrooms}</strong>
-          <span>Baths</span>
+          <span>Bathrooms</span>
         </div>
 
         <div>
