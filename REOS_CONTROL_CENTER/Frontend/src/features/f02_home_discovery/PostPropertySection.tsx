@@ -1,21 +1,20 @@
-import Link from "next/link";
 import styles from "./PostPropertySection.module.css";
 
 const benefits = [
   {
     title: "Reach the right audience",
     description:
-      "Present your property through HOMIO discovery across relevant locations and property categories.",
+      "The intended experience presents a property to people exploring relevant locations and property categories.",
   },
   {
     title: "Structured property information",
     description:
-      "Give buyers and renters the context they need before they enquire.",
+      "The planned listing workflow captures the context buyers and renters need before enquiring.",
   },
   {
     title: "HOMIO brokerage pathway",
     description:
-      "Move genuine interest into a structured enquiry and brokerage journey.",
+      "The intended journey connects genuine interest with a structured brokerage workflow.",
   },
 ];
 
@@ -34,20 +33,19 @@ export default function PostPropertySection() {
             </h2>
 
             <p>
-              Share your property with HOMIO and put it in front of people
-              actively exploring homes, investment opportunities and commercial
-              real estate.
+              This section previews the intended property-submission journey.
+              Property submission, partner authentication and inventory
+              creation are not connected in the current frontend preview.
             </p>
 
             <div className={styles.actions}>
-              <Link href="/pro/inventory" className={styles.primary}>
-                List a property
-                <span aria-hidden="true">↗</span>
-              </Link>
+              <span className={styles.primary} aria-disabled="true">
+                Property submission preview only
+              </span>
 
-              <Link href="/pro" className={styles.secondary}>
-                Learn about HOMIO Pro
-              </Link>
+              <span className={styles.secondary} aria-disabled="true">
+                HOMIO Pro workflow not active
+              </span>
             </div>
           </div>
 
@@ -70,10 +68,11 @@ export default function PostPropertySection() {
         <div className={styles.bottom}>
           <span>
             <strong>Owners, developers and authorised partners.</strong>
-            &nbsp; Bring suitable inventory into the HOMIO ecosystem.
+            &nbsp; Listing workflows must be connected before any inventory
+            can be submitted.
           </span>
 
-          <Link href="/pro/inventory">Open property submission</Link>
+          <span aria-disabled="true">Submission not enabled</span>
         </div>
       </div>
     </section>
