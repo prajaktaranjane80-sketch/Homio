@@ -1,12 +1,14 @@
 .section {
   margin-top: 34px;
-  padding: 30px;
+  padding: clamp(18px, 3vw, 30px);
+  border: 1px solid #e0e6eb;
   border-radius: 18px;
   background: #edf1f3;
 }
 
 .content {
-  max-width: 760px;
+  max-width: 960px;
+  margin: 0 auto;
 }
 
 .eyebrow {
@@ -22,50 +24,98 @@
   margin: 0;
   color: #17212b;
   font-size: clamp(24px, 4vw, 34px);
+  line-height: 1.18;
+  overflow-wrap: anywhere;
 }
 
-.content p {
-  margin: 12px 0 18px;
+.lead {
+  max-width: 760px;
+  margin: 12px 0 0;
   color: #697480;
   font-size: 14px;
+  line-height: 1.7;
+}
+
+.options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.option {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #dce2e8;
+  border-radius: 14px;
+  background: #ffffff;
+  scroll-margin-top: 112px;
+}
+
+.optionLabel {
+  display: block;
+  margin-bottom: 8px;
+  color: #7d8791;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.option h3 {
+  margin: 0;
+  color: #17212b;
+  font-size: 18px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.optionDescription {
+  margin: 10px 0 0;
+  color: #697480;
+  font-size: 12px;
   line-height: 1.65;
 }
 
-.tabs {
-  display: inline-flex;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 10px;
-  background: #ffffff;
-}
-
-.tabs button {
-  min-height: 34px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: #697480;
-  font-size: 11px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.tabs .active {
-  background: #17212b;
-  color: #ffffff;
-}
-
 .primary {
-  display: block;
+  display: flex;
+  width: 100%;
   min-height: 44px;
-  margin-top: 14px;
-  padding: 0 16px;
-  border: 0;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+  padding: 10px 14px;
+  border: 1px solid #17212b;
   border-radius: 9px;
   background: #17212b;
   color: #ffffff;
+  font: inherit;
   font-size: 12px;
   font-weight: 800;
-  cursor: pointer;
+  line-height: 1.5;
+  text-align: center;
+  overflow-wrap: anywhere;
+  cursor: not-allowed;
+}
+
+.primary:disabled {
+  opacity: 0.58;
+}
+
+.disclosure {
+  margin: 10px 0 0;
+  color: #667085;
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+@media (max-width: 700px) {
+  .options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section {
+    scroll-behavior: auto;
+  }
 }
