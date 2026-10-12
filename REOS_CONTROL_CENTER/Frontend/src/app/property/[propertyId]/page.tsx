@@ -18,9 +18,8 @@ export async function generateMetadata({
 
   if (!property) {
     return {
-      title: "Property unavailable | HOMIO",
-      description:
-        "This HOMIO property is currently unavailable.",
+      title: "Property unavailable",
+      description: "This HOMIO property is currently unavailable.",
       robots: {
         index: false,
         follow: false,
@@ -28,20 +27,22 @@ export async function generateMetadata({
     };
   }
 
+  const title = `${property.shortTitle} — Experience Preview`;
+  const description =
+    `Experience preview of ${property.propertyType.toLowerCase()} ` +
+    `in ${property.location}. This sample record is not verified. ` +
+    "Property facts, pricing and availability are not authoritative inventory.";
+
   return {
-    title: `${property.shortTitle} | HOMIO`,
-    description:
-      `${property.propertyType} in ${property.location}. ` +
-      `${property.bedrooms} BHK, ${property.area}. ` +
-      "Explore the property on HOMIO.",
-    alternates: {
-      canonical: `/property/${property.id}`,
+    title,
+    description,
+    robots: {
+      index: false,
+      follow: true,
     },
     openGraph: {
-      title: `${property.shortTitle} | HOMIO`,
-      description:
-        `${property.propertyType} in ${property.location}. ` +
-        "Explore the property on HOMIO.",
+      title,
+      description,
       type: "website",
     },
   };
