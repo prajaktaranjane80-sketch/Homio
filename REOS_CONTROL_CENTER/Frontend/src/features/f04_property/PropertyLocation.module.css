@@ -18,25 +18,38 @@
 .section h2 {
   margin: 0;
   color: #17212b;
-  font-size: 28px;
+  font-size: clamp(23px, 3vw, 28px);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .section p {
   margin: 12px 0 0;
   color: #697480;
-  line-height: 1.6;
   font-size: 14px;
+  line-height: 1.65;
 }
 
 .map {
+  min-width: 0;
   min-height: 260px;
   position: relative;
   overflow: hidden;
   border: 1px solid #dfe4e9;
   border-radius: 16px;
   background:
-    linear-gradient(25deg, transparent 47%, rgb(255 255 255 / 58%) 48%, transparent 49%),
-    linear-gradient(125deg, transparent 47%, rgb(255 255 255 / 58%) 48%, transparent 49%),
+    linear-gradient(
+      25deg,
+      transparent 47%,
+      rgb(255 255 255 / 58%) 48%,
+      transparent 49%
+    ),
+    linear-gradient(
+      125deg,
+      transparent 47%,
+      rgb(255 255 255 / 58%) 48%,
+      transparent 49%
+    ),
     linear-gradient(#d8dde2 1px, transparent 1px),
     linear-gradient(90deg, #d8dde2 1px, transparent 1px),
     #eef1f3;
@@ -48,10 +61,12 @@
   top: 44%;
   left: 50%;
   display: flex;
+  max-width: calc(100% - 24px);
   flex-direction: column;
   align-items: center;
   gap: 4px;
   transform: translate(-50%, -50%);
+  text-align: center;
 }
 
 .marker span {
@@ -65,22 +80,38 @@
 }
 
 .marker strong {
+  max-width: 100%;
   padding: 7px 10px;
   border-radius: 8px;
   background: #ffffff;
   box-shadow: 0 4px 18px rgb(10 16 24 / 14%);
   color: #34414d;
   font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.marker small {
+  color: #4e5b67;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.section .mapDisclosure {
+  margin: 0;
+  color: #697480;
+  font-size: 11px;
+  line-height: 1.6;
 }
 
 .nearby {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
 .nearby div {
+  min-width: 0;
   padding: 14px;
   border-radius: 12px;
   background: #f6f7f9;
@@ -89,6 +120,7 @@
 .nearby span,
 .nearby strong {
   display: block;
+  overflow-wrap: anywhere;
 }
 
 .nearby span {
@@ -100,16 +132,29 @@
   margin-top: 5px;
   color: #34414d;
   font-size: 13px;
+  line-height: 1.5;
+}
+
+.section .nearbyEmpty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid #e5e9ee;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #697480;
+  font-size: 12px;
+  line-height: 1.65;
 }
 
 @media (max-width: 800px) {
   .section {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 @media (max-width: 560px) {
   .nearby {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
