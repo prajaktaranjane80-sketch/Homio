@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import type { ProjectRecord } from "./project.types";
-
 import styles from "./ProjectNextStep.module.css";
 
 type ProjectNextStepProps = Readonly<{
@@ -15,28 +14,24 @@ export default function ProjectNextStep({
     <section
       className={styles.section}
       id="next-step"
+      aria-labelledby="project-next-step-heading"
     >
       <div>
-        <span className={styles.eyebrow}>
-          NEXT STEP
-        </span>
+        <span className={styles.eyebrow}>NEXT STEP</span>
 
-        <h2>
+        <h2 id="project-next-step-heading">
           Ready to move from project discovery to a property?
         </h2>
 
         <p>
-          {project.name} is designed as a connected discovery layer.
-          Open an available opportunity where a verified property reference
-          exists, or continue exploring the market.
+          Continue from {project.name} to another project or collection
+          preview. Project facts and opportunity availability remain
+          non-authoritative until connected to the approved source.
         </p>
       </div>
 
       <div className={styles.actions}>
-        <Link
-          href="#inventory"
-          className={styles.primary}
-        >
+        <Link href="#inventory" className={styles.primary}>
           Review opportunities
         </Link>
 
