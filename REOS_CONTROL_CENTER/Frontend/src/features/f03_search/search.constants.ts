@@ -1,4 +1,5 @@
 import type {
+  SearchCurrency,
   SearchIntent,
   SearchSort,
   SearchViewMode,
@@ -68,25 +69,30 @@ export const SEARCH_AMENITIES = [
   "CCTV",
 ] as const;
 
+export const SEARCH_CURRENCIES: ReadonlyArray<{
+  value: SearchCurrency;
+  label: string;
+  symbol: string;
+}> = [
+  { value: "INR", label: "INR — Indian rupee", symbol: "₹" },
+  { value: "AED", label: "AED — UAE dirham", symbol: "AED" },
+  { value: "SGD", label: "SGD — Singapore dollar", symbol: "SGD" },
+  { value: "JPY", label: "JPY — Japanese yen", symbol: "¥" },
+];
+
 export const SEARCH_SORT_OPTIONS: Array<{
   value: SearchSort;
   label: string;
 }> = [
-  {
-    value: "relevance",
-    label: "Relevance",
-  },
-  {
-    value: "newest",
-    label: "Newest",
-  },
+  { value: "relevance", label: "Relevance" },
+  { value: "newest", label: "Newest" },
   {
     value: "price_low_to_high",
-    label: "Price: low to high",
+    label: "Price: low to high (selected currency)",
   },
   {
     value: "price_high_to_low",
-    label: "Price: high to low",
+    label: "Price: high to low (selected currency)",
   },
   {
     value: "area_high_to_low",
@@ -96,8 +102,8 @@ export const SEARCH_SORT_OPTIONS: Array<{
 
 export const SEARCH_VIEW_MODES: SearchViewMode[] = ["list", "map"];
 
-export const SEARCH_DEFAULT_PAGE_SIZE = 24;
-
+/** Results per page in the current experience preview. */
+export const SEARCH_DEFAULT_PAGE_SIZE = 12;
 export const SEARCH_MAX_PAGE_SIZE = 48;
 
 export const SEARCH_DEFAULTS = {
@@ -116,11 +122,18 @@ export const SEARCH_QUERY_KEYS = {
   district: "district",
   locality: "locality",
   landmark: "landmark",
+
+  /** Geographic/project context. */
   project: "project",
+
+  /** Independent advanced filters; do not reuse the location key. */
+  filterProject: "projectName",
   builder: "builder",
+
   propertyType: "propertyType",
   minBudget: "minBudget",
   maxBudget: "maxBudget",
+  budgetCurrency: "budgetCurrency",
   bedrooms: "bedrooms",
   minArea: "minArea",
   maxArea: "maxArea",
