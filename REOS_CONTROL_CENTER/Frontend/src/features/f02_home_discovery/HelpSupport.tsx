@@ -1,4 +1,3 @@
-import Link from "next/link";
 import HelpTopicCard, {
   type HelpTopicData,
 } from "./HelpTopicCard";
@@ -9,26 +8,22 @@ const helpItems: HelpTopicData[] = [
   {
     title: "How HOMIO works",
     description:
-      "Understand discovery, enquiry, visits and the brokerage journey.",
-    href: "/help/how-homio-works",
+      "A preview of the discovery, enquiry, visit and brokerage journey.",
   },
   {
     title: "Buying & renting",
     description:
-      "Get practical answers before making a property decision.",
-    href: "/help/buying-renting",
+      "Topics consumers should consider before a property decision.",
   },
   {
     title: "Using HOMIO AI",
     description:
-      "Learn how AI can refine searches and explain property context.",
-    href: "/help/homio-ai",
+      "A concept for search assistance and property context.",
   },
   {
     title: "Account & saved items",
     description:
-      "Manage saved properties, searches and your HOMIO journey.",
-    href: "/help/account",
+      "A preview of how a consumer's property journey could be organised.",
   },
 ];
 
@@ -43,15 +38,15 @@ export default function HelpSupport() {
             <h2>Need help finding your way?</h2>
 
             <p>
-              Get practical guidance about using HOMIO, managing your journey
-              and taking the next step.
+              The help cards preview the intended support structure. Dedicated
+              help articles, account management and contact workflows are not
+              active in this preview.
             </p>
           </div>
 
-          <Link href="/help" className={styles.viewAll}>
-            Visit Help Center
-            <span aria-hidden="true">↗</span>
-          </Link>
+          <span className={styles.viewAll} aria-disabled="true">
+            Help experience preview
+          </span>
         </div>
 
         <div className={styles.layout}>
