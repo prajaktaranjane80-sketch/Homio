@@ -23,6 +23,7 @@ const requiredFiles = [
   "src/features/f03_search/SearchResultCount.tsx",
   "src/features/f03_search/SearchSummary.tsx",
   "src/features/f03_search/SearchActions.tsx",
+  "src/features/f03_search/SearchMapView.tsx",
   "src/features/f03_search/search.types.ts",
   "src/features/f03_search/search.constants.ts",
   "src/features/f03_search/search.utils.ts",
@@ -54,7 +55,8 @@ function assert(condition, message) {
 
 for (const relativePath of requiredFiles) {
   assert(
-    fs.existsSync(absolute(relativePath)),
+    fs.existsSync(absolute(relativePath),
+    ),
     `Missing required F03 file: ${relativePath}`,
   );
 }
@@ -71,10 +73,21 @@ const resultCard = read("src/features/f03_search/SearchResultCard.tsx");
 const drawer = read("src/features/f03_search/SearchFilterDrawer.tsx");
 const actions = read("src/features/f03_search/SearchActions.tsx");
 const mapView = read("src/features/f03_search/SearchMapView.tsx");
+
 const searchCatalog = read(
   "src/features/f03_search/search-preview-catalog.ts",
 );
-const searchUtils = read("src/features/f03_search/search.utils.ts");
+
+const searchUtils = read(
+  "src/features/f03_search/search.utils.ts",
+);
+
+/*
+ * Normalize whitespace before checking phrases that might be split
+ * across lines in TSX formatting. This prevents formatting alone from
+ * causing a false CI failure.
+ */
+const normalizedMapView = mapView.replace(/\s+/g, " ");
 
 assert(
   route.includes('from "@/features/f03_search/SearchShell"') &&
@@ -156,10 +169,15 @@ assert(
   "Share must serialize current state and unsupported saved-search writes must be disabled.",
 );
 
+/*
+ * Check the actual map implementation, not line formatting.
+ * Both the absence of fabricated marker positions and the explicit
+ * authoritative-coordinate disclosure are required.
+ */
 assert(
   !mapView.includes("left: `${15 +") &&
     !mapView.includes("top: `${18 +") &&
-    mapView.includes("authoritative coordinates"),
+    normalizedMapView.includes("authoritative coordinates"),
   "Location preview must not invent marker coordinates.",
 );
 
