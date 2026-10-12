@@ -1,0 +1,110 @@
+HOMIO / REOS — PowerShell → GitHub Work Plan
+Canonical repository: prajaktaranjane80-sketch/Homio
+Canonical branch: reos-development
+Canonical frontend root: REOS_CONTROL_CENTER/Frontend
+Purpose: Make direct PowerShell-to-GitHub work safe, repeatable, and verifiable. Then continue real HOMIO work one part at a time.
+Operating rules
+1. GitHub branch reos-development is the source of truth. Do not treat a local checkout as canonical.
+2. PowerShell is allowed to call GitHub APIs for the requested remote work. Do not write, patch, reset, merge, or push code through a local worktree.
+3. Before every write, read the live branch head and the exact existing remote file. Never rely on a stale commit SHA.
+4. A write must be guarded: create a commit whose parent is the expected live head; recheck the head before moving the branch; never force-update the branch.
+5. After a write, independently read the remote commit and file/blob back. Record the commit URL, changed path, and verification evidence in REOS_CONTROL_CENTER/PS Output without claiming unverified PASS.
+6. One part at a time. Do not make unrelated edits, duplicate files/engines, or rerun unrelated tests without reason.
+7. AI_AGENT_ENTRYPOINT.py and ACRL final policy/continuity alignment are deferred until the end, per the owner's instruction.
+Part 1 — Verify PowerShell GitHub authentication and permissions
+Purpose: Confirm the current PowerShell session can authenticate as the intended GitHub account and has access to the canonical repository.
+Actions:
+- Run gh auth status.
+- Verify the authenticated account with gh api user.
+- Read the canonical repository and branch ref through gh api.
+- Confirm API read access to repository contents, Git objects, and refs/heads/reos-development.
+- Do not print, save, or share access tokens.
+Completion evidence: Authenticated account shown; repository API read works; live branch name and SHA confirmed. Any missing write permission is reported as a blocker, not worked around by exposing credentials.
+Current assessment: Earlier direct GitHub API commits succeeded, so authentication has worked previously. The current PowerShell session still needs a fresh preflight; there is no reason to rebuild credentials before checking them.
+Part 2 — Establish a repeatable read-first preflight
+Purpose: Make every work session identify the exact repo, branch, current head, target path, and current blob before editing.
+Actions:
+- Check repo identity and reos-development branch.
+- Fetch the live branch ref and parent commit/tree.
+- Fetch the exact target file at that branch and retain its blob SHA.
+- Classify each target as ADD, REPLACE, or NO CHANGE.
+- Stop if the target path, anchor count, branch, or expected blob differs from the evidence.
+Completion evidence: A preflight output showing repo, branch, base SHA, target path, current blob SHA, and allowed action.
+Part 3 — Standardize guarded direct GitHub writes
+Purpose: Use GitHub APIs from PowerShell without creating local-only source changes.
+Actions:
+- Prepare the smallest approved file change in the PowerShell session.
+- Create the required Git blob/tree/commit against the verified base.
+- Immediately re-read the live branch head.
+- Update the ref only if it still equals the expected base SHA; never force-push.
+- If the head moved, stop and rebuild against the new state instead of overwriting another commit.
+Completion evidence: GitHub returns a commit SHA, its parent matches the preflight base, and the guarded branch update succeeds.
+Part 4 — Verify remote results and keep PS Output truthful
+Purpose: Prevent false PASS reports and preserve the handoff evidence.
+Actions:
+- Read the created commit from GitHub.
+- Re-read every changed path from reos-development; confirm the expected content/blob SHA.
+- Record commit URL, changed files, verification result, and any test result in REOS_CONTROL_CENTER/PS Output.
+- Do not call a part complete if verification or evidence recording failed.
+Completion evidence: Remote commit and file match the intended change; PS Output describes the actual verified result.
+Part 5 — Connect remote writes to GitHub Actions and interpret results
+Purpose: Make each relevant change trigger the correct CI and keep frontend/backend results separate.
+Actions:
+- Confirm frontend changes trigger .github/workflows/frontend-ci.yml.
+- Confirm backend/auth changes trigger .github/workflows/backend-ci.yml.
+- Monitor the latest run for the actual commit; inspect the failing step/log when red.
+- Avoid rerunning known-green unrelated suites unless a change affects them.
+Completion evidence: Each relevant commit has a linked CI run, and the result is reported for the correct SHA and workflow.
+Latest known evidence (2026-10-12):
+- OIDC verifier run 38239041246 passed.
+- Frontend verification run 38238971065 passed for the then-current frontend files; subsequent compared commits changed backend/auth workflow and PS Output, not frontend source.
+- Latest backend run 38239560765 failed when CORE-008 T01 was added to CI.
+Part 6 — Clear the current backend CI blocker
+Purpose: Restore the backend workflow to green without creating duplicate utility code.
+Confirmed issue: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py imports deep_thaw from the shared AUTONOMY_ENGINE/core/contract_primitives.py, but that shared module does not define/export it.
+Action: Make the smallest evidence-based correction to the existing shared helper, add/adjust focused regression coverage if required, commit through the guarded workflow, then verify the combined Stage0 + OIDC auth + CORE-008 T01 + T21 CI run.
+Completion evidence: The relevant backend CI run on the new commit is green. Do not mark CORE-008 T01 complete merely because the import error disappears.
+Part 7 — Reconcile frontend plan with the code that already exists
+Purpose: Keep existing frontend work; do not rebuild F01–F05.
+Confirmed current structure:
+- F01 foundation, F02 home/discovery, F03 search, F04 property, and F05 project folders exist under REOS_CONTROL_CENTER/Frontend/src/features/.
+- The current frontend CI workflow runs npm run verify, which covers foundation, F02–F05 verification, typecheck, lint, and production build.
+- The execution manifest REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json still contains stale statuses/paths (for example, F02 says migration/duplicate cleanup required although the feature folder is present).
+Action: Compare the existing plan to current remote files and latest CI evidence; update only stale facts. Do not invent frontend work or rewrite passing files.
+Completion evidence: Execution manifest reflects real paths and the verified status of F01–F05; the relevant CI remains green.
+Part 8 — Continue CORE-008 tasks in authoritative order
+Purpose: Continue financial domain work only after the workflow is reliable and T01's actual gate evidence is available.
+Order from current data/state.json:
+- T01: Commission domain — currently selected; workflow has a collection-time import blocker to fix first.
+- T02: Commission attribution and rules.
+- T03: Split and participant logic.
+- T04: Settlement and reconciliation lifecycle.
+- T05: Disputes and reversals.
+- T06: Financial audit and evidence.
+- T07: Financial reporting hooks.
+- T08: Precision and concurrency tests.
+- T09: Financial security and approval review.
+- T10: Freeze commission and financial core.
+Rule: Complete each subtask only with implementation, targeted tests, regression evidence, and an authorized Control Center state transition. Existing implementations must be inspected before new files are proposed.
+Part 9 — Close the CORE-001 to CORE-008 architecture plan
+Purpose: Final closure of the separate architecture-integrity plan after the required CORE work and regressions.
+Required gates: C0 preflight/influence audit; C1 architecture integrity; C2 root CORE package wiring; C3 immutability/historical truth; C4 canonical authority boundaries; C5 cross-core/adversarial regression; C6 full CORE regression; C7 Git/architecture integrity.
+Current caution: The closure plan records these gates as PENDING, even where individual checks elsewhere show PASS. Reconcile the official gate status from evidence; do not infer closure from a few passing tests.
+Completion evidence: Every mandatory gate passes, required evidence is recorded, and the Control Center has an authorized closure transition.
+Part 10 — Final AI Agent EntryPoint and ACRL alignment (LAST)
+Purpose: Synchronize operating rules only after the real workflow and implementation status have stabilized.
+Actions:
+- Reconcile AI_AGENT_ENTRYPOINT.py with the approved direct PowerShell-to-GitHub API workflow; its current rules still describe PowerShell as verification-only.
+- Align ACRL/T21 continuity, Git-policy, recovery, checkpoint, and handoff details with the verified workflow without making ACRL a domain owner or second state authority.
+- Record final verified test evidence and current next task.
+Completion evidence: EntryPoint, ACRL, data/state.json, PS Output, GitHub branch, and CI evidence agree. This is deliberately the last part.
+Working ledger
+At the start and end of every part, record:
+- Part ID and scope
+- Current remote branch SHA
+- Files added/replaced (or NO CHANGE)
+- Exact commit URL, if changed
+- CI run URL and result, when applicable
+- What is still blocked
+- Next authorized part
+Only one active part at a time. Report progress by completed parts and evidence, not by a guessed overall percentage.
