@@ -11,20 +11,40 @@ export default function PropertyLocation({
   return (
     <section className={styles.section}>
       <div>
-        <span className={styles.eyebrow}>LOCATION</span>
+        <span className={styles.eyebrow}>LOCATION PREVIEW</span>
+
         <h2>{property.location}</h2>
+
         <p>
-          Understand the surrounding area and the property&apos;s wider
-          city context before taking the next step.
+          This section displays the location text available in the
+          current preview record. It does not establish property
+          coordinates or confirm a physical address.
         </p>
       </div>
 
-      <div className={styles.map}>
+      <div
+        className={styles.map}
+        role="img"
+        aria-label={`Illustrative location placeholder for ${property.locality}; not a live geographic map`}
+      >
         <div className={styles.marker}>
-          <span>HOMIO</span>
+          <span>HOMIO PREVIEW</span>
           <strong>{property.locality}</strong>
+          <small>Location placeholder · not a live map</small>
         </div>
       </div>
+
+      <p
+        style={{
+          margin: 0,
+          color: "#667085",
+          fontSize: 11,
+          lineHeight: 1.6,
+        }}
+      >
+        A live map and distance calculations require authoritative
+        coordinates. They are not inferred from the locality name.
+      </p>
 
       <div className={styles.nearby}>
         {property.nearby.map((item) => (
