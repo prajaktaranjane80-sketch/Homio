@@ -76,7 +76,9 @@ for (const relativePath of requiredFiles) {
 
 const page = read("src/features/f05_project/ProjectPage.tsx");
 const data = read("src/features/f05_project/project.data.ts");
-const catalog = read("src/features/f05_project/project-preview-catalog.ts");
+const catalog = read(
+  "src/features/f05_project/project-preview-catalog.ts",
+);
 const route = read("src/app/project/[projectId]/page.tsx");
 const actions = read("src/features/f05_project/ProjectActions.tsx");
 const gallery = read("src/features/f05_project/ProjectGallery.tsx");
