@@ -4,29 +4,33 @@ import styles from "./ResidentialCollections.module.css";
 const collections = [
   {
     title: "Luxury Villas",
-    description: "Private residences with space, privacy and premium locations.",
-    href: "/search?intent=buy&type=villa&collection=luxury",
+    description:
+      "Explore villa-type property examples. Luxury inventory is not independently verified.",
+    href: "/search?intent=buy&propertyType=Villa&q=luxury",
     image:
       "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=85",
   },
   {
     title: "City Apartments",
-    description: "Connected homes for modern urban living.",
-    href: "/search?intent=buy&type=apartment",
+    description:
+      "Search apartment-type properties using the supported HOMIO search criteria.",
+    href: "/search?intent=buy&propertyType=Apartment",
     image:
       "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1400&q=85",
   },
   {
     title: "Family Residences",
-    description: "Larger spaces designed around everyday life.",
-    href: "/search?intent=buy&collection=family",
+    description:
+      "Explore the family-home search concept against the available preview dataset.",
+    href: "/search?intent=buy&q=family",
     image:
       "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1400&q=85",
   },
   {
     title: "Waterfront Homes",
-    description: "Open views, distinctive settings and premium addresses.",
-    href: "/search?intent=buy&collection=waterfront",
+    description:
+      "Open a waterfront-related search. Results depend on the connected property data.",
+    href: "/search?intent=buy&q=waterfront",
     image:
       "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=85",
   },
@@ -34,24 +38,27 @@ const collections = [
 
 export default function ResidentialCollections() {
   return (
-    <section className={styles.section}>
+    <section
+      className={styles.section}
+      aria-labelledby="residential-collections-heading"
+    >
       <div className="homio-container">
         <div className={styles.header}>
           <div>
             <span className={styles.eyebrow}>RESIDENTIAL</span>
 
-            <h2>Homes for different ways of living.</h2>
+            <h2 id="residential-collections-heading">
+              Homes for different ways of living.
+            </h2>
 
             <p>
-              From city apartments to private villas, discover residential
-              opportunities around lifestyle, location and property type.
+              Start with property type or a search term, then explore the
+              available results. These collection cards are discovery
+              pathways, not claims of verified or live inventory.
             </p>
           </div>
 
-          <Link
-            href="/search?intent=buy"
-            className={styles.viewAll}
-          >
+          <Link href="/search?intent=buy" className={styles.viewAll}>
             Explore homes
             <span aria-hidden="true">↗</span>
           </Link>
@@ -75,11 +82,10 @@ export default function ResidentialCollections() {
                 </span>
 
                 <h3>{collection.title}</h3>
-
                 <p>{collection.description}</p>
 
                 <span className={styles.explore}>
-                  Discover homes
+                  Open property search
                   <span aria-hidden="true">→</span>
                 </span>
               </div>
