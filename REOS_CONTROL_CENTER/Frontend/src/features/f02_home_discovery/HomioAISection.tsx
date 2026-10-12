@@ -2,17 +2,17 @@ import Link from "next/link";
 import styles from "./HomioAISection.module.css";
 
 const suggestions = [
-  "Compare two homes",
-  "Find family-friendly areas",
-  "Explain this market",
-  "Refine my property search",
+  "Kalyani Nagar",
+  "Baner",
+  "Investment Home",
+  "Contemporary 3 BHK Residence",
 ];
 
 const contextItems = [
-  "Your search intent",
-  "Selected locations",
-  "Saved properties",
-  "Market context",
+  "Search intent preview",
+  "Location context preview",
+  "Saved-items concept",
+  "Market context preview",
 ];
 
 export default function HomioAISection() {
@@ -21,7 +21,7 @@ export default function HomioAISection() {
       <div className="homio-container">
         <div className={styles.shell}>
           <div className={styles.content}>
-            <span className={styles.eyebrow}>HOMIO AI</span>
+            <span className={styles.eyebrow}>HOMIO AI · EXPERIENCE PREVIEW</span>
 
             <h2>
               Search less.
@@ -30,16 +30,16 @@ export default function HomioAISection() {
             </h2>
 
             <p>
-              HOMIO AI helps turn a property search into a conversation.
-              Refine what you want, ask questions about a property or market,
-              and move toward the next useful action.
+              This panel demonstrates the planned HOMIO AI interface. A live
+              AI session, saved-account context and market-intelligence
+              integration are not connected here. You can use the standard
+              property search below.
             </p>
 
             <div className={styles.actions}>
-              <Link href="/ai" className={styles.primary}>
-                Open HOMIO AI
-                <span aria-hidden="true">↗</span>
-              </Link>
+              <span className={styles.primary} aria-disabled="true">
+                AI interaction preview only
+              </span>
 
               <Link href="/search" className={styles.secondary}>
                 Continue normal search
@@ -47,11 +47,16 @@ export default function HomioAISection() {
             </div>
 
             <div className={styles.suggestions}>
-              <span className={styles.suggestionLabel}>TRY ASKING</span>
+              <span className={styles.suggestionLabel}>
+                TRY A STANDARD PROPERTY SEARCH
+              </span>
 
               <div className={styles.chips}>
                 {suggestions.map((suggestion) => (
-                  <Link key={suggestion} href={`/ai?q=${encodeURIComponent(suggestion)}`}>
+                  <Link
+                    key={suggestion}
+                    href={`/search?q=${encodeURIComponent(suggestion)}`}
+                  >
                     {suggestion}
                   </Link>
                 ))}
@@ -61,16 +66,20 @@ export default function HomioAISection() {
 
           <div className={styles.aiPanel}>
             <div className={styles.panelHeader}>
-              <div className={styles.aiMark}>H</div>
+              <div className={styles.aiMark} aria-hidden="true">
+                H
+              </div>
 
               <div>
                 <strong>HOMIO AI</strong>
-                <span>Property discovery assistant</span>
+                <span>Interface experience preview</span>
               </div>
 
-              <span className={styles.live} aria-label="AI available">
-                <span />
-                Ready
+              <span
+                className={styles.live}
+                aria-label="AI conversation is a preview, not an active service"
+              >
+                Preview only
               </span>
             </div>
 
@@ -80,18 +89,19 @@ export default function HomioAISection() {
               </div>
 
               <div className={`${styles.message} ${styles.aiMessage}`}>
-                I can help narrow that down. I can compare locations, property
-                types, projects and price context before you decide what to
-                enquire about.
+                Illustrative response: narrow the location, property type and
+                budget first. This is example copy, not a live AI response.
               </div>
 
               <div className={styles.contextBox}>
-                <span>Working with your context</span>
+                <span>Example context elements — not connected data</span>
 
                 <div className={styles.contextGrid}>
                   {contextItems.map((item) => (
                     <div key={item}>
-                      <span className={styles.contextCheck}>✓</span>
+                      <span className={styles.contextCheck} aria-hidden="true">
+                        ◇
+                      </span>
                       {item}
                     </div>
                   ))}
@@ -100,9 +110,14 @@ export default function HomioAISection() {
             </div>
 
             <div className={styles.input}>
-              <span>Ask HOMIO anything about this search...</span>
+              <span>Live AI input is not enabled in this preview.</span>
 
-              <button type="button" aria-label="Start AI conversation">
+              <button
+                type="button"
+                aria-label="AI conversation is not active"
+                title="AI conversation is not active in this preview"
+                disabled
+              >
                 →
               </button>
             </div>
@@ -112,10 +127,10 @@ export default function HomioAISection() {
         <div className={styles.bottom}>
           <span>
             <strong>AI supports the journey.</strong> HOMIO brokerage remains
-            the action layer when you are ready.
+            the intended action layer when the relevant workflows are connected.
           </span>
 
-          <Link href="/ai">Explore AI experience</Link>
+          <Link href="/search">Explore property search</Link>
         </div>
       </div>
     </section>
