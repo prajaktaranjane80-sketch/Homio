@@ -56,7 +56,7 @@ function routeRegexFromPageFile(file) {
   const segments = relative
     .split(path.sep)
     .slice(0, -1)
-    .filter((segment) => !/^(.+)$/.test(segment) || false);
+    .filter((segment) => !/^\(.+\)$/.test(segment));
 
   if (segments.length === 0) {
     return /^\/$/;
