@@ -56,7 +56,7 @@ function routeRegexFromPageFile(file) {
   const segments = relative
     .split(path.sep)
     .slice(0, -1)
-    .filter((segment) => !/^\(.+\)$/.test(segment));
+    .filter((segment) => !/^(.+)$/.test(segment) || false);
 
   if (segments.length === 0) {
     return /^\/$/;
@@ -186,7 +186,7 @@ const routeSource = read("src/app/page.tsx");
 
 requireContains(
   routeSource,
-  '@/features/f02_home_discovery/HomeDiscoveryPage',
+  "@/features/f02_home_discovery/HomeDiscoveryPage",
   "Homepage route composition",
 );
 
@@ -215,8 +215,6 @@ const allSource = sourceFiles.map((file) => ({
   file,
   content: fs.readFileSync(file, "utf8"),
 }));
-
-const allSourceContent = allSource.map((item) => item.content).join("\n");
 
 const anchorIds = new Set();
 
@@ -257,6 +255,8 @@ const knownProjectIds = getProjectIds(projectData);
 let checkedLinks = 0;
 let checkedSearchLinks = 0;
 let checkedAnchors = 0;
+let checkedDynamicPropertyLinks = 0;
+let checkedDynamicProjectLinks = 0;
 
 for (const file of featureFiles.filter((item) => item.endsWith(".tsx"))) {
   const content = fs.readFileSync(file, "utf8");
@@ -266,10 +266,21 @@ for (const file of featureFiles.filter((item) => item.endsWith(".tsx"))) {
       continue;
     }
 
+    // Normalize template expressions only for URL and route matching.
+    // Keep rawHref unchanged for expression and ID validation.
+    const dynamicExpressions = [
+      ...rawHref.matchAll(/\$\{([^}]+)\}/g),
+    ].map((match) => match[1]);
+
+    const hrefForValidation = rawHref.replace(
+      /\$\{[^}]+\}/g,
+      "__homio_dynamic_segment__",
+    );
+
     let url;
 
     try {
-      url = new URL(rawHref, "https://homio.invalid");
+      url = new URL(hrefForValidation, "https://homio.invalid");
     } catch {
       fail(`Invalid href "${rawHref}" in ${path.relative(root, file)}.`);
     }
@@ -318,7 +329,43 @@ for (const file of featureFiles.filter((item) => item.endsWith(".tsx"))) {
     if (pathname.startsWith("/property/")) {
       const propertyId = pathname.split("/")[2];
 
-      if (!propertyId || !knownPropertyIds.has(propertyId)) {
+      if (propertyId === "__homio_dynamic_segment__") {
+        const dynamicRoute = rawHref.match(
+          /^\/property\/\$\{([^}]+)\}(?:[?#].*)?$/,
+        );
+
+        if (
+          !dynamicRoute ||
+          dynamicExpressions.length !== 1 ||
+          dynamicRoute[1] !== "property.id"
+        ) {
+          fail(
+            `Unsupported dynamic property route "${rawHref}" in ${path.relative(root, file)}.`,
+          );
+        }
+
+        const declaredPropertyIds = [
+          ...content.matchAll(/\bid\s*:\s*"([^"]+)"/g),
+        ].map((match) => match[1]);
+
+        if (!declaredPropertyIds.length) {
+          fail(
+            `Dynamic property route has no local preview IDs in ${path.relative(root, file)}.`,
+          );
+        }
+
+        const unknownPropertyId = declaredPropertyIds.find(
+          (id) => !knownPropertyIds.has(id),
+        );
+
+        if (unknownPropertyId) {
+          fail(
+            `Dynamic property preview ID "${unknownPropertyId}" is not registered in property.data.ts.`,
+          );
+        }
+
+        checkedDynamicPropertyLinks += 1;
+      } else if (!propertyId || !knownPropertyIds.has(propertyId)) {
         fail(
           `Property preview ID "${propertyId ?? ""}" is not registered in property.data.ts.`,
         );
@@ -328,7 +375,43 @@ for (const file of featureFiles.filter((item) => item.endsWith(".tsx"))) {
     if (pathname.startsWith("/project/")) {
       const projectId = pathname.split("/")[2];
 
-      if (!projectId || !knownProjectIds.has(projectId)) {
+      if (projectId === "__homio_dynamic_segment__") {
+        const dynamicRoute = rawHref.match(
+          /^\/project\/\$\{([^}]+)\}(?:[?#].*)?$/,
+        );
+
+        if (
+          !dynamicRoute ||
+          dynamicExpressions.length !== 1 ||
+          dynamicRoute[1] !== "project.id"
+        ) {
+          fail(
+            `Unsupported dynamic project route "${rawHref}" in ${path.relative(root, file)}.`,
+          );
+        }
+
+        const declaredProjectIds = [
+          ...content.matchAll(/\bid\s*:\s*"([^"]+)"/g),
+        ].map((match) => match[1]);
+
+        if (!declaredProjectIds.length) {
+          fail(
+            `Dynamic project route has no local preview IDs in ${path.relative(root, file)}.`,
+          );
+        }
+
+        const unknownProjectId = declaredProjectIds.find(
+          (id) => !knownProjectIds.has(id),
+        );
+
+        if (unknownProjectId) {
+          fail(
+            `Dynamic project preview ID "${unknownProjectId}" is not registered in project.data.ts.`,
+          );
+        }
+
+        checkedDynamicProjectLinks += 1;
+      } else if (!projectId || !knownProjectIds.has(projectId)) {
         fail(
           `Project preview ID "${projectId ?? ""}" is not registered in project.data.ts.`,
         );
@@ -485,6 +568,8 @@ console.log("HOMEPAGE ROUTE COMPOSITION            = PASS");
 console.log(`INTERNAL ROUTES CHECKED                = ${checkedLinks}`);
 console.log(`SEARCH LINKS CHECKED                   = ${checkedSearchLinks}`);
 console.log(`HOMEPAGE ANCHORS CHECKED               = ${checkedAnchors}`);
+console.log(`DYNAMIC PROPERTY LINKS CHECKED          = ${checkedDynamicPropertyLinks}`);
+console.log(`DYNAMIC PROJECT LINKS CHECKED           = ${checkedDynamicProjectLinks}`);
 console.log("PROPERTY DETAIL IDS REGISTERED         = PASS");
 console.log("PROJECT DETAIL IDS REGISTERED          = PASS");
 console.log("SEARCH QUERY KEYS SUPPORTED            = PASS");
