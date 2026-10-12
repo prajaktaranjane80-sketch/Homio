@@ -13,7 +13,6 @@ const requiredFiles = [
   "src/app/property/[propertyId]/not-found.tsx",
   "src/app/property/[propertyId]/error.tsx",
   "src/app/property/[propertyId]/error.module.css",
-
   "src/features/f04_property/README.md",
   "src/features/f04_property/PropertyAI.tsx",
   "src/features/f04_property/PropertyAI.module.css",
@@ -48,7 +47,6 @@ const requiredFiles = [
   "src/features/f04_property/property.data.ts",
   "src/features/f04_property/property.types.ts",
   "src/features/f04_property/property-preview-catalog.ts",
-
   "src/features/f05_project/project.data.ts",
 ];
 
@@ -75,6 +73,13 @@ function assert(condition, message) {
   if (!condition) {
     throw new Error(message);
   }
+}
+
+function assertIncludes(content, fragments, message) {
+  assert(
+    fragments.every((fragment) => content.includes(fragment)),
+    message,
+  );
 }
 
 for (const relativePath of requiredFiles) {
@@ -159,14 +164,12 @@ const normalizedDisclosure = normalizeWhitespace(propertyDisclosure);
 const normalizedTrust = normalizeWhitespace(propertyTrust);
 
 /*
- * Route and metadata integrity:
- * these current records are experience previews, not published listings.
+ * ROUTE + METADATA
  */
-assert(
-  route.includes("getPropertyPreview") &&
-    route.includes("notFound") &&
-    route.includes("generateMetadata"),
-  "Property route must resolve previews and handle unavailable IDs.",
+assertIncludes(
+  route,
+  ["getPropertyPreview", "notFound", "generateMetadata"],
+  "Property route must resolve previews, reject unknown IDs and define metadata.",
 );
 
 assert(
@@ -174,29 +177,28 @@ assert(
     normalizedRoute.includes("follow: true") &&
     normalizedRoute.includes("Experience Preview") &&
     !normalizedRoute.includes("canonical:"),
-  "Unverified preview metadata must remain noindex and must not advertise a canonical URL.",
+  "Preview metadata must remain non-indexed without a misleading canonical URL.",
 );
 
 assert(
   notFoundRoute.includes("PropertyUnavailable") &&
     notFoundRoute.includes("couldn't find this property"),
-  "The unavailable route must render a specific not-found experience.",
+  "Unknown property IDs must render a dedicated unavailable state.",
 );
 
 assert(
   loading.includes("PropertyLoading"),
-  "Property route loading UI is missing.",
+  "Property loading UI is missing.",
 );
 
 assert(
   errorRoute.includes("reset") &&
     errorRoute.includes("Return to search"),
-  "Property route must provide error recovery and a search return path.",
+  "Property error UI must support recovery and return navigation.",
 );
 
 /*
- * Composition and international navigation:
- * property pages must not contain locality-specific hard-coded routes.
+ * PAGE COMPOSITION + INTERNATIONAL NAVIGATION
  */
 for (const component of [
   "PropertyGallery",
@@ -226,34 +228,30 @@ assert(
     propertyPage.includes("property.locality") &&
     !propertyPage.includes("Kalyani Nagar") &&
     !propertyPage.includes("city=Pune"),
-  "Related discovery must be derived from the current property, not a hard-coded city.",
+  "Related discovery links must be derived from the current property, not a hard-coded city.",
 );
 
 assert(
   propertyPage.includes("key={property.id}") &&
-    propertyPage.includes('aria-current="page"'),
-  "The property gallery must reset per record and the breadcrumb must identify the current page.",
-);
-
-assert(
-  !propertyPage.includes("PropertyUnavailable"),
-  "The normal PropertyPage must not import the standalone unavailable state.",
+    propertyPage.includes('aria-current="page"') &&
+    !propertyPage.includes("PropertyUnavailable"),
+  "Property page must reset its gallery on record changes, mark breadcrumbs and avoid unused fallback composition.",
 );
 
 /*
- * Preview disclosure and non-authoritative sample data.
+ * PREVIEW TRUTH + VERIFICATION DISCLOSURE
  */
 assert(
   propertyData.includes("verified: false") &&
     propertyData.includes("Experience preview") &&
     propertyData.includes("Verification pending"),
-  "Preview records must remain explicitly non-authoritative.",
+  "Preview data must remain explicitly non-authoritative.",
 );
 
 assert(
   propertySummary.includes("styles.previewBadge") &&
     propertySummary.includes("verificationLabel"),
-  "The property summary must visibly distinguish unverified previews.",
+  "The summary must display the unverified-preview status.",
 );
 
 assert(
@@ -265,34 +263,44 @@ assert(
 assert(
   normalizedTrust.includes("verificationLabel") &&
     normalizedTrust.includes("not been verified"),
-  "Trust status must explain preview verification honestly.",
+  "Trust status must explain the unverified state of preview records.",
 );
 
+/*
+ * Do not couple the disclosure gate to one exact sentence.
+ * Check the intended concepts and the current source wording.
+ */
 assert(
   normalizedDisclosure.includes("verificationLabel") &&
-    normalizedDisclosure.includes("not been verified") &&
-    normalizedDisclosure.includes("Pricing and availability"),
+    normalizedDisclosure.includes("Pricing and availability") &&
+    normalizedDisclosure.includes(
+      "No authoritative verification has been established by this page",
+    ) &&
+    normalizedDisclosure.includes("authoritative data"),
   "Disclosure must distinguish verification state and illustrative property information.",
 );
 
+/*
+ * PLACEHOLDER DATA + EMPTY STATES
+ */
 assert(
   normalizedAmenities.includes("amenities.filter") &&
     normalizedAmenities.includes("Amenity information not supplied") &&
     normalizedAmenities.includes("will not invent facilities"),
-  "Placeholder amenities must be filtered and replaced with an explicit empty state.",
+  "Placeholder amenities must be filtered, with an honest empty state.",
 );
 
 assert(
   normalizedDetails.includes("highlights.filter") &&
     normalizedDetails.includes("No property highlights are supplied") &&
     normalizedDetails.includes("Not supplied in this preview"),
-  "Placeholder highlights and absent project associations must not be presented as facts.",
+  "Placeholder highlights and absent project details must not be presented as facts.",
 );
 
 assert(
   normalizedGallery.includes("Preview placeholders only") &&
     normalizedGallery.includes("not supplied"),
-  "Property gallery must disclose missing actual media.",
+  "Property gallery must disclose when real property media is absent.",
 );
 
 assert(
@@ -300,31 +308,30 @@ assert(
     normalizedLocation.includes("No proximity estimates have been invented") &&
     normalizedLocation.includes("authoritative coordinates") &&
     propertyLocationCss.includes(".nearbyEmpty"),
-  "Location must not fabricate coordinates, nearby places or distances.",
+  "Location must not fabricate maps, coordinates, nearby places or distances.",
 );
 
 assert(
   propertyAI.includes("AI NOT CONNECTED") &&
     propertyAI.includes("No AI request was sent"),
-  "The AI entry point must not imply a generated answer exists.",
+  "The AI preview must not imply that a real answer was generated.",
 );
 
 /*
- * Action targets must be distinct. Enquiry and visit controls stay disabled
- * until an approved form and submission capability exist.
+ * ACTIONS + APPROVED CAPABILITY BOUNDARY
  */
 assert(
   normalizedActionBar.includes('href="#property-next-step-enquiry"') &&
     normalizedActionBar.includes('href="#property-next-step-visit"') &&
     normalizedActionBar.includes("navigator.share") &&
     normalizedActionBar.includes("temporary"),
-  "Property actions must use distinct targets, safe sharing and temporary-state disclosure.",
+  "Property actions must use separate enquiry/visit targets and disclose temporary state.",
 );
 
 assert(
   propertyActionBarCss.includes(":focus-visible") &&
     !propertyActionBarCss.includes("position: sticky"),
-  "Property actions must have visible keyboard focus and not rely on a misleading local sticky bar.",
+  "Action controls must support keyboard focus without a misleading sticky action bar.",
 );
 
 assert(
@@ -334,17 +341,17 @@ assert(
     normalizedNextStep.includes("No request has been created or sent") &&
     propertyNextStepCss.includes(".options") &&
     propertyNextStepCss.includes(".option"),
-  "Enquiry and visit capabilities must have separate targets and remain safely disabled.",
+  "Enquiry and visit workflows must have distinct destinations and remain disabled until connected.",
 );
 
 /*
- * Project associations and similar-property matching.
+ * PROPERTY <-> PROJECT REFERENCES
  */
 assert(
   propertyProjectContext.includes("Not supplied in preview") &&
     propertyProjectContext.includes("property.projectId") &&
     projectData.includes('id: "homio-kalyani-residences-001"'),
-  "Project context must disclose missing builder data and use a resolvable project destination.",
+  "Project context must disclose missing builder data and link to a resolvable project preview.",
 );
 
 const catalogBlock = propertyCatalog.match(
@@ -353,7 +360,7 @@ const catalogBlock = propertyCatalog.match(
 
 assert(
   catalogBlock !== null,
-  "The shared property preview catalogue has no readable ID list.",
+  "Property preview catalogue must expose its ID registry.",
 );
 
 const catalogIds = [
@@ -363,7 +370,7 @@ const catalogIds = [
 assert(
   catalogIds.length > 0 &&
     new Set(catalogIds).size === catalogIds.length,
-  "The property preview catalogue must have unique IDs.",
+  "Property catalogue IDs must be non-empty and unique.",
 );
 
 for (const id of catalogIds) {
@@ -390,18 +397,17 @@ assert(
     similarProperties.includes("sameLocality") &&
     similarProperties.includes("propertyType") &&
     similarProperties.includes("item.id !== property.id"),
-  "Similar property suggestions must stay in the same country/city and rank relevant records first.",
+  "Similar properties must exclude the current record and rank relevant same-city/country matches.",
 );
 
 assert(
   similarPropertiesCss.includes(".view") &&
     !similarPropertiesCss.includes(".body button"),
-  "Similar-property link styling must match the actual Link element.",
+  "Similar property link styling must match the rendered Link element.",
 );
 
 /*
- * F04 remains a presentation layer. No backend control-plane state,
- * architecture file or ACRL runtime may be loaded by this feature.
+ * FRONTEND / BACKEND BOUNDARY
  */
 const featureSources = [
   ["property route", route],
