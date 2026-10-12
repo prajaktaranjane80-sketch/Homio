@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const frontendRoot = path.resolve(__dirname, "..");
 
 const requiredFiles = [
@@ -48,6 +47,7 @@ const requiredFiles = [
   "src/features/f04_property/SimilarProperties.module.css",
   "src/features/f04_property/property.data.ts",
   "src/features/f04_property/property.types.ts",
+  "src/features/f04_property/property-preview-catalog.ts",
 ];
 
 const forbiddenRuntimeReferences = [
@@ -80,12 +80,33 @@ for (const relativePath of requiredFiles) {
 
 const propertyPage = read("src/features/f04_property/PropertyPage.tsx");
 const propertyData = read("src/features/f04_property/property.data.ts");
-const route = read("src/app/property/[propertyId]/page.tsx");
-const pageCss = read(
-  "src/features/f04_property/PropertyPage.module.css",
+const propertyCatalog = read(
+  "src/features/f04_property/property-preview-catalog.ts",
 );
-const errorRoute = read(
-  "src/app/property/[propertyId]/error.tsx",
+const route = read("src/app/property/[propertyId]/page.tsx");
+const pageCss = read("src/features/f04_property/PropertyPage.module.css");
+const errorRoute = read("src/app/property/[propertyId]/error.tsx");
+
+const propertyGallery = read(
+  "src/features/f04_property/PropertyGallery.tsx",
+);
+const propertyActionBar = read(
+  "src/features/f04_property/PropertyActionBar.tsx",
+);
+const propertyAI = read(
+  "src/features/f04_property/PropertyAI.tsx",
+);
+const propertyLocation = read(
+  "src/features/f04_property/PropertyLocation.tsx",
+);
+const propertyNextStep = read(
+  "src/features/f04_property/PropertyNextStep.tsx",
+);
+const projectContext = read(
+  "src/features/f04_property/PropertyProjectContext.tsx",
+);
+const similarProperties = read(
+  "src/features/f04_property/SimilarProperties.tsx",
 );
 
 for (const component of [
@@ -129,13 +150,9 @@ assert(
 );
 
 assert(
-  route.includes("generateMetadata"),
-  "Property route metadata is missing.",
-);
-
-assert(
-  route.includes("canonical"),
-  "Property route canonical metadata is missing.",
+  route.includes("generateMetadata") &&
+    route.includes("canonical"),
+  "Property route SEO metadata is incomplete.",
 );
 
 assert(
@@ -144,13 +161,53 @@ assert(
 );
 
 assert(
-  propertyData.includes("verified: false"),
-  "Preview property data must not manufacture verification.",
+  propertyData.includes("verified: false") &&
+    propertyData.includes("Experience preview"),
+  "Preview data must remain explicitly non-authoritative.",
 );
 
 assert(
-  propertyData.includes("Experience preview"),
-  "Preview property data must be clearly identified.",
+  propertyCatalog.includes("getPropertyPreview") &&
+    similarProperties.includes("getAllPropertyPreviews"),
+  "Similar properties must reuse the shared F04 preview catalogue.",
+);
+
+assert(
+  propertyGallery.includes("Preview placeholders only") &&
+    propertyGallery.includes("not supplied"),
+  "Property media must disclose when real media assets are absent.",
+);
+
+assert(
+  propertyActionBar.includes('href="#property-next-step"') &&
+    propertyActionBar.includes("temporary") &&
+    propertyActionBar.includes("navigator.share"),
+  "Property actions must disclose temporary state and support safe sharing.",
+);
+
+assert(
+  propertyAI.includes("disabled") &&
+    propertyAI.includes("AI NOT CONNECTED") &&
+    propertyAI.includes("No AI request was sent"),
+  "Property AI must not present prompt text as a generated answer.",
+);
+
+assert(
+  propertyNextStep.includes("disabled") &&
+    propertyNextStep.includes("not connected") &&
+    propertyNextStep.includes("No request has been created"),
+  "Property enquiry/visit flow must not imply an unconnected submission succeeded.",
+);
+
+assert(
+  propertyLocation.includes("not a live map") &&
+    propertyLocation.includes("authoritative coordinates"),
+  "Property location preview must not claim live map accuracy.",
+);
+
+assert(
+  projectContext.includes("Not supplied in preview"),
+  "Property project context must not invent an authorized builder/partner.",
 );
 
 assert(
@@ -159,34 +216,28 @@ assert(
 );
 
 for (const forbidden of forbiddenRuntimeReferences) {
-  assert(
-    !propertyPage.includes(forbidden),
-    `Forbidden runtime reference in PropertyPage.tsx: ${forbidden}`,
-  );
-
-  assert(
-    !route.includes(forbidden),
-    `Forbidden runtime reference in property route: ${forbidden}`,
-  );
-
-  assert(
-    !errorRoute.includes(forbidden),
-    `Forbidden runtime reference in property error route: ${forbidden}`,
-  );
+  for (const [name, content] of [
+    ["PropertyPage.tsx", propertyPage],
+    ["property route", route],
+    ["property error route", errorRoute],
+  ]) {
+    assert(
+      !content.includes(forbidden),
+      `Forbidden runtime reference in ${name}: ${forbidden}`,
+    );
+  }
 }
 
-console.log("F04 PROPERTY EXPERIENCE = PASS");
+console.log("F04 PROPERTY CONTRACT GATE = PASS");
 console.log(`FILES VERIFIED = ${requiredFiles.length}`);
-console.log("PROPERTY ROUTE = PASS");
-console.log("SEO METADATA = PASS");
-console.log("PROPERTY COMPOSITION = PASS");
-console.log("FACTS + DETAILS = PASS");
-console.log("PROJECT + LOCATION = PASS");
-console.log("TRUST + DISCLOSURE = PASS");
-console.log("AI + SIMILAR DISCOVERY = PASS");
-console.log("ENQUIRY + VISIT ENTRY = PASS");
-console.log("LOADING + NOT FOUND = PASS");
+console.log("PROPERTY ROUTE + SEO = PASS");
+console.log("SHARED PROPERTY PREVIEW CATALOGUE = PASS");
+console.log("MEDIA PLACEHOLDER DISCLOSURE = PASS");
+console.log("AI DOES NOT FABRICATE ANSWERS = PASS");
+console.log("ENQUIRY / VISIT SUBMISSION BOUNDARY = PASS");
+console.log("LOCATION COORDINATE BOUNDARY = PASS");
+console.log("PROJECT-PARTNER CLAIM BOUNDARY = PASS");
+console.log("SIMILAR PROPERTY FILTERING = PASS");
 console.log("ERROR RECOVERY = PASS");
-console.log("PREVIEW DATA NON-AUTHORITATIVE = PASS");
-console.log("NO ACRL RUNTIME = PASS");
 console.log("NO STATE.JSON RUNTIME = PASS");
+console.log("NO ACRL RUNTIME = PASS");
