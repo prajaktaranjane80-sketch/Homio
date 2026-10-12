@@ -36,22 +36,27 @@ const properties = [
 
 export default function FreshProperties() {
   return (
-    <section className={styles.section}>
+    <section className={styles.section} aria-labelledby="property-preview-heading">
       <div className="homio-container">
         <div className={styles.header}>
           <div>
-            <span className={styles.eyebrow}>FRESH PROPERTIES</span>
+            <span className={styles.eyebrow}>
+              PROPERTY EXPERIENCE PREVIEWS
+            </span>
 
-            <h2>New inventory worth a closer look.</h2>
+            <h2 id="property-preview-heading">
+              Property experiences worth exploring.
+            </h2>
 
             <p>
-              Freshly surfaced opportunities presented with the essential
-              details you need before starting a HOMIO enquiry.
+              The listings below are static experience examples, not freshly
+              published inventory. Prices, locations, areas and availability
+              are illustrative and have not been verified as live listings.
             </p>
           </div>
 
-          <Link href="/search?collection=fresh" className={styles.viewAll}>
-            See fresh properties
+          <Link href="/search?intent=buy" className={styles.viewAll}>
+            Browse property search
             <span aria-hidden="true">↗</span>
           </Link>
         </div>
@@ -63,26 +68,20 @@ export default function FreshProperties() {
                 <div className={styles.imageWrap}>
                   <img
                     src={property.image}
-                    alt={property.title}
+                    alt={`Illustrative property image for ${property.title}`}
                     className={styles.image}
                     loading="lazy"
                   />
 
-                  <span className={styles.freshBadge}>Fresh</span>
+                  <span className={styles.freshBadge}>
+                    Experience preview
+                  </span>
                 </div>
               </Link>
 
               <div className={styles.body}>
                 <div className={styles.typeRow}>
                   <span>{property.type}</span>
-
-                  <button
-                    type="button"
-                    className={styles.save}
-                    aria-label={`Save ${property.title}`}
-                  >
-                    ♡
-                  </button>
                 </div>
 
                 <Link href={property.href} className={styles.title}>
@@ -93,15 +92,17 @@ export default function FreshProperties() {
 
                 <div className={styles.meta}>
                   <span>{property.meta}</span>
-                  <span className={styles.dot}>•</span>
-                  <span>Ready to explore</span>
+                  <span className={styles.dot} aria-hidden="true">
+                    •
+                  </span>
+                  <span>Illustrative details · not verified</span>
                 </div>
 
                 <div className={styles.bottom}>
                   <strong>{property.price}</strong>
 
                   <Link href={property.href} className={styles.details}>
-                    View property
+                    View preview
                     <span aria-hidden="true">→</span>
                   </Link>
                 </div>
