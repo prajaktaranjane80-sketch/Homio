@@ -5,25 +5,55 @@ type PropertyDetailsProps = Readonly<{
   property: PropertyRecord;
 }>;
 
+function isPlaceholder(value: string): boolean {
+  return /experience preview|verification pending|preview information|not supplied|not connected|unavailable/i.test(
+    value.trim(),
+  );
+}
+
 export default function PropertyDetails({
   property,
 }: PropertyDetailsProps) {
+  const highlights = property.highlights.filter(
+    (highlight) => !isPlaceholder(highlight),
+  );
+
   return (
-    <section className={styles.section}>
+    <section
+      className={styles.section}
+      aria-labelledby="property-details-heading"
+    >
       <div className={styles.header}>
-        <span className={styles.eyebrow}>PROPERTY DETAILS</span>
-        <h2>Everything important, in one view.</h2>
+        <span className={styles.eyebrow}>
+          PROPERTY DETAILS
+        </span>
+
+        <h2 id="property-details-heading">
+          Everything important, in one view.
+        </h2>
       </div>
 
-      <p className={styles.description}>{property.description}</p>
+      <p className={styles.description}>
+        {property.description}
+      </p>
 
       <div className={styles.highlightGrid}>
-        {property.highlights.map((highlight) => (
-          <div key={highlight} className={styles.highlight}>
-            <span>✓</span>
-            <p>{highlight}</p>
+        {highlights.length > 0 ? (
+          highlights.map((highlight) => (
+            <div key={highlight} className={styles.highlight}>
+              <span aria-hidden="true">•</span>
+              <p>{highlight}</p>
+            </div>
+          ))
+        ) : (
+          <div className={styles.highlight}>
+            <span aria-hidden="true">i</span>
+            <p>
+              No property highlights are supplied in this experience
+              preview. No features have been added by the interface.
+            </p>
           </div>
-        ))}
+        )}
       </div>
 
       <div className={styles.infoGrid}>
@@ -43,9 +73,10 @@ export default function PropertyDetails({
         </div>
 
         <div>
-          <span>Project</span>
+          <span>Project association</span>
           <strong>
-            {property.projectName ?? "Independent property"}
+            {property.projectName ??
+              "Not supplied in this preview"}
           </strong>
         </div>
       </div>
