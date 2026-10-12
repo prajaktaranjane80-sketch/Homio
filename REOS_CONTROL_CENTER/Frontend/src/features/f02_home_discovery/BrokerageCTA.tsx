@@ -10,17 +10,20 @@ const journey = [
   {
     number: "02",
     title: "Enquire",
-    description: "Send your interest directly into the HOMIO journey.",
+    description:
+      "The intended journey connects a consumer's interest with HOMIO brokerage.",
   },
   {
     number: "03",
     title: "Visit",
-    description: "Move from digital discovery toward the right property visit.",
+    description:
+      "The planned workflow moves from digital discovery toward a property visit.",
   },
   {
     number: "04",
     title: "Deal",
-    description: "Continue through a structured HOMIO brokerage process.",
+    description:
+      "A structured brokerage process is the intended next step.",
   },
 ];
 
@@ -39,9 +42,9 @@ export default function BrokerageCTA() {
             </h2>
 
             <p>
-              HOMIO brings discovery, enquiry, visits and transactions into one
-              brokerage journey—without turning the consumer experience into a
-              marketplace of competing brokers.
+              HOMIO is designed to connect property discovery with brokerage.
+              Actual enquiry submission, visit scheduling and transaction
+              workflows must be connected before they can be treated as active.
             </p>
 
             <div className={styles.actions}>
@@ -50,17 +53,22 @@ export default function BrokerageCTA() {
                 <span aria-hidden="true">↗</span>
               </Link>
 
-              <Link href="/my" className={styles.secondary}>
-                Continue my journey
+              <Link href="/#my-homio" className={styles.secondary}>
+                Explore My HOMIO preview
               </Link>
             </div>
 
             <div className={styles.trust}>
-              <span className={styles.trustIcon}>H</span>
+              <span className={styles.trustIcon} aria-hidden="true">
+                H
+              </span>
 
               <div>
                 <strong>One HOMIO brokerage relationship.</strong>
-                <span>From discovery to the next real-world action.</span>
+                <span>
+                  A connected journey from discovery to the next real-world
+                  action.
+                </span>
               </div>
             </div>
           </div>
@@ -81,9 +89,9 @@ export default function BrokerageCTA() {
                     <p>{step.description}</p>
                   </div>
 
-                  {index < journey.length - 1 && (
+                  {index < journey.length - 1 ? (
                     <div className={styles.connector} />
-                  )}
+                  ) : null}
                 </div>
               ))}
             </div>
