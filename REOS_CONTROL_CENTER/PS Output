@@ -1,307 +1,180 @@
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Backend CI: triggered by the push; result still requires verification."
-Backend CI: triggered by the push; result still requires verification.
-PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
+At line:2 char:10
++   project,
++          ~
+Missing argument in parameter list.
+At line:3 char:2
++ }: ProjectLocationProps) {
++  ~
+Unexpected token ':' in expression or statement.
+At line:3 char:2
++ }: ProjectLocationProps) {
++  ~
+Missing closing ')' in expression.
+At line:3 char:24
++ }: ProjectLocationProps) {
++                        ~
+Unexpected token ')' in expression or statement.
+At line:5 char:31
++     (item) => item.value.trim() && !isPlaceholder(item.value),
++                               ~
+An expression was expected after '('.
+At line:5 char:33
++     (item) => item.value.trim() && !isPlaceholder(item.value),
++                                 ~~
+The token '&&' is not a valid statement separator in this version.
+At line:5 char:63
++     (item) => item.value.trim() && !isPlaceholder(item.value),
++                                                               ~
+Missing expression after ',' in pipeline element.
+At line:9 char:41
++     <section className={styles.section}>
++                                         ~
+Missing file specification after redirection operator.
+At line:9 char:41
++     <section className={styles.section}>
++                                         ~
+Missing closing ')' in expression.
+At line:10 char:7
++       <div className={styles.left}>
++       ~
+The '<' operator is reserved for future use.
+Not all parse errors were reported.  Correct the reported errors and try again.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingArgument
+
+PS D:\Homio\REOS_CONTROL_CENTER>           ) : (
+>>             <div>
+>>               <span>Nearby information</span>
+At line:1 char:11
++           ) : (
++           ~
+Unexpected token ')' in expression or statement.
+At line:2 char:18
++             <div>
++                  ~
+Missing closing ')' in expression.
+At line:3 char:15
++               <span>Nearby information</span>
++               ~
+The '<' operator is reserved for future use.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : UnexpectedToken
+
+PS D:\Homio\REOS_CONTROL_CENTER>               <strong>Not supplied by the current data source</strong>
+< : The term '<' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was
+included, verify that the path is correct and try again.
+At line:1 char:15
++               <strong>Not supplied by the current data source</strong ...
++               ~
+    + CategoryInfo          : ObjectNotFound: (<:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio\REOS_CONTROL_CENTER>             </div>
+< : The term '<' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was
+included, verify that the path is correct and try again.
+At line:1 char:13
++             </div>
++             ~
+    + CategoryInfo          : ObjectNotFound: (<:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio\REOS_CONTROL_CENTER>           )}
+At line:1 char:11
++           )}
++           ~
+Unexpected token ')' in expression or statement.
+At line:1 char:12
++           )}
++            ~
+Unexpected token '}' in expression or statement.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : UnexpectedToken
+
+PS D:\Homio\REOS_CONTROL_CENTER>         </div>
+< : The term '<' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was
+included, verify that the path is correct and try again.
+At line:1 char:9
++         </div>
++         ~
+    + CategoryInfo          : ObjectNotFound: (<:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio\REOS_CONTROL_CENTER>       </div>
+< : The term '<' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was
+included, verify that the path is correct and try again.
+At line:1 char:7
++       </div>
++       ~
+    + CategoryInfo          : ObjectNotFound: (<:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Repo   = "prajaktaranjane80-sketch/Homio"
-PS D:\Homio\REOS_CONTROL_CENTER> $Branch = "reos-development"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> function Invoke-GhJson {
->>     param(
->>         [string]$Endpoint,
->>         [string]$Method = "GET",
->>         [object]$Body = $null
->>     )
->>
->>     if ($null -eq $Body) {
->>         $raw = & gh api $Endpoint --method $Method
->>     } else {
->>         $json = $Body | ConvertTo-Json -Depth 50 -Compress
->>         $raw = $json | & gh api $Endpoint --method $Method --input -
->>     }
->>
->>     if ($LASTEXITCODE -ne 0) {
->>         throw "GitHub API failed: $Method $Endpoint"
->>     }
->>
->>     return (($raw -join "`n") | ConvertFrom-Json)
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> function Get-RemoteFile {
->>     param([string]$Path)
->>
->>     $file = Invoke-GhJson "repos/$Repo/contents/$Path`?ref=$Branch"
->>     $encoded = $file.content -replace '\s', ''
->>
->>     [pscustomobject]@{
->>         Sha  = $file.sha
->>         Text = [System.Text.Encoding]::UTF8.GetString(
->>             [Convert]::FromBase64String($encoded)
->>         )
->>     }
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> function New-RemoteBlob {
->>     param([string]$Text)
->>
->>     $contentB64 = [Convert]::ToBase64String(
->>         [System.Text.Encoding]::UTF8.GetBytes($Text)
->>     )
->>
->>     Invoke-GhJson "repos/$Repo/git/blobs" "POST" @{
->>         content  = $contentB64
->>         encoding = "base64"
->>     }
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Read the current remote baseline.
-PS D:\Homio\REOS_CONTROL_CENTER> $branchInfo = Invoke-GhJson "repos/$Repo/branches/$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER> $BaseSha = $branchInfo.commit.sha
-PS D:\Homio\REOS_CONTROL_CENTER> $BaseTreeSha = $branchInfo.commit.commit.tree.sha
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $stateFile = Get-RemoteFile "REOS_CONTROL_CENTER/data/state.json"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Use Python in memory to execute the same canonical projection/hash rules.
-PS D:\Homio\REOS_CONTROL_CENTER> $pythonScript = @'
->> import copy
->> import datetime
->> import hashlib
->> import json
->> import sys
->>
->> state = json.loads(sys.stdin.read())
->>
->> def calculate_hash(value):
->>     clone = copy.deepcopy(value)
->>     clone.setdefault("integrity", {})["sha256"] = None
->>     canonical = json.dumps(
->>         clone,
->>         sort_keys=True,
->>         ensure_ascii=False,
->>         separators=(",", ":"),
->>     ).encode("utf-8")
->>     return hashlib.sha256(canonical).hexdigest()
->>
->> integrity = state.get("integrity")
->> stored = integrity.get("sha256") if isinstance(integrity, dict) else None
->>
->> if not isinstance(stored, str) or calculate_hash(state) != stored:
->>     raise SystemExit("Canonical state integrity failed before sync; state not changed.")
->>
->> execution = state.get("execution")
->> phases = state.get("phases")
->> plan = state.get("execution_plan")
->> gate_plans = state.get("gate_plans")
->>
->> if not all(isinstance(x, dict) for x in (execution, phases, plan, gate_plans)):
->>     raise SystemExit("Required canonical state structures are missing.")
->>
->> gate_id = execution.get("current_gate")
->> if gate_id != "CORE-008":
->>     raise SystemExit(f"Gate changed from expected CORE-008 to {gate_id}; refusing sync.")
->>
->> sequence = plan.get("authoritative_sequence")
->> if not isinstance(sequence, list) or not any(
->>     isinstance(item, dict) and item.get("gate") == gate_id
->>     for item in sequence
->> ):
->>     raise SystemExit("Current gate is not registered in the authoritative sequence.")
->>
->> if gate_id.startswith(("ARCH-", "REPO-", "ENG-")):
->>     expected_phase = "PRE-CODING ARCHITECTURE"
->> elif gate_id.startswith("CORE-"):
->>     expected_phase = phases.get("phase_1")
->> elif gate_id.startswith(("AI-", "APP-", "REL-", "SCALE-")):
->>     expected_phase = phases.get("phase_2")
->> else:
->>     raise SystemExit(f"No canonical phase mapping exists for {gate_id}.")
->>
->> if not isinstance(expected_phase, str) or not expected_phase.strip():
->>     raise SystemExit("The configured target phase is invalid.")
->>
->> gate = gate_plans.get(gate_id)
->> if not isinstance(gate, dict):
->>     raise SystemExit("The current gate plan is missing; refusing to materialize a new gate.")
->>
->> subtask_id = gate.get("current_subtask")
->> subtasks = gate.get("subtasks")
->>
->> if not isinstance(subtask_id, str) or not isinstance(subtasks, list):
->>     raise SystemExit("The current gate's subtask projection is invalid.")
->>
->> current_item = next(
->>     (item for item in subtasks
->>      if isinstance(item, dict) and item.get("id") == subtask_id),
->>     None,
->> )
->> if current_item is None:
->>     raise SystemExit("Current subtask is not present in the gate plan.")
->>
->> title = current_item.get("title")
->> if isinstance(title, str) and title:
->>     execution["current_task"] = f"{subtask_id}: {title}."
->>
->> execution["current_subtask"] = subtask_id
->>
->> criteria = gate.get("acceptance_criteria")
->> if isinstance(criteria, list):
->>     execution["current_acceptance_criteria"] = list(criteria)
->>
->> phases["current"] = expected_phase
->> state.setdefault("meta", {})["control_center_version"] = "7.0"
->> state["meta"]["updated_at"] = datetime.datetime.now().astimezone().isoformat(
->>     timespec="seconds"
->> )
->>
->> state.setdefault("integrity", {})["sha256"] = None
->> state["integrity"]["sha256"] = calculate_hash(state)
->>
->> # Emit the full remote file; no local file is created.
->> sys.stdout.write(json.dumps(state, ensure_ascii=False, indent=2) + "\n")
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $pythonCommand = Get-Command python -ErrorAction Stop
-PS D:\Homio\REOS_CONTROL_CENTER> $pythonB64 = [Convert]::ToBase64String(
->>     [System.Text.Encoding]::UTF8.GetBytes($pythonScript)
->> )
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $utf8NoBom = New-Object System.Text.UTF8Encoding -ArgumentList $false
-PS D:\Homio\REOS_CONTROL_CENTER> $psi = New-Object System.Diagnostics.ProcessStartInfo
-PS D:\Homio\REOS_CONTROL_CENTER> $psi.FileName = $pythonCommand.Source
-PS D:\Homio\REOS_CONTROL_CENTER> $psi.Arguments = "-c `"import base64;exec(base64.b64decode('$pythonB64'))`""
-PS D:\Homio\REOS_CONTROL_CENTER> $psi.UseShellExecute = $false
-PS D:\Homio\REOS_CONTROL_CENTER> $psi.RedirectStandardInput = $true
-PS D:\Homio\REOS_CONTROL_CENTER> $psi.RedirectStandardOutput = $true
-PS D:\Homio\REOS_CONTROL_CENTER> $psi.RedirectStandardError = $true
-PS D:\Homio\REOS_CONTROL_CENTER> $psi.StandardInputEncoding = $utf8NoBom
-The property 'StandardInputEncoding' cannot be found on this object. Verify that the property exists and can be set.
+PS D:\Homio\REOS_CONTROL_CENTER>       <div
+< : The term '<' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was
+included, verify that the path is correct and try again.
+At line:1 char:7
++       <div
++       ~
+    + CategoryInfo          : ObjectNotFound: (<:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio\REOS_CONTROL_CENTER>         className={styles.map}
+className= : The term 'className=' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name,
+or if a path was included, verify that the path is correct and try again.
+At line:1 char:9
++         className={styles.map}
++         ~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (className=:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio\REOS_CONTROL_CENTER>         role="img"
+role=img : The term 'role=img' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or
+if a path was included, verify that the path is correct and try again.
+At line:1 char:9
++         role="img"
++         ~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (role=img:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio\REOS_CONTROL_CENTER>         aria-label={`Illustrative location placeholder for ${project.location}. This is not a live map and has no verified coordinates.`}
+>>       >
+>>         <div className={styles.pin}>
+>>           <span>HOMIO · LOCATION PREVIEW</span>
+>>           <strong>{project.locality || project.city}</strong>
+>>           <small>Illustrative graphic only · not a live map</small>
+>>         </div>
+>>       </div>
+>>     </section>
+>>   );
+At line:3 char:37
++         <div className={styles.pin}>
++                                     ~
+Missing file specification after redirection operator.
+At line:5 char:37
++           <strong>{project.locality || project.city}</strong>
++                                     ~~
+The token '||' is not a valid statement separator in this version.
+At line:5 char:53
++           <strong>{project.locality || project.city}</strong>
++                                                     ~
+The '<' operator is reserved for future use.
+At line:1 char:20
++         aria-label={`Illustrative location placeholder for ${project. ...
++                    ~
+Missing closing '}' in statement block or type definition.
+At line:10 char:3
++   );
++   ~
+Unexpected token ')' in expression or statement.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingFileSpecification
+
+PS D:\Homio\REOS_CONTROL_CENTER> }
 At line:1 char:1
-+ $psi.StandardInputEncoding = $utf8NoBom
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : PropertyAssignmentException
++ }
++ ~
+Unexpected token '}' in expression or statement.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : UnexpectedToken
 
-PS D:\Homio\REOS_CONTROL_CENTER> $psi.StandardOutputEncoding = $utf8NoBom
-PS D:\Homio\REOS_CONTROL_CENTER> $psi.StandardErrorEncoding = $utf8NoBom
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $process = New-Object System.Diagnostics.Process
-PS D:\Homio\REOS_CONTROL_CENTER> $process.StartInfo = $psi
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $process.Start()) {
->>     throw "Could not start the in-memory Python state verifier."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $process.StandardInput.Write($stateFile.Text)
-PS D:\Homio\REOS_CONTROL_CENTER> $process.StandardInput.Close()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $updatedStateText = $process.StandardOutput.ReadToEnd()
-PS D:\Homio\REOS_CONTROL_CENTER> $pythonError = $process.StandardError.ReadToEnd()
-PS D:\Homio\REOS_CONTROL_CENTER> $process.WaitForExit()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($process.ExitCode -ne 0) {
->>     throw "Canonical state sync refused: $pythonError"
->> }
-Canonical state sync refused: Canonical state integrity failed before sync; state not changed.
-At line:2 char:5
-+     throw "Canonical state sync refused: $pythonError"
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Canonical state... not changed.
-:String) [], RuntimeException
-    + FullyQualifiedErrorId : Canonical state sync refused: Canonical state integrity failed before sync; state not changed.
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $updatedState = $updatedStateText | ConvertFrom-Json
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($updatedState.phases.current -ne $updatedState.phases.phase_1) {
->>     throw "Projected phase verification failed."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($updatedState.execution.current_gate -ne "CORE-008" -or
->>     $updatedState.execution.current_subtask -ne "CORE-008-T01") {
->>     throw "Execution position changed unexpectedly."
->> }
-Execution position changed unexpectedly.
-At line:3 char:5
-+     throw "Execution position changed unexpectedly."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Execution position changed unexpectedly.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Execution position changed unexpectedly.
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Create the state blob and one commit, guarded against concurrent changes.
-PS D:\Homio\REOS_CONTROL_CENTER> $stateBlob = New-RemoteBlob $updatedStateText
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $tree = Invoke-GhJson "repos/$Repo/git/trees" "POST" @{
->>     base_tree = $BaseTreeSha
->>     tree = @(
->>         @{
->>             path = "REOS_CONTROL_CENTER/data/state.json"
->>             mode = "100644"
->>             type = "blob"
->>             sha = $stateBlob.sha
->>         }
->>     )
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $commit = Invoke-GhJson "repos/$Repo/git/commits" "POST" @{
->>     message = "Synchronize canonical execution phase projection"
->>     tree = $tree.sha
->>     parents = @($BaseSha)
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $latest = Invoke-GhJson "repos/$Repo/branches/$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER> if ($latest.commit.sha -ne $BaseSha) {
->>     throw "Branch HEAD changed during preparation; no branch update attempted."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $null = Invoke-GhJson "repos/$Repo/git/refs/heads/$Branch" "PATCH" @{
->>     sha = $commit.sha
->>     force = $false
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Verify the new live branch and state from GitHub.
-PS D:\Homio\REOS_CONTROL_CENTER> $verifiedBranch = Invoke-GhJson "repos/$Repo/branches/$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER> $verifiedStateFile = Get-RemoteFile "REOS_CONTROL_CENTER/data/state.json"
-PS D:\Homio\REOS_CONTROL_CENTER> $verifiedState = $verifiedStateFile.Text | ConvertFrom-Json
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($verifiedBranch.commit.sha -ne $commit.sha) {
->>     throw "Remote commit verification failed."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($verifiedState.phases.current -ne $verifiedState.phases.phase_1 -or
->>     $verifiedState.execution.current_gate -ne "CORE-008" -or
->>     $verifiedState.execution.current_subtask -ne "CORE-008-T01") {
->>     throw "Remote canonical state verification failed."
->> }
-Remote canonical state verification failed.
-At line:4 char:5
-+     throw "Remote canonical state verification failed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Remote canonica...ication failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Remote canonical state verification failed.
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CANONICAL PHASE SYNC: PASS"
-CANONICAL PHASE SYNC: PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit: $($commit.sha)"
-Commit: 11124332b53f5c1a9d53ea761b7b2966217e62a4
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "URL: https://github.com/$Repo/commit/$($commit.sha)"
-URL: https://github.com/prajaktaranjane80-sketch/Homio/commit/11124332b53f5c1a9d53ea761b7b2966217e62a4
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Current gate: $($verifiedState.execution.current_gate)"
-Current gate:
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Current phase: $($verifiedState.phases.current)"
-Current phase:
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Subtask: $($verifiedState.execution.current_subtask)"
-Subtask:
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "State hash regenerated: PASS"
-State hash regenerated: PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch-head guard: PASS"
-Branch-head guard: PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Force push: NO"
-Force push: NO
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Local project files written: NO"
-Local project files written: NO
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Backend CI will verify the synced state."
-Backend CI will verify the synced state.
 PS D:\Homio\REOS_CONTROL_CENTER>
