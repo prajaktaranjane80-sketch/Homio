@@ -1,301 +1,233 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+
 import SearchActions from "@/features/f03_search/SearchActions";
 import SearchFilterDrawer from "@/features/f03_search/SearchFilterDrawer";
 import SearchHeader from "@/features/f03_search/SearchHeader";
-import SearchLoadingState from "@/features/f03_search/SearchLoadingState";
+import SearchIntentTabs from "@/features/f03_search/SearchIntentTabs";
+import SearchLocationField from "@/features/f03_search/SearchLocationField";
+import SearchPagination from "@/features/f03_search/SearchPagination";
 import SearchResultCount from "@/features/f03_search/SearchResultCount";
 import SearchResults from "@/features/f03_search/SearchResults";
 import SearchSortBar from "@/features/f03_search/SearchSortBar";
 import SearchSummary from "@/features/f03_search/SearchSummary";
 import SearchViewToggle from "@/features/f03_search/SearchViewToggle";
-import type { SearchResultCardData } from "@/features/f03_search/SearchResultCard";
-import type { SearchState } from "@/features/f03_search/search.types";
+
 import {
-  createDefaultSearchState,
+  SEARCH_DEFAULT_PAGE_SIZE,
+  SEARCH_INTENTS,
+  SEARCH_INTENT_LABELS,
+} from "./search.constants";
+
+import {
+  SEARCH_PREVIEW_CATALOG,
+  filterSearchCatalog,
+} from "./search-preview-catalog";
+
+import type { SearchResultCardData } from "./SearchResultCard";
+import type {
+  SearchFilters,
+  SearchIntent,
+  SearchState,
+} from "./search.types";
+
+import {
   countActiveFilters,
+  createDefaultSearchState,
+  createEmptySearchFilters,
   searchStateFromParams,
-} from "@/features/f03_search/search.utils";
+  searchStateToParams,
+} from "./search.utils";
+
 import styles from "./SearchShell.module.css";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = SEARCH_DEFAULT_PAGE_SIZE;
 
-/**
- * F03 local experience-preview fixtures only.
- * They are not canonical inventory and do not assert verification.
- */
-const SAMPLE_RESULTS: SearchResultCardData[] = [
-  {
-    id: "pune-kalyani-nagar-001",
-    title: "Contemporary 3 BHK Residence",
-    location: "Kalyani Nagar, Pune",
-    propertyType: "Apartment",
-    price: "₹2.35 Cr",
-    area: "1,850 sq.ft.",
-    bedrooms: 3,
-    bathrooms: 3,
-    image:
-      "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=80",
-    verified: false,
-    projectName: "HOMIO Kalyani Residences",
-    status: "Ready to move",
-    href: "/property/pune-kalyani-nagar-001",
-  },
-  {
-    id: "pune-koregaon-park-002",
-    title: "Refined 4 BHK Urban Villa",
-    location: "Koregaon Park, Pune",
-    propertyType: "Villa",
-    price: "₹4.80 Cr",
-    area: "3,200 sq.ft.",
-    bedrooms: 4,
-    bathrooms: 4,
-    image:
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
-    verified: false,
-    projectName: "Parkside Villas",
-    status: "New launch",
-    href: "/property/pune-koregaon-park-002",
-  },
-  {
-    id: "pune-baner-003",
-    title: "Modern 2 BHK City Home",
-    location: "Baner, Pune",
-    propertyType: "Apartment",
-    price: "₹1.28 Cr",
-    area: "1,220 sq.ft.",
-    bedrooms: 2,
-    bathrooms: 2,
-    image:
-      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1200&q=80",
-    verified: false,
-    projectName: "Baner Heights",
-    status: "Under construction",
-    href: "/property/pune-baner-003",
-  },
-  {
-    id: "pune-viman-nagar-004",
-    title: "Premium 3 BHK Residence",
-    location: "Viman Nagar, Pune",
-    propertyType: "Apartment",
-    price: "₹1.95 Cr",
-    area: "1,640 sq.ft.",
-    bedrooms: 3,
-    bathrooms: 3,
-    image:
-      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80",
-    verified: false,
-    projectName: "Skyline Viman",
-    status: "Ready to move",
-    href: "/property/pune-viman-nagar-004",
-  },
-  {
-    id: "pune-wakad-005",
-    title: "Family 3 BHK Smart Home",
-    location: "Wakad, Pune",
-    propertyType: "Apartment",
-    price: "₹1.12 Cr",
-    area: "1,470 sq.ft.",
-    bedrooms: 3,
-    bathrooms: 2,
-    image:
-      "https://images.unsplash.com/photo-1600607688969-a5bfcd646154?auto=format&fit=crop&w=1200&q=80",
-    verified: false,
-    projectName: "Westline Homes",
-    status: "New launch",
-    href: "/property/pune-wakad-005",
-  },
-  {
-    id: "pune-hinjewadi-006",
-    title: "Connected 2 BHK Investment Home",
-    location: "Hinjewadi, Pune",
-    propertyType: "Apartment",
-    price: "₹89 Lakh",
-    area: "1,060 sq.ft.",
-    bedrooms: 2,
-    bathrooms: 2,
-    image:
-      "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1200&q=80",
-    verified: false,
-    projectName: "Hinjewadi Central",
-    status: "Under construction",
-    href: "/property/pune-hinjewadi-006",
-  },
-  {
-    id: "pune-magarpattacity-007",
-    title: "Executive 3 BHK Residence",
-    location: "Magarpatta City, Pune",
-    propertyType: "Apartment",
-    price: "₹1.72 Cr",
-    area: "1,580 sq.ft.",
-    bedrooms: 3,
-    bathrooms: 3,
-    image:
-      "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=80",
-    verified: false,
-    projectName: "City Park Residences",
-    status: "Ready to move",
-    href: "/property/pune-magarpattacity-007",
-  },
-  {
-    id: "pune-aundh-008",
-    title: "Elegant 4 BHK Residence",
-    location: "Aundh, Pune",
-    propertyType: "Apartment",
-    price: "₹2.85 Cr",
-    area: "2,250 sq.ft.",
-    bedrooms: 4,
-    bathrooms: 4,
-    image:
-      "https://images.unsplash.com/photo-1600585152915-d208bec867a1?auto=format&fit=crop&w=1200&q=80",
-    verified: false,
-    projectName: "Aundh Grand",
-    status: "Ready to move",
-    href: "/property/pune-aundh-008",
-  },
-];
+function normalizeIncomingState(state: SearchState): SearchState {
+  if (state.intent !== "projects") {
+    return state;
+  }
 
-function priceValue(price: string): number {
-  const amount = Number(
-    price.replace(/[₹,\s]/g, "").match(/[\d.]+/)?.[0] ?? 0,
-  );
-
-  if (/cr/i.test(price)) return amount * 10_000_000;
-  if (/lakh/i.test(price)) return amount * 100_000;
-
-  return amount;
-}
-
-function areaValue(area: string): number {
-  return Number(area.replace(/[^\d.]/g, "")) || 0;
+  return {
+    ...state,
+    filters: createEmptySearchFilters(),
+    sort: "relevance",
+    viewMode: "list",
+    page: 1,
+  };
 }
 
 export default function SearchShell() {
   const [state, setState] = useState<SearchState>(
     createDefaultSearchState(),
   );
+
   const [filterOpen, setFilterOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [draftFilters, setDraftFilters] = useState<SearchFilters>(
+    createEmptySearchFilters(),
+  );
+
+  const [urlInitialized, setUrlInitialized] = useState(false);
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [comparedIds, setComparedIds] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<string>();
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    function hydrateFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const incoming = normalizeIncomingState(
+        searchStateFromParams(params),
+      );
 
-    // The URL is the incoming search context.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setState(searchStateFromParams(params));
+      // URL hydration occurs only on mount and browser history navigation.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setState(incoming);
+      setDraftFilters(incoming.filters);
+
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setUrlInitialized(true);
+    }
+
+    hydrateFromUrl();
+
+    window.addEventListener("popstate", hydrateFromUrl);
+
+    return () => {
+      window.removeEventListener("popstate", hydrateFromUrl);
+    };
   }, []);
 
-  const filteredResults = useMemo(() => {
-    let results = [...SAMPLE_RESULTS];
-
-    // These fixtures model buy-property examples only.
-    // Do not present them as rental, commercial or land inventory.
-    if (state.intent !== "buy") {
-      return [];
+  useEffect(() => {
+    if (!urlInitialized) {
+      return;
     }
 
-    if (state.filters.propertyTypes.length > 0) {
-      results = results.filter((item) =>
-        state.filters.propertyTypes.includes(item.propertyType),
+    const params = searchStateToParams(state);
+    const queryString = params.toString();
+
+    const nextUrl =
+      `${window.location.pathname}` +
+      `${queryString ? `?${queryString}` : ""}` +
+      `${window.location.hash}`;
+
+    const currentUrl =
+      `${window.location.pathname}` +
+      `${window.location.search}` +
+      `${window.location.hash}`;
+
+    if (nextUrl !== currentUrl) {
+      window.history.replaceState(
+        window.history.state,
+        "",
+        nextUrl,
       );
     }
+  }, [state, urlInitialized]);
 
-    if (state.filters.bedrooms.length > 0) {
-      results = results.filter(
-        (item) =>
-          item.bedrooms !== undefined &&
-          state.filters.bedrooms.includes(item.bedrooms),
-      );
-    }
-
-    if (state.filters.verifiedOnly) {
-      results = results.filter((item) => item.verified);
-    }
-
-    if (state.filters.propertyStatus.length > 0) {
-      results = results.filter(
-        (item) =>
-          item.status &&
-          state.filters.propertyStatus.includes(item.status),
-      );
-    }
-
-    if (state.location?.locality || state.location?.city) {
-      const query = (
-        state.location.locality ??
-        state.location.city ??
-        ""
-      ).toLowerCase();
-
-      if (query) {
-        results = results.filter((item) =>
-          item.location.toLowerCase().includes(query),
-        );
-      }
-    }
-
-    if (state.query) {
-      const query = state.query.toLowerCase();
-
-      results = results.filter((item) =>
-        `${item.title} ${item.location} ${item.projectName ?? ""}`
-          .toLowerCase()
-          .includes(query),
-      );
-    }
-
-    if (state.sort === "price_low_to_high") {
-      results.sort((a, b) => priceValue(a.price) - priceValue(b.price));
-    } else if (state.sort === "price_high_to_low") {
-      results.sort((a, b) => priceValue(b.price) - priceValue(a.price));
-    } else if (state.sort === "area_high_to_low") {
-      results.sort((a, b) => areaValue(b.area) - areaValue(a.area));
-    }
-
-    // No trustworthy publication timestamps exist in these fixtures.
-    // "Newest" therefore preserves source order instead of inventing dates.
-    return results;
-  }, [state]);
+  const filteredResults = useMemo(
+    () => filterSearchCatalog(SEARCH_PREVIEW_CATALOG, state),
+    [state],
+  );
 
   const totalPages = Math.max(
     1,
     Math.ceil(filteredResults.length / PAGE_SIZE),
   );
 
-  const visibleResults = filteredResults.slice(
-    (state.page - 1) * PAGE_SIZE,
-    state.page * PAGE_SIZE,
+  const currentPage = Math.min(
+    Math.max(state.page, 1),
+    totalPages,
   );
 
-  const activeFilters = countActiveFilters(state.filters);
+  const visibleResults = filteredResults.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
+
+  const activeFilters =
+    state.intent === "projects"
+      ? 0
+      : countActiveFilters(state.filters);
+
+  const entityLabel =
+    state.intent === "projects" ? "projects" : "properties";
+
+  const hasNoCatalogueForIntent =
+    (state.intent === "commercial" || state.intent === "land") &&
+    filteredResults.length === 0;
+
+  const priceSortActive =
+    state.sort === "price_low_to_high" ||
+    state.sort === "price_high_to_low";
+
+  function changeIntent(intent: SearchIntent) {
+    setSelectedId(undefined);
+
+    setState((current) => ({
+      ...current,
+      intent,
+      filters: createEmptySearchFilters(),
+      sort: "relevance",
+      viewMode: intent === "projects" ? "list" : current.viewMode,
+      page: 1,
+    }));
+
+    setDraftFilters(createEmptySearchFilters());
+  }
+
+  function changeLocation(value: string) {
+    const location = value.trim()
+      ? {
+          label: value,
+          city: value,
+        }
+      : undefined;
+
+    setState((current) => ({
+      ...current,
+      location,
+      page: 1,
+    }));
+
+    setSelectedId(undefined);
+  }
 
   function updateState(next: SearchState) {
     setState({
       ...next,
-      page: Math.min(next.page, totalPages),
+      page: 1,
     });
   }
 
-  function toggleSaved(property: SearchResultCardData) {
+  function toggleSaved(result: SearchResultCardData) {
+    if (result.entityType !== "property") {
+      return;
+    }
+
     setSavedIds((current) =>
-      current.includes(property.id)
-        ? current.filter((id) => id !== property.id)
-        : [...current, property.id],
+      current.includes(result.id)
+        ? current.filter((id) => id !== result.id)
+        : [...current, result.id],
     );
   }
 
-  function toggleCompared(property: SearchResultCardData) {
-    setComparedIds((current) =>
-      current.includes(property.id)
-        ? current.filter((id) => id !== property.id)
-        : current.length >= 3
-          ? current
-          : [...current, property.id],
-    );
+  function toggleCompared(result: SearchResultCardData) {
+    if (result.entityType !== "property") {
+      return;
+    }
+
+    setComparedIds((current) => {
+      if (current.includes(result.id)) {
+        return current.filter((id) => id !== result.id);
+      }
+
+      if (current.length >= 3) {
+        return current;
+      }
+
+      return [...current, result.id];
+    });
   }
 
   function changeSort(nextSort: SearchState["sort"]) {
@@ -304,13 +236,31 @@ export default function SearchShell() {
       sort: nextSort,
       page: 1,
     }));
+    setSelectedId(undefined);
   }
 
   function changeView(nextView: SearchState["viewMode"]) {
     setState((current) => ({
       ...current,
       viewMode: nextView,
+      page: 1,
     }));
+  }
+
+  function openFilters() {
+    setDraftFilters(state.filters);
+    setFilterOpen(true);
+  }
+
+  function applyFilters() {
+    setState((current) => ({
+      ...current,
+      filters: draftFilters,
+      page: 1,
+    }));
+
+    setSelectedId(undefined);
+    setFilterOpen(false);
   }
 
   return (
@@ -318,47 +268,87 @@ export default function SearchShell() {
       <div className="homio-container">
         <SearchHeader
           title="Search HOMIO properties."
-          description="Discover homes, projects, commercial opportunities and land through a single global property search experience."
+          description="Search available property and project experience previews. Prices, availability, images and verification remain non-authoritative until connected to approved inventory data."
         />
+
+        <div style={{ marginTop: 22, marginBottom: 14 }}>
+          <SearchIntentTabs
+            intents={SEARCH_INTENTS}
+            activeIntent={state.intent}
+            onChange={changeIntent}
+          />
+        </div>
+
+        <div style={{ marginBottom: 18 }}>
+          <SearchLocationField
+            value={state.location?.label ?? ""}
+            onChange={changeLocation}
+            intentLabel={SEARCH_INTENT_LABELS[state.intent]}
+          />
+        </div>
 
         <SearchSummary state={state} />
 
         <div className={styles.toolbar}>
           <div className={styles.toolbarLeft}>
-            <button
-              type="button"
-              className={styles.filterButton}
-              onClick={() => setFilterOpen(true)}
-            >
-              Filters
-              {activeFilters > 0 ? (
-                <span className={styles.filterBadge}>{activeFilters}</span>
-              ) : null}
-            </button>
+            {state.intent !== "projects" ? (
+              <button
+                type="button"
+                className={styles.filterButton}
+                onClick={openFilters}
+                aria-haspopup="dialog"
+                aria-expanded={filterOpen}
+              >
+                Filters
+                {activeFilters > 0 ? (
+                  <span className={styles.filterBadge}>
+                    {activeFilters}
+                  </span>
+                ) : null}
+              </button>
+            ) : null}
 
             <SearchResultCount
               total={filteredResults.length}
-              page={state.page}
+              page={currentPage}
               pageSize={PAGE_SIZE}
+              entityLabel={entityLabel}
             />
           </div>
 
           <div className={styles.toolbarRight}>
-            <SearchSortBar value={state.sort} onChange={changeSort} />
-            <SearchViewToggle
-              value={state.viewMode}
-              onChange={changeView}
-            />
+            {state.intent !== "projects" ? (
+              <>
+                <SearchSortBar
+                  value={state.sort}
+                  onChange={changeSort}
+                />
+                <SearchViewToggle
+                  value={state.viewMode}
+                  onChange={changeView}
+                />
+              </>
+            ) : (
+              <span
+                style={{
+                  color: "#667085",
+                  fontSize: 12,
+                }}
+              >
+                Project and collection results
+              </span>
+            )}
           </div>
         </div>
 
         <div className={styles.actionsRow}>
-          <SearchActions state={state} onChange={updateState} />
+          <SearchActions
+            state={state}
+            onChange={updateState}
+          />
         </div>
 
-        {loading ? (
-          <SearchLoadingState />
-        ) : (
+        {filteredResults.length > 0 ? (
           <SearchResults
             properties={visibleResults}
             viewMode={state.viewMode}
@@ -367,44 +357,61 @@ export default function SearchShell() {
             selectedId={selectedId}
             onSave={toggleSaved}
             onCompare={toggleCompared}
-            onSelect={(property) => setSelectedId(property.id)}
+            onSelect={(result) => setSelectedId(result.id)}
           />
-        )}
-
-        {filteredResults.length === 0 ? (
+        ) : (
           <div className={styles.empty}>
-            <strong>No properties match this search.</strong>
+            <strong>
+              {hasNoCatalogueForIntent
+                ? `No ${state.intent} preview inventory is connected yet.`
+                : state.intent === "projects"
+                  ? "No project previews match this search."
+                  : "No preview records match this search."}
+            </strong>
+
             <span>
-              {state.intent !== "buy"
-                ? "The current preview dataset contains buy-property examples only. Rental, commercial and land inventory is not available in this preview."
-                : "Adjust the filters or explore another location."}
+              {hasNoCatalogueForIntent
+                ? "HOMIO is not inventing commercial or land listings to fill the gap. This intent needs suitable source records before results can be shown."
+                : priceSortActive
+                  ? `Price sorting is scoped to ${state.filters.budgetCurrency}. Change the budget currency in Filters or choose Relevance.`
+                  : "Try another location or clear refinements. A missing price, area, amenity or verification fact is not treated as a match."}
             </span>
           </div>
+        )}
+
+        {filteredResults.length > 0 ? (
+          <SearchPagination
+            page={currentPage}
+            totalPages={totalPages}
+            onChange={(page) =>
+              setState((current) => ({
+                ...current,
+                page,
+              }))
+            }
+          />
         ) : null}
 
         <div className={styles.pageNote}>
-          <span>HOMIO search experience · Preview inventory</span>
           <span>
-            {state.viewMode === "map" ? "Map discovery" : "Property discovery"}
+            HOMIO experience preview · Not authoritative inventory
+          </span>
+
+          <span>
+            {state.intent === "projects"
+              ? "Project discovery · Account persistence not connected"
+              : state.viewMode === "map"
+                ? "Geographic map unavailable until authoritative coordinates exist"
+                : "Save and compare states are temporary to this page session"}
           </span>
         </div>
       </div>
 
       <SearchFilterDrawer
         open={filterOpen}
-        filters={state.filters}
-        onChange={(filters) => {
-          setLoading(true);
-          setState((current) => ({
-            ...current,
-            filters,
-            page: 1,
-          }));
-
-          window.setTimeout(() => {
-            setLoading(false);
-          }, 180);
-        }}
+        filters={draftFilters}
+        onChange={setDraftFilters}
+        onApply={applyFilters}
         onClose={() => setFilterOpen(false)}
       />
     </main>
