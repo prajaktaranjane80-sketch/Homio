@@ -5,43 +5,37 @@ const services = [
   {
     title: "Home Loans",
     description:
-      "Explore financing pathways and understand your estimated affordability.",
-    href: "/services/home-loans",
+      "A preview of how financing information could sit alongside a property journey.",
     icon: "01",
   },
   {
     title: "Property Valuation",
     description:
-      "Build a starting view of value using location and property context.",
-    href: "/services/property-valuation",
+      "A concept for presenting value context using location and property facts.",
     icon: "02",
   },
   {
     title: "Interiors",
     description:
-      "Plan furniture, renovation and interior budgets around the property.",
-    href: "/services/interiors",
+      "A preview of support around furniture, renovation and interiors.",
     icon: "03",
   },
   {
     title: "Moving & Relocation",
     description:
-      "Useful support around preparing for a move into a new home or city.",
-    href: "/services/relocation",
+      "A concept for helping consumers prepare for a move to a home or city.",
     icon: "04",
   },
   {
     title: "Property Management",
     description:
-      "Explore support options for ongoing ownership and rental needs.",
-    href: "/services/property-management",
+      "A preview of information for ongoing ownership and rental needs.",
     icon: "05",
   },
   {
     title: "Expert Support",
     description:
-      "Connect your property journey with the right HOMIO next step.",
-    href: "/services/expert-support",
+      "A concept for guiding consumers toward an appropriate next step.",
     icon: "06",
   },
 ];
@@ -57,37 +51,38 @@ export default function HomeServices() {
             <h2>More than property discovery.</h2>
 
             <p>
-              Helpful services around the property journey, presented as part
-              of the same HOMIO experience.
+              These cards demonstrate the intended service experience.
+              Service-provider integrations, booking and fulfilment workflows
+              are not active in this homepage preview.
             </p>
           </div>
 
-          <Link href="/services" className={styles.viewAll}>
-            Explore all services
-            <span aria-hidden="true">↗</span>
-          </Link>
+          <span className={styles.viewAll} aria-disabled="true">
+            Service experience preview
+          </span>
         </div>
 
         <div className={styles.grid}>
           {services.map((service) => (
-            <Link key={service.title} href={service.href} className={styles.card}>
+            <article
+              key={service.title}
+              className={styles.card}
+              aria-disabled="true"
+            >
               <div className={styles.top}>
                 <span className={styles.number}>{service.icon}</span>
-
                 <span className={styles.arrow} aria-hidden="true">
-                  ↗
+                  ◇
                 </span>
               </div>
 
               <h3>{service.title}</h3>
-
               <p>{service.description}</p>
 
               <span className={styles.explore}>
-                Explore service
-                <span aria-hidden="true">→</span>
+                Preview only · workflow not active
               </span>
-            </Link>
+            </article>
           ))}
         </div>
 
@@ -100,13 +95,13 @@ export default function HomeServices() {
             <strong>One property journey, connected end to end.</strong>
 
             <p>
-              Discovery, research, services and brokerage should feel like one
-              experience—not separate destinations.
+              The service cards are product concepts; they do not confirm
+              provider availability or an active service-booking system.
             </p>
           </div>
 
-          <Link href="/services" className={styles.bottomAction}>
-            Explore HOMIO services
+          <Link href="/search" className={styles.bottomAction}>
+            Continue property discovery
           </Link>
         </div>
       </div>
