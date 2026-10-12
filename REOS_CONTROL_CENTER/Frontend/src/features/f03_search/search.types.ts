@@ -5,6 +5,10 @@ export type SearchIntent =
   | "projects"
   | "land";
 
+export type SearchCurrency = "INR" | "AED" | "SGD" | "JPY";
+
+export type SearchEntityType = "property" | "project";
+
 export type SearchViewMode = "list" | "map";
 
 export type SearchSort =
@@ -28,6 +32,7 @@ export type SearchFilters = {
   propertyTypes: string[];
   budgetMin?: number;
   budgetMax?: number;
+  budgetCurrency: SearchCurrency;
   bedrooms: number[];
   areaMin?: number;
   areaMax?: number;
