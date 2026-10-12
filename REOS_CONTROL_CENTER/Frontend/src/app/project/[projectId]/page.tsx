@@ -28,20 +28,28 @@ export async function generateMetadata({
     };
   }
 
+  const title =
+    `${project.name} | Project Experience Preview | HOMIO`;
+
+  const description =
+    `${project.kindLabel} experience preview in ${project.location}. ` +
+    "Project facts, pricing, inventory, media and verification " +
+    "are not authoritative until confirmed through approved REOS capabilities.";
+
   return {
-    title: `${project.name} | HOMIO`,
-    description:
-      `${project.kindLabel} in ${project.location}. ` +
-      `${project.configurations.join(", ")}. ` +
-      "Explore the project experience on HOMIO.",
-    alternates: {
-      canonical: `/project/${project.id}`,
+    title,
+    description,
+
+    // F05 currently serves experience-preview records only.
+    // Do not publish them to search indexing or assign a canonical URL.
+    robots: {
+      index: false,
+      follow: true,
     },
+
     openGraph: {
-      title: `${project.name} | HOMIO`,
-      description:
-        `${project.kindLabel} in ${project.location}. ` +
-        "Explore the project experience on HOMIO.",
+      title,
+      description,
       type: "website",
     },
   };
