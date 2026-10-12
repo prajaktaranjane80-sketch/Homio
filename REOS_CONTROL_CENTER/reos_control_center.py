@@ -13,6 +13,11 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+try:
+    from context.phase_projection import synchronize_current_phase
+except ImportError:
+    from REOS_CONTROL_CENTER.context.phase_projection import synchronize_current_phase
+
 ROOT = Path(__file__).resolve().parent
 STATE = ROOT / "data" / "state.json"
 TEMPLATES = ROOT / "GATE_TEMPLATES.json"
@@ -204,6 +209,7 @@ def synchronize_execution_projection(
     acceptance criteria. These execution fields are projections only and
     must never retain criteria from an older gate.
     """
+    synchronize_current_phase(state)
     execution = state.setdefault("execution", {})
     gate_id = execution.get("current_gate")
 

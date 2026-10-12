@@ -16,6 +16,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .phase_projection import is_phase_coherent
+
 
 @dataclass(frozen=True)
 class CanonicalAuthorityResult:
@@ -89,6 +91,10 @@ class CanonicalAuthorityVerifier:
             == "data/state.json"
             and constitution.get("single_source_of_truth") is True
         )
+
+    def verify_phase_coherence(self) -> bool:
+        """Check phases.current against the registered execution gate."""
+        return self._state is not None and is_phase_coherent(self._state)
 
     def _resolve_execution_position(
         self,

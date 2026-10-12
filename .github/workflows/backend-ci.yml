@@ -6,6 +6,9 @@ on:
       - reos-development
     paths:
       - "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**"
+      - "REOS_CONTROL_CENTER/context/**"
+      - "REOS_CONTROL_CENTER/tets/**"
+      - "REOS_CONTROL_CENTER/reos_control_center.py"
       - "REOS_CONTROL_CENTER/requirements-auth.txt"
       - ".github/workflows/backend-ci.yml"
   pull_request:
@@ -13,6 +16,9 @@ on:
       - reos-development
     paths:
       - "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**"
+      - "REOS_CONTROL_CENTER/context/**"
+      - "REOS_CONTROL_CENTER/tets/**"
+      - "REOS_CONTROL_CENTER/reos_control_center.py"
       - "REOS_CONTROL_CENTER/requirements-auth.txt"
       - ".github/workflows/backend-ci.yml"
   workflow_dispatch:
@@ -50,6 +56,8 @@ jobs:
       - name: Compile T21 Python modules
         run: >-
           python -m compileall -q
+          reos_control_center.py
+          context
           AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination
 
       - name: Run sync, OIDC authentication and T21 regression tests
@@ -59,3 +67,4 @@ jobs:
           AUTONOMY_ENGINE/security/authentication
           AUTONOMY_ENGINE/core/commission_financial/test_core008_t01_financial_domain.py
           AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination
+          tets/test_l3_canonical_authority.py

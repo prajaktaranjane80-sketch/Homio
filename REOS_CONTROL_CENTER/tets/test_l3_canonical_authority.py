@@ -5,6 +5,11 @@ import json
 from pathlib import Path
 
 from context.control_plane import CanonicalAuthorityVerifier
+from context.phase_projection import (
+    expected_phase_for_gate,
+    is_phase_coherent,
+    synchronize_current_phase,
+)
 
 
 CONTROL_CENTER_ROOT = Path(__file__).resolve().parents[1]
@@ -105,6 +110,46 @@ def test_missing_integrity_metadata_is_blocked():
 
     assert verifier.verify_state_integrity() is False
 
+
+
+def test_core_gate_phase_mismatch_is_detected_and_projected():
+    state = load_canonical_state()
+    state["execution"]["current_gate"] = "CORE-008"
+    state["phases"]["current"] = "PRE-CODING ARCHITECTURE"
+
+    assert expected_phase_for_gate(state) == state["phases"]["phase_1"]
+    assert is_phase_coherent(state) is False
+
+    verifier = CanonicalAuthorityVerifier(
+        control_center_root=CONTROL_CENTER_ROOT,
+        state=state,
+    )
+    assert verifier.verify_phase_coherence() is False
+
+    assert synchronize_current_phase(state) is True
+    assert state["phases"]["current"] == state["phases"]["phase_1"]
+    assert is_phase_coherent(state) is True
+    assert verifier.verify_phase_coherence() is True
+
+
+def test_future_phase_uses_registered_execution_sequence():
+    state = load_canonical_state()
+    state["execution"]["current_gate"] = "AI-001"
+    state["phases"]["current"] = "PRE-CODING ARCHITECTURE"
+
+    assert expected_phase_for_gate(state) == state["phases"]["phase_2"]
+    assert synchronize_current_phase(state) is True
+    assert is_phase_coherent(state) is True
+
+
+def test_unknown_gate_does_not_guess_or_rewrite_phase():
+    state = load_canonical_state()
+    state["execution"]["current_gate"] = "UNKNOWN-999"
+    previous_phase = state["phases"]["current"]
+
+    assert expected_phase_for_gate(state) is None
+    assert synchronize_current_phase(state) is False
+    assert state["phases"]["current"] == previous_phase
 
 def test_complete_l3_verification():
     state = load_canonical_state()
