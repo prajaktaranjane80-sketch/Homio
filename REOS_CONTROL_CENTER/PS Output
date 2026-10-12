@@ -1,201 +1,4 @@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 1. Capture current canonical baseline.
-PS D:\Homio\REOS_CONTROL_CENTER> $branchInfo = Invoke-GhJson "repos/$Repo/branches/$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER> $BaseSha = $branchInfo.commit.sha
-PS D:\Homio\REOS_CONTROL_CENTER> $BaseTreeSha = $branchInfo.commit.commit.tree.sha
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Repository: $Repo"
-Repository: prajaktaranjane80-sketch/Homio
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch:     $Branch"
-Branch:     reos-development
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Base HEAD:  $BaseSha"
-Base HEAD:  a1bc129a1285737f11dbed237339c4a2066e23da
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 2. Read existing remote files only.
-PS D:\Homio\REOS_CONTROL_CENTER> $controller = Get-RemoteText "REOS_CONTROL_CENTER/reos_control_center.py"
-PS D:\Homio\REOS_CONTROL_CENTER> $controlPlane = Get-RemoteText "REOS_CONTROL_CENTER/context/control_plane.py"
-PS D:\Homio\REOS_CONTROL_CENTER> $authorityTests = Get-RemoteText "REOS_CONTROL_CENTER/tets/test_l3_canonical_authority.py"
-PS D:\Homio\REOS_CONTROL_CENTER> $workflow = Get-RemoteText ".github/workflows/backend-ci.yml"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Normalize line endings in memory; nothing is written to the local project.
-PS D:\Homio\REOS_CONTROL_CENTER> $controller = $controller.Replace("`r`n", "`n")
-PS D:\Homio\REOS_CONTROL_CENTER> $controlPlane = $controlPlane.Replace("`r`n", "`n")
-PS D:\Homio\REOS_CONTROL_CENTER> $authorityTests = $authorityTests.Replace("`r`n", "`n")
-PS D:\Homio\REOS_CONTROL_CENTER> $workflow = $workflow.Replace("`r`n", "`n")
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 3. Shared gate -> phase projection rule.
-PS D:\Homio\REOS_CONTROL_CENTER> $phaseProjection = @'
->> from __future__ import annotations
->>
->> from typing import Any
->>
->> PRE_CODING_PHASE = "PRE-CODING ARCHITECTURE"
->>
->>
->> def expected_phase_for_gate(state: dict[str, Any]) -> str | None:
->>     """Resolve the phase from the canonical execution-plan gate.
->>
->>     Unknown or unregistered gates fail closed: no phase is guessed.
->>     """
->>     execution = state.get("execution")
->>     plan = state.get("execution_plan")
->>     phases = state.get("phases")
->>
->>     if not isinstance(execution, dict):
->>         return None
->>     if not isinstance(plan, dict) or not isinstance(phases, dict):
->>         return None
->>
->>     gate_id = execution.get("current_gate")
->>     sequence = plan.get("authoritative_sequence")
->>
->>     if not isinstance(gate_id, str) or not isinstance(sequence, list):
->>         return None
->>
->>     registered = any(
->>         isinstance(step, dict) and step.get("gate") == gate_id
->>         for step in sequence
->>     )
->>     if not registered:
->>         return None
->>
->>     if gate_id.startswith(("ARCH-", "REPO-", "ENG-")):
->>         return PRE_CODING_PHASE
->>
->>     if gate_id.startswith("CORE-"):
->>         phase_key = "phase_1"
->>     elif gate_id.startswith(("AI-", "APP-", "REL-", "SCALE-")):
->>         phase_key = "phase_2"
->>     else:
->>         return None
->>
->>     phase = phases.get(phase_key)
->>     return phase.strip() if isinstance(phase, str) and phase.strip() else None
->>
->>
->> def is_phase_coherent(state: dict[str, Any]) -> bool:
->>     """Return true only when phases.current matches the registered gate."""
->>     expected = expected_phase_for_gate(state)
->>     phases = state.get("phases")
->>
->>     return (
->>         expected is not None
->>         and isinstance(phases, dict)
->>         and phases.get("current") == expected
->>     )
->>
->>
->> def synchronize_current_phase(state: dict[str, Any]) -> bool:
->>     """Update the derived current-phase projection for a registered gate.
->>
->>     Returns true when a correction was made. An unknown gate is not changed.
->>     """
->>     expected = expected_phase_for_gate(state)
->>     if expected is None:
->>         return False
->>
->>     phases = state.setdefault("phases", {})
->>     if not isinstance(phases, dict):
->>         return False
->>
->>     if phases.get("current") == expected:
->>         return False
->>
->>     phases["current"] = expected
->>     return True
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 4. Connect the phase projection to the existing Control Center save flow.
-PS D:\Homio\REOS_CONTROL_CENTER> $controller = Replace-ExactlyOnce `
->>     -Text $controller `
->>     -Old "from typing import Any`n" `
->>     -New ("from typing import Any`n" +
->>           "`ntry:`n" +
->>           "    from context.phase_projection import synchronize_current_phase`n" +
->>           "except ImportError:`n" +
->>           "    from REOS_CONTROL_CENTER.context.phase_projection import synchronize_current_phase`n") `
->>     -What "Control Center phase-projection import"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $controller = Replace-ExactlyOnce `
->>     -Text $controller `
->>     -Old ("    execution = state.setdefault(`"execution`", {})`n" +
->>           "    gate_id = execution.get(`"current_gate`")") `
->>     -New ("    synchronize_current_phase(state)`n" +
->>           "    execution = state.setdefault(`"execution`", {})`n" +
->>           "    gate_id = execution.get(`"current_gate`")") `
->>     -What "synchronize_execution_projection phase update"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 5. Expose a read-only semantic diagnostic in the canonical verifier.
-PS D:\Homio\REOS_CONTROL_CENTER> $controlPlane = Replace-ExactlyOnce `
->>     -Text $controlPlane `
->>     -Old "from typing import Any`n" `
->>     -New ("from typing import Any`n" +
->>           "`nfrom .phase_projection import is_phase_coherent`n") `
->>     -What "Control Plane phase-check import"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $controlPlane = Replace-ExactlyOnce `
->>     -Text $controlPlane `
->>     -Old "    def _resolve_execution_position(`n" `
->>     -New ("    def verify_phase_coherence(self) -> bool:`n" +
->>           "        `"`"`"Check phases.current against the registered execution gate.`"`"`"`n" +
->>           "        return self._state is not None and is_phase_coherent(self._state)`n" +
->>           "`n" +
->>           "    def _resolve_execution_position(`n") `
->>     -What "CanonicalAuthorityVerifier phase diagnostic"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 6. Add regression coverage using in-memory state copies.
-PS D:\Homio\REOS_CONTROL_CENTER> $authorityTests = Replace-ExactlyOnce `
->>     -Text $authorityTests `
->>     -Old "from context.control_plane import CanonicalAuthorityVerifier`n" `
->>     -New ("from context.control_plane import CanonicalAuthorityVerifier`n" +
->>           "from context.phase_projection import (`n" +
->>           "    expected_phase_for_gate,`n" +
->>           "    is_phase_coherent,`n" +
->>           "    synchronize_current_phase,`n" +
->>           ")`n") `
->>     -What "Authority-test imports"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $phaseTests = @'
->>
->> def test_core_gate_phase_mismatch_is_detected_and_projected():
->>     state = load_canonical_state()
->>     state["execution"]["current_gate"] = "CORE-008"
->>     state["phases"]["current"] = "PRE-CODING ARCHITECTURE"
->>
->>     assert expected_phase_for_gate(state) == state["phases"]["phase_1"]
->>     assert is_phase_coherent(state) is False
->>
->>     verifier = CanonicalAuthorityVerifier(
->>         control_center_root=CONTROL_CENTER_ROOT,
->>         state=state,
->>     )
->>     assert verifier.verify_phase_coherence() is False
->>
->>     assert synchronize_current_phase(state) is True
->>     assert state["phases"]["current"] == state["phases"]["phase_1"]
->>     assert is_phase_coherent(state) is True
->>     assert verifier.verify_phase_coherence() is True
->>
->>
->> def test_future_phase_uses_registered_execution_sequence():
->>     state = load_canonical_state()
->>     state["execution"]["current_gate"] = "AI-001"
->>     state["phases"]["current"] = "PRE-CODING ARCHITECTURE"
->>
->>     assert expected_phase_for_gate(state) == state["phases"]["phase_2"]
->>     assert synchronize_current_phase(state) is True
->>     assert is_phase_coherent(state) is True
->>
->>
->> def test_unknown_gate_does_not_guess_or_rewrite_phase():
->>     state = load_canonical_state()
->>     state["execution"]["current_gate"] = "UNKNOWN-999"
->>     previous_phase = state["phases"]["current"]
->>
->>     assert expected_phase_for_gate(state) is None
->>     assert synchronize_current_phase(state) is False
->>     assert state["phases"]["current"] == previous_phase
->> '@
+ '@
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $authorityTests = Replace-ExactlyOnce `
 >>     -Text $authorityTests `
@@ -310,4 +113,199 @@ PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Local project files written: NO"
 Local project files written: NO
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Next: inspect the new backend CI run before syncing canonical state."
 Next: inspect the new backend CI run before syncing canonical state.
+PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Repo   = "prajaktaranjane80-sketch/Homio"
+PS D:\Homio\REOS_CONTROL_CENTER> $Branch = "reos-development"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> function Invoke-GhJson {
+>>     param(
+>>         [string]$Endpoint,
+>>         [string]$Method = "GET",
+>>         [object]$Body = $null
+>>     )
+>>
+>>     if ($null -eq $Body) {
+>>         $raw = & gh api $Endpoint --method $Method
+>>     } else {
+>>         $json = $Body | ConvertTo-Json -Depth 40 -Compress
+>>         $raw = $json | & gh api $Endpoint --method $Method --input -
+>>     }
+>>
+>>     if ($LASTEXITCODE -ne 0) {
+>>         throw "GitHub API failed: $Method $Endpoint"
+>>     }
+>>
+>>     return (($raw -join "`n") | ConvertFrom-Json)
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> function Get-RemoteFile {
+>>     param([string]$Path)
+>>
+>>     $file = Invoke-GhJson "repos/$Repo/contents/$Path`?ref=$Branch"
+>>     $encoded = $file.content -replace '\s', ''
+>>     $bytes = [Convert]::FromBase64String($encoded)
+>>
+>>     [pscustomobject]@{
+>>         Sha  = $file.sha
+>>         Text = [System.Text.Encoding]::UTF8.GetString($bytes)
+>>     }
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> function New-RemoteBlob {
+>>     param([string]$Text)
+>>
+>>     $b64 = [Convert]::ToBase64String(
+>>         [System.Text.Encoding]::UTF8.GetBytes($Text)
+>>     )
+>>
+>>     return Invoke-GhJson "repos/$Repo/git/blobs" "POST" @{
+>>         content  = $b64
+>>         encoding = "base64"
+>>     }
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Capture the live branch baseline.
+PS D:\Homio\REOS_CONTROL_CENTER> $branchInfo = Invoke-GhJson "repos/$Repo/branches/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> $BaseSha = $branchInfo.commit.sha
+PS D:\Homio\REOS_CONTROL_CENTER> $BaseTreeSha = $branchInfo.commit.commit.tree.sha
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $stateFile = Get-RemoteFile "REOS_CONTROL_CENTER/data/state.json"
+PS D:\Homio\REOS_CONTROL_CENTER> $workflowFile = Get-RemoteFile ".github/workflows/backend-ci.yml"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Reconstruct the exact corrupted UTF-8/Windows-1252 text.
+PS D:\Homio\REOS_CONTROL_CENTER> $bad = "Builder" +
+>>     [char]0x00E2 + [char]0x20AC + [char]0x201C +
+>>     "Broker" +
+>>     [char]0x00E2 + [char]0x20AC + [char]0x201C +
+>>     "Customer Relationship Protection"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $good = "Builder" +
+>>     [char]0x2013 +
+>>     "Broker" +
+>>     [char]0x2013 +
+>>     "Customer Relationship Protection"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (([regex]::Matches(
+>>     $stateFile.Text,
+>>     [regex]::Escape($bad)
+>> )).Count -ne 1) {
+>>     throw "Expected exactly one known encoding error. No commit created."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $stateText = $stateFile.Text.Replace($bad, $good)
+PS D:\Homio\REOS_CONTROL_CENTER> $parsedState = $stateText | ConvertFrom-Json
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($parsedState.integrity.sha256 -ne
+>>     "7c82717c8b36763e8b5352ec6da2e627210803bb1fb04fe794b101a640c62cf8") {
+>>     throw "Stored state hash changed unexpectedly. No commit created."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($stateText.Contains($bad) -or -not $stateText.Contains($good)) {
+>>     throw "State text repair verification failed."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Include state.json changes in both backend CI path filters.
+PS D:\Homio\REOS_CONTROL_CENTER> $anchor = '      - "REOS_CONTROL_CENTER/reos_control_center.py"'
+PS D:\Homio\REOS_CONTROL_CENTER> $count = ([regex]::Matches(
+>>     $workflowFile.Text,
+>>     [regex]::Escape($anchor)
+>> )).Count
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($count -ne 2) {
+>>     throw "Expected two backend CI path-filter anchors; no commit created."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $workflowText = $workflowFile.Text.Replace(
+>>     $anchor,
+>>     $anchor + "`n" + '      - "REOS_CONTROL_CENTER/data/state.json"'
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (([regex]::Matches(
+>>     $workflowText,
+>>     [regex]::Escape('      - "REOS_CONTROL_CENTER/data/state.json"')
+>> )).Count -ne 2) {
+>>     throw "CI path-filter verification failed."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Create blobs without writing any local project files.
+PS D:\Homio\REOS_CONTROL_CENTER> $stateBlob = New-RemoteBlob $stateText
+PS D:\Homio\REOS_CONTROL_CENTER> $workflowBlob = New-RemoteBlob $workflowText
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $tree = Invoke-GhJson "repos/$Repo/git/trees" "POST" @{
+>>     base_tree = $BaseTreeSha
+>>     tree = @(
+>>         @{
+>>             path = "REOS_CONTROL_CENTER/data/state.json"
+>>             mode = "100644"
+>>             type = "blob"
+>>             sha = $stateBlob.sha
+>>         },
+>>         @{
+>>             path = ".github/workflows/backend-ci.yml"
+>>             mode = "100644"
+>>             type = "blob"
+>>             sha = $workflowBlob.sha
+>>         }
+>>     )
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $commit = Invoke-GhJson "repos/$Repo/git/commits" "POST" @{
+>>     message = "Restore state Unicode integrity and trigger backend CI"
+>>     tree = $tree.sha
+>>     parents = @($BaseSha)
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Refuse to update if another commit appeared during preparation.
+PS D:\Homio\REOS_CONTROL_CENTER> $latest = Invoke-GhJson "repos/$Repo/branches/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($latest.commit.sha -ne $BaseSha) {
+>>     throw "Branch HEAD changed. No branch update attempted; re-read live state."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $null = Invoke-GhJson "repos/$Repo/git/refs/heads/$Branch" "PATCH" @{
+>>     sha = $commit.sha
+>>     force = $false
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Verify the actual remote files and branch head.
+PS D:\Homio\REOS_CONTROL_CENTER> $verifiedBranch = Invoke-GhJson "repos/$Repo/branches/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> $verifiedState = Get-RemoteFile "REOS_CONTROL_CENTER/data/state.json"
+PS D:\Homio\REOS_CONTROL_CENTER> $verifiedWorkflow = Get-RemoteFile ".github/workflows/backend-ci.yml"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($verifiedBranch.commit.sha -ne $commit.sha) {
+>>     throw "Remote HEAD verification failed."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> if ($verifiedState.Text.Contains($bad) -or
+>>     -not $verifiedState.Text.Contains($good)) {
+>>     throw "Remote state text verification failed."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> if (([regex]::Matches(
+>>     $verifiedWorkflow.Text,
+>>     [regex]::Escape('      - "REOS_CONTROL_CENTER/data/state.json"')
+>> )).Count -ne 2) {
+>>     throw "Remote CI path-filter verification failed."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE REPAIR: PASS"
+REMOTE REPAIR: PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit: $($commit.sha)"
+Commit: 2469270b8f95857975770a6e9085de754256490c
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "URL: https://github.com/$Repo/commit/$($commit.sha)"
+URL: https://github.com/prajaktaranjane80-sketch/Homio/commit/2469270b8f95857975770a6e9085de754256490c
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "State encoding: PASS"
+State encoding: PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "State hash value preserved: PASS"
+State hash value preserved: PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CI state path filters: PASS"
+CI state path filters: PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch-head guard: PASS"
+Branch-head guard: PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Force push: NO"
+Force push: NO
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Local project files written: NO"
+Local project files written: NO
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Backend CI: triggered by the push; result still requires verification."
+Backend CI: triggered by the push; result still requires verification.
 PS D:\Homio\REOS_CONTROL_CENTER>
