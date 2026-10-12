@@ -100,16 +100,14 @@ const propertyData = read(
   "src/features/f04_property/property.data.ts",
 );
 
-// Ignore comments so prose does not decide whether metadata is configured.
+// Metadata assertions must inspect source code, not explanatory comments.
 const routeWithoutComments = route
   .replace(/\/\*[\s\S]*?\*\//g, "")
   .replace(/^\s*\/\/.*$/gm, "");
 
 const normalizedRoute = normalizeWhitespace(routeWithoutComments);
 
-/*
- * FILE + COMPONENT CONTRACT
- */
+/* PAGE COMPOSITION */
 for (const component of [
   "ProjectGallery",
   "ProjectSummary",
@@ -129,9 +127,7 @@ for (const component of [
   );
 }
 
-/*
- * PROJECT ROUTE + PREVIEW SEO SAFETY
- */
+/* PROJECT ROUTE AND SEO */
 assert(
   normalizedRoute.includes("getProjectPreview") &&
     normalizedRoute.includes("notFound") &&
@@ -145,19 +141,19 @@ assert(
     normalizedRoute.includes("follow: true") &&
     !/\balternates\s*:/.test(normalizedRoute) &&
     !/\bcanonical\s*:/.test(normalizedRoute),
-  "Unverified project previews must be noindex and must not declare a canonical URL.",
+  "Unverified project previews must be noindex without a canonical URL.",
 );
 
 assert(
   normalizedRoute.includes("not authoritative") &&
     normalizedRoute.includes("openGraph"),
-  "Project metadata must disclose preview status and provide coherent share metadata.",
+  "Project metadata must disclose preview status and define Open Graph metadata.",
 );
 
 assert(
   normalizedRoute.includes("follow: false") &&
     notFoundRoute.includes("ProjectUnavailable"),
-  "Unknown project routes must remain non-indexed and render an unavailable state.",
+  "Unknown project IDs must be non-indexed and render the unavailable state.",
 );
 
 assert(
@@ -166,10 +162,150 @@ assert(
   "Project errors must provide recovery and return navigation.",
 );
 
-/*
- * AUTHORITATIVE DATA + PREVIEW DISCLOSURE
- */
+/* PREVIEW TRUTH AND USER ACTIONS */
 assert(
   data.includes("verified: false") &&
     data.includes("Experience preview"),
-  "Project preview records must remain explicitly non-authoritative
+  "Project preview records must remain explicitly non-authoritative.",
+);
+
+assert(
+  actions.includes("navigator.share") &&
+    actions.includes("temporary experience controls"),
+  "Share and temporary save/compare controls must be disclosed.",
+);
+
+assert(
+  gallery.includes(
+    "Project media shown here is experience-preview content",
+  ) &&
+    gallery.includes("not connected"),
+  "Unconnected project media must be disclosed as preview content.",
+);
+
+assert(
+  inventory.includes("Open property") &&
+    inventory.includes("Project preview opportunities") &&
+    inventory.includes("not asserted"),
+  "Project inventory must disclose preview status and avoid claiming live availability.",
+);
+
+assert(
+  nextStep.includes("Continue project discovery") &&
+    nextStep.includes("/search?intent=projects") &&
+    page.includes("#inventory"),
+  "Project discovery navigation must use valid destinations and anchors.",
+);
+
+assert(
+  location.includes("Location preview") &&
+    trust.includes("verificationLabel"),
+  "Location and trust sections must retain preview and verification context.",
+);
+
+/* PROJECT CATALOGUE INTEGRITY */
+assert(
+  catalog.includes("getProjectPreview") &&
+    catalog.includes("PROJECT_PREVIEW_IDS"),
+  "Project catalogue must reuse the existing F05 data adapter.",
+);
+
+const catalogBlock = catalog.match(
+  /const PROJECT_PREVIEW_IDS = \[([\s\S]*?)\] as const;/,
+);
+
+assert(
+  catalogBlock !== null,
+  "Project catalogue must declare its preview ID registry.",
+);
+
+const catalogIds = [
+  ...catalogBlock[1].matchAll(/"([^"]+)"/g),
+].map((match) => match[1]);
+
+assert(
+  catalogIds.length > 0 &&
+    new Set(catalogIds).size === catalogIds.length,
+  "Project catalogue IDs must be non-empty and unique.",
+);
+
+for (const id of catalogIds) {
+  assert(
+    data.includes(`id: "${id}"`),
+    `Project catalogue ID does not resolve in project.data.ts: ${id}`,
+  );
+}
+
+/* RELATED PROJECT REFERENCES */
+const relatedBlocks = [
+  ...data.matchAll(/relatedProjects:\s*\[([\s\S]*?)\]/g),
+].map((match) => match[1]);
+
+const relatedIds = relatedBlocks.flatMap((block) =>
+  [...block.matchAll(/id:\s*"([^"]+)"/g)].map(
+    (match) => match[1],
+  ),
+);
+
+for (const id of relatedIds) {
+  assert(
+    catalogIds.includes(id),
+    `Related project reference does not resolve through F05 catalogue: ${id}`,
+  );
+}
+
+assert(
+  relatedProjects.includes('href={`/project/${item.id}`}') &&
+    relatedProjects.includes("project.relatedProjects.map"),
+  "Related-project links must use supplied project references.",
+);
+
+/* PROJECT INVENTORY PROPERTY LINKS */
+const propertyIds = [
+  ...data.matchAll(/href:\s*"\/property\/([^"]+)"/g),
+].map((match) => match[1]);
+
+for (const propertyId of propertyIds) {
+  assert(
+    propertyData.includes(`id: "${propertyId}"`),
+    `Project inventory refers to an unresolved F04 property ID: ${propertyId}`,
+  );
+}
+
+/* FRONTEND / BACKEND BOUNDARY */
+const featureSources = [
+  ["ProjectPage.tsx", page],
+  ["project route", route],
+  ["project.data.ts", data],
+  ["project-preview-catalog.ts", catalog],
+  ["ProjectActions.tsx", actions],
+  ["ProjectGallery.tsx", gallery],
+  ["ProjectInventory.tsx", inventory],
+  ["ProjectNextStep.tsx", nextStep],
+  ["ProjectLocation.tsx", location],
+  ["ProjectTrust.tsx", trust],
+  ["RelatedProjects.tsx", relatedProjects],
+  ["project error route", errorRoute],
+];
+
+for (const forbidden of forbiddenRuntimeReferences) {
+  for (const [name, content] of featureSources) {
+    assert(
+      !content.includes(forbidden),
+      `Forbidden runtime reference in ${name}: ${forbidden}`,
+    );
+  }
+}
+
+console.log("F05 PROJECT & COLLECTION CONTRACT GATE = PASS");
+console.log(`FILES VERIFIED = ${requiredFiles.length}`);
+console.log("PROJECT CATALOGUE + ROUTE = PASS");
+console.log("PREVIEW SEO + NOT-FOUND + ERROR RECOVERY = PASS");
+console.log("UNVERIFIED PROJECTS ARE NON-INDEXED = PASS");
+console.log("PROJECT MEDIA PREVIEW DISCLOSURE = PASS");
+console.log("INVENTORY DOES NOT CLAIM LIVE AVAILABILITY = PASS");
+console.log("RELATED PROJECT REFERENCES RESOLVE = PASS");
+console.log("PROPERTY REFERENCES RESOLVE THROUGH F04 = PASS");
+console.log("PROJECT DISCOVERY SEARCH DESTINATION = PASS");
+console.log("NO STATE.JSON RUNTIME = PASS");
+console.log("NO ACRL RUNTIME = PASS");
