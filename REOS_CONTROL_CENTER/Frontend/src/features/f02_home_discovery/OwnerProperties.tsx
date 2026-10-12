@@ -36,26 +36,27 @@ const properties = [
 
 export default function OwnerProperties() {
   return (
-    <section className={styles.section}>
+    <section className={styles.section} aria-labelledby="owner-preview-heading">
       <div className="homio-container">
         <div className={styles.header}>
           <div>
-            <span className={styles.eyebrow}>OWNER PROPERTIES</span>
+            <span className={styles.eyebrow}>
+              OWNER-ORIGIN EXPERIENCE PREVIEWS
+            </span>
 
-            <h2>Properties listed directly by owners.</h2>
+            <h2 id="owner-preview-heading">
+              See how owner-origin listings could appear.
+            </h2>
 
             <p>
-              Discover direct owner inventory and connect through the HOMIO
-              brokerage journey when you are ready to enquire or arrange a
-              visit.
+              These are illustrative property cards, not verified owner
+              listings. Ownership, listing authority, prices, property facts
+              and availability have not been independently confirmed.
             </p>
           </div>
 
-          <Link
-            href="/search?source=owner"
-            className={styles.viewAll}
-          >
-            Explore owner properties
+          <Link href="/search?intent=buy" className={styles.viewAll}>
+            Browse property previews
             <span aria-hidden="true">↗</span>
           </Link>
         </div>
@@ -65,12 +66,14 @@ export default function OwnerProperties() {
             <div className={styles.featuredImageWrap}>
               <img
                 src={properties[0].image}
-                alt={properties[0].title}
+                alt={`Illustrative image for ${properties[0].title}`}
                 className={styles.featuredImage}
                 loading="lazy"
               />
 
-              <span className={styles.ownerBadge}>Owner listed</span>
+              <span className={styles.ownerBadge}>
+                Owner-origin preview · not verified
+              </span>
             </div>
 
             <div className={styles.featuredBody}>
@@ -101,13 +104,13 @@ export default function OwnerProperties() {
                   <div className={styles.sideImageWrap}>
                     <img
                       src={property.image}
-                      alt={property.title}
+                      alt={`Illustrative image for ${property.title}`}
                       className={styles.sideImage}
                       loading="lazy"
                     />
 
                     <span className={styles.ownerBadgeSmall}>
-                      Owner listed
+                      Preview · not verified
                     </span>
                   </div>
                 </Link>
