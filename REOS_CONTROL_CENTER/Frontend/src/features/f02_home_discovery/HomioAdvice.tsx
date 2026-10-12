@@ -60,7 +60,9 @@ export default function HomioAdvice() {
 
         <div className={styles.topicBar} aria-label="Advice topic previews">
           {topics.map((topic) => (
-            <span key={topic}>{topic}</span>
+            <span key={topic} className={styles.viewAll}>
+              {topic}
+            </span>
           ))}
         </div>
 
