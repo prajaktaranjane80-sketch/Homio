@@ -1,41 +1,17 @@
-REMOTE COMMIT CREATED AND VERIFIED
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch: $Branch"
-Branch: reos-development
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Previous head: $BaseSha"
-Previous head: 7081e21a186756abbcd4a9bc6c96a4d7d85d8fe9
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit: $($newCommit.sha)"
-Commit: ac90c95bbdb884a6b0d9beb959cb15e8e8100bb2
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "URL: https://github.com/$Repo/commit/$($newCommit.sha)"
-URL: https://github.com/prajaktaranjane80-sketch/Homio/commit/ac90c95bbdb884a6b0d9beb959cb15e8e8100bb2
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "No files changed; no commit or push performed."
+No files changed; no commit or push performed.
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Repo  = "prajaktaranjane80-sketch/Homio"
+PS D:\Homio\REOS_CONTROL_CENTER> $Repo = "prajaktaranjane80-sketch/Homio"
 PS D:\Homio\REOS_CONTROL_CENTER> $Branch = "reos-development"
 PS D:\Homio\REOS_CONTROL_CENTER> $ExpectedLogin = "prajaktaranjane80-sketch"
 PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $TargetPath = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/contract_primitives.py"
+PS D:\Homio\REOS_CONTROL_CENTER> $RelatedPath = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py"
+PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
->>     throw "FAIL: GitHub CLI (gh) install/PATH mein nahi mila."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $authLines = & gh auth status 2>&1
-PS D:\Homio\REOS_CONTROL_CENTER> $authExit = $LASTEXITCODE
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $authLines |
->>     Where-Object {
->>         $_ -match "Logged in to github.com account|Active account|Git operations protocol|Token scopes"
->>     }
-  Γ£ô Logged in to github.com account prajaktaranjane80-sketch (keyring)
-  - Active account: true
-  - Git operations protocol: https
-  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
-  Γ£ô Logged in to github.com account sandyranjane-hash (keyring)
-  - Active account: false
-  - Git operations protocol: https
-  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($authExit -ne 0) {
->>     throw "FAIL: gh auth status unsuccessful. Token output share mat karna."
+>>     throw "BLOCKED: GitHub CLI 'gh' nahi mila."
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> function Get-GhJson {
@@ -45,76 +21,128 @@ PS D:\Homio\REOS_CONTROL_CENTER> function Get-GhJson {
 >>     )
 >>
 >>     $raw = & gh api $Endpoint --jq $Jq 2>&1
+>>     $exitCode = $LASTEXITCODE
 >>
->>     if ($LASTEXITCODE -ne 0) {
->>         throw "FAIL: GitHub API request: $Endpoint`n$($raw -join "`n")"
+>>     if ($exitCode -ne 0) {
+>>         throw "GitHub API failed: $Endpoint`n$(($raw | Out-String).Trim())"
 >>     }
 >>
->>     return (($raw -join "`n") | ConvertFrom-Json -ErrorAction Stop)
+>>     $jsonText = ($raw | Out-String).Trim()
+>>     return ($jsonText | ConvertFrom-Json -ErrorAction Stop)
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Verify the identity of the active gh account.
+PS D:\Homio\REOS_CONTROL_CENTER> function Get-GhFileAtSha {
+>>     param(
+>>         [Parameter(Mandatory)][string]$Path,
+>>         [Parameter(Mandatory)][string]$CommitSha
+>>     )
+>>
+>>     $endpoint = "repos/$Repo/contents/$Path`?ref=$CommitSha"
+>>
+>>     $file = Get-GhJson `
+>>         -Endpoint $endpoint `
+>>         -Jq '{path: .path, sha: .sha, size: .size, encoding: .encoding, content: .content}'
+>>
+>>     if ($file.encoding -ne "base64" -or [string]::IsNullOrWhiteSpace($file.content)) {
+>>         throw "FAIL: Unexpected file response for $Path"
+>>     }
+>>
+>>     $cleanBase64 = [string]$file.content -replace '\s', ''
+>>     $bytes = [Convert]::FromBase64String($cleanBase64)
+>>     $source = [Text.Encoding]::UTF8.GetString($bytes)
+>>
+>>     return [pscustomobject]@{
+>>         Path    = $file.path
+>>         Sha     = $file.sha
+>>         Size    = $file.size
+>>         Content = $source
+>>     }
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 1. Verify active identity.
 PS D:\Homio\REOS_CONTROL_CENTER> $me = Get-GhJson -Endpoint "user" -Jq '{login: .login, id: .id}'
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> if ($me.login -ne $ExpectedLogin) {
->>     throw "FAIL: Unexpected active account: $($me.login)"
+>>     throw "BLOCKED: Unexpected GitHub account: $($me.login)"
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Verify repository access and reported write permission.
+PS D:\Homio\REOS_CONTROL_CENTER> # 2. Verify the correct repository and push permission.
 PS D:\Homio\REOS_CONTROL_CENTER> $repoInfo = Get-GhJson `
 >>     -Endpoint "repos/$Repo" `
->>     -Jq '{full_name: .full_name, default_branch: .default_branch, permissions: .permissions}'
+>>     -Jq '{full_name: .full_name, push: .permissions.push}'
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($repoInfo.full_name -ne $Repo) {
->>     throw "FAIL: Repository identity mismatch."
+PS D:\Homio\REOS_CONTROL_CENTER> if ($repoInfo.full_name -ne $Repo -or $repoInfo.push -ne $true) {
+>>     throw "BLOCKED: Repository identity or push permission check failed."
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($repoInfo.permissions.push -ne $true) {
->>     throw "BLOCKED: GitHub API did not confirm push permission."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Read the live canonical branch.
-PS D:\Homio\REOS_CONTROL_CENTER> $ref = Get-GhJson `
+PS D:\Homio\REOS_CONTROL_CENTER> # 3. Capture current remote branch HEAD; never hardcode an old SHA.
+PS D:\Homio\REOS_CONTROL_CENTER> $startRef = Get-GhJson `
 >>     -Endpoint "repos/$Repo/git/ref/heads/$Branch" `
 >>     -Jq '{ref: .ref, sha: .object.sha}'
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($ref.ref -ne "refs/heads/$Branch") {
->>     throw "FAIL: Unexpected branch reference."
+PS D:\Homio\REOS_CONTROL_CENTER> if ($startRef.ref -ne "refs/heads/$Branch" -or
+>>     [string]::IsNullOrWhiteSpace($startRef.sha)) {
+>>     throw "FAIL: Canonical branch reference is invalid."
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Confirm Git commit/tree reads.
+PS D:\Homio\REOS_CONTROL_CENTER> $BaseSha = [string]$startRef.sha
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 4. Verify commit/tree and read both existing files at that exact SHA.
 PS D:\Homio\REOS_CONTROL_CENTER> $commit = Get-GhJson `
->>     -Endpoint "repos/$Repo/git/commits/$($ref.sha)" `
+>>     -Endpoint "repos/$Repo/git/commits/$BaseSha" `
 >>     -Jq '{sha: .sha, tree_sha: .tree.sha}'
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $tree = Get-GhJson `
->>     -Endpoint "repos/$Repo/git/trees/$($commit.tree_sha)" `
->>     -Jq '{sha: .sha, entry_count: (.tree | length)}'
+PS D:\Homio\REOS_CONTROL_CENTER> if ($commit.sha -ne $BaseSha) {
+>>     throw "FAIL: Commit SHA does not match captured branch HEAD."
+>> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Confirm contents API read access at the same branch SHA.
-PS D:\Homio\REOS_CONTROL_CENTER> $content = Get-GhJson `
->>     -Endpoint "repos/$Repo/contents/.github/workflows/backend-ci.yml?ref=$($ref.sha)" `
->>     -Jq '{path: .path, sha: .sha, type: .type}'
+PS D:\Homio\REOS_CONTROL_CENTER> $target = Get-GhFileAtSha -Path $TargetPath -CommitSha $BaseSha
+PS D:\Homio\REOS_CONTROL_CENTER> $related = Get-GhFileAtSha -Path $RelatedPath -CommitSha $BaseSha
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`nPART 1 AUTHENTICATION PREFLIGHT: PASS" -ForegroundColor Green
+PS D:\Homio\REOS_CONTROL_CENTER> # 5. Confirm the actual missing-helper/import issue from remote source.
+PS D:\Homio\REOS_CONTROL_CENTER> $hasDefinition = $target.Content -match '(?m)^def deep_thaw\s*\('
+PS D:\Homio\REOS_CONTROL_CENTER> $hasExport = $target.Content -match '(?m)^\s*"deep_thaw",?\s*$'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $hasImport = $related.Content -match '(?s)from\s+\.\.contract_primitives\s+import\s*\([^)]*\bdeep_thaw\b[^)]*\)'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 6. Re-read branch HEAD. If it changed during inspection, discard this snapshot.
+PS D:\Homio\REOS_CONTROL_CENTER> $endRef = Get-GhJson `
+>>     -Endpoint "repos/$Repo/git/ref/heads/$Branch" `
+>>     -Jq '{ref: .ref, sha: .object.sha}'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($endRef.sha -ne $BaseSha) {
+>>     throw "STALE SNAPSHOT: branch HEAD changed during inspection. Rerun Part 2; do not use this baseline."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`nPART 2 REMOTE PREFLIGHT: PASS" -ForegroundColor Green
 
-PART 1 AUTHENTICATION PREFLIGHT: PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Account:       $($me.login)"
-Account:       prajaktaranjane80-sketch
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Repository:    $($repoInfo.full_name)"
-Repository:    prajaktaranjane80-sketch/Homio
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Push access:   $($repoInfo.permissions.push)"
-Push access:   True
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch:        $($ref.ref)"
-Branch:        refs/heads/reos-development
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Live HEAD:     $($ref.sha)"
-Live HEAD:     27f74cbe3e44b8ca429fbdf180e0e9a5072b627f
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit read:   $($commit.sha)"
-Commit read:   27f74cbe3e44b8ca429fbdf180e0e9a5072b627f
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Tree read:     $($tree.sha)"
-Tree read:     967464504e4e87ea3cff95faa9f524b717843503
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Contents read: $($content.path)"
-Contents read: .github/workflows/backend-ci.yml
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "No files changed; no commit or push performed."
-No files changed; no commit or push performed.
+PART 2 REMOTE PREFLIGHT: PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Account:             $($me.login)"
+Account:             prajaktaranjane80-sketch
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Repository:          $($repoInfo.full_name)"
+Repository:          prajaktaranjane80-sketch/Homio
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch:              $($startRef.ref)"
+Branch:              refs/heads/reos-development
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Baseline HEAD:       $BaseSha"
+Baseline HEAD:       8c607cd8210ff2adeece9c7daa7f7e17932d71fc
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit/tree read:    PASS"
+Commit/tree read:    PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Target file:         $($target.Path)"
+Target file:         REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/contract_primitives.py
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Target blob SHA:     $($target.Sha)"
+Target blob SHA:     ac9f5ae793b0c5038404436246abe66adac0b1e1
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Related file:        $($related.Path)"
+Related file:        REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Related blob SHA:    $($related.Sha)"
+Related blob SHA:    4d5f5da3c1847dbc76b1eb367b2ba1404d795051
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "deep_thaw defined:   $hasDefinition"
+deep_thaw defined:   False
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "deep_thaw exported:  $hasExport"
+deep_thaw exported:  False
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "deep_thaw imported:  $hasImport"
+deep_thaw imported:  True
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch unchanged:    PASS"
+Branch unchanged:    PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Write/commit/push:   NOT PERFORMED"
+Write/commit/push:   NOT PERFORMED
 PS D:\Homio\REOS_CONTROL_CENTER>
