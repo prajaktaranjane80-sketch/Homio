@@ -20,16 +20,20 @@ export default function PropertyActionBar() {
 
       if (typeof navigator.share === "function") {
         await navigator.share({
-          title: "HOMIO Property Preview",
-          text: "Explore this HOMIO property experience preview.",
+          title: "HOMIO Property Experience Preview",
+          text:
+            "Explore this HOMIO property experience preview. " +
+            "The listing is not verified inventory.",
           url,
         });
+
+        setShareStatus("The share action was completed.");
         return;
       }
 
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
-        setShareStatus("Property link copied.");
+        setShareStatus("Property preview link copied.");
         return;
       }
 
@@ -38,6 +42,7 @@ export default function PropertyActionBar() {
       );
     } catch (error) {
       if (
+        typeof DOMException !== "undefined" &&
         error instanceof DOMException &&
         error.name === "AbortError"
       ) {
@@ -45,13 +50,13 @@ export default function PropertyActionBar() {
       }
 
       setShareStatus(
-        "The property link could not be shared automatically.",
+        "The preview link could not be shared automatically.",
       );
     }
   }
 
   return (
-    <div className={styles.bar}>
+    <div className={styles.bar} aria-label="Property actions">
       <button
         type="button"
         className={`${styles.secondary} ${
@@ -81,53 +86,37 @@ export default function PropertyActionBar() {
         className={styles.secondary}
         onClick={shareProperty}
       >
-        Share
+        Share preview
       </button>
 
-      <a
-        href="#property-ai"
-        className={styles.ai}
-        style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}
-      >
+      <a href="#property-ai" className={styles.ai}>
         Ask HOMIO
       </a>
 
       <a
-        href="#property-next-step"
+        href="#property-next-step-enquiry"
         className={styles.primary}
-        style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}
       >
         Enquire
       </a>
 
       <a
-        href="#property-next-step"
+        href="#property-next-step-visit"
         className={styles.primary}
-        style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}
       >
-        Schedule Visit
+        Schedule visit
       </a>
 
-      <small
-        style={{
-          flexBasis: "100%",
-          color: "#667085",
-          fontSize: 10,
-          lineHeight: 1.5,
-        }}
-      >
+      <small className={styles.disclosure}>
         Save and compare change only this page&apos;s temporary state.
-        Enquiry and visit links lead to the capability notice below;
-        no lead or visit request is submitted from this preview.
+        Enquiry and visit links lead to capability notices. No lead,
+        enquiry or visit request is submitted by this preview.
       </small>
 
       <span
+        className={styles.shareStatus}
+        role="status"
         aria-live="polite"
-        style={{
-          flexBasis: "100%",
-          color: "#34414d",
-          fontSize: 11,
-        }}
       >
         {shareStatus}
       </span>
