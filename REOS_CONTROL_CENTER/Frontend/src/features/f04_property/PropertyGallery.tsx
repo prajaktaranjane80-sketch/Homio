@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import type { PropertyMedia } from "./property.types";
 import styles from "./PropertyGallery.module.css";
 
@@ -8,15 +9,36 @@ type PropertyGalleryProps = Readonly<{
   media: PropertyMedia[];
 }>;
 
+function mediaTypeLabel(type: PropertyMedia["type"]): string {
+  switch (type) {
+    case "floor-plan":
+      return "Floor plan placeholder";
+    case "video":
+      return "Video placeholder";
+    case "virtual":
+      return "Virtual experience placeholder";
+    default:
+      return "Illustrative media placeholder";
+  }
+}
+
 export default function PropertyGallery({
   media,
 }: PropertyGalleryProps) {
   const [active, setActive] = useState(0);
-
   const current = media[active];
 
   if (!current) {
-    return null;
+    return (
+      <section
+        className={styles.section}
+        aria-label="Property media"
+      >
+        <p>
+          Property media has not been supplied for this preview.
+        </p>
+      </section>
+    );
   }
 
   return (
@@ -26,8 +48,8 @@ export default function PropertyGallery({
     >
       <div className={styles.header}>
         <div>
-          <span className={styles.eyebrow}>PROPERTY MEDIA</span>
-          <h2 id="property-gallery-title">See the property clearly.</h2>
+          <span className={styles.eyebrow}>PROPERTY MEDIA PREVIEW</span>
+          <h2 id="property-gallery-title">Property media overview.</h2>
         </div>
 
         <span className={styles.counter}>
@@ -38,18 +60,27 @@ export default function PropertyGallery({
       <div className={styles.viewer}>
         <div className={`${styles.mainMedia} ${styles[current.type]}`}>
           <div className={styles.mediaGlow} />
+
           <span className={styles.mediaType}>
-            {current.type === "floor-plan"
-              ? "Floor plan"
-              : current.type === "video"
-                ? "Video"
-                : current.type === "virtual"
-                  ? "Virtual experience"
-                  : "Property view"}
+            {mediaTypeLabel(current.type)}
           </span>
+
           <strong>{current.label}</strong>
         </div>
       </div>
+
+      <p
+        style={{
+          margin: "10px 2px 0",
+          color: "#667085",
+          fontSize: 11,
+          lineHeight: 1.6,
+        }}
+      >
+        Preview placeholders only. No actual property photograph,
+        verified floor plan, video or virtual tour is supplied by
+        the current property data.
+      </p>
 
       <div className={styles.thumbs}>
         {media.map((item, index) => (
@@ -60,7 +91,7 @@ export default function PropertyGallery({
               index === active ? styles.thumbActive : ""
             }`}
             onClick={() => setActive(index)}
-            aria-label={`Open ${item.label}`}
+            aria-label={`Select ${mediaTypeLabel(item.type)}: ${item.label}`}
             aria-pressed={index === active}
           >
             <span>{index + 1}</span>
