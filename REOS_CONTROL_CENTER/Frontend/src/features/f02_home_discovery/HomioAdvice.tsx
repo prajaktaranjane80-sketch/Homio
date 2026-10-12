@@ -1,4 +1,3 @@
-import Link from "next/link";
 import styles from "./HomioAdvice.module.css";
 
 const articles = [
@@ -6,9 +5,7 @@ const articles = [
     category: "BUYING",
     title: "How to evaluate a property before you enquire",
     description:
-      "A practical framework for comparing location, property facts, project context and next-step readiness.",
-    readTime: "6 min read",
-    href: "/advice/evaluate-property-before-enquiry",
+      "A preview of how to compare location, property facts, project context and next-step readiness.",
     image:
       "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1400&q=85",
   },
@@ -16,9 +13,7 @@ const articles = [
     category: "INVESTMENT",
     title: "What makes a location attractive for property investment?",
     description:
-      "Understand the signals that matter when comparing growth, rental demand, infrastructure and positioning.",
-    readTime: "8 min read",
-    href: "/advice/property-investment-location",
+      "A guide concept covering growth signals, rental demand, infrastructure and positioning.",
     image:
       "https://images.unsplash.com/photo-1444723121867-7a241cacace9?auto=format&fit=crop&w=1400&q=85",
   },
@@ -26,9 +21,7 @@ const articles = [
     category: "RELOCATION",
     title: "Moving to a new city: the property questions to ask first",
     description:
-      "Use a simple location-first checklist to narrow down the right neighbourhood and home type.",
-    readTime: "5 min read",
-    href: "/advice/relocation-property-checklist",
+      "A preview of a location-first checklist for narrowing down a neighbourhood and home type.",
     image:
       "https://images.unsplash.com/photo-1494522358652-f30e61a60313?auto=format&fit=crop&w=1400&q=85",
   },
@@ -54,23 +47,20 @@ export default function HomioAdvice() {
             <h2>Better property decisions start with better context.</h2>
 
             <p>
-              Useful guides, market explainers and practical property knowledge
-              designed to help you understand the decision before you enter the
-              brokerage journey.
+              These cards preview future guide content. They are not published
+              articles, and the linked article-reading experience is not
+              connected yet.
             </p>
           </div>
 
-          <Link href="/advice" className={styles.viewAll}>
-            Explore all advice
-            <span aria-hidden="true">↗</span>
-          </Link>
+          <span className={styles.viewAll} aria-disabled="true">
+            Advice experience preview
+          </span>
         </div>
 
-        <div className={styles.topicBar} aria-label="Advice topics">
+        <div className={styles.topicBar} aria-label="Advice topic previews">
           {topics.map((topic) => (
-            <Link key={topic} href={`/advice?topic=${topic.toLowerCase()}`}>
-              {topic}
-            </Link>
+            <span key={topic}>{topic}</span>
           ))}
         </div>
 
@@ -81,8 +71,9 @@ export default function HomioAdvice() {
               className={`${styles.card} ${
                 index === 0 ? styles.featured : ""
               }`}
+              aria-disabled="true"
             >
-              <Link href={article.href} className={styles.imageLink}>
+              <div className={styles.imageLink}>
                 <div className={styles.imageWrap}>
                   <img
                     src={article.image}
@@ -91,24 +82,20 @@ export default function HomioAdvice() {
                     loading="lazy"
                   />
                 </div>
-              </Link>
+              </div>
 
               <div className={styles.body}>
                 <div className={styles.meta}>
                   <span>{article.category}</span>
-                  <span>{article.readTime}</span>
+                  <span>Guide preview</span>
                 </div>
 
-                <Link href={article.href} className={styles.title}>
-                  {article.title}
-                </Link>
-
+                <span className={styles.title}>{article.title}</span>
                 <p>{article.description}</p>
 
-                <Link href={article.href} className={styles.read}>
-                  Read guide
-                  <span aria-hidden="true">→</span>
-                </Link>
+                <span className={styles.read}>
+                  Article workflow not active
+                </span>
               </div>
             </article>
           ))}
@@ -116,16 +103,19 @@ export default function HomioAdvice() {
 
         <div className={styles.bottom}>
           <div>
-            <span className={styles.bottomEyebrow}>KNOWLEDGE BEFORE ACTION</span>
+            <span className={styles.bottomEyebrow}>
+              KNOWLEDGE BEFORE ACTION
+            </span>
+
             <strong>
               Learn, compare and understand the market before you take the next
               step.
             </strong>
           </div>
 
-          <Link href="/advice" className={styles.bottomAction}>
-            Visit HOMIO Advice
-          </Link>
+          <span className={styles.bottomAction} aria-disabled="true">
+            Guides are preview-only
+          </span>
         </div>
       </div>
     </section>
