@@ -12,8 +12,8 @@ export default function MyHomioSignInCTA() {
         </p>
       </div>
 
-      <span className={styles.status} aria-disabled="true">
-        Sign-in not active
+      <span aria-disabled="true">
+        Sign-in not active in this preview
       </span>
     </div>
   );
