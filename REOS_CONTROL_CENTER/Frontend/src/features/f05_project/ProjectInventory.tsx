@@ -20,7 +20,10 @@ export default function ProjectInventory({
     >
       <div className={styles.header}>
         <div>
-          <span className={styles.eyebrow}>
+          <span
+            className={styles.eyebrow}
+            aria-label="Project preview opportunities"
+          >
             PROJECT PREVIEW OPPORTUNITIES
           </span>
 
