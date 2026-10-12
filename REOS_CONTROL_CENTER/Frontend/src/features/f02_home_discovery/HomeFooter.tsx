@@ -15,26 +15,24 @@ const exploreLinks: FooterLink[] = [
 ];
 
 const marketLinks: FooterLink[] = [
-  { label: "Dubai", href: "/market/dubai" },
-  { label: "Singapore", href: "/market/singapore" },
-  { label: "Tokyo", href: "/market/tokyo" },
-  { label: "London", href: "/market/london" },
-  { label: "New York", href: "/market/new-york" },
+  { label: "Dubai", href: "/search?city=Dubai" },
+  { label: "Singapore", href: "/search?city=Singapore" },
+  { label: "Tokyo", href: "/search?city=Tokyo" },
+  { label: "London", href: "/search?city=London" },
+  { label: "New York", href: "/search?city=New%20York" },
 ];
 
 const companyLinks: FooterLink[] = [
-  { label: "About HOMIO", href: "/about" },
-  { label: "HOMIO AI", href: "/ai" },
-  { label: "Advice", href: "/advice" },
-  { label: "Help Center", href: "/help" },
-  { label: "Contact", href: "/help/contact" },
+  { label: "About HOMIO", href: "/#why-homio" },
+  { label: "HOMIO AI preview", href: "/#homio-ai" },
+  { label: "Advice previews", href: "/#advice" },
+  { label: "Help & Support", href: "/#help" },
+  { label: "Trust approach", href: "/#trust" },
 ];
 
 const professionalLinks: FooterLink[] = [
-  { label: "HOMIO Pro", href: "/pro" },
-  { label: "Inventory", href: "/pro/inventory" },
-  { label: "Leads", href: "/pro/leads" },
-  { label: "Deals", href: "/pro/deals" },
+  { label: "List with HOMIO", href: "/#post-property" },
+  { label: "Project previews", href: "/#projects" },
 ];
 
 export default function HomeFooter() {
@@ -73,7 +71,6 @@ export default function HomeFooter() {
         <div className={styles.middle}>
           <div>
             <span className={styles.middleLabel}>GLOBAL EXPERIENCE</span>
-
             <strong>
               Designed for modern residential, commercial and investment
               journeys.
