@@ -1,11 +1,18 @@
+
 PS C:\Users\Sandip RanjanePatil> Set-Location "D:\Homio\REOS_CONTROL_CENTER"
 PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
 PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # HOMIO / REOS: self-contained, direct GitHub API change.
+PS D:\Homio\REOS_CONTROL_CENTER> # No local source-file writes, pull, reset, merge, or force push.
+PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $Repo   = "prajaktaranjane80-sketch/Homio"
 PS D:\Homio\REOS_CONTROL_CENTER> $Branch = "reos-development"
+PS D:\Homio\REOS_CONTROL_CENTER> $AuthDir = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication"
+PS D:\Homio\REOS_CONTROL_CENTER> $WorkflowPath = ".github/workflows/backend-ci.yml"
+PS D:\Homio\REOS_CONTROL_CENTER> $RequirementsPath = "REOS_CONTROL_CENTER/requirements-auth.txt"
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
->>     throw "BLOCKED: GitHub CLI is unavailable. No repository files changed."
+>>     throw "BLOCKED: GitHub CLI 'gh' not found. No repository changes made."
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER> & gh auth status
 github.com
@@ -21,29 +28,33 @@ github.com
   - Token: gho_************************************
   - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
 PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
->>     throw "BLOCKED: GitHub authentication failed. No repository files changed."
+>>     throw "BLOCKED: GitHub authentication failed. No repository changes made."
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> function Invoke-GhApi {
 >>     param(
 >>         [Parameter(Mandatory = $true)][string]$Endpoint,
 >>         [string]$Method = "GET",
->>         $Body = $null
+>>         [AllowNull()]$Body = $null
 >>     )
->>     $argsList = @("api", $Endpoint, "--method", $Method)
+>>
 >>     if ($null -eq $Body) {
->>         $raw = (& gh @argsList 2>&1) -join "`n"
->>     } else {
->>         $json = ConvertTo-Json -InputObject $Body -Depth 40 -Compress
->>         $raw = ($json | & gh @argsList --input - 2>&1) -join "`n"
+>>         $raw = (& gh api $Endpoint --method $Method 2>&1) -join "`n"
 >>     }
+>>     else {
+>>         $json = ConvertTo-Json -InputObject $Body -Depth 50 -Compress
+>>         $raw = ($json | & gh api $Endpoint --method $Method --input - 2>&1) -join "`n"
+>>     }
+>>
 >>     if ($LASTEXITCODE -ne 0) {
 >>         throw "GitHub API failed: $Method $Endpoint`n$raw"
 >>     }
+>>
 >>     try {
 >>         return ($raw | ConvertFrom-Json -ErrorAction Stop)
->>     } catch {
->>         throw "Could not parse GitHub response for $Endpoint`n$raw"
+>>     }
+>>     catch {
+>>         throw "Could not parse GitHub API response for $Endpoint`n$raw"
 >>     }
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
@@ -52,18 +63,23 @@ PS D:\Homio\REOS_CONTROL_CENTER> function Get-RemoteFile {
 >>         [Parameter(Mandatory = $true)][string]$Path,
 >>         [Parameter(Mandatory = $true)][string]$Ref
 >>     )
->>     $remote = Invoke-GhApi "repos/$Repo/contents/$Path`?ref=$Ref"
+>>
+>>     $encodedPath = [Uri]::EscapeDataString($Path).Replace("%2F", "/")
+>>     $remote = Invoke-GhApi "repos/$Repo/contents/${encodedPath}?ref=$Ref"
 >>     $encoded = ([string]$remote.content) -replace "\s", ""
+>>
 >>     if (-not $encoded) {
->>         throw "BLOCKED: No encoded content returned for $Path"
+>>         throw "BLOCKED: GitHub returned no file content for $Path."
 >>     }
->>     $content = [Text.Encoding]::UTF8.GetString(
+>>
+>>     $decoded = [Text.Encoding]::UTF8.GetString(
 >>         [Convert]::FromBase64String($encoded)
 >>     ).Replace("`r`n", "`n")
+>>
 >>     return [pscustomobject]@{
->>         Path    = $Path
->>         Sha     = [string]$remote.sha
->>         Content = $content
+>>         Path = $Path
+>>         Sha = [string]$remote.sha
+>>         Content = $decoded
 >>     }
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
@@ -75,117 +91,57 @@ PS D:\Homio\REOS_CONTROL_CENTER> function Replace-ExactCount {
 >>         [Parameter(Mandatory = $true)][int]$ExpectedCount,
 >>         [Parameter(Mandatory = $true)][string]$Label
 >>     )
+>>
 >>     $source = $Text.Replace("`r`n", "`n")
 >>     $oldText = $Old.Replace("`r`n", "`n")
 >>     $newText = $New.Replace("`r`n", "`n")
 >>     $count = [regex]::Matches($source, [regex]::Escape($oldText)).Count
+>>
 >>     if ($count -ne $ExpectedCount) {
 >>         throw "BLOCKED: '$Label' expected $ExpectedCount matches, found $count. No branch update attempted."
 >>     }
+>>
 >>     return $source.Replace($oldText, $newText)
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== BASELINE ===" -ForegroundColor Cyan
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== READ CANONICAL GITHUB BRANCH ===" -ForegroundColor Cyan
 
-=== BASELINE ===
+=== READ CANONICAL GITHUB BRANCH ===
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $branchRef = Invoke-GhApi "repos/$Repo/git/ref/heads/$Branch"
 PS D:\Homio\REOS_CONTROL_CENTER> $baseSha = [string]$branchRef.object.sha
 PS D:\Homio\REOS_CONTROL_CENTER> $baseCommit = Invoke-GhApi "repos/$Repo/git/commits/$baseSha"
 PS D:\Homio\REOS_CONTROL_CENTER> $baseTreeSha = [string]$baseCommit.tree.sha
+PS D:\Homio\REOS_CONTROL_CENTER> $remoteTree = Invoke-GhApi "repos/$Repo/git/trees/${baseTreeSha}?recursive=1"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($remoteTree.truncated) {
+>>     throw "BLOCKED: GitHub tree is truncated. No branch update attempted."
+>> }
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch: $Branch"
 Branch: reos-development
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Starting commit: $baseSha"
-Starting commit: 0688f8ab6b38a2d78013f40f31cffdfb7af1dafe
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Starting head: $baseSha"
+Starting head: a565a36a17c353394c38c614f2cae74b6793d03e
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $treeSnapshot = Invoke-GhApi "repos/$Repo/git/trees/$baseTreeSha`?recursive=1"
-PS D:\Homio\REOS_CONTROL_CENTER> if ($treeSnapshot.truncated) {
->>     throw "BLOCKED: GitHub returned a truncated tree. No branch update attempted."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $authDir = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication"
-PS D:\Homio\REOS_CONTROL_CENTER> $requirementsPath = "REOS_CONTROL_CENTER/requirements-auth.txt"
-PS D:\Homio\REOS_CONTROL_CENTER> $newPaths = @(
->>     "$authDir/__init__.py",
->>     "$authDir/oidc_config.py",
->>     "$authDir/oidc_verifier.py",
->>     "$authDir/test_oidc_verifier.py",
->>     "$authDir/README.md",
->>     $requirementsPath
+PS D:\Homio\REOS_CONTROL_CENTER> $pathsToCreate = @(
+>>     "$AuthDir/__init__.py",
+>>     "$AuthDir/oidc_config.py",
+>>     "$AuthDir/oidc_verifier.py",
+>>     "$AuthDir/test_oidc_verifier.py",
+>>     "$AuthDir/README.md",
+>>     $RequirementsPath
 >> )
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($path in $newPaths) {
->>     if (@($treeSnapshot.tree | Where-Object { $_.path -eq $path }).Count -gt 0) {
->>         throw "BLOCKED: Target already exists: $path. No branch update attempted."
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($path in $pathsToCreate) {
+>>     if (@($remoteTree.tree | Where-Object { $_.path -eq $path }).Count -gt 0) {
+>>         throw "BLOCKED: Target already exists on current branch: $path. Nothing was committed."
 >>     }
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $workflowPath = ".github/workflows/backend-ci.yml"
-PS D:\Homio\REOS_CONTROL_CENTER> $workflowFile = Get-RemoteFile -Path $workflowPath -Ref $baseSha
-PS D:\Homio\REOS_CONTROL_CENTER> $workflowContent = $workflowFile.Content
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Track dependency changes in both push and pull_request workflows.
-PS D:\Homio\REOS_CONTROL_CENTER> $oldPaths = @'
->>       - "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**"
->>       - ".github/workflows/backend-ci.yml"
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER> $newPathsBlock = @'
->>       - "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**"
->>       - "REOS_CONTROL_CENTER/requirements-auth.txt"
->>       - ".github/workflows/backend-ci.yml"
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $workflowContent = Replace-ExactCount `
->>     -Text $workflowContent `
->>     -Old $oldPaths `
->>     -New $newPathsBlock `
->>     -ExpectedCount 2 `
->>     -Label "CI path filters"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $oldInstall = @'
->>       - name: Install test runner
->>         run: python -m pip install --disable-pip-version-check pytest
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER> $newInstall = @'
->>       - name: Install test runner and OIDC dependencies
->>         run: |
->>           python -m pip install --disable-pip-version-check pytest
->>           python -m pip install --disable-pip-version-check -r requirements-auth.txt
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $workflowContent = Replace-ExactCount `
->>     -Text $workflowContent `
->>     -Old $oldInstall `
->>     -New $newInstall `
->>     -ExpectedCount 1 `
->>     -Label "CI dependency installation"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $oldTestStep = @'
->>       - name: Run canonical sync integrity and T21 regression tests
->>         run: >-
->>           python -m pytest -q
->>           AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine
->>           AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER> $newTestStep = @'
->>       - name: Run sync, OIDC authentication and T21 regression tests
->>         run: >-
->>           python -m pytest -q
->>           AUTONOMY_ENGINE/continuity/canonical_truth/STAGE0_Canonical_Truth_Sync_Engine
->>           AUTONOMY_ENGINE/security/authentication
->>           AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination
->> '@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $workflowContent = Replace-ExactCount `
->>     -Text $workflowContent `
->>     -Old $oldTestStep `
->>     -New $newTestStep `
->>     -ExpectedCount 1 `
->>     -Label "CI regression command"
+PS D:\Homio\REOS_CONTROL_CENTER> # ---------- OIDC package exports ----------
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $initContent = @'
->> """Server-side OIDC authentication primitives for HOMIO / REOS."""
+>> """Server-side OIDC token verification primitives for HOMIO / REOS."""
 >>
 >> from .oidc_config import OIDCConfigurationError, OIDCSettings
 >> from .oidc_verifier import AuthenticationError, AuthenticatedPrincipal, OIDCVerifier
@@ -198,6 +154,8 @@ PS D:\Homio\REOS_CONTROL_CENTER> $initContent = @'
 >>     "OIDCVerifier",
 >> ]
 >> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ---------- Fail-closed configuration ----------
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $configContent = @'
 >> from __future__ import annotations
@@ -213,15 +171,22 @@ PS D:\Homio\REOS_CONTROL_CENTER> $configContent = @'
 >>
 >>
 >> def _https_url(name: str, value: str) -> str:
->>     parsed = urlsplit(value)
->>     if (
->>         parsed.scheme.lower() != "https"
->>         or not parsed.hostname
->>         or parsed.username is not None
->>         or parsed.password is not None
->>         or parsed.query
->>         or parsed.fragment
->>     ):
+>>     try:
+>>         parsed = urlsplit(value)
+>>         valid = (
+>>             parsed.scheme.lower() == "https"
+>>             and bool(parsed.hostname)
+>>             and parsed.username is None
+>>             and parsed.password is None
+>>             and not parsed.query
+>>             and not parsed.fragment
+>>         )
+>>         # Accessing .port also rejects malformed port syntax.
+>>         _ = parsed.port
+>>     except ValueError as exc:
+>>         raise OIDCConfigurationError(f"{name} must be a valid HTTPS URL") from exc
+>>
+>>     if not valid:
 >>         raise OIDCConfigurationError(
 >>             f"{name} must be an HTTPS URL without credentials, query, or fragment"
 >>         )
@@ -281,16 +246,20 @@ PS D:\Homio\REOS_CONTROL_CENTER> $configContent = @'
 >>         )
 >>         values = {name: source.get(name, "").strip() for name in names}
 >>         missing = [name for name, value in values.items() if not value]
+>>
 >>         if missing:
 >>             raise OIDCConfigurationError(
 >>                 "Missing required OIDC configuration: " + ", ".join(missing)
 >>             )
+>>
 >>         return cls(
 >>             issuer=values["HOMIO_OIDC_ISSUER"],
 >>             audience=values["HOMIO_OIDC_AUDIENCE"],
 >>             jwks_url=values["HOMIO_OIDC_JWKS_URL"],
 >>         )
 >> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ---------- JWT signature and claim verification ----------
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $verifierContent = @'
 >> from __future__ import annotations
@@ -318,7 +287,7 @@ PS D:\Homio\REOS_CONTROL_CENTER> $verifierContent = @'
 >>
 >> @dataclass(frozen=True, slots=True)
 >> class AuthenticatedPrincipal:
->>     """Principal derived only from a cryptographically verified token."""
+>>     """Principal data derived only from a cryptographically verified token."""
 >>
 >>     issuer: str
 >>     subject: str
@@ -332,7 +301,7 @@ PS D:\Homio\REOS_CONTROL_CENTER> $verifierContent = @'
 >>
 >>
 >> class OIDCVerifier:
->>     """Fail-closed OIDC access-token verifier backed by the issuer JWKS."""
+>>     """Fail-closed OIDC bearer-token verifier backed by configured issuer JWKS."""
 >>
 >>     def __init__(
 >>         self,
@@ -372,7 +341,7 @@ PS D:\Homio\REOS_CONTROL_CENTER> $verifierContent = @'
 >>         try:
 >>             signing_key = self._jwks_client.get_signing_key_from_jwt(token).key
 >>         except Exception as exc:
->>             # Do not leak provider URLs, response bodies, tokens, or key details.
+>>             # Never expose the provider URL, response body, token or key details.
 >>             raise AuthenticationError("verification_key_unavailable") from exc
 >>
 >>         try:
@@ -421,11 +390,13 @@ PS D:\Homio\REOS_CONTROL_CENTER> $verifierContent = @'
 >>         )
 >> '@
 PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ---------- Targeted security regression tests ----------
+PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $testsContent = @'
 >> from __future__ import annotations
 >>
->> from types import SimpleNamespace
 >> import time
+>> from types import SimpleNamespace
 >>
 >> import jwt
 >> import pytest
@@ -620,15 +591,17 @@ PS D:\Homio\REOS_CONTROL_CENTER> $testsContent = @'
 >>         )
 >> '@
 PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # ---------- Runtime instructions ----------
+PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $readmeContent = @'
 >> # HOMIO / REOS — OIDC access-token verification
 >>
->> This package provides a server-side bearer-token verification boundary. It
->> does not own canonical identity records or tenant membership.
+>> This package provides a server-side verification boundary for signed JWT
+>> access tokens. It does not own canonical identity records or tenant membership.
 >>
 >> ## Required runtime configuration
 >>
->> Set these variables in the deployed service environment, not in source code:
+>> Set these variables in the deployed service environment, never in source code:
 >>
 >> - `HOMIO_OIDC_ISSUER`: exact HTTPS issuer identifier expected in the token.
 >> - `HOMIO_OIDC_AUDIENCE`: API/resource audience expected in the token.
@@ -645,3 +618,4 @@ PS D:\Homio\REOS_CONTROL_CENTER> $readmeContent = @'
 >> settings = OIDCSettings.from_env()
 >> verifier = OIDCVerifier(settings)
 >> principal = verifier.verify_access_token(access_token)
+>>
