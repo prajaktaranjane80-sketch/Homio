@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import type { PropertyRecord } from "./property.types";
-
 import styles from "./PropertyProjectContext.module.css";
 
 type PropertyProjectContextProps = Readonly<{
@@ -19,20 +18,20 @@ export default function PropertyProjectContext({
     <section className={styles.section}>
       <div className={styles.header}>
         <div>
-          <span className={styles.eyebrow}>
-            PROJECT CONTEXT
-          </span>
+          <span className={styles.eyebrow}>PROJECT CONTEXT</span>
 
           <h2>{property.projectName}</h2>
 
           <p>
-            Understand the wider project around this individual property.
+            Explore the project reference attached to this property
+            preview. This association does not independently verify
+            a developer, project or property.
           </p>
         </div>
 
         {property.projectId ? (
           <Link
-            href={`/project/${property.projectId}`}
+            href={`/project/${encodeURIComponent(property.projectId)}`}
             className={styles.linkButton}
           >
             View project
@@ -43,25 +42,24 @@ export default function PropertyProjectContext({
 
       <div className={styles.grid}>
         <div>
-          <span>Builder / partner</span>
+          <span>Builder / developer</span>
           <strong>
-            {property.builderName ??
-              "Authorized project partner"}
+            {property.builderName ?? "Not supplied in preview"}
           </strong>
         </div>
 
         <div>
-          <span>Property position</span>
+          <span>Property type</span>
           <strong>{property.propertyType}</strong>
         </div>
 
         <div>
-          <span>Location</span>
+          <span>Location text</span>
           <strong>{property.location}</strong>
         </div>
 
         <div>
-          <span>Availability</span>
+          <span>Availability context</span>
           <strong>{property.status}</strong>
         </div>
       </div>
