@@ -4,33 +4,33 @@ import styles from "./NewProjectCollections.module.css";
 const collections = [
   {
     title: "New Launches",
-    subtitle: "Explore new-development discovery",
-    label: "Collection preview",
-    href: "/search?collection=new-launches",
+    subtitle: "Explore a new-development experience preview",
+    label: "Project preview",
+    href: "/project/harbour-residences",
     image:
       "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1400&q=85",
   },
   {
     title: "Waterfront Living",
-    subtitle: "Homes with a different horizon",
-    label: "Collection preview",
-    href: "/search?collection=waterfront",
+    subtitle: "Explore a waterfront-style project preview",
+    label: "Project preview",
+    href: "/project/marina-crest",
     image:
       "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1400&q=85",
   },
   {
     title: "Smart Investments",
-    subtitle: "Explore opportunities by investment theme",
-    label: "Collection preview",
-    href: "/search?collection=investment",
+    subtitle: "Explore a project-detail preview",
+    label: "Project preview",
+    href: "/project/the-meridian",
     image:
       "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1400&q=85",
   },
   {
     title: "Family Residences",
-    subtitle: "Discover homes designed around everyday life",
+    subtitle: "Explore a residential project collection preview",
     label: "Collection preview",
-    href: "/search?collection=family",
+    href: "/project/pune-east-collection-001",
     image:
       "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=85",
   },
@@ -43,14 +43,13 @@ export default function NewProjectCollections() {
         <div className={styles.heading}>
           <div>
             <span className={styles.eyebrow}>PROJECT COLLECTIONS</span>
-
             <h2>Explore by the way you want to live.</h2>
           </div>
 
           <p>
-            Theme-based pathways demonstrate how HOMIO can organize
-            project discovery. Live inventory, project counts and
-            availability must come from authoritative data.
+            These cards open project-experience previews. Pricing, live
+            inventory, project counts and availability are not authoritative
+            REOS data.
           </p>
         </div>
 
@@ -68,13 +67,12 @@ export default function NewProjectCollections() {
 
               <div className={styles.content}>
                 <span className={styles.count}>{collection.label}</span>
-
                 <h3>{collection.title}</h3>
-
                 <p>{collection.subtitle}</p>
 
                 <span className={styles.link}>
-                  Explore collection <span aria-hidden="true">↗</span>
+                  Open project preview
+                  <span aria-hidden="true">↗</span>
                 </span>
               </div>
             </Link>
