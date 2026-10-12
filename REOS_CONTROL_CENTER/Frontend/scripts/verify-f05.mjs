@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const frontendRoot = path.resolve(__dirname, "..");
 
 const requiredFiles = [
@@ -44,6 +43,7 @@ const requiredFiles = [
   "src/features/f05_project/ProjectUnavailable.module.css",
   "src/features/f05_project/project.types.ts",
   "src/features/f05_project/project.data.ts",
+  "src/features/f05_project/project-preview-catalog.ts",
 ];
 
 const forbiddenRuntimeReferences = [
@@ -58,10 +58,7 @@ function absolute(relativePath) {
 }
 
 function read(relativePath) {
-  return fs.readFileSync(
-    absolute(relativePath),
-    "utf8",
-  );
+  return fs.readFileSync(absolute(relativePath), "utf8");
 }
 
 function assert(condition, message) {
@@ -77,33 +74,15 @@ for (const relativePath of requiredFiles) {
   );
 }
 
-const page = read(
-  "src/features/f05_project/ProjectPage.tsx",
-);
-
-const data = read(
-  "src/features/f05_project/project.data.ts",
-);
-
-const route = read(
-  "src/app/project/[projectId]/page.tsx",
-);
-
-const actions = read(
-  "src/features/f05_project/ProjectActions.tsx",
-);
-
-const inventory = read(
-  "src/features/f05_project/ProjectInventory.tsx",
-);
-
-const nextStep = read(
-  "src/features/f05_project/ProjectNextStep.tsx",
-);
-
-const errorRoute = read(
-  "src/app/project/[projectId]/error.tsx",
-);
+const page = read("src/features/f05_project/ProjectPage.tsx");
+const data = read("src/features/f05_project/project.data.ts");
+const catalog = read("src/features/f05_project/project-preview-catalog.ts");
+const route = read("src/app/project/[projectId]/page.tsx");
+const actions = read("src/features/f05_project/ProjectActions.tsx");
+const gallery = read("src/features/f05_project/ProjectGallery.tsx");
+const inventory = read("src/features/f05_project/ProjectInventory.tsx");
+const nextStep = read("src/features/f05_project/ProjectNextStep.tsx");
+const errorRoute = read("src/app/project/[projectId]/error.tsx");
 
 for (const component of [
   "ProjectGallery",
@@ -125,23 +104,17 @@ for (const component of [
 }
 
 assert(
-  route.includes("getProjectPreview"),
-  "Project route preview adapter is missing.",
+  catalog.includes("getProjectPreview") &&
+    catalog.includes("PROJECT_PREVIEW_IDS"),
+  "Project catalogue must reuse the existing F05 data adapter.",
 );
 
 assert(
-  route.includes("notFound"),
-  "Project route does not fail safely for unavailable references.",
-);
-
-assert(
-  route.includes("generateMetadata"),
-  "Project route metadata is missing.",
-);
-
-assert(
-  route.includes("canonical"),
-  "Project route canonical metadata is missing.",
+  route.includes("getProjectPreview") &&
+    route.includes("notFound") &&
+    route.includes("generateMetadata") &&
+    route.includes("canonical"),
+  "Project route, unavailable handling or SEO metadata is incomplete.",
 );
 
 assert(
@@ -150,28 +123,34 @@ assert(
 );
 
 assert(
-  data.includes("verified: false"),
-  "Preview project data must not manufacture verification.",
+  data.includes("verified: false") &&
+    data.includes("Experience preview"),
+  "Preview project data must be explicitly non-authoritative.",
 );
 
 assert(
-  data.includes("Experience preview"),
-  "Preview project data must be explicitly identified.",
+  actions.includes("navigator.share") &&
+    actions.includes("temporary experience controls"),
+  "Project sharing and temporary save/compare disclosure are missing.",
 );
 
 assert(
-  actions.includes("navigator.share"),
-  "Project share presentation is missing.",
+  gallery.includes("Project media shown here is experience-preview content") &&
+    gallery.includes("not connected"),
+  "Project media must be clearly marked as a preview placeholder.",
 );
 
 assert(
-  inventory.includes("Open property"),
-  "Project inventory to property journey is missing.",
+  inventory.includes("Open property") &&
+    inventory.includes("Project preview opportunities") &&
+    inventory.includes("not asserted"),
+  "Project inventory must disclose preview status and keep only supplied property links.",
 );
 
 assert(
-  nextStep.includes("Continue project discovery"),
-  "Project continuation action is missing.",
+  nextStep.includes("Continue project discovery") &&
+    nextStep.includes("/search?intent=projects"),
+  "Project continuation must lead to the Projects search intent.",
 );
 
 assert(
@@ -195,28 +174,13 @@ for (const forbidden of forbiddenRuntimeReferences) {
   }
 }
 
-console.log(
-  "F05 PROJECT & COLLECTION EXPERIENCE = PASS",
-);
-console.log(
-  `FILES VERIFIED = ${requiredFiles.length}`,
-);
-console.log("PROJECT ROUTE = PASS");
-console.log("SEO METADATA = PASS");
-console.log("PROJECT COMPOSITION = PASS");
-console.log("PROJECT SUMMARY = PASS");
-console.log("PROJECT FACTS = PASS");
-console.log("INVENTORY SUMMARY = PASS");
-console.log("INVENTORY → PROPERTY = PASS");
-console.log("PROJECT FEATURES = PASS");
-console.log("LOCATION CONTEXT = PASS");
-console.log("TRUST STATE = PASS");
-console.log("RELATED DISCOVERY = PASS");
-console.log("NEXT STEP = PASS");
-console.log("LOADING + NOT FOUND = PASS");
-console.log("ERROR RECOVERY = PASS");
-console.log(
-  "PREVIEW DATA NON-AUTHORITATIVE = PASS",
-);
-console.log("NO ACRL RUNTIME = PASS");
+console.log("F05 PROJECT & COLLECTION CONTRACT GATE = PASS");
+console.log(`FILES VERIFIED = ${requiredFiles.length}`);
+console.log("PROJECT CATALOGUE + ROUTE = PASS");
+console.log("SEO + NOT-FOUND + ERROR RECOVERY = PASS");
+console.log("PROJECT MEDIA PREVIEW DISCLOSURE = PASS");
+console.log("INVENTORY DOES NOT CLAIM LIVE AVAILABILITY = PASS");
+console.log("PROPERTY LINK BOUNDARY = PASS");
+console.log("PROJECT DISCOVERY SEARCH DESTINATION = PASS");
 console.log("NO STATE.JSON RUNTIME = PASS");
+console.log("NO ACRL RUNTIME = PASS");
