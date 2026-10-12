@@ -1,4 +1,3 @@
-import Link from "next/link";
 import MyHomioFeatureCard, {
   type MyHomioFeatureData,
 } from "./MyHomioFeatureCard";
@@ -9,39 +8,38 @@ const journeyItems: MyHomioFeatureData[] = [
   {
     number: "01",
     title: "Saved properties",
-    description: "Keep the homes and projects you want to revisit.",
-    href: "/saved",
+    description:
+      "Preview how a list of properties could be organised for later review.",
   },
   {
     number: "02",
     title: "Saved searches",
-    description: "Return to searches without rebuilding your criteria.",
-    href: "/my",
+    description:
+      "Preview how consumers could return to previous search criteria.",
   },
   {
     number: "03",
     title: "Compare",
-    description: "Continue evaluating the properties on your shortlist.",
-    href: "/compare",
+    description:
+      "Preview the structure of a property comparison journey.",
   },
   {
     number: "04",
     title: "Upcoming visits",
-    description: "Stay on top of scheduled property visits and actions.",
-    href: "/my",
+    description:
+      "Preview how scheduled property visits could be presented.",
   },
   {
     number: "05",
     title: "Active conversations",
-    description: "Continue relevant HOMIO enquiries and communication.",
-    href: "/my",
+    description:
+      "Preview how property enquiry conversations could be organised.",
   },
   {
     number: "06",
     title: "Transaction journey",
     description:
-      "Follow important deal milestones when you move forward.",
-    href: "/my",
+      "Preview how transaction milestones could appear in one place.",
   },
 ];
 
@@ -57,15 +55,15 @@ export default function MyHomioSection() {
               <h2>Your property journey, in one place.</h2>
 
               <p>
-                Keep your saved properties, searches, comparisons, visits,
-                conversations and transaction actions connected.
+                This is a UI preview. Authentication, persistent saved items,
+                visits, conversations and transaction data are not connected
+                to these cards yet.
               </p>
             </div>
 
-            <Link href="/my" className={styles.open}>
-              Open My HOMIO
-              <span aria-hidden="true">↗</span>
-            </Link>
+            <span className={styles.open} aria-disabled="true">
+              My HOMIO preview
+            </span>
           </div>
 
           <div className={styles.grid}>
