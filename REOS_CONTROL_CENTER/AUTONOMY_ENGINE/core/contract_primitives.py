@@ -64,6 +64,22 @@ def deep_freeze(
     )
 
 
+def deep_thaw(value: Any) -> Any:
+    """Recursively convert frozen mappings and sequences to mutable containers."""
+    if isinstance(value, Mapping):
+        return {
+            key: deep_thaw(item)
+            for key, item in value.items()
+        }
+
+    if isinstance(value, (list, tuple)):
+        return [
+            deep_thaw(item)
+            for item in value
+        ]
+
+    return value
+
 def canonicalize(value: Any) -> Any:
     """Convert contract data to deterministic JSON-compatible form."""
     if isinstance(value, UUID):
@@ -159,6 +175,7 @@ __all__ = [
     "canonical_json",
     "canonicalize",
     "deep_freeze",
+    "deep_thaw",
     "fingerprint",
     "require_positive_version",
     "require_same_scope",
