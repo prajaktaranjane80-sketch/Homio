@@ -80,9 +80,11 @@ export default function SearchShell() {
         searchStateFromParams(params),
       );
 
-      // URL hydration occurs only on mount and browser history navigation.
+      // URL hydration is intentional when mounting or navigating history.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setState(incoming);
+
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDraftFilters(incoming.filters);
 
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -164,23 +166,27 @@ export default function SearchShell() {
   function changeIntent(intent: SearchIntent) {
     setSelectedId(undefined);
 
+    const nextFilters = createEmptySearchFilters();
+
     setState((current) => ({
       ...current,
       intent,
-      filters: createEmptySearchFilters(),
+      filters: nextFilters,
       sort: "relevance",
       viewMode: intent === "projects" ? "list" : current.viewMode,
       page: 1,
     }));
 
-    setDraftFilters(createEmptySearchFilters());
+    setDraftFilters(nextFilters);
   }
 
   function changeLocation(value: string) {
-    const location = value.trim()
+    const normalized = value.trim();
+
+    const location = normalized
       ? {
-          label: value,
-          city: value,
+          label: normalized,
+          city: normalized,
         }
       : undefined;
 
@@ -198,6 +204,8 @@ export default function SearchShell() {
       ...next,
       page: 1,
     });
+
+    setSelectedId(undefined);
   }
 
   function toggleSaved(result: SearchResultCardData) {
@@ -236,6 +244,7 @@ export default function SearchShell() {
       sort: nextSort,
       page: 1,
     }));
+
     setSelectedId(undefined);
   }
 
@@ -268,7 +277,7 @@ export default function SearchShell() {
       <div className="homio-container">
         <SearchHeader
           title="Search HOMIO properties."
-          description="Search available property and project experience previews. Prices, availability, images and verification remain non-authoritative until connected to approved inventory data."
+          description="Search property and project experience previews. Prices, availability, imagery and verification remain non-authoritative until connected to approved inventory data."
         />
 
         <div style={{ marginTop: 22, marginBottom: 14 }}>
@@ -300,6 +309,7 @@ export default function SearchShell() {
                 aria-expanded={filterOpen}
               >
                 Filters
+
                 {activeFilters > 0 ? (
                   <span className={styles.filterBadge}>
                     {activeFilters}
@@ -323,6 +333,7 @@ export default function SearchShell() {
                   value={state.sort}
                   onChange={changeSort}
                 />
+
                 <SearchViewToggle
                   value={state.viewMode}
                   onChange={changeView}
@@ -371,10 +382,10 @@ export default function SearchShell() {
 
             <span>
               {hasNoCatalogueForIntent
-                ? "HOMIO is not inventing commercial or land listings to fill the gap. This intent needs suitable source records before results can be shown."
+                ? "HOMIO is not inventing commercial or land listings to fill the gap. Suitable source records are required before those results can be shown."
                 : priceSortActive
                   ? `Price sorting is scoped to ${state.filters.budgetCurrency}. Change the budget currency in Filters or choose Relevance.`
-                  : "Try another location or clear refinements. A missing price, area, amenity or verification fact is not treated as a match."}
+                  : "Try another location or clear refinements. Missing price, area, amenity or verification facts are not assumed to be a match."}
             </span>
           </div>
         )}
