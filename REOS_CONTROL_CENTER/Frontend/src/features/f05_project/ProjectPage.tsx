@@ -33,7 +33,7 @@ export default function ProjectPage({
           <span aria-hidden="true">›</span>
           <Link href="/search">Search</Link>
           <span aria-hidden="true">›</span>
-          <span>{project.shortName}</span>
+          <span aria-current="page">{project.shortName}</span>
         </nav>
 
         <div className={styles.heroGrid}>
