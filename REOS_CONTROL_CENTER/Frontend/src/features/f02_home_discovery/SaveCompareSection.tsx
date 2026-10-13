@@ -76,12 +76,17 @@ export default function SaveCompareSection() {
               {savedItems.map((item) => (
                 <article key={item.title} className={styles.savedItem}>
                   <div className={styles.itemImageWrap}>
-                    <img
-                      src={item.image}
-                      alt=""
-                      className={styles.itemImage}
-                      loading="lazy"
-                    />
+                    
+                  <Image
+                    src={item.image}
+                    width={164}
+                    height={144}
+                    sizes="82px"
+                    alt=""
+                    className={styles.itemImage}
+                    loading="lazy"
+                  />
+
                   </div>
 
                   <div className={styles.itemBody}>
