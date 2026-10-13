@@ -8,6 +8,12 @@ type ProjectInventoryProps = Readonly<{
   opportunities: ProjectOpportunity[];
 }>;
 
+function isPreviewOpportunity(item: ProjectOpportunity): boolean {
+  return /preview|illustrative|not verified|not connected|not supplied/i.test(
+    `${item.status} ${item.context}`,
+  );
+}
+
 export default function ProjectInventory({
   projectId,
   opportunities,
@@ -19,12 +25,9 @@ export default function ProjectInventory({
       aria-labelledby="project-inventory-title"
     >
       <div className={styles.header}>
-        <div>
-          <span
-            className={styles.eyebrow}
-            aria-label="Project preview opportunities"
-          >
-            PROJECT PREVIEW OPPORTUNITIES
+        <div className={styles.heading}>
+          <span className={styles.eyebrow}>
+            Project preview opportunities
           </span>
 
           <h2 id="project-inventory-title">
@@ -32,7 +35,7 @@ export default function ProjectInventory({
           </h2>
 
           <p>
-            These are experience-preview records, not live inventory.
+            These records are experience previews, not live inventory.
             Availability, price and verification are not asserted.
             A property opens only when an existing property reference
             is supplied for that opportunity.
@@ -46,64 +49,80 @@ export default function ProjectInventory({
 
       {opportunities.length > 0 ? (
         <div className={styles.grid}>
-          {opportunities.map((item) => (
-            <article key={item.id} className={styles.card}>
-              <div className={styles.media}>
-                <span>OPPORTUNITY PREVIEW</span>
-                <strong>{item.configuration}</strong>
-              </div>
+          {opportunities.map((item) => {
+            const preview = isPreviewOpportunity(item);
 
-              <div className={styles.body}>
-                <span className={styles.status}>
-                  {item.status}
-                </span>
+            return (
+              <article key={item.id} className={styles.card}>
+                <div className={styles.media} aria-hidden="true">
+                  <span className={styles.mediaLabel}>
+                    {preview
+                      ? "ILLUSTRATIVE · PREVIEW ONLY"
+                      : "PROJECT OPPORTUNITY"}
+                  </span>
 
-                <h3>{item.title}</h3>
+                  <strong className={styles.configuration}>
+                    {preview
+                      ? "Example configuration"
+                      : item.configuration}
+                  </strong>
 
-                <p>{item.context}</p>
-
-                <div className={styles.meta}>
-                  <div>
-                    <span>Displayed value</span>
-                    <strong>{item.price}</strong>
-                  </div>
-
-                  <div>
-                    <span>Area</span>
-                    <strong>{item.area}</strong>
-                  </div>
+                  <span className={styles.mediaMark}>H</span>
                 </div>
 
-                {item.href ? (
-                  <Link href={item.href} className={styles.action}>
-                    Open property →
-                  </Link>
-                ) : (
-                  <span
-                    className={styles.disabledAction}
-                    aria-disabled="true"
-                  >
-                    Preview only · no property link
+                <div className={styles.body}>
+                  <span className={styles.status}>
+                    {preview ? "Experience preview" : item.status}
                   </span>
-                )}
-              </div>
-            </article>
-          ))}
+
+                  <h3>
+                    {preview
+                      ? "Illustrative property opportunity"
+                      : item.title}
+                  </h3>
+
+                  <p>
+                    {preview
+                      ? "Demonstration content only. No live offer or availability is represented."
+                      : item.context}
+                  </p>
+
+                  <div className={styles.meta}>
+                    <div>
+                      <span>Displayed value</span>
+                      <strong>
+                        {preview ? "Preview only" : item.price}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>Area</span>
+                      <strong>
+                        {preview ? "Preview only" : item.area}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {item.href ? (
+                    <Link href={item.href} className={styles.action}>
+                      Open property preview
+                      <span aria-hidden="true">→</span>
+                    </Link>
+                  ) : (
+                    <span className={styles.disabledAction}>
+                      Preview only · no property link
+                    </span>
+                  )}
+                </div>
+              </article>
+            );
+          })}
         </div>
       ) : (
-        <p
-          style={{
-            marginTop: 20,
-            padding: 20,
-            border: "1px dashed #d5dbe2",
-            borderRadius: 12,
-            color: "#667085",
-            fontSize: 13,
-            lineHeight: 1.6,
-          }}
-        >
-          No project opportunity records are supplied for this preview.
-          No placeholder inventory has been generated.
+        <p className={styles.emptyState}>
+          No project opportunity records are connected to this preview.
+          Confirmed opportunities will appear when an approved source
+          provides them. No placeholder inventory has been generated.
         </p>
       )}
     </section>
