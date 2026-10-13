@@ -100,12 +100,17 @@ export default function VerifiedProperties() {
                 aria-label={`View preview of ${property.title}`}
               >
                 <div className={styles.imageWrap}>
-                  <img
+                  
+                  <Image
                     src={property.image}
+                    width={1400}
+                    height={1050}
+                    sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 33vw"
                     alt={`Illustrative property image for ${property.title}`}
                     className={styles.image}
                     loading="lazy"
                   />
+
 
                   <span className={styles.previewBadge}>
                     <span
