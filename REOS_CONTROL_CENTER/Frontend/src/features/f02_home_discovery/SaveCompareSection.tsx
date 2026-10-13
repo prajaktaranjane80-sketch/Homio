@@ -133,11 +133,17 @@ export default function SaveCompareSection() {
                     key={`${item.title}-${index}`}
                     className={styles.compareCard}
                   >
-                    <img
+                   
+                    <Image
                       src={item.image}
+                      width={600}
+                      height={450}
+                      sizes="(max-width: 560px) 26vw, 15vw"
                       alt=""
                       className={styles.compareImage}
+                      loading="lazy"
                     />
+
 
                     <span>{index + 1}</span>
                   </div>
