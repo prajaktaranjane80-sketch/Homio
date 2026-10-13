@@ -8,7 +8,6 @@ const SECTION_REDIRECTS: Record<string, string> = {
   "/services": "/#services",
   "/tools": "/#tools",
   "/trust": "/#trust",
-  "/my": "/#my-homio",
   "/saved": "/#save-compare",
   "/compare": "/#save-compare",
   "/pro": "/#post-property",
@@ -24,10 +23,8 @@ const MARKET_CITIES: Record<string, string> = {
 
 function findSectionRedirect(pathname: string): string | undefined {
   const matchedRoute = Object.keys(SECTION_REDIRECTS).find(
-    (route) =>
-      pathname === route || pathname.startsWith(`${route}/`),
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
   );
-
   return matchedRoute ? SECTION_REDIRECTS[matchedRoute] : undefined;
 }
 
@@ -38,20 +35,13 @@ export function proxy(request: NextRequest) {
     const citySlug = pathname.split("/").filter(Boolean)[1]?.toLowerCase();
     const destination = new URL("/search", request.url);
     const city = citySlug ? MARKET_CITIES[citySlug] : undefined;
-
-    if (city) {
-      destination.searchParams.set("city", city);
-    }
-
+    if (city) destination.searchParams.set("city", city);
     return NextResponse.redirect(destination);
   }
 
   const sectionDestination = findSectionRedirect(pathname);
-
   if (sectionDestination) {
-    return NextResponse.redirect(
-      new URL(sectionDestination, request.url),
-    );
+    return NextResponse.redirect(new URL(sectionDestination, request.url));
   }
 
   return NextResponse.next();
@@ -69,8 +59,6 @@ export const config = {
     "/tools/:path*",
     "/trust",
     "/trust/:path*",
-    "/my",
-    "/my/:path*",
     "/saved",
     "/saved/:path*",
     "/compare",

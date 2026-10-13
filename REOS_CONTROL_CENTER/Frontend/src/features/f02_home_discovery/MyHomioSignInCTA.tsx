@@ -1,20 +1,21 @@
+import Link from "next/link";
+
 import styles from "./MyHomioSignInCTA.module.css";
 
 export default function MyHomioSignInCTA() {
   return (
     <div className={styles.wrapper}>
       <div>
-        <strong>Pick up where you left off.</strong>
-
+        <strong>Your property journey, connected to your account.</strong>
         <p>
-          Persistent account access is planned for the My HOMIO journey.
-          Sign-in and synchronisation are not enabled in this preview.
+          Sign in to open My HOMIO. Saved properties and searches will sync here
+          when their authorized persistence services are connected.
         </p>
       </div>
-
-      <span aria-disabled="true">
-        Sign-in not active in this preview
-      </span>
+      <div className={styles.actions}>
+        <Link href="/login">Sign in</Link>
+        <Link className={styles.secondary} href="/signup">Create account</Link>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,102 @@
+.page {
+  width: min(100% - 2rem, 1180px);
+  margin: 0 auto;
+  padding-block: clamp(3rem, 8vw, 7rem);
+}
+
+.card {
+  width: min(100%, 560px);
+  margin-inline: auto;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid var(--homio-border);
+  border-radius: var(--radius-xl);
+  background: var(--homio-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.eyebrow {
+  color: var(--homio-accent);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.card h1 {
+  margin: var(--space-3) 0 0;
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.intro {
+  margin: var(--space-4) 0 0;
+  color: var(--homio-text-soft);
+  line-height: 1.7;
+}
+
+.actions {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--homio-border);
+  border-radius: var(--radius-pill);
+  padding: 0.75rem 1.25rem;
+  font-size: var(--text-sm);
+  font-weight: 750;
+  text-align: center;
+  text-decoration: none;
+}
+
+.primary {
+  width: 100%;
+  border-color: var(--homio-brand);
+  background: var(--homio-brand);
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.secondary {
+  background: var(--homio-surface);
+  color: var(--homio-text);
+}
+
+.status {
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  border: 1px solid var(--homio-border);
+  border-radius: var(--radius-lg);
+  background: var(--homio-surface-soft);
+  color: var(--homio-text-soft);
+  font-size: var(--text-sm);
+  line-height: 1.65;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-6);
+  font-size: var(--text-sm);
+}
+
+.links a {
+  color: var(--homio-accent);
+  font-weight: 700;
+}
+
+@media (max-width: 520px) {
+  .page {
+    width: min(100% - 1rem, 1180px);
+    padding-block: 2rem;
+  }
+}

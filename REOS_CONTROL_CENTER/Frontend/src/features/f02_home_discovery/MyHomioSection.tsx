@@ -9,37 +9,37 @@ const journeyItems: MyHomioFeatureData[] = [
     number: "01",
     title: "Saved properties",
     description:
-      "Preview how a list of properties could be organised for later review.",
+      "Your selected homes and spaces, once the account persistence service is connected.",
   },
   {
     number: "02",
     title: "Saved searches",
     description:
-      "Preview how consumers could return to previous search criteria.",
+      "Return to previous search criteria after search synchronisation is enabled.",
   },
   {
     number: "03",
     title: "Compare",
     description:
-      "Preview the structure of a property comparison journey.",
+      "Review shortlisted properties when the comparison service is connected.",
   },
   {
     number: "04",
     title: "Upcoming visits",
     description:
-      "Preview how scheduled property visits could be presented.",
+      "See confirmed visit details after the visits service becomes available.",
   },
   {
     number: "05",
     title: "Active conversations",
     description:
-      "Preview how property enquiry conversations could be organised.",
+      "Keep enquiry conversations together when the messaging service is connected.",
   },
   {
     number: "06",
     title: "Transaction journey",
     description:
-      "Preview how transaction milestones could appear in one place.",
+      "Follow authorized transaction milestones when the transaction service is connected.",
   },
 ];
 
@@ -51,27 +51,22 @@ export default function MyHomioSection() {
           <div className={styles.header}>
             <div>
               <span className={styles.eyebrow}>MY HOMIO</span>
-
               <h2>Your property journey, in one place.</h2>
-
               <p>
-                This is a UI preview. Authentication, persistent saved items,
-                visits, conversations and transaction data are not connected
-                to these cards yet.
+                Sign in to your HOMIO account. The cards below describe planned account features;
+                saved items, visits, conversations and transaction records are not yet backed by
+                connected persistence services.
               </p>
             </div>
-
             <span className={styles.open} aria-disabled="true">
-              My HOMIO preview
+              Account features
             </span>
           </div>
-
           <div className={styles.grid}>
             {journeyItems.map((item) => (
               <MyHomioFeatureCard key={item.number} item={item} />
             ))}
           </div>
-
           <MyHomioSignInCTA />
         </div>
       </div>

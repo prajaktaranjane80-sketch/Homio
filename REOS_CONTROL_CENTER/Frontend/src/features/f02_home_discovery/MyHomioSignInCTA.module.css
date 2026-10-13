@@ -17,31 +17,46 @@
 
 .wrapper p {
   margin: 5px 0 0;
-  color: rgba(255, 255, 255, 0.62);
+  color: rgba(255, 255, 255, 0.78);
   font-size: var(--text-sm);
+  line-height: 1.6;
 }
 
-.wrapper a {
-  display: inline-flex;
+.actions {
+  display: flex;
   flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.wrapper .actions a {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 44px;
   padding-inline: var(--space-5);
+  border: 1px solid #fff;
   border-radius: var(--radius-pill);
   background: #fff;
   color: var(--homio-text);
   font-size: var(--text-sm);
   font-weight: 700;
+  text-decoration: none;
 }
 
-@media (max-width: 620px) {
+.wrapper .actions .secondary {
+  background: transparent;
+  color: #fff;
+}
+
+@media (max-width: 720px) {
   .wrapper {
-    align-items: flex-start;
+    align-items: stretch;
     flex-direction: column;
   }
 
-  .wrapper a {
-    width: 100%;
-    justify-content: center;
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 }
