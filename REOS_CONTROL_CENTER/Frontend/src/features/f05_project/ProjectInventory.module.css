@@ -8,85 +8,164 @@
 
 .header {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 24px;
 }
 
+.heading {
+  min-width: 0;
+}
+
 .eyebrow {
-  color: #89929d;
+  color: #667481;
   font-size: 10px;
   font-weight: 900;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
 }
 
 .header h2 {
   margin: 8px 0 0;
   color: #17212b;
-  font-size: 25px;
+  font-size: clamp(22px, 2.4vw, 28px);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
 }
 
 .header p {
   max-width: 700px;
-  margin: 9px 0 0;
-  color: #697480;
+  margin: 10px 0 0;
+  color: #596674;
   font-size: 13px;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 .projectRef {
   flex: 0 0 auto;
-  color: #89929d;
+  max-width: 220px;
+  padding: 9px 11px;
+  border: 1px solid #e6eaee;
+  border-radius: 9px;
+  background: #f8f9fa;
+  color: #65717d;
   font-size: 10px;
-  font-weight: 700;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
-  margin-top: 22px;
+  margin-top: 24px;
 }
 
 .card {
+  min-width: 0;
   overflow: hidden;
-  border: 1px solid #e5e8ec;
+  border: 1px solid #e2e7eb;
   border-radius: 16px;
   background: #ffffff;
+  box-shadow: 0 5px 18px rgba(23, 33, 43, 0.035);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.card:hover {
+  border-color: #c9d2da;
+  box-shadow: 0 12px 30px rgba(23, 33, 43, 0.07);
+  transform: translateY(-2px);
 }
 
 .media {
-  min-height: 150px;
+  position: relative;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  padding: 16px;
+  min-height: 154px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 12px;
+  overflow: hidden;
+  padding: 18px;
   background:
-    linear-gradient(
-      135deg,
-      #eef1f3,
-      #d8dde1
-    );
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.25) 0 1px,
+      transparent 1px 32px
+    ),
+    radial-gradient(
+      ellipse at 76% 15%,
+      #ffffff 0,
+      transparent 45%
+    ),
+    linear-gradient(135deg, #e9eef1, #ced9df);
 }
 
-.media span {
-  color: #67727d;
+.media::before {
+  position: absolute;
+  right: 14%;
+  bottom: 0;
+  width: 36%;
+  height: 72%;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-bottom: 0;
+  border-radius: 42% 42% 0 0 / 16% 16% 0 0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 18px,
+      rgba(255, 255, 255, 0.48) 18px 20px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 24px,
+      rgba(255, 255, 255, 0.35) 24px 26px
+    ),
+    linear-gradient(145deg, #edf2f4, #cbd7de);
+  content: "";
+}
+
+.mediaLabel,
+.configuration {
+  position: relative;
+  z-index: 1;
+}
+
+.mediaLabel {
+  max-width: 100%;
+  color: #53616e;
   font-size: 9px;
   font-weight: 900;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.06em;
+  line-height: 1.5;
 }
 
-.media strong {
+.configuration {
   color: #17212b;
   font-size: 18px;
+  line-height: 1.3;
+}
+
+.mediaMark {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  color: rgba(23, 33, 43, 0.12);
+  font-size: 48px;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .body {
-  padding: 18px;
+  padding: 19px;
 }
 
 .status {
-  color: #89929d;
-  font-size: 9px;
+  color: #65717d;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.04em;
 }
@@ -95,86 +174,135 @@
   margin: 8px 0 0;
   color: #17212b;
   font-size: 17px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .body p {
-  margin: 7px 0 0;
-  color: #697480;
+  min-height: 57px;
+  margin: 8px 0 0;
+  color: #596674;
   font-size: 12px;
-  line-height: 1.55;
+  line-height: 1.65;
 }
 
 .meta {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  margin-top: 15px;
+  margin-top: 16px;
 }
 
 .meta div {
-  padding: 10px;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid #edf0f2;
   border-radius: 10px;
-  background: #f6f7f9;
+  background: #f7f8fa;
 }
 
 .meta span {
   display: block;
-  color: #8a949e;
-  font-size: 8px;
+  color: #65717d;
+  font-size: 9px;
+  font-weight: 700;
 }
 
 .meta strong {
   display: block;
-  margin-top: 4px;
+  margin-top: 5px;
   color: #34414d;
-  font-size: 11px;
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .action,
 .disabledAction {
   display: inline-flex;
   width: 100%;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
-  margin-top: 14px;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 12px;
   border-radius: 9px;
   font-size: 11px;
   font-weight: 800;
+  line-height: 1.45;
+  text-align: center;
   text-decoration: none;
 }
 
 .action {
+  border: 1px solid #17212b;
   background: #17212b;
   color: #ffffff;
 }
 
-.disabledAction {
-  background: #f1f3f5;
-  color: #8a949e;
+.action:hover {
+  border-color: #344657;
+  background: #344657;
 }
 
-@media (max-width: 860px) {
-  .grid {
-    grid-template-columns: 1fr 1fr;
+.action:focus-visible {
+  outline: 3px solid #6b9fd1;
+  outline-offset: 3px;
+}
+
+.disabledAction {
+  background: #f1f3f5;
+  color: #65717d;
+}
+
+.emptyState {
+  margin: 22px 0 0;
+  padding: 20px;
+  border: 1px dashed #d3dce4;
+  border-radius: 12px;
+  background: #f8fafb;
+  color: #53616e;
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+
+  .card:hover {
+    transform: none;
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
   .section {
     padding: 22px;
+    border-radius: 16px;
   }
 
   .header {
-    display: block;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .projectRef {
-    display: block;
-    margin-top: 10px;
+    max-width: 100%;
   }
 
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .body p {
+    min-height: 0;
   }
 }
