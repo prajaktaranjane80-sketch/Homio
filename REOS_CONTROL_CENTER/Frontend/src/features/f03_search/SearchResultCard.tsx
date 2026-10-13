@@ -99,12 +99,17 @@ export default function SearchResultCard({
           aria-label={`Open ${property.title}`}
         >
           {property.image ? (
-            <img
+            
+            <Image
               src={property.image}
+              width={1400}
+              height={875}
+              sizes="(max-width: 640px) 100vw, (max-width: 1000px) 50vw, 36vw"
               alt={`${property.imageLabel ?? "Illustrative preview image"} for ${property.title}; not verified property photography`}
               className={styles.image}
               loading="lazy"
             />
+
           ) : (
             <div
               className={styles.image}
