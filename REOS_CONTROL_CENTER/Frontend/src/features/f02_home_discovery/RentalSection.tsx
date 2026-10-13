@@ -59,11 +59,16 @@ export default function RentalSection() {
         <div className={styles.content}>
           <div className={styles.feature}>
             <div className={styles.featureImage}>
-              <img
-                src={rentals[0].image}
-                alt={rentals[0].title}
-                loading="lazy"
-              />
+              
+            <Image
+              src={rentals[0].image}
+              width={1400}
+              height={875}
+              sizes="(max-width: 950px) 100vw, 55vw"
+              alt={rentals[0].title}
+              loading="lazy"
+            />
+
 
               <span className={styles.furnished}>Furnished</span>
             </div>
@@ -91,11 +96,16 @@ export default function RentalSection() {
               <article key={rental.title} className={styles.card}>
                 <Link href={rental.href} className={styles.cardImageLink}>
                   <div className={styles.cardImage}>
-                    <img
+                    
+                    <Image
                       src={rental.image}
+                      width={900}
+                      height={900}
+                      sizes="(max-width: 650px) 100vw, 35vw"
                       alt={rental.title}
                       loading="lazy"
                     />
+
                   </div>
                 </Link>
 
