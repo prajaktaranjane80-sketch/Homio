@@ -1,111 +1,117 @@
-PS C:\Users\Sandip RanjanePatil> ```powershell
-`powershell : The term '`powershell' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the
-name, or if a path was included, verify that the path is correct and try again.
+=== LATEST FRONTEND CI RUNS ===
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $runs = Invoke-RestMethod `
+>>     -Uri "https://api.github.com/repos/$repo/actions/runs?branch=reos-development&per_page=10" `
+>>     -Headers $headers
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $runs.workflow_runs |
+>>     Select-Object -First 10 run_number, display_title, status, conclusion, head_sha, html_url |
+>>     Format-Table -Wrap
+
+run_number display_title                      status    conclusion head_sha                                 html_url
+---------- -------------                      ------    ---------- --------                                 --------
+       172 Update ProjectInventory.module.css completed failure    f97089d3f33a0d1081750f3bffa6db4d145817d1 https://github.com/prajaktaranjane80-sketch/Hom
+                                                                                                            io/actions/runs/38422189977
+       171 Update ProjectNextStep.module.css  completed failure    524b4ae2bcd16d7fc46b3feb2367869c3d4ad7f9 https://github.com/prajaktaranjane80-sketch/Hom
+                                                                                                            io/actions/runs/38422101932
+       170 Update ProjectInventory.tsx        completed failure    46789ca2de88db26495c395a4d1c6a6c09e2e8ea https://github.com/prajaktaranjane80-sketch/Hom
+                                                                                                            io/actions/runs/38421875721
+       169 Update ProjectInventory.tsx        completed failure    09188a69fac59baab9010be549c2b7db430d3df7 https://github.com/prajaktaranjane80-sketch/Hom
+                                                                                                            io/actions/runs/38421534997
+       168 Update ProjectPage.module.css      completed failure    348ffe22ca26e9f6374a7cd37c1c59864dc0f111 https://github.com/prajaktaranjane80-sketch/Hom
+                                                                                                            io/actions/runs/38421218899
+       167 Update ProjectPage.tsx             completed failure    eed819686ef69f51addc664d0c35aa29a0e17ac3 https://github.com/prajaktaranjane80-sketch/Hom
+                                                                                                            io/actions/runs/38420914591
+       166 Update ProjectActions.module.css   completed failure    40e1eda19439aedbe53ffe1d7ae6c9e6539db889 https://github.com/prajaktaranjane80-sketch/Hom
+                                                                                                            io/actions/runs/38420489038
+       165 Update ProjectActions.tsx          completed cancelled  365928cb082938d1ed229412c1c17ba3ce494706 https://github.com/prajaktaranjane80-sketch/Hom
+                                                                                                            io/actions/runs/38420431500
+       164 Update ProjectFacts.tsx            completed failure    97901dd6b3850951dfa8c90e0b02ec502142cf7e https://github.com/prajaktaranjane80-sketch/Hom
+                                                                                                            io/actions/runs/38419895768
+       163 Update SearchResultCard.tsx        completed failure    fcec9c81ee5f39f41a2ac87afba0f24d8d5669a8 https://github.com/prajaktaranjane80-sketch/Hom
+                                                                                                            io/actions/runs/38419691866
+
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $run = $runs.workflow_runs |
+>>     Where-Object { $_.conclusion -eq "failure" } |
+>>     Select-Object -First 1
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $run) {
+>>     Write-Host "No failed run found in the latest 10 runs." -ForegroundColor Yellow
+>>     return
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== INSPECTING FAILED RUN #$($run.run_number) ===" -ForegroundColor Cyan
+
+=== INSPECTING FAILED RUN #172 ===
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host $run.html_url
+https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/38422189977
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $jobs = Invoke-RestMethod `
+>>     -Uri "https://api.github.com/repos/$repo/actions/runs/$($run.id)/jobs?per_page=20" `
+>>     -Headers $headers
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $job = $jobs.jobs |
+>>     Where-Object { $_.conclusion -eq "failure" } |
+>>     Select-Object -First 1
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $job) {
+>>     Write-Host "Failed job details were not returned." -ForegroundColor Yellow
+>>     return
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`nFailed job: $($job.name)"
+
+Failed job: Frontend verification
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Job ID: $($job.id)"
+Job ID: 115382136891
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $tempRoot = Join-Path $env:TEMP "HOMIO-CI-Diagnostics-$($run.run_number)"
+PS D:\Homio\REOS_CONTROL_CENTER> $zipPath = Join-Path $tempRoot "failed-logs.zip"
+PS D:\Homio\REOS_CONTROL_CENTER> $extractPath = Join-Path $tempRoot "logs"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Invoke-WebRequest `
+>>     -Uri "https://api.github.com/repos/$repo/actions/jobs/$($job.id)/logs" `
+>>     -Headers $headers `
+>>     -OutFile $zipPath `
+>>     -UseBasicParsing
+Invoke-WebRequest : {"message":"Must have admin rights to
+Repository.","documentation_url":"https://docs.github.com/rest/actions/workflow-jobs#download-job-logs-for-a-workflow-run","status":"403"}
 At line:1 char:1
-+ ```powershell
-+ ~~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (`powershell:String) [], CommandNotFoundException
-    + FullyQualifiedErrorId : CommandNotFoundException
-
-PS C:\Users\Sandip RanjanePatil> Set-Location "D:\HOMIO_FRONTEND_VERIFY_02"
-PS D:\HOMIO_FRONTEND_VERIFY_02>
-PS D:\HOMIO_FRONTEND_VERIFY_02> Write-Host "`n=== REMOTE F03 SEARCH FILES ==="
-
-=== REMOTE F03 SEARCH FILES ===
-PS D:\HOMIO_FRONTEND_VERIFY_02> git ls-tree -r --name-only origin/reos-development -- "REOS_CONTROL_CENTER/Frontend/src/features/f03_search/"
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/PopularSearches.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/PopularSearches.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/README.md
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/RecentSearches.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/RecentSearches.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SavedSearches.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SavedSearches.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchActions.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchActions.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchAdvancedFilters.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchAdvancedFilters.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchAmenityFilter.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchAmenityFilter.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchAreaFilter.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchAreaFilter.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchBedroomFilter.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchBedroomFilter.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchBudgetFilter.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchBudgetFilter.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchBuilderFilter.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchBuilderFilter.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchEmptyState.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchEmptyState.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchErrorState.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchErrorState.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchFilterDrawer.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchFilterDrawer.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchFurnishingFilter.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchFurnishingFilter.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchHeader.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchHeader.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchIntentTabs.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchIntentTabs.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchListView.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchListView.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchLoadingState.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchLoadingState.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchLocationField.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchLocationField.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchMapView.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchMapView.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchPagination.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchPagination.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchPossessionFilter.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchPossessionFilter.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchProjectFilter.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchProjectFilter.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchPropertyStatus.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchPropertyStatus.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchPropertyType.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchPropertyType.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchResultCard.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchResultCard.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchResultCount.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchResultCount.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchResults.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchResults.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchShell.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchShell.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchSortBar.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchSortBar.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchSuggestionPanel.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchSuggestionPanel.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchSummary.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchSummary.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchVerificationFilter.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchVerificationFilter.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchViewToggle.module.css
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchViewToggle.tsx
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/search.constants.ts
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/search.types.ts
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/search.utils.ts
-PS D:\HOMIO_FRONTEND_VERIFY_02>
-PS D:\HOMIO_FRONTEND_VERIFY_02> Write-Host "`n=== LOCAL F03 SEARCH FILES ==="
-
-=== LOCAL F03 SEARCH FILES ===
-PS D:\HOMIO_FRONTEND_VERIFY_02> git ls-files -- "REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchFurnishingFilter*"
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchFurnishingFilter.mod
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchFurnishingFilter.ts
-REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchFurnishingFilter.tsx
-PS D:\HOMIO_FRONTEND_VERIFY_02>
-PS D:\HOMIO_FRONTEND_VERIFY_02> Write-Host "`n=== LOCAL AND REMOTE COMMITS ==="
-
-=== LOCAL AND REMOTE COMMITS ===
-PS D:\HOMIO_FRONTEND_VERIFY_02> git rev-parse HEAD
-9b1c96687f0c5c6dac388c2609ad9350d0ad4268
-PS D:\HOMIO_FRONTEND_VERIFY_02> git rev-parse origin/reos-development
-fe869663128678c156e8eecbcfe18d3e9dcdc144
-PS D:\HOMIO_FRONTEND_VERIFY_02> ```
-`` : The term '``' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was
-included, verify that the path is correct and try again.
++ Invoke-WebRequest `
++ ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-WebRequest], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeWebRequestCommand
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Expand-Archive -LiteralPath $zipPath -DestinationPath $extractPath -Force
+Expand-Archive : The path 'C:\Users\SANDIP~1\AppData\Local\Temp\HOMIO-CI-Diagnostics-172\failed-logs.zip' either does not exist or is not a valid file
+system path.
 At line:1 char:1
-+ ```
-+ ~~~
-    + CategoryInfo          : ObjectNotFound: (``:String) [], CommandNotFoundException
-    + FullyQualifiedErrorId : CommandNotFoundException
++ Expand-Archive -LiteralPath $zipPath -DestinationPath $extractPath -F ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidArgument: (C:\Users\SANDIP...failed-logs.zip:String) [Expand-Archive], InvalidOperationException
+    + FullyQualifiedErrorId : ArchiveCmdletPathNotFound,Expand-Archive
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== TYPESCRIPT / BUILD / LINT ERRORS ===" -ForegroundColor Cyan
+
+=== TYPESCRIPT / BUILD / LINT ERRORS ===
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $matches = Get-ChildItem $extractPath -Recurse -File |
+>>     Select-String -Pattern '##\[error\]|error TS\d+|Type error:|Module not found|Failed to compile|Build failed|ELIFECYCLE|problems \(' -Context 1,2
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($matches) {
+>>     $matches | Select-Object -First 80 | ForEach-Object {
+>>         Write-Host "`n$($_.Path):$($_.LineNumber)" -ForegroundColor Yellow
+>>         Write-Host $_.Line
+>>         $_.Context.PreContext | ForEach-Object { Write-Host $_ }
+>>         $_.Context.PostContext | ForEach-Object { Write-Host $_ }
+>>     }
+>> } else {
+>>     Write-Host "No matching error lines found. Open the run URL above for full details."
+>> }
+No matching error lines found. Open the run URL above for full details.
+PS D:\Homio\REOS_CONTROL_CENTER>
