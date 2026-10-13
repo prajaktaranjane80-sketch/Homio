@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -28,31 +29,27 @@ export default function ProjectActions({
           url,
         });
 
-        setShareMessage("Project share completed.");
+        setShareMessage("The share request completed.");
         return;
       }
 
-      if (
-        typeof navigator.clipboard?.writeText === "function"
-      ) {
+      if (typeof navigator.clipboard?.writeText === "function") {
         await navigator.clipboard.writeText(url);
         setShareMessage("Project link copied to clipboard.");
         return;
       }
 
       setShareMessage(
-        "Sharing is unavailable here. Copy the page address from your browser.",
+        "Sharing is not supported here. Copy the page address from your browser.",
       );
     } catch (error) {
-      if (
-        error instanceof Error &&
-        error.name === "AbortError"
-      ) {
+      if (error instanceof Error && error.name === "AbortError") {
+        setShareMessage("Sharing cancelled.");
         return;
       }
 
       setShareMessage(
-        "The link could not be copied. Copy the page address from your browser.",
+        "The share could not be completed. Copy the page address from your browser instead.",
       );
     }
   }
@@ -65,26 +62,30 @@ export default function ProjectActions({
       <div className={styles.grid}>
         <button
           type="button"
-          className={
-            styles.secondary +
-            (saved ? ` ${styles.active}` : "")
-          }
+          className={`${styles.secondary}${saved ? ` ${styles.active}` : ""}`}
           aria-pressed={saved}
+          aria-label={
+            saved
+              ? "Remove project from this session's saved preview"
+              : "Save project for this session only"
+          }
           onClick={() => setSaved((value) => !value)}
         >
-          {saved ? "Saved" : "Save"}
+          {saved ? "Saved this session" : "Save"}
         </button>
 
         <button
           type="button"
-          className={
-            styles.secondary +
-            (compared ? ` ${styles.active}` : "")
-          }
+          className={`${styles.secondary}${compared ? ` ${styles.active}` : ""}`}
           aria-pressed={compared}
+          aria-label={
+            compared
+              ? "Remove project from this session's comparison"
+              : "Compare project for this session only"
+          }
           onClick={() => setCompared((value) => !value)}
         >
-          {compared ? "Compared" : "Compare"}
+          {compared ? "Compared this session" : "Compare"}
         </button>
 
         <button
@@ -95,10 +96,7 @@ export default function ProjectActions({
           Share
         </button>
 
-        <a
-          href="#inventory"
-          className={styles.primary}
-        >
+        <a href="#inventory" className={styles.primary}>
           Explore inventory
           <span aria-hidden="true">→</span>
         </a>
