@@ -15,30 +15,45 @@ export default function ProjectActions({
 }: ProjectActionsProps) {
   const [saved, setSaved] = useState(false);
   const [compared, setCompared] = useState(false);
+  const [shareMessage, setShareMessage] = useState("");
 
   async function shareProject() {
-    const url =
-      typeof window !== "undefined"
-        ? window.location.href
-        : "";
-
-    if (!url) {
-      return;
-    }
+    const url = window.location.href;
 
     try {
-      if (navigator.share) {
+      if (typeof navigator.share === "function") {
         await navigator.share({
           title: project.name,
           text: `Explore ${project.name} on HOMIO.`,
           url,
         });
+
+        setShareMessage("Project share completed.");
         return;
       }
 
-      await navigator.clipboard?.writeText(url);
-    } catch {
-      // Share cancellation or clipboard restrictions are non-fatal.
+      if (
+        typeof navigator.clipboard?.writeText === "function"
+      ) {
+        await navigator.clipboard.writeText(url);
+        setShareMessage("Project link copied to clipboard.");
+        return;
+      }
+
+      setShareMessage(
+        "Sharing is unavailable here. Copy the page address from your browser.",
+      );
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.name === "AbortError"
+      ) {
+        return;
+      }
+
+      setShareMessage(
+        "The link could not be copied. Copy the page address from your browser.",
+      );
     }
   }
 
@@ -50,26 +65,24 @@ export default function ProjectActions({
       <div className={styles.grid}>
         <button
           type="button"
-          className={`${styles.secondary} ${
-            saved ? styles.active : ""
-          }`}
-          aria-pressed={saved}
-          onClick={() =>
-            setSaved((value) => !value)
+          className={
+            styles.secondary +
+            (saved ? ` ${styles.active}` : "")
           }
+          aria-pressed={saved}
+          onClick={() => setSaved((value) => !value)}
         >
           {saved ? "Saved" : "Save"}
         </button>
 
         <button
           type="button"
-          className={`${styles.secondary} ${
-            compared ? styles.active : ""
-          }`}
-          aria-pressed={compared}
-          onClick={() =>
-            setCompared((value) => !value)
+          className={
+            styles.secondary +
+            (compared ? ` ${styles.active}` : "")
           }
+          aria-pressed={compared}
+          onClick={() => setCompared((value) => !value)}
         >
           {compared ? "Compared" : "Compare"}
         </button>
@@ -87,13 +100,24 @@ export default function ProjectActions({
           className={styles.primary}
         >
           Explore inventory
+          <span aria-hidden="true">→</span>
         </a>
       </div>
 
-      <div className={styles.note}>
-        Save, compare and share are temporary experience controls until
+      {shareMessage ? (
+        <p
+          className={styles.shareStatus}
+          role="status"
+          aria-live="polite"
+        >
+          {shareMessage}
+        </p>
+      ) : null}
+
+      <p className={styles.note}>
+        Save and compare are temporary experience controls until
         approved REOS persistence capabilities are connected.
-      </div>
+      </p>
     </section>
   );
 }
