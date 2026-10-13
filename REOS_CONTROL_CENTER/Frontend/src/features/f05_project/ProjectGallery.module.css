@@ -4,51 +4,112 @@
 
 .main {
   overflow: hidden;
-  border-radius: 22px;
   border: 1px solid #e1e6eb;
+  border-radius: 22px;
   background: #ffffff;
 }
 
 .mainVisual {
   position: relative;
-  min-height: 460px;
+  isolation: isolate;
   display: flex;
+  min-height: 460px;
   align-items: flex-end;
+  overflow: hidden;
   padding: 28px;
   background:
     radial-gradient(
-      circle at 70% 20%,
-      rgba(255, 255, 255, 0.75),
-      transparent 36%
+      ellipse at 78% 18%,
+      rgba(255, 255, 255, 0.88),
+      transparent 34%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.32) 0 1px,
+      transparent 1px 44px
     ),
     linear-gradient(
       135deg,
-      #dfe4e8 0%,
-      #edf0f2 46%,
-      #d4dbe0 100%
+      #dce4e8 0%,
+      #eef1f3 48%,
+      #cfd9df 100%
     );
 }
 
+.mainVisual::before {
+  position: absolute;
+  z-index: -1;
+  right: 11%;
+  bottom: 0;
+  width: 43%;
+  height: 76%;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-bottom: 0;
+  border-radius: 46% 46% 0 0 / 16% 16% 0 0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 24px,
+      rgba(255, 255, 255, 0.46) 24px 26px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 31px,
+      rgba(255, 255, 255, 0.38) 31px 33px
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.7),
+      rgba(112, 132, 146, 0.22)
+    );
+  box-shadow:
+    -70px 38px 0 -19px rgba(255, 255, 255, 0.35),
+    68px 48px 0 -23px rgba(109, 129, 144, 0.22);
+  content: "";
+}
+
+.mainVisual::after {
+  position: absolute;
+  z-index: -1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 22%;
+  background: linear-gradient(
+    0deg,
+    rgba(112, 130, 142, 0.18),
+    transparent
+  );
+  content: "";
+}
+
 .visualOverlay {
+  position: relative;
+  z-index: 1;
   display: grid;
   gap: 8px;
+  width: min(100%, 490px);
   padding: 18px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.85);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 32px rgba(23, 33, 43, 0.08);
   backdrop-filter: blur(10px);
 }
 
 .visualOverlay span {
-  color: #7b858f;
+  color: #53616e;
   font-size: 9px;
   font-weight: 900;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
+  line-height: 1.6;
 }
 
 .visualOverlay strong {
   color: #17212b;
   font-size: 16px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .grid {
@@ -59,42 +120,77 @@
 }
 
 .tile {
-  min-height: 94px;
+  position: relative;
   display: flex;
+  min-height: 94px;
   align-items: flex-end;
+  overflow: hidden;
   padding: 12px;
+  border: 1px solid #e0e6ea;
   border-radius: 12px;
   background:
-    linear-gradient(
-      135deg,
-      #eef1f3,
-      #d9dee2
-    );
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.42) 0 1px,
+      transparent 1px 26px
+    ),
+    radial-gradient(
+      ellipse at 78% 12%,
+      #ffffff 0,
+      transparent 42%
+    ),
+    linear-gradient(135deg, #edf1f3, #d6dfe4);
+}
+
+.tile:nth-child(2n) {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.34) 0 1px,
+      transparent 1px 24px
+    ),
+    linear-gradient(145deg, #e8edf0, #d0d9df);
 }
 
 .tile span {
+  position: relative;
+  z-index: 1;
   max-width: 100%;
-  overflow: hidden;
   color: #36424d;
   font-size: 10px;
   font-weight: 800;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .notice {
   margin-top: 10px;
-  color: #8a949e;
+  color: #53616e;
   font-size: 11px;
+  line-height: 1.7;
 }
 
 @media (max-width: 760px) {
   .mainVisual {
-    min-height: 300px;
+    min-height: 320px;
     padding: 18px;
   }
 
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .mainVisual {
+    min-height: 250px;
+  }
+
+  .visualOverlay {
+    padding: 15px;
+  }
+
+  .visualOverlay span {
+    font-size: 8px;
   }
 }
