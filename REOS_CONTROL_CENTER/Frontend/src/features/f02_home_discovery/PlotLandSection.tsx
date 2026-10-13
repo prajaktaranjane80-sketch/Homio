@@ -83,12 +83,17 @@ export default function PlotLandSection() {
                 className={styles.card}
               >
                 <div className={styles.imageWrap}>
-                  <img
+                  
+                  <Image
                     src={category.image}
+                    width={1400}
+                    height={900}
+                    sizes="(max-width: 650px) 100vw, (max-width: 900px) 50vw, 33vw"
                     alt={`Illustrative image for ${category.title}`}
                     className={styles.image}
                     loading="lazy"
                   />
+
                 </div>
 
                 <div className={styles.cardBody}>
