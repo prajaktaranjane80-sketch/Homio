@@ -68,12 +68,17 @@ export default function BuilderProjects() {
                 className={styles.card}
               >
                 <div className={styles.imageWrap}>
-                  <img
-                    src={builder.image}
-                    alt={`Illustrative architecture image for ${builder.name}`}
-                    className={styles.image}
-                    loading="lazy"
-                  />
+                  
+              <Image
+              src={builder.image}
+              width={1000}
+              height={750}
+              sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 33vw"
+              alt={`Illustrative architecture image for ${builder.name}`}
+              className={styles.image}
+              loading="lazy"
+              />
+
 
                   <span className={styles.projectCount}>
                     {builder.label}
