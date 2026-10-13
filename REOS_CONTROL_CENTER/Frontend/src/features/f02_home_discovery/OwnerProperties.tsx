@@ -65,15 +65,16 @@ export default function OwnerProperties() {
           <article className={styles.featured}>
             <div className={styles.featuredImageWrap}>
               
-            <Image
-              src={properties[0].image}
-              width={1400}
-              height={1050}
-              sizes="(max-width: 650px) 100vw, 52vw"
-              alt={`Illustrative image for ${properties[0].title}`}
-              className={styles.featuredImage}
-              loading="lazy"
-            />
+            
+          <Image
+            src={properties[0].image}
+            width={1400}
+            height={1050}
+            sizes="(max-width: 650px) 100vw, 52vw"
+            alt={`Illustrative image for ${properties[0].title}`}
+            className={styles.featuredImage}
+            loading="lazy"
+          />
 
 
               <span className={styles.ownerBadge}>
@@ -107,12 +108,17 @@ export default function OwnerProperties() {
               <article key={property.title} className={styles.sideCard}>
                 <Link href={property.href} className={styles.sideImageLink}>
                   <div className={styles.sideImageWrap}>
-                    <img
-                      src={property.image}
-                      alt={`Illustrative image for ${property.title}`}
-                      className={styles.sideImage}
-                      loading="lazy"
-                    />
+                    
+                  <Image
+                    src={property.image}
+                    width={800}
+                    height={700}
+                    sizes="(max-width: 650px) 100vw, 30vw"
+                    alt={`Illustrative image for ${property.title}`}
+                    className={styles.sideImage}
+                    loading="lazy"
+                  />
+
 
                     <span className={styles.ownerBadgeSmall}>
                       Preview · not verified
