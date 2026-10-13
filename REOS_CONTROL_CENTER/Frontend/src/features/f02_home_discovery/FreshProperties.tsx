@@ -66,12 +66,17 @@ export default function FreshProperties() {
             <article key={property.title} className={styles.card}>
               <Link href={property.href} className={styles.imageLink}>
                 <div className={styles.imageWrap}>
-                  <img
-                    src={property.image}
-                    alt={`Illustrative property image for ${property.title}`}
-                    className={styles.image}
-                    loading="lazy"
+                  
+                <Image
+                  src={property.image}
+                  width={1400}
+                  height={1050}
+                  sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 33vw"
+                  alt={`Illustrative property image for ${property.title}`}
+                  className={styles.image}
+                  loading="lazy"
                   />
+
 
                   <span className={styles.freshBadge}>
                     Experience preview
