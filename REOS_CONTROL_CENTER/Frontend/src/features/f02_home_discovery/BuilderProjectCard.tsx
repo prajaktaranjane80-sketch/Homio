@@ -17,12 +17,17 @@ export default function BuilderProjectCard({ project }: Props) {
   return (
     <Link href={project.href} className={styles.card}>
       <div className={styles.imageWrap}>
-        <img
-          src={project.image}
-          alt={project.name}
-          className={styles.image}
-          loading="lazy"
-        />
+        
+      <Image
+      src={project.image}
+      width={1200}
+      height={900}
+      sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 33vw"
+      alt={project.name}
+      className={styles.image}
+      loading="lazy"
+      />
+
 
         <span className={styles.projectCount}>{project.projects}</span>
       </div>
