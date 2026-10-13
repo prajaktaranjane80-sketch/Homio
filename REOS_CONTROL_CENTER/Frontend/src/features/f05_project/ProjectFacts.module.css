@@ -24,32 +24,36 @@
 .header h2 {
   margin: 8px 0 0;
   color: #17212b;
-  font-size: 25px;
+  font-size: clamp(21px, 2.4vw, 25px);
+  line-height: 1.25;
 }
 
 .context {
-  color: #8a949e;
+  flex: 0 0 auto;
+  color: #65717d;
   font-size: 11px;
   font-weight: 700;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   margin-top: 20px;
 }
 
 .item {
+  min-width: 0;
   padding: 16px;
+  border: 1px solid #eef1f4;
   border-radius: 12px;
-  background: #f6f7f9;
+  background: linear-gradient(145deg, #fbfcfd, #f5f7f9);
 }
 
 .item span {
   display: block;
-  color: #8a949e;
-  font-size: 9px;
+  color: #65717d;
+  font-size: 10px;
   font-weight: 800;
 }
 
@@ -58,27 +62,38 @@
   margin-top: 7px;
   color: #34414d;
   font-size: 13px;
-  line-height: 1.45;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.emptyState {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 18px;
+  border: 1px dashed #d4dce4;
+  border-radius: 14px;
+  background: #f8fafb;
+  color: #53606d;
+  font-size: 13px;
+  line-height: 1.7;
 }
 
 @media (max-width: 760px) {
   .header {
-    display: block;
-  }
-
-  .context {
-    display: block;
-    margin-top: 8px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 480px) {
   .section {
     padding: 22px;
+    border-radius: 16px;
   }
 
   .grid {
