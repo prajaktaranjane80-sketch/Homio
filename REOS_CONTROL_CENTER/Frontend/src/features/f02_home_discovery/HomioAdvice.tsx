@@ -77,12 +77,17 @@ export default function HomioAdvice() {
             >
               <div className={styles.imageLink}>
                 <div className={styles.imageWrap}>
-                  <img
+                  
+                  <Image
                     src={article.image}
+                    width={1400}
+                    height={900}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1000px) 50vw, 40vw"
                     alt=""
                     className={styles.image}
                     loading="lazy"
                   />
+
                 </div>
               </div>
 
