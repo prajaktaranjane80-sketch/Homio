@@ -64,12 +64,17 @@ export default function OwnerProperties() {
         <div className={styles.layout}>
           <article className={styles.featured}>
             <div className={styles.featuredImageWrap}>
-              <img
-                src={properties[0].image}
-                alt={`Illustrative image for ${properties[0].title}`}
-                className={styles.featuredImage}
-                loading="lazy"
-              />
+              
+            <Image
+              src={properties[0].image}
+              width={1400}
+              height={1050}
+              sizes="(max-width: 650px) 100vw, 52vw"
+              alt={`Illustrative image for ${properties[0].title}`}
+              className={styles.featuredImage}
+              loading="lazy"
+            />
+
 
               <span className={styles.ownerBadge}>
                 Owner-origin preview · not verified
