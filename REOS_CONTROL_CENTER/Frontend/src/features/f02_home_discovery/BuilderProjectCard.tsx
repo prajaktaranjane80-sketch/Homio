@@ -19,14 +19,15 @@ export default function BuilderProjectCard({ project }: Props) {
       <div className={styles.imageWrap}>
         
       <Image
-      src={project.image}
-      width={1200}
-      height={900}
+      src={builder.image}
+      width={1000}
+      height={750}
       sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 33vw"
-      alt={project.name}
+      alt={`Illustrative architecture image for ${builder.name}`}
       className={styles.image}
       loading="lazy"
-      />
+    />
+
 
 
         <span className={styles.projectCount}>{project.projects}</span>
