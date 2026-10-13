@@ -11,60 +11,73 @@ type ProjectSummaryProps = Readonly<{
 export default function ProjectSummary({
   project,
 }: ProjectSummaryProps) {
+  const verified = project.verified;
+
   return (
-    <section className={styles.card}>
+    <section className={styles.card} aria-label="Project summary">
       <div className={styles.topline}>
         <span className={styles.eyebrow}>
           {project.kindLabel}
         </span>
 
-        <Badge
-          tone={
-            project.verified
-              ? "success"
-              : "warning"
-          }
-        >
+        <Badge tone={verified ? "success" : "warning"}>
           {project.verificationLabel}
         </Badge>
       </div>
 
       <h1>{project.name}</h1>
 
-      <p className={styles.location}>
-        {project.location}
-      </p>
+      <p className={styles.location}>{project.location}</p>
 
-      <p className={styles.description}>
-        {project.description}
-      </p>
+      <p className={styles.description}>{project.description}</p>
 
       <div className={styles.value}>
-        <span>{project.priceContext}</span>
-        <strong>{project.priceFrom}</strong>
+        <span>
+          {verified
+            ? project.priceContext
+            : "PRICING · PENDING VERIFICATION"}
+        </span>
+
+        <strong>
+          {verified ? project.priceFrom : "Preview only"}
+        </strong>
       </div>
 
       <div className={styles.meta}>
         <div>
           <span>Configurations</span>
           <strong>
-            {project.configurations.join(" · ")}
+            {verified
+              ? project.configurations.join(" · ")
+              : "Available after verification"}
           </strong>
         </div>
 
         <div>
           <span>Area</span>
-          <strong>{project.areaRange}</strong>
+          <strong>
+            {verified
+              ? project.areaRange
+              : "Available after verification"}
+          </strong>
         </div>
 
         <div>
           <span>Possession</span>
-          <strong>{project.possession}</strong>
+          <strong>
+            {verified
+              ? project.possession
+              : "Available after verification"}
+          </strong>
         </div>
 
         <div>
-          <span>Partner</span>
-          <strong>{project.developerName}</strong>
+          <span>Project source</span>
+          <strong>
+            {verified
+              ? project.developerName
+              : "Verification pending"}
+          </strong>
         </div>
       </div>
     </section>
