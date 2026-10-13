@@ -67,12 +67,17 @@ export default function FeaturedProjects() {
               className={styles.card}
             >
               <div className={styles.imageWrap}>
-                <img
-                  src={project.image}
-                  alt={`${project.name} experience preview`}
-                  className={styles.image}
-                  loading="lazy"
-                />
+                
+              <Image
+                src={project.image}
+                width={1400}
+                height={1050}
+                sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 33vw"
+                alt={`${project.name} experience preview`}
+                className={styles.image}
+                loading="lazy"
+              />
+
 
                 <span className={styles.status}>{project.status}</span>
               </div>
