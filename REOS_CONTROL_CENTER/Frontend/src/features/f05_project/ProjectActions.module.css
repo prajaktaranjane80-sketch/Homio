@@ -1,5 +1,6 @@
+
 .card {
-  padding: 14px;
+  padding: 16px;
   border: 1px solid #e1e6eb;
   border-radius: 16px;
   background: #ffffff;
@@ -7,21 +8,27 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
 .secondary,
 .primary {
-  min-height: 42px;
   display: inline-flex;
+  min-width: 0;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
+  gap: 7px;
   border-radius: 9px;
-  padding: 0 12px;
-  font-size: 11px;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 12px;
   font-weight: 800;
+  line-height: 1.4;
+  text-align: center;
   text-decoration: none;
+  overflow-wrap: anywhere;
   cursor: pointer;
 }
 
@@ -29,6 +36,12 @@
   border: 1px solid #dce2e8;
   background: #ffffff;
   color: #34414d;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.secondary:hover {
+  border-color: #aab6c0;
+  background: #f7f9fa;
 }
 
 .secondary.active {
@@ -44,15 +57,48 @@
   color: #ffffff;
 }
 
+.primary:hover {
+  border-color: #344657;
+  background: #344657;
+}
+
+.secondary:focus-visible,
+.primary:focus-visible {
+  outline: 3px solid #6b9fd1;
+  outline-offset: 3px;
+}
+
+.shareStatus {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #dce5e9;
+  border-radius: 9px;
+  background: #f5f9fa;
+  color: #34414d;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
 .note {
-  margin-top: 10px;
-  color: #89929d;
-  font-size: 9px;
-  line-height: 1.5;
+  margin: 12px 0 0;
+  color: #5e6a76;
+  font-size: 11px;
+  line-height: 1.65;
 }
 
 @media (max-width: 520px) {
   .grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .secondary {
+    padding-inline: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .secondary {
+    transition: none;
   }
 }
