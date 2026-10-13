@@ -23,7 +23,6 @@ export default function ProjectInventory({
       id="inventory"
       className={styles.section}
       aria-labelledby="project-inventory-title"
-      scroll-margin-top: 96px;
     >
       <div className={styles.header}>
         <div className={styles.heading}>
