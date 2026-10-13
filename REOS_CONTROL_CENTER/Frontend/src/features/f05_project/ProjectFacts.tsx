@@ -1,3 +1,4 @@
+
 import type { ProjectRecord } from "./project.types";
 
 import styles from "./ProjectFacts.module.css";
@@ -25,12 +26,14 @@ function isUnavailableValue(value: string): boolean {
 export default function ProjectFacts({
   project,
 }: ProjectFactsProps) {
-  const facts = project.facts.filter(
-    (fact) =>
-      fact.label.trim().length > 0 &&
-      fact.value.trim().length > 0 &&
-      !isUnavailableValue(fact.value),
-  );
+  const facts = project.verified
+    ? project.facts.filter(
+        (fact) =>
+          fact.label.trim().length > 0 &&
+          fact.value.trim().length > 0 &&
+          !isUnavailableValue(fact.value),
+      )
+    : [];
 
   return (
     <section
@@ -47,7 +50,9 @@ export default function ProjectFacts({
         </div>
 
         <span className={styles.context}>
-          {project.locality}, {project.city}
+          {project.verified
+            ? `${project.locality}, ${project.city}`
+            : "Verification pending"}
         </span>
       </div>
 
@@ -61,9 +66,9 @@ export default function ProjectFacts({
           ))
         ) : (
           <p className={styles.emptyState}>
-            Project facts will appear here when verified project
-            information is available. HOMIO will not fill gaps with
-            assumed figures.
+            {project.verified
+              ? "No verified project facts are available for display. Missing information will not be filled with assumed figures."
+              : "This experience preview does not contain verified project facts. Location, configuration, area, possession and inventory details will appear here only when authoritative project data is available."}
           </p>
         )}
       </div>
