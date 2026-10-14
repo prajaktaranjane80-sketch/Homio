@@ -1,42 +1,78 @@
 # F06 — Save, Compare & Return
 
-**Canonical source location:** `REOS_CONTROL_CENTER/Frontend/src/features/f06_save_compare/`
+Canonical location:
 
-F06 helps people collect promising options, compare meaningful differences, and return to the exact property/project/locality/search context without turning frontend code into a second source of business truth.
+`REOS_CONTROL_CENTER/Frontend/src/features/f06_save_compare/`
 
-## Experience principles
+## Experience components
 
-- **Premium and futuristic, not an admin console:** luminous accent details, calm contrast, glass-like surfaces, fast scanning, large whitespace, and responsive comparison.
-- **Decision-first comparison:** show only supplied attributes that help a user decide; missing facts are shown as “Not supplied”. Never infer price, availability, verification or property facts.
-- **Progressive disclosure:** start with the essentials; let users enable/disable comparison groups.
-- **Responsive:** rich desktop comparison table, horizontally scrollable labelled comparison on tablet, and stacked decision cards on mobile.
-- **Return continuity:** preserve each supplied record's original `href`; do not invent route destinations.
-- **Truthful persistence status:** components accept source-provided records as props. Empty arrays mean empty states. They do not fabricate sample inventory or claim account persistence.
+F06 uses the existing components and shared design system:
 
-## Files
+- `SavedShell.tsx`
+- `SavedProperties.tsx`
+- `SavedProjects.tsx`
+- `SavedLocalities.tsx`
+- `SavedSearches.tsx`
+- `RecentViews.tsx`
+- `CompareShell.tsx`
+- `CompareProperties.tsx`
+- `CompareProjects.tsx`
+- `CompareLocalities.tsx`
+- `CompareTable.tsx`
+- `CompareCriteria.tsx`
+- `CompareSummary.tsx`
+- `CompareActions.tsx`
+- `ShareComparison.tsx`
+- `SavedEmptyState.tsx`
+- `CompareEmptyState.tsx`
+- `saved.types.ts`
+- `compare.types.ts`
+- `SavedCompareExperience.module.css`
 
-- `SavedShell.tsx` — shared Saved workspace and categories/search.
-- `SavedProperties.tsx`, `SavedProjects.tsx`, `SavedLocalities.tsx` — typed saved record views.
-- `SavedSearches.tsx` — saved search contexts when supplied by an approved adapter.
-- `RecentViews.tsx` — recent navigation records supplied by a history adapter.
-- `CompareShell.tsx` — comparison workspace, category selector, and criteria state.
-- `CompareProperties.tsx`, `CompareProjects.tsx`, `CompareLocalities.tsx` — category-specific comparison composition.
-- `CompareTable.tsx` — attribute matrix; missing values are never guessed.
-- `CompareCriteria.tsx` — progressive disclosure of decision-relevant groups.
-- `CompareSummary.tsx`, `CompareActions.tsx`, `ShareComparison.tsx` — count/context, explicit actions, share URL.
-- `SavedEmptyState.tsx`, `CompareEmptyState.tsx` — clear, helpful empty states.
-- `saved.types.ts`, `compare.types.ts` — F06 presentation contracts.
-- `SavedCompareExperience.module.css` — shared responsive premium visual system.
+The `/saved` and `/compare` routes compose these existing
+components. Route-specific duplicate stylesheets must not be
+introduced.
 
-## Boundaries before production wiring
+## Data and identity
 
-1. Feed the components from verified property/project/locality/search adapters; do not put a mock catalogue in this feature.
-2. Saved records and comparison state must be supplied by an approved service/session adapter. This package does **not** claim that user-account persistence is connected.
-3. Do not import ACRL/AUTONOMY_ENGINE modules or read `REOS_CONTROL_CENTER/data/state.json` at runtime.
-4. The `href` on each record must come from the canonical route/data adapter. Do not invent a route when one is absent.
-5. Wire `SavedShell` and `CompareShell` into approved route composition only after `/saved` and `/compare` are accepted in the frontend route contract. This bundle intentionally does not add route files or claim CI verification.
-6. Use the project's existing `Image`/link, auth, API and verification conventions when wiring adapters. No credentials or sensitive session data belong in browser storage.
+`saveCompareAdapters.ts` maps Search, Property and Project
+records into F06 presentation records.
 
-## Inputs
+Saved and compared item identity is the combination of
+entity kind and ID. A property and project with the same
+ID must remain separate items.
 
-Every data component receives explicit typed props. Without data, it renders a genuine empty state rather than fake listings. The `persistenceStatus` notice in `SavedShell` must be set by the parent from actual integration status.
+The comparison store allows at most four items and removal
+must respect entity kind.
+
+## Persistence
+
+Current implementation uses in-memory browser-session state.
+
+- A full page reload clears the store.
+- Account persistence is not connected.
+- Cross-device synchronization is not connected.
+- A copied URL does not restore records in a separate browser.
+- Do not claim that saved items are permanently stored.
+
+## Data truth
+
+Missing facts must display as missing. Do not invent pricing,
+availability, verification or inventory.
+
+Do not invent successful enquiry, appointment or transaction
+outcomes.
+
+## Architecture boundaries
+
+F06 must not import ACRL or AUTONOMY_ENGINE runtime modules.
+It must not read `REOS_CONTROL_CENTER/data/state.json` at runtime.
+
+## Verification
+
+`npm run verify:f06` runs the F06 static contract gate.
+The repository verification script includes the F06 gate
+before TypeScript, lint and production build checks.
+
+A static contract gate does not replace a successful TypeScript
+check, lint run or production build.
