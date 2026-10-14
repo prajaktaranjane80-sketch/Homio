@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+} from "react";
 import Link from "next/link";
 
 import SearchActions from "@/features/f03_search/SearchActions";
@@ -100,6 +105,7 @@ export default function SearchShell() {
 
   const [urlInitialized, setUrlInitialized] = useState(false);
   const [selectedId, setSelectedId] = useState<string>();
+  const [compareFeedback, setCompareFeedback] = useState("");
 
   const filteredResults = useMemo(
     () => filterSearchCatalog(SEARCH_PREVIEW_CATALOG, state),
@@ -140,7 +146,7 @@ export default function SearchShell() {
   const searchDraft = useMemo(() => {
     const params = searchStateToParams(state);
 
-    // Pagination does not create a separate saved requirement.
+    // Pagination is not a separate saved requirement.
     params.delete("page");
 
     const queryString = params.toString();
@@ -157,7 +163,9 @@ export default function SearchShell() {
     return {
       href,
       intent: state.intent,
-      title: `${SEARCH_INTENT_LABELS[state.intent]}${location ? ` · ${location}` : ""} search`,
+      title: `${SEARCH_INTENT_LABELS[state.intent]}${
+        location ? ` · ${location}` : ""
+      } search`,
       location: location || undefined,
       filtersLabel: filterDescription,
     };
@@ -167,21 +175,28 @@ export default function SearchShell() {
     (search) => search.href === searchDraft.href,
   );
 
+  // Only property/project records can match property/project search results.
+  // Other F06 saved entity kinds must not collide with these result IDs.
   const savedIds = useMemo(
     () =>
-      session.savedRecords.map((record) =>
-        entityIdentity(
-          record.kind === "project" ? "project" : "property",
-          record.id,
-        ),
-      ),
+      session.savedRecords
+        .filter(
+          (record) =>
+            record.kind === "property" ||
+            record.kind === "project",
+        )
+        .map((record) => entityIdentity(record.kind, record.id)),
     [session.savedRecords],
   );
 
   const comparedIds = useMemo(
     () =>
       session.comparedItems
-        .filter((item) => item.kind === "property" || item.kind === "project")
+        .filter(
+          (item) =>
+            item.kind === "property" ||
+            item.kind === "project",
+        )
         .map((item) => entityIdentity(item.kind, item.id)),
     [session.comparedItems],
   );
@@ -243,6 +258,7 @@ export default function SearchShell() {
 
   function changeIntent(intent: SearchIntent) {
     setSelectedId(undefined);
+    setCompareFeedback("");
 
     const nextFilters = createEmptySearchFilters();
 
@@ -275,6 +291,7 @@ export default function SearchShell() {
     }));
 
     setSelectedId(undefined);
+    setCompareFeedback("");
   }
 
   function updateState(next: SearchState) {
@@ -284,6 +301,7 @@ export default function SearchShell() {
     });
 
     setSelectedId(undefined);
+    setCompareFeedback("");
   }
 
   function toggleSaved(result: SearchResultCardData) {
@@ -291,11 +309,35 @@ export default function SearchShell() {
   }
 
   function toggleCompared(result: SearchResultCardData) {
-    const added = toggleComparedItem(compareFromSearchResult(result));
+    const alreadyCompared = session.comparedItems.some(
+      (item) =>
+        item.id === result.id &&
+        item.kind === result.entityType,
+    );
 
-    if (added) {
-      setSelectedId(entityIdentity(result.entityType, result.id));
+    const changed = toggleComparedItem(
+      compareFromSearchResult(result),
+    );
+
+    if (!alreadyCompared && !changed) {
+      setCompareFeedback(
+        "Your comparison already contains four items. Remove one from Compare before adding another.",
+      );
+      return;
     }
+
+    if (alreadyCompared) {
+      setSelectedId(undefined);
+      setCompareFeedback(
+        `${result.title} was removed from comparison.`,
+      );
+      return;
+    }
+
+    setSelectedId(entityIdentity(result.entityType, result.id));
+    setCompareFeedback(
+      `${result.title} was added to comparison.`,
+    );
   }
 
   function changeSort(nextSort: SearchState["sort"]) {
@@ -306,6 +348,7 @@ export default function SearchShell() {
     }));
 
     setSelectedId(undefined);
+    setCompareFeedback("");
   }
 
   function changeView(nextView: SearchState["viewMode"]) {
@@ -329,6 +372,7 @@ export default function SearchShell() {
     }));
 
     setSelectedId(undefined);
+    setCompareFeedback("");
     setFilterOpen(false);
   }
 
@@ -408,6 +452,21 @@ export default function SearchShell() {
           </span>
         </nav>
 
+        {compareFeedback ? (
+          <p
+            role="status"
+            aria-live="polite"
+            style={{
+              margin: "8px 0 14px",
+              color: "#66502f",
+              fontSize: 13,
+              lineHeight: 1.6,
+            }}
+          >
+            {compareFeedback}
+          </p>
+        ) : null}
+
         <div className={styles.toolbar}>
           <div className={styles.toolbarLeft}>
             {state.intent !== "projects" ? (
@@ -473,7 +532,9 @@ export default function SearchShell() {
             onSave={toggleSaved}
             onCompare={toggleCompared}
             onSelect={(result) =>
-              setSelectedId(entityIdentity(result.entityType, result.id))
+              setSelectedId(
+                entityIdentity(result.entityType, result.id),
+              )
             }
           />
         ) : (
@@ -532,7 +593,7 @@ export default function SearchShell() {
   );
 }
 
-const shortcutStyle: React.CSSProperties = {
+const shortcutStyle: CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
   gap: 6,
