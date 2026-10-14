@@ -10,7 +10,7 @@ from context.phase_projection import (
     is_phase_coherent,
     synchronize_current_phase,
 )
-
+from reos_control_center import calculate_hash
 
 CONTROL_CENTER_ROOT = Path(__file__).resolve().parents[1]
 STATE_PATH = CONTROL_CENTER_ROOT / "data" / "state.json"
@@ -223,3 +223,20 @@ def test_invalid_authority_declaration_is_blocked():
 
     assert result.allowed is False
     assert result.reason == "CANONICAL_STATE_INTEGRITY_FAILURE"
+
+def test_l3_verification_blocks_phase_gate_mismatch_with_valid_integrity():
+    state = load_canonical_state()
+    broken = copy.deepcopy(state)
+    broken["phases"]["current"] = "__INCOHERENT_PHASE__"
+    broken["integrity"]["sha256"] = calculate_hash(broken)
+
+    verifier = CanonicalAuthorityVerifier(
+        control_center_root=CONTROL_CENTER_ROOT,
+        state=broken,
+    )
+
+    result = verifier.verify()
+
+    assert result.allowed is False
+    assert result.reason == "AUTHORITATIVE_PHASE_GATE_COHERENCE_FAILURE"
+    assert result.current_gate == broken["execution"]["current_gate"]
