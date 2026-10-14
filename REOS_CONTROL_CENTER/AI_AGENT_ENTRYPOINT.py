@@ -1,5 +1,5 @@
 """
-HOMIO / REOS ? AI AGENT ENTRYPOINT
+HOMIO / REOS — AI AGENT ENTRYPOINT
 ==================================
 
 Purpose
@@ -902,7 +902,7 @@ def print_startup_context() -> None:
     """Print a compact new-AI startup contract."""
 
     print("=" * 72)
-    print("HOMIO / REOS ? AI AGENT ENTRYPOINT")
+    print("HOMIO / REOS — AI AGENT ENTRYPOINT")
     print("=" * 72)
 
     print(f"PROJECT        : {PROJECT_NAME}")
