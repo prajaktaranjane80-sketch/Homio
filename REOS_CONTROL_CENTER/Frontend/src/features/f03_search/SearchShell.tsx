@@ -146,7 +146,6 @@ export default function SearchShell() {
   const searchDraft = useMemo(() => {
     const params = searchStateToParams(state);
 
-    // Pagination is not a separate saved requirement.
     params.delete("page");
 
     const queryString = params.toString();
@@ -175,29 +174,34 @@ export default function SearchShell() {
     (search) => search.href === searchDraft.href,
   );
 
-  // Only property/project records can match property/project search results.
-  // Other F06 saved entity kinds must not collide with these result IDs.
+  // Explicit branches prevent "locality" from reaching property/project identity.
   const savedIds = useMemo(
     () =>
-      session.savedRecords
-        .filter(
-          (record) =>
-            record.kind === "property" ||
-            record.kind === "project",
-        )
-        .map((record) => entityIdentity(record.kind, record.id)),
+      session.savedRecords.flatMap((record) => {
+        if (
+          record.kind !== "property" &&
+          record.kind !== "project"
+        ) {
+          return [];
+        }
+
+        return [entityIdentity(record.kind, record.id)];
+      }),
     [session.savedRecords],
   );
 
   const comparedIds = useMemo(
     () =>
-      session.comparedItems
-        .filter(
-          (item) =>
-            item.kind === "property" ||
-            item.kind === "project",
-        )
-        .map((item) => entityIdentity(item.kind, item.id)),
+      session.comparedItems.flatMap((item) => {
+        if (
+          item.kind !== "property" &&
+          item.kind !== "project"
+        ) {
+          return [];
+        }
+
+        return [entityIdentity(item.kind, item.id)];
+      }),
     [session.comparedItems],
   );
 
@@ -412,24 +416,15 @@ export default function SearchShell() {
             margin: "14px 0",
           }}
         >
-          <Link
-            href="/my"
-            style={shortcutStyle}
-          >
+          <Link href="/my" style={shortcutStyle}>
             My HOMIO
           </Link>
 
-          <Link
-            href="/saved"
-            style={shortcutStyle}
-          >
+          <Link href="/saved" style={shortcutStyle}>
             Saved ({session.savedRecords.length})
           </Link>
 
-          <Link
-            href="/compare"
-            style={shortcutStyle}
-          >
+          <Link href="/compare" style={shortcutStyle}>
             Compare ({session.comparedItems.length}/4)
           </Link>
 
