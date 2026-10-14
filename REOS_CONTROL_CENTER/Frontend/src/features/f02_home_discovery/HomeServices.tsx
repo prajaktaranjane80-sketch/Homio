@@ -64,11 +64,10 @@ export default function HomeServices() {
 
         <div className={styles.grid}>
           {services.map((service) => (
-            <article
-              key={service.title}
-              className={styles.card}
-              aria-disabled="true"
-            >
+              <article
+                key={service.title}
+                className={styles.card}
+              >
               <div className={styles.top}>
                 <span className={styles.number}>{service.icon}</span>
                 <span className={styles.arrow} aria-hidden="true">
