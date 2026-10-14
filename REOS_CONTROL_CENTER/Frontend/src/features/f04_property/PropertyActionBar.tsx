@@ -1,17 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   compareFromProperty,
   savedFromProperty,
 } from "@/features/f06_save_compare/saveCompareAdapters";
+
 import {
   toggleComparedItem,
   toggleSavedRecord,
   useSaveCompareSession,
 } from "@/features/f06_save_compare/saveCompareSession";
+
+import { recordRecentView } from "@/features/f07_my_homio/myHomioActivityStore";
+
 import type { PropertyRecord } from "./property.types";
+
 import styles from "./PropertyActionBar.module.css";
 
 type PropertyActionBarProps = Readonly<{
@@ -22,14 +27,30 @@ export default function PropertyActionBar({
   property,
 }: PropertyActionBarProps) {
   const session = useSaveCompareSession();
+
   const [shareStatus, setShareStatus] = useState("");
 
   const saved = session.savedRecords.some(
-    (item) => item.id === property.id && item.kind === "property",
+    (item) =>
+      item.id === property.id &&
+      item.kind === "property",
   );
+
   const compared = session.comparedItems.some(
-    (item) => item.id === property.id && item.kind === "property",
+    (item) =>
+      item.id === property.id &&
+      item.kind === "property",
   );
+
+  useEffect(() => {
+    recordRecentView({
+      id: property.id,
+      kind: "property",
+      title: property.title,
+      href: `/property/${encodeURIComponent(property.id)}`,
+      subtitle: property.location,
+    });
+  }, [property.id, property.title, property.location]);
 
   async function shareProperty() {
     setShareStatus("");
@@ -43,6 +64,7 @@ export default function PropertyActionBar({
           text: "Explore this property preview on HOMIO.",
           url,
         });
+
         setShareStatus("Share completed.");
         return;
       }
@@ -58,6 +80,7 @@ export default function PropertyActionBar({
       if (error instanceof Error && error.name === "AbortError") {
         return;
       }
+
       setShareStatus("Sharing was unavailable. Copy the page URL instead.");
     }
   }
@@ -109,7 +132,11 @@ export default function PropertyActionBar({
         Enquiry and visit links do not submit a request.
       </small>
 
-      <span className={styles.shareStatus} role="status" aria-live="polite">
+      <span
+        className={styles.shareStatus}
+        role="status"
+        aria-live="polite"
+      >
         {shareStatus}
       </span>
     </div>
