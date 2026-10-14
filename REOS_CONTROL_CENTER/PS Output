@@ -1,75 +1,48 @@
-PS D:\Homio\REOS_CONTROL_CENTER>         $sourceStart = $content.IndexOf('SOURCE_OF_TRUTH: dict[str, str] = {')
-You cannot call a method on a null-valued expression.
-At line:1 char:9
-+         $sourceStart = $content.IndexOf('SOURCE_OF_TRUTH: dict[str, s ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
-    + FullyQualifiedErrorId : InvokeMethodOnNull
+PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = 'Continue'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Exact project location
+PS D:\Homio\REOS_CONTROL_CENTER> $repoPath = 'C:\Users\Sandip RanjanePatil\AI-Dev-Company'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== 1. PROJECT LOCATION ==="
 
-PS D:\Homio\REOS_CONTROL_CENTER>         $sourceEnd = $content.IndexOf(
->>             '# NON-DEVELOPER OWNER WORKING CONTRACT',
->>             $sourceStart
->>         )
-You cannot call a method on a null-valued expression.
-At line:1 char:9
-+         $sourceEnd = $content.IndexOf(
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
-    + FullyQualifiedErrorId : InvokeMethodOnNull
+=== 1. PROJECT LOCATION ===
+PS D:\Homio\REOS_CONTROL_CENTER> if (Test-Path -LiteralPath (Join-Path $repoPath '.git')) {
+>>     Set-Location -LiteralPath $repoPath
+>>     (Get-Location).Path
+>> } else {
+>>     Write-Host "ERROR: Git repository not found at $repoPath"
+>> }
+C:\Users\Sandip RanjanePatil\AI-Dev-Company
+PS C:\Users\Sandip RanjanePatil\AI-Dev-Company>
+PS C:\Users\Sandip RanjanePatil\AI-Dev-Company> Write-Host "`n=== 2. CURRENT GITHUB ACCOUNT ==="
 
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER>         if ($sourceStart -lt 0 -or $sourceEnd -le $sourceStart) {
->>             throw 'SOURCE_OF_TRUTH section not found. No branch update attempted.'
->>         }
-SOURCE_OF_TRUTH section not found. No branch update attempted.
-At line:2 char:13
-+             throw 'SOURCE_OF_TRUTH section not found. No branch updat ...
-+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (SOURCE_OF_TRUTH...date attempted.:String) [], RuntimeException
-    + FullyQualifiedErrorId : SOURCE_OF_TRUTH section not found. No branch update attempted.
+=== 2. CURRENT GITHUB ACCOUNT ===
+PS C:\Users\Sandip RanjanePatil\AI-Dev-Company> gh api user --jq .login
+prajaktaranjane80-sketch
+PS C:\Users\Sandip RanjanePatil\AI-Dev-Company>
+PS C:\Users\Sandip RanjanePatil\AI-Dev-Company> Write-Host "`n=== 3. REPOSITORY PERMISSION ==="
 
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER>         $sourceSection = $content.Substring(
->>             $sourceStart,
->>             $sourceEnd - $sourceStart
->>         )
-You cannot call a method on a null-valued expression.
-At line:1 char:9
-+         $sourceSection = $content.Substring(
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
-    + FullyQualifiedErrorId : InvokeMethodOnNull
+=== 3. REPOSITORY PERMISSION ===
+PS C:\Users\Sandip RanjanePatil\AI-Dev-Company> gh repo view imperiumsandy-commits/AI-Dev-Company `
+>>     --json nameWithOwner,viewerPermission `
+>>     --jq '{repository:.nameWithOwner, permission:.viewerPermission}'
+{
+  "permission": "READ",
+  "repository": "imperiumsandy-commits/AI-Dev-Company"
+}
+PS C:\Users\Sandip RanjanePatil\AI-Dev-Company>
+PS C:\Users\Sandip RanjanePatil\AI-Dev-Company> Write-Host "`n=== 4. LOCAL GIT STATUS ==="
 
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER>         $oldSourceInterface = @(
->>             '    "implementation_write_interface": ('
->>             '        "Manual GitHub file save on branch reos-development"'
->>             '    ),'
->>         ) -join "`n"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER>         $newSourceInterface =
->>             '    "implementation_write_interface": IMPLEMENTATION_WRITE_INTERFACE,'
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER>         $sourceSection = Replace-Once `
->>             -Text $sourceSection `
->>             -Old $oldSourceInterface `
->>             -New $newSourceInterface `
->>             -Label 'SOURCE_OF_TRUTH implementation interface'
-Replace-Once : The term 'Replace-Once' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the
-name, or if a path was included, verify that the path is correct and try again.
-At line:1 char:26
-+         $sourceSection = Replace-Once `
-+                          ~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (Replace-Once:String) [], CommandNotFoundException
-    + FullyQualifiedErrorId : CommandNotFoundException
+=== 4. LOCAL GIT STATUS ===
+PS C:\Users\Sandip RanjanePatil\AI-Dev-Company> if (Test-Path -LiteralPath (Join-Path $repoPath '.git')) {
+>>     git status --short --branch
+>>     git remote -v
+>> }
+## main...origin/main
+origin  https://github.com/imperiumsandy-commits/AI-Dev-Company.git (fetch)
+origin  https://github.com/imperiumsandy-commits/AI-Dev-Company.git (push)
+PS C:\Users\Sandip RanjanePatil\AI-Dev-Company>
+PS C:\Users\Sandip RanjanePatil\AI-Dev-Company> Write-Host "`n=== CHECK COMPLETE ==="
 
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER>         $content = $content.Substring(0, $sourceStart) +
->>             $sourceSection +
->>             $content.Substring($sourceEnd)
-You cannot call a method on a null-valued expression.
-At line:1 char:9
-+         $content = $content.Substring(0, $sourceStart) +
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
-    + FullyQualifiedErrorId : InvokeMethodOnNull
+=== CHECK COMPLETE ===
+PS C:\Users\Sandip RanjanePatil\AI-Dev-Company>
