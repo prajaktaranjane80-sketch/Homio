@@ -1,5 +1,7 @@
 import type { CompareItem } from "./compare.types";
+
 import ShareComparison from "./ShareComparison";
+
 import styles from "./SavedCompareExperience.module.css";
 
 type CompareActionsProps = Readonly<{
@@ -7,18 +9,37 @@ type CompareActionsProps = Readonly<{
   onClear?: () => void;
 }>;
 
-export default function CompareActions({ items, onClear }: CompareActionsProps) {
+export default function CompareActions({
+  items,
+  onClear,
+}: CompareActionsProps) {
   return (
     <div className={styles.compareActions}>
       <div>
-        <p className={styles.eyebrow}>NEXT STEP</p>
+        <p className={styles.eyebrow}>
+          NEXT STEP
+        </p>
+
         <strong>Ready to keep exploring?</strong>
-        <span>Open an option for its available details, or share this comparison.</span>
+
+        <span>
+          Return to an option for its available details or copy
+          the comparison context.
+        </span>
       </div>
+
       <div className={styles.actionCluster}>
-        <ShareComparison items={items} disabled={items.length < 2} />
+        <ShareComparison
+          items={items}
+          disabled={items.length < 2}
+        />
+
         {onClear ? (
-          <button type="button" className={styles.secondaryAction} onClick={onClear}>
+          <button
+            type="button"
+            className={styles.secondaryAction}
+            onClick={onClear}
+          >
             Clear comparison
           </button>
         ) : null}
