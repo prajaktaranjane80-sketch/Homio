@@ -27,6 +27,12 @@ import {
 } from "@/features/f06_save_compare/saveCompareSession";
 
 import {
+  recordRecentSearch,
+  toggleSavedSearch,
+  useMyHomioActivity,
+} from "@/features/f07_my_homio/myHomioActivityStore";
+
+import {
   SEARCH_DEFAULT_PAGE_SIZE,
   SEARCH_INTENTS,
   SEARCH_INTENT_LABELS,
@@ -38,6 +44,7 @@ import {
 } from "./search-preview-catalog";
 
 import type { SearchResultCardData } from "./SearchResultCard";
+
 import type {
   SearchFilters,
   SearchIntent,
@@ -70,14 +77,23 @@ function normalizeIncomingState(state: SearchState): SearchState {
   };
 }
 
+function entityIdentity(
+  kind: "property" | "project",
+  id: string,
+): string {
+  return `${kind}:${id}`;
+}
+
 export default function SearchShell() {
   const [state, setState] = useState<SearchState>(
     createDefaultSearchState(),
   );
 
   const session = useSaveCompareSession();
+  const activity = useMyHomioActivity();
 
   const [filterOpen, setFilterOpen] = useState(false);
+
   const [draftFilters, setDraftFilters] = useState<SearchFilters>(
     createEmptySearchFilters(),
   );
@@ -85,19 +101,95 @@ export default function SearchShell() {
   const [urlInitialized, setUrlInitialized] = useState(false);
   const [selectedId, setSelectedId] = useState<string>();
 
+  const filteredResults = useMemo(
+    () => filterSearchCatalog(SEARCH_PREVIEW_CATALOG, state),
+    [state],
+  );
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredResults.length / PAGE_SIZE),
+  );
+
+  const currentPage = Math.min(
+    Math.max(state.page, 1),
+    totalPages,
+  );
+
+  const visibleResults = filteredResults.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
+
+  const activeFilters =
+    state.intent === "projects"
+      ? 0
+      : countActiveFilters(state.filters);
+
+  const entityLabel =
+    state.intent === "projects" ? "projects" : "properties";
+
+  const hasNoCatalogueForIntent =
+    (state.intent === "commercial" || state.intent === "land") &&
+    filteredResults.length === 0;
+
+  const priceSortActive =
+    state.sort === "price_low_to_high" ||
+    state.sort === "price_high_to_low";
+
+  const searchDraft = useMemo(() => {
+    const params = searchStateToParams(state);
+
+    // Pagination does not create a separate saved requirement.
+    params.delete("page");
+
+    const queryString = params.toString();
+    const href = `/search${queryString ? `?${queryString}` : ""}`;
+    const location = state.location?.label.trim();
+
+    const filterDescription =
+      state.intent === "projects"
+        ? "Project discovery"
+        : activeFilters > 0
+          ? `${activeFilters} active filter(s)`
+          : undefined;
+
+    return {
+      href,
+      intent: state.intent,
+      title: `${SEARCH_INTENT_LABELS[state.intent]}${location ? ` · ${location}` : ""} search`,
+      location: location || undefined,
+      filtersLabel: filterDescription,
+    };
+  }, [state, activeFilters]);
+
+  const savedSearch = activity.savedSearches.some(
+    (search) => search.href === searchDraft.href,
+  );
+
   const savedIds = useMemo(
-    () => session.savedRecords.map((record) => record.id),
+    () =>
+      session.savedRecords.map((record) =>
+        entityIdentity(
+          record.kind === "project" ? "project" : "property",
+          record.id,
+        ),
+      ),
     [session.savedRecords],
   );
 
   const comparedIds = useMemo(
-    () => session.comparedItems.map((item) => item.id),
+    () =>
+      session.comparedItems
+        .filter((item) => item.kind === "property" || item.kind === "project")
+        .map((item) => entityIdentity(item.kind, item.id)),
     [session.comparedItems],
   );
 
   useEffect(() => {
     function hydrateFromUrl() {
       const params = new URLSearchParams(window.location.search);
+
       const incoming = normalizeIncomingState(
         searchStateFromParams(params),
       );
@@ -143,41 +235,11 @@ export default function SearchShell() {
     }
   }, [state, urlInitialized]);
 
-  const filteredResults = useMemo(
-    () => filterSearchCatalog(SEARCH_PREVIEW_CATALOG, state),
-    [state],
-  );
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredResults.length / PAGE_SIZE),
-  );
-
-  const currentPage = Math.min(
-    Math.max(state.page, 1),
-    totalPages,
-  );
-
-  const visibleResults = filteredResults.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
-
-  const activeFilters =
-    state.intent === "projects"
-      ? 0
-      : countActiveFilters(state.filters);
-
-  const entityLabel =
-    state.intent === "projects" ? "projects" : "properties";
-
-  const hasNoCatalogueForIntent =
-    (state.intent === "commercial" || state.intent === "land") &&
-    filteredResults.length === 0;
-
-  const priceSortActive =
-    state.sort === "price_low_to_high" ||
-    state.sort === "price_high_to_low";
+  useEffect(() => {
+    if (urlInitialized) {
+      recordRecentSearch(searchDraft);
+    }
+  }, [searchDraft, urlInitialized]);
 
   function changeIntent(intent: SearchIntent) {
     setSelectedId(undefined);
@@ -229,7 +291,11 @@ export default function SearchShell() {
   }
 
   function toggleCompared(result: SearchResultCardData) {
-    toggleComparedItem(compareFromSearchResult(result));
+    const added = toggleComparedItem(compareFromSearchResult(result));
+
+    if (added) {
+      setSelectedId(entityIdentity(result.entityType, result.id));
+    }
   }
 
   function changeSort(nextSort: SearchState["sort"]) {
@@ -274,12 +340,7 @@ export default function SearchShell() {
           description="Search property and project experience previews. Prices, availability, imagery and verification remain non-authoritative until connected to approved inventory data."
         />
 
-        <div
-          style={{
-            marginTop: 22,
-            marginBottom: 14,
-          }}
-        >
+        <div style={{ marginTop: 22, marginBottom: 14 }}>
           <SearchIntentTabs
             intents={SEARCH_INTENTS}
             activeIntent={state.intent}
@@ -298,7 +359,7 @@ export default function SearchShell() {
         <SearchSummary state={state} />
 
         <nav
-          aria-label="Saved and comparison shortcuts"
+          aria-label="My HOMIO and discovery actions"
           style={{
             display: "flex",
             flexWrap: "wrap",
@@ -308,46 +369,42 @@ export default function SearchShell() {
           }}
         >
           <Link
+            href="/my"
+            style={shortcutStyle}
+          >
+            My HOMIO
+          </Link>
+
+          <Link
             href="/saved"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "8px 12px",
-              border: "1px solid #d0d5dd",
-              borderRadius: 8,
-              color: "inherit",
-              textDecoration: "none",
-              fontSize: 13,
-            }}
+            style={shortcutStyle}
           >
             Saved ({session.savedRecords.length})
           </Link>
 
           <Link
             href="/compare"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "8px 12px",
-              border: "1px solid #d0d5dd",
-              borderRadius: 8,
-              color: "inherit",
-              textDecoration: "none",
-              fontSize: 13,
-            }}
+            style={shortcutStyle}
           >
             Compare ({session.comparedItems.length}/4)
           </Link>
 
-          <span
+          <button
+            type="button"
             style={{
-              color: "#667085",
-              fontSize: 12,
+              ...shortcutStyle,
+              cursor: "pointer",
+              background: savedSearch ? "#f5ead7" : "#fff",
+              borderColor: savedSearch ? "#c59b63" : "#d0c9bc",
             }}
+            aria-pressed={savedSearch}
+            onClick={() => toggleSavedSearch(searchDraft)}
           >
-            Session only — not synced to your account
+            {savedSearch ? "✓ Search saved" : "＋ Save this search"}
+          </button>
+
+          <span style={{ color: "#777", fontSize: 12 }}>
+            Browser-tab activity · Not account-synced
           </span>
         </nav>
 
@@ -362,7 +419,6 @@ export default function SearchShell() {
                 aria-expanded={filterOpen}
               >
                 Filters
-
                 {activeFilters > 0 ? (
                   <span className={styles.filterBadge}>
                     {activeFilters}
@@ -393,12 +449,7 @@ export default function SearchShell() {
                 />
               </>
             ) : (
-              <span
-                style={{
-                  color: "#667085",
-                  fontSize: 12,
-                }}
-              >
+              <span style={{ color: "#777", fontSize: 12 }}>
                 Project and collection results
               </span>
             )}
@@ -421,7 +472,9 @@ export default function SearchShell() {
             selectedId={selectedId}
             onSave={toggleSaved}
             onCompare={toggleCompared}
-            onSelect={(result) => setSelectedId(result.id)}
+            onSelect={(result) =>
+              setSelectedId(entityIdentity(result.entityType, result.id))
+            }
           />
         ) : (
           <div className={styles.empty}>
@@ -457,16 +510,13 @@ export default function SearchShell() {
         ) : null}
 
         <div className={styles.pageNote}>
-          <span>
-            HOMIO experience preview · Not authoritative inventory
-          </span>
-
+          <span>HOMIO experience preview · Not authoritative inventory</span>
           <span>
             {state.intent === "projects"
               ? "Project discovery · Account persistence not connected"
               : state.viewMode === "map"
                 ? "Geographic map unavailable until authoritative coordinates exist"
-                : "Save and compare states are temporary to this browser session"}
+                : "Save and Compare use the current F06 browser-memory store"}
           </span>
         </div>
       </div>
@@ -481,3 +531,18 @@ export default function SearchShell() {
     </main>
   );
 }
+
+const shortcutStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 6,
+  minHeight: 38,
+  padding: "8px 12px",
+  border: "1px solid #d0c9bc",
+  borderRadius: 999,
+  background: "#fff",
+  color: "inherit",
+  textDecoration: "none",
+  fontSize: 12,
+  fontWeight: 700,
+};
