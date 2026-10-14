@@ -1,18 +1,37 @@
 "use client";
 
 import { useState } from "react";
+
+import {
+  compareFromProperty,
+  savedFromProperty,
+} from "@/features/f06_save_compare/saveCompareAdapters";
+import {
+  toggleComparedItem,
+  toggleSavedRecord,
+  useSaveCompareSession,
+} from "@/features/f06_save_compare/saveCompareSession";
+import type { PropertyRecord } from "./property.types";
 import styles from "./PropertyActionBar.module.css";
 
-export default function PropertyActionBar() {
-  const [saved, setSaved] = useState(false);
-  const [compared, setCompared] = useState(false);
+type PropertyActionBarProps = Readonly<{
+  property: PropertyRecord;
+}>;
+
+export default function PropertyActionBar({
+  property,
+}: PropertyActionBarProps) {
+  const session = useSaveCompareSession();
   const [shareStatus, setShareStatus] = useState("");
 
-  async function shareProperty() {
-    if (typeof window === "undefined") {
-      return;
-    }
+  const saved = session.savedRecords.some(
+    (item) => item.id === property.id && item.kind === "property",
+  );
+  const compared = session.comparedItems.some(
+    (item) => item.id === property.id && item.kind === "property",
+  );
 
+  async function shareProperty() {
     setShareStatus("");
 
     try {
@@ -20,38 +39,26 @@ export default function PropertyActionBar() {
 
       if (typeof navigator.share === "function") {
         await navigator.share({
-          title: "HOMIO Property Experience Preview",
-          text:
-            "Explore this HOMIO property experience preview. " +
-            "The listing is not verified inventory.",
+          title: property.title,
+          text: "Explore this property preview on HOMIO.",
           url,
         });
-
-        setShareStatus("The share action was completed.");
+        setShareStatus("Share completed.");
         return;
       }
 
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
-        setShareStatus("Property preview link copied.");
+        setShareStatus("Property link copied.");
         return;
       }
 
-      setShareStatus(
-        "Automatic sharing is unavailable. Copy the page URL manually.",
-      );
+      setShareStatus("Copy this page URL from your browser.");
     } catch (error) {
-      if (
-        typeof DOMException !== "undefined" &&
-        error instanceof DOMException &&
-        error.name === "AbortError"
-      ) {
+      if (error instanceof Error && error.name === "AbortError") {
         return;
       }
-
-      setShareStatus(
-        "The preview link could not be shared automatically.",
-      );
+      setShareStatus("Sharing was unavailable. Copy the page URL instead.");
     }
   }
 
@@ -59,26 +66,21 @@ export default function PropertyActionBar() {
     <div className={styles.bar} aria-label="Property actions">
       <button
         type="button"
-        className={`${styles.secondary} ${
-          saved ? styles.active : ""
-        }`}
+        className={`${styles.secondary} ${saved ? styles.active : ""}`}
         aria-pressed={saved}
-        onClick={() => setSaved((value) => !value)}
-        title="This state is temporary and is not saved to an account."
+        onClick={() => toggleSavedRecord(savedFromProperty(property))}
       >
-        {saved ? "Saved in preview" : "Save"}
+        {saved ? "Saved" : "Save"}
       </button>
 
       <button
         type="button"
-        className={`${styles.secondary} ${
-          compared ? styles.active : ""
-        }`}
+        className={`${styles.secondary} ${compared ? styles.active : ""}`}
         aria-pressed={compared}
-        onClick={() => setCompared((value) => !value)}
-        title="This state is temporary and is not persisted."
+        onClick={() => toggleComparedItem(compareFromProperty(property))}
+        title="Compare up to four items in this browser session."
       >
-        {compared ? "In preview compare" : "Compare"}
+        {compared ? "Compared" : "Compare"}
       </button>
 
       <button
@@ -93,31 +95,21 @@ export default function PropertyActionBar() {
         Ask HOMIO
       </a>
 
-      <a
-        href="#property-next-step-enquiry"
-        className={styles.primary}
-      >
+      <a href="#property-next-step-enquiry" className={styles.primary}>
         Enquire
       </a>
 
-      <a
-        href="#property-next-step-visit"
-        className={styles.primary}
-      >
+      <a href="#property-next-step-visit" className={styles.primary}>
         Schedule visit
       </a>
 
       <small className={styles.disclosure}>
-        Save and compare change only this page&apos;s temporary state.
-        Enquiry and visit links lead to capability notices. No lead,
-        enquiry or visit request is submitted by this preview.
+        Saved and compared items remain in temporary in-memory session state.
+        They are not synced to an account and are cleared by a full page reload.
+        Enquiry and visit links do not submit a request.
       </small>
 
-      <span
-        className={styles.shareStatus}
-        role="status"
-        aria-live="polite"
-      >
+      <span className={styles.shareStatus} role="status" aria-live="polite">
         {shareStatus}
       </span>
     </div>
