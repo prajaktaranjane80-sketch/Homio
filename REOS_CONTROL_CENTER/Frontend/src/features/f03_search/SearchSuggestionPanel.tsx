@@ -76,7 +76,6 @@ export default function SearchSuggestionPanel({
               key={suggestion.id}
               type="button"
               className={styles.item}
-              role="option"
               onClick={() => onSelect?.(suggestion)}
             >
               {content}
