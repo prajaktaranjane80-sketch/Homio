@@ -1,568 +1,11 @@
-
-PS C:\Users\Sandip RanjanePatil> Set-Location "D:\Homio\REOS_CONTROL_CENTER"
-PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = 'Stop'
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> function Replace-Once {
->>     param(
->>         [string]$Text,
->>         [string]$Old,
->>         [string]$New,
->>         [string]$Label
->>     )
->>
->>     $oldText = $Old -replace "`r`n", "`n"
->>     $newText = $New -replace "`r`n", "`n"
->>
->>     $oldText = [regex]::Replace($oldText, '^\n|\n$', '')
->>     $newText = [regex]::Replace($newText, '^\n|\n$', '')
->>
->>     $count = [regex]::Matches(
->>         $Text,
->>         [regex]::Escape($oldText)
->>     ).Count
->>
->>     if ($count -ne 1) {
->>         throw "STOP: '$Label' expected exactly once; found $count. No blind patch."
->>     }
->>
->>     return $Text.Replace($oldText, $newText)
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> function Write-Utf8NoBom {
->>     param([string]$Path, [string]$Content)
->>     [System.IO.File]::WriteAllText(
->>         $Path,
->>         $Content,
->>         [System.Text.UTF8Encoding]::new($false)
->>     )
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 1. Find existing Git repository; do not create a worktree.
-PS D:\Homio\REOS_CONTROL_CENTER> $probe = (Get-Location).Path
-PS D:\Homio\REOS_CONTROL_CENTER> $repoRoot = $null
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> while ($probe) {
->>     if (Test-Path (Join-Path $probe '.git')) {
->>         $repoRoot = (Resolve-Path $probe).Path
->>         break
->>     }
->>
->>     $parent = Split-Path $probe -Parent
->>     if (-not $parent -or $parent -eq $probe) { break }
->>     $probe = $parent
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $repoRoot) {
->>     throw 'STOP: Open PowerShell inside your existing HOMIO Git repository and run again.'
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Set-Location $repoRoot
-PS D:\Homio> Write-Host "Repository: $repoRoot" -ForegroundColor Cyan
-Repository: D:\Homio
-PS D:\Homio>
-PS D:\Homio> # 2. Verify repository, branch, remote and clean working tree.
-PS D:\Homio> $remote = (& git remote get-url origin).Trim()
-PS D:\Homio> if ($LASTEXITCODE -ne 0 -or
->>     $remote -notmatch '(?i)github\.com[:/]prajaktaranjane80-sketch/Homio(?:\.git)?$') {
->>     throw "STOP: Unexpected Git origin: $remote"
->> }
-PS D:\Homio>
-PS D:\Homio> $branch = (& git branch --show-current).Trim()
-PS D:\Homio> if ($branch -ne 'reos-development') {
->>     throw "STOP: Current branch is '$branch', not reos-development."
->> }
-PS D:\Homio>
-PS D:\Homio> $dirty = @(& git status --porcelain)
-PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw 'STOP: Could not read Git status.'
->> }
-PS D:\Homio> if ($dirty.Count -gt 0) {
->>     $dirty | ForEach-Object { Write-Host $_ }
->>     throw 'STOP: Local changes exist. Nothing was patched or committed.'
->> }
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__init__.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/contract_primitives.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
- M REOS_CONTROL_CENTER/data/state.json
-?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_closure_c2_c3.py
-?? REOS_CONTROL_CENTER/Frontend/.next/
-?? REOS_CONTROL_CENTER/Frontend/eslint.config.mjs
-?? REOS_CONTROL_CENTER/Frontend/next-env.d.ts
-?? REOS_CONTROL_CENTER/Frontend/next.config.ts
-?? REOS_CONTROL_CENTER/Frontend/node_modules/
-?? REOS_CONTROL_CENTER/Frontend/package-lock.json
-?? REOS_CONTROL_CENTER/Frontend/package.json
-?? REOS_CONTROL_CENTER/Frontend/scripts/
-?? REOS_CONTROL_CENTER/Frontend/src/
-?? REOS_CONTROL_CENTER/Frontend/tsconfig.json
-?? REOS_CONTROL_CENTER/Frontend/tsconfig.tsbuildinfo
-?? REOS_CONTROL_CENTER/package-lock.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210705_675096.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210705_920438.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_186837.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_460015.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_697927.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_990397.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210707_222976.json
-STOP: Local changes exist. Nothing was patched or committed.
-At line:3 char:5
-+     throw 'STOP: Local changes exist. Nothing was patched or committe ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STOP: Local cha...d or committed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : STOP: Local changes exist. Nothing was patched or committed.
-
-PS D:\Homio>
-PS D:\Homio> # Fetch remote reference only. No pull, reset, merge or force operation.
-PS D:\Homio> & git fetch origin reos-development
+remote: Enumerating objects: 12, done.
+remote: Counting objects: 100% (12/12), done.
+remote: Compressing objects: 100% (8/8), done.
+remote: Total 8 (delta 4), reused 0 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (8/8), 7.57 KiB | 193.00 KiB/s, done.
 From https://github.com/prajaktaranjane80-sketch/Homio
- * branch              reos-development -> FETCH_HEAD
-PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw 'STOP: Git fetch failed.'
->> }
+   00cc611f..d37f6703  reos-development -> origin/reos-development
 PS D:\Homio>
-PS D:\Homio> $localHead = (& git rev-parse HEAD).Trim()
-PS D:\Homio> $remoteHead = (& git rev-parse refs/remotes/origin/reos-development).Trim()
-PS D:\Homio>
-PS D:\Homio> if ($localHead -ne $remoteHead) {
->>     throw "STOP: Local HEAD and origin/reos-development differ. No patch made; no stale-branch push."
->> }
-STOP: Local HEAD and origin/reos-development differ. No patch made; no stale-branch push.
-At line:2 char:5
-+     throw "STOP: Local HEAD and origin/reos-development differ. No pa ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STOP: Local HEA...le-branch push.:String) [], RuntimeException
-    + FullyQualifiedErrorId : STOP: Local HEAD and origin/reos-development differ. No patch made; no stale-branch push.
-
-PS D:\Homio>
-PS D:\Homio> # 3. Exact file/version guards.
-PS D:\Homio> $relSource = 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/financial_ledger_boundary.py'
-PS D:\Homio> $relTests  = 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t01_financial_domain.py'
-PS D:\Homio>
-PS D:\Homio> $expectedSourceSha = 'f75065ed2508f742d7ce90c91408872a8b178c5f'
-PS D:\Homio> $expectedTestsSha  = '228064a1b7cfc106b6c8ca599c1f711176042d59'
-PS D:\Homio>
-PS D:\Homio> $actualSourceSha = (& git rev-parse "HEAD:$relSource").Trim()
-PS D:\Homio> if ($LASTEXITCODE -ne 0 -or $actualSourceSha -ne $expectedSourceSha) {
->>     throw "STOP: Ledger source version mismatch. Expected $expectedSourceSha; got $actualSourceSha"
->> }
-STOP: Ledger source version mismatch. Expected f75065ed2508f742d7ce90c91408872a8b178c5f; got 8f745c3b1e711b5f5bd3396256e081d905e2635e
-At line:2 char:5
-+     throw "STOP: Ledger source version mismatch. Expected $expectedSo ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STOP: Ledger so...6e081d905e2635e:String) [], RuntimeException
-    + FullyQualifiedErrorId : STOP: Ledger source version mismatch. Expected f75065ed2508f742d7ce90c91408872a8b178c5f; got 8f745c3b1e711b5f5bd3396256e081d
-   905e2635e
-
-PS D:\Homio>
-PS D:\Homio> $actualTestsSha = (& git rev-parse "HEAD:$relTests").Trim()
-PS D:\Homio> if ($LASTEXITCODE -ne 0 -or $actualTestsSha -ne $expectedTestsSha) {
->>     throw "STOP: Test file version mismatch. Expected $expectedTestsSha; got $actualTestsSha"
->> }
-STOP: Test file version mismatch. Expected 228064a1b7cfc106b6c8ca599c1f711176042d59; got 665e27b50e481fff3df10ce7b759771e816e2a16
-At line:2 char:5
-+     throw "STOP: Test file version mismatch. Expected $expectedTestsS ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STOP: Test file...759771e816e2a16:String) [], RuntimeException
-    + FullyQualifiedErrorId : STOP: Test file version mismatch. Expected 228064a1b7cfc106b6c8ca599c1f711176042d59; got 665e27b50e481fff3df10ce7b759771e816
-   e2a16
-
-PS D:\Homio>
-PS D:\Homio> $sourcePath = Join-Path $repoRoot 'REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\financial_ledger_boundary.py'
-PS D:\Homio> $testsPath  = Join-Path $repoRoot 'REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\test_core008_t01_financial_domain.py'
-PS D:\Homio> $testRoot   = Join-Path $repoRoot 'REOS_CONTROL_CENTER'
-PS D:\Homio>
-PS D:\Homio> $originalSource = [System.IO.File]::ReadAllText($sourcePath)
-PS D:\Homio> $originalTests  = [System.IO.File]::ReadAllText($testsPath)
-PS D:\Homio>
-PS D:\Homio> $sourceWasCrLf = $originalSource.Contains("`r`n")
-PS D:\Homio> $testsWereCrLf = $originalTests.Contains("`r`n")
-PS D:\Homio>
-PS D:\Homio> $source = $originalSource -replace "`r`n", "`n"
-PS D:\Homio> $tests  = $originalTests -replace "`r`n", "`n"
-PS D:\Homio>
-PS D:\Homio> # 4. Patch ledger implementation.
-PS D:\Homio> $source = Replace-Once $source `
->>     'from dataclasses import dataclass' `
->>     'from dataclasses import dataclass, field' `
->>     'dataclass field import'
-PS D:\Homio>
-PS D:\Homio> $old = @'
->>     metadata: Mapping[str, Any] = ()
->> '@
-PS D:\Homio> $new = @'
->>     metadata: Mapping[str, Any] = ()
->>
->>     _integrity_fingerprint: str = field(
->>         init=False,
->>         repr=False,
->>         compare=False,
->>         default="",
->>     )
->> '@
-PS D:\Homio> $source = Replace-Once $source $old $new 'sealed fingerprint field'
-PS D:\Homio>
-PS D:\Homio> $old = @'
->>         object.__setattr__(
->>             self,
->>             "metadata",
->>             MappingProxyType(dict(metadata)),
->>         )
->> '@
-PS D:\Homio> $new = @'
->>         object.__setattr__(
->>             self,
->>             "metadata",
->>             MappingProxyType(dict(metadata)),
->>         )
->>
->>         # Seal the normalized snapshot. Recomputing a hash alone
->>         # cannot detect mutation without retaining the original hash.
->>         try:
->>             fingerprint = self.immutable_fingerprint
->>         except (TypeError, ValueError) as exc:
->>             raise FinancialLedgerValidationError(
->>                 "Ledger entry metadata must be JSON-serializable."
->>             ) from exc
->>
->>         object.__setattr__(
->>             self,
->>             "_integrity_fingerprint",
->>             fingerprint,
->>         )
->> '@
-PS D:\Homio> $source = Replace-Once $source $old $new 'metadata fingerprint sealing'
-PS D:\Homio>
-PS D:\Homio> $old = @'
->>     def assert_balanced(self) -> None:
->>         if (
->>             self.amount.currency.identity_key
->>             != self.amount.currency.identity_key
->>         ):
->>             raise FinancialLedgerValidationError(
->>                 "Ledger currency identity is inconsistent."
->>             )
->> '@
-PS D:\Homio> $new = @'
->>     def assert_balanced(self) -> None:
->>         """Validate structural invariants of this balanced transfer.
->>
->>         One positive amount represents both debit and credit legs.
->>         """
->>         if not isinstance(self.debit, LedgerAccountReference):
->>             raise FinancialLedgerValidationError(
->>                 "debit must be LedgerAccountReference."
->>             )
->>
->>         if not isinstance(self.credit, LedgerAccountReference):
->>             raise FinancialLedgerValidationError(
->>                 "credit must be LedgerAccountReference."
->>             )
->>
->>         if self.debit.account_id == self.credit.account_id:
->>             raise FinancialLedgerValidationError(
->>                 "Debit and credit accounts must differ."
->>             )
->>
->>         if not isinstance(self.amount, MonetaryAmount):
->>             raise FinancialLedgerValidationError(
->>                 "amount must be MonetaryAmount."
->>             )
->>
->>         if not self.amount.amount.is_finite() or self.amount.amount <= 0:
->>             raise FinancialLedgerValidationError(
->>                 "Balanced ledger amount must be finite and greater than zero."
->>             )
->>
->>         if not self.verify_integrity():
->>             raise FinancialLedgerValidationError(
->>                 "Ledger entry failed immutable integrity verification."
->>             )
->> '@
-PS D:\Homio> $source = Replace-Once $source $old $new 'ledger balance validation'
-STOP: 'ledger balance validation' expected exactly once; found 0. No blind patch.
-At line:21 char:9
-+         throw "STOP: '$Label' expected exactly once; found $count. No ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STOP: 'ledger b...No blind patch.:String) [], RuntimeException
-    + FullyQualifiedErrorId : STOP: 'ledger balance validation' expected exactly once; found 0. No blind patch.
-
-PS D:\Homio>
-PS D:\Homio> $old = @'
->>     def verify_integrity(self) -> bool:
->>         return bool(
->>             self.immutable_fingerprint
->>         )
->> '@
-PS D:\Homio> $new = @'
->>     def verify_integrity(self) -> bool:
->>         """Compare current content to its construction-time fingerprint."""
->>         try:
->>             expected = self._integrity_fingerprint
->>             return bool(expected) and expected == self.immutable_fingerprint
->>         except (AttributeError, TypeError, ValueError):
->>             return False
->> '@
-PS D:\Homio> $source = Replace-Once $source $old $new 'integrity verification'
-STOP: 'integrity verification' expected exactly once; found 0. No blind patch.
-At line:21 char:9
-+         throw "STOP: '$Label' expected exactly once; found $count. No ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STOP: 'integrit...No blind patch.:String) [], RuntimeException
-    + FullyQualifiedErrorId : STOP: 'integrity verification' expected exactly once; found 0. No blind patch.
-
-PS D:\Homio>
-PS D:\Homio> # 5. Patch targeted regression tests.
-PS D:\Homio> $old = @'
->> from dataclasses import FrozenInstanceError
->> from decimal import Decimal
->> '@
-PS D:\Homio> $new = @'
->> from dataclasses import FrozenInstanceError
->> from datetime import datetime, timezone
->> from decimal import Decimal
->> '@
-PS D:\Homio> $tests = Replace-Once $tests $old $new 'test datetime imports'
-STOP: 'test datetime imports' expected exactly once; found 0. No blind patch.
-At line:21 char:9
-+         throw "STOP: '$Label' expected exactly once; found $count. No ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STOP: 'test dat...No blind patch.:String) [], RuntimeException
-    + FullyQualifiedErrorId : STOP: 'test datetime imports' expected exactly once; found 0. No blind patch.
-
-PS D:\Homio>
-PS D:\Homio> $old = @'
->>     new_financial_identity,
->> )
->> '@
-PS D:\Homio> $new = @'
->>     new_financial_identity,
->> )
->>
->> from .financial_ledger_boundary import (
->>     FinancialLedgerEntry,
->>     FinancialLedgerValidationError,
->>     LedgerAccountReference,
->> )
->> '@
-PS D:\Homio> $tests = Replace-Once $tests $old $new 'ledger test imports'
-PS D:\Homio>
-PS D:\Homio> $ledgerTests = @'
->> def _ledger_entry() -> FinancialLedgerEntry:
->>     return FinancialLedgerEntry(
->>         entry_id="ledger-001",
->>         tenant_id="tenant-a",
->>         commission_id="commission-001",
->>         entry_version=1,
->>         transaction_reference="transaction-001",
->>         debit=LedgerAccountReference(
->>             account_id="broker-receivable",
->>             account_type="ASSET",
->>         ),
->>         credit=LedgerAccountReference(
->>             account_id="builder-payable",
->>             account_type="LIABILITY",
->>         ),
->>         amount=MonetaryAmount.create("100.00", usd()),
->>         entry_timestamp=datetime(2026, 10, 14, tzinfo=timezone.utc),
->>         source_reference="commission-001",
->>         provenance_reference="evidence-001",
->>     )
->>
->>
->> def test_financial_ledger_entry_is_balanced_and_integrity_sealed() -> None:
->>     entry = _ledger_entry()
->>
->>     assert entry.verify_integrity() is True
->>     assert entry.assert_balanced() is None
->>
->>
->> def test_financial_ledger_entry_rejects_same_account_on_both_legs() -> None:
->>     entry = _ledger_entry()
->>     object.__setattr__(entry, "credit", entry.debit)
->>
->>     with pytest.raises(
->>         FinancialLedgerValidationError,
->>         match="Debit and credit accounts must differ",
->>     ):
->>         entry.assert_balanced()
->>
->>
->> def test_financial_ledger_entry_integrity_detects_post_creation_mutation() -> None:
->>     entry = _ledger_entry()
->>     object.__setattr__(entry, "source_reference", "tampered-source")
->>
->>     assert entry.verify_integrity() is False
->>
->>     with pytest.raises(
->>         FinancialLedgerValidationError,
->>         match="immutable integrity verification",
->>     ):
->>         entry.assert_balanced()
->> '@
-PS D:\Homio>
-PS D:\Homio> $tests = $tests.TrimEnd() + "`n`n" + $ledgerTests.Trim() + "`n"
-PS D:\Homio>
-PS D:\Homio> # 6. Write, compile and test. Any test failure restores both original files.
-PS D:\Homio> try {
->>     if ($sourceWasCrLf) {
->>         $sourceToWrite = $source -replace "`n", "`r`n"
->>     } else {
->>         $sourceToWrite = $source
->>     }
->>
->>     if ($testsWereCrLf) {
->>         $testsToWrite = $tests -replace "`n", "`r`n"
->>     } else {
->>         $testsToWrite = $tests
->>     }
->>
->>     Write-Utf8NoBom $sourcePath $sourceToWrite
->>     Write-Utf8NoBom $testsPath $testsToWrite
->>
->>     Push-Location $testRoot
->>     try {
->>         Write-Host "`nCompile commission financial package..." -ForegroundColor Cyan
->>         & python -m compileall -q AUTONOMY_ENGINE/core/commission_financial
->>         if ($LASTEXITCODE -ne 0) {
->>             throw 'Python compile check failed.'
->>         }
->>
->>         Write-Host "`nRun CORE-008-T01 targeted tests..." -ForegroundColor Cyan
->>         & python -m pytest -q AUTONOMY_ENGINE/core/commission_financial/test_core008_t01_financial_domain.py
->>         if ($LASTEXITCODE -ne 0) {
->>             throw 'Targeted pytest failed.'
->>         }
->>     }
->>     finally {
->>         Pop-Location
->>     }
->> }
->> catch {
->>     Write-Utf8NoBom $sourcePath $originalSource
->>     Write-Utf8NoBom $testsPath $originalTests
->>     Write-Host 'PATCH ROLLED BACK: original contents restored; nothing committed.' -ForegroundColor Yellow
->>     throw
->> }
-
-Compile commission financial package...
-
-Run CORE-008-T01 targeted tests...
-............................                                                                                                                         [100%]
-28 passed in 0.25s
-PS D:\Homio>
-PS D:\Homio> # 7. Ensure ONLY the two intended files changed.
-PS D:\Homio> $changed = @(& git diff --name-only)
-warning: in the working copy of 'REOS_CONTROL_CENTER/data/state.json', CRLF will be replaced by LF the next time Git touches it
-PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw 'Tests passed, but Git diff verification failed. No commit attempted.'
->> }
-PS D:\Homio>
-PS D:\Homio> if ($changed.Count -ne 2 -or
->>     ($changed -notcontains $relSource) -or
->>     ($changed -notcontains $relTests)) {
->>     $changed | ForEach-Object { Write-Host $_ }
->>     throw 'STOP: Diff contains unexpected paths. No commit or push attempted.'
->> }
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__init__.py
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/financial_ledger_boundary.py
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t01_financial_domain.py
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/contract_primitives.py
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
-REOS_CONTROL_CENTER/data/state.json
-STOP: Diff contains unexpected paths. No commit or push attempted.
-At line:5 char:5
-+     throw 'STOP: Diff contains unexpected paths. No commit or push at ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STOP: Diff cont...push attempted.:String) [], RuntimeException
-    + FullyQualifiedErrorId : STOP: Diff contains unexpected paths. No commit or push attempted.
-
-PS D:\Homio>
-PS D:\Homio> & git diff --check
-warning: in the working copy of 'REOS_CONTROL_CENTER/data/state.json', CRLF will be replaced by LF the next time Git touches it
-PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw 'STOP: Whitespace check failed. No commit or push attempted.'
->> }
-PS D:\Homio>
-PS D:\Homio> # 8. Commit and push without force.
-PS D:\Homio> & git add -- $relSource $relTests
-PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw 'Tests passed, but git add failed.'
->> }
-PS D:\Homio>
-PS D:\Homio> $staged = @(& git diff --cached --name-only)
-PS D:\Homio> if ($staged.Count -ne 2 -or
->>     ($staged -notcontains $relSource) -or
->>     ($staged -notcontains $relTests)) {
->>     throw 'STOP: Staged file set is not exactly the two intended files.'
->> }
-PS D:\Homio>
-PS D:\Homio> & git diff --cached --check
-PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw 'Staged diff check failed.'
->> }
-PS D:\Homio>
-PS D:\Homio> & git commit -m "Fix CORE-008 financial ledger integrity"
-[reos-development 1590a050] Fix CORE-008 financial ledger integrity
- 2 files changed, 81 insertions(+), 1 deletion(-)
-PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw 'Commit failed. Changes remain local; no push was attempted.'
->> }
-PS D:\Homio>
-PS D:\Homio> $commitSha = (& git rev-parse HEAD).Trim()
-PS D:\Homio> Write-Host "Local commit: $commitSha" -ForegroundColor Cyan
-Local commit: 1590a050bc74174315f418d350dc4c95b3f99141
-PS D:\Homio>
-PS D:\Homio> & git push origin reos-development
-To https://github.com/prajaktaranjane80-sketch/Homio.git
- ! [rejected]          reos-development -> reos-development (non-fast-forward)
-error: failed to push some refs to 'https://github.com/prajaktaranjane80-sketch/Homio.git'
-hint: Updates were rejected because the tip of your current branch is behind
-hint: its remote counterpart. If you want to integrate the remote changes,
-hint: use 'git pull' before pushing again.
-hint: See the 'Note about fast-forwards' in 'git push --help' for details.
-PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw "Push failed. Commit $commitSha exists locally; no force-push was attempted."
->> }
-Push failed. Commit 1590a050bc74174315f418d350dc4c95b3f99141 exists locally; no force-push was attempted.
-At line:2 char:5
-+     throw "Push failed. Commit $commitSha exists locally; no force-pu ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Push failed. Co... was attempted.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Push failed. Commit 1590a050bc74174315f418d350dc4c95b3f99141 exists locally; no force-push was attempted.
-
-PS D:\Homio>
-PS D:\Homio> # 9. Verify the published branch tip.
-PS D:\Homio> $remoteLine = @(& git ls-remote origin refs/heads/reos-development)
-PS D:\Homio> if ($LASTEXITCODE -ne 0 -or $remoteLine.Count -eq 0) {
->>     throw 'Push command succeeded, but remote HEAD verification failed.'
->> }
-PS D:\Homio>
-PS D:\Homio> $publishedSha = ($remoteLine[0] -split '\s+')[0]
-PS D:\Homio> if ($publishedSha -ne $commitSha) {
->>     throw "Remote HEAD ($publishedSha) does not match commit $commitSha."
->> }
-Remote HEAD (00cc611fa92a86e2d229b47fe695c4bb9addb333) does not match commit 1590a050bc74174315f418d350dc4c95b3f99141.
-At line:2 char:5
-+     throw "Remote HEAD ($publishedSha) does not match commit $commitS ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Remote HEAD (00...dc4c95b3f99141.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Remote HEAD (00cc611fa92a86e2d229b47fe695c4bb9addb333) does not match commit 1590a050bc74174315f418d350dc4c95b3f99141.
-
-PS D:\Homio>
-PS D:\Homio> Write-Host ''
-
-PS D:\Homio> Write-Host 'PATCH + TARGETED TESTS + PUSH: SUCCESS' -ForegroundColor Green
-PATCH + TARGETED TESTS + PUSH: SUCCESS
-PS D:\Homio> Write-Host "Commit: $commitSha"
-Commit: 1590a050bc74174315f418d350dc4c95b3f99141
-PS D:\Homio> Write-Host "Source: $relSource"
-Source: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/financial_ledger_boundary.py
-PS D:\Homio> Write-Host "Tests:  $relTests"
-Tests:  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t01_financial_domain.py
-PS D:\Homio> Write-Host 'GitHub Actions should now run the backend CI for this push.'
-GitHub Actions should now run the backend CI for this push.
 PS D:\Homio> git status --short
  M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__init__.py
  M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
@@ -590,4 +33,390 @@ PS D:\Homio> git status --short
 ?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_990397.json
 ?? REOS_CONTROL_CENTER/snapshots/state_20261002_210707_222976.json
 PS D:\Homio>
-PS D:\Homio>
+PS D:\Homio> git log --graph --oneline --decorate --left-right origin/reos-development...HEAD
+< d37f6703 (origin/reos-development) Update Frontend PS Output
+< cf73e745 Update PS Output
+< 00cc611f Create saveCompareAdapters.ts
+< 14df95cb Create saveCompareSession.ts
+< fddd39b6 Update and rename next work prompt to Frontend PS Output
+< 87a9eae1 Update control_plane.py
+< aa85d57e Update and rename Frontend PS Output to next work prompt
+< ac61ed24 Update test_l3_canonical_authority.py
+< 4b20a063 Update control_plane.py
+< 5f41ed77 Add files via upload
+< cb54915d Create README.md
+< ff8e82c8 Delete REOS_CONTROL_CENTER/Frontend/src/features/f06_save_compare
+< 6c158839 Create f06_save_compare
+< 7e5ff060 Update SearchSuggestionPanel.tsx
+< 9f6f0ab4 Update SearchSuggestionPanel.tsx
+< 17cfd7ad Clean up eslint-disable comments in SearchShell
+< 91dcc074 Remove aria-disabled attribute from tool articles
+< b24e5ae5 Update MyHomioFeatureCard.tsx
+< c48b1654 Update HomioAdvice.tsx
+< 33bced7c Update HomeServices.tsx
+< 5a2b06e1 Remove aria-disabled from HelpTopicCard component
+< 977976a8 Add Image import to PlotLandSection component
+< 4a012427 Update SearchResultCard.tsx
+< eee2ff97 Import Image component from next/image
+< ea3d16cb Update SaveCompareSection.tsx
+< 6b84f31b Update RentalSection.tsx
+< 0e4734e1 Import Image component in OwnerProperties.tsx
+< 3030a924 Add Image import to HomioAdvice component
+< db38e532 Update FreshProperties.tsx
+< a6a9b062 Update FeaturedProjects.tsx
+< bfa88e48 Import Image component from next/image
+< db29e733 Update BuilderProjects.tsx
+< 266284ff Update Frontend PS Output
+< f97089d3 Update ProjectInventory.module.css
+< 524b4ae2 Update ProjectNextStep.module.css
+< 46789ca2 Update ProjectInventory.tsx
+< 09188a69 Update ProjectInventory.tsx
+< 348ffe22 Update ProjectPage.module.css
+< eed81968 Update ProjectPage.tsx
+< 40e1eda1 Update ProjectActions.module.css
+< 365928cb Update ProjectActions.tsx
+< 97901dd6 Update ProjectFacts.tsx
+< fcec9c81 Update SearchResultCard.tsx
+< d651a2b5 Update VerifiedProperties.tsx
+< 9657610a Replace img tag with Image component in SaveCompareSection
+< 2aaf2723 Update image rendering in SaveCompareSection
+< da42eaab Update RentalSection.tsx
+< 1205dd18 Update PlotLandSection.tsx
+< 3cadc7ae Update OwnerProperties.tsx
+< 33cd3a58 Update OwnerProperties.tsx
+< e783f429 Update HomioAdvice.tsx
+< 1198ca1d Update FreshProperties.tsx
+< fc4e2342 Update FeaturedProjects.tsx
+< 592032cb Update BuilderProjects.tsx
+< fc5d0e02 Update BuilderProjectCard.tsx
+< d91dd189 Update BuilderProjectCard.tsx
+< ae609811 Replace img with Image component in BuilderProjectCard
+< ec46ab1f Update next.config.ts
+< 5a8aa0a5 Implement OIDC authentication and protected My HOMIO account
+< 9366d2ea Refactor RelatedProjects.module.css for responsiveness
+< 94a634fa Update RelatedProjects.tsx
+< 49f4ca4a Update ProjectGallery.module.css
+< 11552b43 Update ProjectAmenities.module.css
+< 159d36db Update ProjectActions.tsx
+< 2e366859 Update ProjectInventory.module.css
+< 31f1f4a1 Update ProjectInventory.tsx
+< 8af237fd Update ProjectAmenities.module.css
+< a13e3848 Filter unavailable project amenities
+< 0c62d93e Refactor CSS styles for ProjectFacts component
+< c1ae0f49 Update ProjectFacts.tsx
+< b19963ff Update ProjectSummary.tsx
+< 2ea4390f Change 'LOCATION' to 'Location preview' in ProjectLocation
+< b00b76a7 Update PS Output
+< bf00e92d Update ProjectLocation.tsx
+< 8b4244a3 Synchronize canonical execution phase projection
+< 8a3906da Restore canonical state after failed phase projection
+< 29a712fe Update PS Output
+< 11124332 Synchronize canonical execution phase projection
+< f0867c61 Update verify-f05.mjs
+< 516258ca Update PS Output
+< 2469270b Restore state Unicode integrity and trigger backend CI
+< 2d379de1 Update verify-f05.mjs
+< e041f61e Update verify-f05.mjs
+< e2c8b489 Update page.tsx
+< 12cc2e14 Update search.utils.ts
+< c01ea8d6 Update verify-f04.mjs
+< 8adeb5d0 Update PS Output
+< 63d1b439 Add canonical phase projection consistency checks
+< a1bc129a Update verify-f04.mjs
+< d550437f Update SimilarProperties.module.css
+< 7042bb60 Update SimilarProperties.tsx
+< 82c9f370 Update PropertyNextStep.module.css
+< 1a6f8c4a Refactor PropertyNextStep component layout and text
+< 82b6d614 Update PropertyActionBar.module.css
+< 9234276b Update share functionality and button labels
+< 05f0cdbc Refactor CSS for responsiveness and layout improvements
+< 55ea680c Enhance PropertyLocation component with placeholder checks
+< 66e6f8bb Update PropertyDetails.module.css
+< 126c307b Refactor PropertyDetails component for highlights display
+< 64ea5d59 Update PropertyAmenities.tsx
+< c86959aa Update PropertyDisclosure.tsx
+< f1626892 Update PropertyTrust.tsx
+< 56a2ba36 Update PropertyFacts.tsx
+< 5567b1ed Refactor CSS for PropertySummary component
+< 4256ae90 Update PropertySummary.tsx
+< 085e4061 Update PropertyPage.tsx
+< 1569864c Update page.tsx
+< 82ec110a Update PS Output
+< 1a8f7777 fix(core): restore deep_thaw contract primitive
+< 58d32eb7 Update verify-f03.mjs
+< e8353806 Update verify-f03.mjs
+< fd8b3352 Update PS Output
+< 8c607cd8 Update verify-f03.mjs
+< 3bbb8959 Update verify-f05.mjs
+< c217360e Update verify-f04.mjs
+< c978fe3f Add aria-label to eyebrow span for accessibility
+< f81c4072 Update PropertyGallery.tsx
+< c25cae2c Update SearchShell.tsx
+< 6acad28f Update SearchActions.tsx
+< 76bc0e3d Clarify currency change behavior in SearchBudgetFilter
+< 12a92379 Update PS Output
+< 27f74cbe Update verify-f05.mjs
+< 8f611bcb Update ProjectNextStep.tsx
+< b247ed12 Update ProjectInventory.tsx
+< d559b093 Enhance accessibility labels and placeholder text
+< 9507acb6 Enhance accessibility labels and placeholder text
+< 66053155 Refactor verification logic and logging in verify-f04
+< 7f72d3a6 Update SimilarProperties.tsx
+< 8c9cfc25 Refactor PropertyProjectContext component text labels
+< 5d3f1326 Update PropertyNextStep.tsx
+< 491d8c45 Enhance location preview text and accessibility
+< 6963c45e Update PropertyAI.tsx
+< 654e583d Update PropertyActionBar.tsx
+< e851fd01 Update PropertyGallery.tsx
+< d814e629 Update verify-f03.mjs
+< 81ccc658 Update verify-f03.mjs
+< 5ef15fdc Refactor SearchMapView for improved accessibility and clarity
+< 2923cf81 Update SearchShell.tsx
+< cfac3b93 Refactor share functionality and update UI elements
+< ccd0fad7 Add onApply prop and validation messages to SearchFilterDrawer
+< 24171f0b Update SearchSummary.tsx
+< 874669de Add entityLabel prop and improve accessibility
+< ee57be8c Enhance SearchResultCard with optional image fields
+< 0823554d Enhance SearchAdvancedFilters with budget currency
+< 81c6ef68 Refactor SearchBudgetFilter to include currency handling
+< e441b837 Create search-preview-catalog.ts
+< b8b5d45b Update search.utils.ts
+< bee6ee2b Update search.constants.ts
+< f7dfd7ed Update search.types.ts
+< bd6ad9a4 Add project preview catalog functionality
+< 37835ec3 Delete REOS_CONTROL_CENTER/Frontend/src/features/f04_property/project-preview-catalog.ts
+< 7a74bbf6 Add project preview catalog functionality
+< 996d69b2 Create property-preview-catalog.ts
+< d9995dbb Create HOMIO PowerShell–GitHub Workflow Plan
+< 07a3c7f7 Update PS Output
+< ac90c95b test(core-008): add T01 financial domain regression to CI
+< 7081e21a Update PS Output
+< 459ea7cb feat(auth): add fail-closed OIDC token verification
+< 153eb290 Fix regex in filter for segment validation
+< 1c9fcb01 Update PS Output
+< c058c4ea Update PS Output
+< e8c6800d Update verify-f02.mjs
+< cbd336f8 Update PS Output
+< a565a36a Update TrustDisclaimer.tsx
+< 743f3bae Update descriptions and links in ResidentialCollections
+< 095d17fb Update PlotLandSection.tsx
+< fb19ef98 Update PS Output
+< a1928029 Update MyHomioSignInCTA.tsx
+< c5f1402f Update HomioAdvice.tsx
+< 87229a19 Update verify-f02.mjs
+< 57db7de6 Update BrokerageCTA.tsx
+< db1a43b8 Update FreshProperties.tsx
+< fce84ffc Update OwnerProperties component for clarity
+< 267da629 Update HomioAISection.tsx
+< 226276bc Update SaveCompareSection.tsx
+< 3bbf933e Revise MyHomioSignInCTA component content
+< b5576ab7 Refactor MyHomioFeatureCard component structure
+< 28b2fadd Update MyHomioSection.tsx
+< 447ed32d Update TrustSection.tsx
+< 6a542039 Update PostPropertySection.tsx
+< db09d6fb Update HelpFAQList.module.css
+< a1f58812 Refactor HelpFAQList to use detailed questions
+< 7b6393de Update HelpTopicCard.tsx
+< 6c9cb79d Revise help topic descriptions and links in HelpSupport
+< 2bbf0bb2 Revise articles for preview experience
+< 73824352 Update PropertyTools.tsx
+< 20ea5ee8 Revise service descriptions and update card links
+< dd19c310 Update link text and destination in WhyHomio.tsx
+< 20c27200 Update HomeFooter.tsx
+< 6766fb54 Update NewProjectCollections.tsx
+< 48dbea87 Update PropertyCollections.tsx
+< 8c7470c9 Update CommercialSection.tsx
+< 18382fcd Update PopularLocalities.tsx
+< 0688f8ab Update PS Output
+< 97b3d526 Delete .github/workflows/bootstrap-frontend-lockfile.yml
+< 4cb95147 Change npm install to npm ci for dependencies
+< 3fd53f77 Add verify:lockfile script to package.json
+< 9875c37c Add verify-lockfile script for dependency validation
+< 6fd50f6e fix(sync): verify canonical state integrity and test sync
+< bc559b53 Add reproducible HOMIO frontend dependency lockfile
+< 50e0d237 Create bootstrap-frontend-lockfile.yml
+< 4e7bbcb2 Update frontend-ci.yml
+< 18975d63 Update verify-foundation.mjs
+< 5edf9327 Update Select.tsx
+< 5becde06 Update Input.tsx
+< 7b12a454 Update verify-f02.mjs
+< 7380d9e9 Update BuilderProjects.tsx
+< 986d9e0a Update NewProjectCollections.tsx
+< 4d992928 Add styles for VerifiedProperties component
+< 38a37727 Update VerifiedProperties.tsx
+< e94a8817 Update globals.css
+< 6a8a1e28 Update verify-foundation.mjs
+< 99698ece Update GlobalSearch.tsx
+< 0de4d8f2 Update AppShell.tsx
+< 2b2df512 Update verify-foundation.mjs
+< 950ed032 Update GlobalActionLayer.tsx
+< 2e60eaf6 Update Header.tsx
+< de27abab Update ResponsiveNavigation.tsx
+< a48d6fec Update GlobalSearch.tsx
+< 29f110c1 Update globals.css
+< 8a1388d1 Create README.md
+< 0a907afa Create foundation.css
+< e93f14b6 Update Frontend PS Output
+< 91c38da7 Update Frontend PS Output
+< 75a3e240 Update Frontend PS Output
+< fe869663 Create proxy.ts
+< 50b5e094 Update MarketIntelligence.tsx
+< 2b0774eb Update package.json
+< 62553dc1 F02: migrate homepage into feature layer
+< f609e09e Create verify-f02.mjs
+< 4a952562 Refactor BottomSheet to use useDialogFocus
+< 96e844ed Update useDialogFocus.ts
+< 874ca384 Update useDialogFocus.ts
+< 49f96a5d Update Modal.tsx
+< 086faac7 Update Drawer.tsx
+< a3bee4ba Implement useDialogFocus hook for dialog management
+< d7b76aca Create HOMIO_REOS_FIX_EXECUTION_STRUCTURE
+< 13d3350d Create backend-ci.yml
+< f20ce935 Update git_transaction.py
+< 052d0303 Add git_transaction.py file
+< 5d29d367 Update git_transaction.py
+< 0a4af54c Update git_transaction.py
+< 52bcf191 Refactor GitTransactionLock for improved clarity
+< 66d0d9a2 Update git_policy.py
+< 329b94bf Create frontend-ci.yml
+< 249ffc85 Update and rename New chat prompt to Frontend PS Output
+< bbd1938e Update and rename Frontend Ps Output to New chat prompt
+< c0284a04 Update property.data.ts
+< bc7ae9c6 Update Frontend Ps Output
+< 5a52c792 Update PS Output
+< 26fdf055 Update Frontend Ps Output
+< 7e0a6e33 Update PS Output
+< 3c4a5ee9 Update Frontend Ps Output
+< eaf1eff6 Update PS Output
+< b1de9b9e Update Frontend Ps Output
+< 0ee0eafb Update Frontend Ps Output
+< 1293861e Update Frontend Ps Output
+< 786aa537 Update Frontend Ps Output
+< 2fb05147 chore(frontend): remove obsolete homepage prototype duplicates
+< c08481b9 Resolve errors in remote enumeration and branch updates
+< 78e0e9df Update Frontend Ps Output
+< 00014c73 Update Frontend Ps Output
+< 1b7c6cbb Update Frontend Ps Output
+< afcb930d Update Frontend Ps Output
+< c01a5267 Update Frontend Ps Output
+< 29dd5263 Update Frontend Ps Output
+< 3776681b Update property.data.ts
+< 778bbdc2 Fix formatting and remove unnecessary line
+< 602dd4d4 Update HOMIO_FRONTEND_EXECUTION_PLAN.json
+< 57334b1b Update property.data.ts
+< a08c4475 Update ResponsiveNavigation.tsx
+< 10a83f71 Delete REOS_CONTROL_CENTER/Frontend/src/components/home/HomeHeader.module.css
+< 365eb9bb Delete REOS_CONTROL_CENTER/Frontend/src/components/home/HomeHeader.tsx
+< bbb32e5a Delete REOS_CONTROL_CENTER/Frontend/src/app/search/page.module.css
+< d5a19219 Update FeaturedProjects with new project details
+< 98d3ba13 Update project.data.ts
+< 4148fcfe Update SimilarProperties.tsx
+< 726f1b78 Refine PROPERTY_PREVIEW and add variants
+< 87128cdf Update verify-f03.mjs
+< c5861f75 Update SearchShell.module.css
+< 68c5a6e7 Refactor comments and remove changePage function
+< 40e764e6 Refactor SearchShell component and update imports
+< 186c6078 Update page.tsx
+< 8770baf1 Update HomeQuickDiscovery.tsx
+< 7161b9a5 Update HomeSearch.module.css
+< 374ec740 Update HomeSearch.tsx
+< 87e09312 Refactor HomeIntentTabs to use structured intents
+< 7b3337c9 Update HomeHero.tsx
+< 886d8bf8 Update page.tsx
+< 22d108e5 Update GlobalActionLayer.tsx
+< 6ddcdaed Update ResponsiveNavigation.tsx
+< 223b9fc2 Update Header.tsx
+< f1f69616 Refactor AppShell component header and content
+< 065c1705 Update layout.tsx
+< 6a4aafaa Update Frontend Ps Output
+< 6a7b5d77 Update Frontend Ps Output
+< cb1d17e3 Update AI_AGENT_ENTRYPOINT.py
+< 71b308b4 Update Frontend Ps Output
+< b9415bf2 Update AI_AGENT_ENTRYPOINT.py
+< d205f807 Update Frontend Ps Output
+< 5a328455 Correct F05 route placement and rollback accidental entrypoint change
+< 5c0bb258 Update Frontend Ps Output
+< c57be426 Correct F05 route and restore safe AI agent remote-write contract
+< e4b870d4 Update Frontend Ps Output
+< 6f9b9037 Update Frontend Ps Output
+< 0f74e9c9 Fix F05 route placement and update AI remote-write contract
+< 48159a79 Update Frontend Ps Output
+< acf1cf5a Update Frontend Ps Output
+< c68391c8 Update Frontend Ps Output
+< 28afc8b4 Update Frontend Ps Output
+< d0310411 Update Frontend Ps Output
+< 3fa05bae Refactor GitHub API remote file access script
+< a36765b8 Update Frontend Ps Output
+< 6eae6f5e Update Frontend Ps Output
+< 81576f54 Update Frontend Ps Output
+< de6c1e4a Update Frontend Ps Output
+< a81a535f Update Frontend Ps Output
+< 931efd7a Update Frontend Ps Output
+< b61c4e93 Implement source and target path checks in tree API
+< fbe211bb Update Frontend Ps Output
+< 404931fb Update Frontend Ps Output
+< dd937771 Update Frontend Ps Output
+< ec9e0bf9 Update Frontend Ps Output
+< 4f74b1d5 Update Frontend Ps Output
+< 03496678 Update Frontend Ps Output
+< 1c523445 Update Frontend Ps Output
+< 8e3f4043 Update Frontend Ps Output
+< c78742e9 Update Frontend Ps Output
+< 35c90f62 Update Frontend Ps Output
+< 24b3912c Refactor project context button to use Link component
+< 10667a47 Add projectId to property data
+< e147ae2e Add optional projectId property to property type
+< 73be4a9f Add verify:f05 script to package.json
+< 3a5ea69f Create verify-f05.mjs
+< 66265ee8 Create ProjectUnavailable.module.css
+< acf52054 Create ProjectUnavailable.tsx
+< 1138b180 Create ProjectNextStep.module.css
+< 9f5cdf4c Create ProjectNextStep.tsx
+< 378045cd Create RelatedProjects.module.css
+< 098e21c1 Create RelatedProjects.tsx
+< 5147a12f Create ProjectTrust.module.css
+< 911c4b4c Create ProjectTrust.tsx
+< 25fbd6df Create ProjectLocation.module.css
+< 578b4dc8 Add ProjectLocation component for project details
+< 5d0f1a3f Add ProjectAmenities.module.css for styling amenities
+< 5ce449f5 Create ProjectAmenities.tsx
+< 0ed16a2b Create ProjectInventory.module.css
+< cb769495 Create ProjectInventory.tsx
+< d3bd7b02 Create ProjectInventorySummary.module.css
+< e8711feb Add ProjectInventorySummary component
+< c4afae8b Add ProjectFacts.module.css for project styling
+< 39d7d333 Add ProjectFacts component to display project details
+< cc45a32b Create ProjectActions.module.css
+< 531e3728 Add ProjectActions component for project management
+< 32c8015b Create ProjectSummary.module.css
+< e852480b Create ProjectSummary.tsx
+< b6507526 Create ProjectGallery.module.css
+< 4edc69d9 Create ProjectGallery.tsx
+< 5b45d937 Add ProjectPage.module.css for project styling
+< 0cfeca77 Add ProjectPage component for project details
+< 2e9c6bdb Create project preview data and retrieval function
+< cd308510 Create project.types.ts
+< 13fcc264 Create README.md for F05 Project
+< 5e57a449 Add error.module.css for error page styling
+< b376540f Create error.tsx
+< 87870830 Add ProjectNotFound component for unavailable projects
+< 303bb764 Add loading.module.css for project loading styles
+< 6bc2f338 Create loading.tsx
+< e95e93fe Create page.tsx
+< 7df0338c Update AI_AGENT_ENTRYPOINT.py
+< 51c69333 Update Frontend Ps Output
+< 74b55b0c Update FeaturedProjects.tsx
+< 1b31bbb4 Update Frontend Ps Output
+< b777bd1a Update Frontend Ps Output
+< fcab96a2 Update Frontend Ps Output
+< e9ee592e Update Frontend Ps Output
+< 2b43a951 Update Frontend Ps Output
+< 3cf35046 Fix formatting in search.types.ts
+< acfd091c Update search.types.ts
+< 5fbcbc8c Update Frontend Ps Output
+< 8e1acb08 Update Frontend Ps Output
+< 62e37812 Update Frontend Ps Output
+< 3fc21eb1 Resolve TypeScript errors in SearchFurnishingFilter.ts
+< fc2e1698 Update Frontend Ps Output
+< a9dac891 Rename SearchFurnishingFilter.mod to SearchFurnishingFilter.module.css
+:
