@@ -81,13 +81,8 @@ export default function SearchShell() {
       );
 
       // URL hydration is intentional when mounting or navigating history.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setState(incoming);
-
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDraftFilters(incoming.filters);
-
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUrlInitialized(true);
     }
 
