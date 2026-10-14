@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 
 import SearchActions from "@/features/f03_search/SearchActions";
 import SearchFilterDrawer from "@/features/f03_search/SearchFilterDrawer";
@@ -13,6 +14,17 @@ import SearchResults from "@/features/f03_search/SearchResults";
 import SearchSortBar from "@/features/f03_search/SearchSortBar";
 import SearchSummary from "@/features/f03_search/SearchSummary";
 import SearchViewToggle from "@/features/f03_search/SearchViewToggle";
+
+import {
+  compareFromSearchResult,
+  savedFromSearchResult,
+} from "@/features/f06_save_compare/saveCompareAdapters";
+
+import {
+  toggleComparedItem,
+  toggleSavedRecord,
+  useSaveCompareSession,
+} from "@/features/f06_save_compare/saveCompareSession";
 
 import {
   SEARCH_DEFAULT_PAGE_SIZE,
@@ -63,15 +75,25 @@ export default function SearchShell() {
     createDefaultSearchState(),
   );
 
+  const session = useSaveCompareSession();
+
   const [filterOpen, setFilterOpen] = useState(false);
   const [draftFilters, setDraftFilters] = useState<SearchFilters>(
     createEmptySearchFilters(),
   );
 
   const [urlInitialized, setUrlInitialized] = useState(false);
-  const [savedIds, setSavedIds] = useState<string[]>([]);
-  const [comparedIds, setComparedIds] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<string>();
+
+  const savedIds = useMemo(
+    () => session.savedRecords.map((record) => record.id),
+    [session.savedRecords],
+  );
+
+  const comparedIds = useMemo(
+    () => session.comparedItems.map((item) => item.id),
+    [session.comparedItems],
+  );
 
   useEffect(() => {
     function hydrateFromUrl() {
@@ -80,7 +102,6 @@ export default function SearchShell() {
         searchStateFromParams(params),
       );
 
-      // URL hydration is intentional when mounting or navigating history.
       setState(incoming);
       setDraftFilters(incoming.filters);
       setUrlInitialized(true);
@@ -204,33 +225,11 @@ export default function SearchShell() {
   }
 
   function toggleSaved(result: SearchResultCardData) {
-    if (result.entityType !== "property") {
-      return;
-    }
-
-    setSavedIds((current) =>
-      current.includes(result.id)
-        ? current.filter((id) => id !== result.id)
-        : [...current, result.id],
-    );
+    toggleSavedRecord(savedFromSearchResult(result));
   }
 
   function toggleCompared(result: SearchResultCardData) {
-    if (result.entityType !== "property") {
-      return;
-    }
-
-    setComparedIds((current) => {
-      if (current.includes(result.id)) {
-        return current.filter((id) => id !== result.id);
-      }
-
-      if (current.length >= 3) {
-        return current;
-      }
-
-      return [...current, result.id];
-    });
+    toggleComparedItem(compareFromSearchResult(result));
   }
 
   function changeSort(nextSort: SearchState["sort"]) {
@@ -275,7 +274,12 @@ export default function SearchShell() {
           description="Search property and project experience previews. Prices, availability, imagery and verification remain non-authoritative until connected to approved inventory data."
         />
 
-        <div style={{ marginTop: 22, marginBottom: 14 }}>
+        <div
+          style={{
+            marginTop: 22,
+            marginBottom: 14,
+          }}
+        >
           <SearchIntentTabs
             intents={SEARCH_INTENTS}
             activeIntent={state.intent}
@@ -292,6 +296,60 @@ export default function SearchShell() {
         </div>
 
         <SearchSummary state={state} />
+
+        <nav
+          aria-label="Saved and comparison shortcuts"
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: 10,
+            margin: "14px 0",
+          }}
+        >
+          <Link
+            href="/saved"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 12px",
+              border: "1px solid #d0d5dd",
+              borderRadius: 8,
+              color: "inherit",
+              textDecoration: "none",
+              fontSize: 13,
+            }}
+          >
+            Saved ({session.savedRecords.length})
+          </Link>
+
+          <Link
+            href="/compare"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 12px",
+              border: "1px solid #d0d5dd",
+              borderRadius: 8,
+              color: "inherit",
+              textDecoration: "none",
+              fontSize: 13,
+            }}
+          >
+            Compare ({session.comparedItems.length}/4)
+          </Link>
+
+          <span
+            style={{
+              color: "#667085",
+              fontSize: 12,
+            }}
+          >
+            Session only — not synced to your account
+          </span>
+        </nav>
 
         <div className={styles.toolbar}>
           <div className={styles.toolbarLeft}>
@@ -408,7 +466,7 @@ export default function SearchShell() {
               ? "Project discovery · Account persistence not connected"
               : state.viewMode === "map"
                 ? "Geographic map unavailable until authoritative coordinates exist"
-                : "Save and compare states are temporary to this page session"}
+                : "Save and compare states are temporary to this browser session"}
           </span>
         </div>
       </div>
