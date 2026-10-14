@@ -100,7 +100,6 @@ export default function SearchResultCard({
           aria-label={`Open ${property.title}`}
         >
           {property.image ? (
-            
             <Image
               src={property.image}
               width={1400}
@@ -110,7 +109,6 @@ export default function SearchResultCard({
               className={styles.image}
               loading="lazy"
             />
-
           ) : (
             <div
               className={styles.image}
@@ -123,6 +121,7 @@ export default function SearchResultCard({
                   ? "PROJECT PREVIEW"
                   : "HOMIO PREVIEW"}
               </strong>
+
               <span style={{ fontSize: 11 }}>
                 Media not connected
               </span>
@@ -138,21 +137,30 @@ export default function SearchResultCard({
 
         <div className={styles.badges}>
           {property.verified ? (
-            <span className={styles.verified}>HOMIO Verified</span>
+            <span className={styles.verified}>
+              HOMIO Verified
+            </span>
           ) : null}
 
           {property.status ? (
-            <span className={styles.status}>{property.status}</span>
+            <span className={styles.status}>
+              {property.status}
+            </span>
           ) : null}
         </div>
       </div>
 
       <div className={styles.body}>
         <div className={styles.topRow}>
-          <span className={styles.type}>{property.propertyType}</span>
+          <span className={styles.type}>
+            {property.propertyType}
+          </span>
 
-          {isProperty && (onSave || onCompare) ? (
-            <div className={styles.quickActions}>
+          {(onSave || onCompare) ? (
+            <div
+              className={styles.quickActions}
+              aria-label={`${isProperty ? "Property" : "Project"} actions`}
+            >
               {onSave ? (
                 <button
                   type="button"
@@ -161,8 +169,8 @@ export default function SearchResultCard({
                   }`}
                   aria-label={
                     saved
-                      ? "Remove from temporary saved preview"
-                      : "Save property for this session only"
+                      ? "Remove from saved items"
+                      : `Save ${isProperty ? "property" : "project"} for this session`
                   }
                   aria-pressed={saved}
                   onClick={() => onSave(property)}
@@ -179,8 +187,8 @@ export default function SearchResultCard({
                   }`}
                   aria-label={
                     compared
-                      ? "Remove from temporary comparison"
-                      : "Compare property in this session only"
+                      ? "Remove from comparison"
+                      : `Compare ${isProperty ? "property" : "project"}`
                   }
                   aria-pressed={compared}
                   onClick={() => onCompare(property)}
@@ -196,10 +204,14 @@ export default function SearchResultCard({
           {property.title}
         </Link>
 
-        <p className={styles.location}>{property.location}</p>
+        <p className={styles.location}>
+          {property.location}
+        </p>
 
         {property.projectName ? (
-          <p className={styles.project}>{property.projectName}</p>
+          <p className={styles.project}>
+            {property.projectName}
+          </p>
         ) : null}
 
         <div className={styles.specs}>
