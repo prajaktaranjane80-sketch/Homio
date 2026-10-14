@@ -10,6 +10,7 @@ const primaryItems: NavigationItem[] = [
   { label: "Rent", href: "/search?intent=rent" },
   { label: "Commercial", href: "/search?intent=commercial" },
   { label: "Projects", href: "/search?intent=projects" },
+  { label: "HOMIO AI", href: "/ai" },
 ];
 
 export function ResponsiveNavigation({
