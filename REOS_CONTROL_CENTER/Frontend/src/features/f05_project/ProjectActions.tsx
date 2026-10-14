@@ -34,7 +34,6 @@ export default function ProjectActions({ project }: ProjectActionsProps) {
 
     try {
       const url = window.location.href;
-
       if (typeof navigator.share === "function") {
         await navigator.share({
           title: project.name,
@@ -44,18 +43,14 @@ export default function ProjectActions({ project }: ProjectActionsProps) {
         setShareMessage("Share completed.");
         return;
       }
-
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
         setShareMessage("Project link copied.");
         return;
       }
-
       setShareMessage("Copy the page address from your browser.");
     } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") {
-        return;
-      }
+      if (error instanceof Error && error.name === "AbortError") return;
       setShareMessage("Sharing was unavailable. Copy the page address instead.");
     }
   }
@@ -71,7 +66,6 @@ export default function ProjectActions({ project }: ProjectActionsProps) {
         >
           {saved ? "Saved" : "Save"}
         </button>
-
         <button
           type="button"
           className={`${styles.secondary}${compared ? ` ${styles.active}` : ""}`}
@@ -81,18 +75,11 @@ export default function ProjectActions({ project }: ProjectActionsProps) {
         >
           {compared ? "Compared" : "Compare"}
         </button>
-
-        <button
-          type="button"
-          className={styles.secondary}
-          onClick={shareProject}
-        >
+        <button type="button" className={styles.secondary} onClick={shareProject}>
           Share
         </button>
-
         <a href="#inventory" className={styles.primary}>
-          Explore inventory
-          <span aria-hidden="true">→</span>
+          Explore inventory <span aria-hidden="true">→</span>
         </a>
       </div>
 
@@ -103,8 +90,9 @@ export default function ProjectActions({ project }: ProjectActionsProps) {
       ) : null}
 
       <p className={styles.note}>
-        Saved and compared items are temporary session state. They are not
-        synced to an account and are cleared by a full page reload.
+        Save and compare are temporary experience controls until approved REOS
+        persistence capabilities are connected. These items are not synced to
+        an account and are cleared by a full page reload.
       </p>
     </section>
   );
