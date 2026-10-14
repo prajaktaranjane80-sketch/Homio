@@ -12,7 +12,7 @@ type Props = {
 
 export default function MyHomioFeatureCard({ item }: Props) {
   return (
-    <article className={styles.card} aria-disabled="true">
+   <article className={styles.card}>
       <div className={styles.top}>
         <span className={styles.number}>{item.number}</span>
 
