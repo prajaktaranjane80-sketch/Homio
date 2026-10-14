@@ -70,12 +70,11 @@ export default function HomioAdvice() {
         <div className={styles.grid}>
           {articles.map((article, index) => (
             <article
-              key={article.title}
-              className={`${styles.card} ${
-                index === 0 ? styles.featured : ""
-              }`}
-              aria-disabled="true"
-            >
+                  key={article.title}
+                  className={`${styles.card} ${
+                    index === 0 ? styles.featured : ""
+                  }`}
+                >
               <div className={styles.imageLink}>
                 <div className={styles.imageWrap}>
                   
