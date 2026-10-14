@@ -11,7 +11,7 @@ type Props = {
 
 export default function HelpTopicCard({ item }: Props) {
   return (
-    <article className={styles.card} aria-disabled="true">
+    <article className={styles.card}>
       <span className={styles.icon} aria-hidden="true">
         ?
       </span>
