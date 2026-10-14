@@ -186,13 +186,19 @@ class CanonicalAuthorityVerifier:
                 state_path=self.state_path,
             )
 
+                if not self.verify_phase_coherence():
+            return CanonicalAuthorityResult(
+                allowed=False,
+                reason="AUTHORITATIVE_PHASE_GATE_COHERENCE_FAILURE",
+                state_path=self.state_path,
+                current_gate=gate,
+                current_task=task,
+                current_subtask=subtask,
+            )
+
         return CanonicalAuthorityResult(
             allowed=True,
             reason="CANONICAL_AUTHORITY_VERIFIED",
-            state_path=self.state_path,
-            current_gate=gate,
-            current_task=task,
-            current_subtask=subtask,
         )
 
 
