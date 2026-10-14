@@ -34,7 +34,7 @@ export default function SearchSuggestionPanel({
   }
 
   return (
-    <div className={styles.panel} role="listbox" aria-label="Search suggestions">
+    <div className={styles.panel} role="group" aria-label="Search suggestions">
       <div className={styles.header}>
         <span>Suggestions</span>
       </div>
@@ -64,7 +64,6 @@ export default function SearchSuggestionPanel({
                 key={suggestion.id}
                 href={suggestion.href}
                 className={styles.item}
-                role="option"
                 onClick={() => onSelect?.(suggestion)}
               >
                 {content}
