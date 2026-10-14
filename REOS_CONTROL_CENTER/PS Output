@@ -1,166 +1,75 @@
-At line:63 char:9
-+     try {
-+         ~
-Missing closing '}' in statement block or type definition.
-At line:293 char:39
-+             'startup capability field')
-+                                       ~
-The Try statement is missing its Catch or Finally block.
-At line:1 char:3
-+ & {
-+   ~
-Missing closing '}' in statement block or type definition.
-At line:293 char:39
-+             'startup capability field')
-+                                       ~
-Unexpected token ')' in expression or statement.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : MissingEndCurlyBrace
+PS D:\Homio\REOS_CONTROL_CENTER>         $sourceStart = $content.IndexOf('SOURCE_OF_TRUTH: dict[str, str] = {')
+You cannot call a method on a null-valued expression.
+At line:1 char:9
++         $sourceStart = $content.IndexOf('SOURCE_OF_TRUTH: dict[str, s ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : InvokeMethodOnNull
 
-PS D:\Homio\REOS_CONTROL_CENTER>         # Add explicit capability flags without removing compatibility fields.
-PS D:\Homio\REOS_CONTROL_CENTER>         $content = Replace-ExactOnce $content `
->>             '"powershell_write_allowed": ('"`n            POWERSHELL_WRITE_ALLOWED'",""`n        ),"`
->>             '"powershell_write_allowed": ('"`n            POWERSHELL_WRITE_ALLOWED'",""`n        ),"`n        "powershell_remote_github_api_write_allowed": POWERSHELL_REMOTE_GITHUB_API_WRITE_ALLOWED,`n        "powershell_local_worktree_write_allowed": POWERSHELL_LOCAL_WORKTREE_WRITE_ALLOWED,`n        "powershell_local_git_mutation_allowed": POWERSHELL_LOCAL_GIT_MUTATION_ALLOWED,`n        "powershell_write_mode": POWERSHELL_WRITE_MODE,`
->>             'startup capability fields'
->>
->>         $content = Replace-ExactOnce $content `
->>             '"WRITE METHOD   : "'"`n        "Manual GitHub file save"`"`n    )"`
->>             '"WRITE METHOD   : "'"`n        "Guarded GitHub REST API; remote branch only"`"`n    )"`
->>             'startup write method'
->>
->>         $content = Replace-ExactOnce $content `
->>             '"POWERSHELL     : "'"`n        "Verification / diagnosis only"`"`n    )"`
->>             '"POWERSHELL     : "'"`n        "Remote API writes guarded; local worktree writes forbidden"`"`n    )"`
->>             'startup PowerShell description'
->>
->>         $content = Replace-ExactOnce $content `
->>             '"RULE           : "'"`n        "POWERSHELL WRITE = FORBIDDEN"`"`n    )"`
->>             '"RULE           : "'"`n        "LOCAL WORKTREE WRITE = FORBIDDEN"`"`n    )"`n    print("RULE           : REMOTE API WRITE = GUARDED")`
->>             'startup write-policy rule'
->>
->>         # Reject known contradictory rules before any branch update.
->>         $forbidden = @(
->>             'POWERSHELL_WRITE_ALLOWED = False',
->>             'PowerShell MUST NOT perform repository code writes.',
->>             'PowerShell MUST NOT be used to write, patch, reset, merge or push project code.',
->>             'Manual GitHub file save on branch reos-development',
->>             'Manual GitHub file saving is the approved owner-controlled implementation write workflow.',
->>             'PowerShell is verification and diagnosis only.',
->>             'Verification / diagnosis only',
->>             'POWERSHELL WRITE = FORBIDDEN'
+PS D:\Homio\REOS_CONTROL_CENTER>         $sourceEnd = $content.IndexOf(
+>>             '# NON-DEVELOPER OWNER WORKING CONTRACT',
+>>             $sourceStart
 >>         )
->>         foreach ($phrase in $forbidden) {
->>             if ($content.Contains($phrase)) {
->>                 throw "Contradictory old rule remains after transformation: $phrase"
->>             }
+You cannot call a method on a null-valued expression.
+At line:1 char:9
++         $sourceEnd = $content.IndexOf(
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : InvokeMethodOnNull
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER>         if ($sourceStart -lt 0 -or $sourceEnd -le $sourceStart) {
+>>             throw 'SOURCE_OF_TRUTH section not found. No branch update attempted.'
 >>         }
->>
->>         # Syntax-check the complete generated replacement in a temporary
->>         # UTF-8 file outside the project workspace.
->>         $tempPath = Join-Path $env:TEMP (
->>             "AI_AGENT_ENTRYPOINT-check-$([guid]::NewGuid().ToString('N')).py"
+SOURCE_OF_TRUTH section not found. No branch update attempted.
+At line:2 char:13
++             throw 'SOURCE_OF_TRUTH section not found. No branch updat ...
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (SOURCE_OF_TRUTH...date attempted.:String) [], RuntimeException
+    + FullyQualifiedErrorId : SOURCE_OF_TRUTH section not found. No branch update attempted.
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER>         $sourceSection = $content.Substring(
+>>             $sourceStart,
+>>             $sourceEnd - $sourceStart
 >>         )
->>         [IO.File]::WriteAllText(
->>             $tempPath, $content, [Text.UTF8Encoding]::new($false)
->>         )
->>         $syntax = & python -c "import sys; compile(open(sys.argv[1], encoding='utf-8').read(), 'AI_AGENT_ENTRYPOINT.py', 'exec'); print('PYTHON SYNTAX: PASS')" $tempPath 2>&1
->>         if ($LASTEXITCODE -ne 0) {
->>             throw "Generated file failed Python syntax validation:`n$($syntax -join "`n")"
->>         }
->>         Write-Host ($syntax -join "`n") -ForegroundColor Green
->>
->>         # Confirm live branch still matches our captured parent.
->>         $refNow = Invoke-GhJson @('api', '--method', 'GET', $refEndpoint)
->>         if ([string]$refNow.object.sha -ne $baseHead) {
->>             throw "Branch moved before write. Expected $baseHead; got $($refNow.object.sha). No branch update attempted."
->>         }
->>
->>         $repoCommit = Invoke-GhJson @(
->>             'api', '--method', 'GET', "repos/$repo/git/commits/$baseHead"
->>         )
->>         $baseTree = [string]$repoCommit.tree.sha
->>         if (-not $baseTree) { throw 'Unable to retrieve base tree SHA.' }
->>
->>         $blob = Invoke-GhJson @(
->>             'api', '--method', 'POST', "repos/$repo/git/blobs"
->>         ) @{
->>             content = $content
->>             encoding = 'utf-8'
->>         }
->>         $tree = Invoke-GhJson @(
->>             'api', '--method', 'POST', "repos/$repo/git/trees"
->>         ) @{
->>             base_tree = $baseTree
->>             tree = @(
->>                 @{
->>                     path = $path
->>                     mode = '100644'
->>                     type = 'blob'
->>                     sha = [string]$blob.sha
->>                 }
->>             )
->>         }
->>         $commit = Invoke-GhJson @(
->>             'api', '--method', 'POST', "repos/$repo/git/commits"
->>         ) @{
->>             message = 'Align AI agent entrypoint with guarded PowerShell GitHub workflow'
->>             tree = [string]$tree.sha
->>             parents = @($baseHead)
->>         }
->>
->>         # Lease check immediately before a non-force update.
->>         $leaseRef = Invoke-GhJson @('api', '--method', 'GET', $refEndpoint)
->>         if ([string]$leaseRef.object.sha -ne $baseHead) {
->>             throw "Branch moved during preparation. Prepared commit $($commit.sha) was not published."
->>         }
->>
->>         $updated = Invoke-GhJson @(
->>             'api', '--method', 'PATCH', $refEndpoint
->>         ) @{
->>             sha = [string]$commit.sha
->>             force = $false
->>         }
->>
->>         # Independent remote read-back.
->>         $finalRef = Invoke-GhJson @('api', '--method', 'GET', $refEndpoint)
->>         $finalFile = Invoke-GhJson @(
->>             'api', '--method', 'GET',
->>             "repos/$repo/contents/${encodedPath}?ref=$branch"
->>         )
->>         $finalBytes = [Convert]::FromBase64String(
->>             ([string]$finalFile.content -replace '\s', '')
->>         )
->>         $finalContent = [Text.Encoding]::UTF8.GetString($finalBytes)
->>
->>         if ([string]$finalRef.object.sha -ne [string]$commit.sha) {
->>             throw 'Read-back failed: remote branch HEAD does not match the new commit.'
->>         }
->>         if ([string]$finalFile.sha -ne [string]$blob.sha) {
->>             throw 'Read-back failed: remote target blob SHA does not match the generated file.'
->>         }
->>         if ($finalContent -ne $content) {
->>             throw 'Read-back failed: remote target content differs from generated complete file.'
->>         }
->>
->>         Write-Host "`nAI_AGENT_ENTRYPOINT UPDATE: PASS" -ForegroundColor Green
->>         Write-Host "Path        : $path"
->>         Write-Host "Old blob    : $oldBlob"
->>         Write-Host "New blob    : $($finalFile.sha)"
->>         Write-Host "Parent HEAD : $baseHead"
->>         Write-Host "New commit  : $($commit.sha)"
->>         Write-Host "Verified HEAD: $($finalRef.object.sha)"
->>         Write-Host "Commit URL  : https://github.com/$repo/commit/$($commit.sha)"
->>         Write-Host "File URL    : https://github.com/$repo/blob/$branch/REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py"
->>         Write-Host "ACRL/T21 files: unchanged; separate alignment remains pending."
->>     }
->>     catch {
->>         Write-Host "`nAI_AGENT_ENTRYPOINT UPDATE: FAIL" -ForegroundColor Red
->>         Write-Host $_.Exception.Message -ForegroundColor Red
->>         Write-Host "Do not retry blindly; re-read current branch HEAD and target file first."
->>     }
->>     finally {
->>         if ($tempPath -and (Test-Path -LiteralPath $tempPath)) {
->>             Remove-Item -LiteralPath $tempPath -Force -ErrorAction SilentlyContinue
->>         }
->>     }
->> }
+You cannot call a method on a null-valued expression.
+At line:1 char:9
++         $sourceSection = $content.Substring(
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : InvokeMethodOnNull
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER>         $oldSourceInterface = @(
+>>             '    "implementation_write_interface": ('
+>>             '        "Manual GitHub file save on branch reos-development"'
+>>             '    ),'
+>>         ) -join "`n"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER>         $newSourceInterface =
+>>             '    "implementation_write_interface": IMPLEMENTATION_WRITE_INTERFACE,'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER>         $sourceSection = Replace-Once `
+>>             -Text $sourceSection `
+>>             -Old $oldSourceInterface `
+>>             -New $newSourceInterface `
+>>             -Label 'SOURCE_OF_TRUTH implementation interface'
+Replace-Once : The term 'Replace-Once' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the
+name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:26
++         $sourceSection = Replace-Once `
++                          ~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (Replace-Once:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER>         $content = $content.Substring(0, $sourceStart) +
+>>             $sourceSection +
+>>             $content.Substring($sourceEnd)
+You cannot call a method on a null-valued expression.
+At line:1 char:9
++         $content = $content.Substring(0, $sourceStart) +
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : InvokeMethodOnNull
