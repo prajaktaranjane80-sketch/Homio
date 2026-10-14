@@ -1,0 +1,103 @@
+# HOMIO / REOS — F06 Integration: Continue Actual Work
+
+Hum HOMIO / REOS project par kaam kar rahe hain. Pichhle chat se wahi kaam continue karo; audit dobara zero se mat shuru karna.
+
+## 1. Canonical repository
+
+- GitHub repository: `prajaktaranjane80-sketch/Homio`
+- Canonical branch: `reos-development`
+- Frontend root: `REOS_CONTROL_CENTER/Frontend`
+- F06 folder: `REOS_CONTROL_CENTER/Frontend/src/features/f06_save_compare/`
+- Current known branch HEAD: `5f41ed77e9a35937d587de3125eff79409e9d157`
+- Latest known successful CI: https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/38525017585
+- F06 upload commit: https://github.com/prajaktaranjane80-sketch/Homio/commit/5f41ed77e9a35937d587de3125eff79409e9d157
+
+F06 ki 21 files GitHub par sahi folder mein committed hain. Latest known CI pass hua tha, lekin uska verification abhi F01–F05, TypeScript, lint aur production build check karta hai. Isliye F06 ko integrated ya fully tested mat maanna.
+
+## 2. Kaam ka target
+
+F06 — Save, Compare & Return ko existing HOMIO frontend se practically integrate karo. Sirf plan, audit ya code suggestions dekar kaam complete mat batana.
+
+F06 files:
+- `SavedShell.tsx`, `CompareShell.tsx`
+- `SavedProperties.tsx`, `SavedProjects.tsx`, `SavedLocalities.tsx`
+- `SavedSearches.tsx`, `RecentViews.tsx`
+- `CompareProperties.tsx`, `CompareProjects.tsx`, `CompareLocalities.tsx`
+- `CompareTable.tsx`, `CompareCriteria.tsx`, `CompareSummary.tsx`, `CompareActions.tsx`, `ShareComparison.tsx`
+- `SavedEmptyState.tsx`, `CompareEmptyState.tsx`
+- `saved.types.ts`, `compare.types.ts`
+- `SavedCompareExperience.module.css`, `README.md`
+
+## 3. Already verified integration gaps
+
+In files ko pichhle chat mein check kiya gaya hai:
+
+**Search**
+`REOS_CONTROL_CENTER/Frontend/src/features/f03_search/SearchShell.tsx`
+
+Abhi `savedIds` aur `comparedIds` isi page ke React state mein hain. Search result ke Save/Compare actions F06 shell ko data nahi bhejte.
+
+**Property**
+`REOS_CONTROL_CENTER/Frontend/src/features/f04_property/PropertyActionBar.tsx`
+
+Save aur Compare sirf current page ke local state ko badalte hain.
+
+**Project**
+`REOS_CONTROL_CENTER/Frontend/src/features/f05_project/ProjectActions.tsx`
+
+Save aur Compare project page ke local state tak limited hain.
+
+**Existing routes**
+- `/search` → `src/app/search/page.tsx`
+- Property route → `src/app/property/[propertyId]/page.tsx`
+- Project route → `src/app/project/[projectId]/page.tsx`
+- `src/app/my/page.tsx` pehle se authenticated account page hai aur batata hai ki saved items tab dikhenge jab approved persistence services connect hongi.
+- `/saved` aur `/compare` ke routes abhi maujood nahi mile.
+
+**Verification**
+`REOS_CONTROL_CENTER/Frontend/package.json` ka `verify` script `verify:foundation`, `verify:auth`, `verify:f02`–`verify:f05`, TypeScript, lint aur build chalaata hai. F06-specific gate abhi nahi hai.
+
+## 4. Pehle integration architecture fix karo
+
+Canonical frontend blueprint aur execution plan ko check karke F06 ke routes aur implementation status ko sahi tarah register karo. Existing route conventions aur authentication boundaries ko follow karo. Fictional routes ya duplicate folders create mat karo.
+
+Ek hi canonical folder rakho:
+`src/features/f06_save_compare/`
+
+Search, Property aur Project ke Save/Compare actions ko ek shared F06 state/data adapter se jodo. Saved aur Compare screens ko isi shared state se records milne chahiye. Search, Property aur Project pages par alag-alag unrelated Save/Compare state mat rakho.
+
+Account-backed persistence service abhi verified nahi hai. Jab tak approved service actual mein connect nahi hoti:
+- Data ko clearly session-only batao.
+- UI mein account sync connected hone ka jhootha claim mat karo.
+- Fake saved listings, fabricated prices, availability, verified data ya backend functionality mat banao.
+- Private account data ya credentials ko `localStorage`/browser storage mein mat rakho.
+- Session adapter aur future approved account-persistence adapter ki boundaries alag rakho.
+- `ShareComparison` ke generated comparison IDs ke liye real restoration/hydration behaviour implement karo ya clearly disabled rakho; sirf URL copy ko functional comparison reopening mat batao.
+
+## 5. PowerShell → GitHub workflow
+
+Meri preference local-only development nahi hai. PowerShell ka use Git/repository diagnostics aur controlled repository operations ke liye karo, taaki final changes canonical GitHub branch tak pahunch sakein.
+
+Pichhle chat mein GitHub connector ke through branch create karne ki koshish `403 Resource not accessible by integration` se fail hui thi. Koi F06 integration code commit nahi hua. Isliye bina verify kiye yeh claim mat karna ki integration save ho chuki hai.
+
+Ab:
+1. Available PowerShell/Git execution capability check karo. Agar is chat mein meri machine ka PowerShell directly accessible nahi hai, to saaf batao; mere PC ko remotely control karne ka jhootha claim mat karo.
+2. Agar execution available nahi hai, to ek hi complete, safe PowerShell block do jisse main canonical repository checkout par branch/status verify kar sakun aur changes GitHub tak push kar sakun. Pehle `git status`, current branch, remote aur HEAD verify karo; stale checkout assume mat karo.
+3. Reset, force-push, blind merge, destructive cleanup ya `data/state.json` ko modify mat karna.
+4. Ek root cause/fix group ek baar mein implement karo. GitHub par commit/push hone ke baad actual commit SHA aur CI run verify karo.
+5. PowerShell output agar kisi error ka evidence de, usi error ko pehle fix karo; unrelated audits dobara mat chalao.
+
+## 6. Definition of done
+
+F06 integration ko tabhi complete bolo jab:
+- Saved aur Compare ke valid routes/entry points exist karte hon aur existing route/auth rules ke saath consistent hon.
+- Search se property Save karne par woh Saved view mein aaye.
+- Search se Compare ki hui properties Compare view mein aayein; add/remove/clear actions kaam karein.
+- Property aur Project detail-page ke Save/Compare buttons bhi shared F06 state use karein.
+- Session-only status sachcha ho; unsupported account persistence ka claim na ho.
+- Shared adapters/types aur responsive UI TypeScript/lint/build mein pass hon.
+- `verify-f06` contract gate add ho aur frontend `verify` process mein run kare.
+- F01–F05 ke existing passing gates regress na karein.
+- Changes canonical GitHub branch mein committed hon aur latest CI status verify kiya gaya ho.
+
+**Ab F06 integration par actual kaam continue karo. Mujhse wahi repository, branch, folder ya status dobara mat poochna jo is prompt mein diya gaya hai. Unavailable tools ya permissions ko honestly state karo aur sabse chhote practical next step se aage badho.**
