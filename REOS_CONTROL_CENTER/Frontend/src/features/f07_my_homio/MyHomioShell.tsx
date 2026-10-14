@@ -387,7 +387,10 @@ export default function MyHomioShell({ profile }: Props) {
             })}
           </nav>
 
-          <section className={styles.workspacePanel} aria-labelledby="active-workspace-heading">
+          <section
+            className={styles.workspacePanel}
+            aria-labelledby="active-workspace-heading"
+          >
             <div className={styles.panelHeader}>
               <p className={styles.kicker}>MY HOMIO / {activeItem?.group}</p>
               <h2
@@ -406,7 +409,7 @@ export default function MyHomioShell({ profile }: Props) {
         </div>
 
         <footer className={styles.footer}>
-          Private account workspace · Saved and Compare use F06's current
+          Private account workspace · Saved and Compare use F06&apos;s current
           browser-memory store. Search activity is retained for this browser
           tab only. Account synchronization and service-owned events are not
           claimed unless their authorized source is connected.
