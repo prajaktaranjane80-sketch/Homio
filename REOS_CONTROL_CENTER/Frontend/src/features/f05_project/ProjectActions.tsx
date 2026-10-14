@@ -1,91 +1,85 @@
-
 "use client";
 
 import { useState } from "react";
 
+import {
+  compareFromProject,
+  savedFromProject,
+} from "@/features/f06_save_compare/saveCompareAdapters";
+import {
+  toggleComparedItem,
+  toggleSavedRecord,
+  useSaveCompareSession,
+} from "@/features/f06_save_compare/saveCompareSession";
 import type { ProjectRecord } from "./project.types";
-
 import styles from "./ProjectActions.module.css";
 
 type ProjectActionsProps = Readonly<{
   project: ProjectRecord;
 }>;
 
-export default function ProjectActions({
-  project,
-}: ProjectActionsProps) {
-  const [saved, setSaved] = useState(false);
-  const [compared, setCompared] = useState(false);
+export default function ProjectActions({ project }: ProjectActionsProps) {
+  const session = useSaveCompareSession();
   const [shareMessage, setShareMessage] = useState("");
 
+  const saved = session.savedRecords.some(
+    (item) => item.id === project.id && item.kind === "project",
+  );
+  const compared = session.comparedItems.some(
+    (item) => item.id === project.id && item.kind === "project",
+  );
+
   async function shareProject() {
-    const url = window.location.href;
+    setShareMessage("");
 
     try {
+      const url = window.location.href;
+
       if (typeof navigator.share === "function") {
         await navigator.share({
           title: project.name,
           text: `Explore ${project.name} on HOMIO.`,
           url,
         });
-
-        setShareMessage("The share request completed.");
+        setShareMessage("Share completed.");
         return;
       }
 
-      if (typeof navigator.clipboard?.writeText === "function") {
+      if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
-        setShareMessage("Project link copied to clipboard.");
+        setShareMessage("Project link copied.");
         return;
       }
 
-      setShareMessage(
-        "Sharing is not supported here. Copy the page address from your browser.",
-      );
+      setShareMessage("Copy the page address from your browser.");
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
-        setShareMessage("Sharing cancelled.");
         return;
       }
-
-      setShareMessage(
-        "The share could not be completed. Copy the page address from your browser instead.",
-      );
+      setShareMessage("Sharing was unavailable. Copy the page address instead.");
     }
   }
 
   return (
-    <section
-      className={styles.card}
-      aria-label="Project actions"
-    >
+    <section className={styles.card} aria-label="Project actions">
       <div className={styles.grid}>
         <button
           type="button"
           className={`${styles.secondary}${saved ? ` ${styles.active}` : ""}`}
           aria-pressed={saved}
-          aria-label={
-            saved
-              ? "Remove project from this session's saved preview"
-              : "Save project for this session only"
-          }
-          onClick={() => setSaved((value) => !value)}
+          onClick={() => toggleSavedRecord(savedFromProject(project))}
         >
-          {saved ? "Saved this session" : "Save"}
+          {saved ? "Saved" : "Save"}
         </button>
 
         <button
           type="button"
           className={`${styles.secondary}${compared ? ` ${styles.active}` : ""}`}
           aria-pressed={compared}
-          aria-label={
-            compared
-              ? "Remove project from this session's comparison"
-              : "Compare project for this session only"
-          }
-          onClick={() => setCompared((value) => !value)}
+          onClick={() => toggleComparedItem(compareFromProject(project))}
+          title="Compare up to four items in this browser session."
         >
-          {compared ? "Compared this session" : "Compare"}
+          {compared ? "Compared" : "Compare"}
         </button>
 
         <button
@@ -103,18 +97,14 @@ export default function ProjectActions({
       </div>
 
       {shareMessage ? (
-        <p
-          className={styles.shareStatus}
-          role="status"
-          aria-live="polite"
-        >
+        <p className={styles.shareStatus} role="status" aria-live="polite">
           {shareMessage}
         </p>
       ) : null}
 
       <p className={styles.note}>
-        Save and compare are temporary experience controls until
-        approved REOS persistence capabilities are connected.
+        Saved and compared items are temporary session state. They are not
+        synced to an account and are cleared by a full page reload.
       </p>
     </section>
   );
