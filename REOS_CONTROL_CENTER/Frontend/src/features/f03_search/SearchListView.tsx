@@ -1,6 +1,7 @@
 import SearchResultCard, {
   type SearchResultCardData,
 } from "./SearchResultCard";
+
 import styles from "./SearchListView.module.css";
 
 type SearchListViewProps = Readonly<{
@@ -24,16 +25,20 @@ export default function SearchListView({
 
   return (
     <div className={styles.grid} aria-label="Property results">
-      {properties.map((property) => (
-        <SearchResultCard
-          key={property.id}
-          property={property}
-          onSave={onSave}
-          onCompare={onCompare}
-          saved={savedIds.includes(property.id)}
-          compared={comparedIds.includes(property.id)}
-        />
-      ))}
+      {properties.map((property) => {
+        const identity = `${property.entityType}:${property.id}`;
+
+        return (
+          <SearchResultCard
+            key={identity}
+            property={property}
+            onSave={onSave}
+            onCompare={onCompare}
+            saved={savedIds.includes(identity)}
+            compared={comparedIds.includes(identity)}
+          />
+        );
+      })}
     </div>
   );
 }
