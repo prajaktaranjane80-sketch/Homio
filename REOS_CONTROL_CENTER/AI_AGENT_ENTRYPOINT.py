@@ -1,5 +1,5 @@
 """
-HOMIO / REOS — AI AGENT ENTRYPOINT
+HOMIO / REOS ? AI AGENT ENTRYPOINT
 ==================================
 
 Purpose
@@ -29,8 +29,8 @@ AUTHORITATIVE PROJECT SOURCES
    -> canonical implementation source, code, history, architecture
       reference and repository evidence
 
-3. Local PowerShell execution
-   -> verification and diagnosis only
+3. PowerShell execution
+   -> read-only local verification/diagnosis and guarded remote GitHub REST API writes under this contract
 
 4. ACRL
    -> continuity, reconstruction, evidence, checkpoint, drift,
@@ -63,7 +63,7 @@ The implementation workflow must protect against:
     - unnecessary reopening of completed layers
     - blind replacement
     - guessed repository structure
-    - accidental PowerShell code mutation
+    - unsafe local PowerShell code mutation
 """
 
 from __future__ import annotations
@@ -107,14 +107,19 @@ CANONICAL_CODE_SOURCE = (
     "GitHub repository branch reos-development"
 )
 
-# Manual owner-controlled development workflow.
+# Owner-approved remote implementation workflow.
+# Policy metadata only; this entrypoint does not itself execute writes.
 IMPLEMENTATION_WRITE_INTERFACE = (
-    "Manual GitHub file save on branch reos-development"
+    "Guarded PowerShell GitHub REST API writes to branch reos-development; "
+    "manual GitHub UI saves remain optional"
 )
 
-# PowerShell is verification/diagnosis only.
-POWERSHELL_WRITE_ALLOWED = False
-POWERSHELL_IS_VERIFICATION_ONLY = True
+POWERSHELL_WRITE_ALLOWED = True
+POWERSHELL_IS_VERIFICATION_ONLY = False
+POWERSHELL_REMOTE_GITHUB_API_WRITE_ALLOWED = True
+POWERSHELL_LOCAL_WORKTREE_WRITE_ALLOWED = False
+POWERSHELL_LOCAL_GIT_MUTATION_ALLOWED = False
+POWERSHELL_WRITE_MODE = "GUARDED_GITHUB_REST_API_ONLY"
 
 # PowerShell Output is evidence only.
 PS_OUTPUT_IS_EVIDENCE_ONLY = True
@@ -223,7 +228,7 @@ class REOSAgentOperatingContract:
     )
 
     current_verification: str = (
-        "Local PowerShell verification and diagnosis only"
+        "Read-only local verification plus authorized, guarded remote GitHub REST API writes"
     )
 
     continuity_system: str = "ACRL"
@@ -251,8 +256,8 @@ AI_OPERATING_RULES: tuple[str, ...] = (
     "Treat data/state.json as canonical machine-readable project state.",
     "Treat GitHub branch reos-development as the canonical code and implementation source.",
     "Treat chat history as communication only, never as project truth.",
-    "Treat local PowerShell as verification and diagnosis only.",
-    "Do not use PowerShell to create, replace, patch, reset, merge or push project code.",
+    "Use PowerShell for read-only local verification/diagnosis and guarded remote GitHub REST API writes under this contract.",
+    "Do not mutate project code through local worktree operations; use guarded remote GitHub REST API writes for explicitly approved changes.",
     "Before changing code, reconstruct the current repository state.",
     "Before proposing a file change, inspect the exact target path on the canonical GitHub branch.",
     "Before creating a new file, confirm that the target path is actually absent on the canonical branch.",
@@ -295,9 +300,9 @@ AI_OPERATING_RULES: tuple[str, ...] = (
 
 DEVELOPMENT_WORKFLOW_RULES: tuple[str, ...] = (
     "GitHub branch reos-development is the canonical implementation source.",
-    "Manual GitHub file saving is the approved owner-controlled implementation write workflow.",
-    "PowerShell is verification and diagnosis only.",
-    "PowerShell MUST NOT be used to write, patch, reset, merge or push project code.",
+    "Guarded PowerShell GitHub REST API writes are the approved remote implementation workflow; manual GitHub UI saving remains optional.",
+    "PowerShell may perform guarded remote GitHub REST API writes; local worktree source writes remain forbidden.",
+    "PowerShell MUST NOT change project code through a local worktree; approved remote changes require the guarded GitHub REST API workflow.",
     "Before every requested change, inspect the canonical GitHub repository state.",
     "Every requested file must be classified as ADD, REPLACE or NO CHANGE.",
     "ADD means the exact target path is absent on the canonical branch and no existing owner satisfies the responsibility.",
@@ -306,11 +311,11 @@ DEVELOPMENT_WORKFLOW_RULES: tuple[str, ...] = (
     "A completed layer must not be rebuilt merely because a dependent layer is being started.",
     "A new layer must reuse completed-layer routes, components and contracts wherever the architecture allows.",
     "A stale local workspace must never be used as proof that a canonical GitHub file is missing.",
-    "The AI must provide exact repository path, ADD/REPLACE/NO CHANGE action, anchor or location, and complete file content for manual GitHub editing.",
+    "The AI must provide exact repository paths, operation, scope and verification steps; use guarded remote GitHub API writes for approved changes.",
     "When a full replacement is required, the AI must provide the complete replacement file rather than an inferred patch.",
     "When only a small verified change is required, the AI may still provide complete replacement content when the owner is safer using full-file replacement.",
-    "After a manual GitHub save, the remote branch and changed file must be independently verified before PASS is declared.",
-    "Local PowerShell verification may be used only after the canonical GitHub state is established.",
+    "After a remote GitHub API write or manual GitHub save, independently verify the branch, commit parent and exact changed file content before declaring PASS.",
+    "Remote PowerShell writes are allowed only after canonical GitHub state is read and the live branch HEAD is captured.",
 )
 
 
@@ -322,9 +327,9 @@ REMOTE_GIT_SYNCHRONIZATION_RULES: tuple[str, ...] = (
     "REOS_CONTROL_CENTER remains the project control authority.",
     "REOS_CONTROL_CENTER/data/state.json remains the canonical project state.",
     "GitHub branch reos-development remains the canonical code source.",
-    "Manual GitHub file saving is the owner-controlled code implementation workflow.",
-    "Local PowerShell is verification and diagnosis only.",
-    "PowerShell MUST NOT perform repository code writes.",
+    "Guarded PowerShell GitHub REST API writes are the approved remote code implementation workflow; local worktree writes are forbidden.",
+    "Local PowerShell worktree operations are read-only; guarded GitHub REST API writes are allowed for explicitly approved remote changes.",
+    "PowerShell MUST NOT perform repository code writes through a local working tree.",
     "AI_AGENT_ENTRYPOINT.py is a descriptive repository contract and MUST NOT execute Git writes.",
     "ACRL T18 remains the execution-authorization boundary where applicable.",
     "ACRL T20 remains the repair and patch-verification boundary where applicable.",
@@ -332,7 +337,10 @@ REMOTE_GIT_SYNCHRONIZATION_RULES: tuple[str, ...] = (
     "ACRL T22 remains the immutable checkpoint boundary where required.",
     "ACRL T23 remains the authority for missing, stale or conflicting evidence resolution.",
     "ACRL T24 remains the authority for continuity and recovery snapshots.",
-    "A remote write is successful only after independent branch, commit and file evidence verification.",
+    "Each remote commit must use the captured live HEAD as its parent.",
+    "Re-read branch HEAD immediately before updating the ref and abort if it changed.",
+    "Update the branch ref with force=false only.",
+    "A remote write is successful only after independent branch, commit-parent and exact file-content verification.",
     "The active REOS branch MUST be verified before repository work is considered authoritative.",
     "A failed, ambiguous or conflicting operation MUST fail closed.",
     "Do not create a second Git synchronization engine.",
@@ -356,7 +364,7 @@ REPOSITORY_PREFLIGHT_RULES: tuple[str, ...] = (
     "Expected origin resolves to the canonical GitHub repository.",
     "GitHub reos-development is the implementation source of truth.",
     "Local workspace may be stale and must not override canonical GitHub evidence.",
-    "Current working directory is used only for read-only verification.",
+    "Local working directory is not a source for remote writes; source content is read from canonical GitHub.",
     "Generated Python caches are artifacts, never project source or state.",
     "PS Output is evidence only.",
     "AI_AGENT_ENTRYPOINT.py does not own Git synchronization.",
@@ -402,9 +410,9 @@ EXECUTION_WORKFLOW: tuple[str, ...] = (
     "7. Resolve architecture and dependency ownership before implementation.",
     "8. Apply applicable ACRL authorization and repair-verification boundaries.",
     "9. Prepare exact implementation instructions for the non-developer owner.",
-    "10. Save implementation changes manually on canonical GitHub branch reos-development.",
-    "11. Independently verify the remote branch and changed files after the manual GitHub save.",
-    "12. Use local PowerShell only for read-only verification and diagnosis.",
+    "10. Apply approved implementation changes via the guarded PowerShell GitHub REST API workflow or manual GitHub UI.",
+    "11. Independently verify the branch, commit parent and exact changed file content after the remote write.",
+    "12. Do not write through a local worktree; perform focused verification and inspect relevant CI.",
     "13. Run focused verification for the changed scope.",
     "14. Run relevant regression verification before declaring success.",
     "15. Resolve evidence through T23 when evidence is missing, stale or conflicting.",
@@ -431,9 +439,9 @@ NEW_SESSION_WORKFLOW: tuple[str, ...] = (
     "10. Classify required file actions as ADD, REPLACE or NO CHANGE.",
     "11. Do not infer missing files from a stale local workspace.",
     "12. Determine the smallest valid architecture-consistent change.",
-    "13. Prepare exact GitHub manual-save instructions for the owner.",
+    "13. Prepare a complete guarded PowerShell remote-write block for approved changes, with exact scope and verification.",
     "14. Verify the remote GitHub result.",
-    "15. Use PowerShell only for verification or diagnosis.",
+    "15. Use PowerShell for read-only local diagnosis and guarded, authorized remote GitHub REST API writes.",
     "16. Run relevant regression tests.",
     "17. Update project state only through the existing Control Center workflow.",
     "18. Preserve checkpoint / continuity information when required.",
@@ -452,11 +460,9 @@ SOURCE_OF_TRUTH: dict[str, str] = {
     "code_and_history": (
         "GitHub repository branch reos-development"
     ),
-    "implementation_write_interface": (
-        "Manual GitHub file save on branch reos-development"
-    ),
+    "implementation_write_interface": IMPLEMENTATION_WRITE_INTERFACE,
     "current_execution_evidence": (
-        "Local PowerShell verification and diagnosis"
+        "Verified GitHub commit, branch read-back, exact target content, focused tests and relevant CI evidence"
     ),
     "ps_output": "Evidence only",
     "continuity": (
@@ -515,8 +521,8 @@ NON_DEVELOPER_OWNER_CONTRACT: tuple[str, ...] = (
     "The AI must provide an exact anchor, section or location when a targeted change is appropriate.",
     "The AI must provide complete replacement content when a full file replacement is required.",
     "The AI must not require the owner to construct code from inferred patches.",
-    "The AI must not provide PowerShell commands for project code creation or replacement.",
-    "The AI must reserve PowerShell instructions for read-only verification and diagnosis.",
+    "The AI may provide a complete guarded PowerShell block for approved remote GitHub changes; local worktree writes remain forbidden.",
+    "The AI must reserve local PowerShell worktree instructions for read-only diagnosis; guarded remote GitHub API writes are permitted under the workflow contract.",
     "The AI must avoid asking the owner to perform unnecessary manual code editing.",
     "The AI must verify the repository state before instructing the owner to replace a file.",
     "The AI must never hide structural uncertainty behind a generic recommendation.",
@@ -561,7 +567,7 @@ FAILURE_RULES: tuple[str, ...] = (
     "If a proposed change unnecessarily reopens a completed layer, reject the change.",
     "If execution authority is unavailable for a change that requires it, fail closed.",
     "If project state cannot be safely reconstructed, do not manufacture state.",
-    "If a remote manual GitHub save cannot be independently verified, do not report PASS.",
+    "If a remote GitHub API write or manual GitHub save cannot be independently verified, do not report PASS.",
 )
 
 
@@ -636,12 +642,12 @@ def startup_instructions() -> dict[str, Any]:
         "implementation_write_interface": (
             IMPLEMENTATION_WRITE_INTERFACE
         ),
-        "powershell_verification_only": (
-            POWERSHELL_IS_VERIFICATION_ONLY
-        ),
-        "powershell_write_allowed": (
-            POWERSHELL_WRITE_ALLOWED
-        ),
+        "powershell_verification_only": POWERSHELL_IS_VERIFICATION_ONLY,
+        "powershell_write_allowed": POWERSHELL_WRITE_ALLOWED,
+        "powershell_remote_github_api_write_allowed": POWERSHELL_REMOTE_GITHUB_API_WRITE_ALLOWED,
+        "powershell_local_worktree_write_allowed": POWERSHELL_LOCAL_WORKTREE_WRITE_ALLOWED,
+        "powershell_local_git_mutation_allowed": POWERSHELL_LOCAL_GIT_MUTATION_ALLOWED,
+        "powershell_write_mode": POWERSHELL_WRITE_MODE,
         "source_of_truth": dict(SOURCE_OF_TRUTH),
         "paths": repository_paths(),
         "operating_rules": list(
@@ -896,7 +902,7 @@ def print_startup_context() -> None:
     """Print a compact new-AI startup contract."""
 
     print("=" * 72)
-    print("HOMIO / REOS — AI AGENT ENTRYPOINT")
+    print("HOMIO / REOS ? AI AGENT ENTRYPOINT")
     print("=" * 72)
 
     print(f"PROJECT        : {PROJECT_NAME}")
@@ -915,11 +921,11 @@ def print_startup_context() -> None:
     )
     print(
         "WRITE METHOD   : "
-        "Manual GitHub file save"
+        "Guarded GitHub REST API write (remote branch only)"
     )
     print(
         "POWERSHELL     : "
-        "Verification / diagnosis only"
+        "Local verification; remote API writes are guarded"
     )
     print(
         f"WORKSPACE      : "
@@ -1017,7 +1023,11 @@ def print_startup_context() -> None:
     )
     print(
         "RULE           : "
-        "POWERSHELL WRITE = FORBIDDEN"
+        "LOCAL WORKTREE WRITE = FORBIDDEN"
+    )
+    print(
+        "RULE           : "
+        "REMOTE API WRITE = GUARDED"
     )
     print(
         "RULE           : "
