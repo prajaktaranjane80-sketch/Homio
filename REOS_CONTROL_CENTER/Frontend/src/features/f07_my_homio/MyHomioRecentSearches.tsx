@@ -45,7 +45,7 @@ export default function MyHomioRecentSearches() {
 
       <div className={styles.notice}>
         Recent searches and saved requirements are held in this browser
-        tab's session storage. Saved requirements reopen the search criteria;
+        tab&apos;s session storage. Saved requirements reopen the search criteria;
         they do not create an email alert or guarantee matching inventory.
       </div>
 
