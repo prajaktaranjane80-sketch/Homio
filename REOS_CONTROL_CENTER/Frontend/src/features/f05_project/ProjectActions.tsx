@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   compareFromProject,
@@ -12,6 +12,8 @@ import {
   toggleSavedRecord,
   useSaveCompareSession,
 } from "@/features/f06_save_compare/saveCompareSession";
+
+import { recordRecentView } from "@/features/f07_my_homio/myHomioActivityStore";
 
 import type { ProjectRecord } from "./project.types";
 
@@ -26,8 +28,7 @@ export default function ProjectActions({
 }: ProjectActionsProps) {
   const session = useSaveCompareSession();
 
-  const [shareMessage, setShareMessage] =
-    useState("");
+  const [shareMessage, setShareMessage] = useState("");
 
   const saved = session.savedRecords.some(
     (item) =>
@@ -40,6 +41,16 @@ export default function ProjectActions({
       item.id === project.id &&
       item.kind === "project",
   );
+
+  useEffect(() => {
+    recordRecentView({
+      id: project.id,
+      kind: "project",
+      title: project.name,
+      href: `/project/${encodeURIComponent(project.id)}`,
+      subtitle: project.location,
+    });
+  }, [project.id, project.name, project.location]);
 
   async function shareProject() {
     setShareMessage("");
@@ -65,9 +76,7 @@ export default function ProjectActions({
         return;
       }
 
-      setShareMessage(
-        "Copy the page address from your browser.",
-      );
+      setShareMessage("Copy the page address from your browser.");
     } catch (error) {
       if (
         error instanceof Error &&
@@ -90,11 +99,7 @@ export default function ProjectActions({
       <div className={styles.grid}>
         <button
           type="button"
-          className={
-            `${styles.secondary}${
-              saved ? ` ${styles.active}` : ""
-            }`
-          }
+          className={`${styles.secondary}${saved ? ` ${styles.active}` : ""}`}
           aria-pressed={saved}
           onClick={() =>
             toggleSavedRecord(savedFromProject(project))
@@ -105,11 +110,7 @@ export default function ProjectActions({
 
         <button
           type="button"
-          className={
-            `${styles.secondary}${
-              compared ? ` ${styles.active}` : ""
-            }`
-          }
+          className={`${styles.secondary}${compared ? ` ${styles.active}` : ""}`}
           aria-pressed={compared}
           onClick={() =>
             toggleComparedItem(compareFromProject(project))
