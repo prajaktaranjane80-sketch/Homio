@@ -1,169 +1,84 @@
 "use client";
 
-import Link from "next/link";
-
+import { useEffect } from "react";
+import CompareShell from "@/features/f06_save_compare/CompareShell";
+import {
+  compareFromProperty,
+  compareFromProject,
+} from "@/features/f06_save_compare/saveCompareAdapters";
 import {
   clearComparedItems,
   removeComparedItem,
+  replaceComparedItems,
   useSaveCompareSession,
 } from "@/features/f06_save_compare/saveCompareSession";
-import { COMPARE_FIELD_GROUPS } from "@/features/f06_save_compare/compare.types";
-import styles from "@/features/f06_save_compare/SaveComparePages.module.css";
+import { getPropertyPreview } from "@/features/f04_property/property.data";
+import { getProjectPreview } from "@/features/f05_project/project.data";
+import type { CompareItem } from "@/features/f06_save_compare/compare.types";
+
+type SharedCompareReference = Readonly<{
+  kind: "property" | "project";
+  id: string;
+}>;
+
+function isSharedCompareReference(value: unknown): value is SharedCompareReference {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as { kind?: unknown; id?: unknown };
+  return (
+    (candidate.kind === "property" || candidate.kind === "project") &&
+    typeof candidate.id === "string" &&
+    candidate.id.trim().length > 0
+  );
+}
+
+function parseSharedReferences(raw: string): SharedCompareReference[] {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(isSharedCompareReference).slice(0, 4);
+  } catch {
+    return [];
+  }
+}
+
+function resolveReference(reference: SharedCompareReference): CompareItem | null {
+  if (reference.kind === "property") {
+    const property = getPropertyPreview(reference.id);
+    return property ? compareFromProperty(property) : null;
+  }
+
+  const project = getProjectPreview(reference.id);
+  return project ? compareFromProject(project) : null;
+}
 
 export default function ComparePage() {
   const { comparedItems } = useSaveCompareSession();
 
-  const fields = Array.from(
-    new Set(comparedItems.flatMap((item) => item.fields.map((field) => field.label))),
-  );
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const raw = url.searchParams.get("compare");
+    if (raw === null) return;
+
+    const resolved = parseSharedReferences(raw)
+      .map(resolveReference)
+      .filter((item): item is CompareItem => item !== null);
+
+    if (resolved.length > 0) {
+      replaceComparedItems(resolved);
+    }
+
+    // Avoid re-applying the share payload if the user clears the comparison and reloads.
+    url.searchParams.delete("compare");
+    const query = url.searchParams.toString();
+    const nextUrl = `${url.pathname}${query ? `?${query}` : ""}${url.hash}`;
+    window.history.replaceState(window.history.state, "", nextUrl);
+  }, []);
 
   return (
-    <main className={styles.page}>
-      <div className={styles.container}>
-        <Link href="/search" className={styles.backLink}>
-          ← Back to discovery
-        </Link>
-
-        <p className={styles.eyebrow}>SIDE-BY-SIDE DISCOVERY</p>
-        <h1>Compare items</h1>
-        <p className={styles.intro}>
-          Compare source-supplied details for up to four property or project
-          previews.
-        </p>
-
-        <p className={styles.notice} role="note">
-          Session only: comparisons are held in browser memory, not synced to
-          an account, and cleared after a full page reload. Missing values mean
-          the preview has not supplied that detail.
-        </p>
-
-        {comparedItems.length === 0 ? (
-          <section className={styles.empty}>
-            <h2>Nothing to compare yet</h2>
-            <p>
-              Use Compare on a property or project card to add it to this table.
-              You can compare up to four items at a time.
-            </p>
-            <Link href="/search" className={styles.primaryLink}>
-              Explore properties
-            </Link>
-          </section>
-        ) : (
-          <>
-            <div className={styles.compareActions}>
-              <p>{comparedItems.length} of 4 items selected</p>
-              <button
-                type="button"
-                className={styles.removeButton}
-                onClick={clearComparedItems}
-              >
-                Clear comparison
-              </button>
-            </div>
-
-            <div className={styles.tableWrap}>
-              <table className={styles.compareTable}>
-                <thead>
-                  <tr>
-                    <th scope="col">Details</th>
-                    {comparedItems.map((item) => (
-                      <th
-                        scope="col"
-                        key={`${item.kind}:${item.id}`}
-                      >
-                        <span className={styles.kind}>{item.kind}</span>
-                        <span className={styles.compareTitle}>
-                          {item.href ? (
-                            <Link href={item.href}>{item.title}</Link>
-                          ) : (
-                            item.title
-                          )}
-                        </span>
-                        {item.subtitle ? (
-                          <span className={styles.compareSubtitle}>
-                            {item.subtitle}
-                          </span>
-                        ) : null}
-                        <button
-                          type="button"
-                          className={styles.removeButton}
-                          onClick={() => removeComparedItem(item.id)}
-                          aria-label={`Remove ${item.title} from comparison`}
-                        >
-                          Remove
-                        </button>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {COMPARE_FIELD_GROUPS.map((group) => {
-                    const groupFields = fields.filter((label) =>
-                      comparedItems.some((item) =>
-                        item.fields.some(
-                          (field) =>
-                            field.label === label && field.group === group.id,
-                        ),
-                      ),
-                    );
-
-                    if (groupFields.length === 0) {
-                      return null;
-                    }
-
-                    return groupFields.map((label, index) => (
-                      <tr key={`${group.id}:${label}`}>
-                        <th scope="row">
-                          {index === 0 ? (
-                            <span className={styles.groupLabel}>
-                              {group.label}
-                            </span>
-                          ) : null}
-                          {label}
-                        </th>
-                        {comparedItems.map((item) => {
-                          const field = item.fields.find(
-                            (entry) =>
-                              entry.label === label && entry.group === group.id,
-                          );
-                          const value = field?.value;
-
-                          return (
-                            <td key={`${item.kind}:${item.id}:${label}`}>
-                              {value === null ||
-                              value === undefined ||
-                              value === "" ? (
-                                <span className={styles.missing}>Not supplied</span>
-                              ) : (
-                                String(value)
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ));
-                  })}
-
-                  <tr>
-                    <th scope="row">Status</th>
-                    {comparedItems.map((item) => (
-                      <td key={`${item.kind}:${item.id}:status`}>
-                        {item.statusLabel || "Not supplied"}
-                      </td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
-
-        <p className={styles.footerNote}>
-          This is an informational comparison of preview fields, not a
-          recommendation or confirmation of listing accuracy.
-        </p>
-      </div>
-    </main>
+    <CompareShell
+      items={comparedItems}
+      onRemove={(id, kind) => removeComparedItem(id, kind)}
+      onClear={clearComparedItems}
+    />
   );
 }
