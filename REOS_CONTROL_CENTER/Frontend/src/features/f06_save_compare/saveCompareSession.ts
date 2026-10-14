@@ -2,10 +2,17 @@
 
 import { useSyncExternalStore } from "react";
 
-import type { CompareItem } from "./compare.types";
-import type { SavedRecord } from "./saved.types";
+import type {
+  CompareEntityKind,
+  CompareItem,
+} from "./compare.types";
 
-type SaveCompareSession = Readonly<{
+import type {
+  SavedEntityKind,
+  SavedRecord,
+} from "./saved.types";
+
+export type SaveCompareSession = Readonly<{
   savedRecords: readonly SavedRecord[];
   comparedItems: readonly CompareItem[];
 }>;
@@ -15,15 +22,28 @@ const EMPTY_SESSION: SaveCompareSession = {
   comparedItems: [],
 };
 
+const MAX_COMPARE_ITEMS = 4;
+
 let snapshot: SaveCompareSession = EMPTY_SESSION;
+
 const listeners = new Set<() => void>();
 
 function publish(next: SaveCompareSession): void {
+  if (
+    next.savedRecords === snapshot.savedRecords &&
+    next.comparedItems === snapshot.comparedItems
+  ) {
+    return;
+  }
+
   snapshot = next;
-  listeners.forEach((listener) => listener());
+
+  for (const listener of listeners) {
+    listener();
+  }
 }
 
-function subscribe(listener: () => void) {
+function subscribe(listener: () => void): () => void {
   listeners.add(listener);
 
   return () => {
@@ -40,12 +60,12 @@ function getServerSnapshot(): SaveCompareSession {
 }
 
 /**
- * Shared in-memory state for the current browser application session.
- * No localStorage, cookie storage, or account-sync claims.
- * A full page reload clears this state until an approved persistence
- * service is connected.
+ * Browser-session state only.
+ *
+ * This store does not persist data to an account, localStorage,
+ * cookies, or a backend. A full page reload resets its contents.
  */
-export function useSaveCompareSession() {
+export function useSaveCompareSession(): SaveCompareSession {
   return useSyncExternalStore(
     subscribe,
     getSnapshot,
@@ -55,59 +75,81 @@ export function useSaveCompareSession() {
 
 export function toggleSavedRecord(record: SavedRecord): void {
   const exists = snapshot.savedRecords.some(
-    (item) => item.id === record.id && item.kind === record.kind,
+    (item) =>
+      item.id === record.id &&
+      item.kind === record.kind,
+  );
+
+  const savedRecords = exists
+    ? snapshot.savedRecords.filter(
+        (item) =>
+          item.id !== record.id ||
+          item.kind !== record.kind,
+      )
+    : [...snapshot.savedRecords, record];
+
+  publish({
+    ...snapshot,
+    savedRecords,
+  });
+}
+
+export function removeSavedRecord(
+  id: string,
+  kind?: SavedEntityKind,
+): void {
+  const savedRecords = snapshot.savedRecords.filter(
+    (item) =>
+      item.id !== id ||
+      (kind !== undefined && item.kind !== kind),
   );
 
   publish({
     ...snapshot,
-    savedRecords: exists
-      ? snapshot.savedRecords.filter(
-          (item) => item.id !== record.id || item.kind !== record.kind,
-        )
-      : [...snapshot.savedRecords, record],
+    savedRecords,
   });
 }
 
-export function removeSavedRecord(id: string): void {
-  publish({
-    ...snapshot,
-    savedRecords: snapshot.savedRecords.filter(
-      (item) => item.id !== id,
-    ),
-  });
-}
-
-export function toggleComparedItem(item: CompareItem): void {
+export function toggleComparedItem(item: CompareItem): boolean {
   const exists = snapshot.comparedItems.some(
-    (current) => current.id === item.id && current.kind === item.kind,
+    (current) =>
+      current.id === item.id &&
+      current.kind === item.kind,
   );
 
   if (exists) {
-    publish({
-      ...snapshot,
-      comparedItems: snapshot.comparedItems.filter(
-        (current) => current.id !== item.id || current.kind !== item.kind,
-      ),
-    });
-    return;
+    removeComparedItem(item.id, item.kind);
+    return false;
   }
 
-  if (snapshot.comparedItems.length >= 4) {
-    return;
+  if (snapshot.comparedItems.length >= MAX_COMPARE_ITEMS) {
+    return false;
   }
 
   publish({
     ...snapshot,
-    comparedItems: [...snapshot.comparedItems, item],
+    comparedItems: [
+      ...snapshot.comparedItems,
+      item,
+    ],
   });
+
+  return true;
 }
 
-export function removeComparedItem(id: string): void {
+export function removeComparedItem(
+  id: string,
+  kind?: CompareEntityKind,
+): void {
+  const comparedItems = snapshot.comparedItems.filter(
+    (item) =>
+      item.id !== id ||
+      (kind !== undefined && item.kind !== kind),
+  );
+
   publish({
     ...snapshot,
-    comparedItems: snapshot.comparedItems.filter(
-      (item) => item.id !== id,
-    ),
+    comparedItems,
   });
 }
 
