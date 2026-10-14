@@ -1,6 +1,7 @@
 "use client";
 
 import SavedShell from "@/features/f06_save_compare/SavedShell";
+
 import {
   removeSavedRecord,
   useSaveCompareSession,
@@ -13,7 +14,9 @@ export default function SavedPage() {
     <SavedShell
       records={savedRecords}
       persistenceStatus="session-only"
-      onRemoveRecord={(id, kind) => removeSavedRecord(id, kind)}
+      onRemoveRecord={(id, kind) =>
+        removeSavedRecord(id, kind)
+      }
     />
   );
 }
