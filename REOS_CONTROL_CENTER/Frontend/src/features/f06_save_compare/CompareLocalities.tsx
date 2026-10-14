@@ -1,17 +1,44 @@
-import type { CompareFieldGroup, CompareItem } from "./compare.types";
+import type {
+  CompareFieldGroup,
+  CompareItem,
+} from "./compare.types";
+
 import CompareEmptyState from "./CompareEmptyState";
 import CompareTable from "./CompareTable";
 
 type Props = Readonly<{
   items: readonly CompareItem[];
   selectedGroups: readonly CompareFieldGroup[];
-  onRemove?: (id: string, kind: CompareItem["kind"]) => void;
+
+  onRemove?: (
+    id: string,
+    kind: CompareItem["kind"],
+  ) => void;
 }>;
 
-export default function CompareLocalities({ items, selectedGroups, onRemove }: Props) {
-  const selected = items.filter((item) => item.kind === "locality");
-  if (selected.length === 0) {
-    return <CompareEmptyState title="No locations in this comparison" description="Compare location context only when the source adapter supplies those facts for each locality." />;
+export default function CompareLocalities({
+  items,
+  selectedGroups,
+  onRemove,
+}: Props) {
+  const localities = items.filter(
+    (item) => item.kind === "locality",
+  );
+
+  if (localities.length === 0) {
+    return (
+      <CompareEmptyState
+        title="No locations in this comparison"
+        description="Location comparisons use only facts supplied by the source adapter."
+      />
+    );
   }
-  return <CompareTable items={selected} selectedGroups={selectedGroups} onRemove={onRemove} />;
+
+  return (
+    <CompareTable
+      items={localities}
+      selectedGroups={selectedGroups}
+      onRemove={onRemove}
+    />
+  );
 }
