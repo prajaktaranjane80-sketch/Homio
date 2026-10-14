@@ -101,22 +101,29 @@ function isSearchDraft(value: unknown): value is MyHomioSearchDraft {
 function isRecentSearch(
   value: unknown,
 ): value is MyHomioRecentSearch {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  // Validate the extra fields before narrowing the object to SearchDraft.
   return (
-    isRecord(value) &&
-    isSearchDraft(value) &&
     isText(value.id, 4096) &&
-    isTimestamp(value.searchedAt)
+    isTimestamp(value.searchedAt) &&
+    isSearchDraft(value)
   );
 }
 
 function isSavedSearch(
   value: unknown,
 ): value is MyHomioSavedSearch {
+  if (!isRecord(value)) {
+    return false;
+  }
+
   return (
-    isRecord(value) &&
-    isSearchDraft(value) &&
     isText(value.id, 4096) &&
-    isTimestamp(value.savedAt)
+    isTimestamp(value.savedAt) &&
+    isSearchDraft(value)
   );
 }
 
@@ -172,10 +179,6 @@ function restoreSnapshot(value: unknown): MyHomioActivitySnapshot {
   };
 }
 
-/**
- * Restore activity from the current browser tab.
- * Server rendering always starts from the empty snapshot.
- */
 function ensureBrowserSession(): void {
   if (initialized) {
     return;
@@ -201,7 +204,6 @@ function ensureBrowserSession(): void {
 
     snapshot = restoreSnapshot(JSON.parse(storedValue));
   } catch {
-    // Invalid, unavailable or blocked browser storage must not break My HOMIO.
     snapshot = {
       recentSearches: [],
       savedSearches: [],
@@ -221,7 +223,7 @@ function persistSnapshot(): void {
       JSON.stringify(snapshot),
     );
   } catch {
-    // Continue with in-memory activity if browser storage is unavailable.
+    // Keep activity usable in memory if storage is unavailable.
   }
 }
 
@@ -254,10 +256,7 @@ function getServerSnapshot(): MyHomioActivitySnapshot {
   return EMPTY_ACTIVITY;
 }
 
-/**
- * Browser-tab activity only.
- * This is not account persistence or server-synchronized activity.
- */
+/** Browser-tab activity only; it is not account-synchronized. */
 export function useMyHomioActivity(): MyHomioActivitySnapshot {
   return useSyncExternalStore(
     subscribe,
@@ -275,7 +274,6 @@ export function recordRecentSearch(
     return;
   }
 
-  // A rerender or pagination change must not keep refreshing the same entry.
   if (snapshot.recentSearches[0]?.href === draft.href) {
     return;
   }
@@ -390,7 +388,6 @@ export function recordRecentView(
     return;
   }
 
-  // Property and project records may share a raw ID; keep their identities separate.
   const identity = `${view.kind}:${view.id}`;
 
   const record: MyHomioRecentView = {
