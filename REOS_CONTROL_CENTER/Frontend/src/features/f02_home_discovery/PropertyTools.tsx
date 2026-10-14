@@ -52,11 +52,10 @@ export default function PropertyTools() {
 
         <div className={styles.grid}>
           {tools.map((tool) => (
-            <article
-              key={tool.number}
-              className={styles.card}
-              aria-disabled="true"
-            >
+                <article
+                  key={tool.number}
+                  className={styles.card}
+                >
               <div className={styles.top}>
                 <span className={styles.number}>{tool.number}</span>
                 <span className={styles.arrow} aria-hidden="true">
