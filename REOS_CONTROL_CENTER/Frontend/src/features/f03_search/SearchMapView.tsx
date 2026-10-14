@@ -1,4 +1,5 @@
 import type { SearchResultCardData } from "./SearchResultCard";
+
 import styles from "./SearchMapView.module.css";
 
 type SearchMapViewProps = Readonly<{
@@ -31,9 +32,9 @@ export default function SearchMapView({
           <div className={styles.empty}>
             <strong>Live map unavailable</strong>
             <span>
-              These preview records do not provide authoritative
-              coordinates. HOMIO will not place estimated markers or
-              present a decorative grid as a real map.
+              These preview records do not provide authoritative coordinates.
+              HOMIO will not place estimated markers or present a decorative
+              grid as a real map.
             </span>
           </div>
         </div>
@@ -48,25 +49,28 @@ export default function SearchMapView({
         </div>
 
         <div className={styles.items}>
-          {properties.map((property) => (
-            <button
-              key={property.id}
-              type="button"
-              className={`${styles.item} ${
-                selectedId === property.id ? styles.itemSelected : ""
-              }`}
-              onClick={() => onSelect?.(property)}
-              aria-pressed={selectedId === property.id}
-            >
-              <span className={styles.itemTitle}>
-                {property.title}
-              </span>
+          {properties.map((property) => {
+            const identity = `${property.entityType}:${property.id}`;
+            const selected = selectedId === identity;
 
-              <span>{property.location}</span>
+            return (
+              <button
+                key={identity}
+                type="button"
+                className={`${styles.item} ${selected ? styles.itemSelected : ""}`}
+                onClick={() => onSelect?.(property)}
+                aria-pressed={selected}
+              >
+                <span className={styles.itemTitle}>
+                  {property.title}
+                </span>
 
-              <strong>{property.price}</strong>
-            </button>
-          ))}
+                <span>{property.location}</span>
+
+                <strong>{property.price}</strong>
+              </button>
+            );
+          })}
         </div>
       </aside>
     </section>
