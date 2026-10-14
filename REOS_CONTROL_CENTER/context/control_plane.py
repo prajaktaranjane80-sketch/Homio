@@ -1,3 +1,4 @@
+
 """L3 canonical authority verification.
 
 This module is NOT a second control plane.
@@ -186,7 +187,7 @@ class CanonicalAuthorityVerifier:
                 state_path=self.state_path,
             )
 
-                if not self.verify_phase_coherence():
+        if not self.verify_phase_coherence():
             return CanonicalAuthorityResult(
                 allowed=False,
                 reason="AUTHORITATIVE_PHASE_GATE_COHERENCE_FAILURE",
@@ -199,6 +200,10 @@ class CanonicalAuthorityVerifier:
         return CanonicalAuthorityResult(
             allowed=True,
             reason="CANONICAL_AUTHORITY_VERIFIED",
+            state_path=self.state_path,
+            current_gate=gate,
+            current_task=task,
+            current_subtask=subtask,
         )
 
 
