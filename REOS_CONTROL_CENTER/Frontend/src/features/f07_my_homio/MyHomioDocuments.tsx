@@ -28,7 +28,7 @@ export default function MyHomioDocuments() {
 
         <p className={styles.panelLead}>
           An account document workspace must preserve the link between a file,
-          its source, the user's authorization and the property or workflow
+          its source, the user&apos;s authorization and the property or workflow
           it belongs to.
         </p>
       </header>
