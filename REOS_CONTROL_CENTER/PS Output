@@ -1,120 +1,279 @@
-gh: The tree parameter must be exactly 40 characters and contain only [0-9a-f]. (HTTP 422)
-GitHub CLI request failed. Stop; branch was not intentionally changed by this script.
-At line:6 char:9
-+         throw "GitHub CLI request failed. Stop; branch was not intent ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (GitHub CLI requ...by this script.:String) [], RuntimeException
-    + FullyQualifiedErrorId : GitHub CLI request failed. Stop; branch was not intentionally changed by this script.
-
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if (-not $RestoreCommit.sha) {
->>     throw "Restore commit was not created successfully."
+PS D:\Homio\REOS_CONTROL_CENTER> $RemoteFile = Invoke-HomioApi -Method GET -RelativePath "contents/$Path?ref=$Branch"
+Invoke-RestMethod : {"message":"Not Found","documentation_url":"https://docs.github.com/rest/repos/contents#get-repository-content","status":"404"}
+At line:11 char:16
++ ...      return Invoke-RestMethod -Method $Method -Uri $Uri -Headers $Hea ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+PS D:\Homio\REOS_CONTROL_CENTER> $OriginalBlob = $RemoteFile.sha
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($RemoteFile.encoding -ne "base64") {
+>>     throw "Unexpected target-file encoding. No changes made."
 >> }
-Restore commit was not created successfully.
+Unexpected target-file encoding. No changes made.
 At line:2 char:5
-+     throw "Restore commit was not created successfully."
++     throw "Unexpected target-file encoding. No changes made."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Unexpected targ...o changes made.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Unexpected target-file encoding. No changes made.
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Source = [Text.Encoding]::UTF8.GetString(
+>>     [Convert]::FromBase64String(($RemoteFile.content -replace "\s", ""))
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER> $Source = $Source -replace "`r`n?", "`n"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $Source.StartsWith('"""')) {
+>>     throw "Unexpected Python entrypoint header. No changes made."
+>> }
+Unexpected Python entrypoint header. No changes made.
+At line:2 char:5
++     throw "Unexpected Python entrypoint header. No changes made."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Unexpected Pyth...o changes made.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Unexpected Python entrypoint header. No changes made.
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Updated = $Source
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 2. Replace only known, verified policy statements.
+PS D:\Homio\REOS_CONTROL_CENTER> $Old = @'
+>> IMPLEMENTATION_WRITE_INTERFACE = (
+>>     "Guarded PowerShell GitHub REST API writes to branch reos-development; "
+>>     "manual GitHub UI saves remain optional"
+>> )
+>> '@.Trim()
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $New = @'
+>> IMPLEMENTATION_WRITE_INTERFACE = (
+>>     "Guarded PowerShell GitHub REST API writes to branch reos-development; "
+>>     "no separate workflow runner or parallel workflow authority"
+>> )
+>> '@.Trim()
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Updated = Replace-HomioExactOnce $Updated $Old $New "Write interface"
+Replace-HomioExactOnce : Cannot bind argument to parameter 'Text' because it is an empty string.
+At line:1 char:35
++ $Updated = Replace-HomioExactOnce $Updated $Old $New "Write interface ...
++                                   ~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [Replace-HomioExactOnce], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Replace-HomioExactOnce
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Old = @'
+>> DEVELOPMENT_WORKFLOW_RULES: tuple[str, ...] = (
+>>     "GitHub branch reos-development is the canonical implementation source.",
+>>     "Guarded PowerShell GitHub REST API writes are the approved remote implementation workflow; manual GitHub UI saving remains optional.",
+>> '@.TrimEnd()
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $New = @'
+>> DEVELOPMENT_WORKFLOW_RULES: tuple[str, ...] = (
+>>     "This entrypoint is the single agent-facing home for canonical workflow-sync rules; it defines policy and does not execute writes.",
+>>     "GitHub branch reos-development is the canonical implementation source.",
+>>     "Guarded PowerShell GitHub REST API writes are the default implementation workflow; manual GitHub UI editing is a fallback only when the owner explicitly asks for it.",
+>>     "Do not create, download, invoke, or rely on HOMIO_REMOTE_WORKFLOW_SYNC.ps1 or another standalone runner as a competing workflow authority.",
+>>     "Supporting work-plan files document execution sequence; they must not create a competing policy or override the authoritative Control Center state.",
+>> '@.TrimEnd()
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Updated = Replace-HomioExactOnce $Updated $Old $New "Central workflow policy"
+Replace-HomioExactOnce : Cannot bind argument to parameter 'Text' because it is an empty string.
+At line:1 char:35
++ $Updated = Replace-HomioExactOnce $Updated $Old $New "Central workflo ...
++                                   ~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [Replace-HomioExactOnce], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Replace-HomioExactOnce
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Old = @'
+>>     "After a remote GitHub API write or manual GitHub save, independently verify the branch, commit parent and exact changed file content before declaring PASS.",
+>> '@.Trim()
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $New = @'
+>>     "After a guarded remote GitHub API write, independently verify the resulting branch, commit parent and exact changed file content before declaring PASS; apply the same checks if the owner explicitly chooses a manual UI fallback.",
+>> '@.Trim()
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Updated = Replace-HomioExactOnce $Updated $Old $New "Write verification rule"
+Replace-HomioExactOnce : Cannot bind argument to parameter 'Text' because it is an empty string.
+At line:1 char:35
++ $Updated = Replace-HomioExactOnce $Updated $Old $New "Write verificat ...
++                                   ~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [Replace-HomioExactOnce], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Replace-HomioExactOnce
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Old = @'
+>>     "AI_AGENT_ENTRYPOINT.py is a descriptive repository contract and MUST NOT execute Git writes.",
+>> '@.Trim()
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $New = @'
+>>     "AI_AGENT_ENTRYPOINT.py defines the canonical agent-facing workflow-sync policy but MUST NOT execute Git writes itself.",
+>> '@.Trim()
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Updated = Replace-HomioExactOnce $Updated $Old $New "Remote sync ownership"
+Replace-HomioExactOnce : Cannot bind argument to parameter 'Text' because it is an empty string.
+At line:1 char:35
++ $Updated = Replace-HomioExactOnce $Updated $Old $New "Remote sync own ...
++                                   ~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [Replace-HomioExactOnce], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Replace-HomioExactOnce
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Old = @'
+>>     "AI_AGENT_ENTRYPOINT.py does not own Git synchronization.",
+>> '@.Trim()
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $New = @'
+>>     "AI_AGENT_ENTRYPOINT.py defines the agent-facing Git/workflow synchronization policy but does not execute Git writes.",
+>> '@.Trim()
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Updated = Replace-HomioExactOnce $Updated $Old $New "Preflight ownership"
+Replace-HomioExactOnce : Cannot bind argument to parameter 'Text' because it is an empty string.
+At line:1 char:35
++ $Updated = Replace-HomioExactOnce $Updated $Old $New "Preflight owner ...
++                                   ~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [Replace-HomioExactOnce], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Replace-HomioExactOnce
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Old = @'
+>>     "10. Apply approved implementation changes via the guarded PowerShell GitHub REST API workflow or manual GitHub UI.",
+>> '@.Trim()
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $New = @'
+>>     "10. Apply approved implementation changes via the guarded PowerShell GitHub REST API workflow; use the manual GitHub UI only if the owner explicitly requests that fallback.",
+>> '@.Trim()
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Updated = Replace-HomioExactOnce $Updated $Old $New "Execution workflow"
+Replace-HomioExactOnce : Cannot bind argument to parameter 'Text' because it is an empty string.
+At line:1 char:35
++ $Updated = Replace-HomioExactOnce $Updated $Old $New "Execution workf ...
++                                   ~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [Replace-HomioExactOnce], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Replace-HomioExactOnce
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Old = @'
+>>     "The AI may provide a complete guarded PowerShell block for approved remote GitHub changes; local worktree writes remain forbidden.",
+>>     "The AI must reserve local PowerShell worktree instructions for read-only diagnosis; guarded remote GitHub API writes are permitted under the workflow contract.",
+>> '@.Trim()
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $New = @'
+>>     "The AI may provide a complete, self-contained guarded PowerShell block for an approved remote GitHub API change; local worktree writes remain forbidden.",
+>>     "PowerShell is read-only when inspecting the local worktree, but may perform guarded remote GitHub REST API writes under this contract.",
+>>     "Never ask the owner to run an unverified standalone sync script; workflow rules belong in this entrypoint, and any requested PowerShell block must be complete in the same message.",
+>> '@.Trim()
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Updated = Replace-HomioExactOnce $Updated $Old $New "Owner workflow"
+Replace-HomioExactOnce : Cannot bind argument to parameter 'Text' because it is an empty string.
+At line:1 char:35
++ $Updated = Replace-HomioExactOnce $Updated $Old $New "Owner workflow"
++                                   ~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [Replace-HomioExactOnce], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Replace-HomioExactOnce
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Updated -eq $Source) {
+>>     throw "No changes were produced. Nothing to commit."
+>> }
+No changes were produced. Nothing to commit.
+At line:2 char:5
++     throw "No changes were produced. Nothing to commit."
 +     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Restore commit ...d successfully.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Restore commit was not created successfully.
+    + CategoryInfo          : OperationStopped: (No changes were...hing to commit.:String) [], RuntimeException
+    + FullyQualifiedErrorId : No changes were produced. Nothing to commit.
 
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> # 6. Check the branch has not moved, then request a non-force ref update.
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $RefBeforeMove = Invoke-GhJson -GhArgs @("api", $RefEndpoint)
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if ($RefBeforeMove.object.sha -ne $BadHead) {
->>     throw "Branch moved during restore preparation. Restore commit was not published to the branch."
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Updated.Contains("manual GitHub UI saves remain optional")) {
+>>     throw "A stale workflow statement remains. Nothing to commit."
 >> }
-Branch moved during restore preparation. Restore commit was not published to the branch.
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $Updated.Contains("HOMIO_REMOTE_WORKFLOW_SYNC.ps1")) {
+>>     throw "Standalone-runner prohibition is missing. Nothing to commit."
+>> }
+Standalone-runner prohibition is missing. Nothing to commit.
 At line:2 char:5
-+     throw "Branch moved during restore preparation. Restore commit wa ...
++     throw "Standalone-runner prohibition is missing. Nothing to commi ...
 +     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Branch moved du... to the branch.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Branch moved during restore preparation. Restore commit was not published to the branch.
+    + CategoryInfo          : OperationStopped: (Standalone-runn...hing to commit.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Standalone-runner prohibition is missing. Nothing to commit.
 
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $MoveResult = Invoke-GhJson -GhArgs @(
->>     "api", "--method", "PATCH", "$ApiRoot/git/refs/heads/$Branch",
->>     "-f", "sha=$($RestoreCommit.sha)",
->>     "-F", "force=false"
->> )
-gh: Invalid request.
-
-At least 40 characters are required; only 0 were supplied.
- does not match /^([0-9a-f]{40}(?:[0-9a-f]{24})?)$/. (HTTP 422)
-GitHub CLI request failed. Stop; branch was not intentionally changed by this script.
-At line:6 char:9
-+         throw "GitHub CLI request failed. Stop; branch was not intent ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (GitHub CLI requ...by this script.:String) [], RuntimeException
-    + FullyQualifiedErrorId : GitHub CLI request failed. Stop; branch was not intentionally changed by this script.
-
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> # 7. Read back the branch and file from GitHub.
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $RefAfter = Invoke-GhJson -GhArgs @("api", $RefEndpoint)
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if ($RefAfter.object.sha -ne $RestoreCommit.sha) {
->>     throw "Branch-head read-back did not match the restore commit."
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 3. Prepare a Git Data API commit based on the captured live HEAD.
+PS D:\Homio\REOS_CONTROL_CENTER> $NewBlob = Invoke-HomioApi -Method POST -RelativePath "git/blobs" -Body @{
+>>     content = $Updated
+>>     encoding = "utf-8"
 >> }
-Branch-head read-back did not match the restore commit.
-At line:2 char:5
-+     throw "Branch-head read-back did not match the restore commit."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Branch-head rea...restore commit.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Branch-head read-back did not match the restore commit.
-
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $RestoredFile = Invoke-GhJson -GhArgs @(
->>     "api", "$ApiRoot/contents/$EncodedPath`?ref=$Branch"
->> )
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if ($RestoredFile.sha -ne $GoodBlob) {
->>     throw "Restore file SHA verification failed."
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $NewTree = Invoke-HomioApi -Method POST -RelativePath "git/trees" -Body @{
+>>     base_tree = $BaseTree
+>>     tree = @(
+>>         @{
+>>             path = $Path
+>>             mode = "100644"
+>>             type = "blob"
+>>             sha = $NewBlob.sha
+>>         }
+>>     )
 >> }
-Restore file SHA verification failed.
-At line:2 char:5
-+     throw "Restore file SHA verification failed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Restore file SHA verification failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Restore file SHA verification failed.
-
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $ReadBackBlob = Invoke-GhJson -GhArgs @(
->>     "api", "$ApiRoot/git/blobs/$($RestoredFile.sha)"
->> )
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $ReadBackText = [System.Text.Encoding]::UTF8.GetString(
->>     [Convert]::FromBase64String(($ReadBackBlob.content -replace '\s', ''))
->> )
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if (-not $ReadBackText.StartsWith("# HOMIO — Complete Frontend Website Master File & Module Structure")) {
->>     throw "Restored document heading verification failed."
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $NewCommit = Invoke-HomioApi -Method POST -RelativePath "git/commits" -Body @{
+>>     message = "Align AI agent entrypoint with canonical workflow sync rules"
+>>     tree = $NewTree.sha
+>>     parents = @($BaseHead)
 >> }
-Restored document heading verification failed.
-At line:2 char:5
-+     throw "Restored document heading verification failed."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Restored docume...ication failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Restored document heading verification failed.
-
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if ($ReadBackText -match "REMOTE WORKFLOW CONTRACT SYNC: FAIL") {
->>     throw "Failure-log text is still present in the restored document."
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($NewCommit.parents.Count -ne 1 -or $NewCommit.parents[0].sha -ne $BaseHead) {
+>>     throw "Prepared commit does not have the captured HEAD as parent. Branch not updated."
 >> }
-Failure-log text is still present in the restored document.
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 4. Guard the branch update. Never force-push.
+PS D:\Homio\REOS_CONTROL_CENTER> $RefCheck = Invoke-HomioApi -Method GET -RelativePath "git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($RefCheck.object.sha -ne $BaseHead) {
+>>     throw "Branch HEAD changed during preparation. Branch not updated; retry from a fresh preflight."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $null = Invoke-HomioApi -Method PATCH -RelativePath "git/refs/heads/$Branch" -Body @{
+>>     sha = $NewCommit.sha
+>>     force = $false
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 5. Independently read back branch, commit parent and exact file bytes.
+PS D:\Homio\REOS_CONTROL_CENTER> $RefAfter = Invoke-HomioApi -Method GET -RelativePath "git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($RefAfter.object.sha -ne $NewCommit.sha) {
+>>     throw "Branch read-back does not match the new commit. Do not report PASS."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $CommitAfter = Invoke-HomioApi -Method GET -RelativePath "git/commits/$($NewCommit.sha)"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($CommitAfter.parents.Count -ne 1 -or $CommitAfter.parents[0].sha -ne $BaseHead) {
+>>     throw "Commit parent read-back failed. Do not report PASS."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $FileAfter = Invoke-HomioApi -Method GET -RelativePath "contents/$Path?ref=$Branch"
+Invoke-RestMethod : {"message":"Not Found","documentation_url":"https://docs.github.com/rest/repos/contents#get-repository-content","status":"404"}
+At line:11 char:16
++ ...      return Invoke-RestMethod -Method $Method -Uri $Uri -Headers $Hea ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+PS D:\Homio\REOS_CONTROL_CENTER> if ($FileAfter.sha -ne $NewBlob.sha) {
+>>     throw "EntryPoint blob read-back failed. Do not report PASS."
+>> }
+EntryPoint blob read-back failed. Do not report PASS.
 At line:2 char:5
-+     throw "Failure-log text is still present in the restored document ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Failure-log tex...tored document.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Failure-log text is still present in the restored document.
++     throw "EntryPoint blob read-back failed. Do not report PASS."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (EntryPoint blob...ot report PASS.:String) [], RuntimeException
+    + FullyQualifiedErrorId : EntryPoint blob read-back failed. Do not report PASS.
 
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host ""
-
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "MASTER STRUCTURE RESTORE: PASS"
-MASTER STRUCTURE RESTORE: PASS
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "Branch: $Branch"
-Branch: reos-development
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "Restore commit: $($RestoreCommit.sha)"
-Restore commit:
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "Restored original blob: $($RestoredFile.sha)"
-Restored original blob: 73497a1fc92bc2af82bc197e83cd88055061adaa
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "Verified characters: $($ReadBackText.Length)"
-Verified characters: 935
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "GitHub read-back: PASS"
-GitHub read-back: PASS
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $ReadBack = [Text.Encoding]::UTF8.GetString(
+>>     [Convert]::FromBase64String(($FileAfter.content -replace "\s", ""))
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER> $ReadBack = $ReadBack -replace "`r`n?", "`n"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($ReadBack -cne $Updated) {
+>>     throw "EntryPoint content read-back does not match. Do not report PASS."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
