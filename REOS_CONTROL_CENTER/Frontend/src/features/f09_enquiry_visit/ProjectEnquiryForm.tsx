@@ -327,7 +327,7 @@ export default function ProjectEnquiryForm({
         </div>
 
         <p className={styles.privacyNote}>
-          Contact details stay in this component's page state in the current preview. They are not sent to a service or saved to browser storage.
+          Contact details stay in this component&apos;s page state in the current preview. They are not sent to a service or saved to browser storage.
         </p>
 
         <div className={styles.formActions}>
