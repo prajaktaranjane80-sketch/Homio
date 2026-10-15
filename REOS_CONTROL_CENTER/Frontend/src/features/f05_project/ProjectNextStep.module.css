@@ -66,6 +66,43 @@
     display: block;
   }
 
+
+  /* F09 integration: keyboard focus for enquiry and visit links. */
+.section {
+  flex-wrap: wrap;
+}
+
+.primary:focus-visible,
+.secondary:focus-visible {
+  outline: 3px solid rgb(196 154 97 / 55%);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary:hover,
+  .secondary:hover {
+    transform: none;
+  }
+}
+
+.continueLinks {
+  flex: 1 1 100%;
+  margin: 12px 0 0;
+  color: #b7c0c8;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.continueLinks a {
+  color: #ffffff;
+  text-underline-offset: 3px;
+}
+
+.continueLinks a:focus-visible {
+  outline: 2px solid #e6c99d;
+  outline-offset: 3px;
+}
+
   .actions {
     margin-top: 20px;
   }
