@@ -355,6 +355,33 @@ function publicKeyFor(jwk: OidcJwk, algorithm: string) {
   throw new AuthFlowError();
 }
 
+
+function decodeJwtJson(segment: string): Record<string, unknown> {
+  if (
+    !segment ||
+    segment.length > 8192 ||
+    !/^[A-Za-z0-9_-]+$/.test(segment) ||
+    segment.length % 4 === 1
+  ) {
+    throw new AuthFlowError();
+  }
+
+  try {
+    const decoded = new TextDecoder("utf-8", { fatal: true }).decode(
+      Buffer.from(segment, "base64url"),
+    );
+    const value: unknown = JSON.parse(decoded);
+
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      throw new AuthFlowError();
+    }
+
+    return value as Record<string, unknown>;
+  } catch {
+    throw new AuthFlowError();
+  }
+}
+
 async function verifyIdToken(
   token: string,
   config: AuthConfig,
