@@ -1,48 +1,300 @@
-PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = 'Continue'
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Exact project location
-PS D:\Homio\REOS_CONTROL_CENTER> $repoPath = 'C:\Users\Sandip RanjanePatil\AI-Dev-Company'
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== 1. PROJECT LOCATION ==="
-
-=== 1. PROJECT LOCATION ===
-PS D:\Homio\REOS_CONTROL_CENTER> if (Test-Path -LiteralPath (Join-Path $repoPath '.git')) {
->>     Set-Location -LiteralPath $repoPath
->>     (Get-Location).Path
->> } else {
->>     Write-Host "ERROR: Git repository not found at $repoPath"
+     $runtimeTests = @'
+>> import assert from "node:assert/strict";
+>> import fs from "node:fs";
+>> import os from "node:os";
+>> import path from "node:path";
+>> import { after, test } from "node:test";
+>> import ts from "typescript";
+>> import { pathToFileURL } from "node:url";
+>>
+>> process.env.NODE_ENV = "test";
+>> process.env.HOMIO_APP_URL = "http://localhost:3000";
+>> process.env.HOMIO_OIDC_ISSUER = "https://issuer.example.test";
+>> process.env.HOMIO_OIDC_CLIENT_ID = "homio-runtime-test-client";
+>> process.env.HOMIO_SESSION_SECRET = "0123456789abcdef0123456789abcdef";
+>> delete process.env.HOMIO_OIDC_CLIENT_SECRET;
+>>
+>> const tempDirectory = fs.mkdtempSync(
+>>   path.join(os.tmpdir(), "homio-auth-runtime-"),
+>> );
+>>
+>> after(() => {
+>>   fs.rmSync(tempDirectory, { recursive: true, force: true });
+>> });
+>>
+>> const sourcePath = path.join(
+>>   process.cwd(),
+>>   "src",
+>>   "lib",
+>>   "auth",
+>>   "oidc.ts",
+>> );
+>>
+>> if (!fs.existsSync(sourcePath)) {
+>>   throw new Error("Missing source module: src/lib/auth/oidc.ts");
 >> }
-C:\Users\Sandip RanjanePatil\AI-Dev-Company
-PS C:\Users\Sandip RanjanePatil\AI-Dev-Company>
-PS C:\Users\Sandip RanjanePatil\AI-Dev-Company> Write-Host "`n=== 2. CURRENT GITHUB ACCOUNT ==="
-
-=== 2. CURRENT GITHUB ACCOUNT ===
-PS C:\Users\Sandip RanjanePatil\AI-Dev-Company> gh api user --jq .login
-prajaktaranjane80-sketch
-PS C:\Users\Sandip RanjanePatil\AI-Dev-Company>
-PS C:\Users\Sandip RanjanePatil\AI-Dev-Company> Write-Host "`n=== 3. REPOSITORY PERMISSION ==="
-
-=== 3. REPOSITORY PERMISSION ===
-PS C:\Users\Sandip RanjanePatil\AI-Dev-Company> gh repo view imperiumsandy-commits/AI-Dev-Company `
->>     --json nameWithOwner,viewerPermission `
->>     --jq '{repository:.nameWithOwner, permission:.viewerPermission}'
-{
-  "permission": "READ",
-  "repository": "imperiumsandy-commits/AI-Dev-Company"
-}
-PS C:\Users\Sandip RanjanePatil\AI-Dev-Company>
-PS C:\Users\Sandip RanjanePatil\AI-Dev-Company> Write-Host "`n=== 4. LOCAL GIT STATUS ==="
-
-=== 4. LOCAL GIT STATUS ===
-PS C:\Users\Sandip RanjanePatil\AI-Dev-Company> if (Test-Path -LiteralPath (Join-Path $repoPath '.git')) {
->>     git status --short --branch
->>     git remote -v
+>>
+>> const source = fs.readFileSync(sourcePath, "utf8");
+>> const transpiled = ts.transpileModule(source, {
+>>   reportDiagnostics: true,
+>>   compilerOptions: {
+>>     target: ts.ScriptTarget.ES2022,
+>>     module: ts.ModuleKind.ES2022,
+>>   },
+>> });
+>>
+>> const compileErrors = (transpiled.diagnostics ?? []).filter(
+>>   (diagnostic) => diagnostic.category === ts.DiagnosticCategory.Error,
+>> );
+>>
+>> if (compileErrors.length > 0) {
+>>   throw new Error(
+>>     ts.formatDiagnosticsWithColorAndContext(compileErrors, {
+>>       getCanonicalFileName: (fileName) => fileName,
+>>       getCurrentDirectory: () => process.cwd(),
+>>       getNewLine: () => "\n",
+>>     }),
+>>   );
 >> }
-## main...origin/main
-origin  https://github.com/imperiumsandy-commits/AI-Dev-Company.git (fetch)
-origin  https://github.com/imperiumsandy-commits/AI-Dev-Company.git (push)
-PS C:\Users\Sandip RanjanePatil\AI-Dev-Company>
-PS C:\Users\Sandip RanjanePatil\AI-Dev-Company> Write-Host "`n=== CHECK COMPLETE ==="
+>>
+>> const compiledPath = path.join(tempDirectory, "oidc.mjs");
+>> fs.writeFileSync(compiledPath, transpiled.outputText, "utf8");
+>>
+>> const auth = await import(pathToFileURL(compiledPath).href);
+>>
+>> test("HOMIO authentication runtime contract", async (t) => {
+>>   await t.test("PKCE S256 matches the RFC 7636 known-answer vector", () => {
+>>     assert.equal(
+>>       auth.pkceChallenge(
+>>         "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+>>       ),
+>>       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+>>     );
+>>   });
+>>
+>>   await t.test("random state tokens have expected base64url size", () => {
+>>     const token = auth.randomToken(32);
+>>     assert.match(token, /^[A-Za-z0-9_-]+$/);
+>>     assert.equal(token.length, 43);
+>>     assert.notEqual(token, auth.randomToken(32));
+>>   });
+>>
+>>   await t.test("constant-time comparison rejects changed values", () => {
+>>     assert.equal(auth.constantTimeEqual("same-state", "same-state"), true);
+>>     assert.equal(auth.constantTimeEqual("same-state", "changed-state"), false);
+>>     assert.equal(auth.constantTimeEqual("short", "longer"), false);
+>>   });
+>>
+>>   await t.test("return paths allow only the intended local destinations", () => {
+>>     assert.equal(auth.safeReturnTo("/"), "/");
+>>     assert.equal(auth.safeReturnTo("/my"), "/my");
+>>     assert.equal(auth.safeReturnTo(undefined), "/my");
+>>     assert.equal(auth.safeReturnTo("//attacker.example"), "/my");
+>>     assert.equal(auth.safeReturnTo("https://attacker.example"), "/my");
+>>     assert.equal(auth.safeReturnTo("/admin"), "/my");
+>>     assert.equal(auth.safeReturnTo("javascript:alert(1)"), "/my");
+>>   });
+>>
+>>   await t.test("configuration accepts a local development origin", () => {
+>>     const config = auth.getAuthConfig();
+>>     assert.equal(config.appUrl, "http://localhost:3000");
+>>     assert.equal(config.secureCookies, false);
+>>     assert.equal(config.issuer, "https://issuer.example.test");
+>>     assert.equal(config.clientId, "homio-runtime-test-client");
+>>   });
+>>
+>>   await t.test("configuration rejects a short session secret", () => {
+>>     const previousSecret = process.env.HOMIO_SESSION_SECRET;
+>>     try {
+>>       process.env.HOMIO_SESSION_SECRET = "too-short";
+>>       assert.throws(() => auth.getAuthConfig());
+>>     } finally {
+>>       process.env.HOMIO_SESSION_SECRET = previousSecret;
+>>     }
+>>   });
+>>
+>>   await t.test("production configuration rejects HTTP even on localhost", () => {
+>>     const previousEnvironment = process.env.NODE_ENV;
+>>     const previousAppUrl = process.env.HOMIO_APP_URL;
+>>
+>>     try {
+>>       process.env.NODE_ENV = "production";
+>>       process.env.HOMIO_APP_URL = "http://localhost:3000";
+>>       assert.throws(() => auth.getAuthConfig());
+>>     } finally {
+>>       process.env.NODE_ENV = previousEnvironment;
+>>       process.env.HOMIO_APP_URL = previousAppUrl;
+>>     }
+>>   });
+>>
+>>   const config = auth.getAuthConfig();
+>>   const now = Math.floor(Date.now() / 1000);
+>>
+>>   const makeSession = (overrides = {}) => ({
+>>     issuer: config.issuer,
+>>     sub: "oidc-subject-001",
+>>     email: "qa@example.test",
+>>     name: "HOMIO Runtime Test",
+>>     emailVerified: true,
+>>     issuedAt: now,
+>>     expiresAt: now + auth.SESSION_TTL_SECONDS,
+>>     ...overrides,
+>>   });
+>>
+>>   await t.test("session cookie encrypts and round-trips valid claims", () => {
+>>     const session = makeSession();
+>>     const cookie = auth.createSessionCookie(session, config);
+>>
+>>     assert.equal(auth.readSessionCookie(cookie) !== null, true);
+>>     assert.deepEqual(auth.readSessionCookie(cookie), session);
+>>     assert.equal(cookie.includes(session.email), false);
+>>     assert.equal(cookie.length <= 3500, true);
+>>     assert.notEqual(
+>>       auth.createSessionCookie(session, config),
+>>       cookie,
+>>       "fresh encryption should use a fresh IV",
+>>     );
+>>   });
+>>
+>>   await t.test("tampered cookie is rejected", () => {
+>>     const cookie = auth.createSessionCookie(makeSession(), config);
+>>     const parts = cookie.split(".");
+>>     assert.equal(parts.length, 3);
+>>
+>>     parts[2] = (parts[2][0] === "A" ? "B" : "A") + parts[2].slice(1);
+>>     assert.equal(auth.readSessionCookie(parts.join(".")), null);
+>>   });
+>>
+>>   await t.test("cookie encrypted with a different secret is rejected", () => {
+>>     const cookie = auth.createSessionCookie(makeSession(), config);
+>>     const previousSecret = process.env.HOMIO_SESSION_SECRET;
+>>
+>>     try {
+>>       process.env.HOMIO_SESSION_SECRET = "fedcba9876543210fedcba9876543210";
+>>       assert.equal(auth.readSessionCookie(cookie), null);
+>>     } finally {
+>>       process.env.HOMIO_SESSION_SECRET = previousSecret;
+>>     }
+>>   });
+>>
+>>   await t.test("expired and overlong sessions are rejected", () => {
+>>     const expired = auth.createSessionCookie(
+>>       makeSession({
+>>         issuedAt: now - 3600,
+>>         expiresAt: now - 1,
+>>       }),
+>>       config,
+>>     );
+>>     assert.equal(auth.readSessionCookie(expired), null);
+>>
+>>     const overlong = auth.createSessionCookie(
+>>       makeSession({
+>>         issuedAt: now,
+>>         expiresAt: now + auth.SESSION_TTL_SECONDS + 1,
+>>       }),
+>>       config,
+>>     );
+>>     assert.equal(auth.readSessionCookie(overlong), null);
+>>   });
+>>
+>>   await t.test("wrong issuer, malformed cookie and oversized cookie are rejected", () => {
+>>     const wrongIssuer = auth.createSessionCookie(
+>>       makeSession({ issuer: "https://other-issuer.example.test" }),
+>>       config,
+>>     );
+>>     assert.equal(auth.readSessionCookie(wrongIssuer), null);
+>>     assert.equal(auth.readSessionCookie("not-a-cookie"), null);
+>>     assert.equal(auth.readSessionCookie("x".repeat(3501)), null);
+>>   });
+>> });
+>> '@
+>>
+>>     $runtimeTests = $runtimeTests.Replace("`r`n", "`n").TrimEnd() + "`n"
+>>
+>>     Write-Host "`n=== 3. PRE-FLIGHT GUARDS ==="
+>>
+>>     $scriptProbe = & gh api --method GET --raw-field "ref=$branch" `
+>>         "repos/$repo/contents/$testPath" 2>&1
+>>     $scriptProbeExit = $LASTEXITCODE
+>>
+>>     if ($scriptProbeExit -eq 0) {
+>>         throw "New test file already exists; no blind overwrite: $testPath"
+>>     }
+>>
+>>     $probeText = ($scriptProbe | ForEach-Object { "$_" }) -join "`n"
+>>     if ($probeText -notmatch '404|Not Found') {
+>>         throw "Could not establish that the new test file is absent:`n$probeText"
+>>     }
+>>
+>>     if ((Get-BranchHead) -cne $expectedHead) {
+>>         throw 'Branch HEAD changed during preflight. No write performed.'
+>>     }
+>>
+>>     Write-Host 'Source SHA, anchors and create-path guards: PASS'
+>>
+>>     Write-Host "`n=== 4. CREATE RUNTIME TESTS ==="
+>>
+>>     $expectedHead = Publish-VerifiedFile `
+>>         -Path $testPath `
+>>         -Content $runtimeTests `
+>>         -ExpectedSha '' `
+>>         -ExpectedHead $expectedHead `
+>>         -Message 'Add HOMIO authentication runtime helper tests' `
+>>         -Create
+>>
+>>     Write-Host "`n=== 5. FIX AUTH PANEL ENCODING ==="
+>>
+>>     $expectedHead = Publish-VerifiedFile `
+>>         -Path $panelPath `
+>>         -Content $panelNew `
+>>         -ExpectedSha $panel.Sha `
+>>         -ExpectedHead $expectedHead `
+>>         -Message 'Fix HOMIO authentication panel encoding'
+>>
+>>     Write-Host "`n=== 6. DOCUMENT PRODUCTION INTEGRATION GATE ==="
+>>
+>>     $expectedHead = Publish-VerifiedFile `
+>>         -Path $setupPath `
+>>         -Content $setupNew `
+>>         -ExpectedSha $setup.Sha `
+>>         -ExpectedHead $expectedHead `
+>>         -Message 'Document HOMIO identity and tenant integration gate'
+>>
+>>     Write-Host "`n=== 7. ENABLE TESTS IN VERIFY PIPELINE ==="
+>>
+>>     $expectedHead = Publish-VerifiedFile `
+>>         -Path $packagePath `
+>>         -Content $packageNew `
+>>         -ExpectedSha $package.Sha `
+>>         -ExpectedHead $expectedHead `
+>>         -Message 'Run authentication runtime tests in verify pipeline'
+>>
+>>     Write-Host "`n=== RESULT ==="
+>>     Write-Host 'AUTHENTICATION PATCH PUBLISH + READ-BACK: PASS'
+>>     Write-Host "Latest verified HEAD: $expectedHead"
+>>     Write-Host 'Four target files were verified after their individual GitHub writes.'
+>>     Write-Host ''
+>>     Write-Host 'NEXT: Run npm run verify:auth from REOS_CONTROL_CENTER/Frontend.'
+>>     Write-Host 'This must pass before auth test coverage can be marked complete.'
+>> }
+>> catch {
+>>     Write-Host "`nAUTHENTICATION IMPLEMENTATION: FAIL" -ForegroundColor Red
+>>     Write-Host $_.Exception.Message
+>>     Write-Host 'Stop here. Inspect the latest branch HEAD and last completed file before retrying.'
+>> }
+>>
+>> if ($tempDir -and (Test-Path -LiteralPath $tempDir)) {
+>>     Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+>> }
+>>
 
-=== CHECK COMPLETE ===
-PS C:\Users\Sandip RanjanePatil\AI-Dev-Company>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> npm run verify:auth
+npm error Missing script: "verify:auth"
+npm error
+npm error Did you mean this?
+npm error   npm run verify:f03 # run the "verify:f03" package script
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: C:\Users\Sandip RanjanePatil\AppData\Local\npm-cache\_logs\2026-10-15T03_44_48_296Z-debug-0.log
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
