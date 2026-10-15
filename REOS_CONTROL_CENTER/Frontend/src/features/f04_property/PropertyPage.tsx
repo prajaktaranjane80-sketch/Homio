@@ -86,7 +86,8 @@ export default function PropertyPage({ property }: PropertyPageProps) {
 
         <PropertyAI />
         <SimilarProperties property={property} />
-        <PropertyNextStep />
+
+        <PropertyNextStep property={property} />
 
         <section className={styles.related}>
           <div className={styles.relatedHeader}>
