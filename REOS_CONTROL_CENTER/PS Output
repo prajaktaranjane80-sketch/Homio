@@ -1,33 +1,120 @@
-Account: prajaktaranjane80-sketch
-Branch:  reos-development
-HEAD:    4e65e91661bebe8ca562f6c7b2c1eeedfd017e89
-Preparing files from the live GitHub branch...
-PUBLISH + READ-BACK PASS: REOS_CONTROL_CENTER/Frontend/scripts/auth-runtime.test.mjs
-Commit: a4b229ff41c62beb5375b6b4c4953ea8c6c3f7e6
-Blob:   657b718eccb18094d193a762ffa64552ca730645
-PUBLISH + READ-BACK PASS: REOS_CONTROL_CENTER/Frontend/package.json
-Commit: 986ab6568a6f0beb1529ec03fe1eae58938681dc
-Blob:   141ea0cf9ef0c5d9b900db7f78761c058433b0a2
-PUBLISH + READ-BACK PASS: REOS_CONTROL_CENTER/Frontend/src/features/authentication/AuthPanel.tsx
-Commit: 0dd8568e63f9901574b426b629eb2211c683afe6
-Blob:   5228d9c984ee2763fd6a6bb70e0395f150c498b1
-PUBLISH + READ-BACK PASS: REOS_CONTROL_CENTER/Frontend/AUTHENTICATION_SETUP.md
-Commit: f30fe531372d3e4ac89bbe07b17826477e4ca129
-Blob:   4ae21471c19d52a27eff6abce092fef323ff9d6c
+gh: The tree parameter must be exactly 40 characters and contain only [0-9a-f]. (HTTP 422)
+GitHub CLI request failed. Stop; branch was not intentionally changed by this script.
+At line:6 char:9
++         throw "GitHub CLI request failed. Stop; branch was not intent ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (GitHub CLI requ...by this script.:String) [], RuntimeException
+    + FullyQualifiedErrorId : GitHub CLI request failed. Stop; branch was not intentionally changed by this script.
 
-AUTHENTICATION REMOTE PATCH: PASS
-All changed files were read back and verified from GitHub.
-The frontend-ci workflow is configured to run on frontend changes.
-Do not use the stale local npm result as proof of the remote branch's test status.
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> finally {
->>     if (Test-Path -LiteralPath $tempDir) {
->>         Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
->>     }
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if (-not $RestoreCommit.sha) {
+>>     throw "Restore commit was not created successfully."
 >> }
-finally : The term 'finally' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if
-a path was included, verify that the path is correct and try again.
-At line:1 char:1
-+ finally {
-+ ~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (finally:String) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : CommandNotFoundException
+Restore commit was not created successfully.
+At line:2 char:5
++     throw "Restore commit was not created successfully."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Restore commit ...d successfully.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Restore commit was not created successfully.
+
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> # 6. Check the branch has not moved, then request a non-force ref update.
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $RefBeforeMove = Invoke-GhJson -GhArgs @("api", $RefEndpoint)
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if ($RefBeforeMove.object.sha -ne $BadHead) {
+>>     throw "Branch moved during restore preparation. Restore commit was not published to the branch."
+>> }
+Branch moved during restore preparation. Restore commit was not published to the branch.
+At line:2 char:5
++     throw "Branch moved during restore preparation. Restore commit wa ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Branch moved du... to the branch.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Branch moved during restore preparation. Restore commit was not published to the branch.
+
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $MoveResult = Invoke-GhJson -GhArgs @(
+>>     "api", "--method", "PATCH", "$ApiRoot/git/refs/heads/$Branch",
+>>     "-f", "sha=$($RestoreCommit.sha)",
+>>     "-F", "force=false"
+>> )
+gh: Invalid request.
+
+At least 40 characters are required; only 0 were supplied.
+ does not match /^([0-9a-f]{40}(?:[0-9a-f]{24})?)$/. (HTTP 422)
+GitHub CLI request failed. Stop; branch was not intentionally changed by this script.
+At line:6 char:9
++         throw "GitHub CLI request failed. Stop; branch was not intent ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (GitHub CLI requ...by this script.:String) [], RuntimeException
+    + FullyQualifiedErrorId : GitHub CLI request failed. Stop; branch was not intentionally changed by this script.
+
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> # 7. Read back the branch and file from GitHub.
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $RefAfter = Invoke-GhJson -GhArgs @("api", $RefEndpoint)
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if ($RefAfter.object.sha -ne $RestoreCommit.sha) {
+>>     throw "Branch-head read-back did not match the restore commit."
+>> }
+Branch-head read-back did not match the restore commit.
+At line:2 char:5
++     throw "Branch-head read-back did not match the restore commit."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Branch-head rea...restore commit.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Branch-head read-back did not match the restore commit.
+
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $RestoredFile = Invoke-GhJson -GhArgs @(
+>>     "api", "$ApiRoot/contents/$EncodedPath`?ref=$Branch"
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if ($RestoredFile.sha -ne $GoodBlob) {
+>>     throw "Restore file SHA verification failed."
+>> }
+Restore file SHA verification failed.
+At line:2 char:5
++     throw "Restore file SHA verification failed."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Restore file SHA verification failed.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Restore file SHA verification failed.
+
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $ReadBackBlob = Invoke-GhJson -GhArgs @(
+>>     "api", "$ApiRoot/git/blobs/$($RestoredFile.sha)"
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $ReadBackText = [System.Text.Encoding]::UTF8.GetString(
+>>     [Convert]::FromBase64String(($ReadBackBlob.content -replace '\s', ''))
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if (-not $ReadBackText.StartsWith("# HOMIO — Complete Frontend Website Master File & Module Structure")) {
+>>     throw "Restored document heading verification failed."
+>> }
+Restored document heading verification failed.
+At line:2 char:5
++     throw "Restored document heading verification failed."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Restored docume...ication failed.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Restored document heading verification failed.
+
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if ($ReadBackText -match "REMOTE WORKFLOW CONTRACT SYNC: FAIL") {
+>>     throw "Failure-log text is still present in the restored document."
+>> }
+Failure-log text is still present in the restored document.
+At line:2 char:5
++     throw "Failure-log text is still present in the restored document ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Failure-log tex...tored document.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Failure-log text is still present in the restored document.
+
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host ""
+
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "MASTER STRUCTURE RESTORE: PASS"
+MASTER STRUCTURE RESTORE: PASS
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "Branch: $Branch"
+Branch: reos-development
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "Restore commit: $($RestoreCommit.sha)"
+Restore commit:
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "Restored original blob: $($RestoredFile.sha)"
+Restored original blob: 73497a1fc92bc2af82bc197e83cd88055061adaa
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "Verified characters: $($ReadBackText.Length)"
+Verified characters: 935
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "GitHub read-back: PASS"
+GitHub read-back: PASS
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
