@@ -1,6 +1,12 @@
+
 "use client";
 
-import { useId, useState } from "react";
+import {
+  useId,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 
 import DealCompletion from "./DealCompletion";
 import DealOverview from "./DealOverview";
@@ -45,9 +51,54 @@ export default function TransactionShell({
   viewerRole,
   onActionRequest,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
+  const [activeTab, setActiveTab] =
+    useState<WorkspaceTab>("overview");
+
   const generatedId = useId().replace(/:/g, "");
   const tabListId = `f10-tabs-${generatedId}`;
+
+  const tabRefs = useRef<
+    Record<WorkspaceTab, HTMLButtonElement | null>
+  >({
+    overview: null,
+    documents: null,
+    timeline: null,
+  });
+
+  function handleTabKeyDown(
+    event: KeyboardEvent<HTMLButtonElement>,
+    currentTab: WorkspaceTab,
+  ) {
+    const currentIndex = TABS.findIndex(
+      (tab) => tab.id === currentTab,
+    );
+
+    let nextIndex = currentIndex;
+
+    switch (event.key) {
+      case "ArrowRight":
+        nextIndex = (currentIndex + 1) % TABS.length;
+        break;
+      case "ArrowLeft":
+        nextIndex =
+          (currentIndex - 1 + TABS.length) % TABS.length;
+        break;
+      case "Home":
+        nextIndex = 0;
+        break;
+      case "End":
+        nextIndex = TABS.length - 1;
+        break;
+      default:
+        return;
+    }
+
+    event.preventDefault();
+
+    const nextTab = TABS[nextIndex].id;
+    setActiveTab(nextTab);
+    tabRefs.current[nextTab]?.focus();
+  }
 
   if (!transaction) {
     return <TransactionEmptyState />;
@@ -65,11 +116,15 @@ export default function TransactionShell({
             <span aria-current="page">Workspace</span>
           </nav>
 
-          <p className={styles.eyebrow}>F10 · TRANSACTION WORKSPACE</p>
-          <h1 className={styles.pageTitle}>Transaction workspace</h1>
+          <p className={styles.eyebrow}>
+            F10 · TRANSACTION WORKSPACE
+          </p>
+          <h1 className={styles.pageTitle}>
+            Transaction workspace
+          </h1>
           <p className={styles.pageDescription}>
-            A clear view of transaction progress, documents and the next
-            permitted action.
+            A clear view of transaction progress, documents and the
+            next permitted action.
           </p>
         </div>
 
@@ -105,6 +160,9 @@ export default function TransactionShell({
           return (
             <button
               key={tab.id}
+              ref={(node) => {
+                tabRefs.current[tab.id] = node;
+              }}
               type="button"
               id={tabId}
               role="tab"
@@ -115,13 +173,18 @@ export default function TransactionShell({
                 selected ? styles.tabButtonActive : ""
               }`}
               onClick={() => setActiveTab(tab.id)}
+              onKeyDown={(event) =>
+                handleTabKeyDown(event, tab.id)
+              }
             >
               {tab.label}
+
               {tab.id === "documents" ? (
                 <span className={styles.tabCount}>
                   {transaction.documents.length}
                 </span>
               ) : null}
+
               {tab.id === "timeline" ? (
                 <span className={styles.tabCount}>
                   {transaction.milestones.length}
@@ -144,11 +207,16 @@ export default function TransactionShell({
           <div className={styles.mainColumn}>
             <DealProperty property={transaction.property} />
             <OfferSummary offer={transaction.offer} />
-            <TransactionFinancialStatus summary={transaction.financial} />
+            <TransactionFinancialStatus
+              summary={transaction.financial}
+            />
             <DealCompletion completion={transaction.completion} />
           </div>
 
-          <aside className={styles.sideColumn} aria-label="Transaction details">
+          <aside
+            className={styles.sideColumn}
+            aria-label="Transaction details"
+          >
             <DealParties parties={transaction.parties} />
             <CommissionStatus commission={transaction.commission} />
           </aside>
@@ -180,7 +248,9 @@ export default function TransactionShell({
         tabIndex={0}
       >
         <div className={styles.singleColumn}>
-          <TransactionMilestones milestones={transaction.milestones} />
+          <TransactionMilestones
+            milestones={transaction.milestones}
+          />
           <NegotiationPanel
             entries={transaction.negotiations}
             onActionRequest={onActionRequest}
