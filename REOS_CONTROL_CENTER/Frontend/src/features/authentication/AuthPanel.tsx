@@ -24,7 +24,7 @@ export default function AuthPanel({ mode, error, status }: AuthPanelProps) {
   return (
     <main className={styles.page}>
       <section className={styles.card} aria-labelledby="auth-heading">
-        <span className={styles.eyebrow}>MY HOMIO Â· SECURE ACCOUNT</span>
+        <span className={styles.eyebrow}>MY HOMIO · SECURE ACCOUNT</span>
         <h1 id="auth-heading">
           {isSignup ? "Create your HOMIO account" : "Welcome back to HOMIO"}
         </h1>
