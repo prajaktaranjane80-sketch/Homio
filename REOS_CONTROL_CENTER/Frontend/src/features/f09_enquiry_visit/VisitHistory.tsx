@@ -1,186 +1,252 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import type {
+  EnquiryTarget,
+  EnquiryTargetKind,
+} from "./enquiry.types";
 
 import type {
-  VisitActionDraft,
+  VisitHistoryItem,
   VisitStatus,
 } from "./visit.types";
 
 import styles from "./EnquiryWorkspace.module.css";
 
 type Props = Readonly<{
-  reference: string;
-  status: VisitStatus;
-  onDraftReady?: (draft: VisitActionDraft) => void;
+  items: readonly VisitHistoryItem[];
+  isLoading?: boolean;
+  error?: string;
+  onRefresh?: () => void;
 }>;
 
-const CANCELLABLE_STATUSES: readonly VisitStatus[] = [
-  "requested",
-  "proposed",
-  "confirmed",
-  "reschedule_requested",
-];
+const STATUS_LABELS: Record<VisitStatus, string> = {
+  draft: "Draft",
+  ready_to_submit: "Ready for review",
+  requested: "Request received",
+  proposed: "Alternative time proposed",
+  confirmed: "Visit confirmed",
+  reschedule_requested: "Reschedule requested",
+  cancel_requested: "Cancellation requested",
+  cancelled: "Visit cancelled",
+  completed: "Visit completed",
+  declined: "Request declined",
+  submission_unavailable: "Not booked",
+};
 
-export default function VisitCancel({
-  reference,
-  status,
-  onDraftReady,
-}: Props) {
-  const [reason, setReason] = useState("");
-  const [error, setError] = useState("");
-  const [draftReady, setDraftReady] = useState(false);
+const TARGET_LABELS: Record<EnquiryTargetKind, string> = {
+  property: "Property",
+  project: "Project",
+  general: "General enquiry",
+};
 
-  const canRequestCancellation =
-    Boolean(reference.trim()) &&
-    CANCELLABLE_STATUSES.some((value) => value === status);
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!reference.trim()) {
-      setError(
-        "A valid visit reference is required to prepare a cancellation request.",
-      );
-      setDraftReady(false);
-      return;
-    }
-
-    if (!CANCELLABLE_STATUSES.some((value) => value === status)) {
-      setError(
-        "This visit status does not allow a new cancellation request. Check the latest visit status first.",
-      );
-      setDraftReady(false);
-      return;
-    }
-
-    const draft: VisitActionDraft = {
-      reference: reference.trim(),
-      action: "cancel",
-      reason: reason.trim(),
-    };
-
-    setError("");
-    setDraftReady(true);
-    onDraftReady?.(draft);
+function formatTimestamp(
+  value?: string,
+  timeZone?: string,
+): string | null {
+  if (!value) {
+    return null;
   }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short",
+      ...(timeZone ? { timeZone } : {}),
+    }).format(date);
+  } catch {
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(date);
+  }
+}
+
+function getTargetTitle(target: EnquiryTarget): string {
+  return (
+    target.title?.trim() ||
+    `${TARGET_LABELS[target.kind]} visit`
+  );
+}
+
+export default function VisitHistory({
+  items,
+  isLoading = false,
+  error,
+  onRefresh,
+}: Props) {
+  const historyItems = items.filter(
+    (item) => item.source === "authorized_service",
+  );
 
   return (
     <section
       className={styles.panel}
-      aria-labelledby="visit-cancel-heading"
+      aria-labelledby="visit-history-heading"
     >
       <div className={styles.panelHeader}>
         <div className={styles.panelHeaderMain}>
-          <p className={styles.kicker}>VISIT MANAGEMENT</p>
+          <p className={styles.kicker}>YOUR ACTIVITY</p>
 
           <h2
             className={styles.panelTitle}
-            id="visit-cancel-heading"
+            id="visit-history-heading"
           >
-            Request cancellation
+            Visit history
           </h2>
 
           <p className={styles.panelLead}>
-            Prepare a cancellation request for an existing visit.
-            This preview does not cancel an appointment.
+            Review visit requests and updates returned by the
+            authorized scheduling service.
           </p>
         </div>
+
+        {onRefresh ? (
+          <button
+            className={styles.secondaryButton}
+            type="button"
+            disabled={isLoading}
+            onClick={onRefresh}
+          >
+            {isLoading ? "Refreshing…" : "Refresh"}
+          </button>
+        ) : null}
       </div>
 
-      <form
-        className={styles.form}
-        onSubmit={handleSubmit}
-        noValidate
-      >
-        <div className={styles.summaryList}>
-          <div className={styles.summaryRow}>
-            <span className={styles.summaryLabel}>
-              Visit reference
-            </span>
-
-            <span className={styles.summaryValue}>
-              {reference.trim() || "No reference supplied"}
-            </span>
-          </div>
-
-          <div className={styles.summaryRow}>
-            <span className={styles.summaryLabel}>
-              Current status
-            </span>
-
-            <span className={styles.summaryValue}>
-              {status.replaceAll("_", " ")}
-            </span>
-          </div>
-        </div>
-
-        {!canRequestCancellation ? (
-          <div className={styles.notice} role="status">
-            A cancellation draft cannot be prepared with the
-            supplied reference and status. Use the latest
-            authorized visit record before continuing.
-          </div>
-        ) : (
-          <>
-            <div className={styles.field}>
-              <label
-                className={styles.label}
-                htmlFor="visit-cancel-reason"
-              >
-                Reason for cancellation
-                <span className={styles.optional}>Optional</span>
-              </label>
-
-              <textarea
-                className={styles.textarea}
-                id="visit-cancel-reason"
-                value={reason}
-                rows={4}
-                maxLength={1000}
-                onChange={(event) => {
-                  setReason(event.currentTarget.value);
-                  setError("");
-                  setDraftReady(false);
-                }}
-                placeholder="Share a reason if you would like to."
-              />
-            </div>
-
-            <div className={styles.notice} role="note">
-              Preparing this draft will not cancel the visit. A
-              cancellation takes effect only after the authorized
-              scheduling service processes the request and returns
-              an updated status.
-            </div>
-
-            {error ? (
-              <div className={styles.errorBanner} role="alert">
-                {error}
-              </div>
-            ) : null}
-
-            <div className={styles.formActions}>
-              <button
-                className={styles.primaryButton}
-                type="submit"
-              >
-                Prepare cancellation draft
-              </button>
-            </div>
-          </>
-        )}
-      </form>
-
-      {draftReady ? (
-        <div className={styles.successBanner} role="status" aria-live="polite">
-          <strong>Cancellation draft prepared — not submitted.</strong>
-          <p>
-            Your visit has not been cancelled. No scheduling team
-            was notified.
-          </p>
+      {error ? (
+        <div className={styles.errorBanner} role="alert">
+          {error}
         </div>
       ) : null}
+
+      {isLoading && historyItems.length === 0 ? (
+        <div className={styles.emptyState} role="status">
+          <h3 className={styles.emptyTitle}>
+            Loading visit history
+          </h3>
+
+          <p className={styles.emptyText}>
+            Waiting for the authorized scheduling service.
+          </p>
+        </div>
+      ) : historyItems.length === 0 ? (
+        <div className={styles.emptyState}>
+          <div className={styles.emptyIcon} aria-hidden="true">
+            ◷
+          </div>
+
+          <h3 className={styles.emptyTitle}>
+            No visit records available
+          </h3>
+
+          <p className={styles.emptyText}>
+            Visit history will appear here when the authorized
+            scheduling service returns records. Drafts created
+            in this preview are not stored as visit history.
+          </p>
+        </div>
+      ) : (
+        <ol className={styles.timeline}>
+          {historyItems.map((item) => {
+            const title = getTargetTitle(item.target);
+
+            const updatedAt = formatTimestamp(
+              item.updatedAt,
+              item.timeZone,
+            );
+
+            return (
+              <li className={styles.timelineItem} key={item.id}>
+                <div
+                  className={styles.timelineRail}
+                  aria-hidden="true"
+                >
+                  <span className={styles.timelineDot} />
+                </div>
+
+                <div className={styles.stack}>
+                  <div className={styles.statusHeading}>
+                    <div>
+                      <h3 className={styles.timelineTitle}>
+                        {item.target.href ? (
+                          <a href={item.target.href}>
+                            {title}
+                          </a>
+                        ) : (
+                          title
+                        )}
+                      </h3>
+
+                      {item.target.location ? (
+                        <p className={styles.timelineDescription}>
+                          {item.target.location}
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <span className={styles.badge}>
+                      {STATUS_LABELS[item.status]}
+                    </span>
+                  </div>
+
+                  <div className={styles.summaryList}>
+                    <div className={styles.summaryRow}>
+                      <span className={styles.summaryLabel}>
+                        Preferred date
+                      </span>
+
+                      <span className={styles.summaryValue}>
+                        {item.preferredDate || "Not provided"}
+                      </span>
+                    </div>
+
+                    {item.timeZone ? (
+                      <div className={styles.summaryRow}>
+                        <span className={styles.summaryLabel}>
+                          Time zone
+                        </span>
+
+                        <span className={styles.summaryValue}>
+                          {item.timeZone}
+                        </span>
+                      </div>
+                    ) : null}
+
+                    {item.reference ? (
+                      <div className={styles.summaryRow}>
+                        <span className={styles.summaryLabel}>
+                          Reference
+                        </span>
+
+                        <span className={styles.summaryValue}>
+                          {item.reference}
+                        </span>
+                      </div>
+                    ) : null}
+
+                    {updatedAt ? (
+                      <div className={styles.summaryRow}>
+                        <span className={styles.summaryLabel}>
+                          Last updated
+                        </span>
+
+                        <span className={styles.summaryValue}>
+                          {updatedAt}
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      )}
     </section>
   );
 }
