@@ -1,6 +1,7 @@
 import {
   TRANSACTION_STATUS_META,
   TONE_CLASS_KEY,
+  formatDate,
 } from "./transaction.constants";
 import type { TransactionStatusCode } from "./transaction.types";
 import styles from "./TransactionWorkspace.module.css";
@@ -29,11 +30,7 @@ export default function TransactionStatus({
 
       {!compact && updatedAt ? (
         <span className={styles.statusTimestamp}>
-          Updated {new Intl.DateTimeFormat("en", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-          }).format(new Date(updatedAt))}
+          Updated {formatDate(updatedAt)}
         </span>
       ) : null}
     </div>
