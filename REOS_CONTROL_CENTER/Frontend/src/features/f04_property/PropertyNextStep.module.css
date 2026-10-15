@@ -119,3 +119,32 @@
     scroll-behavior: auto;
   }
 }
+
+
+/* F09 integration: enquiry and visit actions use active navigation links. */
+.primary {
+  cursor: pointer;
+  text-decoration: none;
+  transition: box-shadow 160ms ease, transform 160ms ease;
+}
+
+.primary:hover {
+  opacity: 1;
+  box-shadow: 0 7px 18px rgb(23 33 43 / 16%);
+  transform: translateY(-1px);
+}
+
+.primary:focus-visible {
+  outline: 3px solid rgb(196 154 97 / 55%);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary {
+    transition: none;
+  }
+
+  .primary:hover {
+    transform: none;
+  }
+}
