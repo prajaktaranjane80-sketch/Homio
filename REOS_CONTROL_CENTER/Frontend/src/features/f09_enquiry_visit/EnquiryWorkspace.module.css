@@ -1,88 +1,156 @@
-/* F09 integration shell — responsive mode switch and target panels. */
+/* =========================================================
+   HOMIO F09 — ENQUIRY + VISIT EXPERIENCE
+   Premium editorial styling, scoped feature styles,
+   responsive layouts and accessible interaction states.
+   ========================================================= */
 
-.modeSwitch {
+.workspace {
+  --f09-ink: var(--homio-text, #171717);
+  --f09-muted: var(--homio-text-soft, #555);
+  --f09-border: var(--homio-border, #e4e0d8);
+  --f09-gold: var(--homio-accent, #c59b63);
+  --f09-surface: var(--homio-surface, #fff);
+  --f09-background: var(--homio-bg, #f8f7f4);
+  --f09-danger: #a33428;
+  --f09-success: #245d41;
+
+  min-width: 0;
+  padding: clamp(22px, 4vw, 48px) 0 clamp(48px, 6vw, 76px);
+  background:
+    radial-gradient(
+      ellipse at 95% 0%,
+      rgb(197 155 99 / 8%),
+      transparent 30%
+    ),
+    var(--f09-background);
+  color: var(--f09-ink);
+}
+
+.container {
+  width: min(1120px, calc(100% - 40px));
+  margin-inline: auto;
+}
+
+/* ---------------------------------------------------------
+   Hero and introductory context
+   --------------------------------------------------------- */
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: clamp(26px, 4vw, 48px);
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 24px;
+  background:
+    radial-gradient(
+      ellipse at 100% 0%,
+      rgb(197 155 99 / 23%),
+      transparent 36%
+    ),
+    linear-gradient(125deg, #111 0%, #24211c 70%, #383024 100%);
+  color: #fff;
+  box-shadow: 0 23px 60px rgb(28 24 18 / 10%);
+}
+
+.hero::after {
+  position: absolute;
+  z-index: -1;
+  right: -92px;
+  bottom: -160px;
+  width: 300px;
+  height: 300px;
+  border: 1px solid rgb(224 194 150 / 24%);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 24px rgb(224 194 150 / 5%),
+    0 0 0 54px rgb(224 194 150 / 4%);
+  content: "";
+  pointer-events: none;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: #ddbd8a;
+  font-size: 0.67rem;
+  font-weight: 850;
+  letter-spacing: 0.16em;
+  line-height: 1.55;
+  text-transform: uppercase;
+}
+
+.heroTitle {
+  max-width: 760px;
+  margin: 0;
+  font-size: clamp(2rem, 4.5vw, 3.8rem);
+  font-weight: 760;
+  letter-spacing: -0.06em;
+  line-height: 1.03;
+  overflow-wrap: anywhere;
+}
+
+.heroTitle em {
+  color: #e5c89e;
+  font-family: var(--font-serif, Georgia, serif);
+  font-weight: 500;
+  font-style: italic;
+}
+
+.heroText {
+  max-width: 720px;
+  margin: 15px 0 0;
+  color: rgb(255 255 255 / 74%);
+  font-size: 0.92rem;
+  line-height: 1.8;
+}
+
+.heroMeta {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 14px;
-  padding: 6px;
-  border: 1px solid var(--f09-border, #e4e0d8);
-  border-radius: 13px;
-  background: var(--homio-bg, #f8f7f4);
+  margin-top: 21px;
 }
 
-.modeButton {
+.metaPill {
   display: inline-flex;
-  flex: 1 1 180px;
-  min-width: 0;
-  min-height: 44px;
   align-items: center;
-  justify-content: center;
-  padding: 11px 14px;
-  border: 1px solid transparent;
-  border-radius: 9px;
-  background: transparent;
-  color: var(--f09-ink, #171717);
-  font: inherit;
-  font-size: 0.78rem;
-  font-weight: 800;
+  min-height: 29px;
+  max-width: 100%;
+  padding: 6px 10px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 6%);
+  color: rgb(255 255 255 / 82%);
+  font-size: 0.67rem;
+  font-weight: 700;
   line-height: 1.5;
-  text-align: center;
-  cursor: pointer;
-  transition:
-    background-color 160ms ease,
-    color 160ms ease,
-    border-color 160ms ease,
-    transform 160ms ease;
+  overflow-wrap: anywhere;
 }
 
-.modeButton[aria-pressed="true"] {
-  border-color: #29241d;
-  background: #29241d;
-  color: #fff;
-  box-shadow: 0 4px 12px rgb(23 23 23 / 10%);
+/* ---------------------------------------------------------
+   Main workspace layout
+   --------------------------------------------------------- */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(255px, 0.42fr);
+  align-items: start;
+  gap: 18px;
+  margin-top: 19px;
 }
 
-.modeButton:hover:not(:disabled) {
-  transform: translateY(-1px);
-}
-
-.modeButton:focus-visible {
-  outline: 3px solid rgb(197 155 99 / 42%);
-  outline-offset: 3px;
-}
-
-.modeButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.shellFormPanel {
+.mainColumn,
+.sideColumn,
+.stack {
+  display: grid;
   min-width: 0;
-  scroll-margin-top: 112px;
+  gap: 16px;
 }
 
-.shellFormPanel[hidden] {
-  display: none;
-}
-
-@media (max-width: 560px) {
-  .modeSwitch {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .modeButton {
-    width: 100%;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .modeButton {
-    transition: none;
-  }
-
-  .modeButton:hover:not(:disabled) {
-    transform: none;
-  }
-}
+.panel,
+.sidePanel {
+  min-width: 0;
+  padding: clamp(18px, 3vw, 27px);
+  border: 1px solid var(--f09-border);
+  border-radius: 18px;
+  background: var(--f09-surface
