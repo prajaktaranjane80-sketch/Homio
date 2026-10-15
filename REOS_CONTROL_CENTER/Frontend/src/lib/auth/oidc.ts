@@ -298,24 +298,22 @@ export function constantTimeEqual(left: string, right: string): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
+
 export function safeReturnTo(value: string | undefined | null): string {
-  return value === "/" || value === "/my" ? value : "/my";
+  if (value === "/" || value === "/my") {
+    return value;
+  }
+
+  if (
+    typeof value === "string" &&
+    /^\/transaction\/[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(value)
+  ) {
+    return value;
+  }
+
+  return "/my";
 }
 
-function decodeJwtJson(segment: string): Record<string, unknown> {
-  if (!segment || segment.length > 20000 || !/^[A-Za-z0-9_-]+$/.test(segment)) {
-    throw new AuthFlowError();
-  }
-  try {
-    const value: unknown = JSON.parse(Buffer.from(segment, "base64url").toString("utf8"));
-    if (!value || typeof value !== "object" || Array.isArray(value)) {
-      throw new AuthFlowError();
-    }
-    return value as Record<string, unknown>;
-  } catch {
-    throw new AuthFlowError();
-  }
-}
 
 async function getJwks(url: string): Promise<OidcJwk[]> {
   if (jwksCache && jwksCache.url === url && jwksCache.expiresAt > Date.now()) {
