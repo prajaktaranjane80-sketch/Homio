@@ -118,7 +118,7 @@ test("return target accepts approved paths and rejects unsafe redirects", () => 
   assert.equal(auth.safeReturnTo(undefined), "/my");
 });
 
-});
+
 
 test("configuration rejects a short session secret", () => {
   const previous = process.env.HOMIO_SESSION_SECRET;
