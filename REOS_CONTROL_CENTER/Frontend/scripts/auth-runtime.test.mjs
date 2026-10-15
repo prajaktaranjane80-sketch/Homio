@@ -91,12 +91,33 @@ test("state comparison handles equal, unequal, and different-length values", () 
   assert.equal(auth.constantTimeEqual("short", "longer"), false);
 });
 
-test("return target cannot redirect to an external URL", () => {
+
+test("return target accepts approved paths and rejects unsafe redirects", () => {
   assert.equal(auth.safeReturnTo("/"), "/");
   assert.equal(auth.safeReturnTo("/my"), "/my");
+
+  assert.equal(
+    auth.safeReturnTo("/transaction/tx-123"),
+    "/transaction/tx-123",
+  );
+  assert.equal(
+    auth.safeReturnTo("/transaction/tx_123"),
+    "/transaction/tx_123",
+  );
+
   assert.equal(auth.safeReturnTo("https://attacker.example"), "/my");
   assert.equal(auth.safeReturnTo("//attacker.example"), "/my");
+  assert.equal(auth.safeReturnTo("/transaction/"), "/my");
+  assert.equal(auth.safeReturnTo("/transaction/a/b"), "/my");
+  assert.equal(
+    auth.safeReturnTo("/transaction/id?next=//attacker.example"),
+    "/my",
+  );
+  assert.equal(auth.safeReturnTo("/transaction/%2F%2Fattacker"), "/my");
+  assert.equal(auth.safeReturnTo("/transaction/id\\..\\.."), "/my");
   assert.equal(auth.safeReturnTo(undefined), "/my");
+});
+
 });
 
 test("configuration rejects a short session secret", () => {
