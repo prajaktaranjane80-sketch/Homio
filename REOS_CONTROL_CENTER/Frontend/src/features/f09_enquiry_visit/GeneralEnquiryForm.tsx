@@ -277,7 +277,7 @@ export default function GeneralEnquiryForm({
         </div>
 
         <p className={styles.privacyNote}>
-          Details remain in this component's page state in the current preview. They are not sent to a service or saved in browser storage.
+          Details remain in this component&apos;s page state in the current preview. They are not sent to a service or saved in browser storage.
         </p>
 
         <div className={styles.formActions}>
