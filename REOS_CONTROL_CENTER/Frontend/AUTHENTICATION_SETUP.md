@@ -31,6 +31,9 @@ The signup button sends `screen_hint=signup`. That is a provider-specific hint (
 
 Sign-out clears the HOMIO application session; it does not promise to terminate the user's separate SSO session at the identity provider. The current app session is encrypted and expires after eight hours. A durable server-side session store is still required for immediate server-side revocation, and provider tokens are deliberately not stored in the browser session.
 
+## Production identity and tenant gate
+
+The OIDC callback validates an external provider identity and creates a short-lived encrypted frontend session. This alone does not resolve a canonical HOMIO account or authorize a tenant. Before production tenant-scoped features are enabled, the trusted backend must resolve the exact (issuer, sub) external identity to a durable REOS account, verify account status, and authorize active tenant membership and tenant isolation for every protected operation. Do not auto-link accounts by email. Until that adapter and its negative tests are connected, do not infer account provisioning, tenant membership, persistence, or cross-tenant access from the frontend session.
 ## Explicit remaining data boundary
 
 Authentication establishes a trusted identity session; it does not create database-backed saved properties, saved searches, comparisons, visits, messages or transaction records. Those features must be connected to the canonical REOS persistence/API and tenant authorization boundaries before HOMIO may represent the data as synced or authoritative. The UI continues to disclose this limitation rather than manufacture data.
