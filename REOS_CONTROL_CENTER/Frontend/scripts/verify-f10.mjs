@@ -213,7 +213,7 @@ assert.match(route, /index:\s*false/);
 assert.match(loginPage, /safeReturnTo\(params\.returnTo\)/);
 assert.match(authPanel, /name="returnTo"/);
 assert.match(authPanel, /returnTo \?\? "\/my"/);
-assert.match(oidc, /\/transaction\\?\/?\[?A-Za-z0-9/);
+assert.match(oidc, /\^\\\/transaction\\\/\[A-Za-z0-9\]/);
 assert.match(
   authTests,
   /safeReturnTo\("\/transaction\/tx-123"\)/,
