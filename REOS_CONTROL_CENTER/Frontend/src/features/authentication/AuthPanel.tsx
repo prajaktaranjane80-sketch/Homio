@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 
 import { isAuthConfigured } from "@/lib/auth/oidc";
@@ -8,6 +9,7 @@ type AuthPanelProps = Readonly<{
   mode: "login" | "signup";
   error?: string;
   status?: string;
+  returnTo?: string;
 }>;
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -17,16 +19,25 @@ const ERROR_MESSAGES: Record<string, string> = {
     "HOMIO could not reach the configured identity provider. Please try again later.",
 };
 
-export default function AuthPanel({ mode, error, status }: AuthPanelProps) {
+export default function AuthPanel({
+  mode,
+  error,
+  status,
+  returnTo,
+}: AuthPanelProps) {
   const isSignup = mode === "signup";
   const configured = isAuthConfigured();
 
   return (
     <main className={styles.page}>
       <section className={styles.card} aria-labelledby="auth-heading">
-        <span className={styles.eyebrow}>MY HOMIO · SECURE ACCOUNT</span>
+        <span className={styles.eyebrow}>
+          MY HOMIO · SECURE ACCOUNT
+        </span>
         <h1 id="auth-heading">
-          {isSignup ? "Create your HOMIO account" : "Welcome back to HOMIO"}
+          {isSignup
+            ? "Create your HOMIO account"
+            : "Welcome back to HOMIO"}
         </h1>
         <p className={styles.intro}>
           {isSignup
@@ -35,27 +46,40 @@ export default function AuthPanel({ mode, error, status }: AuthPanelProps) {
         </p>
 
         {error && ERROR_MESSAGES[error] ? (
-          <p className={styles.status} role="status">{ERROR_MESSAGES[error]}</p>
+          <p className={styles.status} role="status">
+            {ERROR_MESSAGES[error]}
+          </p>
         ) : null}
+
         {status === "signed-out" ? (
-          <p className={styles.status} role="status">You have signed out of this HOMIO session.</p>
+          <p className={styles.status} role="status">
+            You have signed out of this HOMIO session.
+          </p>
         ) : null}
 
         {configured ? (
           <div className={styles.actions}>
             <form action="/api/auth/login" method="get">
               <input type="hidden" name="intent" value={mode} />
-              <input type="hidden" name="returnTo" value="/my" />
+              <input
+                type="hidden"
+                name="returnTo"
+                value={returnTo ?? "/my"}
+              />
               <button className={styles.primary} type="submit">
-                {isSignup ? "Continue to create account" : "Continue with secure sign-in"}
+                {isSignup
+                  ? "Continue to create account"
+                  : "Continue with secure sign-in"}
               </button>
             </form>
           </div>
         ) : (
           <p className={styles.status} role="status">
-            Account sign-in is not enabled in this deployment yet. The operator must configure
-            HOMIO_OIDC_ISSUER, HOMIO_OIDC_CLIENT_ID, HOMIO_APP_URL and a private
-            HOMIO_SESSION_SECRET in the deployment environment. No demo login is available.
+            Account sign-in is not enabled in this deployment yet. The
+            operator must configure HOMIO_OIDC_ISSUER,
+            HOMIO_OIDC_CLIENT_ID, HOMIO_APP_URL and a private
+            HOMIO_SESSION_SECRET in the deployment environment. No demo
+            login is available.
           </p>
         )}
 
