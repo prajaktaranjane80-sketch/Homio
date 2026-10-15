@@ -1,0 +1,683 @@
+HOMIO / REOS — FRONTEND MISSING FILES
+Magicbricks UX Benchmark Gap Structure
+Date: 2026-10-04
+
+PURPOSE
+-------
+This file contains the missing frontend file/module structure identified after
+comparing HOMIO against Magicbricks-style consumer UX depth.
+
+IMPORTANT OPERATING MODEL
+-------------------------
+1. HOMIO is GLOBAL by architecture.
+2. First commercial/live market = PUNE.
+3. All global structures/components are built now.
+4. Non-active markets remain BUILT but NOT OPERATIONALLY ACTIVE.
+5. Activation is controlled by market status / feature availability.
+6. Do not delete global sections just because they are not active yet.
+7. Do not create broker marketplace surfaces.
+8. Magicbricks is a UX benchmark, not a clone target.
+9. Existing LP01-LP30 homepage modules remain; this file adds only missing
+   product-depth structures.
+10. Local development is not the source of truth. GitHub reos-development +
+    PS-through-Git verification remains the workflow.
+
+EXISTING HOMEPAGE LAYER — DO NOT DUPLICATE
+-------------------------------------------
+LP01 HomeHeader
+LP02 HomeSecondaryNav
+LP03 HomeHero + HomeSearch + HomeIntentTabs
+LP04 HomeQuickDiscovery
+LP05 PopularCities
+LP06 PopularLocalities
+LP07 FeaturedProjects
+LP08 NewProjectCollections
+LP09 FreshProperties
+LP10 OwnerProperties
+LP11 VerifiedProperties
+LP12 PropertyCollections
+LP13 CommercialSection
+LP14 ResidentialCollections
+LP15 RentalSection
+LP16 PlotLandSection
+LP17 PropertyTools
+LP18 MarketIntelligence
+LP19 HomioAdvice
+LP20 HomeServices
+LP21 BuilderProjects
+LP22 SaveCompareSection
+LP23 HomioAISection
+LP24 BrokerageCTA
+LP25 PostPropertySection
+LP26 WhyHomio
+LP27 TrustSection
+LP28 MyHomioSection
+LP29 HelpSupport
+LP30 HomeFooter
+
+MISSING PRODUCT STRUCTURE
+=========================
+
+F03 — SEARCH EXPERIENCE
+-----------------------
+Root:
+REOS_CONTROL_CENTER/Frontend/src/features/f03_search/
+
+Files:
+- README.md
+- SearchShell.tsx
+- SearchHeader.tsx
+- SearchIntentTabs.tsx
+- SearchLocationField.tsx
+- SearchSuggestionPanel.tsx
+- SearchPropertyType.tsx
+- SearchBudgetFilter.tsx
+- SearchBedroomFilter.tsx
+- SearchAreaFilter.tsx
+- SearchPropertyStatus.tsx
+- SearchFurnishingFilter.tsx
+- SearchAmenityFilter.tsx
+- SearchProjectFilter.tsx
+- SearchBuilderFilter.tsx
+- SearchPossessionFilter.tsx
+- SearchVerificationFilter.tsx
+- SearchAdvancedFilters.tsx
+- SearchFilterDrawer.tsx
+- SearchSortBar.tsx
+- SearchViewToggle.tsx
+- SearchResultCount.tsx
+- SearchResults.tsx
+- SearchResultCard.tsx
+- SearchMapView.tsx
+- SearchListView.tsx
+- SearchEmptyState.tsx
+- SearchErrorState.tsx
+- SearchLoadingState.tsx
+- RecentSearches.tsx
+- SavedSearches.tsx
+- PopularSearches.tsx
+- SearchSummary.tsx
+- SearchActions.tsx
+- SearchPagination.tsx
+- search.types.ts
+- search.constants.ts
+- search.utils.ts
+
+Future integration boundaries:
+- Buy
+- Rent
+- Commercial
+- Projects
+- Land
+- Global city/locality/project search
+- HOMIO AI search handoff
+
+F04 — PROPERTY EXPERIENCE
+-------------------------
+Root:
+REOS_CONTROL_CENTER/Frontend/src/features/f04_property/
+
+Files:
+- README.md
+- PropertyResults.tsx
+- PropertyCard.tsx
+- PropertyCardMedia.tsx
+- PropertyCardMeta.tsx
+- PropertyCardTrust.tsx
+- PropertyCardActions.tsx
+- PropertyDetail.tsx
+- PropertyGallery.tsx
+- PropertyOverview.tsx
+- PropertySpecifications.tsx
+- PropertyAmenities.tsx
+- PropertyLocation.tsx
+- PropertyLocalityContext.tsx
+- PropertyMarketContext.tsx
+- PropertyVerification.tsx
+- PropertyInventorySource.tsx
+- PropertyAvailability.tsx
+- PropertyDocuments.tsx
+- PropertyPricing.tsx
+- PropertyRecommendation.tsx
+- SimilarProperties.tsx
+- PropertyCompareAction.tsx
+- PropertySaveAction.tsx
+- PropertyShareAction.tsx
+- PropertyEnquiryCTA.tsx
+- PropertyVisitCTA.tsx
+- PropertyContactPanel.tsx
+- PropertyLoadingState.tsx
+- PropertyEmptyState.tsx
+- PropertyErrorState.tsx
+- property.types.ts
+- property.constants.ts
+- property.utils.ts
+
+F05 — PROJECT + LOCALITY + MARKET EXPERIENCE
+---------------------------------------------
+Root:
+REOS_CONTROL_CENTER/Frontend/src/features/f05_project_market/
+
+Files:
+- README.md
+- ProjectResults.tsx
+- ProjectCard.tsx
+- ProjectCardMedia.tsx
+- ProjectCardMeta.tsx
+- ProjectDetail.tsx
+- ProjectGallery.tsx
+- ProjectOverview.tsx
+- ProjectConfigurations.tsx
+- ProjectPricing.tsx
+- ProjectFloorPlans.tsx
+- ProjectAmenities.tsx
+- ProjectLocation.tsx
+- ProjectConstructionStatus.tsx
+- ProjectPossession.tsx
+- ProjectVerification.tsx
+- ProjectRegulatoryInfo.tsx
+- ProjectAvailability.tsx
+- ProjectBuilderInfo.tsx
+- SimilarProjects.tsx
+- ProjectCompareAction.tsx
+- ProjectSaveAction.tsx
+- ProjectEnquiryCTA.tsx
+- ProjectVisitCTA.tsx
+- LocalityResults.tsx
+- LocalityCard.tsx
+- LocalityDetail.tsx
+- LocalityOverview.tsx
+- LocalityProperties.tsx
+- LocalityProjects.tsx
+- LocalityRental.tsx
+- LocalityPriceTrends.tsx
+- LocalityRentalTrends.tsx
+- LocalityConnectivity.tsx
+- LocalityLifestyle.tsx
+- LocalityNearbyPlaces.tsx
+- LocalityEducation.tsx
+- LocalityHealthcare.tsx
+- LocalityBusinessAreas.tsx
+- LocalityInvestmentContext.tsx
+- LocalityComparison.tsx
+- LocalityInsight.tsx
+- MarketOverview.tsx
+- MarketCityProfile.tsx
+- MarketActiveAreas.tsx
+- MarketProperties.tsx
+- MarketProjects.tsx
+- MarketCommercial.tsx
+- MarketRental.tsx
+- MarketPriceTrends.tsx
+- MarketRentalTrends.tsx
+- MarketSupplySignals.tsx
+- MarketDemandSignals.tsx
+- MarketInvestmentSignals.tsx
+- MarketLocalityComparison.tsx
+- MarketReports.tsx
+- MarketActivationBadge.tsx
+- project.types.ts
+- locality.types.ts
+- market.types.ts
+- project.constants.ts
+- market.constants.ts
+- project.utils.ts
+- market.utils.ts
+
+F06 — SAVED + COMPARE
+---------------------
+Root:
+REOS_CONTROL_CENTER/Frontend/src/features/f06_saved_compare/
+
+Files:
+- README.md
+- SavedShell.tsx
+- SavedProperties.tsx
+- SavedProjects.tsx
+- SavedLocalities.tsx
+- SavedSearches.tsx
+- RecentViews.tsx
+- CompareShell.tsx
+- CompareProperties.tsx
+- CompareProjects.tsx
+- CompareLocalities.tsx
+- CompareTable.tsx
+- CompareCriteria.tsx
+- CompareSummary.tsx
+- CompareActions.tsx
+- ShareComparison.tsx
+- SavedEmptyState.tsx
+- CompareEmptyState.tsx
+- saved.types.ts
+- compare.types.ts
+
+F07 — MY HOMIO
+---------------
+Root:
+REOS_CONTROL_CENTER/Frontend/src/features/f07_my_homio/
+
+Files:
+- README.md
+- MyHomioShell.tsx
+- MyHomioDashboard.tsx
+- MyHomioProfile.tsx
+- MyHomioSaved.tsx
+- MyHomioCompare.tsx
+- MyHomioRecentSearches.tsx
+- MyHomioRecentViews.tsx
+- MyHomioEnquiries.tsx
+- MyHomioConversations.tsx
+- MyHomioVisits.tsx
+- MyHomioRecommendations.tsx
+- MyHomioBrokerageJourney.tsx
+- MyHomioDocuments.tsx
+- MyHomioNotifications.tsx
+- MyHomioSettings.tsx
+- my-homio.types.ts
+
+F08 — HOMIO AI
+--------------
+Root:
+REOS_CONTROL_CENTER/Frontend/src/features/f08_ai/
+
+Files:
+- README.md
+- AIWorkspace.tsx
+- AISearch.tsx
+- AINaturalLanguageInput.tsx
+- AISuggestionPanel.tsx
+- AIRecommendations.tsx
+- AIBudgetGuidance.tsx
+- AIPropertyComparison.tsx
+- AILocalityComparison.tsx
+- AIInvestmentAssistant.tsx
+- AIRentalAssistant.tsx
+- AIMarketAssistant.tsx
+- AIPropertySummary.tsx
+- AIConversationPreview.tsx
+- AIBrokerageHandoff.tsx
+- AIEmptyState.tsx
+- AIErrorState.tsx
+- ai.types.ts
+- ai.constants.ts
+
+F09 — ENQUIRY + VISIT
+---------------------
+Root:
+REOS_CONTROL_CENTER/Frontend/src/features/f09_enquiry_visit/
+
+Files:
+- README.md
+- EnquiryShell.tsx
+- PropertyEnquiryForm.tsx
+- ProjectEnquiryForm.tsx
+- GeneralEnquiryForm.tsx
+- EnquiryContactPreference.tsx
+- EnquiryQualification.tsx
+- EnquiryConfirmation.tsx
+- EnquiryStatus.tsx
+- EnquiryHistory.tsx
+- VisitRequestForm.tsx
+- VisitDateTimeSelector.tsx
+- VisitConfirmation.tsx
+- VisitStatus.tsx
+- VisitReschedule.tsx
+- VisitCancel.tsx
+- VisitFollowUp.tsx
+- enquiry.types.ts
+- visit.types.ts
+
+F10 — TRANSACTION
+-----------------
+Root:
+REOS_CONTROL_CENTER/Frontend/src/features/f10_transaction/
+
+Files:
+- README.md
+- TransactionShell.tsx
+- DealOverview.tsx
+- DealParties.tsx
+- DealProperty.tsx
+- OfferSummary.tsx
+- OfferStatus.tsx
+- NegotiationPanel.tsx
+- DocumentChecklist.tsx
+- TransactionMilestones.tsx
+- TransactionFinancialStatus.tsx
+- TransactionStatus.tsx
+- CommissionStatus.tsx
+- DealCompletion.tsx
+- transaction.types.ts
+
+F11 — PROFESSIONAL SAAS
+-----------------------
+Root:
+REOS_CONTROL_CENTER/Frontend/src/features/f11_professional/
+
+Files:
+- README.md
+- ProShell.tsx
+- ProDashboard.tsx
+- ProInventory.tsx
+- ProInventoryDetail.tsx
+- ProLeads.tsx
+- ProEnquiries.tsx
+- ProVisits.tsx
+- ProFollowUps.tsx
+- ProClients.tsx
+- ProProjects.tsx
+- ProDeals.tsx
+- ProDocuments.tsx
+- ProPerformance.tsx
+- ProWorkspace.tsx
+- pro.types.ts
+
+AUTHORIZED ROLES ONLY
+- HOMIO
+- HOMIO authorized brokerage operators
+- Builder
+- Owner / authorized inventory partner
+- Enterprise / white-label partner as permitted by architecture
+
+DO NOT BUILD
+- Broker Directory
+- Broker Comparison
+- Broker Bidding
+- Lead Auction
+- Competing Broker Marketplace
+
+F12 — GLOBALIZATION + MARKET ACTIVATION
+---------------------------------------
+Root:
+REOS_CONTROL_CENTER/Frontend/src/features/f12_globalization/
+
+Files:
+- README.md
+- MarketSelector.tsx
+- CountrySelector.tsx
+- CitySelector.tsx
+- LocalitySelector.tsx
+- CurrencySelector.tsx
+- UnitSelector.tsx
+- LanguageSelector.tsx
+- MarketStatus.tsx
+- MarketActivationBadge.tsx
+- MarketFeatureGate.tsx
+- MarketUnavailableState.tsx
+- MarketComingSoon.tsx
+- MarketAvailabilityNotice.tsx
+- market-activation.types.ts
+- market-activation.constants.ts
+- market-activation.utils.ts
+
+ACTIVATION MODEL
+PUNE:
+- ACTIVE
+- Inventory active
+- Search active
+- Enquiry active
+- Visit active
+- Brokerage active
+- Deal flow active
+- Operational services active as approved
+
+OTHER MARKETS:
+- BUILT
+- NOT OPERATIONALLY ACTIVE
+- No unnecessary live inventory operations
+- No unnecessary brokerage operations
+- No unnecessary service cost
+- Can be activated later without redesign
+
+CROSS-FEATURE CONSUMER SUPPORT STATES
+--------------------------------------
+These should be reusable UI components, not duplicated in every feature.
+
+Root:
+REOS_CONTROL_CENTER/Frontend/src/components/system/
+
+Files:
+- MarketAvailabilityState.tsx
+- ComingSoonState.tsx
+- FeatureLockedState.tsx
+- LoadingScreen.tsx
+- SkeletonGrid.tsx
+- EmptyResults.tsx
+- ErrorRetry.tsx
+- NoResults.tsx
+- VerificationBadge.tsx
+- InventorySourceBadge.tsx
+- RecommendationBadge.tsx
+- LastUpdated.tsx
+- StatusBadge.tsx
+- SaveButton.tsx
+- CompareButton.tsx
+- ShareButton.tsx
+- EnquiryButton.tsx
+- VisitButton.tsx
+
+NAVIGATION STRUCTURE — MISSING DEPTH
+-------------------------------------
+Root:
+REOS_CONTROL_CENTER/Frontend/src/components/navigation/
+
+Add:
+- GlobalMegaMenu.tsx
+- ExploreMenu.tsx
+- MarketsMenu.tsx
+- IntelligenceMenu.tsx
+- ServicesMenu.tsx
+- MyHomioMenu.tsx
+- ProfessionalMenu.tsx
+- GlobalMarketSwitcher.tsx
+- MobileMegaMenu.tsx
+
+SEARCH / DISCOVERY SUPPORT
+--------------------------
+Root:
+REOS_CONTROL_CENTER/Frontend/src/components/search/
+
+Add:
+- SearchOverlay.tsx
+- SearchAutocomplete.tsx
+- SearchSuggestionGroup.tsx
+- SearchRecentItem.tsx
+- SearchPopularItem.tsx
+- SearchLocationSuggestion.tsx
+- SearchProjectSuggestion.tsx
+- SearchPropertySuggestion.tsx
+- SearchFilterSummary.tsx
+- SearchActiveFilters.tsx
+
+CONTENT / INSIGHTS DEPTH
+-------------------------
+Current LP19 HOMIO Advice remains.
+
+Add feature root:
+REOS_CONTROL_CENTER/Frontend/src/features/content/
+
+Files:
+- AdviceIndex.tsx
+- AdviceCategory.tsx
+- AdviceArticle.tsx
+- AdviceTopicBar.tsx
+- MarketReportIndex.tsx
+- MarketReportDetail.tsx
+- LocalityReport.tsx
+- CityGuide.tsx
+- FinanceGuide.tsx
+- LegalGuide.tsx
+- InvestmentInsight.tsx
+- ProjectGuide.tsx
+- PropertyVideo.tsx
+- AIInsight.tsx
+
+POST PROPERTY DEPTH
+-------------------
+Current LP25 remains.
+
+Add:
+REOS_CONTROL_CENTER/Frontend/src/features/post_property/
+
+Files:
+- PostPropertyShell.tsx
+- PostPropertyType.tsx
+- PostPropertyLocation.tsx
+- PostPropertyOwnership.tsx
+- PostPropertyDetails.tsx
+- PostPropertyMedia.tsx
+- PostPropertyDocuments.tsx
+- PostPropertyPricing.tsx
+- PostPropertyAvailability.tsx
+- PostPropertyReview.tsx
+- PostPropertyVerification.tsx
+- PostPropertySubmit.tsx
+- PostPropertyStatus.tsx
+- post-property.types.ts
+
+F13 — PRODUCTION QUALITY SUPPORT
+--------------------------------
+Root:
+REOS_CONTROL_CENTER/Frontend/src/features/f13_production/
+
+Files:
+- README.md
+- ResponsiveAudit.tsx
+- AccessibilityAudit.tsx
+- SeoMetadata.ts
+- PerformanceConfig.ts
+- ImagePolicy.ts
+- ErrorBoundary.tsx
+- LoadingBoundary.tsx
+- EmptyStatePolicy.ts
+- AnalyticsEvents.ts
+- ConversionEvents.ts
+- ProductionGuards.ts
+- RuntimeChecks.ts
+
+REQUIRED ROUTE STRUCTURE TO PLAN FOR
+------------------------------------
+/search
+/property/[id]
+/project/[id]
+/locality/[slug]
+/market/[slug]
+/saved
+/compare
+/my
+/ai
+/enquiry
+/visit
+/deal
+/pro
+/post-property
+/advice
+/market-reports
+/tools
+
+IMPORTANT:
+Routes can be structurally created now even when the market is not operationally active.
+Market activation must decide whether real inventory / operations are available.
+
+PRIORITY ORDER
+--------------
+P0 — Highest
+1. F03 Search
+2. F04 Property
+3. F05 Project + Locality + Market
+4. GlobalMegaMenu / market-aware navigation
+5. Shared trust / availability / loading / empty states
+
+P1 — Next
+6. F06 Saved + Compare
+7. F07 My HOMIO
+8. F09 Enquiry + Visit
+9. Post Property depth
+10. Content / Advice depth
+
+P2 — Business expansion
+11. F08 HOMIO AI
+12. F10 Transaction
+13. F11 Professional SaaS
+14. F12 Globalization / Market Activation
+15. F13 Production Quality
+
+FINAL ARCHITECTURE FLOW
+-----------------------
+HOMIO Homepage
+  ↓
+Search
+  ↓
+Results
+  ↓
+Property / Project
+  ↓
+Locality / Market
+  ↓
+Save / Compare
+  ↓
+HOMIO AI
+  ↓
+Enquiry
+  ↓
+Visit
+  ↓
+HOMIO Brokerage
+  ↓
+Deal
+  ↓
+Commission
+
+MAGICBRICKS BENCHMARK RULE
+---------------------------
+Use Magicbricks for:
+- Search maturity
+- Discovery depth
+- Filter structure
+- Property/project browsing
+- Locality/city discovery
+- Compare/save patterns
+- Consumer tools
+- Advice/content navigation
+- Seller/property submission usability
+
+Do NOT copy:
+- Logo
+- Brand identity
+- Exact colors
+- Exact typography
+- Exact layout/DOM
+- Proprietary copy
+- Proprietary media
+- Proprietary listing data
+- Broker marketplace model
+
+HOMIO DIFFERENTIATION
+---------------------
+HOMIO remains:
+Consumer
+  → HOMIO Discovery
+  → HOMIO / Authorized Inventory
+  → HOMIO Lead
+  → HOMIO Visit
+  → HOMIO Deal
+  → HOMIO Commission
+
+The frontend must not become a multi-broker marketplace.
+
+NEXT IMPLEMENTATION ORDER
+--------------------------
+Tomorrow start only from:
+F03 Search
+  ↓
+F04 Property
+  ↓
+F05 Project + Locality + Market
+
+Do not rebuild LP01-LP30.
+Do not redesign the global architecture.
+Do not activate non-Pune markets.
+Do not create broker marketplace functionality.
+Do not make local workspace the source of truth.
+
+END OF HOMIO MISSING FRONTEND STRUCTURE
