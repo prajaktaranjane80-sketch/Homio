@@ -1,28 +1,33 @@
-=== 1. ACCOUNT AND LIVE HEAD ===
 Account: prajaktaranjane80-sketch
-Permission: ADMIN
-Baseline HEAD: bf420f9e01447f1708ce54a4496fbe9e7dd003ed
+Branch:  reos-development
+HEAD:    4e65e91661bebe8ca562f6c7b2c1eeedfd017e89
+Preparing files from the live GitHub branch...
+PUBLISH + READ-BACK PASS: REOS_CONTROL_CENTER/Frontend/scripts/auth-runtime.test.mjs
+Commit: a4b229ff41c62beb5375b6b4c4953ea8c6c3f7e6
+Blob:   657b718eccb18094d193a762ffa64552ca730645
+PUBLISH + READ-BACK PASS: REOS_CONTROL_CENTER/Frontend/package.json
+Commit: 986ab6568a6f0beb1529ec03fe1eae58938681dc
+Blob:   141ea0cf9ef0c5d9b900db7f78761c058433b0a2
+PUBLISH + READ-BACK PASS: REOS_CONTROL_CENTER/Frontend/src/features/authentication/AuthPanel.tsx
+Commit: 0dd8568e63f9901574b426b629eb2211c683afe6
+Blob:   5228d9c984ee2763fd6a6bb70e0395f150c498b1
+PUBLISH + READ-BACK PASS: REOS_CONTROL_CENTER/Frontend/AUTHENTICATION_SETUP.md
+Commit: f30fe531372d3e4ac89bbe07b17826477e4ca129
+Blob:   4ae21471c19d52a27eff6abce092fef323ff9d6c
 
-=== 2. READ CURRENT FILES ===
-
-=== 3. CREATE RUNTIME TEST FILE ===
-
-AUTHENTICATION PATCH: FAIL
-gh: Not Found (HTTP 404)
-Stop here. Do not retry blindly.
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if (Test-Path -LiteralPath $tempDir) {
->>     Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+AUTHENTICATION REMOTE PATCH: PASS
+All changed files were read back and verified from GitHub.
+The frontend-ci workflow is configured to run on frontend changes.
+Do not use the stale local npm result as proof of the remote branch's test status.
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> finally {
+>>     if (Test-Path -LiteralPath $tempDir) {
+>>         Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+>>     }
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Set-Location "D:\Homio\REOS_CONTROL_CENTER\Frontend"
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> npm run verify:auth
-npm error Missing script: "verify:auth"
-npm error
-npm error Did you mean this?
-npm error   npm run verify:f03 # run the "verify:f03" package script
-npm error
-npm error To see a list of scripts, run:
-npm error   npm run
-npm error A complete log of this run can be found in: C:\Users\Sandip RanjanePatil\AppData\Local\npm-cache\_logs\2026-10-15T06_04_59_083Z-debug-0.log
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+finally : The term 'finally' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if
+a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ finally {
++ ~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (finally:String) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : CommandNotFoundException
