@@ -84,11 +84,11 @@ export default function EnquiryStatus({
     snapshot.status === "submission_unavailable"
       ? styles.errorBanner
       : !isLocalPreview &&
-          [
-            "submitted",
-            "acknowledged",
-            "responded",
-          ].includes(snapshot.status)
+          (
+            snapshot.status === "submitted" ||
+            snapshot.status === "acknowledged" ||
+            snapshot.status === "responded"
+          )
         ? styles.successBanner
         : styles.notice;
 
