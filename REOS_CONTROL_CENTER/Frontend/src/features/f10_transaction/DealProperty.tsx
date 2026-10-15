@@ -1,11 +1,56 @@
+
 import type { TransactionProperty } from "./transaction.types";
 import styles from "./TransactionWorkspace.module.css";
+
+const LOCAL_URL_BASE = "https://homio.invalid";
+
+function resolveSafeImageUrl(
+  value?: string,
+): string | undefined {
+  if (
+    !value ||
+    value.trim() !== value ||
+    /[\u0000-\u001f\\]/.test(value) ||
+    value.startsWith("//")
+  ) {
+    return undefined;
+  }
+
+  try {
+    if (value.startsWith("/")) {
+      const parsed = new URL(value, LOCAL_URL_BASE);
+
+      if (parsed.origin !== LOCAL_URL_BASE) {
+        return undefined;
+      }
+
+      return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    }
+
+    const parsed = new URL(value);
+
+    if (
+      parsed.protocol !== "https:" ||
+      !parsed.hostname ||
+      parsed.username ||
+      parsed.password
+    ) {
+      return undefined;
+    }
+
+    return parsed.toString();
+  } catch {
+    return undefined;
+  }
+}
 
 type Props = Readonly<{
   property: TransactionProperty;
 }>;
 
 export default function DealProperty({ property }: Props) {
+  const imageUrl = resolveSafeImageUrl(property.imageUrl);
+
   const facts = [
     property.bedrooms !== undefined
       ? `${property.bedrooms} bedrooms`
@@ -14,12 +59,17 @@ export default function DealProperty({ property }: Props) {
       ? `${property.bathrooms} bathrooms`
       : undefined,
     property.areaValue !== undefined
-      ? `${property.areaValue.toLocaleString("en")} ${property.areaUnit || ""}`.trim()
+      ? `${property.areaValue.toLocaleString("en")} ${
+          property.areaUnit || ""
+        }`.trim()
       : undefined,
   ].filter((item): item is string => Boolean(item));
 
   return (
-    <section className={styles.panel} aria-labelledby="f10-property-title">
+    <section
+      className={styles.panel}
+      aria-labelledby="f10-property-title"
+    >
       <div className={styles.panelHeader}>
         <div>
           <p className={styles.eyebrow}>PROPERTY CONTEXT</p>
@@ -35,20 +85,23 @@ export default function DealProperty({ property }: Props) {
       <div className={styles.propertyCard}>
         <div
           className={`${styles.propertyImage} ${
-            property.imageUrl ? styles.propertyImageHasPhoto : ""
+            imageUrl ? styles.propertyImageHasPhoto : ""
           }`}
-          role={property.imageUrl ? "img" : undefined}
-          aria-label={property.imageUrl ? property.title : undefined}
+          role={imageUrl ? "img" : undefined}
+          aria-label={imageUrl ? property.title : undefined}
           style={
-            property.imageUrl
+            imageUrl
               ? {
-                  backgroundImage: `linear-gradient(180deg, transparent 40%, rgba(8, 17, 33, .58)), url("${property.imageUrl.replace(/"/g, "%22")}")`,
+                  backgroundImage: `linear-gradient(180deg, transparent 40%, rgba(8, 17, 33, .58)), url("${imageUrl}")`,
                 }
               : undefined
           }
         >
-          {!property.imageUrl ? (
-            <span className={styles.propertyImagePlaceholder} aria-hidden="true">
+          {!imageUrl ? (
+            <span
+              className={styles.propertyImagePlaceholder}
+              aria-hidden="true"
+            >
               <svg viewBox="0 0 48 48" fill="none">
                 <path
                   d="M7 22L24 8L41 22V40H29V29H19V40H7V22Z"
@@ -76,11 +129,16 @@ export default function DealProperty({ property }: Props) {
           </p>
 
           {property.displayPrice ? (
-            <p className={styles.propertyPrice}>{property.displayPrice}</p>
+            <p className={styles.propertyPrice}>
+              {property.displayPrice}
+            </p>
           ) : null}
 
           {facts.length > 0 ? (
-            <ul className={styles.propertyFacts} aria-label="Property details">
+            <ul
+              className={styles.propertyFacts}
+              aria-label="Property details"
+            >
               {facts.map((fact) => (
                 <li className={styles.factPill} key={fact}>
                   {fact}
