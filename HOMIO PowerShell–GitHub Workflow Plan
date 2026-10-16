@@ -10,7 +10,7 @@ Operating rules
 4. A write must be guarded: create a commit whose parent is the expected live head; recheck the head before moving the branch; never force-update the branch.
 5. After a write, independently read the remote commit and file/blob back. Record the commit URL, changed path, and verification evidence in REOS_CONTROL_CENTER/PS Output without claiming unverified PASS.
 6. One part at a time. Do not make unrelated edits, duplicate files/engines, or rerun unrelated tests without reason.
-7. AI_AGENT_ENTRYPOINT.py and ACRL final policy/continuity alignment are deferred until the end, per the owner's instruction.
+7. AI_AGENT_ENTRYPOINT.py is the canonical agent-facing workflow policy and has been restored/aligned. Final ACRL policy/continuity alignment remains deferred until operational fixes are stable. Supporting plans must not contradict the EntryPoint.
 Part 1 — Verify PowerShell GitHub authentication and permissions
 Purpose: Confirm the current PowerShell session can authenticate as the intended GitHub account and has access to the canonical repository.
 Actions:
@@ -94,7 +94,7 @@ Completion evidence: Every mandatory gate passes, required evidence is recorded,
 Part 10 — Final AI Agent EntryPoint and ACRL alignment (LAST)
 Purpose: Synchronize operating rules only after the real workflow and implementation status have stabilized.
 Actions:
-- Reconcile AI_AGENT_ENTRYPOINT.py with the approved direct PowerShell-to-GitHub API workflow; its current rules still describe PowerShell as verification-only.
+- Align final ACRL/T21 continuity and Git-policy details with the approved direct PowerShell-to-GitHub API workflow. AI_AGENT_ENTRYPOINT.py was restored and aligned in commit b1b0caaeaba9de5b0ca6fdc5481d6e849c8024db; do not describe it as verification-only.
 - Align ACRL/T21 continuity, Git-policy, recovery, checkpoint, and handoff details with the verified workflow without making ACRL a domain owner or second state authority.
 - Record final verified test evidence and current next task.
 Completion evidence: EntryPoint, ACRL, data/state.json, PS Output, GitHub branch, and CI evidence agree. This is deliberately the last part.

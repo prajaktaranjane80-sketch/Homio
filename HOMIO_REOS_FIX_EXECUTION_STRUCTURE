@@ -12,9 +12,9 @@
 3. Re-read current branch HEAD and relevant files before acting. Old chat notes and PowerShell output files are diagnostic evidence, not current source truth.
 4. Work one issue at a time: reproduce/inspect → establish root cause → make one bounded correction → run targeted verification → record PASS/FAIL with evidence.
 5. Do not claim PASS without a real result. Do not bypass, suppress, or relabel failures to obtain a green result.
-6. PowerShell is for read-only diagnosis and verification only. Do not use PowerShell to write, patch, reset, merge, or push code.
-7. Do not reset, force-pull, or merge a stale local checkout. Prefer canonical GitHub source and the agreed manual GitHub file-edit workflow.
-8. For each requested manual GitHub edit, provide the exact path, ADD/REPLACE operation, insertion anchor where applicable, and complete file contents. Avoid inferred or partial patches.
+6. PowerShell may perform guarded GitHub REST API writes against the canonical remote branch under AI_AGENT_ENTRYPOINT.py. Local worktree source writes and local Git mutation remain forbidden. Read live HEAD and exact targets before writes, fail closed on mismatch, use non-force updates, and verify commit parent plus exact remote content.
+7. Do not reset, force-pull, or merge a stale local checkout. Use guarded remote GitHub REST API writes by default; use manual GitHub UI saving only when the owner explicitly requests that fallback.
+8. For every remote edit, state exact path(s), ADD/REPLACE, scope and anchor where applicable. PowerShell blocks must be self-contained, use live remote state, avoid local worktree writes, stop on failed guards, and independently read back the commit and file. Do not require a separate workflow runner.
 9. Do not duplicate existing files or re-implement completed work without evidence.
 10. Keep HOMIO / REOS separate from the user's Imperium AI project.
 
