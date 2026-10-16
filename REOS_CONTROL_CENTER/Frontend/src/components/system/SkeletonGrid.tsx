@@ -1,8 +1,4 @@
-
-/* File: src/components/system/SkeletonGrid.tsx */
-import { Skeleton } from "@/components/ui/Skeleton";
-
-import styles from "./SharedSystem.module.css";
+import styles from "./SystemComponents.module.css";
 
 type Props = Readonly<{
   count?: number;
@@ -10,33 +6,29 @@ type Props = Readonly<{
   label?: string;
 }>;
 
-export default function SkeletonGrid({
+export function SkeletonGrid({
   count = 6,
   columns = 3,
   label = "Loading results",
 }: Props) {
-  const safeCount = Math.max(1, Math.min(Math.floor(count), 12));
+  const safeCount = Number.isFinite(count)
+    ? Math.max(1, Math.min(12, Math.floor(count)))
+    : 6;
 
   return (
     <div
-      className={styles.skeletonGrid}
+      className={styles.systemSkeletonGrid}
       style={{ "--skeleton-columns": columns } as React.CSSProperties}
       role="status"
       aria-label={label}
     >
       {Array.from({ length: safeCount }, (_, index) => (
-        <article className={styles.skeletonCard} key={index} aria-hidden="true">
-          <div className={`${styles.skeletonBlock} ${styles.skeletonMedia}`} />
-          <Skeleton height="13px" className={styles.skeletonBlock} />
-          <Skeleton
-            width="79%"
-            height="11px"
-            className={styles.skeletonBlock}
-          />
-          <div
-            className={`${styles.skeletonBlock} ${styles.skeletonLineShort}`}
-          />
-        </article>
+        <div className={styles.systemSkeletonCard} key={index}>
+          <span className={`${styles.systemSkeleton} ${styles.systemSkeletonShort}`} />
+          <span className={styles.systemSkeleton} style={{ "--skeleton-height": "96px" } as React.CSSProperties} />
+          <span className={`${styles.systemSkeleton} ${styles.systemSkeletonMedium}`} />
+          <span className={styles.systemSkeleton} />
+        </div>
       ))}
     </div>
   );
