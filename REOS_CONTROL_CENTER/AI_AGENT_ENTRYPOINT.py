@@ -319,6 +319,8 @@ DEVELOPMENT_WORKFLOW_RULES: tuple[str, ...] = (
     "When only a small verified change is required, the AI may still provide complete replacement content when the owner is safer using full-file replacement.",
     "After a guarded remote GitHub API write, independently verify the resulting branch, commit parent and exact changed file content before declaring PASS; apply the same checks if the owner explicitly chooses a manual UI fallback.",
     "Remote PowerShell writes are allowed only after canonical GitHub state is read and the live branch HEAD is captured.",
+    "For repair writes, T18 authorization, T20 VERIFIED patch evidence and T21 Git coordination are separate required boundaries.",
+    "Never treat T20 VERIFIED as a Git commit; report commit or push completion only after T21 verification evidence is available.",
 )
 
 
@@ -337,6 +339,8 @@ REMOTE_GIT_SYNCHRONIZATION_RULES: tuple[str, ...] = (
     "ACRL T18 remains the execution-authorization boundary where applicable.",
     "ACRL T20 remains the repair and patch-verification boundary where applicable.",
     "ACRL T21 remains the Git repository coordination boundary for ACRL-controlled Git transactions.",
+    "T20 VERIFIED provides candidate patch data only; T21 must revalidate the fingerprint, changed paths, baseline and final tree under T18 authorization.",
+    "If patch application or staging differs from the verified T20 result, T21 must verify rollback before reporting a recoverable failure; otherwise fail closed.",
     "ACRL T22 remains the immutable checkpoint boundary where required.",
     "ACRL T23 remains the authority for missing, stale or conflicting evidence resolution.",
     "ACRL T24 remains the authority for continuity and recovery snapshots.",
@@ -412,6 +416,7 @@ EXECUTION_WORKFLOW: tuple[str, ...] = (
     "6. Classify every requested file as ADD, REPLACE or NO CHANGE.",
     "7. Resolve architecture and dependency ownership before implementation.",
     "8. Apply applicable ACRL authorization and repair-verification boundaries.",
+    "8a. For repair writes, verify T18 authorization, T20 patch evidence, exact T21 paths, baseline and final-tree fingerprints before claiming a successful Git transaction.",
     "9. Prepare exact implementation instructions for the non-developer owner.",
     "10. Apply approved implementation changes via the guarded PowerShell GitHub REST API workflow; use the manual GitHub UI only if the owner explicitly requests that fallback.",
     "11. Independently verify the branch, commit parent and exact changed file content after the remote write.",
