@@ -1,3 +1,4 @@
+
 export interface HomioImagePolicy {
   loading: "eager" | "lazy";
   fetchPriority: "high" | "auto" | "low";
@@ -10,10 +11,16 @@ export const HOMIO_CARD_IMAGE_SIZES =
   "(max-width: 1024px) 50vw, " +
   "(max-width: 1440px) 33vw, 420px";
 
-export function getImagePolicy(options: {
-  aboveTheFold?: boolean;
-  isLargestContentfulPaintCandidate?: boolean;
-} = {}): HomioImagePolicy {
+const ALLOWED_REMOTE_IMAGE_HOSTS = new Set([
+  "images.unsplash.com",
+]);
+
+export function getImagePolicy(
+  options: {
+    aboveTheFold?: boolean;
+    isLargestContentfulPaintCandidate?: boolean;
+  } = {},
+): HomioImagePolicy {
   const critical = Boolean(
     options.aboveTheFold ||
       options.isLargestContentfulPaintCandidate,
@@ -29,23 +36,29 @@ export function getImagePolicy(options: {
   };
 }
 
-export function isAllowedImageSource(
-  source: string,
-): boolean {
+export function isAllowedImageSource(source: string): boolean {
   const value = source.trim();
 
-  if (!value) return false;
+  if (!value || value.startsWith("//")) return false;
+  if (/[\u0000-\u001f]/.test(value)) return false;
 
-  // Allow same-origin absolute paths, but not protocol-relative URLs.
-  if (value.startsWith("/") && !value.startsWith("//")) {
-    return true;
+  // Permit safe same-origin absolute paths only.
+  if (value.startsWith("/")) {
+    return (
+      !value.startsWith("/\\") &&
+      !value.split("/").includes("..")
+    );
   }
 
   try {
     const url = new URL(value);
+
     return (
-      url.protocol === "https:" ||
-      url.protocol === "http:"
+      url.protocol === "https:" &&
+      ALLOWED_REMOTE_IMAGE_HOSTS.has(url.hostname.toLowerCase()) &&
+      !url.username &&
+      !url.password &&
+      !url.port
     );
   } catch {
     return false;
