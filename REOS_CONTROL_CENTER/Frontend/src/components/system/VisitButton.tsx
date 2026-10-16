@@ -1,23 +1,22 @@
-
-/* File: src/components/system/VisitButton.tsx */
 import { Button } from "@/components/ui/Button";
 
 type Props = Readonly<{
-  onVisit: () => void;
+  onRequestVisit?: () => void;
   disabled?: boolean;
   label?: string;
 }>;
 
-export default function VisitButton({
-  onVisit,
+export function VisitButton({
+  onRequestVisit,
   disabled = false,
   label = "Request a visit",
 }: Props) {
   return (
     <Button
       type="button"
-      disabled={disabled}
-      onClick={onVisit}
+      variant="secondary"
+      disabled={disabled || !onRequestVisit}
+      onClick={onRequestVisit}
     >
       {label}
     </Button>
