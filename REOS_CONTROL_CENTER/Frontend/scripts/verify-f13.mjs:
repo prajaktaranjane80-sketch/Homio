@@ -1,0 +1,55 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+
+const root = process.cwd();
+
+const requiredFiles = [
+  "src/features/f13_production/README.md",
+  "src/features/f13_production/ResponsiveAudit.tsx",
+  "src/features/f13_production/AccessibilityAudit.tsx",
+  "src/features/f13_production/SeoMetadata.ts",
+  "src/features/f13_production/PerformanceConfig.ts",
+  "src/features/f13_production/ImagePolicy.ts",
+  "src/features/f13_production/ErrorBoundary.tsx",
+  "src/features/f13_production/LoadingBoundary.tsx",
+  "src/features/f13_production/EmptyStatePolicy.ts",
+  "src/features/f13_production/AnalyticsEvents.ts",
+  "src/features/f13_production/ConversionEvents.ts",
+  "src/features/f13_production/ProductionGuards.ts",
+  "src/features/f13_production/RuntimeChecks.ts",
+];
+
+for (const relativePath of requiredFiles) {
+  assert.ok(
+    fs.existsSync(path.join(root, relativePath)),
+    `F13 required file is missing: ${relativePath}`,
+  );
+}
+
+const analytics = fs.readFileSync(
+  path.join(
+    root,
+    "src/features/f13_production/AnalyticsEvents.ts",
+  ),
+  "utf8",
+);
+
+assert.match(analytics, /password/);
+assert.match(analytics, /contact_details/);
+assert.match(analytics, /Analytics must never interrupt/);
+
+const guards = fs.readFileSync(
+  path.join(
+    root,
+    "src/features/f13_production/ProductionGuards.ts",
+  ),
+  "utf8",
+);
+
+assert.match(guards, /PUBLIC_APP_URL_NOT_HTTPS/);
+assert.match(guards, /AUTH_SECRET_MISSING/);
+
+console.log(
+  `F13 verification passed: ${requiredFiles.length} required files and production guardrails.`,
+);
