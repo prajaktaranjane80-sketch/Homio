@@ -1,28 +1,22 @@
-
-/* File: src/components/system/SaveButton.tsx */
 import { Button } from "@/components/ui/Button";
 
 type Props = Readonly<{
   saved: boolean;
-  onSave: () => void;
+  onSave?: () => void;
   disabled?: boolean;
+  label?: string;
 }>;
 
-export default function SaveButton({
-  saved,
-  onSave,
-  disabled = false,
-}: Props) {
+export function SaveButton({ saved, onSave, disabled = false, label }: Props) {
   return (
     <Button
       type="button"
-      variant={saved ? "secondary" : "ghost"}
-      size="small"
+      variant={saved ? "secondary" : "primary"}
       aria-pressed={saved}
-      disabled={disabled}
+      disabled={disabled || !onSave}
       onClick={onSave}
     >
-      {saved ? "Saved" : "Save"}
+      {label ?? (saved ? "Saved" : "Save")}
     </Button>
   );
 }
