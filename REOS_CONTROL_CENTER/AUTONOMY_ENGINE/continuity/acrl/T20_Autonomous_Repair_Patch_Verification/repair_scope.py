@@ -10,7 +10,17 @@ from .repair_policy import validate_policy
 PROTECTED_PATHS = {
     "data/state.json",
     "reos_control_center/data/state.json",
+    ".gitignore",
+    ".gitmodules",
 }
+
+PROTECTED_ROOTS = (
+    ".git",
+    "architecture",
+    "reos_control_center/architecture",
+    "autonomy_engine/continuity/acrl/t18_safe_execution_authorization_guard",
+    "reos_control_center/autonomy_engine/continuity/acrl/t18_safe_execution_authorization_guard",
+)
 
 
 def normalize_path(value: str) -> str:
@@ -59,6 +69,18 @@ def is_safe_relative_path(value: str) -> bool:
     return True
 
 
+def _is_protected_path(path: str) -> bool:
+    key = path.casefold()
+
+    if key in PROTECTED_PATHS:
+        return True
+
+    return any(
+        key == root or key.startswith(root + "/")
+        for root in PROTECTED_ROOTS
+    )
+
+
 def patch_paths(patch: str) -> tuple[str, ...]:
     paths: set[str] = set()
 
@@ -89,7 +111,7 @@ def validate_scope(
     }
 
     forbidden = {
-        normalize_path(path)
+        normalize_path(path).casefold()
         for path in request.forbidden_paths
     }
 
@@ -108,12 +130,12 @@ def validate_scope(
                 f"Unsafe repair path: {path}"
             )
 
-        if path.casefold() in PROTECTED_PATHS:
+        if _is_protected_path(path):
             raise ValueError(
                 f"Protected path cannot be repaired: {path}"
             )
 
-        if path in forbidden:
+        if path.casefold() in forbidden:
             raise ValueError(
                 f"Forbidden repair path: {path}"
             )
