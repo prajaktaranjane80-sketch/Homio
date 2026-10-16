@@ -5,6 +5,9 @@ import subprocess
 from pathlib import Path
 
 
+_TRANSIENT_LOCK = ".reos_t21_transaction.lock"
+
+
 class GitRepositoryError(RuntimeError):
     pass
 
@@ -83,10 +86,29 @@ class GitRepository:
         ).stdout.strip()
 
     def status_porcelain(self) -> str:
-        return self.run(
+        output = self.run(
             "status",
             "--porcelain=v1",
+            "--untracked-files=all",
+            "--no-renames",
         ).stdout
+
+        retained: list[str] = []
+
+        for line in output.splitlines(keepends=True):
+            plain = line.rstrip("\r\n")
+
+            # Ignore only the exact untracked T21 lock artifact.
+            # If it becomes tracked or modified, retain the status.
+            if (
+                plain[:2] == "??"
+                and plain[3:].strip('"') == _TRANSIENT_LOCK
+            ):
+                continue
+
+            retained.append(line)
+
+        return "".join(retained)
 
     def diff_cached(self) -> str:
         return self.run(
@@ -97,11 +119,7 @@ class GitRepository:
         ).stdout
 
     def changed_files(self) -> tuple[str, ...]:
-        output = self.run(
-            "status",
-            "--porcelain=v1",
-        ).stdout
-
+        output = self.status_porcelain()
         paths: set[str] = set()
 
         for line in output.splitlines():
@@ -120,14 +138,10 @@ class GitRepository:
                 value.replace("\\", "/")
             )
 
-        return tuple(
-            sorted(paths)
-        )
+        return tuple(sorted(paths))
 
     def remote_names(self) -> tuple[str, ...]:
-        output = self.run(
-            "remote",
-        ).stdout
+        output = self.run("remote").stdout
 
         return tuple(
             sorted(
