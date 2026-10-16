@@ -1,3 +1,4 @@
+
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -8,11 +9,9 @@ function read(relativePath) {
   const absolutePath = path.join(root, relativePath);
 
   assert.ok(
-  authTests.includes('"/pro"') &&
-    authTests.includes("for (const pathname of approvedProPaths)") &&
-    authTests.includes("auth.safeReturnTo(pathname)"),
-  "Auth runtime tests must cover approved F11 return paths",
-);
+    fs.existsSync(absolutePath),
+    `F11 required file is missing: ${relativePath}`,
+  );
 
   return fs.readFileSync(absolutePath, "utf8");
 }
@@ -103,14 +102,19 @@ assert.doesNotMatch(
 );
 
 const styles = read(`${featureRoot}/ProWorkspace.module.css`);
+
 const declaredClasses = new Set(
   [...styles.matchAll(/\.([A-Za-z_][A-Za-z0-9_-]*)/g)].map(
     (match) => match[1],
   ),
 );
 
-for (const entry of featureSources.filter((item) => item.path.endsWith(".tsx"))) {
-  for (const match of entry.source.matchAll(/styles\.([A-Za-z_][A-Za-z0-9_]*)/g)) {
+for (const entry of featureSources.filter((item) =>
+  item.path.endsWith(".tsx")
+)) {
+  for (const match of entry.source.matchAll(
+    /styles\.([A-Za-z_][A-Za-z0-9_]*)/g
+  )) {
     assert.ok(
       declaredClasses.has(match[1]),
       `${entry.path} references missing CSS class: ${match[1]}`,
@@ -142,8 +146,10 @@ assert.match(
 const authTests = read("scripts/auth-runtime.test.mjs");
 
 assert.ok(
-  authTests.includes('auth.safeReturnTo("/pro")'),
-  "Auth runtime tests must cover the F11 return path",
+  authTests.includes('"/pro"') &&
+    authTests.includes("for (const pathname of approvedProPaths)") &&
+    authTests.includes("auth.safeReturnTo(pathname)"),
+  "Auth runtime tests must cover approved F11 return paths",
 );
 
 assert.ok(
