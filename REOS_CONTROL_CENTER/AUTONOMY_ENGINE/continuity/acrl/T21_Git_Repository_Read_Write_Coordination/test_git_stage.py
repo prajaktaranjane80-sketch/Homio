@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import subprocess
 
+from .git_models import GitPolicy
 from .git_repository import GitRepository
 from .git_stage import (
     stage_exact_paths,
     staged_paths,
 )
-from .git_models import GitPolicy
 
 
 def init_repo(path):
@@ -39,15 +39,12 @@ def test_exact_staging(tmp_path):
         "a\n",
         encoding="utf-8",
     )
-
     (tmp_path / "b.txt").write_text(
         "b\n",
         encoding="utf-8",
     )
 
-    repository = GitRepository(
-        tmp_path
-    )
+    repository = GitRepository(tmp_path)
 
     stage_exact_paths(
         repository,
@@ -55,6 +52,7 @@ def test_exact_staging(tmp_path):
         GitPolicy(),
     )
 
-    assert staged_paths(
-        repository
-    ) == ("a.txt",)
+    assert staged_paths(repository) == ("a.txt",)
+
+    # Exact staging must leave b.txt unstaged.
+    assert repository.status_porcelain().strip() == "A  b.txt"
