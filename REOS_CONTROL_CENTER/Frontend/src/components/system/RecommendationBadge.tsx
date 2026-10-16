@@ -1,26 +1,23 @@
-
-/* File: src/components/system/RecommendationBadge.tsx */
-import styles from "./SharedSystem.module.css";
+import styles from "./SystemComponents.module.css";
 
 type Props = Readonly<{
   label?: string;
-  basis?: string;
+  reason?: string;
+  basisVerified: boolean;
 }>;
 
-export default function RecommendationBadge({
-  label = "Suggested",
-  basis,
+export function RecommendationBadge({
+  label = "Recommended",
+  reason,
+  basisVerified,
 }: Props) {
   return (
     <span
-      className={styles.recommendationBadge}
-      title={basis}
-      aria-label={
-        basis ? `${label}. Basis: ${basis}` : `${label}. Basis not specified`
-      }
+      className={`${styles.systemBadge} ${basisVerified ? styles.systemBadgeInfo : styles.systemBadgeWarning}`}
+      title={reason || "Recommendation basis not supplied"}
     >
-      <span aria-hidden="true">✦</span>
-      {label}
+      <span className={styles.systemDot} aria-hidden="true" />
+      {label}{basisVerified ? "" : " · Basis not verified"}
     </span>
   );
 }
