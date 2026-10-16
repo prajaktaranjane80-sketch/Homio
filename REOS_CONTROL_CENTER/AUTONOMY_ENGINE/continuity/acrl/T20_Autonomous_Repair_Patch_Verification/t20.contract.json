@@ -49,6 +49,7 @@
     "state.json mutation",
     "controller state mutation",
     "architecture mutation",
+    "T18 authorization source mutation",
     "authority promotion",
     "self approval",
     "scope expansion",
@@ -65,8 +66,8 @@
     "fingerprint_rule": "SHA-256 over the exact UTF-8 candidate_patch bytes must match RepairResult.patch_fingerprint and the T21 request repair_fingerprint.",
     "baseline_rule": "T21 must verify baseline_fingerprint against the live source tree before applying a patch.",
     "final_tree_rule": "T21 must verify final_tree_fingerprint after applying the exact candidate patch.",
-    "path_rule": "Patch paths, RepairResult.changed_paths, and T21 authorized changed_paths must match exactly.",
-    "authority_rule": "T20 verifies in an isolated workspace and does not authorize Git writes, mutate the main repository, or publish to GitHub."
+    "path_rule": "Patch paths, RepairResult.changed_paths and T21 authorized changed_paths must match exactly.",
+    "authority_rule": "T18 authorizes; T20 verifies in an isolated workspace and carries candidate patch data only when VERIFIED. T20 does not authorize Git writes, mutate the main repository, or publish to GitHub."
   },
   "deep_audit": {
     "01_purpose": "Bounded authorized repair and patch verification.",
