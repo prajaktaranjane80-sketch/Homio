@@ -10,10 +10,18 @@ import UnitSelector from "./UnitSelector";
 import LanguageSelector from "./LanguageSelector";
 import MarketStatus from "./MarketStatus";
 
-import { DEFAULT_MARKET_ID } from "./market-activation.constants";
+import {
+  DEFAULT_MARKET_ID,
+  MARKET_DEFINITIONS,
+} from "./market-activation.constants";
+
 import { getMarketById } from "./market-activation.utils";
 
-import type { AreaUnit, CurrencyCode, MarketId } from "./market-activation.types";
+import type {
+  AreaUnit,
+  CurrencyCode,
+  MarketId,
+} from "./market-activation.types";
 
 import styles from "./MarketActivationWorkspace.module.css";
 
@@ -22,6 +30,7 @@ export default function MarketActivationWorkspace() {
   const [currency, setCurrency] = useState<CurrencyCode>("INR");
   const [areaUnit, setAreaUnit] = useState<AreaUnit>("sqft");
   const [language, setLanguage] = useState("English");
+
   const market = getMarketById(marketId);
 
   function selectMarket(nextMarketId: MarketId | "") {
@@ -53,16 +62,19 @@ export default function MarketActivationWorkspace() {
           <div className={styles.marketPanel}>
             <span className={styles.panelEyebrow}>01 / MARKET</span>
             <h2 className={styles.panelTitle}>Choose a market</h2>
+
             <div className={styles.fieldGrid}>
               <CountrySelector
                 value={market?.countryCode ?? ""}
-                onChange={(code) => {
-                  const first = (awaitlessMarkets()).find(
-                    (item) => item.countryCode === code,
+                onChange={(countryCode) => {
+                  const firstMarket = MARKET_DEFINITIONS.find(
+                    (item) => item.countryCode === countryCode,
                   );
-                  if (first) selectMarket(first.id);
+
+                  if (firstMarket) selectMarket(firstMarket.id);
                 }}
               />
+
               <CitySelector
                 countryCode={market?.countryCode ?? ""}
                 value={marketId}
@@ -116,15 +128,4 @@ export default function MarketActivationWorkspace() {
       </div>
     </section>
   );
-}
-
-function awaitlessMarkets() {
-  return [
-    { id: "pune-in", countryCode: "IN" },
-    { id: "dubai-ae", countryCode: "AE" },
-    { id: "singapore-sg", countryCode: "SG" },
-    { id: "tokyo-jp", countryCode: "JP" },
-    { id: "london-gb", countryCode: "GB" },
-    { id: "new-york-us", countryCode: "US" },
-  ] as const;
 }
