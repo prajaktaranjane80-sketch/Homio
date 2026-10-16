@@ -1,37 +1,22 @@
-
-/* File: src/components/system/NoResults.tsx */
-import type { ReactNode } from "react";
-
-import { EmptyState } from "@/components/ui/EmptyState";
+import { EmptyResults } from "./EmptyResults";
 
 type Props = Readonly<{
-  query?: string;
+  searchTerm?: string;
+  title?: string;
   description?: string;
-  onClear?: () => void;
+  action?: React.ReactNode;
 }>;
 
-export default function NoResults({
-  query,
+export function NoResults({
+  searchTerm,
+  title = "No matching results",
   description,
-  onClear,
+  action,
 }: Props) {
-  const detail =
-    description ??
-    (query?.trim()
-      ? `No matching results were returned for “${query.trim()}”.`
-      : "No matching results were returned. Try changing your criteria.");
+  const detail = description ??
+    (searchTerm?.trim()
+      ? `No results were returned for “${searchTerm.trim()}”. Try a broader search or remove a filter.`
+      : "Try changing your search criteria or clearing selected filters.");
 
-  const action: ReactNode = onClear ? (
-    <button type="button" onClick={onClear}>
-      Clear filters
-    </button>
-  ) : null;
-
-  return (
-    <EmptyState
-      title="Nothing matches this search"
-      description={detail}
-      action={action}
-    />
-  );
+  return <EmptyResults title={title} description={detail} action={action} />;
 }
