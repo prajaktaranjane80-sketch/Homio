@@ -1,0 +1,148 @@
+F12 — GLOBALIZATION + MARKET ACTIVATION
+---------------------------------------
+Root:
+REOS_CONTROL_CENTER/Frontend/src/features/f12_globalization/
+
+Files:
+- README.md
+- MarketSelector.tsx
+- CountrySelector.tsx
+- CitySelector.tsx
+- LocalitySelector.tsx
+- CurrencySelector.tsx
+- UnitSelector.tsx
+- LanguageSelector.tsx
+- MarketStatus.tsx
+- MarketActivationBadge.tsx
+- MarketFeatureGate.tsx
+- MarketUnavailableState.tsx
+- MarketComingSoon.tsx
+- MarketAvailabilityNotice.tsx
+- market-activation.types.ts
+- market-activation.constants.ts
+- market-activation.utils.ts
+
+ACTIVATION MODEL
+PUNE:
+- ACTIVE
+- Inventory active
+- Search active
+- Enquiry active
+- Visit active
+- Brokerage active
+- Deal flow active
+- Operational services active as approved
+
+OTHER MARKETS:
+- BUILT
+- NOT OPERATIONALLY ACTIVE
+- No unnecessary live inventory operations
+- No unnecessary brokerage operations
+- No unnecessary service cost
+- Can be activated later without redesign
+
+CROSS-FEATURE CONSUMER SUPPORT STATES
+--------------------------------------
+These should be reusable UI components, not duplicated in every feature.
+
+Root:
+REOS_CONTROL_CENTER/Frontend/src/components/system/
+
+Files:
+- MarketAvailabilityState.tsx
+- ComingSoonState.tsx
+- FeatureLockedState.tsx
+- LoadingScreen.tsx
+- SkeletonGrid.tsx
+- EmptyResults.tsx
+- ErrorRetry.tsx
+- NoResults.tsx
+- VerificationBadge.tsx
+- InventorySourceBadge.tsx
+- RecommendationBadge.tsx
+- LastUpdated.tsx
+- StatusBadge.tsx
+- SaveButton.tsx
+- CompareButton.tsx
+- ShareButton.tsx
+- EnquiryButton.tsx
+- VisitButton.tsx
+
+NAVIGATION STRUCTURE — MISSING DEPTH
+-------------------------------------
+Root:
+REOS_CONTROL_CENTER/Frontend/src/components/navigation/
+
+Add:
+- GlobalMegaMenu.tsx
+- ExploreMenu.tsx
+- MarketsMenu.tsx
+- IntelligenceMenu.tsx
+- ServicesMenu.tsx
+- MyHomioMenu.tsx
+- ProfessionalMenu.tsx
+- GlobalMarketSwitcher.tsx
+- MobileMegaMenu.tsx
+
+SEARCH / DISCOVERY SUPPORT
+--------------------------
+Root:
+REOS_CONTROL_CENTER/Frontend/src/components/search/
+
+Add:
+- SearchOverlay.tsx
+- SearchAutocomplete.tsx
+- SearchSuggestionGroup.tsx
+- SearchRecentItem.tsx
+- SearchPopularItem.tsx
+- SearchLocationSuggestion.tsx
+- SearchProjectSuggestion.tsx
+- SearchPropertySuggestion.tsx
+- SearchFilterSummary.tsx
+- SearchActiveFilters.tsx
+
+CONTENT / INSIGHTS DEPTH
+-------------------------
+Current LP19 HOMIO Advice remains.
+
+Add feature root:
+REOS_CONTROL_CENTER/Frontend/src/features/content/
+
+Files:
+- AdviceIndex.tsx
+- AdviceCategory.tsx
+- AdviceArticle.tsx
+- AdviceTopicBar.tsx
+- MarketReportIndex.tsx
+- MarketReportDetail.tsx
+- LocalityReport.tsx
+- CityGuide.tsx
+- FinanceGuide.tsx
+- LegalGuide.tsx
+- InvestmentInsight.tsx
+- ProjectGuide.tsx
+- PropertyVideo.tsx
+- AIInsight.tsx
+
+POST PROPERTY DEPTH
+-------------------
+Current LP25 remains.
+
+Add:
+REOS_CONTROL_CENTER/Frontend/src/features/post_property/
+
+Files:
+- PostPropertyShell.tsx
+- PostPropertyType.tsx
+- PostPropertyLocation.tsx
+- PostPropertyOwnership.tsx
+- PostPropertyDetails.tsx
+- PostPropertyMedia.tsx
+- PostPropertyDocuments.tsx
+- PostPropertyPricing.tsx
+- PostPropertyAvailability.tsx
+- PostPropertyReview.tsx
+- PostPropertyVerification.tsx
+- PostPropertySubmit.tsx
+- PostPropertyStatus.tsx
+- post-property.types.ts
