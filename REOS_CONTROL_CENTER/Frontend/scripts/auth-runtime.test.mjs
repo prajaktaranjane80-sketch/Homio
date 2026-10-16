@@ -92,9 +92,37 @@ test("state comparison handles equal, unequal, and different-length values", () 
 });
 
 
+
 test("return target accepts approved paths and rejects unsafe redirects", () => {
   assert.equal(auth.safeReturnTo("/"), "/");
   assert.equal(auth.safeReturnTo("/my"), "/my");
+
+  const approvedProPaths = [
+    "/pro",
+    "/pro/inventory",
+    "/pro/leads",
+    "/pro/enquiries",
+    "/pro/visits",
+    "/pro/follow-ups",
+    "/pro/clients",
+    "/pro/projects",
+    "/pro/deals",
+    "/pro/documents",
+    "/pro/performance",
+  ];
+
+  for (const pathname of approvedProPaths) {
+    assert.equal(auth.safeReturnTo(pathname), pathname);
+  }
+
+  assert.equal(
+    auth.safeReturnTo("/pro/inventory/inv-123"),
+    "/pro/inventory/inv-123",
+  );
+  assert.equal(
+    auth.safeReturnTo("/pro/inventory/inv_123"),
+    "/pro/inventory/inv_123",
+  );
 
   assert.equal(
     auth.safeReturnTo("/transaction/tx-123"),
@@ -107,6 +135,19 @@ test("return target accepts approved paths and rejects unsafe redirects", () => 
 
   assert.equal(auth.safeReturnTo("https://attacker.example"), "/my");
   assert.equal(auth.safeReturnTo("//attacker.example"), "/my");
+  assert.equal(auth.safeReturnTo("/pro/../my"), "/my");
+  assert.equal(auth.safeReturnTo("/pro/inventory/"), "/my");
+  assert.equal(auth.safeReturnTo("/pro/inventory/a/b"), "/my");
+  assert.equal(auth.safeReturnTo("/pro/inventory/%2F%2Fattacker"), "/my");
+  assert.equal(
+    auth.safeReturnTo("/pro/inventory/id?next=//attacker.example"),
+    "/my",
+  );
+  assert.equal(
+    auth.safeReturnTo("/pro/inventory/id#section"),
+    "/my",
+  );
+
   assert.equal(auth.safeReturnTo("/transaction/"), "/my");
   assert.equal(auth.safeReturnTo("/transaction/a/b"), "/my");
   assert.equal(
@@ -117,6 +158,7 @@ test("return target accepts approved paths and rejects unsafe redirects", () => 
   assert.equal(auth.safeReturnTo("/transaction/id\\..\\.."), "/my");
   assert.equal(auth.safeReturnTo(undefined), "/my");
 });
+
 
 
 
