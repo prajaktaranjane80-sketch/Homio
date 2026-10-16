@@ -27,8 +27,7 @@ export function createSeoMetadata(
   const description =
     input.description?.trim() || HOMIO_DEFAULT_DESCRIPTION;
   const path = normalizePath(input.path);
-  const image =
-    input.image?.trim() || "/images/homio-social-card.png";
+  const image = input.image?.trim();
 
   return {
     title,
@@ -45,18 +44,22 @@ export function createSeoMetadata(
       title,
       description,
       url: path,
-      images: [
-        {
-          url: image,
-          alt: `${title} — HOMIO`,
-        },
-      ],
+      ...(image
+        ? {
+            images: [
+              {
+                url: image,
+                alt: `${title} — HOMIO`,
+              },
+            ],
+          }
+        : {}),
     },
     twitter: {
-      card: "summary_large_image",
+      card: image ? "summary_large_image" : "summary",
       title,
       description,
-      images: [image],
+      ...(image ? { images: [image] } : {}),
     },
   };
 }
