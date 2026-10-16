@@ -1,0 +1,56 @@
+
+.overlay {
+  position: relative;
+  z-index: 20;
+  width: min(100%, 920px);
+  margin-inline: auto;
+  overflow: hidden;
+  border: 1px solid #dce5ed;
+  border-radius: 23px;
+  background: #ffffff;
+  color: #14283d;
+  box-shadow:
+    0 28px 80px rgb(13 34 53 / 15%),
+    0 4px 12px rgb(13 34 53 / 6%);
+}
+
+.overlayHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: clamp(20px, 4vw, 34px);
+  border-bottom: 1px solid #e6ecf2;
+  background:
+    radial-gradient(circle at 100% 0%, rgb(218 190 142 / 13%), transparent 38%),
+    linear-gradient(130deg, #10263b, #19384f);
+  color: #ffffff;
+}
+
+.overlayEyebrow {
+  color: #dec28f;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.16em;
+}
+
+.overlayTitle {
+  margin: 8px 0 0;
+  font-size: clamp(21px, 3vw, 30px);
+  font-weight: 680;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+
+.overlayDescription {
+  max-width: 540px;
+  margin: 10px 0 0;
+  color: rgb(255 255 255 / 70%);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.closeButton {
+  display: grid;
+  width: 40px;
+  height: 40
