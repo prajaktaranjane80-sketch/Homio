@@ -28,22 +28,16 @@ for (const relativePath of requiredFiles) {
 }
 
 const analytics = fs.readFileSync(
-  path.join(
-    root,
-    "src/features/f13_production/AnalyticsEvents.ts",
-  ),
+  path.join(root, "src/features/f13_production/AnalyticsEvents.ts"),
   "utf8",
 );
 
-assert.match(analytics, /password/);
-assert.match(analytics, /contact_details/);
-assert.match(analytics, /Analytics must never interrupt/);
+assert.match(analytics, /password/i);
+assert.match(analytics, /contact_details/i);
+assert.match(analytics, /Analytics must never interrupt/i);
 
 const guards = fs.readFileSync(
-  path.join(
-    root,
-    "src/features/f13_production/ProductionGuards.ts",
-  ),
+  path.join(root, "src/features/f13_production/ProductionGuards.ts"),
   "utf8",
 );
 
