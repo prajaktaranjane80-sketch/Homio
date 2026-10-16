@@ -1,25 +1,20 @@
-
-/* File: src/components/system/ShareButton.tsx */
 import { Button } from "@/components/ui/Button";
 
 type Props = Readonly<{
-  onShare: () => void;
+  onShare?: () => void;
   disabled?: boolean;
+  label?: string;
 }>;
 
-export default function ShareButton({
-  onShare,
-  disabled = false,
-}: Props) {
+export function ShareButton({ onShare, disabled = false, label = "Share" }: Props) {
   return (
     <Button
       type="button"
-      variant="ghost"
-      size="small"
-      disabled={disabled}
+      variant="secondary"
+      disabled={disabled || !onShare}
       onClick={onShare}
     >
-      Share
+      {label}
     </Button>
   );
 }
