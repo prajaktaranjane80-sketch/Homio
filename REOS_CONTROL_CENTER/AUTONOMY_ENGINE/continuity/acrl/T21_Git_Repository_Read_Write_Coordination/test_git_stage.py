@@ -54,5 +54,13 @@ def test_exact_staging(tmp_path):
 
     assert staged_paths(repository) == ("a.txt",)
 
-    # Exact staging must leave b.txt unstaged.
-    assert repository.status_porcelain().strip() == "A  b.txt"
+    status_lines = repository.status_porcelain().splitlines()
+
+    assert any(
+        line.startswith("A ") and line.endswith("a.txt")
+        for line in status_lines
+    )
+    assert any(
+        line.startswith("?? ") and line.endswith("b.txt")
+        for line in status_lines
+    )
