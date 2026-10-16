@@ -152,6 +152,10 @@ class RepairResult:
     verification: PatchVerification | None
     evidence_fingerprint: str
 
+    # Patch content is handed to T21 only for a VERIFIED result.
+    # All non-verified results retain the safe empty default.
+    candidate_patch: str = ""
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "schema_version": self.schema_version,
@@ -171,4 +175,5 @@ class RepairResult:
                 else None
             ),
             "evidence_fingerprint": self.evidence_fingerprint,
+            "candidate_patch": self.candidate_patch,
         }
