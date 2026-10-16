@@ -1,7 +1,10 @@
+
 from __future__ import annotations
 
 import subprocess
 from pathlib import Path
+
+import pytest
 
 from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.authorization_models import (
     ExecutionAuthorization,
@@ -26,12 +29,17 @@ from AUTONOMY_ENGINE.continuity.acrl.T20_Autonomous_Repair_Patch_Verification.re
 
 from .git_models import (
     GitOperation,
+    GitPolicy,
     GitTransactionRequest,
 )
+from .git_policy import validate_policy
 from .git_lock import GitTransactionLock
 from .git_read import GitReader
 from .git_transaction import execute_git_transaction
 from .git_stage import staged_paths
+from AUTONOMY_ENGINE.continuity.acrl.T21_Git_Repository_Read_Write_Coordination import (
+    git_transaction as git_transaction_module,
+)
 
 
 PATCH = (
@@ -108,6 +116,8 @@ def make_request(
     operation: GitOperation,
     repair_fingerprint: str = "a" * 64,
     transaction_id: str = "tx-001",
+    push: bool = False,
+    remote_name: str | None = None,
 ) -> GitTransactionRequest:
     snapshot = GitReader(path).snapshot()
 
@@ -121,6 +131,8 @@ def make_request(
         repair_fingerprint=repair_fingerprint,
         changed_paths=("file.txt",),
         commit_message="test: verified repair",
+        remote_name=remote_name,
+        push=push,
         authorization_fingerprint="b" * 64,
         authorization_nonce="nonce-001",
     )
@@ -130,7 +142,6 @@ def make_verified_repair(path: Path) -> RepairResult:
     baseline = tree_fingerprint(path)
     file = path / "file.txt"
 
-    # Compute expected patched tree without changing the Git baseline.
     file.write_text("two\n", encoding="utf-8")
     final_tree = tree_fingerprint(path)
     file.write_text("one\n", encoding="utf-8")
@@ -181,11 +192,7 @@ def test_dirty_tree_is_blocked(tmp_path: Path):
         encoding="utf-8",
     )
 
-    request = make_request(
-        tmp_path,
-        GitOperation.COMMIT,
-    )
-
+    request = make_request(tmp_path, GitOperation.COMMIT)
     result = execute_git_transaction(
         request=request,
         authorization=None,
@@ -201,11 +208,7 @@ def test_clean_repair_write_requires_t20_verified_result(
     init_repo(tmp_path)
     initial_commit(tmp_path)
 
-    request = make_request(
-        tmp_path,
-        GitOperation.COMMIT,
-    )
-
+    request = make_request(tmp_path, GitOperation.COMMIT)
     result = execute_git_transaction(
         request=request,
         authorization=make_authorization(),
@@ -214,9 +217,10 @@ def test_clean_repair_write_requires_t20_verified_result(
 
     assert result.decision.value == "BLOCKED"
     assert result.reason.value == "REPAIR_NOT_VERIFIED"
-    assert (tmp_path / "file.txt").read_text(
-        encoding="utf-8"
-    ) == "one\n"
+    assert (
+        (tmp_path / "file.txt").read_text(encoding="utf-8")
+        == "one\n"
+    )
 
 
 def test_verified_patch_can_be_staged_then_committed(
@@ -243,14 +247,11 @@ def test_verified_patch_can_be_staged_then_committed(
     )
 
     assert stage_result.decision.value == "READY_TO_WRITE"
-    assert staged_paths(
-        GitReader(tmp_path).repository
-    ) == ("file.txt",)
-
-    # Staging applies the source change but does not make a commit.
-    assert (tmp_path / "file.txt").read_text(
-        encoding="utf-8"
-    ) == "two\n"
+    assert staged_paths(GitReader(tmp_path).repository) == ("file.txt",)
+    assert (
+        (tmp_path / "file.txt").read_text(encoding="utf-8")
+        == "two\n"
+    )
 
     commit_request = make_request(
         tmp_path,
@@ -268,9 +269,10 @@ def test_verified_patch_can_be_staged_then_committed(
     assert commit_result.decision.value == "COMMITTED"
     assert commit_result.commit_sha
     assert GitReader(tmp_path).snapshot().working_tree_clean
-    assert (tmp_path / "file.txt").read_text(
-        encoding="utf-8"
-    ) == "two\n"
+    assert (
+        (tmp_path / "file.txt").read_text(encoding="utf-8")
+        == "two\n"
+    )
 
 
 def test_t21_lock_does_not_make_clean_tree_dirty(
@@ -289,3 +291,125 @@ def test_t21_lock_does_not_make_clean_tree_dirty(
         assert reader.snapshot().working_tree_clean
     finally:
         lock.release()
+
+
+def test_push_disabled_is_blocked_before_patch_or_commit(
+    tmp_path: Path,
+):
+    init_repo(tmp_path)
+    initial_commit(tmp_path)
+    reader = GitReader(tmp_path)
+    head_before = reader.snapshot().head_sha
+    repair_result = make_verified_repair(tmp_path)
+
+    request = make_request(
+        tmp_path,
+        GitOperation.PUSH,
+        repair_fingerprint=repair_result.patch_fingerprint,
+        transaction_id="tx-push-disabled",
+        push=True,
+        remote_name="origin",
+    )
+
+    result = execute_git_transaction(
+        request=request,
+        policy=GitPolicy(allow_push=False),
+        authorization=make_authorization(),
+        repair_result=repair_result,
+    )
+
+    snapshot = reader.snapshot()
+    assert result.decision.value == "BLOCKED"
+    assert result.reason.value == "PUSH_REJECTED"
+    assert snapshot.head_sha == head_before
+    assert snapshot.working_tree_clean
+    assert (
+        (tmp_path / "file.txt").read_text(encoding="utf-8")
+        == "one\n"
+    )
+
+
+def test_missing_remote_is_blocked_before_patch_or_commit(
+    tmp_path: Path,
+):
+    init_repo(tmp_path)
+    initial_commit(tmp_path)
+    reader = GitReader(tmp_path)
+    head_before = reader.snapshot().head_sha
+    repair_result = make_verified_repair(tmp_path)
+
+    request = make_request(
+        tmp_path,
+        GitOperation.PUSH,
+        repair_fingerprint=repair_result.patch_fingerprint,
+        transaction_id="tx-missing-remote",
+        push=True,
+        remote_name="origin",
+    )
+
+    result = execute_git_transaction(
+        request=request,
+        authorization=make_authorization(),
+        repair_result=repair_result,
+    )
+
+    snapshot = reader.snapshot()
+    assert result.decision.value == "BLOCKED"
+    assert result.reason.value == "REMOTE_UNAVAILABLE"
+    assert snapshot.head_sha == head_before
+    assert snapshot.working_tree_clean
+    assert (
+        (tmp_path / "file.txt").read_text(encoding="utf-8")
+        == "one\n"
+    )
+
+
+def test_commit_failure_rolls_back_verified_patch(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    init_repo(tmp_path)
+    initial_commit(tmp_path)
+    reader = GitReader(tmp_path)
+    head_before = reader.snapshot().head_sha
+    repair_result = make_verified_repair(tmp_path)
+
+    request = make_request(
+        tmp_path,
+        GitOperation.COMMIT,
+        repair_fingerprint=repair_result.patch_fingerprint,
+        transaction_id="tx-commit-failure",
+    )
+
+    def fail_create_commit(repository, message, policy):
+        raise RuntimeError("simulated commit failure")
+
+    monkeypatch.setattr(
+        git_transaction_module,
+        "create_commit",
+        fail_create_commit,
+    )
+
+    result = execute_git_transaction(
+        request=request,
+        authorization=make_authorization(),
+        repair_result=repair_result,
+    )
+
+    snapshot = reader.snapshot()
+    assert result.decision.value == "BLOCKED"
+    assert result.reason.value == "COMMIT_FAILURE"
+    assert snapshot.head_sha == head_before
+    assert snapshot.working_tree_clean
+    assert staged_paths(reader.repository) == ()
+    assert (
+        (tmp_path / "file.txt").read_text(encoding="utf-8")
+        == "one\n"
+    )
+
+
+def test_force_push_policy_rejected():
+    with pytest.raises(ValueError):
+        validate_policy(
+            GitPolicy(allow_force_push=True),
+        )
