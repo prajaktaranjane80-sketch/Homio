@@ -3,7 +3,10 @@ from __future__ import annotations
 import pytest
 
 from .git_models import GitPolicy
-from .git_policy import validate_policy
+from .git_policy import (
+    is_protected_path,
+    validate_policy,
+)
 from .git_scope import is_safe_repository_path
 
 
@@ -43,13 +46,17 @@ def test_unsafe_repository_paths_are_rejected(path: str):
 @pytest.mark.parametrize(
     "path",
     [
-        "src/app.py",
-        "REOS_CONTROL_CENTER/Frontend/src/app/page.tsx",
-        "src/file name.py",
+        ".reos_t21_transaction.lock",
+        "data/state.json",
+        "REOS_CONTROL_CENTER/data/state.json",
+        "architecture/system.json",
+        "REOS_CONTROL_CENTER/architecture/system.json",
+        "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/"
+        "T18_Safe_Execution_Authorization_Guard/authorization_models.py",
     ],
 )
-def test_valid_repository_paths_are_accepted(path: str):
-    assert is_safe_repository_path(path)
+def test_protected_paths_are_rejected(path: str):
+    assert is_protected_path(path, GitPolicy())
 
 
 def test_force_push_policy_rejected():
