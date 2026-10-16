@@ -37,12 +37,20 @@ export default function PostPropertySubmit({
       if (result.accepted) {
         setAccepted(true);
         setReference(result.reference?.trim() ?? "");
-        setMessage(result.message?.trim() || "The service accepted the submission request.");
+        setMessage(
+          result.message?.trim() ||
+            "The service accepted the submission request.",
+        );
       } else {
-        setMessage(result.message?.trim() || "The service did not accept the submission.");
+        setMessage(
+          result.message?.trim() ||
+            "The service did not accept the submission.",
+        );
       }
     } catch {
-      setMessage("Submission could not be confirmed. Check the service status before trying again.");
+      setMessage(
+        "Submission could not be confirmed. Check the service status before trying again.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -53,27 +61,29 @@ export default function PostPropertySubmit({
       <header className={styles.postPanelHeader}>
         <h2 className={styles.postPanelTitle}>Request submission</h2>
         <p className={styles.postPanelDescription}>
-          This action requires a connected, authorized submission service. The interface itself cannot publish inventory.
+          This action requires a connected, authorized submission service. The
+          interface itself cannot publish inventory.
         </p>
       </header>
 
       {!ready ? (
         <p className={styles.postNotice}>
-          The draft is not marked ready. Complete the required fields and verification steps before submitting.
+          The draft is not marked ready. Complete required fields and
+          verification steps before submitting.
         </p>
       ) : null}
 
       {!onSubmit ? (
         <p className={styles.postNotice}>
-          The property-submission service is not connected. No submission has been sent.
+          The property-submission service is not connected. No submission has
+          been sent.
         </p>
       ) : null}
 
-      <div className={styles.postActions}>
+      <div className={styles.postActions} aria-busy={submitting}>
         <Button
           type="button"
           disabled={!ready || disabled || submitting || !onSubmit}
-          loading={submitting}
           onClick={submit}
         >
           {submitting ? "Submitting…" : "Submit property"}
@@ -81,12 +91,21 @@ export default function PostPropertySubmit({
       </div>
 
       {message ? (
-        <div className={`${styles.postState} ${accepted ? styles.postSuccess : ""}`} role={accepted ? "status" : "alert"}>
-          <span className={styles.postStateIcon} aria-hidden="true">{accepted ? "✓" : "!"}</span>
+        <div
+          className={`${styles.postState} ${accepted ? styles.postSuccess : ""}`}
+          role={accepted ? "status" : "alert"}
+        >
+          <span className={styles.postStateIcon} aria-hidden="true">
+            {accepted ? "✓" : "!"}
+          </span>
           <div>
-            <h3 className={styles.postStateTitle}>{accepted ? "Submission accepted by service" : "Submission not confirmed"}</h3>
+            <h3 className={styles.postStateTitle}>
+              {accepted ? "Submission accepted by service" : "Submission not confirmed"}
+            </h3>
             <p className={styles.postStateDescription}>{message}</p>
-            {reference ? <p className={styles.postStateDescription}>Reference: {reference}</p> : null}
+            {reference ? (
+              <p className={styles.postStateDescription}>Reference: {reference}</p>
+            ) : null}
           </div>
         </div>
       ) : null}
