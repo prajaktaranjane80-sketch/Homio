@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import tempfile
@@ -14,7 +15,6 @@ from AUTONOMY_ENGINE.continuity.acrl.T20_Autonomous_Repair_Patch_Verification.re
     RepairDecision,
     RepairResult,
 )
-
 from AUTONOMY_ENGINE.continuity.acrl.T20_Autonomous_Repair_Patch_Verification.repair_scope import (
     patch_paths,
 )
@@ -170,24 +170,14 @@ def _verified_patch(
             "T20 patch fingerprint does not match the T21 request."
         )
 
-    paths = tuple(
-        sorted(
-            patch_paths(patch)
-        )
-    )
+    paths = tuple(sorted(patch_paths(patch)))
 
     result_paths = tuple(
-        sorted(
-            normalize_path(path)
-            for path in repair_result.changed_paths
-        )
+        sorted(normalize_path(path) for path in repair_result.changed_paths)
     )
 
     verification_paths = tuple(
-        sorted(
-            normalize_path(path)
-            for path in verification.changed_paths
-        )
+        sorted(normalize_path(path) for path in verification.changed_paths)
     )
 
     if (
@@ -206,6 +196,14 @@ def _verified_patch(
     ):
         raise ValueError(
             "T20 baseline or final tree fingerprint is invalid."
+        )
+
+    if (
+        verification.final_tree_fingerprint
+        != repair_result.final_tree_fingerprint
+    ):
+        raise ValueError(
+            "T20 verification and repair result final-tree fingerprints differ."
         )
 
     return patch
@@ -269,14 +267,23 @@ def _rollback_patch(
     patch: str,
     paths: tuple[str, ...],
     baseline_fingerprint: str,
+    expected_head_sha: str,
 ) -> bool:
+    """Restore the authorized patch only if the original HEAD is unchanged."""
+
     try:
-        repository.run(
+        if reader.snapshot().head_sha != expected_head_sha:
+            return False
+
+        reset_result = repository.run(
             "reset",
             "--",
             *paths,
             check=False,
         )
+
+        if reset_result.returncode != 0:
+            return False
 
         _apply_patch_text(
             repository,
@@ -284,10 +291,12 @@ def _rollback_patch(
             reverse=True,
         )
 
+        after = reader.snapshot()
+
         return (
-            tree_fingerprint(repository.root)
-            == baseline_fingerprint
-            and reader.snapshot().working_tree_clean
+            after.head_sha == expected_head_sha
+            and tree_fingerprint(repository.root) == baseline_fingerprint
+            and after.working_tree_clean
         )
     except Exception:
         return False
@@ -310,13 +319,7 @@ def _is_staged_continuation(
         return False
 
     allowed_index_status = {
-        "A",
-        "C",
-        "D",
-        "M",
-        "R",
-        "T",
-        "U",
+        "A", "C", "D", "M", "R", "T", "U",
     }
 
     status_paths: set[str] = set()
@@ -334,9 +337,7 @@ def _is_staged_continuation(
         if worktree_status != " ":
             return False
 
-        status_paths.add(
-            normalize_path(line[3:])
-        )
+        status_paths.add(normalize_path(line[3:]))
 
     if status_paths != set(scoped_paths):
         return False
@@ -351,10 +352,7 @@ def _is_staged_continuation(
     ).stdout.strip():
         return False
 
-    return (
-        tree_fingerprint(repository.root)
-        == expected_final_tree
-    )
+    return tree_fingerprint(repository.root) == expected_final_tree
 
 
 def execute_git_transaction(
@@ -368,18 +366,10 @@ def execute_git_transaction(
 
     GitRegistry().validate()
     GitProvenance().validate()
-    validate_request(
-        request,
-        policy,
-    )
+    validate_request(request, policy)
 
-    repository = GitRepository(
-        request.repository_root
-    )
-    reader = GitReader(
-        request.repository_root
-    )
-
+    repository = GitRepository(request.repository_root)
+    reader = GitReader(request.repository_root)
     before = reader.snapshot()
 
     if before.branch != request.expected_branch:
@@ -389,9 +379,7 @@ def execute_git_transaction(
             reason=GitReason.BRANCH_MISMATCH,
             before=before,
             after=before,
-            explanation=(
-                "Repository branch does not match expected branch."
-            ),
+            explanation="Repository branch does not match expected branch.",
         )
 
     if before.head_sha != request.expected_head_sha:
@@ -401,9 +389,7 @@ def execute_git_transaction(
             reason=GitReason.HEAD_MISMATCH,
             before=before,
             after=before,
-            explanation=(
-                "Repository HEAD changed from expected baseline."
-            ),
+            explanation="Repository HEAD changed from expected baseline.",
         )
 
     if request.operation is GitOperation.READ:
@@ -429,9 +415,7 @@ def execute_git_transaction(
             reason=GitReason.DIRTY_WORKTREE,
             before=before,
             after=before,
-            explanation=(
-                "Write transaction requires a clean working tree."
-            ),
+            explanation="Write transaction requires a clean working tree.",
         )
 
     if (
@@ -448,9 +432,7 @@ def execute_git_transaction(
             reason=GitReason.DIRTY_WORKTREE,
             before=before,
             after=before,
-            explanation=(
-                "Dirty tree has no T20 handoff for continuation."
-            ),
+            explanation="Dirty tree has no T20 handoff for continuation.",
         )
 
     if authorization is None:
@@ -464,10 +446,7 @@ def execute_git_transaction(
         )
 
     try:
-        validate_write_authorization(
-            authorization,
-            request,
-        )
+        validate_write_authorization(authorization, request)
     except Exception as exc:
         return _result(
             request=request,
@@ -479,10 +458,7 @@ def execute_git_transaction(
         )
 
     try:
-        scoped_paths = validate_write_scope(
-            request,
-            policy,
-        )
+        scoped_paths = validate_write_scope(request, policy)
     except Exception as exc:
         return _result(
             request=request,
@@ -506,9 +482,7 @@ def execute_git_transaction(
                 reason=GitReason.REPAIR_NOT_VERIFIED,
                 before=before,
                 after=before,
-                explanation=(
-                    "T21 STAGE/COMMIT/PUSH requires a T20 VERIFIED result."
-                ),
+                explanation="T21 STAGE/COMMIT/PUSH requires a T20 VERIFIED result.",
             )
 
         try:
@@ -538,9 +512,7 @@ def execute_git_transaction(
                     reason=GitReason.BASELINE_DRIFT,
                     before=before,
                     after=before,
-                    explanation=(
-                        "Live tree fingerprint does not match the T20 baseline."
-                    ),
+                    explanation="Live tree fingerprint does not match the T20 baseline.",
                 )
         else:
             staged_continuation = (
@@ -564,10 +536,10 @@ def execute_git_transaction(
                     before=before,
                     after=before,
                     explanation=(
-                        "Dirty worktree is not an exact T20-verified staged continuation."
+                        "Dirty worktree is not an exact T20-verified "
+                        "staged continuation."
                     ),
                 )
-
     elif not before.working_tree_clean:
         return _result(
             request=request,
@@ -575,20 +547,15 @@ def execute_git_transaction(
             reason=GitReason.DIRTY_WORKTREE,
             before=before,
             after=before,
-            explanation=(
-                "Branch operation requires a clean working tree."
-            ),
+            explanation="Branch operation requires a clean working tree.",
         )
 
     try:
-        with GitTransactionLock(
-            request.repository_root
-        ):
+        with GitTransactionLock(request.repository_root):
             current = reader.snapshot()
 
             if current.fingerprint != before.fingerprint:
                 after = reader.snapshot()
-
                 return _result(
                     request=request,
                     decision=GitDecision.BLOCKED,
@@ -600,10 +567,74 @@ def execute_git_transaction(
                     ),
                 )
 
+            # All policy, commit-message and remote checks occur before
+            # patch application, staging, or commit creation.
+            if request.operation in _REPAIR_OPERATIONS:
+                if not policy.allow_staging:
+                    return _result(
+                        request=request,
+                        decision=GitDecision.BLOCKED,
+                        reason=GitReason.STAGE_MISMATCH,
+                        before=before,
+                        after=current,
+                        changed_paths=scoped_paths,
+                        explanation="Staging is disabled by T21 policy.",
+                    )
+
+                if request.operation in {
+                    GitOperation.COMMIT,
+                    GitOperation.PUSH,
+                }:
+                    if not policy.allow_commit:
+                        return _result(
+                            request=request,
+                            decision=GitDecision.BLOCKED,
+                            reason=GitReason.COMMIT_FAILURE,
+                            before=before,
+                            after=current,
+                            changed_paths=scoped_paths,
+                            explanation="Commit is disabled by T21 policy.",
+                        )
+
+                    if not request.commit_message.strip():
+                        return _result(
+                            request=request,
+                            decision=GitDecision.REJECTED,
+                            reason=GitReason.EMPTY_COMMIT,
+                            before=before,
+                            after=current,
+                            changed_paths=scoped_paths,
+                            explanation="A non-empty commit message is required.",
+                        )
+
+                if request.operation is GitOperation.PUSH:
+                    if not policy.allow_push:
+                        return _result(
+                            request=request,
+                            decision=GitDecision.BLOCKED,
+                            reason=GitReason.PUSH_REJECTED,
+                            before=before,
+                            after=current,
+                            changed_paths=scoped_paths,
+                            explanation="Git push is disabled by policy.",
+                        )
+
+                    if (
+                        not request.remote_name
+                        or request.remote_name not in repository.remote_names()
+                    ):
+                        return _result(
+                            request=request,
+                            decision=GitDecision.BLOCKED,
+                            reason=GitReason.REMOTE_UNAVAILABLE,
+                            before=before,
+                            after=current,
+                            changed_paths=scoped_paths,
+                            explanation="Requested remote is unavailable.",
+                        )
+
             if request.operation is GitOperation.CREATE_BRANCH:
-                target = (
-                    request.target_branch or ""
-                ).strip()
+                target = (request.target_branch or "").strip()
 
                 if not target:
                     return _result(
@@ -615,12 +646,7 @@ def execute_git_transaction(
                         explanation="Target branch is required.",
                     )
 
-                repository.run(
-                    "switch",
-                    "-c",
-                    target,
-                )
-
+                repository.run("switch", "-c", target)
                 after = reader.snapshot()
 
                 return _result(
@@ -637,12 +663,8 @@ def execute_git_transaction(
                 patch_applied = False
 
                 if not staged_continuation:
-                    if (
-                        tree_fingerprint(repository.root)
-                        != expected_baseline
-                    ):
+                    if tree_fingerprint(repository.root) != expected_baseline:
                         after = reader.snapshot()
-
                         return _result(
                             request=request,
                             decision=GitDecision.BLOCKED,
@@ -660,22 +682,17 @@ def execute_git_transaction(
                             patch,
                             check_only=True,
                         )
-                        _apply_patch_text(
-                            repository,
-                            patch,
-                        )
+                        _apply_patch_text(repository, patch)
                         patch_applied = True
 
-                        if (
-                            tree_fingerprint(repository.root)
-                            != expected_final_tree
-                        ):
+                        if tree_fingerprint(repository.root) != expected_final_tree:
                             rollback_ok = _rollback_patch(
                                 repository=repository,
                                 reader=reader,
                                 patch=patch,
                                 paths=scoped_paths,
                                 baseline_fingerprint=expected_baseline,
+                                expected_head_sha=before.head_sha,
                             )
                             after = reader.snapshot()
 
@@ -700,12 +717,7 @@ def execute_git_transaction(
                                 ),
                             )
 
-                        stage_exact_paths(
-                            repository,
-                            scoped_paths,
-                            policy,
-                        )
-
+                        stage_exact_paths(repository, scoped_paths, policy)
                         staged = staged_paths(repository)
 
                         if staged != scoped_paths:
@@ -715,6 +727,7 @@ def execute_git_transaction(
                                 patch=patch,
                                 paths=scoped_paths,
                                 baseline_fingerprint=expected_baseline,
+                                expected_head_sha=before.head_sha,
                             )
                             after = reader.snapshot()
 
@@ -731,7 +744,8 @@ def execute_git_transaction(
                                 changed_paths=scoped_paths,
                                 staged=staged,
                                 explanation=(
-                                    "Staged path set does not match the authorized patch paths. "
+                                    "Staged path set does not match the authorized "
+                                    "patch paths. "
                                     + (
                                         "Patch was rolled back."
                                         if rollback_ok
@@ -739,7 +753,6 @@ def execute_git_transaction(
                                     )
                                 ),
                             )
-
                     except Exception as exc:
                         rollback_ok = (
                             _rollback_patch(
@@ -748,11 +761,11 @@ def execute_git_transaction(
                                 patch=patch,
                                 paths=scoped_paths,
                                 baseline_fingerprint=expected_baseline,
+                                expected_head_sha=before.head_sha,
                             )
                             if patch_applied
                             else False
                         )
-
                         after = reader.snapshot()
 
                         return _result(
@@ -780,15 +793,12 @@ def execute_git_transaction(
                                 )
                             ),
                         )
-
                 else:
                     if (
-                        tree_fingerprint(repository.root)
-                        != expected_final_tree
+                        tree_fingerprint(repository.root) != expected_final_tree
                         or staged_paths(repository) != scoped_paths
                     ):
                         after = reader.snapshot()
-
                         return _result(
                             request=request,
                             decision=GitDecision.BLOCKED,
@@ -806,7 +816,6 @@ def execute_git_transaction(
 
                 if request.operation is GitOperation.STAGE:
                     after = reader.snapshot()
-
                     return _result(
                         request=request,
                         decision=GitDecision.READY_TO_WRITE,
@@ -816,7 +825,8 @@ def execute_git_transaction(
                         changed_paths=scoped_paths,
                         staged=staged,
                         explanation=(
-                            "T20 patch revalidated, applied and staged exactly; no commit created."
+                            "T20 patch revalidated, applied and staged exactly; "
+                            "no commit created."
                         ),
                     )
 
@@ -827,35 +837,78 @@ def execute_git_transaction(
                         policy,
                     )
                 except ValueError as exc:
+                    rollback_ok = _rollback_patch(
+                        repository=repository,
+                        reader=reader,
+                        patch=patch,
+                        paths=scoped_paths,
+                        baseline_fingerprint=expected_baseline,
+                        expected_head_sha=before.head_sha,
+                    )
                     after = reader.snapshot()
 
                     return _result(
                         request=request,
-                        decision=GitDecision.REJECTED,
+                        decision=(
+                            GitDecision.BLOCKED
+                            if rollback_ok
+                            else GitDecision.FAIL_CLOSED
+                        ),
                         reason=GitReason.EMPTY_COMMIT,
                         before=before,
                         after=after,
                         changed_paths=scoped_paths,
-                        staged=staged,
-                        explanation=str(exc),
+                        staged=staged_paths(repository),
+                        explanation=(
+                            f"Commit was rejected: {exc}. "
+                            + (
+                                "Rollback was verified."
+                                if rollback_ok
+                                else (
+                                    "Rollback could not be verified; "
+                                    "transaction failed closed."
+                                )
+                            )
+                        ),
                     )
                 except Exception as exc:
+                    rollback_ok = _rollback_patch(
+                        repository=repository,
+                        reader=reader,
+                        patch=patch,
+                        paths=scoped_paths,
+                        baseline_fingerprint=expected_baseline,
+                        expected_head_sha=before.head_sha,
+                    )
                     after = reader.snapshot()
 
                     return _result(
                         request=request,
-                        decision=GitDecision.REJECTED,
+                        decision=(
+                            GitDecision.BLOCKED
+                            if rollback_ok
+                            else GitDecision.FAIL_CLOSED
+                        ),
                         reason=GitReason.COMMIT_FAILURE,
                         before=before,
                         after=after,
                         changed_paths=scoped_paths,
-                        staged=staged,
-                        explanation=str(exc),
+                        staged=staged_paths(repository),
+                        explanation=(
+                            f"Commit failed: {exc}. "
+                            + (
+                                "Rollback was verified."
+                                if rollback_ok
+                                else (
+                                    "Rollback could not be verified; "
+                                    "transaction failed closed."
+                                )
+                            )
+                        ),
                     )
 
                 if not verify_commit(repository, commit_sha):
                     after = reader.snapshot()
-
                     return _result(
                         request=request,
                         decision=GitDecision.FAIL_CLOSED,
@@ -865,9 +918,7 @@ def execute_git_transaction(
                         changed_paths=scoped_paths,
                         staged=staged,
                         commit_sha=commit_sha,
-                        explanation=(
-                            "Commit could not be independently verified."
-                        ),
+                        explanation="Commit could not be independently verified.",
                     )
 
                 after = reader.snapshot()
@@ -878,48 +929,13 @@ def execute_git_transaction(
                 explanation = "Verified Git commit created."
 
                 if request.operation is GitOperation.PUSH:
-                    if not policy.allow_push:
-                        return _result(
-                            request=request,
-                            decision=GitDecision.BLOCKED,
-                            reason=GitReason.PUSH_REJECTED,
-                            before=before,
-                            after=after,
-                            changed_paths=scoped_paths,
-                            staged=staged,
-                            commit_sha=commit_sha,
-                            explanation="Git push is disabled by policy.",
-                        )
-
-                    if (
-                        not request.remote_name
-                        or request.remote_name
-                        not in repository.remote_names()
-                    ):
-                        return _result(
-                            request=request,
-                            decision=GitDecision.BLOCKED,
-                            reason=GitReason.REMOTE_UNAVAILABLE,
-                            before=before,
-                            after=after,
-                            changed_paths=scoped_paths,
-                            staged=staged,
-                            commit_sha=commit_sha,
-                            explanation=(
-                                "Requested remote is unavailable."
-                            ),
-                        )
-
                     try:
                         from .git_push import (
                             push_branch,
                             verify_remote_branch,
                         )
 
-                        target_branch = (
-                            request.target_branch
-                            or after.branch
-                        )
+                        target_branch = request.target_branch or after.branch
 
                         push_branch(
                             repository,
@@ -936,9 +952,7 @@ def execute_git_transaction(
                             branch=target_branch,
                         )
 
-                        push_verified = (
-                            remote_sha == commit_sha
-                        )
+                        push_verified = remote_sha == commit_sha
 
                         if push_verified:
                             decision = GitDecision.PUSHED
@@ -951,7 +965,6 @@ def execute_git_transaction(
                             explanation = (
                                 "Remote branch did not resolve to the verified commit."
                             )
-
                     except Exception as exc:
                         return _result(
                             request=request,
@@ -968,7 +981,6 @@ def execute_git_transaction(
                         )
 
                 final = reader.snapshot()
-
                 return _result(
                     request=request,
                     decision=decision,
@@ -985,7 +997,6 @@ def execute_git_transaction(
 
     except GitTransactionLockError as exc:
         after = reader.snapshot()
-
         return _result(
             request=request,
             decision=GitDecision.FAIL_CLOSED,
