@@ -1,13 +1,21 @@
 
 from __future__ import annotations
 
-import subprocess
-from pathlib import Path
-
 import pytest
 
-from .git_lock import GitTransactionLock, GitTransactionLockError
-from .git_read import GitReader
+from .git_models import (
+    GitOperation,
+    GitPolicy,
+    GitTransactionRequest,
+)
+from .git_policy import (
+    is_protected_path,
+    validate_policy,
+)
+from .git_scope import (
+    is_safe_repository_path,
+    validate_write_scope,
+)
 
 
 def make_request(paths):
