@@ -1,32 +1,20 @@
+import GlobalMegaMenu from "./GlobalMegaMenu";
 
-/* File: src/components/navigation/MarketsMenu.tsx */
-import MegaMenuPanel from "./MegaMenuPanel";
-
-import { MARKET_DEFINITIONS } from "@/features/f12_globalization/market-activation.constants";
+const items = [
+  { href: "/search?city=Pune", title: "Pune, India", description: "Designated active market policy.", icon: "◎", status: "Active market policy" },
+  { href: "/search?city=Dubai", title: "Dubai, UAE", description: "Market experience configured for future activation.", icon: "◈", status: "Built · not operational" },
+  { href: "/search?city=Singapore", title: "Singapore", description: "Market experience configured for future activation.", icon: "◇", status: "Built · not operational" },
+  { href: "/search?city=Tokyo", title: "Tokyo, Japan", description: "Market experience configured for future activation.", icon: "⌖", status: "Built · not operational" },
+  { href: "/search?city=London", title: "London, UK", description: "Market experience configured for future activation.", icon: "↗", status: "Built · not operational" },
+  { href: "/search?city=New%20York", title: "New York, USA", description: "Market experience configured for future activation.", icon: "▦", status: "Built · not operational" },
+] as const;
 
 export default function MarketsMenu() {
-  const items = MARKET_DEFINITIONS.map((market) => ({
-    label: market.displayName,
-    description:
-      market.activationState === "ACTIVE"
-        ? "Active market policy; service readiness is checked separately."
-        : "Configured for future activation; not operationally active.",
-    href:
-      market.activationState === "ACTIVE"
-        ? `/search?city=${encodeURIComponent(market.city)}`
-        : undefined,
-    disabled: market.activationState !== "ACTIVE",
-    badge:
-      market.activationState === "ACTIVE"
-        ? "ACTIVE POLICY"
-        : "BUILT · NOT LIVE",
-  }));
-
   return (
-    <MegaMenuPanel
-      eyebrow="GLOBAL REACH"
-      title="Markets"
-      description="Select from configured destinations. Availability depends on activation and verified services."
+    <GlobalMegaMenu
+      eyebrow="MARKET NETWORK"
+      title="Global outlook. Local context."
+      description="Pune is designated as the active market. Other markets remain non-operational until approved activation and service checks are complete."
       items={items}
     />
   );
