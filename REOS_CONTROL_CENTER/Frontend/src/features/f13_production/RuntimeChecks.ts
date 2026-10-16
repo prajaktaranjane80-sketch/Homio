@@ -1,3 +1,4 @@
+
 export interface RuntimeCheckResult {
   name: string;
   passed: boolean;
@@ -22,6 +23,9 @@ export function runRuntimeChecks(): RuntimeCheckResult[] {
   if (isBrowser) {
     const viewportWidth = window.innerWidth;
     const hasMain = document.querySelector("main") !== null;
+    const webpSupported = supportsWebP();
+    const motionApiAvailable =
+      typeof window.matchMedia === "function";
 
     checks.push({
       name: "viewport-width",
@@ -29,7 +33,7 @@ export function runRuntimeChecks(): RuntimeCheckResult[] {
         Number.isFinite(viewportWidth) &&
         viewportWidth >= 320,
       detail: Number.isFinite(viewportWidth)
-        ? `Viewport width: ${viewportWidth}px.`
+        ? "Viewport width: " + viewportWidth + "px."
         : "Viewport width is not finite.",
     });
 
@@ -39,6 +43,22 @@ export function runRuntimeChecks(): RuntimeCheckResult[] {
       detail: hasMain
         ? "Main landmark found."
         : "No main landmark found.",
+    });
+
+    checks.push({
+      name: "webp-support",
+      passed: webpSupported,
+      detail: webpSupported
+        ? "WebP image encoding is supported."
+        : "WebP image encoding is not supported.",
+    });
+
+    checks.push({
+      name: "reduced-motion-api",
+      passed: motionApiAvailable,
+      detail: motionApiAvailable
+        ? "Motion preference API is available."
+        : "Motion preference API is unavailable.",
     });
   }
 
@@ -59,8 +79,19 @@ export function hasReducedMotionPreference(): boolean {
 }
 
 export function supportsWebP(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    typeof document !== "undefined"
-  );
+  if (typeof document === "undefined") return false;
+
+  try {
+    const canvas = document.createElement("canvas");
+
+    if (typeof canvas.toDataURL !== "function") {
+      return false;
+    }
+
+    return canvas
+      .toDataURL("image/webp")
+      .startsWith("data:image/webp");
+  } catch {
+    return false;
+  }
 }
