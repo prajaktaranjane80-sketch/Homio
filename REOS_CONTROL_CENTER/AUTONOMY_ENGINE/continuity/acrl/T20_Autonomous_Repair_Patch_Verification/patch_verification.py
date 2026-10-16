@@ -4,7 +4,7 @@ import ast
 import hashlib
 from pathlib import Path
 
-from .repair_identity import fingerprint
+from .repair_identity import fingerprint, text_fingerprint
 from .repair_models import (
     PatchVerification,
     RepairReason,
@@ -27,9 +27,7 @@ def tree_fingerprint(
 
     entries: list[dict[str, str]] = []
 
-    for path in sorted(
-        base.rglob("*")
-    ):
+    for path in sorted(base.rglob("*")):
         if not path.is_file():
             continue
 
@@ -47,6 +45,11 @@ def tree_fingerprint(
             continue
 
         relative = path.relative_to(base).as_posix()
+
+        # This lock is an execution-time coordination artifact,
+        # not part of the verified source tree.
+        if relative == ".reos_t21_transaction.lock":
+            continue
 
         entries.append(
             {
@@ -75,9 +78,7 @@ def syntax_check(
 
         try:
             ast.parse(
-                path.read_text(
-                    encoding="utf-8"
-                ),
+                path.read_text(encoding="utf-8"),
                 filename=str(path),
             )
         except (
@@ -130,7 +131,8 @@ def verify_patch(
     return PatchVerification(
         passed=passed,
         changed_paths=changed_paths,
-        patch_fingerprint=fingerprint(
+        # Must match patch_engine.patch_fingerprint().
+        patch_fingerprint=text_fingerprint(
             request.candidate_patch
         ),
         final_tree_fingerprint=tree_fingerprint(
