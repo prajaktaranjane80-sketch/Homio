@@ -1,25 +1,24 @@
-
-/* File: src/components/system/EmptyResults.tsx */
 import type { ReactNode } from "react";
-
-import { EmptyState } from "@/components/ui/EmptyState";
+import styles from "./SystemComponents.module.css";
 
 type Props = Readonly<{
-  title?: string;
+  title: string;
   description: string;
   action?: ReactNode;
 }>;
 
-export default function EmptyResults({
-  title = "No results to show",
-  description,
-  action,
-}: Props) {
+export function EmptyResults({ title, description, action }: Props) {
   return (
-    <EmptyState
-      title={title}
-      description={description}
-      action={action}
-    />
+    <section className={styles.systemCard} aria-labelledby="empty-results-title">
+      <div className={styles.systemRow}>
+        <span className={styles.systemIcon} aria-hidden="true">⌕</span>
+        <div>
+          <span className={styles.systemEyebrow}>No items to display</span>
+          <h2 className={styles.systemTitle} id="empty-results-title">{title}</h2>
+          <p className={styles.systemDescription}>{description}</p>
+        </div>
+      </div>
+      {action ? <div className={styles.systemActions}>{action}</div> : null}
+    </section>
   );
 }
