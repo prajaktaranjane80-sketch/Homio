@@ -1,31 +1,18 @@
-
-/* File: src/components/navigation/IntelligenceMenu.tsx */
-import MegaMenuPanel from "./MegaMenuPanel";
+import GlobalMegaMenu from "./GlobalMegaMenu";
 
 const items = [
-  {
-    label: "HOMIO AI",
-    description: "Explore the current AI experience and its limitations.",
-    href: "/ai",
-  },
-  {
-    label: "Market context",
-    description: "Review market previews without assuming verified statistics.",
-    href: "/#market-intelligence",
-  },
-  {
-    label: "Advice",
-    description: "Open the existing HOMIO advice section.",
-    href: "/#advice",
-  },
+  { href: "/ai", title: "HOMIO AI", description: "AI experience with clear service boundaries.", icon: "✳" },
+  { href: "/#market-intelligence", title: "Market intelligence", description: "Explore market context and preview information.", icon: "◉" },
+  { href: "/search", title: "Search insights", description: "Use location and property filters to refine discovery.", icon: "⌕" },
+  { href: "/#advice", title: "Advice & guides", description: "Property education and practical guidance.", icon: "▤" },
 ] as const;
 
 export default function IntelligenceMenu() {
   return (
-    <MegaMenuPanel
+    <GlobalMegaMenu
       eyebrow="INSIGHTS"
-      title="Intelligence"
-      description="Use context and insights as support for research—not as a substitute for verification."
+      title="Context before decisions."
+      description="Explore property context and learning resources. Unsupported metrics and unverified AI claims are not presented as authoritative data."
       items={items}
     />
   );
