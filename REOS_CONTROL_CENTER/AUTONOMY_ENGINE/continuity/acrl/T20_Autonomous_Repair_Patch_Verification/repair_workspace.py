@@ -7,6 +7,7 @@ from tempfile import mkdtemp
 
 EXCLUDED = {
     ".git",
+    ".reos_t21_transaction.lock",
     ".pytest_cache",
     "__pycache__",
     ".venv",
@@ -26,9 +27,7 @@ def create_isolated_workspace(
         )
 
     destination = Path(
-        mkdtemp(
-            prefix="reos_t20_repair_"
-        )
+        mkdtemp(prefix="reos_t20_repair_")
     )
 
     for item in source.iterdir():
@@ -41,9 +40,7 @@ def create_isolated_workspace(
             shutil.copytree(
                 item,
                 target,
-                ignore=shutil.ignore_patterns(
-                    *EXCLUDED
-                ),
+                ignore=shutil.ignore_patterns(*EXCLUDED),
             )
         else:
             shutil.copy2(item, target)
