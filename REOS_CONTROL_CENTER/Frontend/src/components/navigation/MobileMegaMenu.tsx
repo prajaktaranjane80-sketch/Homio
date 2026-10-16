@@ -1,52 +1,75 @@
-
-/* File: src/components/navigation/MobileMegaMenu.tsx */
 "use client";
 
-import ExploreMenu from "./ExploreMenu";
-import IntelligenceMenu from "./IntelligenceMenu";
-import MarketsMenu from "./MarketsMenu";
-import MegaMenuStyles from "./MegaMenu.module.css";
-import MyHomioMenu from "./MyHomioMenu";
-import ProfessionalMenu from "./ProfessionalMenu";
-import ServicesMenu from "./ServicesMenu";
+import Link from "next/link";
+import { useId, useState } from "react";
 
-type Props = Readonly<{
-  isOpen: boolean;
-  onClose: () => void;
-}>;
+import styles from "./GlobalMenus.module.css";
 
-export default function MobileMegaMenu({ isOpen, onClose }: Props) {
-  if (!isOpen) return null;
+const groups = [
+  {
+    title: "Explore",
+    href: "/search",
+    description: "Homes, commercial properties and projects",
+  },
+  {
+    title: "Markets",
+    href: "/search?city=Pune",
+    description: "Market context and configured locations",
+  },
+  {
+    title: "Intelligence",
+    href: "/ai",
+    description: "Property insights and HOMIO AI",
+  },
+  {
+    title: "Services",
+    href: "/enquiry",
+    description: "Enquiries and available service pathways",
+  },
+  {
+    title: "My HOMIO",
+    href: "/my",
+    description: "Your account and saved discovery",
+  },
+  {
+    title: "Professional",
+    href: "/pro",
+    description: "Protected professional workspace preview",
+  },
+] as const;
+
+export default function MobileMegaMenu() {
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
 
   return (
-    <aside
-      className={MegaMenuStyles.mobilePanel}
-      aria-label="Mobile navigation"
-    >
-      <header className={MegaMenuStyles.mobileHeader}>
-        <div className={MegaMenuStyles.mobileBrand}>
-          HOMIO
-          <span>GLOBAL REAL ESTATE</span>
+    <nav className={styles.mobileMenu} aria-label="Mobile primary navigation">
+      <button
+        type="button"
+        className={styles.mobileMenuToggle}
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span aria-hidden="true">{open ? "×" : "☰"}</span>
+        {open ? "Close menu" : "Open menu"}
+      </button>
+
+      {open ? (
+        <div className={styles.mobileMenuPanel} id={panelId}>
+          {groups.map((item) => (
+            <Link
+              key={item.title}
+              className={styles.mobileMenuLink}
+              href={item.href}
+              onClick={() => setOpen(false)}
+            >
+              <span>{item.title}</span>
+              <span className={styles.menuLinkDescription}>{item.description}</span>
+            </Link>
+          ))}
         </div>
-
-        <button
-          type="button"
-          className={MegaMenuStyles.closeButton}
-          onClick={onClose}
-          aria-label="Close navigation"
-        >
-          ×
-        </button>
-      </header>
-
-      <div className={MegaMenuStyles.mobileSections}>
-        <ExploreMenu />
-        <MarketsMenu />
-        <IntelligenceMenu />
-        <ServicesMenu />
-        <MyHomioMenu />
-        <ProfessionalMenu />
-      </div>
-    </aside>
+      ) : null}
+    </nav>
   );
 }
