@@ -69,6 +69,7 @@ class GitPolicy:
         ".git",
         ".gitignore",
         ".gitmodules",
+        ".reos_t21_transaction.lock",
         "data/state.json",
         "REOS_CONTROL_CENTER/data/state.json",
     )
