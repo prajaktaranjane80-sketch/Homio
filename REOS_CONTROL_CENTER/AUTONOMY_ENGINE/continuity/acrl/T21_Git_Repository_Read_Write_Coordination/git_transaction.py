@@ -9,6 +9,12 @@ from AUTONOMY_ENGINE.continuity.acrl.T20_Autonomous_Repair_Patch_Verification.pa
 from AUTONOMY_ENGINE.continuity.acrl.T20_Autonomous_Repair_Patch_Verification.patch_verification import (
     tree_fingerprint,
 )
+from AUTONOMY_ENGINE.continuity.acrl.T20_Autonomous_Repair_Patch_Verification.repair_models import (
+    PatchVerification,
+    RepairDecision,
+    RepairResult,
+)
+
 from AUTONOMY_ENGINE.continuity.acrl.T20_Autonomous_Repair_Patch_Verification.repair_scope import (
     patch_paths,
 )
@@ -113,64 +119,40 @@ def _verified_patch(
     repair_result,
     scoped_paths: tuple[str, ...],
 ) -> str:
-    if repair_result is None:
+    if not isinstance(repair_result, RepairResult):
         raise ValueError(
-            "T21 repair writes require a T20 result."
+            "T21 requires the actual T20 RepairResult type."
         )
 
-    decision = getattr(
-        repair_result,
-        "decision",
-        None,
-    )
-    decision_value = getattr(
-        decision,
-        "value",
-        decision,
-    )
-
-    if decision_value != "VERIFIED":
+    if repair_result.decision is not RepairDecision.VERIFIED:
         raise ValueError(
             "T20 result decision is not VERIFIED."
         )
 
-    verification = getattr(
-        repair_result,
-        "verification",
-        None,
-    )
+    verification = repair_result.verification
 
-    if verification is None or getattr(
-        verification,
-        "passed",
-        False,
-    ) is not True:
+    if (
+        not isinstance(verification, PatchVerification)
+        or verification.passed is not True
+    ):
         raise ValueError(
             "T20 verification evidence is missing or unsuccessful."
         )
 
-    patch = getattr(
-        repair_result,
-        "candidate_patch",
-        "",
-    )
+    patch = repair_result.candidate_patch
 
     if not isinstance(patch, str) or not patch:
         raise ValueError(
             "T20 VERIFIED result has no candidate patch."
         )
 
-    if getattr(repair_result, "repair_id", None) != request.repair_id:
+    if repair_result.repair_id != request.repair_id:
         raise ValueError(
             "T20 repair ID does not match the T21 request."
         )
 
     if (
-        getattr(
-            repair_result,
-            "authorization_fingerprint",
-            None,
-        )
+        repair_result.authorization_fingerprint
         != request.authorization_fingerprint
     ):
         raise ValueError(
@@ -181,16 +163,8 @@ def _verified_patch(
 
     if (
         calculated_fingerprint != request.repair_fingerprint
-        or getattr(
-            repair_result,
-            "patch_fingerprint",
-            None,
-        ) != calculated_fingerprint
-        or getattr(
-            verification,
-            "patch_fingerprint",
-            None,
-        ) != calculated_fingerprint
+        or repair_result.patch_fingerprint != calculated_fingerprint
+        or verification.patch_fingerprint != calculated_fingerprint
     ):
         raise ValueError(
             "T20 patch fingerprint does not match the T21 request."
@@ -205,33 +179,30 @@ def _verified_patch(
     result_paths = tuple(
         sorted(
             normalize_path(path)
-            for path in getattr(
-                repair_result,
-                "changed_paths",
-                (),
-            )
+            for path in repair_result.changed_paths
         )
     )
 
-    if paths != scoped_paths or paths != result_paths:
-        raise ValueError(
-            "T20 patch paths, T20 changed_paths and T21 scope differ."
+    verification_paths = tuple(
+        sorted(
+            normalize_path(path)
+            for path in verification.changed_paths
         )
-
-    baseline = getattr(
-        repair_result,
-        "baseline_fingerprint",
-        None,
-    )
-    final_tree = getattr(
-        repair_result,
-        "final_tree_fingerprint",
-        None,
     )
 
     if (
-        not _valid_sha256(baseline)
-        or not _valid_sha256(final_tree)
+        paths != scoped_paths
+        or paths != result_paths
+        or paths != verification_paths
+    ):
+        raise ValueError(
+            "T20 patch paths, result paths, verification paths "
+            "and T21 authorized scope differ."
+        )
+
+    if (
+        not _valid_sha256(repair_result.baseline_fingerprint)
+        or not _valid_sha256(repair_result.final_tree_fingerprint)
     ):
         raise ValueError(
             "T20 baseline or final tree fingerprint is invalid."
@@ -300,7 +271,6 @@ def _rollback_patch(
     baseline_fingerprint: str,
 ) -> bool:
     try:
-        # Only unstage the paths authorized for this transaction.
         repository.run(
             "reset",
             "--",
@@ -358,7 +328,6 @@ def _is_staged_continuation(
         index_status = line[0]
         worktree_status = line[1]
 
-        # Only staged changes are allowed; no unstaged or untracked files.
         if index_status not in allowed_index_status:
             return False
 
@@ -447,8 +416,6 @@ def execute_git_transaction(
             explanation="Read-only Git inspection completed.",
         )
 
-    # Preserve the clear dirty-worktree rejection for operations which
-    # cannot be a verified staged continuation.
     if (
         not before.working_tree_clean
         and request.operation not in {
@@ -619,8 +586,6 @@ def execute_git_transaction(
         ):
             current = reader.snapshot()
 
-            # Compare the whole snapshot, not only HEAD. T21's transient
-            # lock file is excluded by GitRepository.status_porcelain().
             if current.fingerprint != before.fingerprint:
                 after = reader.snapshot()
 
@@ -817,8 +782,6 @@ def execute_git_transaction(
                         )
 
                 else:
-                    # A separate STAGE operation already applied and staged
-                    # the exact T20 patch. Revalidate both tree and index.
                     if (
                         tree_fingerprint(repository.root)
                         != expected_final_tree
@@ -965,13 +928,14 @@ def execute_git_transaction(
                             policy=policy,
                         )
 
+                        push_performed = True
+
                         remote_sha = verify_remote_branch(
                             repository,
                             remote=request.remote_name,
                             branch=target_branch,
                         )
 
-                        push_performed = True
                         push_verified = (
                             remote_sha == commit_sha
                         )
@@ -998,7 +962,7 @@ def execute_git_transaction(
                             changed_paths=scoped_paths,
                             staged=staged,
                             commit_sha=commit_sha,
-                            push_performed=True,
+                            push_performed=push_performed,
                             push_verified=False,
                             explanation=str(exc),
                         )
@@ -1020,8 +984,6 @@ def execute_git_transaction(
                 )
 
     except GitTransactionLockError as exc:
-        # The transaction's outcome may need inspection if release failed.
-        # Do not claim a clean failure if a commit may already exist.
         after = reader.snapshot()
 
         return _result(
