@@ -1,0 +1,184 @@
+.systemCard {
+  --sys-ink: #14263b;
+  --sys-muted: #687b8f;
+  --sys-line: #e1e8ef;
+  --sys-gold: #d9bb82;
+  min-width: 0;
+  padding: clamp(16px, 2.5vw, 24px);
+  border: 1px solid var(--sys-line);
+  border-radius: 18px;
+  background: linear-gradient(145deg, #fff, #f9fbfd);
+  color: var(--sys-ink);
+  box-shadow: 0 12px 28px rgb(16 38 59 / 4%);
+}
+.systemCard h2,
+.systemCard h3,
+.systemCard p { margin-top: 0; }
+.systemEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #987443;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+.systemTitle {
+  margin: 9px 0;
+  font-size: clamp(16px, 2vw, 22px);
+  font-weight: 780;
+  letter-spacing: -.035em;
+  line-height: 1.25;
+}
+.systemDescription {
+  margin: 0;
+  color: var(--sys-muted);
+  font-size: 13px;
+  line-height: 1.75;
+}
+.systemFootnote {
+  margin: 16px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--sys-line);
+  color: var(--sys-muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
+.systemIcon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  border: 1px solid #eadcc4;
+  border-radius: 13px;
+  background: #fffaf1;
+  color: #987443;
+  font-weight: 800;
+}
+.systemRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  min-width: 0;
+}
+.systemActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  margin-top: 16px;
+}
+.systemBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 6px 9px;
+  border: 1px solid var(--sys-line);
+  border-radius: 999px;
+  background: #f7f9fb;
+  color: #526579;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+.systemBadgeGood {
+  border-color: #cfe4d6;
+  background: #eaf5ee;
+  color: #2f7454;
+}
+.systemBadgeWarning {
+  border-color: #ead9bd;
+  background: #fbf1e2;
+  color: #946a2d;
+}
+.systemBadgeDanger {
+  border-color: #eed2d2;
+  background: #fff0ef;
+  color: #9a4848;
+}
+.systemBadgeInfo {
+  border-color: #cfdeed;
+  background: #eff6fd;
+  color: #426d98;
+}
+.systemDot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.systemSkeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(var(--skeleton-columns, 3), minmax(0, 1fr));
+  gap: 14px;
+}
+.systemSkeletonCard {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--sys-line);
+  border-radius: 16px;
+  background: #fff;
+}
+.systemSkeleton {
+  display: block;
+  width: 100%;
+  height: var(--skeleton-height, 14px);
+  border-radius: 7px;
+  background: linear-gradient(90deg, #edf1f5 20%, #f8fafc 45%, #edf1f5 70%);
+  background-size: 220% 100%;
+  animation: sys-shimmer 1.35s ease-in-out infinite;
+}
+.systemSkeletonShort { width: 43%; }
+.systemSkeletonMedium { width: 70%; }
+.systemTimestamp {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  color: var(--sys-muted);
+  font-size: 11px;
+}
+.systemActionButton {
+  min-height: 40px;
+  padding: 9px 13px;
+  border: 1px solid #dce4ec;
+  border-radius: 11px;
+  background: #fff;
+  color: #183047;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.systemActionButton:hover:not(:disabled) {
+  border-color: #c8ad7d;
+  background: #fffaf2;
+}
+.systemActionButton:focus-visible {
+  outline: 3px solid rgb(217 187 130 / 42%);
+  outline-offset: 2px;
+}
+.systemActionButton:disabled {
+  opacity: .56;
+  cursor: not-allowed;
+}
+@keyframes sys-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -120% 0; }
+}
+@media (max-width: 760px) {
+  .systemSkeletonGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 460px) {
+  .systemSkeletonGrid { grid-template-columns: 1fr; }
+  .systemRow { gap: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .systemSkeleton { animation: none; }
+}
