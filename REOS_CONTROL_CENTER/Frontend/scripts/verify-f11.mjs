@@ -8,8 +8,10 @@ function read(relativePath) {
   const absolutePath = path.join(root, relativePath);
 
   assert.ok(
-  authTests.includes('auth.safeReturnTo("/pro")'),
-  "Auth runtime tests must cover the F11 return path",
+  authTests.includes('"/pro"') &&
+    authTests.includes("for (const pathname of approvedProPaths)") &&
+    authTests.includes("auth.safeReturnTo(pathname)"),
+  "Auth runtime tests must cover approved F11 return paths",
 );
 
   return fs.readFileSync(absolutePath, "utf8");
