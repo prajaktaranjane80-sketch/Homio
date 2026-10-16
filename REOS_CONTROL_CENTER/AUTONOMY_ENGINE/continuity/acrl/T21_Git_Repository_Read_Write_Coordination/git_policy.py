@@ -4,7 +4,7 @@ from .git_models import GitPolicy
 
 
 def normalize_path(value: str) -> str:
-    """Normalize separators without changing case-sensitive path identity."""
+    """Normalize separators without changing path case."""
     normalized = value.replace("\\", "/").strip()
 
     while normalized.startswith("./"):
@@ -54,30 +54,40 @@ def is_protected_path(
     if not normalized:
         return False
 
+    key = normalized.casefold()
+
     protected_paths = {
-        normalize_path(item)
+        normalize_path(item).casefold()
         for item in policy.protected_paths
     }
 
-    # Protect each declared path and all descendants.
     for protected in protected_paths:
-        if normalized == protected:
+        if key == protected:
             return True
 
-        if normalized.startswith(protected + "/"):
+        if key.startswith(protected + "/"):
             return True
 
-    # T21 contract forbids architecture mutations.
+    # Architecture is controlled by its own governance boundary.
     architecture_roots = (
         "architecture",
-        "REOS_CONTROL_CENTER/architecture",
+        "reos_control_center/architecture",
     )
 
     for root in architecture_roots:
-        if (
-            normalized == root
-            or normalized.startswith(root + "/")
-        ):
+        if key == root or key.startswith(root + "/"):
+            return True
+
+    # T18's authorization source must not be changed through T21 repair writes.
+    authorization_roots = (
+        "autonomy_engine/continuity/acrl/"
+        "t18_safe_execution_authorization_guard",
+        "reos_control_center/autonomy_engine/continuity/acrl/"
+        "t18_safe_execution_authorization_guard",
+    )
+
+    for root in authorization_roots:
+        if key == root or key.startswith(root + "/"):
             return True
 
     return False
