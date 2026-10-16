@@ -1,36 +1,52 @@
-
-/* File: src/components/system/MarketAvailabilityState.tsx */
-import MarketAvailabilityNotice from "@/features/f12_globalization/MarketAvailabilityNotice";
-import MarketUnavailableState from "@/features/f12_globalization/MarketUnavailableState";
-import { getMarketAvailability } from "@/features/f12_globalization/market-activation.utils";
+import styles from "./SystemComponents.module.css";
 
 type Props = Readonly<{
-  marketId: string;
-  compact?: boolean;
+  marketName: string;
+  state: "ACTIVE" | "BUILT" | "UNKNOWN";
+  description: string;
 }>;
 
-export default function MarketAvailabilityState({
-  marketId,
-  compact = false,
+export function MarketAvailabilityState({
+  marketName,
+  state,
+  description,
 }: Props) {
-  const availability = getMarketAvailability(marketId);
+  const tone =
+    state === "ACTIVE"
+      ? styles.systemBadgeGood
+      : state === "BUILT"
+        ? styles.systemBadgeWarning
+        : styles.systemBadge;
 
-  if (availability.activationState === "ACTIVE" && availability.marketId) {
-    return (
-      <MarketAvailabilityNotice
-        marketId={availability.marketId}
-        compact={compact}
-      />
-    );
-  }
+  const label =
+    state === "ACTIVE"
+      ? "ACTIVE MARKET POLICY"
+      : state === "BUILT"
+        ? "BUILT · NOT LIVE"
+        : "STATUS UNKNOWN";
 
   return (
-    <MarketUnavailableState
-      title={availability.title}
-      description={availability.description}
-      eyebrow="MARKET AVAILABILITY"
-      marketName={marketId}
-      compact={compact}
-    />
+    <section className={styles.systemCard} aria-labelledby="market-state-title">
+      <div className={styles.systemRow}>
+        <span className={styles.systemIcon} aria-hidden="true">◎</span>
+        <div>
+          <span className={styles.systemEyebrow}>Market availability</span>
+          <h2 className={styles.systemTitle} id="market-state-title">
+            {marketName}
+          </h2>
+          <span className={`${styles.systemBadge} ${tone}`}>
+            <span className={styles.systemDot} aria-hidden="true" />
+            {label}
+          </span>
+        </div>
+      </div>
+      <p className={styles.systemDescription} style={{ marginTop: 14 }}>
+        {description}
+      </p>
+      <p className={styles.systemFootnote}>
+        Market policy is not proof of live inventory, authorized brokerage,
+        confirmed visits or functioning transaction services.
+      </p>
+    </section>
   );
 }
