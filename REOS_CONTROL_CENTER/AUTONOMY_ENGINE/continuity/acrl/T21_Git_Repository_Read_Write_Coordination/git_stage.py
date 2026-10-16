@@ -29,7 +29,9 @@ def stage_exact_paths(
             "No paths supplied for staging."
         )
 
+    # Literal pathspec mode prevents wildcard or Git-magic expansion.
     repository.run(
+        "--literal-pathspecs",
         "add",
         "--",
         *normalized,
@@ -46,12 +48,13 @@ def staged_paths(
         "--cached",
         "--name-only",
         "--no-renames",
+        "-z",
     ).stdout
 
     return tuple(
         sorted(
-            normalize_path(line)
-            for line in output.splitlines()
-            if line.strip()
+            normalize_path(path)
+            for path in output.split("\0")
+            if path
         )
     )
