@@ -1,3 +1,4 @@
+
 "use client";
 
 import styles from "./PostProperty.module.css";
@@ -31,8 +32,13 @@ export default function PostPropertyAvailability({
   return (
     <section className={styles.postPanel}>
       <header className={styles.postPanelHeader}>
-        <h2 className={styles.postPanelTitle}>Availability information</h2>
-        <p className={styles.postPanelDescription}>Record the submitter's stated availability. It is not a live inventory confirmation.</p>
+        <h2 className={styles.postPanelTitle}>
+          Availability information
+        </h2>
+        <p className={styles.postPanelDescription}>
+          Record the submitter&apos;s stated availability. It is not a live
+          inventory confirmation.
+        </p>
       </header>
 
       <div className={styles.postChoiceGrid}>
@@ -47,14 +53,21 @@ export default function PostPropertyAvailability({
               onChange={() => onChange(option.value)}
             />
             <span className={styles.postChoiceText}>
-              <span className={styles.postChoiceTitle}>{option.label}</span>
+              <span className={styles.postChoiceTitle}>
+                {option.label}
+              </span>
             </span>
           </label>
         ))}
       </div>
 
       <div className={styles.postField}>
-        <label className={styles.postLabel} htmlFor="post-property-available-date">Stated available-from date (optional)</label>
+        <label
+          className={styles.postLabel}
+          htmlFor="post-property-available-date"
+        >
+          Stated available-from date (optional)
+        </label>
         <input
           id="post-property-available-date"
           className={styles.postInput}
@@ -66,7 +79,8 @@ export default function PostPropertyAvailability({
       </div>
 
       <p className={styles.postNotice}>
-        Availability must be revalidated by an authorized inventory service before being shown as current to buyers or renters.
+        Availability must be revalidated by an authorized inventory service
+        before being shown as current to buyers or renters.
       </p>
     </section>
   );
