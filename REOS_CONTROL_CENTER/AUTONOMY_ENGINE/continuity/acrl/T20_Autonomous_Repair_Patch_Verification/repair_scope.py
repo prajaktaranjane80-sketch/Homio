@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import posixpath
-from pathlib import PurePosixPath
+import re
 
 from .repair_models import RepairPolicy, RepairRequest
 from .repair_policy import validate_policy
@@ -9,32 +9,54 @@ from .repair_policy import validate_policy
 
 PROTECTED_PATHS = {
     "data/state.json",
-    "REOS_CONTROL_CENTER/data/state.json",
+    "reos_control_center/data/state.json",
 }
 
 
 def normalize_path(value: str) -> str:
-    value = value.replace("\\", "/").strip()
-    value = posixpath.normpath(value)
+    if not isinstance(value, str):
+        return ""
 
-    while value.startswith("./"):
-        value = value[2:]
-
-    return value.lower()
+    return posixpath.normpath(
+        value.replace("\\", "/")
+    )
 
 
 def is_safe_relative_path(value: str) -> bool:
-    normalized = normalize_path(value)
+    if not isinstance(value, str) or not value:
+        return False
+
+    if value != value.strip():
+        return False
+
+    if any(
+        ord(character) < 32 or ord(character) == 127
+        for character in value
+    ):
+        return False
+
+    raw = value.replace("\\", "/")
+
+    if raw.startswith("/"):
+        return False
+
+    if re.match(r"^[A-Za-z]:", raw):
+        return False
+
+    parts = raw.split("/")
+
+    if any(part in {"", ".", ".."} for part in parts):
+        return False
+
+    normalized = posixpath.normpath(raw)
 
     if normalized in {"", ".", ".."}:
         return False
 
-    path = PurePosixPath(normalized)
-
-    if path.is_absolute():
+    if normalized.startswith("../"):
         return False
 
-    return ".." not in path.parts
+    return True
 
 
 def patch_paths(patch: str) -> tuple[str, ...]:
@@ -42,10 +64,13 @@ def patch_paths(patch: str) -> tuple[str, ...]:
 
     for line in patch.splitlines():
         if line.startswith("+++ b/"):
-            paths.add(normalize_path(line[6:]))
+            paths.add(
+                normalize_path(line[6:])
+            )
 
         elif line.startswith("--- a/"):
             path = normalize_path(line[6:])
+
             if path != "/dev/null":
                 paths.add(path)
 
@@ -68,10 +93,14 @@ def validate_scope(
         for path in request.forbidden_paths
     }
 
-    paths = patch_paths(request.candidate_patch)
+    paths = patch_paths(
+        request.candidate_patch
+    )
 
     if len(paths) > policy.max_files:
-        raise ValueError("Repair patch exceeds file-count limit.")
+        raise ValueError(
+            "Repair patch exceeds file-count limit."
+        )
 
     for path in paths:
         if not is_safe_relative_path(path):
@@ -79,7 +108,7 @@ def validate_scope(
                 f"Unsafe repair path: {path}"
             )
 
-        if path in PROTECTED_PATHS:
+        if path.casefold() in PROTECTED_PATHS:
             raise ValueError(
                 f"Protected path cannot be repaired: {path}"
             )
