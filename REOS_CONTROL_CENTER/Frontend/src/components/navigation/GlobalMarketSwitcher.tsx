@@ -1,5 +1,3 @@
-
-/* File: src/components/navigation/GlobalMarketSwitcher.tsx */
 "use client";
 
 import MarketSelector from "@/features/f12_globalization/MarketSelector";
@@ -21,7 +19,7 @@ export default function GlobalMarketSwitcher({
       value={value}
       onChange={onChange}
       disabled={disabled}
-      label="Global market"
+      label="Current market preference"
     />
   );
 }
