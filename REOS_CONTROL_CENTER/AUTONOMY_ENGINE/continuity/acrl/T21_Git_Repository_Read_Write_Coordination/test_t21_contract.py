@@ -4,36 +4,44 @@ import json
 from pathlib import Path
 
 
-def test_t21_contract():
+def _contract():
     path = Path(__file__).with_name(
         "t21.contract.json"
     )
 
-    payload = json.loads(
-        path.read_text(
-            encoding="utf-8"
-        )
+    return json.loads(
+        path.read_text(encoding="utf-8")
     )
+
+
+def test_t21_contract():
+    payload = _contract()
 
     assert payload["layer"] == "T21"
     assert payload["schema_version"] == "1.0"
-    assert len(
-        payload["deep_audit"]
-    ) == 26
+    assert len(payload["deep_audit"]) == 26
 
 
 def test_force_push_is_forbidden():
-    path = Path(__file__).with_name(
-        "t21.contract.json"
-    )
+    payload = _contract()
 
-    payload = json.loads(
-        path.read_text(
-            encoding="utf-8"
-        )
-    )
+    assert "force push" in payload["forbidden"]
+
+
+def test_repair_write_requires_t20_verified_patch():
+    payload = _contract()
+    handoff = payload["repair_handoff"]
+
+    assert handoff["required_decision"] == "VERIFIED"
+    assert handoff["patch_source"] == "RepairResult.candidate_patch"
+    assert "must match" in handoff["fingerprint"]
+    assert "T18 authorizes" in handoff["authority"]
+
+
+def test_replay_claim_does_not_overstate_capability():
+    payload = _contract()
 
     assert (
-        "force push"
-        in payload["forbidden"]
+        "persistent replay prevention is not claimed"
+        in payload["deep_audit"]["24_idempotency_replay_safety"]
     )
