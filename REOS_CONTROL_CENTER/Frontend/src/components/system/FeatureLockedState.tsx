@@ -1,47 +1,27 @@
-
-/* File: src/components/system/FeatureLockedState.tsx */
-import Link from "next/link";
-
-import styles from "./SharedSystem.module.css";
+import styles from "./SystemComponents.module.css";
 
 type Props = Readonly<{
   title: string;
   description: string;
-  eyebrow?: string;
-  actionLabel?: string;
-  href?: string;
+  requirement?: string;
 }>;
 
-function isSafeInternalHref(href: string): boolean {
-  return href.startsWith("/") && !href.startsWith("//");
-}
-
-export default function FeatureLockedState({
-  title,
-  description,
-  eyebrow = "ACCESS CONTROL",
-  actionLabel,
-  href,
-}: Props) {
-  const safeHref = href && isSafeInternalHref(href) ? href : undefined;
-
+export function FeatureLockedState({ title, description, requirement }: Props) {
   return (
-    <section className={styles.systemPanel} role="note">
-      <span className={styles.systemPanelIcon} aria-hidden="true">
-        ◈
-      </span>
-
-      <div className={styles.systemPanelBody}>
-        <span className={styles.systemEyebrow}>{eyebrow}</span>
-        <h2 className={styles.systemTitle}>{title}</h2>
-        <p className={styles.systemDescription}>{description}</p>
-
-        {actionLabel && safeHref ? (
-          <p className={styles.systemMeta}>
-            <Link href={safeHref}>{actionLabel} →</Link>
-          </p>
-        ) : null}
+    <section className={styles.systemCard} aria-labelledby="feature-locked-title">
+      <div className={styles.systemRow}>
+        <span className={styles.systemIcon} aria-hidden="true">⌑</span>
+        <div>
+          <span className={styles.systemEyebrow}>Access boundary</span>
+          <h2 className={styles.systemTitle} id="feature-locked-title">{title}</h2>
+          <p className={styles.systemDescription}>{description}</p>
+        </div>
       </div>
+      {requirement ? <p className={styles.systemFootnote}>Requirement: {requirement}</p> : null}
+      <p className={styles.systemFootnote}>
+        A visible lock is informational only. Protected records and operations
+        must still be authorized by the server.
+      </p>
     </section>
   );
 }
