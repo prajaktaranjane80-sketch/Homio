@@ -1,0 +1,302 @@
+.postPropertyRoot {
+  --post-ink: #14263b;
+  --post-muted: #6c7e92;
+  --post-line: #e1e8ef;
+  --post-gold: #d8ba82;
+
+  display: grid;
+  gap: clamp(18px, 3vw, 28px);
+  min-width: 0;
+  color: var(--post-ink);
+}
+.postHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+.postEyebrow {
+  color: #96723f;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.postTitle {
+  margin: 9px 0 0;
+  font-size: clamp(26px, 4vw, 39px);
+  font-weight: 780;
+  letter-spacing: -.05em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+.postDescription {
+  max-width: 760px;
+  margin: 12px 0 0;
+  color: var(--post-muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.postProgress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.postStep {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 9px;
+  border: 1px solid var(--post-line);
+  border-radius: 999px;
+  background: #fff;
+  color: #76869a;
+  font-size: 9px;
+  font-weight: 800;
+}
+.postStepActive {
+  border-color: #dfc89f;
+  background: #fffaf1;
+  color: #8e6c3b;
+}
+.postStepNumber {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 50%;
+  background: #eef2f6;
+  color: #607388;
+  font-size: 9px;
+}
+.postStepActive .postStepNumber {
+  background: #e6d0a7;
+  color: #5e4826;
+}
+.postPanel {
+  display: grid;
+  gap: 19px;
+  min-width: 0;
+  padding: clamp(20px, 3vw, 30px);
+  border: 1px solid var(--post-line);
+  border-radius: 20px;
+  background: linear-gradient(145deg, #fff, #fafbfd);
+  box-shadow: 0 16px 36px rgb(20 38 59 / 4%);
+}
+.postPanelHeader {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--post-line);
+}
+.postPanelTitle {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -.035em;
+}
+.postPanelDescription {
+  margin: 8px 0 0;
+  color: var(--post-muted);
+  font-size: 12px;
+  line-height: 1.75;
+}
+.postFieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.postField {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  min-width: 0;
+}
+.postFieldFull { grid-column: 1 / -1; }
+.postLabel {
+  color: #263c52;
+  font-size: 11px;
+  font-weight: 800;
+}
+.postHint {
+  color: var(--post-muted);
+  font-size: 10px;
+  line-height: 1.65;
+}
+.postInput,
+.postTextarea,
+.postSelect {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 47px;
+  padding: 12px 13px;
+  border: 1px solid #dce5ed;
+  border-radius: 11px;
+  outline: 0;
+  background: #fff;
+  color: var(--post-ink);
+  font: inherit;
+  font-size: 12px;
+}
+.postTextarea { min-height: 120px; resize: vertical; line-height: 1.7; }
+.postInput:focus-visible,
+.postTextarea:focus-visible,
+.postSelect:focus-visible {
+  border-color: #bd9d65;
+  box-shadow: 0 0 0 4px rgb(216 186 130 / 22%);
+}
+.postInput:disabled,
+.postTextarea:disabled,
+.postSelect:disabled {
+  background: #f5f7f9;
+  color: #8694a4;
+}
+.postChoiceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.postChoice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid var(--post-line);
+  border-radius: 13px;
+  background: #fff;
+  cursor: pointer;
+}
+.postChoice:has(input:checked) {
+  border-color: #d4bb8e;
+  background: #fffaf1;
+  box-shadow: inset 0 0 0 1px rgb(216 186 130 / 25%);
+}
+.postChoice:focus-within {
+  outline: 3px solid rgb(216 186 130 / 35%);
+  outline-offset: 1px;
+}
+.postChoice input { margin-top: 2px; accent-color: #a27e45; }
+.postChoiceText { min-width: 0; }
+.postChoiceTitle {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+.postChoiceDescription {
+  display: block;
+  margin-top: 4px;
+  color: var(--post-muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+.postNotice {
+  padding: 13px 14px;
+  border: 1px solid #eadcc3;
+  border-radius: 12px;
+  background: #fffaf1;
+  color: #7b6547;
+  font-size: 11px;
+  line-height: 1.75;
+}
+.postFileList {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.postFile {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--post-line);
+  border-radius: 10px;
+  background: #fff;
+  font-size: 11px;
+}
+.postFileName { min-width: 0; overflow-wrap: anywhere; }
+.postFileSize { flex: 0 0 auto; color: var(--post-muted); }
+.postReviewGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.postReviewItem {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid var(--post-line);
+  border-radius: 11px;
+  background: #fff;
+}
+.postReviewLabel {
+  color: var(--post-muted);
+  font-size: 9px;
+  font-weight: 780;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.postReviewValue {
+  color: var(--post-ink);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.postState {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 17px;
+  border: 1px solid var(--post-line);
+  border-radius: 14px;
+  background: #f8fafc;
+}
+.postStateIcon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  border: 1px solid #dce4eb;
+  border-radius: 11px;
+  background: #fff;
+  color: #8b7047;
+  font-weight: 850;
+}
+.postStateTitle { margin: 0; font-size: 13px; font-weight: 800; }
+.postStateDescription {
+  margin: 6px 0 0;
+  color: var(--post-muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
+.postError {
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid #eed2d2;
+  border-radius: 10px;
+  background: #fff2f1;
+  color: #984747;
+  font-size: 11px;
+  line-height: 1.65;
+}
+.postSuccess {
+  border-color: #cfe4d6;
+  background: #f2faf5;
+}
+@media (max-width: 700px) {
+  .postHeader { flex-direction: column; }
+  .postFieldGrid,
+  .postChoiceGrid,
+  .postReviewGrid { grid-template-columns: 1fr; }
+  .postFieldFull { grid-column: auto; }
+  .postPanel { padding: 19px; border-radius: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .postChoice { scroll-behavior: auto; }
+}
