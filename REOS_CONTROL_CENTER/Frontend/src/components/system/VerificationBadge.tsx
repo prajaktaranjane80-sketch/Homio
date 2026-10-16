@@ -1,29 +1,29 @@
-
-/* File: src/components/system/VerificationBadge.tsx */
-import styles from "./SharedSystem.module.css";
+import styles from "./SystemComponents.module.css";
 
 type Props = Readonly<{
-  verified: boolean;
+  status: "verified" | "pending" | "unverified" | "rejected";
   label?: string;
 }>;
 
-export default function VerificationBadge({
-  verified,
-  label,
-}: Props) {
+export function VerificationBadge({ status, label }: Props) {
+  const tone =
+    status === "verified"
+      ? styles.systemBadgeGood
+      : status === "rejected"
+        ? styles.systemBadgeDanger
+        : styles.systemBadgeWarning;
+
+  const text = label ?? ({
+    verified: "Verified by source",
+    pending: "Verification pending",
+    unverified: "Not verified",
+    rejected: "Verification not approved",
+  } as const)[status];
+
   return (
-    <span
-      className={[
-        styles.systemBadge,
-        verified ? styles.badgePositive : styles.badgeWarning,
-      ].join(" ")}
-      aria-label={
-        verified
-          ? "Verification confirmed by the supplied source"
-          : "Verification has not been confirmed"
-      }
-    >
-      {verified ? label ?? "Verified" : label ?? "Not verified"}
+    <span className={`${styles.systemBadge} ${tone}`} aria-label={`Verification: ${text}`}>
+      <span className={styles.systemDot} aria-hidden="true" />
+      {text}
     </span>
   );
 }
