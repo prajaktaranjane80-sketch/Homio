@@ -1,36 +1,18 @@
-
-/* File: src/components/navigation/MyHomioMenu.tsx */
-import MegaMenuPanel from "./MegaMenuPanel";
+import GlobalMegaMenu from "./GlobalMegaMenu";
 
 const items = [
-  {
-    label: "My HOMIO",
-    description: "Open your authenticated account workspace.",
-    href: "/my",
-  },
-  {
-    label: "Saved properties",
-    description: "Review your saved property experience.",
-    href: "/saved",
-  },
-  {
-    label: "Compare",
-    description: "Review property and project comparisons.",
-    href: "/compare",
-  },
-  {
-    label: "Sign in",
-    description: "Continue to your HOMIO account.",
-    href: "/login?returnTo=%2Fmy",
-  },
+  { href: "/my", title: "My HOMIO", description: "Open your signed-in account workspace.", icon: "◇" },
+  { href: "/saved", title: "Saved properties", description: "Review saved property discovery items.", icon: "♡" },
+  { href: "/compare", title: "Compare", description: "Review supported property comparisons.", icon: "⇄" },
+  { href: "/login?returnTo=%2Fmy", title: "Sign in", description: "Continue through the configured authentication flow.", icon: "↗" },
 ] as const;
 
 export default function MyHomioMenu() {
   return (
-    <MegaMenuPanel
-      eyebrow="YOUR ACCOUNT"
-      title="My HOMIO"
-      description="Your account and personal discovery tools."
+    <GlobalMegaMenu
+      eyebrow="YOUR SPACE"
+      title="A more personal property journey."
+      description="Sign-in and account access use HOMIO authentication. Protected information remains subject to server-side authorization."
       items={items}
     />
   );
