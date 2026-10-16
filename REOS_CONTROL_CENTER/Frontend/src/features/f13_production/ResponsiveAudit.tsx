@@ -1,7 +1,8 @@
+
 export const HOMIO_BREAKPOINTS = {
-  mobile: 480,
-  tablet: 768,
-  desktop: 1024,
+  mobile: 767,
+  tablet: 1023,
+  desktop: 1439,
   wide: 1440,
 } as const;
 
@@ -14,14 +15,10 @@ export type ResponsiveViewport =
 export function getResponsiveViewport(
   width: number,
 ): ResponsiveViewport {
-  if (!Number.isFinite(width) || width < 0) {
-    return "mobile";
-  }
-
-  if (width < HOMIO_BREAKPOINTS.tablet) return "mobile";
-  if (width < HOMIO_BREAKPOINTS.desktop) return "tablet";
-  if (width < HOMIO_BREAKPOINTS.wide) return "desktop";
-
+  if (!Number.isFinite(width) || width < 0) return "mobile";
+  if (width <= HOMIO_BREAKPOINTS.mobile) return "mobile";
+  if (width <= HOMIO_BREAKPOINTS.tablet) return "tablet";
+  if (width <= HOMIO_BREAKPOINTS.desktop) return "desktop";
   return "wide";
 }
 
