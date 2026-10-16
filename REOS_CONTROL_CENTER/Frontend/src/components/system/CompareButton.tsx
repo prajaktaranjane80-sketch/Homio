@@ -1,28 +1,21 @@
-
-/* File: src/components/system/CompareButton.tsx */
 import { Button } from "@/components/ui/Button";
 
 type Props = Readonly<{
-  selected: boolean;
-  onToggle: () => void;
+  compared: boolean;
+  onToggle?: () => void;
   disabled?: boolean;
 }>;
 
-export default function CompareButton({
-  selected,
-  onToggle,
-  disabled = false,
-}: Props) {
+export function CompareButton({ compared, onToggle, disabled = false }: Props) {
   return (
     <Button
       type="button"
-      variant={selected ? "secondary" : "ghost"}
-      size="small"
-      aria-pressed={selected}
-      disabled={disabled}
+      variant="secondary"
+      aria-pressed={compared}
+      disabled={disabled || !onToggle}
       onClick={onToggle}
     >
-      {selected ? "In compare" : "Compare"}
+      {compared ? "In compare" : "Compare"}
     </Button>
   );
 }
