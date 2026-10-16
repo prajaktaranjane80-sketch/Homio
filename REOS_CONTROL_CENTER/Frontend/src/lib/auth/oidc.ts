@@ -299,8 +299,37 @@ export function constantTimeEqual(left: string, right: string): boolean {
 }
 
 
+
 export function safeReturnTo(value: string | undefined | null): string {
   if (value === "/" || value === "/my") {
+    return value;
+  }
+
+  const approvedProPaths: readonly string[] = [
+    "/pro",
+    "/pro/inventory",
+    "/pro/leads",
+    "/pro/enquiries",
+    "/pro/visits",
+    "/pro/follow-ups",
+    "/pro/clients",
+    "/pro/projects",
+    "/pro/deals",
+    "/pro/documents",
+    "/pro/performance",
+  ];
+
+  if (
+    typeof value === "string" &&
+    approvedProPaths.includes(value)
+  ) {
+    return value;
+  }
+
+  if (
+    typeof value === "string" &&
+    /^\/pro\/inventory\/[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(value)
+  ) {
     return value;
   }
 
@@ -313,6 +342,7 @@ export function safeReturnTo(value: string | undefined | null): string {
 
   return "/my";
 }
+
 
 
 async function getJwks(url: string): Promise<OidcJwk[]> {
