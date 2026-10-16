@@ -1,0 +1,157 @@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Replacement = $Replacement.Replace("`r`n", "`n")
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $Replacement.EndsWith("`n")) {
+>>     $Replacement += "`n"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Capture live branch HEAD and require the inspected baseline.
+PS D:\Homio\REOS_CONTROL_CENTER> $RepoInfo = Invoke-GitHubApi -Method GET -Endpoint ""
+Invoke-GitHubApi : Cannot bind argument to parameter 'Endpoint' because it is an empty string.
+At line:1 char:52
++ $RepoInfo = Invoke-GitHubApi -Method GET -Endpoint ""
++                                                    ~~
+    + CategoryInfo          : InvalidData: (:) [Invoke-GitHubApi], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Invoke-GitHubApi
+
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $RepoInfo.permissions.push) {
+>>     throw "The authenticated GitHub identity does not have repository write permission."
+>> }
+The authenticated GitHub identity does not have repository write permission.
+At line:2 char:5
++     throw "The authenticated GitHub identity does not have repository ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (The authenticat...ite permission.:String) [], RuntimeException
+    + FullyQualifiedErrorId : The authenticated GitHub identity does not have repository write permission.
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Ref = Invoke-GitHubApi -Method GET -Endpoint "/git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> $BaseSha = $Ref.object.sha
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($BaseSha -cne $ExpectedHead) {
+>>     throw "Branch HEAD changed. Expected $ExpectedHead but found $BaseSha. No repository write attempted; refresh the live baseline first."
+>> }
+Branch HEAD changed. Expected 4823a1e578e4017f0653b5cbdd5d6e10f8ea070b but found cf3a21113766dd1c4f012f32ca3494d19acf51d3. No repository write attempted;
+refresh the live baseline first.
+At line:2 char:5
++     throw "Branch HEAD changed. Expected $ExpectedHead but found $Bas ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Branch HEAD cha...baseline first.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Branch HEAD changed. Expected 4823a1e578e4017f0653b5cbdd5d6e10f8ea070b but found cf3a21113766dd1c4f012f32ca3494d19acf51d3. N
+   o repository write attempted; refresh the live baseline first.
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Guard every relevant file against stale or unexpected content.
+PS D:\Homio\REOS_CONTROL_CENTER> $GuardFiles = @(
+>>     @{ Path = "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py"; Sha = "56422291ad5d2ea5c500372e259154d0b8a28883" },
+>>     @{ Path = "HOMIO_REOS_FIX_EXECUTION_STRUCTURE"; Sha = "dbe4f2f5a4994b0eca7e270e17fb924c4f475998" },
+>>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_transaction.py"; Sha = "ef490f1ded7688ac9c541f1d3263d5ec0c518db1" },
+>>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/test_git_transaction.py"; Sha = "069dd87f9015482fd8ab8ec70c585ace0c4f9642" },
+>>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/test_git_concurrency.py"; Sha = "a6c4b21b4e2d776ae61e3419767ac145d5485a41" },
+>>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/test_git_scope.py"; Sha = "5ce67b044682f102e51bb922329100c5853a9152" },
+>>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_models.py"; Sha = "059058d0cc4d6d8114fe45624212354d63f265c1" },
+>>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_scope.py"; Sha = "b9d5008f3525a94346f44c228d6163a42e989053" },
+>>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_policy.py"; Sha = "f6f15bde6e2f7e2733bda0d8cf17df8a51dcdb2d" },
+>>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_lock.py"; Sha = "17adf3518b1d63ef502f1ff54f59a7d91a12e1f3" },
+>>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_validation.py"; Sha = "ec5fd912b3e7522849c153989f83a8bbbe0b88bc" },
+>>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_push.py"; Sha = "99b0bfbc0261f039b7151258e8d2eb502d3f84ab" },
+>>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_commit.py"; Sha = "f872b8f27e92747e3a8a216dc78d045ae25826f3" },
+>>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_stage.py"; Sha = "9d44c90745c90deb82d4ee13fbff969bfcd9a4af" },
+>>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_read.py"; Sha = "a00c007a06a1d696a81fb1d2d1002ed35778944e" },
+>>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_repository.py"; Sha = "3a65298a66c87650a4bc7e1123b2688b3f9d0c34" },
+>>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_authorization.py"; Sha = "371c7bf7dd2a30e426dd5f87d6e9600133c84e63" },
+>>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_registry.py"; Sha = "35494a5fe4f890e56e2b6a0918f2e667816a97ed" }
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Guard in $GuardFiles) {
+>>     $EncodedPath = Get-EncodedRepoPath $Guard.Path
+>>     $RemoteFile = Invoke-GitHubApi -Method GET -Endpoint "/contents/$EncodedPath`?ref=$Branch"
+>>
+>>     if ($RemoteFile.sha -cne $Guard.Sha) {
+>>         throw "Guard failed for $($Guard.Path). Remote blob SHA changed; no write attempted."
+>>     }
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Confirm the target file has exactly the expected inspected blob before replacing it.
+PS D:\Homio\REOS_CONTROL_CENTER> $TargetEncoded = Get-EncodedRepoPath $ChangePath
+PS D:\Homio\REOS_CONTROL_CENTER> $TargetBefore = Invoke-GitHubApi -Method GET -Endpoint "/contents/$TargetEncoded`?ref=$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($TargetBefore.sha -cne "a6c4b21b4e2d776ae61e3419767ac145d5485a41") {
+>>     throw "Concurrency test target changed after preflight. No write attempted."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Create blob and tree without writing local project files.
+PS D:\Homio\REOS_CONTROL_CENTER> $Blob = Invoke-GitHubApi -Method POST -Endpoint "/git/blobs" -Body @{
+>>     content = $Replacement
+>>     encoding = "utf-8"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $BaseCommit = Invoke-GitHubApi -Method GET -Endpoint "/git/commits/$BaseSha"
+PS D:\Homio\REOS_CONTROL_CENTER> $Tree = Invoke-GitHubApi -Method POST -Endpoint "/git/trees" -Body @{
+>>     base_tree = $BaseCommit.tree.sha
+>>     tree = @(
+>>         @{
+>>             path = $ChangePath
+>>             mode = "100644"
+>>             type = "blob"
+>>             sha = $Blob.sha
+>>         }
+>>     )
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $NewCommit = Invoke-GitHubApi -Method POST -Endpoint "/git/commits" -Body @{
+>>     message = "Fix missing subprocess import in T21 concurrency tests"
+>>     tree = $Tree.sha
+>>     parents = @($BaseSha)
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Lease check: refuse if the live branch moved while the commit was prepared.
+PS D:\Homio\REOS_CONTROL_CENTER> $RefBeforeUpdate = Invoke-GitHubApi -Method GET -Endpoint "/git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($RefBeforeUpdate.object.sha -cne $BaseSha) {
+>>     throw "Branch HEAD changed during preparation. Commit object was not published to the branch."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Non-force branch update only.
+PS D:\Homio\REOS_CONTROL_CENTER> $null = Invoke-GitHubApi -Method PATCH -Endpoint "/git/refs/heads/$Branch" -Body @{
+>>     sha = $NewCommit.sha
+>>     force = $false
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Independent readback verification.
+PS D:\Homio\REOS_CONTROL_CENTER> $FinalRef = Invoke-GitHubApi -Method GET -Endpoint "/git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($FinalRef.object.sha -cne $NewCommit.sha) {
+>>     throw "Readback failed: branch HEAD does not equal the new commit."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $CommitCheck = Invoke-GitHubApi -Method GET -Endpoint "/git/commits/$($NewCommit.sha)"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($CommitCheck.parents.Count -ne 1 -or $CommitCheck.parents[0].sha -cne $BaseSha) {
+>>     throw "Readback failed: commit parent does not match the inspected baseline."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Readback = Invoke-GitHubApi -Method GET -Endpoint "/contents/$TargetEncoded`?ref=$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Readback.sha -cne $Blob.sha) {
+>>     throw "Readback failed: remote file blob SHA mismatch."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $ReadbackText = [System.Text.Encoding]::UTF8.GetString(
+>>     [Convert]::FromBase64String(($Readback.content -replace "\s", ""))
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER> if ($ReadbackText -cne $Replacement) {
+>>     throw "Readback failed: remote file content does not exactly match the replacement."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
+
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE SYNC PASS" -ForegroundColor Green
+REMOTE SYNC PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch: $Branch"
+Branch: reos-development
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Parent: $BaseSha"
+Parent: cf3a21113766dd1c4f012f32ca3494d19acf51d3
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit: $($NewCommit.sha)"
+Commit: 0ef7dcf48c95a536b84a6e48f407a9e01c28601d
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "File: $ChangePath"
+File: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/test_git_concurrency.py
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Blob: $($Readback.sha)"
+Blob: 64747cd7a7284117dd68edb990daa89225f7531b
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Exact content, branch HEAD and commit parent verified."
+Exact content, branch HEAD and commit parent verified.
+PS D:\Homio\REOS_CONTROL_CENTER>
