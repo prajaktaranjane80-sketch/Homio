@@ -1,310 +1,442 @@
-PS D:\Homio\REOS_CONTROL_CENTER> $RemoteFile = Invoke-HomioApi -Method GET -RelativePath "contents/$Path?ref=$Branch"
-Invoke-RestMethod : {"message":"Not Found","documentation_url":"https://docs.github.com/rest/repos/contents#get-repository-content","status":"404"}
-At line:11 char:16
-+ ...      return Invoke-RestMethod -Method $Method -Uri $Uri -Headers $Hea ...
-+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
-    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
-PS D:\Homio\REOS_CONTROL_CENTER> $OriginalBlob = $RemoteFile.sha
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($RemoteFile.encoding -ne "base64") {
->>     throw "Unexpected target-file encoding. No changes made."
->> }
-Unexpected target-file encoding. No changes made.
-At line:2 char:5
-+     throw "Unexpected target-file encoding. No changes made."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Unexpected targ...o changes made.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Unexpected target-file encoding. No changes made.
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Source = [Text.Encoding]::UTF8.GetString(
->>     [Convert]::FromBase64String(($RemoteFile.content -replace "\s", ""))
->> )
-PS D:\Homio\REOS_CONTROL_CENTER> $Source = $Source -replace "`r`n?", "`n"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $Source.StartsWith('"""')) {
->>     throw "Unexpected Python entrypoint header. No changes made."
->> }
-Unexpected Python entrypoint header. No changes made.
-At line:2 char:5
-+     throw "Unexpected Python entrypoint header. No changes made."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Unexpected Pyth...o changes made.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Unexpected Python entrypoint header. No changes made.
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Updated = $Source
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 2. Replace only known, verified policy statements.
-PS D:\Homio\REOS_CONTROL_CENTER> $Old = @'
->> IMPLEMENTATION_WRITE_INTERFACE = (
->>     "Guarded PowerShell GitHub REST API writes to branch reos-development; "
->>     "manual GitHub UI saves remain optional"
->> )
->> '@.Trim()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $New = @'
->> IMPLEMENTATION_WRITE_INTERFACE = (
->>     "Guarded PowerShell GitHub REST API writes to branch reos-development; "
->>     "no separate workflow runner or parallel workflow authority"
->> )
->> '@.Trim()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Updated = Replace-HomioExactOnce $Updated $Old $New "Write interface"
-Replace-HomioExactOnce : Cannot bind argument to parameter 'Text' because it is an empty string.
-At line:1 char:35
-+ $Updated = Replace-HomioExactOnce $Updated $Old $New "Write interface ...
-+                                   ~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Replace-HomioExactOnce], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Replace-HomioExactOnce
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Old = @'
->> DEVELOPMENT_WORKFLOW_RULES: tuple[str, ...] = (
->>     "GitHub branch reos-development is the canonical implementation source.",
->>     "Guarded PowerShell GitHub REST API writes are the approved remote implementation workflow; manual GitHub UI saving remains optional.",
->> '@.TrimEnd()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $New = @'
->> DEVELOPMENT_WORKFLOW_RULES: tuple[str, ...] = (
->>     "This entrypoint is the single agent-facing home for canonical workflow-sync rules; it defines policy and does not execute writes.",
->>     "GitHub branch reos-development is the canonical implementation source.",
->>     "Guarded PowerShell GitHub REST API writes are the default implementation workflow; manual GitHub UI editing is a fallback only when the owner explicitly asks for it.",
->>     "Do not create, download, invoke, or rely on HOMIO_REMOTE_WORKFLOW_SYNC.ps1 or another standalone runner as a competing workflow authority.",
->>     "Supporting work-plan files document execution sequence; they must not create a competing policy or override the authoritative Control Center state.",
->> '@.TrimEnd()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Updated = Replace-HomioExactOnce $Updated $Old $New "Central workflow policy"
-Replace-HomioExactOnce : Cannot bind argument to parameter 'Text' because it is an empty string.
-At line:1 char:35
-+ $Updated = Replace-HomioExactOnce $Updated $Old $New "Central workflo ...
-+                                   ~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Replace-HomioExactOnce], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Replace-HomioExactOnce
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Old = @'
->>     "After a remote GitHub API write or manual GitHub save, independently verify the branch, commit parent and exact changed file content before declaring PASS.",
->> '@.Trim()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $New = @'
->>     "After a guarded remote GitHub API write, independently verify the resulting branch, commit parent and exact changed file content before declaring PASS; apply the same checks if the owner explicitly chooses a manual UI fallback.",
->> '@.Trim()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Updated = Replace-HomioExactOnce $Updated $Old $New "Write verification rule"
-Replace-HomioExactOnce : Cannot bind argument to parameter 'Text' because it is an empty string.
-At line:1 char:35
-+ $Updated = Replace-HomioExactOnce $Updated $Old $New "Write verificat ...
-+                                   ~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Replace-HomioExactOnce], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Replace-HomioExactOnce
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Old = @'
->>     "AI_AGENT_ENTRYPOINT.py is a descriptive repository contract and MUST NOT execute Git writes.",
->> '@.Trim()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $New = @'
->>     "AI_AGENT_ENTRYPOINT.py defines the canonical agent-facing workflow-sync policy but MUST NOT execute Git writes itself.",
->> '@.Trim()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Updated = Replace-HomioExactOnce $Updated $Old $New "Remote sync ownership"
-Replace-HomioExactOnce : Cannot bind argument to parameter 'Text' because it is an empty string.
-At line:1 char:35
-+ $Updated = Replace-HomioExactOnce $Updated $Old $New "Remote sync own ...
-+                                   ~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Replace-HomioExactOnce], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Replace-HomioExactOnce
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Old = @'
->>     "AI_AGENT_ENTRYPOINT.py does not own Git synchronization.",
->> '@.Trim()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $New = @'
->>     "AI_AGENT_ENTRYPOINT.py defines the agent-facing Git/workflow synchronization policy but does not execute Git writes.",
->> '@.Trim()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Updated = Replace-HomioExactOnce $Updated $Old $New "Preflight ownership"
-Replace-HomioExactOnce : Cannot bind argument to parameter 'Text' because it is an empty string.
-At line:1 char:35
-+ $Updated = Replace-HomioExactOnce $Updated $Old $New "Preflight owner ...
-+                                   ~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Replace-HomioExactOnce], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Replace-HomioExactOnce
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Old = @'
->>     "10. Apply approved implementation changes via the guarded PowerShell GitHub REST API workflow or manual GitHub UI.",
->> '@.Trim()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $New = @'
->>     "10. Apply approved implementation changes via the guarded PowerShell GitHub REST API workflow; use the manual GitHub UI only if the owner explicitly requests that fallback.",
->> '@.Trim()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Updated = Replace-HomioExactOnce $Updated $Old $New "Execution workflow"
-Replace-HomioExactOnce : Cannot bind argument to parameter 'Text' because it is an empty string.
-At line:1 char:35
-+ $Updated = Replace-HomioExactOnce $Updated $Old $New "Execution workf ...
-+                                   ~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Replace-HomioExactOnce], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Replace-HomioExactOnce
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Old = @'
->>     "The AI may provide a complete guarded PowerShell block for approved remote GitHub changes; local worktree writes remain forbidden.",
->>     "The AI must reserve local PowerShell worktree instructions for read-only diagnosis; guarded remote GitHub API writes are permitted under the workflow contract.",
->> '@.Trim()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $New = @'
->>     "The AI may provide a complete, self-contained guarded PowerShell block for an approved remote GitHub API change; local worktree writes remain forbidden.",
->>     "PowerShell is read-only when inspecting the local worktree, but may perform guarded remote GitHub REST API writes under this contract.",
->>     "Never ask the owner to run an unverified standalone sync script; workflow rules belong in this entrypoint, and any requested PowerShell block must be complete in the same message.",
->> '@.Trim()
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Updated = Replace-HomioExactOnce $Updated $Old $New "Owner workflow"
-Replace-HomioExactOnce : Cannot bind argument to parameter 'Text' because it is an empty string.
-At line:1 char:35
-+ $Updated = Replace-HomioExactOnce $Updated $Old $New "Owner workflow"
-+                                   ~~~~~~~~
-    + CategoryInfo          : InvalidData: (:) [Replace-HomioExactOnce], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Replace-HomioExactOnce
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($Updated -eq $Source) {
->>     throw "No changes were produced. Nothing to commit."
->> }
-No changes were produced. Nothing to commit.
-At line:2 char:5
-+     throw "No changes were produced. Nothing to commit."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (No changes were...hing to commit.:String) [], RuntimeException
-    + FullyQualifiedErrorId : No changes were produced. Nothing to commit.
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($Updated.Contains("manual GitHub UI saves remain optional")) {
->>     throw "A stale workflow statement remains. Nothing to commit."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $Updated.Contains("HOMIO_REMOTE_WORKFLOW_SYNC.ps1")) {
->>     throw "Standalone-runner prohibition is missing. Nothing to commit."
->> }
-Standalone-runner prohibition is missing. Nothing to commit.
-At line:2 char:5
-+     throw "Standalone-runner prohibition is missing. Nothing to commi ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Standalone-runn...hing to commit.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Standalone-runner prohibition is missing. Nothing to commit.
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 3. Prepare a Git Data API commit based on the captured live HEAD.
-PS D:\Homio\REOS_CONTROL_CENTER> $NewBlob = Invoke-HomioApi -Method POST -RelativePath "git/blobs" -Body @{
->>     content = $Updated
->>     encoding = "utf-8"
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $NewTree = Invoke-HomioApi -Method POST -RelativePath "git/trees" -Body @{
->>     base_tree = $BaseTree
->>     tree = @(
->>         @{
->>             path = $Path
->>             mode = "100644"
->>             type = "blob"
->>             sha = $NewBlob.sha
+PS D:\Homio\REOS_CONTROL_CENTER> & {
+>>     $ErrorActionPreference = "Stop"
+>>
+>>     try {
+>>         $Repo = "prajaktaranjane80-sketch/Homio"
+>>         $Branch = "reos-development"
+>>         $ApiRoot = "https://api.github.com/repos/$Repo"
+>>
+>>         $T20 = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/"
+>>         $T21 = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/"
+>>
+>>         $T20Model = "${T20}repair_models.py"
+>>         $T20Transaction = "${T20}repair_transaction.py"
+>>         $T20Verification = "${T20}patch_verification.py"
+>>         $T20Contract = "${T20}t20.contract.json"
+>>         $T20ContractTest = "${T20}test_repair_contract.py"
+>>         $T20TransactionTest = "${T20}test_repair_transaction.py"
+>>
+>>         $T21Model = "${T21}git_models.py"
+>>         $T21Policy = "${T21}git_policy.py"
+>>         $T21Scope = "${T21}git_scope.py"
+>>         $T21Stage = "${T21}git_stage.py"
+>>         $T21Lock = "${T21}git_lock.py"
+>>         $T21Read = "${T21}git_read.py"
+>>         $T21Validation = "${T21}git_validation.py"
+>>         $T21Transaction = "${T21}git_transaction.py"
+>>         $T21Contract = "${T21}t21.contract.json"
+>>         $T21ContractTest = "${T21}test_t21_contract.py"
+>>         $T21SecurityTest = "${T21}test_git_security.py"
+>>         $T21StageTest = "${T21}test_git_stage.py"
+>>         $T21LockTest = "${T21}test_git_concurrency.py"
+>>         $T21TransactionTest = "${T21}test_git_transaction.py"
+>>
+>>         $EntryPath = "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py"
+>>         $StatePath = "REOS_CONTROL_CENTER/data/state.json"
+>>         $LogPath = "REOS_CONTROL_CENTER/PS Output"
+>>         $EvidenceMarker = "T20_T21_VERIFIED_PATCH_HANDOFF_SYNC"
+>>
+>>         if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+>>             throw "GitHub CLI is unavailable. No files changed."
 >>         }
+>>
+>>         $TokenLines = & gh auth token 2>$null
+>>         if ($LASTEXITCODE -ne 0) {
+>>             throw "GitHub authentication failed. No files changed."
+>>         }
+>>
+>>         $Token = (@($TokenLines) -join "`n").Trim()
+>>         if (-not $Token) {
+>>             throw "GitHub token unavailable. No files changed."
+>>         }
+>>
+>>         $Headers = @{
+>>             Authorization = "Bearer $Token"
+>>             Accept = "application/vnd.github+json"
+>>             "X-GitHub-Api-Version" = "2022-11-28"
+>>             "User-Agent" = "HOMIO-REOS-T20-T21-Contract-Alignment"
+>>         }
+>>
+>>         function Api {
+>>             param(
+>>                 [Parameter(Mandatory = $true)][string]$Method,
+>>                 [Parameter(Mandatory = $true)][string]$Path,
+>>                 [object]$Body = $null
+>>             )
+>>
+>>             if ($null -eq $Body) {
+>>                 return Invoke-RestMethod -Method $Method `
+>>                     -Uri "$ApiRoot/$Path" `
+>>                     -Headers $Headers `
+>>                     -ErrorAction Stop
+>>             }
+>>
+>>             $Json = ConvertTo-Json -InputObject $Body -Depth 25 -Compress
+>>             $Bytes = [Text.Encoding]::UTF8.GetBytes($Json)
+>>
+>>             return Invoke-RestMethod -Method $Method `
+>>                 -Uri "$ApiRoot/$Path" `
+>>                 -Headers $Headers `
+>>                 -ContentType "application/json; charset=utf-8" `
+>>                 -Body $Bytes `
+>>                 -ErrorAction Stop
+>>         }
+>>
+>>         function Replace-Exact {
+>>             param(
+>>                 [Parameter(Mandatory = $true)][string]$Text,
+>>                 [Parameter(Mandatory = $true)][string]$Old,
+>>                 [Parameter(Mandatory = $true)][string]$New,
+>>                 [Parameter(Mandatory = $true)][string]$Label
+>>             )
+>>
+>>             if ($Text.Contains($New)) {
+>>                 return $Text
+>>             }
+>>
+>>             $Count = [regex]::Matches(
+>>                 $Text,
+>>                 [regex]::Escape($Old)
+>>             ).Count
+>>
+>>             if ($Count -ne 1) {
+>>                 throw "$Label expected exactly one existing anchor; found $Count. No commit made."
+>>             }
+>>
+>>             return $Text.Replace($Old, $New)
+>>         }
+>>
+>>         function Read-BlobText {
+>>             param([Parameter(Mandatory = $true)][string]$Sha)
+>>
+>>             $Blob = Api -Method GET -Path "git/blobs/$Sha"
+>>
+>>             if ($Blob.encoding -ne "base64") {
+>>                 throw "Unexpected encoding for blob $Sha."
+>>             }
+>>
+>>             return [Text.Encoding]::UTF8.GetString(
+>>                 [Convert]::FromBase64String(($Blob.content -replace "\s", ""))
+>>             )
+>>         }
+>>
+>>         function Find-TreeBlob {
+>>             param(
+>>                 [object]$Tree,
+>>                 [Parameter(Mandatory = $true)][string]$Path
+>>             )
+>>
+>>             $Found = @($Tree.tree | Where-Object {
+>>                 $_.path -ceq $Path -and $_.type -ceq "blob"
+>>             })
+>>
+>>             if ($Found.Count -ne 1) {
+>>                 throw "Expected exactly one existing file at '$Path'; found $($Found.Count)."
+>>             }
+>>
+>>             return $Found[0]
+>>         }
+>>
+>>         # 1. Read the latest canonical HEAD and exact existing blobs.
+>>         $Ref = Api GET "git/ref/heads/$Branch"
+>>         $BaseHead = $Ref.object.sha
+>>         $BaseCommit = Api GET "git/commits/$BaseHead"
+>>         $BaseTreeSha = $BaseCommit.tree.sha
+>>         $BaseTree = Api GET "git/trees/$BaseTreeSha?recursive=1"
+>>
+>>         if ($BaseTree.truncated) {
+>>             throw "Repository tree is truncated; no changes made."
+>>         }
+>>
+>>         $TargetPaths = @(
+>>             $T20Model, $T20Transaction, $T20Verification,
+>>             $T20Contract, $T20ContractTest, $T20TransactionTest,
+>>             $T21Model, $T21Policy, $T21Scope, $T21Stage,
+>>             $T21Lock, $T21Read, $T21Validation, $T21Transaction,
+>>             $T21Contract, $T21ContractTest, $T21SecurityTest,
+>>             $T21StageTest, $T21LockTest, $T21TransactionTest
+>>         )
+>>
+>>         $Original = @{}
+>>         $OriginalSha = @{}
+>>         $Content = @{}
+>>
+>>         foreach ($Path in $TargetPaths) {
+>>             $Blob = Find-TreeBlob $BaseTree $Path
+>>             $OriginalSha[$Path] = $Blob.sha
+>>             $Original[$Path] = Read-BlobText $Blob.sha
+>>             $Content[$Path] = $Original[$Path]
+>>         }
+>>
+>>         $EntryBlobBefore = (Find-TreeBlob $BaseTree $EntryPath).sha
+>>         $StateBlobBefore = (Find-TreeBlob $BaseTree $StatePath).sha
+>>
+>>         if ($EntryBlobBefore -ne "e5b08410dde491caa2347e6f789f3dc3a6259dc2") {
+>>             throw "AI_AGENT_ENTRYPOINT changed since its successful restore. Re-audit before continuing."
+>>         }
+>>
+>>         # 2. T20: make the verified candidate patch available as data in RepairResult.
+>>         $Old = @'
+>>     verification: PatchVerification | None
+>>     evidence_fingerprint: str
+>>
+>>     def to_dict(self) -> dict[str, Any]:
+>> '@
+>>         $New = @'
+>>     verification: PatchVerification | None
+>>     evidence_fingerprint: str
+>>     candidate_patch: str = ""
+>>
+>>     def to_dict(self) -> dict[str, Any]:
+>> '@
+>>         $Content[$T20Model] = Replace-Exact $Content[$T20Model] $Old $New "T20 RepairResult field"
+>>
+>>         $Old = @'
+>>             "verification": (
+>>                 self.verification.to_dict()
+>>                 if self.verification
+>>                 else None
+>>             ),
+>>             "evidence_fingerprint": self.evidence_fingerprint,
+>> '@
+>>         $New = @'
+>>             "verification": (
+>>                 self.verification.to_dict()
+>>                 if self.verification
+>>                 else None
+>>             ),
+>>             "evidence_fingerprint": self.evidence_fingerprint,
+>>             "candidate_patch": self.candidate_patch,
+>> '@
+>>         $Content[$T20Model] = Replace-Exact $Content[$T20Model] $Old $New "T20 RepairResult serialization"
+>>
+>>         $Old = @'
+>>                 verification=verification,
+>>                 evidence_fingerprint=(
+>>                     verification.evidence.evidence_fingerprint
+>>                 ),
+>> '@
+>>         $New = @'
+>>                 verification=verification,
+>>                 evidence_fingerprint=(
+>>                     verification.evidence.evidence_fingerprint
+>>                 ),
+>>                 candidate_patch=request.candidate_patch,
+>> '@
+>>         $Content[$T20Transaction] = Replace-Exact $Content[$T20Transaction] $Old $New "T20 verified result handoff"
+>>
+>>         # Ignore T21's transient lock file in T20 tree fingerprints.
+>>         $Old = @'
+>>                 ".venv",
+>>                 "venv",
+>>                 "node_modules",
+>>             }
+>> '@
+>>         $New = @'
+>>                 ".venv",
+>>                 "venv",
+>>                 "node_modules",
+>>                 ".reos_t21_transaction.lock",
+>>             }
+>> '@
+>>         $Content[$T20Verification] = Replace-Exact $Content[$T20Verification] $Old $New "T20/T21 tree fingerprint boundary"
+>>
+>>         # Add an explicit machine-readable T20 -> T21 handoff contract.
+>>         $Old = @'
+>>   ],
+>>   "decisions": [
+>> '@
+>>         $New = @'
+>>   ],
+>>   "t21_handoff": {
+>>     "result_field": "RepairResult.candidate_patch",
+>>     "available_when": "decision == VERIFIED",
+>>     "fingerprint_rule": "sha256(candidate_patch) must equal RepairResult.patch_fingerprint and the T21 request repair_fingerprint.",
+>>     "baseline_rule": "T21 must compare baseline_fingerprint with the live repository tree before applying the patch.",
+>>     "final_tree_rule": "T21 must compare final_tree_fingerprint after applying the same patch.",
+>>     "path_rule": "Patch paths, RepairResult.changed_paths and T21 authorized changed paths must match.",
+>>     "authority_rule": "T20 verifies in an isolated workspace and never authorizes Git writes, mutates the main repository, or publishes to GitHub."
+>>   },
+>>   "decisions": [
+>> '@
+>>         $Content[$T20Contract] = Replace-Exact $Content[$T20Contract] $Old $New "T20 handoff contract"
+>>
+>>         $Old = @'
+>>     "04_outputs": "Immutable repair result and verification evidence.",
+>> '@
+>>         $New = @'
+>>     "04_outputs": "Immutable repair result, verification evidence, and the verified candidate patch on VERIFIED results.",
+>> '@
+>>         $Content[$T20Contract] = Replace-Exact $Content[$T20Contract] $Old $New "T20 output contract"
+>>
+>>         $Old = @'
+>>     "21_integration_contract": "T18 authorizes, T20 repairs and verifies.",
+>> '@
+>>         $New = @'
+>>     "21_integration_contract": "T18 authorizes; T20 verifies in isolation and carries the patch as data only when VERIFIED; T21 revalidates and performs the authorized Git transaction.",
+>> '@
+>>         $Content[$T20Contract] = Replace-Exact $Content[$T20Contract] $Old $New "T20/T21 integration contract"
+>>
+>>         $Old = @'
+>>     assert payload["schema_version"] == "1.0"
+>>     assert len(payload["deep_audit"]) == 26
+>> '@
+>>         $New = @'
+>>     assert payload["schema_version"] == "1.0"
+>>     assert len(payload["deep_audit"]) == 26
+>>     assert payload["t21_handoff"]["result_field"] == "RepairResult.candidate_patch"
+>>     assert "never authorizes Git writes" in payload["t21_handoff"]["authority_rule"]
+>> '@
+>>         $Content[$T20ContractTest] = Replace-Exact $Content[$T20ContractTest] $Old $New "T20 handoff contract test"
+>>
+>>         if (-not $Content[$T20TransactionTest].Contains("assert result.candidate_patch == request.candidate_patch")) {
+>>             $Old = @'
+>>     assert result.decision.value == "VERIFIED"
+>>     assert result.reason.value == "VALID"
+>> '@
+>>             $New = @'
+>>     assert result.decision.value == "VERIFIED"
+>>     assert result.reason.value == "VALID"
+>>     assert result.candidate_patch == request.candidate_patch
+>> '@
+>>             $Content[$T20TransactionTest] = Replace-Exact $Content[$T20TransactionTest] $Old $New "T20 verified patch regression assertion"
+>>         }
+>>
+>>         if (-not $Content[$T20ContractTest].Contains("test_t20_tree_fingerprint_excludes_t21_lock_file")) {
+>>             $Content[$T20ContractTest] += @'
+>>
+>>
+>> def test_t20_tree_fingerprint_excludes_t21_lock_file(tmp_path):
+>>     from .patch_verification import tree_fingerprint
+>>
+>>     source = tmp_path / "source.py"
+>>     source.write_text("VALUE = 1\n", encoding="utf-8")
+>>     baseline = tree_fingerprint(tmp_path)
+>>
+>>     lock_file = tmp_path / ".reos_t21_transaction.lock"
+>>     lock_file.write_text("12345\n", encoding="utf-8")
+>>
+>>     assert tree_fingerprint(tmp_path) == baseline
+>> '@
+>>         }
+>>
+>>         # 3. T21 policy v1.1, literal staging, and repository-path safeguards.
+>>         $Old = @'
+>>     policy_version: str = "1.0"
+>> '@
+>>         $New = @'
+>>     policy_version: str = "1.1"
+>> '@
+>>         $Content[$T21Model] = Replace-Exact $Content[$T21Model] $Old $New "T21 policy version"
+>>
+>>         $Old = @'
+>>         ".gitmodules",
+>>         "data/state.json",
+>>         "REOS_CONTROL_CENTER/data/state.json",
+>> '@
+>>         $New = @'
+>>         ".gitmodules",
+>>         ".reos_t21_transaction.lock",
+>>         "data/state.json",
+>>         "REOS_CONTROL_CENTER/data/state.json",
+>> '@
+>>         $Content[$T21Model] = Replace-Exact $Content[$T21Model] $Old $New "T21 protected lock path"
+>>
+>>         $Old = @'
+>>     if policy.policy_version != "1.0":
+>> '@
+>>         $New = @'
+>>     if policy.policy_version != "1.1":
+>> '@
+>>         $Content[$T21Policy] = Replace-Exact $Content[$T21Policy] $Old $New "T21 policy validator"
+>>
+>>         $Old = @'
+>> from pathlib import PurePosixPath
+>>
+>> from .git_models import GitPolicy, GitTransactionRequest
+>> '@
+>>         $New = @'
+>> import re
+>>
+>> from .git_models import GitPolicy, GitTransactionRequest
+>> '@
+>>         $Content[$T21Scope] = Replace-Exact $Content[$T21Scope] $Old $New "T21 path-scope imports"
+>>
+>>         $Old = @'
+>> def is_safe_repository_path(
+>>     path: str,
+>> ) -> bool:
+>>     normalized = normalize_path(path)
+>>
+>>     if not normalized:
+>>         return False
+>>
+>>     if normalized.startswith("/"):
+>>         return False
+>>
+>>     parts = PurePosixPath(
+>>         normalized
+>>     ).parts
+>>
+>>     return (
+>>         ".." not in parts
+>>         and "." not in parts
 >>     )
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $NewCommit = Invoke-HomioApi -Method POST -RelativePath "git/commits" -Body @{
->>     message = "Align AI agent entrypoint with canonical workflow sync rules"
->>     tree = $NewTree.sha
->>     parents = @($BaseHead)
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($NewCommit.parents.Count -ne 1 -or $NewCommit.parents[0].sha -ne $BaseHead) {
->>     throw "Prepared commit does not have the captured HEAD as parent. Branch not updated."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 4. Guard the branch update. Never force-push.
-PS D:\Homio\REOS_CONTROL_CENTER> $RefCheck = Invoke-HomioApi -Method GET -RelativePath "git/ref/heads/$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($RefCheck.object.sha -ne $BaseHead) {
->>     throw "Branch HEAD changed during preparation. Branch not updated; retry from a fresh preflight."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $null = Invoke-HomioApi -Method PATCH -RelativePath "git/refs/heads/$Branch" -Body @{
->>     sha = $NewCommit.sha
->>     force = $false
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 5. Independently read back branch, commit parent and exact file bytes.
-PS D:\Homio\REOS_CONTROL_CENTER> $RefAfter = Invoke-HomioApi -Method GET -RelativePath "git/ref/heads/$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER> if ($RefAfter.object.sha -ne $NewCommit.sha) {
->>     throw "Branch read-back does not match the new commit. Do not report PASS."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $CommitAfter = Invoke-HomioApi -Method GET -RelativePath "git/commits/$($NewCommit.sha)"
-PS D:\Homio\REOS_CONTROL_CENTER> if ($CommitAfter.parents.Count -ne 1 -or $CommitAfter.parents[0].sha -ne $BaseHead) {
->>     throw "Commit parent read-back failed. Do not report PASS."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $FileAfter = Invoke-HomioApi -Method GET -RelativePath "contents/$Path?ref=$Branch"
-Invoke-RestMethod : {"message":"Not Found","documentation_url":"https://docs.github.com/rest/repos/contents#get-repository-content","status":"404"}
-At line:11 char:16
-+ ...      return Invoke-RestMethod -Method $Method -Uri $Uri -Headers $Hea ...
-+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
-    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
-PS D:\Homio\REOS_CONTROL_CENTER> if ($FileAfter.sha -ne $NewBlob.sha) {
->>     throw "EntryPoint blob read-back failed. Do not report PASS."
->> }
-EntryPoint blob read-back failed. Do not report PASS.
-At line:2 char:5
-+     throw "EntryPoint blob read-back failed. Do not report PASS."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (EntryPoint blob...ot report PASS.:String) [], RuntimeException
-    + FullyQualifiedErrorId : EntryPoint blob read-back failed. Do not report PASS.
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $ReadBack = [Text.Encoding]::UTF8.GetString(
->>     [Convert]::FromBase64String(($FileAfter.content -replace "\s", ""))
->> )
-PS D:\Homio\REOS_CONTROL_CENTER> $ReadBack = $ReadBack -replace "`r`n?", "`n"
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($ReadBack -cne $Updated) {
->>     throw "EntryPoint content read-back does not match. Do not report PASS."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
-
-============================================================
-ENTRYPOINT_SYNC_EVIDENCE: b1b0caaeaba9de5b0ca6fdc5481d6e849c8024db
-Verified UTC: 2026-10-16T05:50:33Z
-Branch: reos-development
-Evidence base HEAD: 2cfa1270c9dfad14ac535f963226803f77fd3dbe
-EntryPoint restore commit: b1b0caaeaba9de5b0ca6fdc5481d6e849c8024db
-EntryPoint blob: e5b08410dde491caa2347e6f789f3dc3a6259dc2
-EntryPoint characters: 38697
-Remote file read-back: PASS
-Workflow policy checks: PASS
-Standalone runner created: NO
-Python compile / repository CI: NOT RUN by this evidence update
-This record documents the EntryPoint restore only; PS Output remains diagnostic evidence.
-============================================================
-============================================================
-WORKFLOW_SUPPORT_DOCS_SYNC: 17d0ab2faf435cc87507698166294d53bf7da126
-Verified UTC: 2026-10-16T05:53:48Z
-Branch: reos-development
-Supporting documents commit: 17d0ab2faf435cc87507698166294d53bf7da126
-Base HEAD: d8a79027f94d5ba97adf77ca98ae6ff241de0d52
-Workflow plan path: HOMIO PowerShell–GitHub Workflow Plan
-Workflow plan blob: 6ddc7c21f334620c19bf7293982598e7f7ce6b52
-Fix execution structure path: HOMIO_REOS_FIX_EXECUTION_STRUCTURE
-Fix execution structure blob: dbe4f2f5a4994b0eca7e270e17fb924c4f475998
-EntryPoint preserved blob: e5b08410dde491caa2347e6f789f3dc3a6259dc2
-Remote document read-back: PASS
-Standalone runner created: NO
-state.json / Master Structure / ACRL contracts changed: NO
-Python compile and CI: NOT RUN by this documentation sync
-============================================================
+>> '@
+>>         $New = @'
+>> def is_safe_repository_path(
+>>     path: str,
+>> ) -> bool:
+>>     if not isinstance(path, str) or not path:
+>>         return False
+>>
+>>     if any(ord(character) < 32 or ord(character) == 127 for character in path):
+>>         return False
+>>
+>>     normalized = normalize_path(path)
+>>
+>>     if normalized in {"", ".", ".."}:
+>>         return False
+>>
+>>     if normalized.startswith("/"):
+>>         return False
+>>
+>>     if re.match(r"^[A-Za-z]:", normalized):
+>>         return False
+>>
+>>     parts = normalized.split("/")
+>>
+>>     return all(
+>>         part not in {"", ".", ".."}
+>>         for part in parts
+>>     )
+>> '@
+>>         $Content[$T21Scope] = Replace-Exact $Content[$T21Scope] $Old $New "T21 path validation"
+>>
+>>         $Old = @'
+>>     repository.run(
+>>         "add",
+>>         "--",
+>>         *normalized,
+>>     )
+>> '@
+>>         $New = @'
+>>     repository.run(
+>>         "--literal-pathspecs",
+>>         "add",
+>>         "--",
+>>         *normalized,
+>>     )
+>> '@
+>>         $Content[$T21Stage] = Replace-Exact $Content[$T21Stage] $Old $New "T21 literal Git staging"
+>>
+>>         # Replace the small lock module with an ownership-aware implementation.
+>>         $Content[$T21Lock] = @'
+>> from __future__ import annotations
+>>
+>> import os
+>> from pathlib import Path
+>>
+>>
+>> class GitTransactionLockError(RuntimeError):
+>>
