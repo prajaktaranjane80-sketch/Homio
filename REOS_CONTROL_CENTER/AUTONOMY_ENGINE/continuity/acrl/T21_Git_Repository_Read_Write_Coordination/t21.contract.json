@@ -58,6 +58,7 @@
     "clean -fd",
     "state.json mutation",
     "architecture mutation",
+    "T18 authorization source mutation",
     "unbounded staging",
     "git add .",
     "write without T18 authorization",
@@ -77,7 +78,7 @@
     "fingerprint": "SHA-256 over exact UTF-8 candidate_patch bytes; must match the result and the T21 request",
     "baseline": "Live source tree must match baseline_fingerprint before the patch is applied",
     "final_tree": "Live source tree after application must match final_tree_fingerprint before staging/commit",
-    "paths": "T20 patch paths, T20 changed_paths and T21 authorized changed_paths must match exactly",
+    "paths": "T20 patch paths, T20 changed_paths, T20 verification.changed_paths and T21 authorized changed_paths must match exactly",
     "rollback": "On a pre-commit application or staging mismatch, T21 must reverse the patch and verify restoration; otherwise return FAIL_CLOSED",
     "authority": "T18 authorizes; T20 verifies an isolated patch; T21 is responsible for the authorized Git transaction"
   },
