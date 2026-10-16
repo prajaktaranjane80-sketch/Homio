@@ -48,10 +48,29 @@ def execute_repair_transaction(
     validate_policy(policy)
     RepairProvenance().validate()
     validate_authorization(authorization)
+
+    if (
+        request.authorization_fingerprint
+        != authorization.authorization_fingerprint
+    ):
+        raise ValueError(
+            "T20 request authorization fingerprint mismatch."
+        )
+
+    if (
+        request.impact_fingerprint
+        != authorization.impact_fingerprint
+    ):
+        raise ValueError(
+            "T20 request impact fingerprint mismatch."
+        )
+
     validate_request(request, policy)
     validate_patch(request)
 
-    baseline = tree_fingerprint(repository_root)
+    baseline = tree_fingerprint(
+        repository_root
+    )
 
     if baseline != request.baseline_fingerprint:
         return RepairResult(
@@ -121,6 +140,7 @@ def execute_repair_transaction(
                         "repair_id": request.repair_id,
                     }
                 ),
+                candidate_patch="",
             )
 
         verification = verify_patch(
@@ -158,8 +178,6 @@ def execute_repair_transaction(
             evidence_fingerprint=(
                 verification.evidence.evidence_fingerprint
             ),
-            # T20 remains isolated and does not write the main repository.
-            # Only VERIFIED carries the exact patch for T21 to revalidate.
             candidate_patch=(
                 request.candidate_patch
                 if decision is RepairDecision.VERIFIED
