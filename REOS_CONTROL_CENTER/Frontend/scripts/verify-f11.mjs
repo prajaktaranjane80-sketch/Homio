@@ -1,4 +1,3 @@
-
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -9,9 +8,9 @@ function read(relativePath) {
   const absolutePath = path.join(root, relativePath);
 
   assert.ok(
-    fs.existsSync(absolutePath),
-    `F11 required file is missing: ${relativePath}`,
-  );
+  authTests.includes('auth.safeReturnTo("/pro")'),
+  "Auth runtime tests must cover the F11 return path",
+);
 
   return fs.readFileSync(absolutePath, "utf8");
 }
