@@ -45,12 +45,7 @@ export default function SearchOverlay({
       </button>
 
       {open ? (
-        <div
-          className={styles.searchOverlayBackdrop}
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setOpen(false);
-          }}
-        >
+        <div className={styles.searchOverlayBackdrop}>
           <section
             className={styles.searchOverlayPanel}
             id={panelId}
@@ -61,7 +56,9 @@ export default function SearchOverlay({
             <header className={styles.searchOverlayHeader}>
               <div>
                 <span className={styles.searchOverline}>HOMIO DISCOVERY</span>
-                <h2 className={styles.searchOverlayTitle}>Where would you like to look?</h2>
+                <h2 className={styles.searchOverlayTitle}>
+                  Where would you like to look?
+                </h2>
               </div>
 
               <button
