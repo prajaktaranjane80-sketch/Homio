@@ -51,9 +51,7 @@ def execute_repair_transaction(
     validate_request(request, policy)
     validate_patch(request)
 
-    baseline = tree_fingerprint(
-        repository_root
-    )
+    baseline = tree_fingerprint(repository_root)
 
     if baseline != request.baseline_fingerprint:
         return RepairResult(
@@ -119,9 +117,7 @@ def execute_repair_transaction(
                 verification=None,
                 evidence_fingerprint=fingerprint(
                     {
-                        "reason": (
-                            "VERIFICATION_REQUIRED"
-                        ),
+                        "reason": "VERIFICATION_REQUIRED",
                         "repair_id": request.repair_id,
                     }
                 ),
@@ -156,13 +152,18 @@ def execute_repair_transaction(
             final_tree_fingerprint=(
                 verification.final_tree_fingerprint
             ),
-            changed_paths=(
-                verification.changed_paths
-            ),
+            changed_paths=verification.changed_paths,
             attempt=request.attempt,
             verification=verification,
             evidence_fingerprint=(
                 verification.evidence.evidence_fingerprint
+            ),
+            # T20 remains isolated and does not write the main repository.
+            # Only VERIFIED carries the exact patch for T21 to revalidate.
+            candidate_patch=(
+                request.candidate_patch
+                if decision is RepairDecision.VERIFIED
+                else ""
             ),
         )
 
