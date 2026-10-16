@@ -4,6 +4,7 @@ import pytest
 
 from .repair_models import RepairPolicy, RepairRequest
 from .repair_scope import (
+    is_safe_relative_path,
     patch_paths,
     validate_scope,
 )
@@ -26,31 +27,25 @@ def make_request(
     )
 
 
-def test_patch_paths_are_deterministic():
-    patch = (
-        "--- a/src/b.py\n"
-        "+++ b/src/b.py\n"
+def _single_file_patch(path: str) -> str:
+    return (
+        f"--- a/{path}\n"
+        f"+++ b/{path}\n"
         "@@ -1 +1 @@\n"
-        "-x\n"
-        "+y\n"
+        "-old\n"
+        "+new\n"
     )
 
-    assert patch_paths(patch) == (
-        "src/b.py",
-    )
+
+def test_patch_paths_are_deterministic():
+    assert patch_paths(
+        _single_file_patch("src/b.py")
+    ) == ("src/b.py",)
 
 
 def test_scope_accepts_authorized_path():
-    patch = (
-        "--- a/src/b.py\n"
-        "+++ b/src/b.py\n"
-        "@@ -1 +1 @@\n"
-        "-x\n"
-        "+y\n"
-    )
-
     request = make_request(
-        patch,
+        _single_file_patch("src/b.py"),
         ("src/b.py",),
     )
 
@@ -61,42 +56,69 @@ def test_scope_accepts_authorized_path():
 
 
 def test_scope_blocks_escape():
-    patch = (
-        "--- a/src/b.py\n"
-        "+++ b/src/other.py\n"
-        "@@ -1 +1 @@\n"
-        "-x\n"
-        "+y\n"
-    )
-
     request = make_request(
-        patch,
+        _single_file_patch("src/other.py"),
         ("src/b.py",),
     )
 
     with pytest.raises(ValueError):
-        validate_scope(
-            request,
-            RepairPolicy(),
-        )
+        validate_scope(request, RepairPolicy())
 
 
-def test_scope_blocks_state_file():
-    patch = (
-        "--- a/data/state.json\n"
-        "+++ b/data/state.json\n"
-        "@@ -1 +1 @@\n"
-        "-x\n"
-        "+y\n"
-    )
-
+@pytest.mark.parametrize(
+    "path",
+    [
+        "data/state.json",
+        "DATA/STATE.JSON",
+        "architecture/example.json",
+        "REOS_CONTROL_CENTER/architecture/example.json",
+        "AUTONOMY_ENGINE/continuity/acrl/"
+        "T18_Safe_Execution_Authorization_Guard/example.py",
+        "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/"
+        "T18_Safe_Execution_Authorization_Guard/example.py",
+        ".git/config",
+        ".gitignore",
+        ".gitmodules",
+    ],
+)
+def test_scope_blocks_protected_paths(path: str):
     request = make_request(
-        patch,
-        ("data/state.json",),
+        _single_file_patch(path),
+        (path,),
     )
 
     with pytest.raises(ValueError):
-        validate_scope(
-            request,
-            RepairPolicy(),
-        )
+        validate_scope(request, RepairPolicy())
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "C:/secret.py",
+        r"C:\secret.py",
+        "/etc/passwd",
+        "../secret.py",
+        "src/../secret.py",
+        "src//file.py",
+        "src/./file.py",
+        "src/file.py/",
+        " src/file.py",
+        "src/file.py ",
+        "src/\x00file.py",
+        "src/\nfile.py",
+    ],
+)
+def test_unsafe_relative_paths_are_rejected(path: str):
+    assert not is_safe_relative_path(path)
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "src/app.py",
+        "REOS_CONTROL_CENTER/Frontend/src/app/page.tsx",
+        "src/file name.py",
+    ],
+)
+def test_valid_relative_paths_are_accepted(path: str):
+    assert is_safe_relative_path(path)
