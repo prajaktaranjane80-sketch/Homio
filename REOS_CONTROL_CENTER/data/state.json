@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-12T21:28:10+05:30",
+    "updated_at": "2026-10-17T12:58:38+05:30",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -206,7 +206,7 @@
       },
       {
         "id": "ARCH-033",
-        "name": "Builder–Broker–Customer Relationship Protection",
+        "name": "Builder-Broker-Customer Relationship Protection",
         "status": "APPROVED"
       },
       {
@@ -2240,14 +2240,23 @@
         "gate": "CORE-007",
         "next_gate": "CORE-008"
       }
+    },
+    {
+      "id": "b4ea5717-c1e7-4877-9d9d-4a7627395eec",
+      "time": "2026-10-17T12:58:38+05:30",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-008-T01",
+        "note": "CORE-008-T01 evidence: repository commit e3d0592d06baeec1d9e52324ad47a7cd0e316b8b; backend CI run 39013430552 succeeded, compile step passed and full configured commission_financial suite passed 469 tests in 2.00s. This completes the commission-domain subtask only. CORE-008 gate acceptance criteria remain pending until each criterion has full evidence and authorized gate validation."
+      }
     }
   ],
   "integrity": {
-    "sha256": "2bc3c790f344b35d650491e957e852caef15ae92f8c12508628561f9ed43da98"
+    "sha256": "f6e6a666be67490c4b9964203c3a930eb6d6f3dd7ee0a5b999f9749e34830c47"
   },
   "execution": {
     "current_gate": "CORE-008",
-    "current_task": "CORE-008-T01: Implement commission domain.",
+    "current_task": "CORE-008-T02: Implement commission attribution and rules.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
@@ -2258,7 +2267,7 @@
       "Critical financial actions require appropriate approval.",
       "Security and concurrency tests pass."
     ],
-    "current_subtask": "CORE-008-T01"
+    "current_subtask": "CORE-008-T02"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -4210,19 +4219,21 @@
       "name": "Commission & Financial Core",
       "objective": "Implement protected commission, financial and settlement lifecycle.",
       "status": "CURRENT",
-      "current_subtask": "CORE-008-T01",
+      "current_subtask": "CORE-008-T02",
       "subtasks": [
         {
           "id": "CORE-008-T01",
           "title": "Implement commission domain",
           "priority": "CRITICAL",
-          "status": "CURRENT"
+          "status": "DONE",
+          "completed_at": "2026-10-17T12:58:38+05:30",
+          "note": "CORE-008-T01 evidence: repository commit e3d0592d06baeec1d9e52324ad47a7cd0e316b8b; backend CI run 39013430552 succeeded, compile step passed and full configured commission_financial suite passed 469 tests in 2.00s. This completes the commission-domain subtask only. CORE-008 gate acceptance criteria remain pending until each criterion has full evidence and authorized gate validation."
         },
         {
           "id": "CORE-008-T02",
           "title": "Implement commission attribution and rules",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "CURRENT"
         },
         {
           "id": "CORE-008-T03",
