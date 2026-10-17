@@ -35,46 +35,41 @@ class FinancialLedgerValidationError(
     """Invalid financial ledger entry."""
 
 
-def _text(value: str, field: str) -> str:
+def _text(value: str, field_name: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise FinancialLedgerValidationError(
-            f"{field} must be non-empty text."
+            f"{field_name} must be non-empty text."
         )
-
     return value.strip()
 
 
-def _aware(value: datetime, field: str) -> datetime:
+def _aware(value: datetime, field_name: str) -> datetime:
     if (
         not isinstance(value, datetime)
         or value.tzinfo is None
         or value.utcoffset() is None
     ):
         raise FinancialLedgerValidationError(
-            f"{field} must be timezone-aware."
+            f"{field_name} must be timezone-aware."
         )
-
     return value.astimezone(timezone.utc)
 
 
 def _freeze_json_metadata(
     value: Mapping[str, Any],
 ) -> Mapping[str, Any]:
-    """Validate, normalize and deeply freeze JSON-compatible metadata.
+    """Normalize and deeply freeze JSON-compatible metadata.
 
-    Reuses the canonical Core contract primitives instead of creating
-    a second immutable-data implementation.
+    Reuses shared Core contract primitives. The round trip through
+    canonical JSON ensures serialized values are detached, deterministic
+    JSON values before the final deep freeze.
     """
     try:
-        first_freeze = deep_freeze(
+        initially_frozen = deep_freeze(
             value,
             field_name="metadata",
         )
-
-        normalized = json.loads(
-            canonical_json(first_freeze)
-        )
-
+        normalized = json.loads(canonical_json(initially_frozen))
         result = deep_freeze(
             normalized,
             field_name="metadata",
@@ -106,7 +101,6 @@ class LedgerAccountReference:
             "account_id",
             _text(self.account_id, "account_id"),
         )
-
         object.__setattr__(
             self,
             "account_type",
@@ -125,8 +119,8 @@ class FinancialLedgerEntry:
     """Immutable, tenant-scoped double-entry record.
 
     A single MonetaryAmount is applied to the debit and credit legs.
-    This record can validate its own structure; it cannot establish
-    account balances across multiple entries or certify a posted journal.
+    This record validates its own structure; it cannot establish account
+    balances across entries or certify a posted journal.
     """
 
     entry_id: str
@@ -134,21 +128,14 @@ class FinancialLedgerEntry:
     commission_id: str
     entry_version: int
     transaction_reference: str
-
     debit: LedgerAccountReference
     credit: LedgerAccountReference
-
     amount: MonetaryAmount
     entry_timestamp: datetime
-
     source_reference: str
     provenance_reference: str
-
     metadata: Mapping[str, Any] = ()
 
-    # Fingerprint captured after construction-time validation and
-    # normalization. It is deliberately excluded from initialization,
-    # equality, representation and serialized business data.
     _integrity_fingerprint: str = field(
         init=False,
         repr=False,
@@ -167,7 +154,10 @@ class FinancialLedgerEntry:
             object.__setattr__(
                 self,
                 field_name,
-                _text(getattr(self, field_name), field_name),
+                _text(
+                    getattr(self, field_name),
+                    field_name,
+                ),
             )
 
         if (
@@ -207,11 +197,13 @@ class FinancialLedgerEntry:
         object.__setattr__(
             self,
             "entry_timestamp",
-            _aware(self.entry_timestamp, "entry_timestamp"),
+            _aware(
+                self.entry_timestamp,
+                "entry_timestamp",
+            ),
         )
 
         metadata = self.metadata
-
         if metadata == ():
             metadata = {}
 
@@ -226,8 +218,8 @@ class FinancialLedgerEntry:
             _freeze_json_metadata(metadata),
         )
 
-        # Anchor the validated record only after every field has been
-        # normalized and metadata has been deeply frozen.
+        # Capture the digest only after all fields are validated,
+        # normalized and frozen.
         object.__setattr__(
             self,
             "_integrity_fingerprint",
@@ -236,7 +228,7 @@ class FinancialLedgerEntry:
 
     @property
     def identity_key(self) -> tuple[str, str, int]:
-        """Tenant-scoped identity and version of this entry."""
+        """Return the tenant-scoped identity and version."""
         return (
             self.tenant_id,
             self.entry_id,
@@ -245,18 +237,16 @@ class FinancialLedgerEntry:
 
     @property
     def immutable_fingerprint(self) -> str:
-        """Deterministic digest of the current serialized entry."""
+        """Return the deterministic digest of current entry contents."""
         return fingerprint(
             self.to_dict(include_fingerprint=False)
         )
 
     def assert_balanced(self) -> None:
-        """Validate the structural balance of this single entry.
+        """Validate the structural balance of one entry.
 
-        The entry model uses the same positive amount on both legs.
-        This method does not certify aggregate ledger or account balances.
-        Those responsibilities belong to the approved ledger and
-        reconciliation authorities.
+        Aggregate balances and reconciliation remain the responsibility
+        of the canonical ledger and reconciliation authorities.
         """
         if self.debit.account_id == self.credit.account_id:
             raise FinancialLedgerValidationError(
@@ -268,9 +258,6 @@ class FinancialLedgerEntry:
                 "ledger amount must be greater than zero."
             )
 
-        # One shared MonetaryAmount represents both debit and credit legs.
-        # Cross-entry totals must be checked by ledger reconciliation.
-
     def assert_tenant(self, tenant_id: str) -> None:
         tenant_id = _text(tenant_id, "tenant_id")
 
@@ -280,13 +267,7 @@ class FinancialLedgerEntry:
             )
 
     def verify_integrity(self) -> bool:
-        """Compare the current record with its construction-time digest.
-
-        A changed field must not be silently accepted as the original
-        validated record. Normal field assignment is also blocked by the
-        frozen dataclass; this check provides an independent integrity
-        verification for the record's current content.
-        """
+        """Detect changes from the validated construction-time record."""
         return (
             self.immutable_fingerprint
             == self._integrity_fingerprint
@@ -299,7 +280,8 @@ class FinancialLedgerEntry:
     ) -> dict[str, Any]:
         """Return detached JSON-compatible data.
 
-        Mutating this returned structure cannot mutate the immutable entry.
+        Nested metadata is thawed into fresh containers; mutations to
+        the returned result cannot mutate this entry.
         """
         result: dict[str, Any] = {
             "source_of_truth": (
