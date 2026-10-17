@@ -1,20 +1,77 @@
->> }
-FILE FOUND: D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\test_core008_t01_financial_ledger_boundary.py
-Test count:
-12
 
-========================================================================= ERRORS ==========================================================================
-________________________ ERROR collecting AUTONOMY_ENGINE/core/commission_financial/test_core008_t01_financial_ledger_boundary.py _________________________
-ImportError while importing test module 'D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\test_core008_t01_financial_ledger_boundary.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AUTONOMY_ENGINE\core\commission_financial\test_core008_t01_financial_ledger_boundary.py:11: in <module>
-    from . import compare_ledger_entries as public_compare_ledger_entries
-E   ImportError: cannot import name 'compare_ledger_entries' from 'AUTONOMY_ENGINE.core.commission_financial' (D:\Homio\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\core\commission_financial\__init__.py)
+RUNNING T01 LEDGER TESTS...
+FFFF........                                                                                                                                         [100%]
+======================================================================== FAILURES =========================================================================
+________________________________________________________ test_nested_metadata_is_deeply_immutable _________________________________________________________
+
+    def test_nested_metadata_is_deeply_immutable() -> None:
+        source = {
+            "evidence": {
+                "ids": [
+                    "evidence-001",
+                    {"origin": "verified-source"},
+                ],
+            },
+        }
+
+        entry = make_entry(metadata=source)
+        original_fingerprint = entry.immutable_fingerprint
+
+        source["evidence"]["ids"][0] = "changed-outside"
+        source["evidence"]["ids"][1]["origin"] = "changed-outside"
+
+>       assert entry.metadata["evidence"]["ids"][0] == "evidence-001"
+E       AssertionError: assert 'changed-outside' == 'evidence-001'
+E
+E         - evidence-001
+E         + changed-outside
+
+AUTONOMY_ENGINE\core\commission_financial\test_core008_t01_financial_ledger_boundary.py:78: AssertionError
+______________________________________________________ test_serialization_returns_detached_metadata _______________________________________________________
+
+    def test_serialization_returns_detached_metadata() -> None:
+        entry = make_entry(
+            metadata={
+                "evidence": {
+                    "ids": ["evidence-001"],
+                },
+            }
+        )
+        original_fingerprint = entry.immutable_fingerprint
+
+        exported = entry.to_dict()
+        exported["metadata"]["evidence"]["ids"][0] = "modified-export"
+
+>       assert entry.metadata["evidence"]["ids"][0] == "evidence-001"
+E       AssertionError: assert 'modified-export' == 'evidence-001'
+E
+E         - evidence-001
+E         + modified-export
+
+AUTONOMY_ENGINE\core\commission_financial\test_core008_t01_financial_ledger_boundary.py:107: AssertionError
+____________________________________________________ test_metadata_rejects_non_json_compatible_values _____________________________________________________
+
+    def test_metadata_rejects_non_json_compatible_values() -> None:
+>       with pytest.raises(
+            FinancialLedgerValidationError,
+            match="JSON-compatible",
+        ):
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'JSON-compatible'
+E         Actual message: 'Ledger entry metadata must be JSON-serializable.'
+
+AUTONOMY_ENGINE\core\commission_financial\test_core008_t01_financial_ledger_boundary.py:113: AssertionError
+______________________________________________________ test_metadata_rejects_non_string_nested_keys _______________________________________________________
+
+    def test_metadata_rejects_non_string_nested_keys() -> None:
+>       with pytest.raises(FinancialLedgerValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE FinancialLedgerValidationError
+
+AUTONOMY_ENGINE\core\commission_financial\test_core008_t01_financial_ledger_boundary.py:125: Failed
 ================================================================= short test summary info =================================================================
-ERROR AUTONOMY_ENGINE/core/commission_financial/test_core008_t01_financial_ledger_boundary.py
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-1 error in 0.44s
+FAILED AUTONOMY_ENGINE/core/commission_financial/test_core008_t01_financial_ledger_boundary.py::test_nested_metadata_is_deeply_immutable - AssertionError: assert 'changed-outside' == 'evidence-001'
+FAILED AUTONOMY_ENGINE/core/commission_financial/test_core008_t01_financial_ledger_boundary.py::test_serialization_returns_detached_metadata - AssertionError: assert 'modified-export' == 'evidence-001'
+FAILED AUTONOMY_ENGINE/core/commission_financial/test_core008_t01_financial_ledger_boundary.py::test_metadata_rejects_non_json_compatible_values - AssertionError: Regex pattern did not match.
+FAILED AUTONOMY_ENGINE/core/commission_financial/test_core008_t01_financial_ledger_boundary.py::test_metadata_rejects_non_string_nested_keys - Failed: DID NOT RAISE FinancialLedgerValidationError
+4 failed, 8 passed in 0.26s
