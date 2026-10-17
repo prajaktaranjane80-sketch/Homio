@@ -931,6 +931,7 @@ def execute_git_transaction(
                 if request.operation is GitOperation.PUSH:
                     try:
                         from .git_push import (
+                            classify_git_push_error,
                             push_branch,
                             verify_remote_branch,
                         )
@@ -966,10 +967,11 @@ def execute_git_transaction(
                                 "Remote branch did not resolve to the verified commit."
                             )
                     except Exception as exc:
+                        reason, safe_explanation = classify_git_push_error(exc)
                         return _result(
                             request=request,
                             decision=GitDecision.REJECTED,
-                            reason=GitReason.PUSH_REJECTED,
+                            reason=reason,
                             before=before,
                             after=reader.snapshot(),
                             changed_paths=scoped_paths,
@@ -977,7 +979,7 @@ def execute_git_transaction(
                             commit_sha=commit_sha,
                             push_performed=push_performed,
                             push_verified=False,
-                            explanation=str(exc),
+                            explanation=safe_explanation,
                         )
 
                 final = reader.snapshot()
