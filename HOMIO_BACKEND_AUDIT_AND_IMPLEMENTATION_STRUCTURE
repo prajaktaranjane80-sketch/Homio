@@ -1,0 +1,790 @@
+# HOMIO / REOS — Complete Backend Audit & Implementation File Structure
+
+**Document type:** Single master structure and execution specification  
+**Canonical repository:** `prajaktaranjane80-sketch/Homio`  
+**Canonical branch:** `reos-development`  
+**Audit snapshot:** 17 October 2026  
+**Audit code baseline:** `8e0ba08035c87122b268df36f8620d984d2b09ad`  
+**Branch HEAD at document preparation:** `5fb19311bf36c439a957558c5899b299f0afdee1`  
+**Target repository path:** `REOS_CONTROL_CENTER/architecture/backend/plans/HOMIO_BACKEND_AUDIT_AND_IMPLEMENTATION_STRUCTURE.md`  
+**Document status:** STRUCTURE DEFINED — IMPLEMENTATION NOT YET CLAIMED
+
+## Purpose
+
+This single file defines backend work in numbered parts. Each part records the existing modules to reuse, candidate new file paths, required integration, dependencies, tests and acceptance criteria. It is an implementation structure, not a claim that the proposed files have already been created or that HOMIO is production-ready.
+
+## Status vocabulary
+
+- **EXISTING — INSPECTED:** Path was found and its relevant purpose/source was inspected.
+- **EXISTING — INTEGRATION UNVERIFIED:** Domain code exists, but production persistence/API wiring/deployment or end-to-end behavior is not proven.
+- **PROPOSED ADD:** Candidate new path. Confirm the approved architecture, search for equivalents and check dependencies before creating it.
+- **UPDATE / CONNECT:** Extend or wire existing canonical code. Do not create a competing domain engine.
+- **BLOCKED BY DESIGN:** Confirm the approved architecture/technology lock before selecting a database, queue, provider, runtime or new source of truth.
+- **PASS:** Use only when an actual targeted test/runtime check succeeds against a named commit and evidence is recorded.
+
+## Non-negotiable authority and safety rules
+
+1. `REOS_CONTROL_CENTER/data/state.json` remains the machine-readable execution/gate authority.
+2. Branch `reos-development` remains the canonical code/history source.
+3. The approved master architecture and ARCH-037/ARCH-038 schema/technology decisions govern implementation. Do not guess a stack.
+4. One business source of truth per domain. Search indexes, caches, analytics, AI summaries and ACRL reconstruction are not canonical business state.
+5. Do not create duplicate identity, tenant, inventory, lead-ownership, event, deal, trust/fraud, commission, governance, Control Center or ACRL engines.
+6. ACRL owns continuity, reconstruction, checkpoints and recovery—not live customer, inventory, lead, deal or commission domain truth.
+7. File existence, compile success, UI rendering, or an unrelated green CI run is not proof of feature completion.
+8. Never commit real credentials, tokens, signing secrets or customer personal data.
+9. Before every repository change, reread live HEAD and target blob SHA; use the guarded remote-write process defined by the repository, fail closed on mismatch, and read back the resulting commit and file.
+10. This document cannot silently change the current Control Center gate or mark an acceptance criterion complete.
+
+## Canonical sources to read before implementation
+
+- Machine execution state: `REOS_CONTROL_CENTER/data/state.json`
+- Master architecture: `REOS_CONTROL_CENTER/architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json`
+- Architecture integrity code/tests: `REOS_CONTROL_CENTER/architecture/governance/architecture_integrity.py`, `REOS_CONTROL_CENTER/architecture/governance/test_architecture_integrity.py`
+- Approved schema/stack decisions: current approved ARCH-037 and ARCH-038 evidence; verify exact canonical paths before work
+- CORE closure plan: `REOS_CONTROL_CENTER/architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan`
+- Execution workflow contract: `HOMIO_REOS_FIX_EXECUTION_STRUCTURE`
+- Backend engine root: `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/`
+- Frontend root: `REOS_CONTROL_CENTER/Frontend/`
+- Backend CI: `.github/workflows/backend-ci.yml`
+- Frontend CI: `.github/workflows/frontend-ci.yml`
+
+## Baseline note
+
+Audit source HEAD was `8e0ba08035c87122b268df36f8620d984d2b09ad`. Immediately before preparing this document, branch HEAD was `5fb19311bf36c439a957558c5899b299f0afdee1`; the commit comparison showed only `HOMIO_REOS_FIX_EXECUTION_STRUCTURE` changed between those commits. The backend source snapshot was therefore unchanged by that intervening commit. Always reread the live branch before future implementation.
+
+The current canonical state identifies `CORE-008 / CORE-008-T01` as the active gate/subtask. CORE-008's six acceptance criteria are PENDING in `data/state.json`. The authorized Control Center process determines actual task order; this file must not move the gate on its own.
+
+---
+
+# PART 0 — Audit baseline and existing backend foundation
+
+## Existing bounded Core domains
+
+Reuse these canonical domains; do not rewrite them as parallel engines.
+
+| Core | Existing path | Responsibility |
+|---|---|---|
+| CORE-001 | `AUTONOMY_ENGINE/core/identity_tenant/` | Identity, membership, tenant and isolation boundaries |
+| CORE-002 | `AUTONOMY_ENGINE/core/event_platform/` | Event contract, ordering, delivery, transport and resilience |
+| CORE-003 | `AUTONOMY_ENGINE/core/lead_ownership/` | Lead lifecycle, attribution, ownership, transfer and communication evidence |
+| CORE-004 | `AUTONOMY_ENGINE/core/inventory/` | Project/property/unit identity, lifecycle, availability, provenance and security |
+| CORE-005 | `AUTONOMY_ENGINE/core/search_matching/` | Search contract, filters, ranking, hybrid retrieval, indexing and result security |
+| CORE-006 | `AUTONOMY_ENGINE/core/deal_transaction/` | Deal lifecycle, parties, offers, milestones, evidence and transaction security |
+| CORE-007 | `AUTONOMY_ENGINE/core/trust_fraud_governance/` | Trust, fraud, policy decisions, approvals, exceptions and disputes |
+| CORE-008 | `AUTONOMY_ENGINE/core/commission_financial/` | Financial domain, commission, allocation, settlement, reconciliation and ledger boundary |
+
+Other relevant files found:
+
+- Core package boundary: `AUTONOMY_ENGINE/core/__init__.py`
+- Canonical JSON control-state helper: `AUTONOMY_ENGINE/core/state_store.py` (not a product database)
+- Backend OIDC verifier: `AUTONOMY_ENGINE/security/authentication/oidc_config.py`, `oidc_verifier.py`
+- Frontend OIDC helper: `Frontend/src/lib/auth/oidc.ts`
+- Frontend auth routes: `Frontend/src/app/api/auth/login/route.ts`, `callback/route.ts`, `session/route.ts`, `logout/route.ts`
+- Auth setup contract: `Frontend/AUTHENTICATION_SETUP.md`
+- Search components: `core/search_matching/search_execution.py`, `search_security.py`, `hybrid_retrieval.py`, `qdrant_indexing.py`, `runtime_adapter.py`, `projection_sync.py`
+- Inventory lifecycle/security: `core/inventory/inventory_lifecycle.py`, `inventory_security.py`
+- Lead modules: `core/lead_ownership/lead.py`, `lead_attribution.py`, `lead_ownership.py`, `lead_communication.py`, `lead_security.py`
+- Financial modules: `core/commission_financial/financial_domain.py`, `commission_calculation.py`, `commission_settlement.py`, `commission_reconciliation.py`, `financial_ledger_boundary.py`, `commission_security.py`
+
+## Audit findings requiring follow-up proof
+
+1. Core domain modules exist, but durable product-data persistence and production repositories are not proven by those domain classes alone.
+2. `inventory_lifecycle.py` explicitly describes lifecycle transformations as not performing persistence.
+3. `core/state_store.py` loads/saves a JSON file for state; it is not the transactional property/customer/deal database.
+4. The inspected frontend API route tree contained the four auth endpoints above; dedicated product API routes for property search/listing, enquiries, visits, saved data and transaction operations were not found in the audited tree. Recheck live source and backend route owners before adding endpoints.
+5. Auth documentation states the frontend OIDC session alone does not resolve a durable REOS account or authorize a tenant. Durable revocation is also identified as still needed.
+6. Search/Qdrant modules exist, but the inspected backend CI does not run the search regression suite or install an explicit Qdrant dependency from `requirements-auth.txt`.
+7. Connected locality trend/valuation pipelines, market-data ingestion, investment-analysis services and AI recommendation backend integration were not identified in the audited AUTONOMY_ENGINE search. Confirm equivalents before adding files.
+8. CORE-008 has substantial domain code, but its six acceptance criteria remain PENDING in `data/state.json`.
+9. The latest successful backend CI run at the audit HEAD executed 342 selected tests. That is valid evidence for that selected suite only—not whole-backend or production acceptance.
+10. Production database/deployment, live external integrations, load behavior and recovery drills were not directly tested during this repository-level audit.
+
+These are integration/readiness findings—not a claim every capability is completely absent. Inspect source and contracts again before classifying any proposed path as truly missing.
+
+---
+
+# PART 1 — Architecture integrity and dependency map
+
+**Priority:** P0 prerequisite. **Action:** UPDATE / VERIFY. **Status:** Recheck against live state before implementation.
+
+### Existing paths to reuse
+
+- `REOS_CONTROL_CENTER/architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json`
+- `REOS_CONTROL_CENTER/architecture/governance/architecture_integrity.py`
+- `REOS_CONTROL_CENTER/architecture/governance/test_architecture_integrity.py`
+- `REOS_CONTROL_CENTER/architecture/registry.py`
+- `REOS_CONTROL_CENTER/architecture/freeze_guard.py`
+- `REOS_CONTROL_CENTER/data/state.json`
+- `REOS_CONTROL_CENTER/GATE_TEMPLATES.json`
+- `REOS_CONTROL_CENTER/architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan`
+
+### Required work
+
+1. Confirm current ARCH-037 database-schema and ARCH-038 technology-lock decisions from canonical evidence.
+2. Verify the single master architecture, domain ownership, approved runtime boundaries and global invariants.
+3. Produce a dependency/influence map before editing shared contracts or adapters.
+4. Search for existing equivalent files before every proposed ADD; prefer UPDATE/CONNECT over duplication.
+5. Reconcile execution sequencing only through the approved Control Center process.
+6. Record commit SHA, blob SHA, test command and actual result for each closure.
+
+### Acceptance criteria
+
+- Architecture integrity and duplicate-authority checks pass on current HEAD.
+- Database/runtime choices match approved evidence.
+- No second master architecture, product state store, event bus or domain engine is introduced.
+- The current authoritative gate is not silently changed.
+
+---
+
+# PART 2 — Reproducible dependencies, test foundation and CI
+
+**Priority:** P0. **Action:** UPDATE / CONNECT. **Status:** Partial evidence; integration suite incomplete.
+
+### Existing files
+
+- `.github/workflows/backend-ci.yml`
+- `REOS_CONTROL_CENTER/requirements-auth.txt`
+- `AUTONOMY_ENGINE/core/`
+- `AUTONOMY_ENGINE/security/authentication/`
+- `REOS_CONTROL_CENTER/context/test_phase_projection.py`
+- `REOS_CONTROL_CENTER/tets/test_l3_canonical_authority.py`
+
+### Proposed paths — only after ARCH-038 and duplicate scan
+
+- UPDATE `.github/workflows/backend-ci.yml`
+- UPDATE or ADD the one canonical dependency/lock manifest required by the approved Python stack
+- PROPOSED ADD `AUTONOMY_ENGINE/tests/test_backend_dependency_contract.py`
+- PROPOSED ADD `AUTONOMY_ENGINE/tests/test_backend_integration_entrypoints.py`
+
+### Required coverage
+
+- Compile supported modules and install declared dependencies in a clean CI environment.
+- Run targeted tests for all eight CORE packages, not just identity, selected financial T01, OIDC, sync and T21.
+- Include CORE-005/Qdrant/hybrid search regression if those dependencies are part of the chosen runtime.
+- Include API/persistence integration tests, cross-tenant security, event-delivery/idempotency and financial integration tests as those parts are implemented.
+- Add migration/schema checks once the approved database choice is confirmed.
+- Required checks must fail visibly; never suppress a failed suite or imply that an unexecuted test passed.
+
+### Acceptance criteria
+
+- A clean runner reproduces the required suites without undeclared manual installs.
+- Run summary identifies commit, test suites, totals and failures.
+- Missing required dependencies or test suites fail the gate.
+- A passing subset remains labelled as a subset.
+
+---
+
+# PART 3 — Canonical persistence, schema, migrations and transactions
+
+**Priority:** P0. **Status:** BLOCKED BY ARCH-037/ARCH-038 confirmation. **Goal:** Persist business truth without a second source of truth.
+
+### Existing domain boundaries to reuse
+
+- `AUTONOMY_ENGINE/core/identity_tenant/`
+- `AUTONOMY_ENGINE/core/event_platform/`
+- `AUTONOMY_ENGINE/core/inventory/`
+- `AUTONOMY_ENGINE/core/lead_ownership/`
+- `AUTONOMY_ENGINE/core/deal_transaction/`
+- `AUTONOMY_ENGINE/core/trust_fraud_governance/`
+- `AUTONOMY_ENGINE/core/commission_financial/`
+- `AUTONOMY_ENGINE/core/contract_primitives.py`
+
+### Proposed structure (candidate names, not existing files)
+
+    AUTONOMY_ENGINE/
+      application/
+        __init__.py
+        contracts/__init__.py
+        services/__init__.py
+      persistence/
+        __init__.py
+        configuration.py
+        unit_of_work.py
+        transaction_boundary.py
+        health.py
+      migrations/
+        README.md
+      tests/
+        test_persistence_contract.py
+        test_transaction_boundary.py
+        test_migration_integrity.py
+
+Confirm exact names and placement against the approved runtime. If equivalent components exist, update/connect those components instead.
+
+### Required behavior
+
+- Durable writes and read-after-write behavior for actual business entities.
+- Approved canonical schema, migration versioning, referential constraints and compatibility rules.
+- Atomic changes where a business operation affects multiple canonical records.
+- Optimistic concurrency/version checks and idempotent command handling.
+- Tenant-scoped queries, resource authorization and cross-tenant IDOR rejection.
+- Backup/restore and recoverability, retention/deletion and privacy rules.
+- Search/analytics/cache projections are rebuildable from canonical truth.
+- No storage side effects added to pure domain modules without architecture approval.
+- No credentials/payment secrets or third-party identity tokens stored outside approved secure patterns.
+
+### Acceptance criteria
+
+- Integration tests show data survives process restart and concurrent writes are safe.
+- Wrong-tenant reads/writes are denied.
+- A migration is tested against disposable storage and reports a consistent schema version.
+- Recovery/rebuild tests preserve canonical history.
+- The UI never claims saved/synced state when the record exists only in transient browser state or a derived index.
+
+---
+
+# PART 4 — Identity, OIDC, account resolution and tenant authorization
+
+**Priority:** P0. **Status:** Existing pieces found; full production connection unverified.
+
+### Existing files
+
+- `AUTONOMY_ENGINE/security/authentication/oidc_config.py`
+- `AUTONOMY_ENGINE/security/authentication/oidc_verifier.py`
+- `AUTONOMY_ENGINE/security/authentication/test_oidc_verifier.py`
+- `AUTONOMY_ENGINE/core/identity_tenant/identity.py`
+- `AUTONOMY_ENGINE/core/identity_tenant/membership.py`
+- `AUTONOMY_ENGINE/core/identity_tenant/tenant.py`
+- `AUTONOMY_ENGINE/core/identity_tenant/tenant_isolation.py`
+- `Frontend/src/lib/auth/oidc.ts`
+- `Frontend/src/app/api/auth/login/route.ts`
+- `Frontend/src/app/api/auth/callback/route.ts`
+- `Frontend/src/app/api/auth/session/route.ts`
+- `Frontend/src/app/api/auth/logout/route.ts`
+- `Frontend/AUTHENTICATION_SETUP.md`
+
+### Proposed paths — ADD only after duplicate scan
+
+- `AUTONOMY_ENGINE/security/authentication/identity_resolution.py`
+- `AUTONOMY_ENGINE/security/authentication/session_revocation.py`
+- `AUTONOMY_ENGINE/security/authentication/test_identity_resolution.py`
+- `AUTONOMY_ENGINE/security/authentication/test_session_revocation.py`
+
+If an equivalent exists, update/connect it. Do not create another identity or authorization authority.
+
+### Required behavior
+
+1. Validate provider signature, exact issuer, audience, expiry and required claims; protect state, nonce and PKCE.
+2. Resolve exact `(issuer, sub)` to a durable canonical REOS identity.
+3. Do not auto-link accounts by email alone.
+4. Reject disabled/suspended identities and inactive, revoked or expired memberships.
+5. Establish tenant context and capabilities server-side; do not trust client-supplied role/tenant values.
+6. Enforce authorization on every protected operation and every returned resource, including search, documents, saved properties, visits, leads, deals and commissions.
+7. Implement durable server-side session revocation/expiry according to the approved architecture.
+8. Protect state-changing browser actions against CSRF/origin abuse; use secure cookie controls, rate limiting and privacy-safe logging.
+9. Do not return raw provider errors, tokens, credentials or private claims to clients.
+10. Keep authentication separate from authorization.
+
+### Required negative/positive tests
+
+Valid and invalid tokens; invalid signature; issuer/audience mismatch; expired token; missing claims; callback state/nonce/PKCE failure; unknown external identity; disabled account; expired/revoked membership; revoked session; no tenant context; tenant mismatch; resource IDOR; missing capability; logout/revocation behavior.
+
+### Acceptance criteria
+
+OIDC login alone cannot grant tenant or privileged access. Account resolution, membership lookup, access denial and session revocation are supported by end-to-end evidence.
+
+---
+
+# PART 5 — Inventory, project/property/unit hierarchy and verified ingestion
+
+**Priority:** P0 foundation, then P1 product delivery. **Status:** Domain modules exist; end-to-end flow unverified.
+
+### Existing modules to reuse
+
+- `AUTONOMY_ENGINE/core/inventory/inventory.py`
+- `AUTONOMY_ENGINE/core/inventory/project.py`
+- `AUTONOMY_ENGINE/core/inventory/inventory_hierarchy.py`
+- `AUTONOMY_ENGINE/core/inventory/inventory_lifecycle.py`
+- `AUTONOMY_ENGINE/core/inventory/inventory_availability.py`
+- `AUTONOMY_ENGINE/core/inventory/inventory_provenance.py`
+- `AUTONOMY_ENGINE/core/inventory/inventory_commercial_state.py`
+- `AUTONOMY_ENGINE/core/inventory/inventory_security.py`
+- `AUTONOMY_ENGINE/core/inventory/inventory_event_integration.py`
+- `AUTONOMY_ENGINE/core/lead_ownership/`
+- `AUTONOMY_ENGINE/core/event_platform/`
+
+### Proposed application services
+
+- `AUTONOMY_ENGINE/application/services/inventory_service.py`
+- `AUTONOMY_ENGINE/application/services/inventory_verification_service.py`
+- `AUTONOMY_ENGINE/application/services/inventory_publication_service.py`
+- `AUTONOMY_ENGINE/application/services/inventory_availability_service.py`
+- `AUTONOMY_ENGINE/integrations/inventory/builder_import_contract.py`
+- `AUTONOMY_ENGINE/integrations/inventory/feed_validation.py`
+- `AUTONOMY_ENGINE/integrations/inventory/source_provenance_adapter.py`
+- `AUTONOMY_ENGINE/integrations/inventory/duplicate_detection.py`
+- `AUTONOMY_ENGINE/integrations/inventory/stale_inventory_policy.py`
+
+### Proposed API route contracts
+
+- `Frontend/src/app/api/properties/route.ts`
+- `Frontend/src/app/api/properties/[propertyId]/route.ts`
+- `Frontend/src/app/api/projects/route.ts`
+- `Frontend/src/app/api/projects/[projectId]/route.ts`
+
+The proposed paths are not confirmed as existing. Confirm route ownership with ARCH-038 first. If the canonical backend owns HTTP APIs elsewhere, add routes there and do not create parallel Next.js/domain APIs.
+
+### Required behavior
+
+- International development/project → property → unit hierarchy where appropriate.
+- Explicit tenant, owner/source, verification, publication and lifecycle states.
+- Validate currency/price, area/unit, location, property type, project reference and market-specific required fields.
+- Track source, retrieval time, verifier, evidence and freshness.
+- Controlled verification/publication where policy requires approval.
+- Safe duplicate/conflict detection; never merge unrelated units.
+- Race-safe availability/reservation/sold transitions.
+- Idempotent feed import, stale-feed overwrite protection and audited correction history.
+- Public responses cannot expose private owner/builder contacts or internal commercial details.
+
+### Acceptance criteria
+
+Authorized supplier submits inventory → data and provenance validate → authorized verification/publication succeeds → durable listing is visible → availability changes propagate → duplicate, stale and cross-tenant requests are rejected and audited.
+
+---
+
+# PART 6 — Property search, hybrid retrieval, map discovery and saved searches
+
+**Priority:** P1. **Status:** Search foundation exists; production API/data wiring unverified.
+
+### Existing modules
+
+- `AUTONOMY_ENGINE/core/search_matching/search_domain.py`
+- `AUTONOMY_ENGINE/core/search_matching/search_filters.py`
+- `AUTONOMY_ENGINE/core/search_matching/search_execution.py`
+- `AUTONOMY_ENGINE/core/search_matching/search_ranking.py`
+- `AUTONOMY_ENGINE/core/search_matching/search_security.py`
+- `AUTONOMY_ENGINE/core/search_matching/search_visibility.py`
+- `AUTONOMY_ENGINE/core/search_matching/hybrid_retrieval.py`
+- `AUTONOMY_ENGINE/core/search_matching/qdrant_indexing.py`
+- `AUTONOMY_ENGINE/core/search_matching/runtime_adapter.py`
+- `AUTONOMY_ENGINE/core/search_matching/projection_sync.py`
+- `AUTONOMY_ENGINE/core/search_matching/search_observability.py`
+- Existing `test_core005_*`, Qdrant and search adversarial suites under `core/search_matching/`
+
+### Proposed service/API files
+
+- `AUTONOMY_ENGINE/application/services/property_search_service.py`
+- `AUTONOMY_ENGINE/application/services/saved_search_service.py`
+- `AUTONOMY_ENGINE/application/services/property_comparison_service.py`
+- `Frontend/src/app/api/properties/search/route.ts`
+- `Frontend/src/app/api/saved-searches/route.ts`
+- `Frontend/src/app/api/comparisons/route.ts`
+
+Confirm duplicate routes and approved runtime before adding. Routes should delegate to canonical services, not create a second search engine.
+
+### Required behavior
+
+- Filters for purpose/sale/rent, property type, budget/currency, rooms, area/unit, furnishing, project, locality and listing status.
+- Approved geospatial adapter for coordinates, radius, distance and map-based query.
+- Hybrid lexical/vector retrieval where selected; bounded query/candidate counts.
+- Deterministic ranking and explainable factors.
+- Tenant/public visibility enforcement before sensitive candidate/result exposure.
+- Safe pagination, sort, empty results, duplicate suppression and invalid-query responses.
+- Canonical index rebuild, freshness/version checks, failed-index retry and observability.
+- Explicit model/vector dimensions/configuration/dependencies for the selected Qdrant/embedding deployment.
+- Durable saved searches, comparisons and alerts with user/tenant authorization.
+
+### Acceptance criteria
+
+Canonical inventory → index → secure API results works in integration tests. Test tenant leakage, IDOR, stale index, rebuild, pagination, deterministic ranking, malformed input, duplicate handling and measured performance targets.
+
+---
+
+# PART 7 — Enquiries, genuine lead qualification, CRM, messaging and site visits
+
+**Priority:** P1. **Status:** Domain code exists; end-to-end journey/API unverified.
+
+### Existing modules to reuse
+
+- `AUTONOMY_ENGINE/core/lead_ownership/lead.py`
+- `AUTONOMY_ENGINE/core/lead_ownership/lead_ownership.py`
+- `AUTONOMY_ENGINE/core/lead_ownership/lead_attribution.py`
+- `AUTONOMY_ENGINE/core/lead_ownership/lead_communication.py`
+- `AUTONOMY_ENGINE/core/lead_ownership/ownership_transfer.py`
+- `AUTONOMY_ENGINE/core/lead_ownership/lead_fraud_handoff.py`
+- `AUTONOMY_ENGINE/core/lead_ownership/lead_security.py`
+- `AUTONOMY_ENGINE/core/event_platform/`
+- `AUTONOMY_ENGINE/core/trust_fraud_governance/`
+- `AUTONOMY_ENGINE/core/inventory/`
+- Approved CORE-006 evidence/contracts after confirming their exact visit/deal responsibility
+
+### Proposed application services
+
+- `AUTONOMY_ENGINE/application/services/enquiry_service.py`
+- `AUTONOMY_ENGINE/application/services/lead_qualification_service.py`
+- `AUTONOMY_ENGINE/application/services/site_visit_service.py`
+- `AUTONOMY_ENGINE/application/services/customer_attribution_service.py`
+- `AUTONOMY_ENGINE/application/services/communication_orchestration_service.py`
+
+### Proposed API route contracts
+
+- `Frontend/src/app/api/enquiries/route.ts`
+- `Frontend/src/app/api/visits/route.ts`
+- `Frontend/src/app/api/visits/[visitId]/route.ts`
+- `Frontend/src/app/api/my/saved-properties/route.ts`
+- `Frontend/src/app/api/my/enquiries/route.ts`
+- `Frontend/src/app/api/my/visits/route.ts`
+
+These are proposed routes and must be reconciled with the canonical backend/API owner before creation.
+
+### Required behavior
+
+- Record enquiry source channel/campaign, target listing, consent, timestamp, tenant, actor and request ID.
+- Distinguish spam/duplicate signals from independent legitimate interests.
+- Preserve source/ownership attribution evidence; prevent silent overwrite or unauthorized transfer.
+- Schedule/reschedule/cancel visits with valid state transitions, timezone-aware times, assignment, reminders and outcomes.
+- Log communication delivery/consent evidence through approved provider adapters.
+- Secure contacts, CRM notes, visits and communication history with tenant/resource checks.
+- Make webhook/event processing idempotent and retries safe.
+- Keep sensitive content out of unredacted logs.
+
+### Acceptance criteria
+
+Buyer submits enquiry → durable lead and attribution → controlled qualification/assignment → customer books/reschedules/cancels a visit → reminder/delivery state → outcome and audit evidence. Positive and negative tenant/consent/spam cases pass.
+
+---
+
+# PART 8 — Deal lifecycle, negotiation, document access and evidence
+
+**Priority:** P1. **Status:** Domain foundation exists; complete production flow unverified.
+
+### Existing modules to reuse
+
+- `AUTONOMY_ENGINE/core/deal_transaction/deal.py`
+- `AUTONOMY_ENGINE/core/deal_transaction/deal_parties.py`
+- `AUTONOMY_ENGINE/core/deal_transaction/deal_offer_negotiation.py`
+- `AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_milestones.py`
+- `AUTONOMY_ENGINE/core/deal_transaction/deal_transaction_events.py`
+- `AUTONOMY_ENGINE/core/deal_transaction/deal_ownership_integration.py`
+- `AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py`
+- `AUTONOMY_ENGINE/core/deal_transaction/deal_security.py`
+- `AUTONOMY_ENGINE/core/event_platform/`
+- `AUTONOMY_ENGINE/core/trust_fraud_governance/`
+
+### Proposed application services
+
+- `AUTONOMY_ENGINE/application/services/deal_service.py`
+- `AUTONOMY_ENGINE/application/services/offer_negotiation_service.py`
+- `AUTONOMY_ENGINE/application/services/deal_evidence_service.py`
+- `AUTONOMY_ENGINE/application/services/document_access_service.py`
+
+Only add these service files if no existing equivalent exists. Keep deal state in CORE-006.
+
+### Required behavior
+
+- Trace deal to lead, customer, inventory/unit, tenant, authorized parties and ownership/attribution evidence.
+- Enforce valid offer/negotiation transitions and actor/version audit.
+- Make milestones durable and safely retryable.
+- Secure documents/evidence by authorization, scope, retention and integrity.
+- Correct history through approved amendment events rather than silent mutation.
+- Protect concurrent updates and use approved canonical events for entitlement triggers.
+
+### Acceptance criteria
+
+Deal lifecycle, party permissions, concurrency conflicts, event replay, evidence integrity, tenant isolation and ownership/attribution consistency pass targeted regression.
+
+---
+
+# PART 9 — Commission and financial closure
+
+**Priority:** Business-critical P0 closure; follow active CORE-008 subtask order. **Status:** Acceptance criteria PENDING in state.json.
+
+### Existing financial authority — reuse, do not duplicate
+
+- `AUTONOMY_ENGINE/core/commission_financial/financial_domain.py`
+- `AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py`
+- `AUTONOMY_ENGINE/core/commission_financial/commission_contract.py`
+- `AUTONOMY_ENGINE/core/commission_financial/commission_entitlement.py`
+- `AUTONOMY_ENGINE/core/commission_financial/commission_allocation.py`
+- `AUTONOMY_ENGINE/core/commission_financial/commission_invoice.py`
+- `AUTONOMY_ENGINE/core/commission_financial/commission_settlement.py`
+- `AUTONOMY_ENGINE/core/commission_financial/commission_reconciliation.py`
+- `AUTONOMY_ENGINE/core/commission_financial/commission_dispute.py`
+- `AUTONOMY_ENGINE/core/commission_financial/commission_release.py`
+- `AUTONOMY_ENGINE/core/commission_financial/commission_adjustment.py`
+- `AUTONOMY_ENGINE/core/commission_financial/commission_tax.py`
+- `AUTONOMY_ENGINE/core/commission_financial/commission_statement.py`
+- `AUTONOMY_ENGINE/core/commission_financial/commission_closeout.py`
+- `AUTONOMY_ENGINE/core/commission_financial/financial_ledger_boundary.py`
+- `AUTONOMY_ENGINE/core/commission_financial/commission_security.py`
+- CORE-003 lead ownership, CORE-006 deal truth and CORE-007 approval/governance contracts
+
+### Active acceptance criteria from canonical state
+
+1. Commission source of truth is authoritative.
+2. Deal and ownership attribution is traceable.
+3. Financial amounts use safe fixed-precision semantics.
+4. Settlement and reversal are auditable.
+5. Critical financial actions require appropriate approval.
+6. Security and concurrency tests pass.
+
+### Required closure work
+
+- Continue CORE-008 starting from the current authoritative subtask; do not jump to freeze/closure.
+- Trace entitlement to the authoritative lead attribution, ownership and deal evidence.
+- Verify commission contracts/rates, eligibility, participant split and currency/rounding semantics.
+- Make settlement, reconciliation, release, adjustment, reversal and closeout auditable and concurrency-safe.
+- Enforce permissions, tenant scope and required approvals for sensitive financial transitions.
+- Test duplicate commands, idempotency, failed settlement, partial settlement, reversal, dispute, stale calculation, currency mismatch and concurrent updates.
+- Validate immutable historical representation/fingerprint where the contract requires it.
+- Connect external accounting/payment service only through approved interfaces. A ledger boundary record does not prove live external posting.
+- Record each acceptance criterion's test and evidence; update state only via the authorized controller.
+
+### Acceptance criteria
+
+All six criteria have actual supporting evidence; the approved CORE-008 targeted, adversarial, integration, security and concurrency suites pass; authorized Control Center procedure verifies/ closes the gate. Do not manually mark criteria verified.
+
+---
+
+# PART 10 — Market data, locality analytics, price trends and valuation
+
+**Priority:** P2 after verified inventory and persistence. **Status:** Connected data pipeline not established by audit.
+
+### Candidate file layout — check for equivalents first
+
+    AUTONOMY_ENGINE/
+      integrations/market_data/
+        __init__.py
+        source_contract.py
+        ingestion.py
+        normalization.py
+        provenance.py
+        freshness_policy.py
+      intelligence/market/
+        __init__.py
+        comparable_properties.py
+        locality_statistics.py
+        price_trends.py
+        rental_yield.py
+        valuation_estimate.py
+        investment_scenarios.py
+      tests/
+        test_market_data_provenance.py
+        test_market_data_freshness.py
+        test_valuation_comparables.py
+        test_investment_scenarios.py
+
+### Required behavior
+
+- Use permitted/licensed sources and approved collection methods. Do not assume another portal's listing data is reusable.
+- Preserve source, retrieval time, location granularity, jurisdiction, currency, unit and freshness.
+- Normalize locality/address/currency/area while preserving the original source representation and provenance.
+- Detect stale data, duplicates and outliers; report low sample size/coverage.
+- Build dated locality sale/rent trends from observed data and document methodology/sample coverage.
+- Calculate yield/investment scenarios using explicit vacancy, maintenance, tax, acquisition and financing assumptions where relevant.
+- Produce comparable-based valuation ranges with confidence/uncertainty and missing-data disclosure.
+- Version the algorithm/model and input fingerprint to support repeatable analysis.
+- Label estimates as estimates, not guaranteed sale prices or professional legal/financial advice.
+
+### Acceptance criteria
+
+Every shown metric has traceable dated sources and versioned calculations. Low coverage, stale feeds and fabricated/invalid source records are clearly rejected or qualified.
+
+---
+
+# PART 11 — Explainable AI recommendations, affordability and comparisons
+
+**Priority:** P2. **Status:** Connected recommendation backend not confirmed.
+
+### Proposed services/tests — after duplicate scan
+
+- `AUTONOMY_ENGINE/application/services/property_recommendation_service.py`
+- `AUTONOMY_ENGINE/application/services/affordability_service.py`
+- `AUTONOMY_ENGINE/application/services/property_comparison_service.py`
+- `AUTONOMY_ENGINE/application/services/customer_journey_service.py`
+- `AUTONOMY_ENGINE/tests/test_recommendation_explanations.py`
+- `AUTONOMY_ENGINE/tests/test_ai_authorization_boundaries.py`
+
+### Required behavior
+
+- Convert natural-language intent into validated, typed search/analysis requests.
+- Explain why a property matches and identify constraints it fails to satisfy.
+- Use current authorized inventory/data, with freshness and coverage caveats.
+- Distinguish sourced fact, deterministic calculation and generated summary.
+- Never invent availability/price, bypass tenant checks, or make unauthorized external commitments.
+- Require human approval for high-risk/irreversible operations as mandated by governance.
+- Protect against prompt injection in listing text, external feeds and uploaded documents.
+- Record model/version and safe evidence references under privacy policy; never log secrets.
+- Use bounded timeouts/usage controls; AI outages must not corrupt canonical truth.
+- Route actions via approved services/events, not direct unguarded writes from the model.
+
+### Acceptance criteria
+
+Recommendations are source-grounded, explainable, permission-scoped and testable. Adversarial content cannot cause unauthorized actions or privileged data disclosure.
+
+---
+
+# PART 12 — Event consumers, notifications, integrations and schedules
+
+**Priority:** P1 for customer flows; P2 for broader automation. **Status:** Event primitives exist; live external delivery unverified.
+
+### Existing boundaries
+
+- `AUTONOMY_ENGINE/core/event_platform/event_contract.py`
+- `AUTONOMY_ENGINE/core/event_platform/event_domain.py`
+- `AUTONOMY_ENGINE/core/event_platform/event_delivery.py`
+- `AUTONOMY_ENGINE/core/event_platform/event_transport.py`
+- `AUTONOMY_ENGINE/core/event_platform/event_resilience.py`
+- `AUTONOMY_ENGINE/core/event_platform/event_security.py`
+- `AUTONOMY_ENGINE/core/event_platform/event_observability.py`
+- `AUTONOMY_ENGINE/core/idempotency.py`
+- `AUTONOMY_ENGINE/core/lead_ownership/lead_communication.py`
+
+### Candidate adapters — only with approved providers/contracts
+
+- `AUTONOMY_ENGINE/integrations/communications/email_adapter.py`
+- `AUTONOMY_ENGINE/integrations/communications/sms_adapter.py`
+- `AUTONOMY_ENGINE/integrations/communications/whatsapp_adapter.py`
+- `AUTONOMY_ENGINE/integrations/calendar/calendar_adapter.py`
+- `AUTONOMY_ENGINE/integrations/webhooks/inbound_webhook_validation.py`
+- `AUTONOMY_ENGINE/integrations/webhooks/outbound_delivery.py`
+
+Do not add provider-specific adapters until channel requirements, permitted usage, consent rules and provider selection are approved. Use existing equivalents if available.
+
+### Required behavior
+
+- Reliable publication boundary for database changes/events that must not be lost.
+- Idempotent consumers, bounded retries, quarantine/dead-letter and controlled replay.
+- Signed/source-validated webhooks, replay protection and timestamp checks.
+- Delivery receipts, suppression/unsubscribe handling, consent and audit trail.
+- No token/personal-data leakage into logs or metrics.
+- Calendar timezone correctness, double-booking protection and safe cancellation/rescheduling.
+
+### Acceptance criteria
+
+Tests cover transient/permanent provider failure, duplicate delivery, replay, forged/expired webhook, opt-out, tenant mismatch and schedule changes.
+
+---
+
+# PART 13 — Global multi-tenant SaaS, roles, monetization and governance
+
+**Priority:** P2 expansion; architectural boundaries are required earlier. **Status:** Global architecture intent exists; operational readiness unverified.
+
+### Reuse domains
+
+- `AUTONOMY_ENGINE/core/identity_tenant/`
+- `AUTONOMY_ENGINE/core/inventory/`
+- `AUTONOMY_ENGINE/core/lead_ownership/`
+- `AUTONOMY_ENGINE/core/deal_transaction/`
+- `AUTONOMY_ENGINE/core/commission_financial/`
+- `AUTONOMY_ENGINE/core/trust_fraud_governance/`
+- Approved global tenant/schema/security architecture and technology lock
+
+### Required capability areas
+
+- Role/capability boundaries for owned international brokerage, authorized brokerage operators, builders/owners or authorized inventory partners, enterprise/white-label tenants and platform/API partners.
+- Tenant-specific configuration, branding, access control and audit records.
+- Currency, conversion source/timestamp, locale/time zone, area measurement and country-specific required property fields.
+- Configurable jurisdiction rules, retention/deletion and customer consent policies.
+- SaaS subscription/API usage commercial contracts only through approved interfaces. Do not confuse SaaS billing with transaction commission semantics unless the approved architecture explicitly assigns it.
+- No broker directory/comparison/bidding/lead auction/competing broker marketplace; that conflicts with the user's stated business model.
+- No country-wide legal, tax or financial assumptions without market-specific review.
+
+### Acceptance criteria
+
+Cross-tenant and role matrix tests; locale/currency/measurement tests; white-label isolation; privacy lifecycle and jurisdiction configuration evidence for every launch market.
+
+---
+
+# PART 14 — Production readiness, security, observability, load and recovery
+
+**Priority:** P0 release gate and continuous thereafter. **Status:** No direct production-runtime audit performed.
+
+### Candidate targets — reuse existing components if present
+
+- `AUTONOMY_ENGINE/observability/health_checks.py`
+- `AUTONOMY_ENGINE/observability/metrics.py`
+- `AUTONOMY_ENGINE/observability/structured_logging.py`
+- `AUTONOMY_ENGINE/security/rate_limiting.py`
+- `AUTONOMY_ENGINE/security/security_headers.py`
+- `AUTONOMY_ENGINE/tests/test_production_readiness.py`
+
+These are suggested paths, not claims of existing or approved files. Search the canonical tree and validate against ARCH-038 before adding; do not create duplicate security/observability authorities.
+
+### Required operational checks
+
+- Safe readiness/liveness checks that disclose no secrets.
+- Request/correlation IDs across API, event, search and financial flows.
+- Structured logging with secret and personal-data redaction tests.
+- Rate limiting/abuse boundaries for expensive search, ingestion and AI tasks.
+- Dependency vulnerability checks appropriate to the locked stack.
+- Runtime config schema and fail-fast validation.
+- Timeouts, retry policy and safe degradation for external service failures.
+- Backup/restore and recovery drill with recorded evidence.
+- Data retention/deletion, audit durability and restricted incident-access procedures.
+- Load profiles for property reads/search, ingestion, enquiry submission, visit booking and financial concurrency.
+- Safe deployment/rollback and schema migration procedure.
+
+### Acceptance criteria
+
+Production-like staging covers configuration, security, persistence, search, customer journeys, error handling, recovery, performance and rollback. No production-readiness claim based solely on test-file existence.
+
+---
+
+# PART 15 — Final acceptance matrix
+
+Use this matrix in the final evidence report. Update status only after testing current code; this file itself does not update `data/state.json`.
+
+| Gate | Minimum evidence | Status at audit start |
+|---|---|---|
+| P0-A Architecture | ARCH-037/038 confirmed; architecture integrity passes | RECHECK REQUIRED |
+| P0-B Dependency/CI | Reproducible dependencies; required CORE suites run | PARTIAL — selected CI passed |
+| P0-C Persistence | Durable records, migrations, transactions, concurrency and recovery | NOT VERIFIED |
+| P0-D Identity/security | OIDC to canonical identity to tenant capability; negative tests | PARTIAL — components exist; full wiring unverified |
+| P0-E Financial closure | CORE-008 AC01–AC06 and complete regression | PENDING in `state.json` |
+| P1-A Inventory | Ingestion to verification to publication to durable update | NOT VERIFIED |
+| P1-B Search | Source to index to secure API; rebuild/freshness/performance tests | PARTIAL — domain foundation exists |
+| P1-C Enquiry/visits/CRM | Enquiry to attribution to communication to visit to evidence | NOT VERIFIED |
+| P1-D Deal/evidence | Authorized lifecycle, ownership evidence and concurrency/security tests | PARTIAL — domain code exists |
+| P2-A Market intelligence | Provenance, freshness, comparable methodology and uncertainty | NOT VERIFIED |
+| P2-B AI | Grounded output, authorization and adversarial tests | NOT VERIFIED |
+| P2-C Global SaaS | Tenant/role/jurisdiction/locale/privacy readiness | NOT VERIFIED |
+| P0-F Operations | Staging, load, security, observability, backup/recovery | NOT VERIFIED |
+
+---
+
+# PART 16 — Implementation order
+
+The Control Center decides the actual authorized current task. This sequence is the dependency order, not an instruction to override current gate state.
+
+1. Re-read live branch HEAD and canonical state; confirm ARCH-037/ARCH-038 and the current gate.
+2. Close architecture/dependency/reproducibility gaps without discarding already passing checks.
+3. Implement the approved persistence/migration boundary after schema/stack confirmation.
+4. Connect OIDC identity to durable account, membership, authorization and session revocation.
+5. Wire verified inventory ingestion and listing APIs through canonical domain/services.
+6. Wire secure search, index rebuild/freshness and actual API integration tests.
+7. Wire enquiry, attribution, messaging, CRM and site-visit flows.
+8. Continue CORE-008 from the current authoritative subtask and close every criterion through evidence.
+9. Add sourced market intelligence, valuation, AI recommendation and global extensions after reliable source data/persistence exists.
+10. Run end-to-end adversarial security, performance, staging, backup and recovery tests.
+11. Update gate/evidence through the approved Control Center process only.
+12. Re-audit current HEAD and final evidence before declaring backend ready.
+
+---
+
+# PART 17 — Required record for each implementation part
+
+Copy one record per real change. Do not record hypothetical success.
+
+- Part/Gate ID:
+- Live branch HEAD before change:
+- Exact ADD/UPDATE paths:
+- Existing equivalent searched/reused:
+- Observed gap and source evidence:
+- Confirmed root cause:
+- Architecture/technology authority reference:
+- Change commit SHA and changed-file blob SHA:
+- Targeted check/command:
+- Actual result and test counts:
+- Regression/security result:
+- Remote read-back verification:
+- Status: NOT STARTED / BLOCKED / FAIL / PASS
+- One next authorized action:
+
+---
+
+## Definition of done
+
+HOMIO backend may be called production-ready only when canonical approved implementation has durable product data and safe migrations; OIDC connected to account/membership/capability authorization; end-to-end inventory/search/enquiry/visit/CRM/deal journeys; completed and evidenced CORE-008 criteria; tenant isolation and adversarial denial tests across exposed data; reproducible CI for required modules; sourced market-data provenance where offered; and production-like security, performance, operations, privacy, backup and recovery evidence.
+
+**Current conclusion:** This single document contains the full part-by-part backend structure and closure requirements. It does not claim the proposed files have been created or the identified gaps have been fixed. Always recheck the live canonical repository and use the authorized execution gate before implementation.
