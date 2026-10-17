@@ -1,3 +1,4 @@
+
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
@@ -37,10 +38,10 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ErrorBoundary>
-          <AppShell>
+          <>
             <ProductionQualityMonitor />
-            {children}
-          </AppShell>
+            <AppShell>{children}</AppShell>
+          </>
         </ErrorBoundary>
       </body>
     </html>
