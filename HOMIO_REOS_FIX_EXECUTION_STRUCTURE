@@ -120,3 +120,11 @@ A status may be marked PASS only when the relevant result is available and tied 
 - `REOS_CONTROL_CENTER/reos_state.json` exists with an older state (`updated_at = 2026-08-13`, current gate `ARCH-037`). Canonical declarations point to `data/state.json`; trace references to `reos_state.json` before any retirement/deletion decision.
 - The state shows `ARCH-039` as `COMPLETE` in `execution_plan` and `PENDING` under `architecture`. The existing `test_semantic_consistency.py` explicitly treats `execution_plan.status` and `architecture.status` as different lifecycle dimensions (`NOT_COMPARABLE`), so this difference is **not** declared a defect by this audit.
 - No repository files were modified by this audit. GitHub file creation for this plan was rejected by the active integration with HTTP 403, so the plan is available as a file for manual addition to the canonical branch.
+
+## 7. Guarded remote-sync follow-up — 2026-10-16
+
+- T21 concurrency fix commit: 0ef7dcf48c95a536b84a6e48f407a9e01c28601d.
+- GitHub Actions run 38924480474 reported success for T21 syntax and regression verification.
+- A later PowerShell workflow attempt returned HTTP 404 while requesting repository metadata. This follow-up corrects URL construction and explicit function parameter passing.
+- The workflow must stop on any failed preflight, use live HEAD and exact target SHA guards, perform non-force ref updates, and verify exact remote content.
+- WF-01 remains open. T21 CI success does not prove complete state/gate, authentication or final ACRL alignment.
