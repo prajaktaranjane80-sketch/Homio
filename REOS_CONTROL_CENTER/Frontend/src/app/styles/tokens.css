@@ -61,7 +61,7 @@
   --color-danger: var(--homio-danger);
   --color-info: var(--homio-info);
 
-  /* Typography — local/system fallbacks, no remote font dependency */
+  /* Typography */
   --font-sans: "Inter", "Aptos", "Segoe UI", Arial, sans-serif;
   --font-serif: "Iowan Old Style", "Baskerville", "Palatino Linotype", Georgia, serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
@@ -128,17 +128,25 @@
   --layer-overlay: 100;
   --layer-toast: 200;
 
-  /* Motion */
+  /* Motion durations */
   --motion-fast: 120ms;
   --motion-normal: 180ms;
   --motion-slow: 320ms;
-  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /*
+   * Compatibility contracts:
+   * Existing base.css and foundation.css expect duration + timing function.
+   */
+  --ease-standard: 180ms ease;
+  --ease-slow: 320ms ease;
+
+  /*
+   * Curve-only token for transitions/animations that specify duration separately.
+   */
+  --ease-standard-curve: cubic-bezier(0.2, 0, 0, 1);
   --ease-emphasized: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
-
-  /* Compatibility aliases used by existing components */
   --ease-standard-duration: var(--motion-normal);
-  --ease-slow: var(--motion-slow) var(--ease-standard);
 }
 
 @media (max-width: 768px) {
