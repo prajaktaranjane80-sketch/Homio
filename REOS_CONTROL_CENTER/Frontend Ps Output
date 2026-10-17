@@ -1,103 +1,283 @@
-Exception calling "Copy" with "3" argument(s): "Could not find file
-'C:\Users\SANDIP~1\AppData\Local\Temp\HOMIO_Frontend_Stage_20261017_203609\src\app\pro\inventory\[inventoryId]\page.tsx'."
-At line:9 char:5
-+     [System.IO.File]::Copy($source, $target, $true)
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : FileNotFoundException
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Remove-Item -LiteralPath $stage -Recurse -Force
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
-
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "FRONTEND SOURCE SYNC: PASS"
-FRONTEND SOURCE SYNC: PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CANONICAL COMMIT: $commit"
-CANONICAL COMMIT: b819e87c0dc50a80a0618673f78029d7e583ca64
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "BACKUP: $backup"
-BACKUP: D:\Homio\HOMIO_Frontend_Backup_20261017_203609
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Local-only files were not deleted."
-Local-only files were not deleted.
-PS D:\Homio\REOS_CONTROL_CENTER> Set-Location "D:\Homio\REOS_CONTROL_CENTER\Frontend"
 PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> npm ci
-npm error code EPERM
-npm error syscall unlink
-npm error path D:\Homio\REOS_CONTROL_CENTER\Frontend\node_modules\@next\swc-win32-x64-msvc\next-swc.win32-x64-msvc.node
-npm error errno -4048
-npm error [Error: EPERM: operation not permitted, unlink 'D:\Homio\REOS_CONTROL_CENTER\Frontend\node_modules\@next\swc-win32-x64-msvc\next-swc.win32-x64-msvc.node'] {
-npm error   errno: -4048,
-npm error   code: 'EPERM',
-npm error   syscall: 'unlink',
-npm error   path: 'D:\\Homio\\REOS_CONTROL_CENTER\\Frontend\\node_modules\\@next\\swc-win32-x64-msvc\\next-swc.win32-x64-msvc.node'
-npm error }
-npm error
-npm error The operation was rejected by your operating system.
-npm error It's possible that the file was already in use (by a text editor or antivirus), or that you lack permissions to access it.
-npm error
-npm error If you believe this might be a permissions issue, please double-check the permissions of the file and its containing directories, or try running the command again as root/Administrator.
-npm error A complete log of this run can be found in: C:\Users\Sandip RanjanePatil\AppData\Local\npm-cache\_logs\2026-10-17T15_06_36_885Z-debug-0.log
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> npm run verify:lockfile
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $ErrorActionPreference = "Stop"
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $ProgressPreference = "SilentlyContinue"
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $owner  = "prajaktaranjane80-sketch"
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $repo   = "Homio"
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $branch = "reos-development"
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $root   = "D:\Homio\REOS_CONTROL_CENTER\Frontend"
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $prefix = "REOS_CONTROL_CENTER/Frontend/"
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $headers = @{ "User-Agent" = "HOMIO-Frontend-Preview-Sync" }
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if (!(Test-Path -LiteralPath $root -PathType Container)) {
+>>     throw "STOP: Frontend folder missing: $root"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> function Get-GitBlobSha1 {
+>>     param([Parameter(Mandatory)][string]$FilePath)
+>>
+>>     $bytes = [System.IO.File]::ReadAllBytes($FilePath)
+>>     $header = [System.Text.Encoding]::ASCII.GetBytes(
+>>         "blob $($bytes.Length)`0"
+>>     )
+>>     $payload = New-Object byte[] ($header.Length + $bytes.Length)
+>>
+>>     [System.Buffer]::BlockCopy(
+>>         $header, 0, $payload, 0, $header.Length
+>>     )
+>>     [System.Buffer]::BlockCopy(
+>>         $bytes, 0, $payload, $header.Length, $bytes.Length
+>>     )
+>>
+>>     $sha1 = [System.Security.Cryptography.SHA1]::Create()
+>>     try {
+>>         return ([BitConverter]::ToString(
+>>             $sha1.ComputeHash($payload)
+>>         )).Replace("-", "").ToLowerInvariant()
+>>     }
+>>     finally {
+>>         $sha1.Dispose()
+>>     }
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> # Pin the exact canonical branch commit.
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $ref = Invoke-RestMethod `
+>>     -Uri "https://api.github.com/repos/$owner/$repo/git/ref/heads/$branch" `
+>>     -Headers $headers
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $commit = [string]$ref.object.sha
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if ([string]::IsNullOrWhiteSpace($commit)) {
+>>     throw "STOP: GitHub commit SHA missing."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $tree = Invoke-RestMethod `
+>>     -Uri "https://api.github.com/repos/$owner/$repo/git/trees/$commit`?recursive=1" `
+>>     -Headers $headers
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if ($tree.truncated) {
+>>     throw "STOP: GitHub tree truncated; do not continue."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $files = @(
+>>     $tree.tree | Where-Object {
+>>         $_.type -eq "blob" -and
+>>         $_.path.StartsWith(
+>>             $prefix,
+>>             [System.StringComparison]::Ordinal
+>>         )
+>>     }
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if ($files.Count -lt 100) {
+>>     throw "STOP: Unexpected frontend file count: $($files.Count)"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if (@($files | Where-Object { $_.mode -eq "120000" }).Count -gt 0) {
+>>     throw "STOP: Frontend tree contains symlinks; review before copying."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $stage = Join-Path $env:TEMP "HOMIO_Frontend_Stage_$stamp"
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $homioRoot = Split-Path -Parent (Split-Path -Parent $root)
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $backup = Join-Path $homioRoot "HOMIO_Frontend_Backup_$stamp"
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> [System.IO.Directory]::CreateDirectory($stage) | Out-Null
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "CANONICAL COMMIT: $commit"
+CANONICAL COMMIT: fef272a06e3ad5f9b02ca50c1183f3d961e2eaf2
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "FILES TO VERIFY: $($files.Count)"
+FILES TO VERIFY: 570
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "STAGING: $stage"
+STAGING: C:\Users\SANDIP~1\AppData\Local\Temp\HOMIO_Frontend_Stage_20261017_204602
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> # Download every tracked file and verify its canonical Git blob SHA.
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $index = 0
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> foreach ($file in $files) {
+>>     $repoPath = [string]$file.path
+>>     $relative = $repoPath.Substring($prefix.Length)
+>>     $nativeRelative = $relative.Replace(
+>>         "/",
+>>         [System.IO.Path]::DirectorySeparatorChar
+>>     )
+>>     $stagePath = [System.IO.Path]::Combine($stage, $nativeRelative)
+>>
+>>     [System.IO.Directory]::CreateDirectory(
+>>         [System.IO.Path]::GetDirectoryName($stagePath)
+>>     ) | Out-Null
+>>
+>>     $encodedPath = (
+>>         ($repoPath -split "/") |
+>>         ForEach-Object { [System.Uri]::EscapeDataString($_) }
+>>     ) -join "/"
+>>
+>>     $url = "https://raw.githubusercontent.com/$owner/$repo/$commit/$encodedPath"
+>>     $verified = $false
+>>
+>>     for ($attempt = 1; $attempt -le 3; $attempt++) {
+>>         try {
+>>             Invoke-WebRequest -Uri $url -Headers $headers `
+>>                 -UseBasicParsing -OutFile $stagePath
+>>
+>>             if (!(Test-Path -LiteralPath $stagePath -PathType Leaf)) {
+>>                 throw "Downloaded file not found: $relative"
+>>             }
+>>
+>>             $actualSha = Get-GitBlobSha1 -FilePath $stagePath
+>>
+>>             if ($actualSha -ne [string]$file.sha) {
+>>                 throw "Git blob SHA mismatch: $relative"
+>>             }
+>>
+>>             $verified = $true
+>>             break
+>>         }
+>>         catch {
+>>             if (Test-Path -LiteralPath $stagePath -PathType Leaf) {
+>>                 [System.IO.File]::Delete($stagePath)
+>>             }
+>>
+>>             if ($attempt -eq 3) {
+>>                 throw "STOP: Could not verify $relative. $($_.Exception.Message)"
+>>             }
+>>             Start-Sleep -Seconds 1
+>>         }
+>>     }
+>>
+>>     if (!$verified) {
+>>         throw "STOP: File verification incomplete: $relative"
+>>     }
+>>
+>>     $index++
+>>     if (($index % 25) -eq 0 -or $index -eq $files.Count) {
+>>         Write-Host "STAGED AND VERIFIED: $index / $($files.Count)"
+>>     }
+>> }
+STAGED AND VERIFIED: 25 / 570
+STOP: Could not verify src/app/pro/inventory/[inventoryId]/page.tsx. Unable to find the specified file.
+At line:46 char:17
++ ...             throw "STOP: Could not verify $relative. $($_.Exception.M ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STOP: Could not...specified file.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: Could not verify src/app/pro/inventory/[inventoryId]/page.tsx. Unable to find the specified file.
 
-> homio-frontend@0.1.0 verify:lockfile
-> node ./scripts/verify-lockfile.mjs
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> # No local tracked file changes occur before this point.
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> [System.IO.Directory]::CreateDirectory($backup) | Out-Null
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $existingBefore = [System.Collections.Generic.List[string]]::new()
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> foreach ($file in $files) {
+>>     $relative = ([string]$file.path).Substring($prefix.Length)
+>>     $nativeRelative = $relative.Replace(
+>>         "/",
+>>         [System.IO.Path]::DirectorySeparatorChar
+>>     )
+>>     $target = [System.IO.Path]::Combine($root, $nativeRelative)
+>>
+>>     if (Test-Path -LiteralPath $target -PathType Leaf) {
+>>         $backupTarget = [System.IO.Path]::Combine($backup, $nativeRelative)
+>>
+>>         [System.IO.Directory]::CreateDirectory(
+>>             [System.IO.Path]::GetDirectoryName($backupTarget)
+>>         ) | Out-Null
+>>
+>>         [System.IO.File]::Copy($target, $backupTarget, $true)
+>>         $existingBefore.Add($relative)
+>>     }
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $attempted = [System.Collections.Generic.List[string]]::new()
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> try {
+>>     foreach ($file in $files) {
+>>         $relative = ([string]$file.path).Substring($prefix.Length)
+>>         $nativeRelative = $relative.Replace(
+>>             "/",
+>>             [System.IO.Path]::DirectorySeparatorChar
+>>         )
+>>         $stagePath = [System.IO.Path]::Combine($stage, $nativeRelative)
+>>         $target = [System.IO.Path]::Combine($root, $nativeRelative)
+>>
+>>         [System.IO.Directory]::CreateDirectory(
+>>             [System.IO.Path]::GetDirectoryName($target)
+>>         ) | Out-Null
+>>
+>>         $attempted.Add($relative)
+>>         [System.IO.File]::Copy($stagePath, $target, $true)
+>>     }
+>>
+>>     # Verify all copied local files against the pinned remote tree.
+>>     foreach ($file in $files) {
+>>         $relative = ([string]$file.path).Substring($prefix.Length)
+>>         $nativeRelative = $relative.Replace(
+>>             "/",
+>>             [System.IO.Path]::DirectorySeparatorChar
+>>         )
+>>         $target = [System.IO.Path]::Combine($root, $nativeRelative)
+>>
+>>         if (!(Test-Path -LiteralPath $target -PathType Leaf)) {
+>>             throw "Local verification failed: $relative"
+>>         }
+>>
+>>         if ((Get-GitBlobSha1 -FilePath $target) -ne [string]$file.sha) {
+>>             throw "Local Git blob SHA mismatch: $relative"
+>>         }
+>>     }
+>> }
+>> catch {
+>>     $copyError = $_.Exception.Message
+>>     Write-Host "SYNC FAILED. Attempting to restore files touched by this run."
+>>
+>>     foreach ($relative in $attempted) {
+>>         $nativeRelative = $relative.Replace(
+>>             "/",
+>>             [System.IO.Path]::DirectorySeparatorChar
+>>         )
+>>         $target = [System.IO.Path]::Combine($root, $nativeRelative)
+>>         $backupTarget = [System.IO.Path]::Combine($backup, $nativeRelative)
+>>
+>>         if ($existingBefore.Contains($relative)) {
+>>             if (Test-Path -LiteralPath $backupTarget -PathType Leaf) {
+>>                 [System.IO.File]::Copy($backupTarget, $target, $true)
+>>             }
+>>         }
+>>         elseif (Test-Path -LiteralPath $target -PathType Leaf) {
+>>             [System.IO.File]::Delete($target)
+>>         }
+>>     }
+>>
+>>     throw "FRONTEND SOURCE SYNC = FAIL. $copyError. Backup: $backup"
+>> }
+SYNC FAILED. Attempting to restore files touched by this run.
+FRONTEND SOURCE SYNC = FAIL. Exception calling "Copy" with "3" argument(s): "Could not find file
+'C:\Users\SANDIP~1\AppData\Local\Temp\HOMIO_Frontend_Stage_20261017_204602\src\app\pro\inventory\[inventoryId]\page.tsx'.". Backup:
+D:\Homio\HOMIO_Frontend_Backup_20261017_204602
+At line:59 char:5
++     throw "FRONTEND SOURCE SYNC = FAIL. $copyError. Backup: $backup"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (FRONTEND SOURCE...20261017_204602:String) [], RuntimeException
+    + FullyQualifiedErrorId : FRONTEND SOURCE SYNC = FAIL. Exception calling "Copy" with "3" argument(s): "Could not find file 'C:\Users\SANDIP~1\AppData\
+   Local\Temp\HOMIO_Frontend_Stage_20261017_204602\src\app\pro\inventory\[inventoryId]\page.tsx'.". Backup: D:\Homio\HOMIO_Frontend_Backup_20261017_20460
+  2
 
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host ""
 
-===============================================
-FRONTEND DEPENDENCY LOCK CONTRACT = PASS
-LOCKFILE V3                      = PASS
-ROOT PACKAGE IDENTITY            = PASS
-DIRECT DEPENDENCY DECLARATIONS    = PASS
-RESOLVED DIRECT DEPENDENCIES      = PASS
-HTTPS PACKAGE SOURCES             = PASS
-INTEGRITY METADATA                = PASS
-===============================================
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> npm run verify:design-system
-
-> homio-frontend@0.1.0 verify:design-system
-> node ./scripts/verify-design-system.mjs
-
-FAIL-CLOSED: Required design-system file missing: src/app/styles/tokens.css
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> npm run verify:foundation
-
-> homio-frontend@0.1.0 verify:foundation
-> npm run verify:lockfile && node ./scripts/verify-foundation.mjs && npm run verify:design-system
-
-
-> homio-frontend@0.1.0 verify:lockfile
-> node ./scripts/verify-lockfile.mjs
-
-
-===============================================
-FRONTEND DEPENDENCY LOCK CONTRACT = PASS
-LOCKFILE V3                      = PASS
-ROOT PACKAGE IDENTITY            = PASS
-DIRECT DEPENDENCY DECLARATIONS    = PASS
-RESOLVED DIRECT DEPENDENCIES      = PASS
-HTTPS PACKAGE SOURCES             = PASS
-INTEGRITY METADATA                = PASS
-===============================================
-FAIL-CLOSED: Required F01 file missing: src/app/search/page.tsx
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> npm run typecheck
-
-> homio-frontend@0.1.0 typecheck
-> tsc --noEmit
-
-'tsc' is not recognized as an internal or external command,
-operable program or batch file.
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> npm run lint
-
-> homio-frontend@0.1.0 lint
-> eslint .
-
-'eslint' is not recognized as an internal or external command,
-operable program or batch file.
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> npm run build
-
-> homio-frontend@0.1.0 build
-> next build
-
-'next' is not recognized as an internal or external command,
-operable program or batch file.
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "FRONTEND SOURCE SYNC = PASS"
+FRONTEND SOURCE SYNC = PASS
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "CANONICAL COMMIT: $commit"
+CANONICAL COMMIT: fef272a06e3ad5f9b02ca50c1183f3d961e2eaf2
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "VERIFIED FILES: $($files.Count)"
+VERIFIED FILES: 570
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "BACKUP: $backup"
+BACKUP: D:\Homio\HOMIO_Frontend_Backup_20261017_204602
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "Local-only files were not deleted."
+Local-only files were not deleted.
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> try {
+>>     [System.IO.Directory]::Delete($stage, $true)
+>> }
+>> catch {
+>>     Write-Warning "Verified staging folder could not be removed: $stage"
+>> }
 PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
