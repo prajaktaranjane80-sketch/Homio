@@ -1,4 +1,3 @@
-
 .systemBadge {
   display: inline-flex;
   align-items: center;
@@ -6,10 +5,10 @@
   max-width: 100%;
   min-height: 25px;
   padding: 5px 9px;
-  border: 1px solid #dfe6ed;
-  border-radius: 999px;
-  background: #f5f8fb;
-  color: #52657a;
+  border: 1px solid var(--homio-border);
+  border-radius: var(--radius-pill);
+  background: var(--homio-surface-soft);
+  color: var(--homio-text-soft);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.045em;
@@ -26,33 +25,37 @@
 }
 
 .badgePositive {
-  border-color: #cde3d5;
-  background: #edf7f0;
-  color: #347554;
+  border-color: color-mix(in srgb, var(--homio-success) 28%, white);
+  background: var(--homio-success-soft);
+  color: var(--homio-success);
 }
 
 .badgeWarning {
-  border-color: #ead7b5;
-  background: #fbf2e3;
-  color: #946c2f;
+  border-color: color-mix(in srgb, var(--homio-warning) 28%, white);
+  background: var(--homio-warning-soft);
+  color: var(--homio-warning);
 }
 
 .badgeError {
-  border-color: #f0cdcd;
-  background: #fff0f0;
-  color: #a23c3c;
+  border-color: color-mix(in srgb, var(--homio-danger) 24%, white);
+  background: var(--homio-danger-soft);
+  color: var(--homio-danger);
 }
 
 .badgePremium {
-  border-color: #e5d0a7;
-  background: linear-gradient(135deg, #fff9ee, #f5e8cd);
-  color: #8b682f;
+  border-color: color-mix(in srgb, var(--homio-accent) 38%, white);
+  background: linear-gradient(
+    135deg,
+    var(--homio-accent-soft),
+    var(--homio-surface-soft)
+  );
+  color: var(--homio-accent-strong);
 }
 
 .badgeNeutral {
-  border-color: #dfe6ed;
-  background: #f5f8fb;
-  color: #52657a;
+  border-color: var(--homio-border);
+  background: var(--homio-surface-soft);
+  color: var(--homio-text-soft);
 }
 
 .systemPanel {
@@ -61,11 +64,15 @@
   gap: 14px;
   min-width: 0;
   padding: 20px;
-  border: 1px solid #e1e8ef;
-  border-radius: 17px;
-  background: linear-gradient(145deg, #ffffff, #f8fafc);
-  color: #152a40;
-  box-shadow: 0 8px 24px rgb(19 40 60 / 4%);
+  border: 1px solid var(--homio-border);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    145deg,
+    var(--homio-surface),
+    var(--homio-surface-soft)
+  );
+  color: var(--homio-text);
+  box-shadow: var(--shadow-sm);
 }
 
 .systemPanelIcon {
@@ -74,10 +81,10 @@
   height: 38px;
   flex: 0 0 38px;
   place-items: center;
-  border: 1px solid #e3d3b4;
-  border-radius: 12px;
-  background: #fff9ef;
-  color: #96703a;
+  border: 1px solid var(--homio-border);
+  border-radius: var(--radius-md);
+  background: var(--homio-accent-soft);
+  color: var(--homio-accent-strong);
   font-size: 16px;
   font-weight: 800;
 }
@@ -88,7 +95,7 @@
 }
 
 .systemEyebrow {
-  color: #9a7745;
+  color: var(--homio-accent-strong);
   font-size: 9px;
   font-weight: 850;
   letter-spacing: 0.14em;
@@ -98,7 +105,7 @@
 
 .systemTitle {
   margin: 7px 0 0;
-  color: #152a40;
+  color: var(--homio-text);
   font-size: 17px;
   font-weight: 770;
   letter-spacing: -0.025em;
@@ -107,14 +114,14 @@
 
 .systemDescription {
   margin: 8px 0 0;
-  color: #6b7c8f;
+  color: var(--homio-text-muted);
   font-size: 12px;
   line-height: 1.75;
 }
 
 .systemMeta {
   margin-top: 12px;
-  color: #8996a4;
+  color: var(--homio-text-muted);
   font-size: 10px;
   line-height: 1.6;
 }
@@ -126,24 +133,24 @@
   justify-items: center;
   gap: 13px;
   padding: 24px;
-  border: 1px solid #e2e8ef;
-  border-radius: 20px;
-  background: #ffffff;
+  border: 1px solid var(--homio-border);
+  border-radius: var(--radius-xl);
+  background: var(--homio-surface);
   text-align: center;
 }
 
 .loadingSpinner {
   width: 31px;
   height: 31px;
-  border: 3px solid #e7edf3;
-  border-top-color: #b59054;
+  border: 3px solid var(--homio-border);
+  border-top-color: var(--homio-accent);
   border-radius: 50%;
   animation: systemSpin 850ms linear infinite;
 }
 
 .loadingTitle {
   margin: 0;
-  color: #172d43;
+  color: var(--homio-text);
   font-size: 15px;
   font-weight: 760;
 }
@@ -151,7 +158,7 @@
 .loadingDescription {
   max-width: 440px;
   margin: 0;
-  color: #748396;
+  color: var(--homio-text-muted);
   font-size: 12px;
   line-height: 1.7;
 }
@@ -167,15 +174,20 @@
   gap: 12px;
   min-width: 0;
   padding: 17px;
-  border: 1px solid #e5eaf0;
-  border-radius: 17px;
-  background: #ffffff;
+  border: 1px solid var(--homio-border);
+  border-radius: var(--radius-lg);
+  background: var(--homio-surface);
 }
 
 .skeletonBlock {
   overflow: hidden;
-  border-radius: 9px;
-  background: linear-gradient(100deg, #edf1f5 25%, #f7f9fb 42%, #edf1f5 60%);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    100deg,
+    var(--homio-surface-muted) 25%,
+    var(--homio-surface-soft) 42%,
+    var(--homio-surface-muted) 60%
+  );
   background-size: 220% 100%;
   animation: systemShimmer 1.4s ease-in-out infinite;
 }
@@ -203,10 +215,10 @@
   max-width: 100%;
   min-height: 23px;
   padding: 4px 8px;
-  border: 1px solid #e0e7ee;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #5e7186;
+  border: 1px solid var(--homio-border);
+  border-radius: var(--radius-sm);
+  background: var(--homio-surface);
+  color: var(--homio-text-soft);
   font-size: 10px;
   font-weight: 700;
   line-height: 1.4;
@@ -217,10 +229,10 @@
   align-items: center;
   gap: 6px;
   padding: 6px 9px;
-  border: 1px solid #e5d3b2;
-  border-radius: 999px;
-  background: #fff8ec;
-  color: #8d692f;
+  border: 1px solid color-mix(in srgb, var(--homio-accent) 38%, white);
+  border-radius: var(--radius-pill);
+  background: var(--homio-accent-soft);
+  color: var(--homio-accent-strong);
   font-size: 10px;
   font-weight: 800;
   line-height: 1.4;
@@ -231,13 +243,13 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: 5px;
-  color: #7d8a99;
+  color: var(--homio-text-muted);
   font-size: 10px;
   line-height: 1.6;
 }
 
 .lastUpdated strong {
-  color: #586b7f;
+  color: var(--homio-text-soft);
   font-weight: 760;
 }
 
@@ -267,7 +279,7 @@
   .systemPanel {
     gap: 11px;
     padding: 16px;
-    border-radius: 14px;
+    border-radius: var(--radius-md);
   }
 
   .systemPanelIcon {
@@ -307,4 +319,3 @@
     animation: none;
   }
 }
-
