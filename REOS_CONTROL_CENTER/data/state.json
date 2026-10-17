@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-17T15:51:47+05:30",
+    "updated_at": "2026-10-17T16:40:30+05:30",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2267,14 +2267,32 @@
         "id": "CORE-008-T02",
         "note": "CORE-008-T02 evidence: commit 7cb43d506fab2a4be966814e49a9d6da690f2234 passed GitHub Actions run 39024202131 with 482 tests passing. Implemented immutable read-only attribution binding against CORE-003 LeadAttribution, CORE-006 Deal, ARCH-011 ownership binding and ARCH-014 evidence. The complete gate acceptance criteria remain subject to their own evidence and validation."
       }
+    },
+    {
+      "id": "08d19d62-9032-4c3c-a08a-09a07b7e77c7",
+      "time": "2026-10-17T16:40:30+05:30",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "CORE-008-AC03",
+        "evidence": "GitHub Actions run 39026668724 succeeded for code commit 5adc036e7581345714d2d323a07beae5e4aea1ee; 502 tests passed in 1.35 seconds. The tested changes cover deterministic fixed-precision allocation ratios, zero-total handling, calculation/entitlement state and version checks, immutable participant split, active Deal participant role compatibility, tenant isolation and ARCH-011 ownership binding consistency."
+      }
+    },
+    {
+      "id": "f69c6cbf-66e4-4a63-b145-e1a01cb87df9",
+      "time": "2026-10-17T16:40:30+05:30",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-008-T03",
+        "note": "CORE-008-T03 evidence: commit 5adc036e7581345714d2d323a07beae5e4aea1ee passed GitHub Actions run 39026668724 with 502 tests. Implemented deterministic allocation-ratio precision correction and read-only commission participant binding against the canonical CORE-006 Deal, CORE-003 attribution and ARCH-011 ownership references. Remaining acceptance criteria remain independently evidence-gated."
+      }
     }
   ],
   "integrity": {
-    "sha256": "6f27f7589bdaf366017521b31fd12d82a3e96c625dbb1a1894b6428d781a68c6"
+    "sha256": "8df15eb0c98fa7b2a3bd6cea66e1e3c935ccf553e986537515a519d92a9c8173"
   },
   "execution": {
     "current_gate": "CORE-008",
-    "current_task": "CORE-008-T03: Implement split and participant logic.",
+    "current_task": "CORE-008-T04: Implement settlement and reconciliation lifecycle.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
@@ -2285,7 +2303,7 @@
       "Critical financial actions require appropriate approval.",
       "Security and concurrency tests pass."
     ],
-    "current_subtask": "CORE-008-T03"
+    "current_subtask": "CORE-008-T04"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -4237,7 +4255,7 @@
       "name": "Commission & Financial Core",
       "objective": "Implement protected commission, financial and settlement lifecycle.",
       "status": "CURRENT",
-      "current_subtask": "CORE-008-T03",
+      "current_subtask": "CORE-008-T04",
       "subtasks": [
         {
           "id": "CORE-008-T01",
@@ -4259,13 +4277,15 @@
           "id": "CORE-008-T03",
           "title": "Implement split and participant logic",
           "priority": "CRITICAL",
-          "status": "CURRENT"
+          "status": "DONE",
+          "completed_at": "2026-10-17T16:40:30+05:30",
+          "note": "CORE-008-T03 evidence: commit 5adc036e7581345714d2d323a07beae5e4aea1ee passed GitHub Actions run 39026668724 with 502 tests. Implemented deterministic allocation-ratio precision correction and read-only commission participant binding against the canonical CORE-006 Deal, CORE-003 attribution and ARCH-011 ownership references. Remaining acceptance criteria remain independently evidence-gated."
         },
         {
           "id": "CORE-008-T04",
           "title": "Implement settlement and reconciliation lifecycle",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "CURRENT"
         },
         {
           "id": "CORE-008-T05",
@@ -4330,9 +4350,9 @@
         {
           "id": "CORE-008-AC03",
           "criterion": "Financial amounts use safe fixed-precision semantics.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "GitHub Actions run 39026668724 succeeded for code commit 5adc036e7581345714d2d323a07beae5e4aea1ee; 502 tests passed in 1.35 seconds. The tested changes cover deterministic fixed-precision allocation ratios, zero-total handling, calculation/entitlement state and version checks, immutable participant split, active Deal participant role compatibility, tenant isolation and ARCH-011 ownership binding consistency.",
+          "verified_at": "2026-10-17T16:40:30+05:30"
         },
         {
           "id": "CORE-008-AC04",
