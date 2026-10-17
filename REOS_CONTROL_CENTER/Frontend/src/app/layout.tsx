@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
 import { AppShell } from "@/components/shell/AppShell";
+import { ErrorBoundary } from "@/features/f13_production/ErrorBoundary";
+import ProductionQualityMonitor from "@/features/f13_production/ProductionQualityMonitor";
 
 import "./globals.css";
 
@@ -34,7 +36,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AppShell>{children}</AppShell>
+        <ErrorBoundary>
+          <AppShell>
+            <ProductionQualityMonitor />
+            {children}
+          </AppShell>
+        </ErrorBoundary>
       </body>
     </html>
   );
