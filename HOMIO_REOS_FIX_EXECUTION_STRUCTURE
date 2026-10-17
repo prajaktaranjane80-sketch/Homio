@@ -1,6 +1,6 @@
 # HOMIO / REOS — Fix Execution Structure
 
-**Status:** ACTIVE EXECUTION PLAN — BASELINE CAPTURED, WF-01 OPEN  
+**Status:** ACTIVE EXECUTION PLAN — WF-01 OPEN (CLI SEMANTIC GUARD + CI RE-RUN REQUIRED)
 **Scope:** Workflow consistency, authentication, security verification, CI, T21 Git-policy handling, and final EntryPoint/ACRL alignment.  
 **Canonical repository:** `prajaktaranjane80-sketch/Homio`  
 **Canonical branch:** `reos-development`
@@ -104,7 +104,7 @@ For each issue, record:
 
 A status may be marked PASS only when the relevant result is available and tied to the current canonical change. When verification fails, stay on the same issue and correct that failure before moving forward.
 
-## 5. Immediate next action
+## 5. Initial next action (historical baseline — 2026-10-10)
 
 **BASE-01 baseline captured:** current branch HEAD was `13d3350d512b5242accc01a311ff2c4098e9bfe1`. Continue with **WF-01**: establish the intended phase-to-gate mapping, add a semantic consistency check and targeted regression coverage if confirmed necessary, then reconcile derived state only through the approved Control Center flow. Do not classify execution-plan and architecture-lifecycle statuses as contradictory without semantic proof. Proceed to **AUTH-01** only after WF-01 is resolved or explicitly shown not to require a change.
 
@@ -129,11 +129,12 @@ A status may be marked PASS only when the relevant result is available and tied 
 - The workflow must stop on any failed preflight, use live HEAD and exact target SHA guards, perform non-force ref updates, and verify exact remote content.
 - WF-01 remains open. T21 CI success does not prove complete state/gate, authentication or final ACRL alignment.
 
-## 8. WF-01 phase/gate regression coverage — CI pending
+## 8. WF-01 semantic command guard — CI rerun required
 
-- Read-only inspection confirmed that the current canonical state uses `CORE-008`, which is registered in `execution_plan.authoritative_sequence`; `phases.current` matches the phase-1 projection.
-- The existing `context/phase_projection.py` resolves registered gates and fails closed for unknown gates. `CanonicalAuthorityVerifier.verify()` already rejects phase/gate inconsistency.
-- Additive regression coverage is being introduced for all supported gate-prefix mappings, mismatched phases, unknown gates, malformed state, synchronization boundaries and the current canonical state.
-- Backend CI is being extended to compile `AI_AGENT_ENTRYPOINT.py` and execute the dedicated phase-projection regression tests.
-- This entry records implementation scope, not a PASS declaration. Keep WF-01 open until CI has completed successfully on the commit carrying these additions.
-- `REOS_CONTROL_CENTER/data/state.json` is read-only for this work and was not changed.
+- Commit `6742a901a285e5f4b3cc1ec82f4002ace8d90119` passed backend CI run `39005903139`, including the phase-projection regression tests.
+- Targeted inspection then found that `reos_control_center.py::cmd_verify_state` still printed only the stored/calculated hash result. Hash integrity alone does not prove semantic phase/gate coherence.
+- This additive correction makes `verify-state` also report `PHASE/GATE COHERENCE`, and return exit code 1 if either hash integrity or phase/gate coherence fails.
+- Regression tests cover both the valid canonical-state command result and a phase mismatch with a correctly recalculated integrity hash.
+- The existing CORE-001 identity/tenant regression directory is added to backend CI; its domain logic is reused rather than duplicated.
+- This correction has not yet been verified by CI. Keep WF-01 OPEN until the backend CI run for the commit containing these changes succeeds.
+- `REOS_CONTROL_CENTER/data/state.json` is not modified by this work.

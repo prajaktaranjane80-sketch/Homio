@@ -14,9 +14,15 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from context.phase_projection import synchronize_current_phase
+    from context.phase_projection import (
+        is_phase_coherent,
+        synchronize_current_phase,
+    )
 except ImportError:
-    from REOS_CONTROL_CENTER.context.phase_projection import synchronize_current_phase
+    from REOS_CONTROL_CENTER.context.phase_projection import (
+        is_phase_coherent,
+        synchronize_current_phase,
+    )
 
 ROOT = Path(__file__).resolve().parent
 STATE = ROOT / "data" / "state.json"
@@ -961,10 +967,20 @@ def cmd_verify_state(
         "STATE HASH CALCULATED:",
         calculated,
     )
+    integrity_ok = stored == calculated
+    phase_coherence_ok = is_phase_coherent(state)
+
     print(
         "INTEGRITY:",
-        "PASS" if stored == calculated else "MISMATCH",
+        "PASS" if integrity_ok else "MISMATCH",
     )
+    print(
+        "PHASE/GATE COHERENCE:",
+        "PASS" if phase_coherence_ok else "MISMATCH",
+    )
+
+    if not integrity_ok or not phase_coherence_ok:
+        raise SystemExit(1)
 
 
 def build_parser() -> argparse.ArgumentParser:

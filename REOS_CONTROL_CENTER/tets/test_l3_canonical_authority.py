@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import json
+import pytest
 from pathlib import Path
 
 from context.control_plane import CanonicalAuthorityVerifier
@@ -10,7 +11,7 @@ from context.phase_projection import (
     is_phase_coherent,
     synchronize_current_phase,
 )
-from reos_control_center import calculate_hash
+from reos_control_center import calculate_hash, cmd_verify_state
 
 CONTROL_CENTER_ROOT = Path(__file__).resolve().parents[1]
 STATE_PATH = CONTROL_CENTER_ROOT / "data" / "state.json"
@@ -240,3 +241,26 @@ def test_l3_verification_blocks_phase_gate_mismatch_with_valid_integrity():
     assert result.allowed is False
     assert result.reason == "AUTHORITATIVE_PHASE_GATE_COHERENCE_FAILURE"
     assert result.current_gate == broken["execution"]["current_gate"]
+def test_verify_state_command_reports_phase_gate_coherence(capsys):
+    state = load_canonical_state()
+
+    cmd_verify_state(state)
+
+    output = capsys.readouterr().out
+    assert "INTEGRITY: PASS" in output
+    assert "PHASE/GATE COHERENCE: PASS" in output
+
+
+def test_verify_state_command_fails_on_phase_mismatch_with_valid_hash(capsys):
+    state = load_canonical_state()
+    broken = copy.deepcopy(state)
+    broken["phases"]["current"] = "__INCOHERENT_PHASE__"
+    broken["integrity"]["sha256"] = calculate_hash(broken)
+
+    with pytest.raises(SystemExit) as result:
+        cmd_verify_state(broken)
+
+    assert result.value.code == 1
+    output = capsys.readouterr().out
+    assert "INTEGRITY: PASS" in output
+    assert "PHASE/GATE COHERENCE: MISMATCH" in output
