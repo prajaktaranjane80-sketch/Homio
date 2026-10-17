@@ -46,7 +46,7 @@ const requiredFiles = [
   "src/components/system/SystemComponents.module.css",
   "src/components/motion/MotionReveal.tsx",
   "src/components/motion/MotionReveal.module.css",
-  "src/components/motion/motion.types.ts",
+  "src/components/motion/motion.types.ts"
 ];
 
 for (const relativePath of requiredFiles) {
@@ -85,7 +85,7 @@ const requiredTokens = [
   "--motion-normal:",
   "--motion-slow:",
   "--ease-standard: 180ms ease;",
-  "--ease-standard-curve:",
+  "--ease-standard-curve:"
 ];
 
 for (const token of requiredTokens) {
@@ -97,23 +97,23 @@ for (const token of requiredTokens) {
 requireContains(
   tokens,
   "--ease-standard: 180ms ease;",
-  "Legacy transition compatibility",
+  "Legacy transition compatibility"
 );
 
 requireContains(
   tokens,
   "--ease-standard-curve: cubic-bezier(",
-  "Curve-only motion token",
+  "Curve-only motion token"
 );
 
 for (const [fileName, source] of [
   ["base.css", base],
-  ["foundation.css", foundation],
+  ["foundation.css", foundation]
 ]) {
   requireContains(
     source,
     "var(--ease-standard)",
-    `${fileName} legacy transition compatibility`,
+    `${fileName} legacy transition compatibility`
   );
 }
 
@@ -123,7 +123,7 @@ const requiredImports = [
   '@import "./styles/tokens.css";',
   '@import "./styles/base.css";',
   '@import "./styles/foundation.css";',
-  '@import "./styles/motion.css";',
+  '@import "./styles/motion.css";'
 ];
 
 let previousPosition = -1;
@@ -145,7 +145,7 @@ for (const styleImport of requiredImports) {
 for (const requiredClass of [
   ".motion-fade-in",
   ".motion-rise-in",
-  ".motion-scale-in",
+  ".motion-scale-in"
 ]) {
   requireContains(motion, requiredClass, "Motion utility contract");
 }
@@ -153,55 +153,55 @@ for (const requiredClass of [
 requireContains(
   motion,
   "@media (prefers-reduced-motion: reduce)",
-  "Motion utility accessibility",
+  "Motion utility accessibility"
 );
 
 requireContains(
   motion,
   "var(--ease-standard-curve)",
-  "Motion timing contract",
+  "Motion timing contract"
 );
 
 requireContains(
   revealCss,
   ".revealVisible",
-  "Reveal component visible state",
+  "Reveal component visible state"
 );
 
 requireContains(
   revealCss,
   "@media (prefers-reduced-motion: reduce)",
-  "Reveal reduced-motion support",
+  "Reveal reduced-motion support"
 );
 
 requireContains(
   revealComponent,
   "IntersectionObserver",
-  "Reveal viewport observer",
+  "Reveal viewport observer"
 );
 
 requireContains(
   revealComponent,
   "prefers-reduced-motion: reduce",
-  "Reveal reduced-motion runtime contract",
+  "Reveal reduced-motion runtime contract"
 );
 
 requireContains(
   revealComponent,
   'from "./motion.types"',
-  "Reveal type import",
+  "Reveal type import"
 );
 
 requireContains(
   motionTypes,
   "export interface MotionRevealProps",
-  "Reveal type definition",
+  "Reveal type definition"
 );
 
 requireContains(
   motionTypes,
   "children: ReactNode;",
-  "Reveal children type",
+  "Reveal children type"
 );
 
 /* 5. Navigation and system components must use the shared theme */
@@ -210,14 +210,14 @@ const themedModules = [
   ["GlobalMenus.module.css", globalMenus],
   ["MegaMenu.module.css", megaMenu],
   ["SharedSystem.module.css", sharedSystem],
-  ["SystemComponents.module.css", systemComponents],
+  ["SystemComponents.module.css", systemComponents]
 ];
 
 for (const [fileName, source] of themedModules) {
   requireContains(
     source,
     "var(--homio-",
-    `${fileName} shared brand tokens`,
+    `${fileName} shared brand tokens`
   );
 }
 
@@ -233,7 +233,7 @@ const legacyPaletteValues = [
   "#e2e8ef",
   "#708095",
   "#d9bb82",
-  "#d8ba82",
+  "#d8ba82"
 ];
 
 const combinedThemeModules = themedModules
@@ -251,13 +251,13 @@ for (const legacyColor of legacyPaletteValues) {
 requireContains(
   sharedSystem,
   "@media (prefers-reduced-motion: reduce)",
-  "Shared system motion accessibility",
+  "Shared system motion accessibility"
 );
 
 requireContains(
   systemComponents,
   "@media (prefers-reduced-motion: reduce)",
-  "System component motion accessibility",
+  "System component motion accessibility"
 );
 
 /* 7. Wire verifier into the standard frontend checks */
@@ -268,7 +268,7 @@ if (!packageJson.scripts?.["verify:design-system"]) {
 
 if (
   !String(packageJson.scripts?.["verify:foundation"] ?? "").includes(
-    "npm run verify:design-system",
+    "npm run verify:design-system"
   )
 ) {
   fail("verify:foundation must invoke verify:design-system.");
@@ -276,7 +276,7 @@ if (
 
 if (
   !String(packageJson.scripts?.verify ?? "").includes(
-    "npm run verify:foundation",
+    "npm run verify:foundation"
   )
 ) {
   fail("The combined verify pipeline must invoke verify:foundation.");
