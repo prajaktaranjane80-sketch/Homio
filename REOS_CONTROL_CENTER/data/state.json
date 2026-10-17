@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-17T12:58:38+05:30",
+    "updated_at": "2026-10-17T15:51:47+05:30",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2249,14 +2249,32 @@
         "id": "CORE-008-T01",
         "note": "CORE-008-T01 evidence: repository commit e3d0592d06baeec1d9e52324ad47a7cd0e316b8b; backend CI run 39013430552 succeeded, compile step passed and full configured commission_financial suite passed 469 tests in 2.00s. This completes the commission-domain subtask only. CORE-008 gate acceptance criteria remain pending until each criterion has full evidence and authorized gate validation."
       }
+    },
+    {
+      "id": "6cac135b-297c-4628-a49d-6f26d55df199",
+      "time": "2026-10-17T15:51:46+05:30",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "CORE-008-AC02",
+        "evidence": "GitHub Actions run 39024202131 passed 482 tests in 2.12s for commit 7cb43d506fab2a4be966814e49a9d6da690f2234. The attribution-binding tests validate CORE-003 lead attribution, CORE-006 deal identity, ARCH-011 ownership binding, ARCH-014 evidence references, tenant scope and active participant role compatibility."
+      }
+    },
+    {
+      "id": "d9fbb3f1-f683-4be6-9bee-06b5a6ce6209",
+      "time": "2026-10-17T15:51:47+05:30",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-008-T02",
+        "note": "CORE-008-T02 evidence: commit 7cb43d506fab2a4be966814e49a9d6da690f2234 passed GitHub Actions run 39024202131 with 482 tests passing. Implemented immutable read-only attribution binding against CORE-003 LeadAttribution, CORE-006 Deal, ARCH-011 ownership binding and ARCH-014 evidence. The complete gate acceptance criteria remain subject to their own evidence and validation."
+      }
     }
   ],
   "integrity": {
-    "sha256": "f6e6a666be67490c4b9964203c3a930eb6d6f3dd7ee0a5b999f9749e34830c47"
+    "sha256": "6f27f7589bdaf366017521b31fd12d82a3e96c625dbb1a1894b6428d781a68c6"
   },
   "execution": {
     "current_gate": "CORE-008",
-    "current_task": "CORE-008-T02: Implement commission attribution and rules.",
+    "current_task": "CORE-008-T03: Implement split and participant logic.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
@@ -2267,7 +2285,7 @@
       "Critical financial actions require appropriate approval.",
       "Security and concurrency tests pass."
     ],
-    "current_subtask": "CORE-008-T02"
+    "current_subtask": "CORE-008-T03"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -4219,7 +4237,7 @@
       "name": "Commission & Financial Core",
       "objective": "Implement protected commission, financial and settlement lifecycle.",
       "status": "CURRENT",
-      "current_subtask": "CORE-008-T02",
+      "current_subtask": "CORE-008-T03",
       "subtasks": [
         {
           "id": "CORE-008-T01",
@@ -4233,13 +4251,15 @@
           "id": "CORE-008-T02",
           "title": "Implement commission attribution and rules",
           "priority": "CRITICAL",
-          "status": "CURRENT"
+          "status": "DONE",
+          "completed_at": "2026-10-17T15:51:47+05:30",
+          "note": "CORE-008-T02 evidence: commit 7cb43d506fab2a4be966814e49a9d6da690f2234 passed GitHub Actions run 39024202131 with 482 tests passing. Implemented immutable read-only attribution binding against CORE-003 LeadAttribution, CORE-006 Deal, ARCH-011 ownership binding and ARCH-014 evidence. The complete gate acceptance criteria remain subject to their own evidence and validation."
         },
         {
           "id": "CORE-008-T03",
           "title": "Implement split and participant logic",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "CURRENT"
         },
         {
           "id": "CORE-008-T04",
@@ -4303,9 +4323,9 @@
         {
           "id": "CORE-008-AC02",
           "criterion": "Deal and ownership attribution is traceable.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "GitHub Actions run 39024202131 passed 482 tests in 2.12s for commit 7cb43d506fab2a4be966814e49a9d6da690f2234. The attribution-binding tests validate CORE-003 lead attribution, CORE-006 deal identity, ARCH-011 ownership binding, ARCH-014 evidence references, tenant scope and active participant role compatibility.",
+          "verified_at": "2026-10-17T15:51:46+05:30"
         },
         {
           "id": "CORE-008-AC03",
