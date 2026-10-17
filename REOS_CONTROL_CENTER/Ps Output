@@ -1,22 +1,80 @@
-T03 TRANSITION STOPPED — NO SUCCESS CLAIM
-Branch changed. Expected 5adc036e7581345714d2d323a07beae5e4aea1ee; found 65efc72bbe2b27a8a2fc36a3dbe22a7745467937. Re-audit before any state update.
-Branch changed. Expected 5adc036e7581345714d2d323a07beae5e4aea1ee; found 65efc72bbe2b27a8a2fc36a3dbe22a7745467937. Re-audit before any state update.
-At line:35 char:9
-+         throw "Branch changed. Expected $ExpectedHead; found $($Ref.o ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Branch changed....y state update.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Branch changed. Expected 5adc036e7581345714d2d323a07beae5e4aea1ee; found 65efc72bbe2b27a8a2fc36a3dbe22a7745467937. Re-audit
-   before any state update.
+SYNCED: package.json
+SYNCED: scripts/verify-lockfile.mjs
+SYNCED: scripts/verify-design-system.mjs
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "`n--- Verify scripts now visible locally ---"
 
-PS D:\Homio\REOS_CONTROL_CENTER> finally {
->>     if ($TempRoot -and (Test-Path -LiteralPath $TempRoot)) {
->>         Remove-Item -LiteralPath $TempRoot -Recurse -Force -ErrorAction SilentlyContinue
->>     }
+--- Verify scripts now visible locally ---
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> npm run
+Lifecycle scripts included in homio-frontend@0.1.0:
+  start
+    next start
+available via `npm run`:
+  dev
+    next dev --turbopack
+  build
+    next build
+  lint
+    eslint .
+  typecheck
+    tsc --noEmit
+  verify:lockfile
+    node ./scripts/verify-lockfile.mjs
+  verify:design-system
+    node ./scripts/verify-design-system.mjs
+  verify:foundation
+    npm run verify:lockfile && node ./scripts/verify-foundation.mjs && npm run verify:design-system
+  verify:auth
+    node --test ./scripts/auth-runtime.test.mjs && node ./scripts/verify-auth.mjs
+  verify:f02
+    node ./scripts/verify-f02.mjs
+  verify:f03
+    node ./scripts/verify-f03.mjs
+  verify:f04
+    node ./scripts/verify-f04.mjs
+  verify:f05
+    node ./scripts/verify-f05.mjs
+  verify:f06
+    node ./scripts/verify-f06.mjs
+  verify:f07
+    node ./scripts/verify-f07.mjs
+  verify:f08
+    node ./scripts/verify-f08.mjs
+  verify:f09
+    node ./scripts/verify-f09.mjs
+  verify:f10
+    node ./scripts/verify-f10.mjs
+  verify:f11
+    node ./scripts/verify-f11.mjs
+  verify:f12
+    node ./scripts/verify-f12.mjs
+  verify:f13
+    node ./scripts/verify-f13.mjs
+  verify
+    npm run verify:foundation && npm run verify:auth && npm run verify:f02 && npm run verify:f03 && npm run verify:f04 && npm run verify:f05 && npm run verify:f06 && npm run verify:f07 && npm run verify:f08 && npm run verify:f09 && npm run verify:f10 && npm run verify:f11 && npm run verify:f12 && npm run verify:f13 && npm run typecheck && npm run lint && npm run build
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if ($LASTEXITCODE -ne 0) {
+>>     throw "STOP: npm run failed."
 >> }
-finally : The term 'finally' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if
-a path was included, verify that the path is correct and try again.
-At line:1 char:1
-+ finally {
-+ ~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (finally:String) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : CommandNotFoundException
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "`n--- Run lockfile verification ---"
+
+--- Run lockfile verification ---
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> npm run verify:lockfile
+
+> homio-frontend@0.1.0 verify:lockfile
+> node ./scripts/verify-lockfile.mjs
+
+
+===============================================
+FRONTEND DEPENDENCY LOCK CONTRACT = PASS
+LOCKFILE V3                      = PASS
+ROOT PACKAGE IDENTITY            = PASS
+DIRECT DEPENDENCY DECLARATIONS    = PASS
+RESOLVED DIRECT DEPENDENCIES      = PASS
+HTTPS PACKAGE SOURCES             = PASS
+INTEGRITY METADATA                = PASS
+===============================================
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> if ($LASTEXITCODE -ne 0) {
+>>     throw "LOCKFILE VERIFICATION FAILED: ab agla actual error upar dekho."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
