@@ -88,6 +88,7 @@ def test_nested_metadata_is_deeply_immutable() -> None:
         entry.metadata["evidence"]["ids"][1]["origin"] = "changed-inside"
 
     assert entry.immutable_fingerprint == original_fingerprint
+    assert entry.verify_integrity() is True
 
 
 def test_serialization_returns_detached_metadata() -> None:
@@ -105,6 +106,7 @@ def test_serialization_returns_detached_metadata() -> None:
 
     assert entry.metadata["evidence"]["ids"][0] == "evidence-001"
     assert entry.immutable_fingerprint == original_fingerprint
+    assert entry.verify_integrity() is True
 
 
 def test_metadata_rejects_non_json_compatible_values() -> None:
@@ -155,6 +157,24 @@ def test_entry_structural_balance_check_succeeds() -> None:
 
     assert entry.assert_balanced() is None
     assert entry.verify_integrity() is True
+
+
+def test_integrity_verification_detects_post_construction_tampering() -> None:
+    entry = make_entry()
+    original_fingerprint = entry.immutable_fingerprint
+
+    assert entry.verify_integrity() is True
+
+    # Adversarially simulate a field change that bypasses ordinary
+    # frozen-dataclass assignment. Integrity verification must detect it.
+    object.__setattr__(
+        entry,
+        "source_reference",
+        "tampered-source",
+    )
+
+    assert entry.immutable_fingerprint != original_fingerprint
+    assert entry.verify_integrity() is False
 
 
 def test_tenant_boundary_fails_closed() -> None:
