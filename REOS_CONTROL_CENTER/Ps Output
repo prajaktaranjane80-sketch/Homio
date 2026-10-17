@@ -1,157 +1,601 @@
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Replacement = $Replacement.Replace("`r`n", "`n")
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $Replacement.EndsWith("`n")) {
->>     $Replacement += "`n"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($BranchInfo.commit.sha -ne $BaseSha) {
+>>     throw "STOP: Branch moved. Expected $BaseSha; found $($BranchInfo.commit.sha)."
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Capture live branch HEAD and require the inspected baseline.
-PS D:\Homio\REOS_CONTROL_CENTER> $RepoInfo = Invoke-GitHubApi -Method GET -Endpoint ""
-Invoke-GitHubApi : Cannot bind argument to parameter 'Endpoint' because it is an empty string.
-At line:1 char:52
-+ $RepoInfo = Invoke-GitHubApi -Method GET -Endpoint ""
-+                                                    ~~
-    + CategoryInfo          : InvalidData: (:) [Invoke-GitHubApi], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ParameterArgumentValidationErrorEmptyStringNotAllowed,Invoke-GitHubApi
-
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $RepoInfo.permissions.push) {
->>     throw "The authenticated GitHub identity does not have repository write permission."
->> }
-The authenticated GitHub identity does not have repository write permission.
+STOP: Branch moved. Expected 56997146fec1b2d6bca936acb0dbb7de9cd48cc8; found bd9d63514f7f3f69f518837a935c776b6cf65749.
 At line:2 char:5
-+     throw "The authenticated GitHub identity does not have repository ...
++     throw "STOP: Branch moved. Expected $BaseSha; found $($BranchInfo ...
 +     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (The authenticat...ite permission.:String) [], RuntimeException
-    + FullyQualifiedErrorId : The authenticated GitHub identity does not have repository write permission.
+    + CategoryInfo          : OperationStopped: (STOP: Branch mo...5c776b6cf65749.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: Branch moved. Expected 56997146fec1b2d6bca936acb0dbb7de9cd48cc8; found bd9d63514f7f3f69f518837a935c776b6cf65749.
 
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Ref = Invoke-GitHubApi -Method GET -Endpoint "/git/ref/heads/$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER> $BaseSha = $Ref.object.sha
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($BaseSha -cne $ExpectedHead) {
->>     throw "Branch HEAD changed. Expected $ExpectedHead but found $BaseSha. No repository write attempted; refresh the live baseline first."
+PS D:\Homio\REOS_CONTROL_CENTER> $Files = @{}
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Path in $Expected.Keys) {
+>>     $Live = Read-RemoteFile -Path $Path -At $BaseSha
+>>     if ($Live.Sha -ne $Expected[$Path]) {
+>>         throw "STOP: Baseline blob mismatch for $Path. No write attempted."
+>>     }
+>>     $Files[$Path] = $Live.Content
 >> }
-Branch HEAD changed. Expected 4823a1e578e4017f0653b5cbdd5d6e10f8ea070b but found cf3a21113766dd1c4f012f32ca3494d19acf51d3. No repository write attempted;
-refresh the live baseline first.
-At line:2 char:5
-+     throw "Branch HEAD changed. Expected $ExpectedHead but found $Bas ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Branch HEAD cha...baseline first.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Branch HEAD changed. Expected 4823a1e578e4017f0653b5cbdd5d6e10f8ea070b but found cf3a21113766dd1c4f012f32ca3494d19acf51d3. N
-   o repository write attempted; refresh the live baseline first.
-
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Guard every relevant file against stale or unexpected content.
-PS D:\Homio\REOS_CONTROL_CENTER> $GuardFiles = @(
->>     @{ Path = "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py"; Sha = "56422291ad5d2ea5c500372e259154d0b8a28883" },
->>     @{ Path = "HOMIO_REOS_FIX_EXECUTION_STRUCTURE"; Sha = "dbe4f2f5a4994b0eca7e270e17fb924c4f475998" },
->>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_transaction.py"; Sha = "ef490f1ded7688ac9c541f1d3263d5ec0c518db1" },
->>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/test_git_transaction.py"; Sha = "069dd87f9015482fd8ab8ec70c585ace0c4f9642" },
->>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/test_git_concurrency.py"; Sha = "a6c4b21b4e2d776ae61e3419767ac145d5485a41" },
->>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/test_git_scope.py"; Sha = "5ce67b044682f102e51bb922329100c5853a9152" },
->>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_models.py"; Sha = "059058d0cc4d6d8114fe45624212354d63f265c1" },
->>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_scope.py"; Sha = "b9d5008f3525a94346f44c228d6163a42e989053" },
->>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_policy.py"; Sha = "f6f15bde6e2f7e2733bda0d8cf17df8a51dcdb2d" },
->>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_lock.py"; Sha = "17adf3518b1d63ef502f1ff54f59a7d91a12e1f3" },
->>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_validation.py"; Sha = "ec5fd912b3e7522849c153989f83a8bbbe0b88bc" },
->>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_push.py"; Sha = "99b0bfbc0261f039b7151258e8d2eb502d3f84ab" },
->>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_commit.py"; Sha = "f872b8f27e92747e3a8a216dc78d045ae25826f3" },
->>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_stage.py"; Sha = "9d44c90745c90deb82d4ee13fbff969bfcd9a4af" },
->>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_read.py"; Sha = "a00c007a06a1d696a81fb1d2d1002ed35778944e" },
->>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_repository.py"; Sha = "3a65298a66c87650a4bc7e1123b2688b3f9d0c34" },
->>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_authorization.py"; Sha = "371c7bf7dd2a30e426dd5f87d6e9600133c84e63" },
->>     @{ Path = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_registry.py"; Sha = "35494a5fe4f890e56e2b6a0918f2e667816a97ed" }
->> )
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Guard in $GuardFiles) {
->>     $EncodedPath = Get-EncodedRepoPath $Guard.Path
->>     $RemoteFile = Invoke-GitHubApi -Method GET -Endpoint "/contents/$EncodedPath`?ref=$Branch"
->>
->>     if ($RemoteFile.sha -cne $Guard.Sha) {
->>         throw "Guard failed for $($Guard.Path). Remote blob SHA changed; no write attempted."
+PS D:\Homio\REOS_CONTROL_CENTER> # New test path must be absent; never overwrite an unexpected file.
+PS D:\Homio\REOS_CONTROL_CENTER> $NewTestPath = "REOS_CONTROL_CENTER/tets/test_ai_agent_entrypoint_contract.py"
+PS D:\Homio\REOS_CONTROL_CENTER> try {
+>>     $Existing = Read-RemoteFile -Path $NewTestPath -At $BaseSha
+>>     throw "STOP: New test target already exists with blob $($Existing.Sha). Re-audit it before proceeding."
+>> }
+>> catch {
+>>     if ($_.Exception.Message -like "STOP: New test target already exists*") { throw }
+>>     $StatusCode = $null
+>>     try { $StatusCode = [int]$_.Exception.Response.StatusCode } catch {}
+>>     if ($StatusCode -ne 404) {
+>>         throw "STOP: Could not safely confirm the new test path is absent. $($_.Exception.Message)"
 >>     }
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Confirm the target file has exactly the expected inspected blob before replacing it.
-PS D:\Homio\REOS_CONTROL_CENTER> $TargetEncoded = Get-EncodedRepoPath $ChangePath
-PS D:\Homio\REOS_CONTROL_CENTER> $TargetBefore = Invoke-GitHubApi -Method GET -Endpoint "/contents/$TargetEncoded`?ref=$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER> if ($TargetBefore.sha -cne "a6c4b21b4e2d776ae61e3419767ac145d5485a41") {
->>     throw "Concurrency test target changed after preflight. No write attempted."
+PS D:\Homio\REOS_CONTROL_CENTER> $ModelsPath = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_models.py"
+PS D:\Homio\REOS_CONTROL_CENTER> $PushPath = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_push.py"
+PS D:\Homio\REOS_CONTROL_CENTER> $TxPath = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_transaction.py"
+PS D:\Homio\REOS_CONTROL_CENTER> $SecurityTestPath = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/test_git_security.py"
+PS D:\Homio\REOS_CONTROL_CENTER> $ContractPath = "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/t21.contract.json"
+PS D:\Homio\REOS_CONTROL_CENTER> $EntryPath = "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py"
+PS D:\Homio\REOS_CONTROL_CENTER> $WorkflowPath = ".github/workflows/backend-ci.yml"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 2. Add explicit, safe T21 remote-failure classifications.
+PS D:\Homio\REOS_CONTROL_CENTER> $Files[$ModelsPath] = Replace-Unique $Files[$ModelsPath] `
+>>     '    PUSH_REJECTED = "PUSH_REJECTED"' `
+>>     @'
+>>     PUSH_REJECTED = "PUSH_REJECTED"
+>>     AUTHENTICATION_FAILED = "AUTHENTICATION_FAILED"
+>>     AUTHORIZATION_DENIED = "AUTHORIZATION_DENIED"
+>>     REMOTE_NOT_FOUND = "REMOTE_NOT_FOUND"
+>>     PROXY_AUTH_REQUIRED = "PROXY_AUTH_REQUIRED"
+>>     RATE_LIMITED = "RATE_LIMITED"
+>>     NETWORK_FAILURE = "NETWORK_FAILURE"
+>>     TLS_FAILURE = "TLS_FAILURE"
+>> '@ `
+>>     "T21 reason enum"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Replace the complete small push helper module so retry and error handling
+PS D:\Homio\REOS_CONTROL_CENTER> # are bounded, deterministic and do not expose raw remote stderr.
+PS D:\Homio\REOS_CONTROL_CENTER> $Files[$PushPath] = @'
+>> from __future__ import annotations
+>>
+>> import time
+>>
+>> from .git_models import GitPolicy, GitReason
+>> from .git_repository import GitRepository
+>>
+>>
+>> def classify_git_push_error(error: BaseException) -> tuple[GitReason, str]:
+>>     """Classify remote errors without returning raw stderr or credentials."""
+>>     message = str(error).lower()
+>>
+>>     if "429" in message or "rate limit" in message or "too many requests" in message:
+>>         return GitReason.RATE_LIMITED, "Remote rate limit reached; retry later."
+>>     if "407" in message or "proxy authentication" in message:
+>>         return GitReason.PROXY_AUTH_REQUIRED, "Proxy authentication is required."
+>>     if "401" in message or "authentication failed" in message or "invalid username or password" in message:
+>>         return GitReason.AUTHENTICATION_FAILED, "Remote authentication failed; verify the configured credential securely."
+>>     if "404" in message or "repository not found" in message:
+>>         return GitReason.REMOTE_NOT_FOUND, "Remote repository or branch was not found; verify the remote URL and access."
+>>     if "403" in message or "permission denied" in message or "write access to repository not granted" in message:
+>>         return GitReason.AUTHORIZATION_DENIED, "Remote rejected the operation for insufficient permission."
+>>     if "non-fast-forward" in message or "fetch first" in message:
+>>         return GitReason.NON_FAST_FORWARD, "Remote branch moved; reconcile the current remote state before retrying."
+>>     if "tls" in message or "ssl certificate" in message or "certificate verify failed" in message:
+>>         return GitReason.TLS_FAILURE, "TLS verification failed; inspect the trusted certificate configuration."
+>>     if (
+>>         "timed out" in message
+>>         or "timeout" in message
+>>         or "could not resolve host" in message
+>>         or "connection reset" in message
+>>         or "network is unreachable" in message
+>>         or "failed to connect" in message
+>>     ):
+>>         return GitReason.NETWORK_FAILURE, "Remote network operation failed; verify connectivity and retry safely."
+>>
+>>     return GitReason.PUSH_REJECTED, "Remote Git operation was rejected; inspect trusted diagnostics without exposing credentials."
+>>
+>>
+>> def push_branch(
+>>     repository: GitRepository,
+>>     *,
+>>     remote: str,
+>>     branch: str,
+>>     policy: GitPolicy,
+>> ) -> None:
+>>     if not policy.allow_push:
+>>         raise ValueError("Git push is disabled by policy.")
+>>     if policy.allow_force_push:
+>>         raise ValueError("Force push is forbidden in T21 V1.")
+>>     if "--force" in {remote, branch}:
+>>         raise ValueError("Force push arguments are forbidden.")
+>>     if remote not in repository.remote_names():
+>>         raise ValueError("Requested Git remote is unavailable.")
+>>
+>>     # Do not retry a write whose remote completion could be ambiguous.
+>>     repository.run("push", remote, f"HEAD:{branch}")
+>>
+>>
+>> def verify_remote_branch(
+>>     repository: GitRepository,
+>>     *,
+>>     remote: str,
+>>     branch: str,
+>>     max_attempts: int = 2,
+>> ) -> str:
+>>     """Verify a pushed ref with bounded retries for read-only transient failures."""
+>>     if type(max_attempts) is not int or not 1 <= max_attempts <= 3:
+>>         raise ValueError("max_attempts must be an integer between 1 and 3.")
+>>
+>>     last_error: BaseException | None = None
+>>     for attempt in range(1, max_attempts + 1):
+>>         try:
+>>             output = repository.run(
+>>                 "ls-remote", remote, f"refs/heads/{branch}"
+>>             ).stdout.strip()
+>>             if not output:
+>>                 raise ValueError("Remote branch could not be verified.")
+>>             return output.split("\t", 1)[0]
+>>         except Exception as exc:
+>>             last_error = exc
+>>             reason, safe_message = classify_git_push_error(exc)
+>>             retryable = reason in {
+>>                 GitReason.NETWORK_FAILURE,
+>>                 GitReason.RATE_LIMITED,
+>>             }
+>>             if not retryable or attempt == max_attempts:
+>>                 raise RuntimeError(safe_message) from exc
+>>             time.sleep(0.1 * attempt)
+>>
+>>     raise RuntimeError("Remote branch could not be verified.") from last_error
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Wire the safe classifier into the existing transaction failure path.
+PS D:\Homio\REOS_CONTROL_CENTER> $Files[$TxPath] = Replace-Unique $Files[$TxPath] `
+>> @'
+>>                         from .git_push import (
+>>                             push_branch,
+>>                             verify_remote_branch,
+>>                         )
+>> '@ `
+>> @'
+>>                         from .git_push import (
+>>                             classify_git_push_error,
+>>                             push_branch,
+>>                             verify_remote_branch,
+>>                         )
+>> '@ `
+>>     "T21 push helper import"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Files[$TxPath] = Replace-Unique $Files[$TxPath] `
+>> @'
+>>                     except Exception as exc:
+>>                         return _result(
+>>                             request=request,
+>>                             decision=GitDecision.REJECTED,
+>>                             reason=GitReason.PUSH_REJECTED,
+>>                             before=before,
+>>                             after=reader.snapshot(),
+>>                             changed_paths=scoped_paths,
+>>                             staged=staged,
+>>                             commit_sha=commit_sha,
+>>                             push_performed=push_performed,
+>>                             push_verified=False,
+>>                             explanation=str(exc),
+>>                         )
+>> '@ `
+>> @'
+>>                     except Exception as exc:
+>>                         reason, safe_explanation = classify_git_push_error(exc)
+>>                         return _result(
+>>                             request=request,
+>>                             decision=GitDecision.REJECTED,
+>>                             reason=reason,
+>>                             before=before,
+>>                             after=reader.snapshot(),
+>>                             changed_paths=scoped_paths,
+>>                             staged=staged,
+>>                             commit_sha=commit_sha,
+>>                             push_performed=push_performed,
+>>                             push_verified=False,
+>>                             explanation=safe_explanation,
+>>                         )
+>> '@ `
+>>     "T21 safe push error result"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 3. Add regression tests for classification, redaction-by-design and bounded retry.
+PS D:\Homio\REOS_CONTROL_CENTER> $Files[$SecurityTestPath] = Replace-Unique $Files[$SecurityTestPath] `
+>> @'
+>>     with pytest.raises(ValueError):
+>>         validate_policy(policy)
+>> '@ `
+>> @'
+>>     with pytest.raises(ValueError):
+>>         validate_policy(policy)
+>>
+>>
+>> @pytest.mark.parametrize(
+>>     ("message", "expected"),
+>>     [
+>>         ("remote returned HTTP 401", GitReason.AUTHENTICATION_FAILED),
+>>         ("remote returned HTTP 403", GitReason.AUTHORIZATION_DENIED),
+>>         ("repository not found; HTTP 404", GitReason.REMOTE_NOT_FOUND),
+>>         ("proxy authentication required; HTTP 407", GitReason.PROXY_AUTH_REQUIRED),
+>>         ("HTTP 429: rate limit exceeded", GitReason.RATE_LIMITED),
+>>         ("connection timed out", GitReason.NETWORK_FAILURE),
+>>         ("SSL certificate verify failed", GitReason.TLS_FAILURE),
+>>         ("non-fast-forward update rejected", GitReason.NON_FAST_FORWARD),
+>>     ],
+>> )
+>> def test_remote_failure_classification_is_specific_and_safe(message, expected):
+>>     reason, explanation = classify_git_push_error(RuntimeError(message))
+>>     assert reason is expected
+>>     assert message not in explanation
+>>
+>>
+>> def test_remote_error_does_not_echo_credentials():
+>>     message = (
+>>         "https://x-access-token:ghp_secret-value-12345678901234567890@"
+>>         "github.com/example/repo: HTTP 403 permission denied"
+>>     )
+>>     reason, explanation = classify_git_push_error(RuntimeError(message))
+>>     assert reason is GitReason.AUTHORIZATION_DENIED
+>>     assert "ghp_secret-value" not in explanation
+>>     assert "x-access-token" not in explanation
+>>
+>>
+>> def test_remote_branch_verification_retries_only_bounded_read_operation(monkeypatch):
+>>     from types import SimpleNamespace
+>>     from . import git_push
+>>
+>>     class TransientReadRepository:
+>>         def __init__(self):
+>>             self.calls = 0
+>>
+>>         def run(self, *args, **kwargs):
+>>             self.calls += 1
+>>             if self.calls == 1:
+>>                 raise RuntimeError("connection timed out")
+>>             return SimpleNamespace(
+>>                 stdout=("a" * 40) + "\\trefs/heads/main\\n"
+>>             )
+>>
+>>     monkeypatch.setattr(git_push.time, "sleep", lambda _: None)
+>>     repository = TransientReadRepository()
+>>     sha = verify_remote_branch(
+>>         repository, remote="origin", branch="main", max_attempts=2
+>>     )
+>>     assert sha == "a" * 40
+>>     assert repository.calls == 2
+>>
+>>
+>> def test_remote_verification_retry_limit_is_validated():
+>>     from .git_push import verify_remote_branch
+>>
+>>     class UnusedRepository:
+>>         def run(self, *args, **kwargs):
+>>             raise AssertionError("invalid retry limit must fail before Git runs")
+>>
+>>     with pytest.raises(ValueError):
+>>         verify_remote_branch(
+>>             UnusedRepository(), remote="origin", branch="main", max_attempts=4
+>>         )
+>> '@ `
+>>     "T21 regression tests"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Files[$SecurityTestPath] = Replace-Unique $Files[$SecurityTestPath] `
+>> 'from .git_models import GitPolicy' `
+>> 'from .git_models import GitPolicy, GitReason' `
+>>     "T21 reason test import"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Files[$SecurityTestPath] = Replace-Unique $Files[$SecurityTestPath] `
+>> 'from .git_scope import is_safe_repository_path' `
+>> @'
+>> from .git_scope import is_safe_repository_path
+>> from .git_push import classify_git_push_error, verify_remote_branch
+>> '@ `
+>>     "T21 push helper test import"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 4. Update the T21 contract to describe the verified error boundary.
+PS D:\Homio\REOS_CONTROL_CENTER> $Files[$ContractPath] = Replace-Unique $Files[$ContractPath] `
+>> '    "09_failure_modes": "Dirty tree, branch drift, HEAD drift, baseline mismatch, scope mismatch, commit failure and push failure.",' `
+>> '    "09_failure_modes": "Dirty tree, branch drift, HEAD drift, baseline mismatch, scope mismatch, commit failure, authentication and authorization errors, missing remote, proxy authentication, rate limiting, network and TLS failures, push rejection, bounded read-only verification retries and secret-safe failure reporting.",' `
+>>     "T21 failure-mode contract"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Files[$ContractPath] = Replace-Unique $Files[$ContractPath] `
+>> '    "26_adversarial_red_team_coverage": "Force push, path escape, pathspec expansion, lock replacement and unverified patch application are blocked."' `
+>> '    "26_adversarial_red_team_coverage": "Force push, path escape, pathspec expansion, lock replacement, unverified patch application and secret-bearing remote error output are blocked."' `
+>>     "T21 security contract"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 5. Make EntryPoint readiness verify the full declared ACRL path set.
+PS D:\Homio\REOS_CONTROL_CENTER> $Files[$EntryPath] = Replace-Unique $Files[$EntryPath] `
+>> @'
+>>         "t21": str(
+>>             ACRL_GIT_REPOSITORY_COORDINATION
+>>         ),
+>> '@ `
+>> @'
+>>         "t21": str(
+>>             ACRL_GIT_REPOSITORY_COORDINATION
+>>         ),
+>>         "t21_contract": str(
+>>             ACRL_GIT_REPOSITORY_COORDINATION / "t21.contract.json"
+>>         ),
+>> '@ `
+>>     "EntryPoint T21 contract path"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Files[$EntryPath] = Replace-Unique $Files[$EntryPath] `
+>> @'
+>>         "t21_authority_ok": False,
+>>         "ready": False,
+>> '@ `
+>> @'
+>>         "t21_authority_ok": False,
+>>         "t21_contract_ok": False,
+>>         "acrl_components_ok": False,
+>>         "ready": False,
+>> '@ `
+>>     "EntryPoint preflight fields"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Files[$EntryPath] = Replace-Unique $Files[$EntryPath] `
+>> @'
+>>     result["t21_authority_ok"] = (
+>>         ACRL_GIT_REPOSITORY_COORDINATION.is_dir()
+>>     )
+>>
+>>     result["ready"] = all(
+>> '@ `
+>> @'
+>>     result["t21_authority_ok"] = (
+>>         ACRL_GIT_REPOSITORY_COORDINATION.is_dir()
+>>     )
+>>     result["t21_contract_ok"] = (
+>>         ACRL_GIT_REPOSITORY_COORDINATION / "t21.contract.json"
+>>     ).is_file()
+>>     result["acrl_components_ok"] = all(
+>>         (
+>>             ACRL_ENTRYPOINT.is_file(),
+>>             ACRL_REPOSITORY_CONTEXT.is_dir(),
+>>             ACRL_OPERATOR_AUTONOMY.is_dir(),
+>>             ACRL_EXECUTION_AUTHORIZATION.is_dir(),
+>>             ACRL_REPAIR_VERIFICATION.is_dir(),
+>>             ACRL_GIT_REPOSITORY_COORDINATION.is_dir(),
+>>             ACRL_COMMIT_CHECKPOINT_COORDINATION.is_dir(),
+>>             ACRL_EVIDENCE_RESOLUTION.is_dir(),
+>>             ACRL_CONTINUITY_RECOVERY.is_dir(),
+>>         )
+>>     )
+>>
+>>     result["ready"] = all(
+>> '@ `
+>>     "EntryPoint ACRL authority checks"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Files[$EntryPath] = Replace-Unique $Files[$EntryPath] `
+>> @'
+>>             result["t21_authority_ok"],
+>>         )
+>> '@ `
+>> @'
+>>             result["t21_authority_ok"],
+>>             result["t21_contract_ok"],
+>>             result["acrl_components_ok"],
+>>         )
+>> '@ `
+>>     "EntryPoint readiness conditions"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Files[$EntryPath] = Replace-Unique $Files[$EntryPath] `
+>> @'
+>>     print(
+>>         f"T21 AUTHORITY  : "
+>>         f"{preflight['t21_authority_ok']}"
+>>     )
+>> '@ `
+>> @'
+>>     print(
+>>         f"T21 AUTHORITY  : "
+>>         f"{preflight['t21_authority_ok']}"
+>>     )
+>>     print(
+>>         f"T21 CONTRACT   : "
+>>         f"{preflight['t21_contract_ok']}"
+>>     )
+>>     print(
+>>         f"ACRL COMPONENTS: "
+>>         f"{preflight['acrl_components_ok']}"
+>>     )
+>> '@ `
+>>     "EntryPoint startup alignment output"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 6. Add an EntryPoint/ACRL consistency test.
+PS D:\Homio\REOS_CONTROL_CENTER> $NewTest = @'
+>> from pathlib import Path
+>>
+>> from AI_AGENT_ENTRYPOINT import (
+>>     AI_OPERATING_RULES,
+>>     EXPECTED_BRANCH,
+>>     REPOSITORY_FULL_NAME,
+>>     contract,
+>>     repository_paths,
+>> )
+>>
+>>
+>> def test_entrypoint_keeps_canonical_authorities_aligned():
+>>     operating_contract = contract()
+>>     assert operating_contract.project == "HOMIO / REOS"
+>>     assert operating_contract.authoritative_state == "REOS_CONTROL_CENTER/data/state.json"
+>>     assert operating_contract.authoritative_code_reference == "GitHub repository branch reos-development"
+>>     assert operating_contract.continuity_system == "ACRL"
+>>     assert operating_contract.chat_history_authority == "NON_AUTHORITATIVE"
+>>     assert EXPECTED_BRANCH == "reos-development"
+>>     assert REPOSITORY_FULL_NAME == "prajaktaranjane80-sketch/Homio"
+>>     assert any("T20 VERIFIED" in rule and "T21" in rule for rule in AI_OPERATING_RULES)
+>>
+>>
+>> def test_entrypoint_exposes_existing_acrl_authorities_and_t21_contract():
+>>     paths = repository_paths()
+>>     expected_directories = (
+>>         "t14", "t15", "t18", "t20", "t21", "t22", "t23", "t24"
+>>     )
+>>     for key in expected_directories:
+>>         assert Path(paths[key]).is_dir(), f"Missing ACRL component: {key}"
+>>
+>>     assert Path(paths["t07"]).is_file()
+>>     assert Path(paths["t21_contract"]).is_file()
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Files[$WorkflowPath] = Replace-Unique $Files[$WorkflowPath] `
+>> '          context/test_phase_projection.py' `
+>> @'
+>>           context/test_phase_projection.py
+>>           tets/test_ai_agent_entrypoint_contract.py
+>> '@ `
+>>     "Backend CI EntryPoint test"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 7. Recheck branch HEAD before creating remote Git objects.
+PS D:\Homio\REOS_CONTROL_CENTER> $BranchInfo = Get-Gh "$Api/branches/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($BranchInfo.commit.sha -ne $BaseSha) {
+>>     throw "STOP: Branch changed while preparing the update."
+>> }
+STOP: Branch changed while preparing the update.
+At line:2 char:5
++     throw "STOP: Branch changed while preparing the update."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (STOP: Branch ch...ing the update.:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: Branch changed while preparing the update.
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Build blobs from the complete in-memory file contents; no local files are written.
+PS D:\Homio\REOS_CONTROL_CENTER> $TreeEntries = @()
+PS D:\Homio\REOS_CONTROL_CENTER> $AllUpdates = @{}
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Path in $Files.Keys) {
+>>     $Blob = Post-Gh "$Api/git/blobs" @{
+>>         content = (Normalize-Lf $Files[$Path])
+>>         encoding = "utf-8"
+>>     }
+>>     if ([string]::IsNullOrWhiteSpace($Blob.sha)) {
+>>         throw "STOP: GitHub did not return a blob SHA for $Path."
+>>     }
+>>
+>>     $TreeEntries += @{
+>>         path = $Path
+>>         mode = "100644"
+>>         type = "blob"
+>>         sha = $Blob.sha
+>>     }
+>>     $AllUpdates[$Path] = @{
+>>         Content = (Normalize-Lf $Files[$Path])
+>>         Sha = $Blob.sha
+>>     }
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Create blob and tree without writing local project files.
-PS D:\Homio\REOS_CONTROL_CENTER> $Blob = Invoke-GitHubApi -Method POST -Endpoint "/git/blobs" -Body @{
->>     content = $Replacement
+PS D:\Homio\REOS_CONTROL_CENTER> $NewTestBlob = Post-Gh "$Api/git/blobs" @{
+>>     content = $NewTest
 >>     encoding = "utf-8"
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $BaseCommit = Invoke-GitHubApi -Method GET -Endpoint "/git/commits/$BaseSha"
-PS D:\Homio\REOS_CONTROL_CENTER> $Tree = Invoke-GitHubApi -Method POST -Endpoint "/git/trees" -Body @{
->>     base_tree = $BaseCommit.tree.sha
->>     tree = @(
->>         @{
->>             path = $ChangePath
->>             mode = "100644"
->>             type = "blob"
->>             sha = $Blob.sha
->>         }
->>     )
+PS D:\Homio\REOS_CONTROL_CENTER> $TreeEntries += @{
+>>     path = $NewTestPath
+>>     mode = "100644"
+>>     type = "blob"
+>>     sha = $NewTestBlob.sha
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> $AllUpdates[$NewTestPath] = @{
+>>     Content = (Normalize-Lf $NewTest)
+>>     Sha = $NewTestBlob.sha
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $NewCommit = Invoke-GitHubApi -Method POST -Endpoint "/git/commits" -Body @{
->>     message = "Fix missing subprocess import in T21 concurrency tests"
+PS D:\Homio\REOS_CONTROL_CENTER> $BaseCommit = Get-Gh "$Api/git/commits/$BaseSha"
+PS D:\Homio\REOS_CONTROL_CENTER> $Tree = Post-Gh "$Api/git/trees" @{
+>>     base_tree = $BaseCommit.tree.sha
+>>     tree = $TreeEntries
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> $Commit = Post-Gh "$Api/git/commits" @{
+>>     message = "Harden T21 remote errors and align AI EntryPoint with ACRL"
 >>     tree = $Tree.sha
 >>     parents = @($BaseSha)
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Lease check: refuse if the live branch moved while the commit was prepared.
-PS D:\Homio\REOS_CONTROL_CENTER> $RefBeforeUpdate = Invoke-GitHubApi -Method GET -Endpoint "/git/ref/heads/$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER> if ($RefBeforeUpdate.object.sha -cne $BaseSha) {
->>     throw "Branch HEAD changed during preparation. Commit object was not published to the branch."
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Commit.parents.Count -ne 1 -or $Commit.parents[0].sha -ne $BaseSha) {
+>>     throw "STOP: Commit parent check failed."
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Non-force branch update only.
-PS D:\Homio\REOS_CONTROL_CENTER> $null = Invoke-GitHubApi -Method PATCH -Endpoint "/git/refs/heads/$Branch" -Body @{
->>     sha = $NewCommit.sha
+PS D:\Homio\REOS_CONTROL_CENTER> $null = Patch-Gh "$Api/git/refs/heads/$Branch" @{
+>>     sha = $Commit.sha
 >>     force = $false
 >> }
+Invoke-RestMethod : {"message":"Update is not a fast
+forward","documentation_url":"https://docs.github.com/rest/git/refs#update-a-reference","status":"422"}
+At line:6 char:5
++     Invoke-RestMethod -Method Patch -Uri $Uri -Headers $Headers `
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Independent readback verification.
-PS D:\Homio\REOS_CONTROL_CENTER> $FinalRef = Invoke-GitHubApi -Method GET -Endpoint "/git/ref/heads/$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER> if ($FinalRef.object.sha -cne $NewCommit.sha) {
->>     throw "Readback failed: branch HEAD does not equal the new commit."
+PS D:\Homio\REOS_CONTROL_CENTER> # 8. Verify branch, parent, exact changed paths, file readback and protected state.
+PS D:\Homio\REOS_CONTROL_CENTER> $AfterBranch = Get-Gh "$Api/branches/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($AfterBranch.commit.sha -ne $Commit.sha) {
+>>     throw "REMOTE VERIFICATION FAILED: branch HEAD mismatch."
+>> }
+REMOTE VERIFICATION FAILED: branch HEAD mismatch.
+At line:2 char:5
++     throw "REMOTE VERIFICATION FAILED: branch HEAD mismatch."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (REMOTE VERIFICA... HEAD mismatch.:String) [], RuntimeException
+    + FullyQualifiedErrorId : REMOTE VERIFICATION FAILED: branch HEAD mismatch.
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $AfterCommit = Get-Gh "$Api/commits/$($Commit.sha)"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($AfterCommit.parents[0].sha -ne $BaseSha) {
+>>     throw "REMOTE VERIFICATION FAILED: parent mismatch."
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $CommitCheck = Invoke-GitHubApi -Method GET -Endpoint "/git/commits/$($NewCommit.sha)"
-PS D:\Homio\REOS_CONTROL_CENTER> if ($CommitCheck.parents.Count -ne 1 -or $CommitCheck.parents[0].sha -cne $BaseSha) {
->>     throw "Readback failed: commit parent does not match the inspected baseline."
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Path in $AllUpdates.Keys) {
+>>     $Readback = Read-RemoteFile -Path $Path -At $Commit.sha
+>>     if ($Readback.Sha -ne $AllUpdates[$Path].Sha -or
+>>         $Readback.Content -ne $AllUpdates[$Path].Content) {
+>>         throw "REMOTE VERIFICATION FAILED: content mismatch for $Path."
+>>     }
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Readback = Invoke-GitHubApi -Method GET -Endpoint "/contents/$TargetEncoded`?ref=$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER> if ($Readback.sha -cne $Blob.sha) {
->>     throw "Readback failed: remote file blob SHA mismatch."
+PS D:\Homio\REOS_CONTROL_CENTER> $Compare = Get-Gh "$Api/compare/$BaseSha...$($Commit.sha)"
+PS D:\Homio\REOS_CONTROL_CENTER> $ActualPaths = @($Compare.files | ForEach-Object { $_.filename } | Sort-Object)
+PS D:\Homio\REOS_CONTROL_CENTER> $ExpectedPaths = @($AllUpdates.Keys | Sort-Object)
+PS D:\Homio\REOS_CONTROL_CENTER> if (Compare-Object $ExpectedPaths $ActualPaths) {
+>>     throw "REMOTE VERIFICATION FAILED: changed path set differs."
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $ReadbackText = [System.Text.Encoding]::UTF8.GetString(
->>     [Convert]::FromBase64String(($Readback.content -replace "\s", ""))
->> )
-PS D:\Homio\REOS_CONTROL_CENTER> if ($ReadbackText -cne $Replacement) {
->>     throw "Readback failed: remote file content does not exactly match the replacement."
+PS D:\Homio\REOS_CONTROL_CENTER> $State = Read-RemoteFile -Path "REOS_CONTROL_CENTER/data/state.json" -At $Commit.sha
+PS D:\Homio\REOS_CONTROL_CENTER> if ($State.Sha -ne "c76b23ad56528d5a4d0df3815145f596755eaf84") {
+>>     throw "SAFETY STOP: canonical data/state.json changed unexpectedly."
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ""
 
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "REMOTE SYNC PASS" -ForegroundColor Green
-REMOTE SYNC PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "T21 + ENTRYPOINT REMOTE UPDATE SAVED — CI PENDING" -ForegroundColor Green
+T21 + ENTRYPOINT REMOTE UPDATE SAVED — CI PENDING
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch: $Branch"
 Branch: reos-development
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Parent: $BaseSha"
-Parent: cf3a21113766dd1c4f012f32ca3494d19acf51d3
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit: $($NewCommit.sha)"
-Commit: 0ef7dcf48c95a536b84a6e48f407a9e01c28601d
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "File: $ChangePath"
-File: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/test_git_concurrency.py
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Blob: $($Readback.sha)"
-Blob: 64747cd7a7284117dd68edb990daa89225f7531b
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Exact content, branch HEAD and commit parent verified."
-Exact content, branch HEAD and commit parent verified.
+Parent: 56997146fec1b2d6bca936acb0dbb7de9cd48cc8
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit: $($Commit.sha)"
+Commit: 340d32d0f404f64691e3b99867658d255b64d9e4
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Changed files: $($ActualPaths.Count)"
+Changed files: 8
+PS D:\Homio\REOS_CONTROL_CENTER> $ActualPaths | ForEach-Object { Write-Host "  $_" }
+  .github/workflows/backend-ci.yml
+  REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
+  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_models.py
+  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_push.py
+  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/git_transaction.py
+  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/t21.contract.json
+  REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/test_git_security.py
+  REOS_CONTROL_CENTER/tets/test_ai_agent_entrypoint_contract.py
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "data/state.json: unchanged"
+data/state.json: unchanged
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "No local project files were written."
+No local project files were written.
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit URL: https://github.com/$Owner/$Repo/commit/$($Commit.sha)"
+Commit URL: https://github.com/prajaktaranjane80-sketch/Homio/commit/340d32d0f404f64691e3b99867658d255b64d9e4
 PS D:\Homio\REOS_CONTROL_CENTER>
