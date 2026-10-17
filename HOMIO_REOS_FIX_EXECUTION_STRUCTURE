@@ -128,3 +128,12 @@ A status may be marked PASS only when the relevant result is available and tied 
 - A later PowerShell workflow attempt returned HTTP 404 while requesting repository metadata. This follow-up corrects URL construction and explicit function parameter passing.
 - The workflow must stop on any failed preflight, use live HEAD and exact target SHA guards, perform non-force ref updates, and verify exact remote content.
 - WF-01 remains open. T21 CI success does not prove complete state/gate, authentication or final ACRL alignment.
+
+## 8. WF-01 phase/gate regression coverage — CI pending
+
+- Read-only inspection confirmed that the current canonical state uses `CORE-008`, which is registered in `execution_plan.authoritative_sequence`; `phases.current` matches the phase-1 projection.
+- The existing `context/phase_projection.py` resolves registered gates and fails closed for unknown gates. `CanonicalAuthorityVerifier.verify()` already rejects phase/gate inconsistency.
+- Additive regression coverage is being introduced for all supported gate-prefix mappings, mismatched phases, unknown gates, malformed state, synchronization boundaries and the current canonical state.
+- Backend CI is being extended to compile `AI_AGENT_ENTRYPOINT.py` and execute the dedicated phase-projection regression tests.
+- This entry records implementation scope, not a PASS declaration. Keep WF-01 open until CI has completed successfully on the commit carrying these additions.
+- `REOS_CONTROL_CENTER/data/state.json` is read-only for this work and was not changed.

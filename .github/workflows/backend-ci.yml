@@ -11,6 +11,7 @@ on:
       - "REOS_CONTROL_CENTER/reos_control_center.py"
       - "REOS_CONTROL_CENTER/data/state.json"
       - "REOS_CONTROL_CENTER/requirements-auth.txt"
+      - "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py"
       - ".github/workflows/backend-ci.yml"
   pull_request:
     branches:
@@ -22,6 +23,7 @@ on:
       - "REOS_CONTROL_CENTER/reos_control_center.py"
       - "REOS_CONTROL_CENTER/data/state.json"
       - "REOS_CONTROL_CENTER/requirements-auth.txt"
+      - "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py"
       - ".github/workflows/backend-ci.yml"
   workflow_dispatch:
 
@@ -59,6 +61,7 @@ jobs:
         run: >-
           python -m compileall -q
           reos_control_center.py
+          AI_AGENT_ENTRYPOINT.py
           context
           AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination
 
@@ -70,3 +73,4 @@ jobs:
           AUTONOMY_ENGINE/core/commission_financial/test_core008_t01_financial_domain.py
           AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination
           tets/test_l3_canonical_authority.py
+          context/test_phase_projection.py
