@@ -1,4 +1,5 @@
-"""CORE-008 Commission & Financial Core."""
+
+"""CORE-008 Commission & Financial Core public API."""
 
 from .financial_domain import (
     CORE008_FINANCIAL_DOMAIN_SCHEMA_VERSION,
@@ -28,11 +29,13 @@ from .commission_protection import (
 )
 
 from .financial_ledger_boundary import (
+    CORE008_FINANCIAL_LEDGER_SCHEMA_VERSION,
     FinancialLedgerBoundary,
     FinancialLedgerBoundaryError,
     FinancialLedgerEntry,
     FinancialLedgerValidationError,
     LedgerAccountReference,
+    compare_ledger_entries,
 )
 
 from .commission_concurrency import (
@@ -82,19 +85,18 @@ __all__ = [
     "MonetaryAmount",
     "RoundingMode",
     "new_financial_identity",
-
     "CommissionProtection",
     "CommissionProtectionError",
     "CommissionProtectionState",
     "CommissionProtectionValidationError",
     "ProtectionEvidenceReference",
-
+    "CORE008_FINANCIAL_LEDGER_SCHEMA_VERSION",
     "FinancialLedgerBoundary",
     "FinancialLedgerBoundaryError",
     "FinancialLedgerEntry",
     "FinancialLedgerValidationError",
     "LedgerAccountReference",
-
+    "compare_ledger_entries",
     "CommissionConcurrencyError",
     "CommissionDuplicateCommandError",
     "CommissionStaleVersionError",
@@ -102,7 +104,6 @@ __all__ = [
     "FinancialIdempotencyRecord",
     "FinancialTransitionContract",
     "FinancialVersionToken",
-
     "FinancialAuthorizationAction",
     "FinancialAuthorizationDecision",
     "FinancialAuthorizationError",
@@ -110,7 +111,6 @@ __all__ = [
     "FinancialSecurityBoundary",
     "FinancialSecurityError",
     "FinancialTenantBoundaryError",
-
     "CORE008_CANONICAL_STATE",
     "CORE008_REOS_AUTHORITY",
     "CommissionREOSBoundary",
