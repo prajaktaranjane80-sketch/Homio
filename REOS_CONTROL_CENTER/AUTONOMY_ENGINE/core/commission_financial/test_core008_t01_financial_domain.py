@@ -1,3 +1,4 @@
+
 """CORE-008 T01 — Financial Domain adversarial regression."""
 
 from __future__ import annotations
@@ -308,4 +309,27 @@ def test_precision_guard_has_distinct_error_boundary() -> None:
         MonetaryAmount.create(
             "9" * 10000,
             usd(),
+        )
+
+
+def test_financial_record_rejects_metadata_key_collisions_after_normalization() -> None:
+    identity = FinancialIdentity(
+        financial_id="fin-duplicate-key",
+        tenant_id="tenant-a",
+        subject=FinancialSubject(
+            FinancialSubjectType.COMMISSION,
+            "commission-duplicate-key",
+        ),
+    )
+
+    with pytest.raises(
+        FinancialValidationError,
+        match="unique after normalization",
+    ):
+        FinancialDomainRecord(
+            identity=identity,
+            metadata={
+                "origin": "original",
+                " origin ": "shadowed",
+            },
         )
