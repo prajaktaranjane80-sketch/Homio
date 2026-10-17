@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
-
 import Link from "next/link";
+
+import { PolicyImage } from "@/features/f13_production/PolicyImage";
 
 import styles from "./FeaturedProjects.module.css";
 
@@ -46,9 +46,7 @@ export default function FeaturedProjects() {
         <div className={styles.header}>
           <div>
             <span className={styles.eyebrow}>FEATURED PROJECTS</span>
-
             <h2>Projects worth discovering.</h2>
-
             <p>
               Explore global project-experience previews. Pricing,
               availability and project facts are not verified inventory.
@@ -69,31 +67,25 @@ export default function FeaturedProjects() {
               className={styles.card}
             >
               <div className={styles.imageWrap}>
-                
-              <Image
-                src={project.image}
-                width={1400}
-                height={1050}
-                sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 33vw"
-                alt={`${project.name} experience preview`}
-                className={styles.image}
-                loading="lazy"
-              />
-
-
+                <PolicyImage
+                  src={project.image}
+                  width={1400}
+                  height={1050}
+                  sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 33vw"
+                  alt={project.name + " experience preview"}
+                  className={styles.image}
+                  loading="lazy"
+                />
                 <span className={styles.status}>{project.status}</span>
               </div>
 
               <div className={styles.body}>
                 <span className={styles.category}>{project.category}</span>
-
                 <h3>{project.name}</h3>
-
                 <p className={styles.location}>{project.location}</p>
 
                 <div className={styles.footer}>
                   <span>{project.price}</span>
-
                   <span className={styles.details}>
                     Explore <span aria-hidden="true">→</span>
                   </span>
