@@ -1,33 +1,30 @@
-PS D:\Homio\REOS_CONTROL_CENTER> node -e "const fs=require('node:fs'); for (const p of ['package.json','package-lock.json']) { JSON.parse(fs.readFileSync(p,'utf8').replace(/^\uFEFF/,'')); console.log(p + ': JSON PASS'); }"
-node:fs:440
-    return binding.readFileUtf8(path, stringToFlags(options.flag));
-                   ^
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> npm run
+Lifecycle scripts included in homio-frontend@0.1.0:
+  start
+    next start
+available via `npm run`:
+  dev
+    next dev --turbopack
+  build
+    next build
+  lint
+    eslint .
+  typecheck
+    tsc --noEmit
+  verify:foundation
+    node ./scripts/verify-foundation.mjs
+  verify:f03
+    node ./scripts/verify-f03.mjs
+  verify
+    npm run verify:foundation && npm run verify:f03 && npm run typecheck && npm run lint && npm run build
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "`n--- Lockfile verification ---"
 
-Error: ENOENT: no such file or directory, open 'D:\Homio\REOS_CONTROL_CENTER\package.json'
-    at Object.readFileSync (node:fs:440:20)
-    at [eval]:1:100
-    at runScriptInThisContext (node:internal/vm:219:10)
-    at node:internal/process/execution:451:12
-    at [eval]-wrapper:6:24
-    at runScriptInContext (node:internal/process/execution:449:60)
-    at evalFunction (node:internal/process/execution:283:30)
-    at evalTypeScript (node:internal/process/execution:295:3)
-    at node:internal/main/eval_string:71:3 {
-  errno: -4058,
-  code: 'ENOENT',
-  syscall: 'open',
-  path: 'D:\\Homio\\REOS_CONTROL_CENTER\\package.json'
-}
-
-Node.js v24.14.0
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> npm run verify:foundation
-npm error code ENOENT
-npm error syscall open
-npm error path D:\Homio\REOS_CONTROL_CENTER\package.json
-npm error errno -4058
-npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open 'D:\Homio\REOS_CONTROL_CENTER\package.json'
-npm error enoent This is related to npm not being able to find a file.
-npm error enoent
-npm error A complete log of this run can be found in: C:\Users\Sandip RanjanePatil\AppData\Local\npm-cache\_logs\2026-10-17T11_58_08_424Z-debug-0.log
-PS D:\Homio\REOS_CONTROL_CENTER>
+--- Lockfile verification ---
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> npm run verify:lockfile
+npm error Missing script: "verify:lockfile"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: C:\Users\Sandip RanjanePatil\AppData\Local\npm-cache\_logs\2026-10-17T13_10_35_930Z-debug-0.log
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
