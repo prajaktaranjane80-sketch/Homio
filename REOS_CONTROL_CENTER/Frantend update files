@@ -1,39 +1,150 @@
-Part 1 — Global Design System, Fonts & Professional Animations
-First priority
-Existing foundations ko stable rakhte hue design tokens aur motion system centralize karna hai.
-Existing files — UPDATE
-REOS_CONTROL_CENTER/Frontend/
-├── src/app/
-│   ├── layout.tsx
-│   ├── globals.css
-│   └── styles/
-│       ├── README.md
-│       ├── tokens.css
-│       ├── base.css
-│       └── foundation.css
-├── src/components/
-│   ├── ui/
-│   │   ├── Button.tsx
-│   │   ├── Card.tsx
-│   │   ├── Input.tsx
-│   │   ├── SearchField.tsx
-│   │   ├── Select.tsx
-│   │   ├── Tabs.tsx
-│   │   ├── Modal.tsx
-│   │   ├── Drawer.tsx
-│   │   ├── BottomSheet.tsx
-│   │   └── Toast.tsx
-│   ├── navigation/
-│   │   ├── GlobalMenus.module.css
-│   │   └── MegaMenu.module.css
-│   └── system/
-│       ├── SharedSystem.module.css
-│       └── SystemComponents.module.css
-├── package.json
-└── package-lock.json
+# HOMIO / REOS — FRONTEND UPDATE & INTEGRATION EXECUTION STRUCTURE
 
+**Document type:** Canonical frontend implementation specification  
+**Project:** HOMIO / REOS — Global Real Estate OS  
+**Repository:** `prajaktaranjane80-sketch/Homio`  
+**Branch:** `reos-development`  
+**Frontend root:** `REOS_CONTROL_CENTER/Frontend`  
+**Execution mode:** Audit → Full-file implementation → Integration → Verification → Evidence-based PASS
 
-New files — ADD
+---
+
+## 0. AUTHORITATIVE RULES — APPLY TO ALL PARTS
+
+### 0.1 Objective
+
+Upgrade the existing HOMIO frontend into a premium, international real-estate discovery platform and professional SaaS experience.
+
+The target includes:
+
+- Consistent global design system, typography and professional motion.
+- Premium property discovery, search, project and listing experiences.
+- Complete navigation and discoverable routes.
+- Saved properties, comparison, enquiries, visits and My HOMIO.
+- Owner/builder listing workflows.
+- AI and source-backed market intelligence.
+- Authorized professional workspaces and transaction workflows.
+- Global-market readiness, localization and accessibility.
+- Reliable automated checks, browser testing and release verification.
+
+### 0.2 Source-of-truth hierarchy
+
+1. `reos-development` is the canonical code and history branch.
+2. Existing frontend source files are the integration baseline, not automatically the final design.
+3. This document defines the intended frontend implementation and acceptance criteria.
+4. Existing verified REOS service/API contracts define available backend capabilities.
+5. Actual verification outputs and GitHub CI results determine PASS/FAIL.
+6. Diagnostic output alone does not authorize a feature, market or service as operational.
+
+Do not use `PS Output`, preview catalogues, mock records or local state as proof of live backend functionality.
+
+### 0.3 Mandatory implementation rules
+
+- Work against `REOS_CONTROL_CENTER/Frontend`; do not create a separate local project or unrelated frontend root.
+- Audit the actual current branch before changing files.
+- Verify each listed path against the repository. Distinguish **EXISTING — UPDATE**, **EXISTING — PRESERVE**, **NEW — ADD AFTER GAP VERIFICATION**, and **NOT REQUIRED**.
+- Do not create duplicate components, stores, routes, services, CSS systems or API clients.
+- Before adding a new file, search for an existing implementation with the same responsibility.
+- Use complete file replacements when a file needs replacing; never replace a file with an incomplete fragment.
+- Preserve working layouts, exports, props, accessibility attributes, metadata, providers, authentication boundaries and F01–F13 integrations.
+- Do not remove working functionality to make a design or verifier pass.
+- Do not invent API endpoints, response fields, user permissions, property inventory, transaction states, booking confirmations or market activation.
+- Frontend visibility is not authorization. Protected operations require server-side enforcement.
+- Never import ACRL, AUTONOMY_ENGINE or Control Center runtime state into the frontend.
+- Do not enable broker directories, broker comparison, bidding, lead auctions or competing-broker marketplaces.
+- Do not claim a file was saved, a test passed or a feature is live without actual evidence.
+
+### 0.4 File classification and implementation gate
+
+Before each Part, produce a short path inventory with these classifications:
+
+| Classification | Required action |
+|---|---|
+| Existing and aligned | Preserve; change only if required |
+| Existing but incomplete | Audit dependencies, then full replacement or targeted integration |
+| Missing and required | Add only after confirming its role and imports |
+| Already implemented elsewhere | Reuse the canonical implementation |
+| Requires backend contract | Keep safely unavailable until verified |
+| Unnecessary or duplicate | Do not add |
+
+A file appearing in a proposed tree does not by itself prove that the file is missing or should be rewritten.
+
+### 0.5 Completion record
+
+Every Part must finish with:
+
+- Exact files added, replaced or preserved.
+- Actual repository paths and commit SHA.
+- Relevant verifier/test commands and their real outputs.
+- TypeScript, lint and production-build results when required.
+- Regression results for affected features.
+- Remaining blockers and unverified integrations.
+- Final status: `PASS`, `PARTIAL` or `BLOCKED`.
+
+A Part is `PASS` only when every required gate for that Part has actual passing evidence.
+
+---
+
+# PART 1 — GLOBAL DESIGN SYSTEM, FONTS, ADVANCED SAAS UI & PROFESSIONAL ANIMATIONS
+
+**Priority:** First  
+**Target:** Establish a consistent, premium design foundation without breaking the existing application shell.
+
+## 1.1 Brand direction
+
+Canonical brand palette:
+
+- Charcoal: `#111111`
+- Ivory: `#F8F7F4`
+- Champagne Gold: `#C59B63`
+- White: `#FFFFFF`
+
+Gold is a restrained premium accent, not a dominant background colour. Use accessible contrast for text, controls, status indicators and focus states.
+
+The design should feel international, polished, modern and high-end—not like a generic admin template. Real-estate discovery must remain easy to understand and use.
+
+## 1.2 Existing files — audit and update as needed
+
+Root: `REOS_CONTROL_CENTER/Frontend/`
+
+```text
+src/app/
+├── layout.tsx
+├── globals.css
+└── styles/
+    ├── README.md
+    ├── tokens.css
+    ├── base.css
+    └── foundation.css
+
+src/components/
+├── ui/
+│   ├── Button.tsx
+│   ├── Card.tsx
+│   ├── Input.tsx
+│   ├── SearchField.tsx
+│   ├── Select.tsx
+│   ├── Tabs.tsx
+│   ├── Modal.tsx
+│   ├── Drawer.tsx
+│   ├── BottomSheet.tsx
+│   └── Toast.tsx
+├── navigation/
+│   ├── GlobalMenus.module.css
+│   └── MegaMenu.module.css
+└── system/
+    ├── SharedSystem.module.css
+    └── SystemComponents.module.css
+
+package.json
+package-lock.json
+```
+
+These are an audit inventory, not an instruction to rewrite every file. Preserve current exports, APIs, component contracts and integrations.
+
+## 1.3 New files — add only after checking for duplicates
+
+```text
 src/app/styles/motion.css
 
 src/components/motion/
@@ -42,23 +153,79 @@ src/components/motion/
 └── motion.types.ts
 
 scripts/verify-design-system.mjs
+```
 
+If a suitable motion component or verifier already exists, extend or reuse it instead of creating another.
 
-MotionReveal optional, lightweight reveal component rahega. Simple hover/press effects CSS se chalenge; heavy animation library tabhi add hogi jab actual requirement justify kare.
-Animation behaviour
-Interaction	Target behaviour
-Buttons & chips	Subtle colour, border aur press transitions
-Property cards	Slight lift, restrained shadow and image zoom
-Mega menu	Smooth opacity + short vertical movement
-Modal & drawer	Controlled fade/slide; no abrupt pop-in
-Page highlights	Subtle, staggered reveal for selected sections
-Loading states	Calm skeleton pulse, no distracting shimmer
-Reduced motion	Motion-sensitive users ke liye transitions disabled/reduced
-Motion duration, easing, distance aur delay tokens se control honge. Gold accents restrained rahenge; animations layout ko jump nahi karayengi.
-Part 1 PASS: colour/font tokens consistent, existing layouts preserved, reduced-motion support, keyboard focus visible, 320px se desktop layout checks, design verification + typecheck + lint + build green.
-Part 2 — Routes, Navigation & Page Discoverability
-Maqsad: existing content aur listing features ke liye proper routes; broken menu links, dead actions aur missing pages ko resolve karna.
-Existing files — UPDATE
+## 1.4 Design-system contract
+
+Centralize and document:
+
+- Brand, semantic, text, surface, border, feedback and disabled-state colours.
+- Font families, font weights, typography scale, line heights and heading hierarchy.
+- Spacing, container widths, breakpoints and responsive layout rules.
+- Border radii, shadows, overlays, stacking order and focus-ring styles.
+- Motion duration, easing, distance, delay and reduced-motion behaviour.
+- Standard states for hover, active, focus-visible, disabled, loading, error and success.
+- Consistent form fields, buttons, cards, tabs, dialogs, drawers, sheets, toasts, skeletons and navigation surfaces.
+
+Choose the actual font stack only after inspecting available font assets, current loading and build constraints. Do not invent font files or add a network-dependent font-loading requirement that makes production builds unreliable. Use a verified, properly licensed font source and a sensible fallback stack.
+
+All shared CSS modules should consume the same design tokens. Audit existing hard-coded navy, blue-grey, gold and other colour values. Replace them only when they conflict with the approved system; preserve meaningful status colours.
+
+## 1.5 Motion behaviour
+
+| Interaction | Expected behaviour |
+|---|---|
+| Buttons and chips | Subtle colour, border and press transitions |
+| Property cards | Restrained lift, shadow and image zoom |
+| Mega menus | Smooth opacity and short vertical movement |
+| Modals and drawers | Controlled fade/slide without abrupt appearance |
+| Selected content sections | Optional subtle reveal; no compulsory animation on every element |
+| Loading states | Calm skeleton pulse without distracting shimmer |
+| Reduced motion | Disable or substantially reduce nonessential motion |
+
+Rules:
+
+- CSS-first motion; do not add a heavy animation dependency without demonstrated need.
+- No layout jumps or animation-dependent functionality.
+- Respect `prefers-reduced-motion`.
+- Keep keyboard focus clearly visible.
+- Avoid unnecessary animation on large listing collections.
+- Ensure motion styles are actually imported and applied.
+- Do not add `MotionReveal` to every page indiscriminately.
+
+## 1.6 Integration requirements
+
+- Inspect `layout.tsx`, `globals.css`, tokens, base styles and foundation styles before editing.
+- Preserve `AppShell`, `ErrorBoundary`, `ProductionQualityMonitor`, metadata and existing global imports.
+- Integrate motion CSS through the canonical global style entry point.
+- Ensure shared component class names and CSS Module classes remain compatible.
+- Update `package.json` and lockfile together only when dependencies or scripts genuinely change.
+- Preserve the existing `verify:foundation`, feature verifiers, authentication verifier, typecheck, lint and build workflow.
+- Add `verify:design-system` only if the new verifier is implemented and its command is correct.
+
+## 1.7 Part 1 PASS criteria
+
+- Brand and semantic tokens are consistent across shared components and audited navigation/system CSS.
+- Font loading is deterministic and typography is consistent.
+- Existing layout and F01–F13 behaviour remain intact.
+- Reduced motion and visible keyboard focus work.
+- Components have consistent interactive and disabled states.
+- Layout checks cover 320px mobile through tablet and desktop.
+- No unexpected horizontal overflow or layout shift.
+- Design-system verifier, relevant existing verifiers, typecheck, lint and production build pass.
+- Actual results and commit SHA are recorded.
+
+---
+
+# PART 2 — ROUTES, NAVIGATION & PAGE DISCOVERABILITY
+
+**Goal:** Every advertised route and navigation action must lead to a valid, intentional user experience.
+
+## 2.1 Existing files — audit and integrate
+
+```text
 src/components/navigation/
 ├── ExploreMenu.tsx
 ├── IntelligenceMenu.tsx
@@ -81,9 +248,13 @@ src/features/f02_home_discovery/
 ├── HomeSecondaryNav.tsx
 ├── PostPropertySection.tsx
 └── HomeFooter.tsx
+```
 
+Verify each path and its current exports before changing the tree.
 
-New route files — ADD
+## 2.2 Proposed route files
+
+```text
 src/app/
 ├── post-property/
 │   └── page.tsx
@@ -102,13 +273,49 @@ src/app/
         ├── page.tsx
         └── [reportId]/
             └── page.tsx
+```
 
+Before adding routes, check the existing `src/app` route tree for collisions, equivalent pages and established route conventions.
 
-In routes ko existing src/features/content/ components reuse karne chahiye: AdviceIndex, AdviceArticle, CityGuide, LocalityReport, MarketReportIndex aur MarketReportDetail.
-Part 2 PASS: every exposed route works, unknown slugs return not-found, menus work on desktop/mobile, aur unavailable preview content ko published/live content na bataya jaye.
-Part 3 — Verified Inventory & Property Search
-Preview property catalogue se approved, source-backed REOS data ki taraf migrate karna. Pehle actual backend contracts aur endpoints identify honge—API endpoint invent nahi karenge.
-Existing files — UPDATE / INTEGRATE
+Reuse the canonical content components when present:
+
+- `AdviceIndex`
+- `AdviceArticle`
+- `CityGuide`
+- `LocalityReport`
+- `MarketReportIndex`
+- `MarketReportDetail`
+
+`/post-property` has one canonical route owner. Part 2 defines route and navigation integration; Part 4 defines the listing form and submission workflow. Do not create two competing page implementations.
+
+## 2.3 Required behaviour
+
+- Create an inventory mapping every menu item and CTA to its destination or action.
+- Verify desktop, tablet and mobile navigation.
+- Ensure menus open, close, respond to keyboard interaction and maintain focus appropriately.
+- Validate dynamic slugs and show not-found for unknown content.
+- Distinguish preview, unavailable, draft and published content honestly.
+- Avoid links to placeholder destinations or inert buttons.
+- Preserve the existing application shell and global action handling.
+
+## 2.4 Part 2 PASS criteria
+
+- Every exposed route resolves correctly.
+- Unknown slugs return the correct not-found experience.
+- No duplicate route ownership or broken navigation actions.
+- Desktop and mobile menus work.
+- Preview content is never misrepresented as live or published.
+- Route and navigation verification passes with evidence.
+
+---
+
+# PART 3 — VERIFIED INVENTORY, PROPERTY SEARCH & PROPERTY/PROJECT DETAILS
+
+**Goal:** Move from preview catalogues to verified REOS data only when the necessary service contracts are confirmed.
+
+## 3.1 Existing search files — audit and integrate
+
+```text
 src/features/f03_search/
 ├── SearchShell.tsx
 ├── SearchResults.tsx
@@ -122,7 +329,11 @@ src/features/f03_search/
 ├── search-preview-catalog.ts
 ├── search.types.ts
 └── search.utils.ts
+```
 
+## 3.2 Existing property files — audit and integrate
+
+```text
 src/features/f04_property/
 ├── PropertyPage.tsx
 ├── PropertyGallery.tsx
@@ -132,7 +343,11 @@ src/features/f04_property/
 ├── property.data.ts
 ├── property-preview-catalog.ts
 └── property.types.ts
+```
 
+## 3.3 Existing project files — audit and integrate
+
+```text
 src/features/f05_project/
 ├── ProjectPage.tsx
 ├── ProjectGallery.tsx
@@ -142,9 +357,13 @@ src/features/f05_project/
 ├── project.data.ts
 ├── project-preview-catalog.ts
 └── project.types.ts
+```
 
+## 3.4 Proposed shared service structure
 
-Proposed new service structure
+Add only after inspecting existing clients, API routes, types, configuration and verified REOS contracts.
+
+```text
 src/lib/reos/
 ├── config.ts
 ├── server-client.ts
@@ -158,12 +377,41 @@ src/lib/reos/
 src/features/f03_search/search.service.ts
 src/features/f04_property/property.service.ts
 src/features/f05_project/project.service.ts
+```
 
+If a canonical service or contract already exists, reuse it. Do not create a parallel API client.
 
-Part 3 PASS: real approved inventory, accurate filters/pagination, honest verification and freshness status, safe loading/error/empty states, correct currency and unit handling.
-Part 4 — Owner & Builder Listing Workflow
-post_property ke existing submission modules ko dedicated route aur real submission service se connect karna.
-Existing files — UPDATE
+## 3.5 Required integration
+
+- Record verified endpoint, authentication method, request schema, response schema, error behaviour and authorization boundary.
+- Do not invent endpoints or assume a backend service exists because a proposed service filename appears in this document.
+- Keep preview records visibly identified as preview data until verified source-backed data is connected.
+- Preserve filters, sorting, pagination, map/list views and property/project detail navigation.
+- Validate currency, price ranges, area units, dates and localized values.
+- Provide safe loading, empty, error, retry and unavailable states.
+- Handle stale data and service failure without fabricating successful results.
+- Preserve verification and freshness disclosures.
+- Do not mark a property or project as verified unless its source establishes that status.
+
+## 3.6 Part 3 PASS criteria
+
+- Approved inventory is displayed only when the verified service supports it.
+- Filters, sorting and pagination reflect actual returned data.
+- Property and project records remain type-safe and navigable.
+- Currency and unit presentation is correct for the applicable market.
+- Verification, source and freshness claims are accurate.
+- Loading, empty, error and unavailable states work.
+- Relevant tests, typecheck, lint and build pass.
+
+---
+
+# PART 4 — OWNER/BUILDER LISTING WORKFLOW
+
+**Goal:** Deliver a complete, secure property-submission workflow with honest server-confirmed states.
+
+## 4.1 Existing files — audit and integrate
+
+```text
 src/features/post_property/
 ├── PostPropertyShell.tsx
 ├── PostPropertyType.tsx
@@ -179,9 +427,11 @@ src/features/post_property/
 ├── PostPropertySubmit.tsx
 ├── PostPropertyStatus.tsx
 └── post-property.types.ts
+```
 
+## 4.2 Proposed additions
 
-New files — ADD
+```text
 src/features/post_property/
 ├── post-property.service.ts
 └── post-property.validation.ts
@@ -190,12 +440,40 @@ src/app/my/listings/
 ├── page.tsx
 └── [listingId]/
     └── page.tsx
+```
 
+Check existing listing routes and services before adding these files.
 
-/post-property/page.tsx Part 2 mein route ke roop mein add hoga; yahan uska form/service integration aur authenticated user ke listings ke route honge.
-Part 4 PASS: validated form, safe file handling, authorized server submission, actual service-generated reference/status; draft, submitted, verified aur published states kabhi confuse na hon.
-Part 5 — Saved Properties, My HOMIO, Enquiries & Visits
-Existing files — UPDATE / INTEGRATE
+## 4.3 Required workflow
+
+- Validate required fields, ownership/authority declarations and field formats.
+- Handle media and documents safely, including type/size validation and upload errors.
+- Do not trust client-supplied user IDs, role claims, listing status or document ownership.
+- Require server-side authorization for submission, viewing and changes.
+- Prevent accidental duplicate submissions.
+- Provide accessible progress, validation, error and retry states.
+- Display a reference ID only when returned or generated by the verified submission service.
+- Keep `draft`, `submitted`, `under review`, `verified` and `published` states distinct.
+- Do not claim that a listing is published merely because a form submission was attempted.
+
+## 4.4 Part 4 PASS criteria
+
+- Validated form and safe media/document handling.
+- Authorized server submission.
+- Accurate, service-confirmed reference and status.
+- Secure owner/builder listing access.
+- `/post-property` remains a single canonical route.
+- Listing creation and status tests pass.
+
+---
+
+# PART 5 — SAVED PROPERTIES, COMPARE, MY HOMIO, ENQUIRIES & VISITS
+
+**Goal:** Connect the existing user-facing experiences without creating duplicate stores or fabricated activity.
+
+## 5.1 Existing files — audit and integrate
+
+```text
 src/features/f06_save_compare/
 ├── saveCompareSession.ts
 ├── saveCompareAdapters.ts
@@ -228,18 +506,49 @@ src/features/f09_enquiry_visit/
 ├── VisitHistory.tsx
 ├── enquiry.constants.ts
 └── visit.types.ts
+```
 
+## 5.2 Proposed service files
 
-Proposed service files
+```text
 src/features/f06_save_compare/saveCompare.service.ts
 src/features/f07_my_homio/myHomio.service.ts
 src/features/f09_enquiry_visit/enquiryVisit.service.ts
+```
 
+These are conditional additions, not mandatory duplicate services. Search for existing service, adapter and persistence responsibilities first.
 
-Server API routes sirf verified REOS service contract milne par add honge. F06 ke existing store ko reuse karenge; duplicate save/compare store nahi banayenge.
-Part 5 PASS: account-backed save/compare, real enquiry receipt, actual visit confirmation/history, secure records, and no locally fabricated booking success.
-Part 6 — Live AI, Content, Property Tools & Market Intelligence
-Existing files — UPDATE / INTEGRATE
+## 5.3 Required integration
+
+- Reuse the existing save/compare store and adapters.
+- Define the supported anonymous-session and authenticated-account behaviour.
+- Do not promise account synchronization unless the service actually provides it.
+- Persist user records only through the verified, authorized mechanism.
+- Enquiry submission must distinguish local validation from server acceptance.
+- Visit confirmation, rescheduling and cancellation must use authoritative service state.
+- Prevent duplicate submissions and misleading confirmation messages.
+- Protect personal information and document access.
+- Show empty, loading, error, success and unavailable states honestly.
+- Keep My HOMIO activity labels and history attributable to a real source.
+
+## 5.4 Part 5 PASS criteria
+
+- Saved and compared records behave consistently.
+- Account-backed persistence is claimed only when verified.
+- Enquiry receipts and visit states are server-confirmed.
+- No fabricated booking or submission success.
+- Private records are authorized and scoped correctly.
+- Regression checks preserve F06, F07 and F09 behaviour.
+
+---
+
+# PART 6 — AI, CONTENT, PROPERTY TOOLS & MARKET INTELLIGENCE
+
+**Goal:** Deliver useful AI-assisted discovery and content experiences without inventing intelligence, valuations or market facts.
+
+## 6.1 Existing AI files — audit and integrate
+
+```text
 src/features/f08_ai/
 ├── AIWorkspace.tsx
 ├── AISearch.tsx
@@ -250,7 +559,11 @@ src/features/f08_ai/
 ├── AIInvestmentAssistant.tsx
 ├── AIRentalAssistant.tsx
 └── ai.types.ts
+```
 
+## 6.2 Existing content files — audit and integrate
+
+```text
 src/features/content/
 ├── ContentExperience.types.ts
 ├── ContentExperience.module.css
@@ -263,24 +576,60 @@ src/features/content/
 ├── FinanceGuide.tsx
 ├── InvestmentInsight.tsx
 └── AIInsight.tsx
+```
 
+## 6.3 Existing home-discovery tools
+
+```text
 src/features/f02_home_discovery/
 ├── PropertyTools.tsx
 └── MarketIntelligence.tsx
+```
 
+Preserve any additional files already present in these directories.
 
-Proposed service files
+## 6.4 Proposed service files
+
+```text
 src/features/f08_ai/ai.service.ts
 src/features/content/content.service.ts
 
 src/features/f02_home_discovery/
 ├── property-tools.service.ts
 └── market-intelligence.service.ts
+```
 
+Only add these after identifying existing service ownership and the actual approved contracts.
 
-Part 6 PASS: real AI response when enabled, actual source-backed market intelligence, transparent affordability calculations, source dates/disclosures, and no made-up rental yields or valuation claims.
-Part 7 — HOMIO Professional SaaS & Transactions
-Existing files — UPDATE / INTEGRATE
+## 6.5 Required integration
+
+- Identify which AI provider/service is actually configured and enabled.
+- If no verified service is available, show an honest unavailable state or clearly labelled non-live preview; do not fabricate an AI response.
+- Recommendations and comparisons must identify the records and data available to them.
+- Investment, rental, affordability and market calculations must disclose inputs, assumptions, currency, units, source and date as applicable.
+- Do not present estimated returns, valuations, affordability or yields as guaranteed or verified facts.
+- Content routes must distinguish published content from preview, missing and stale material.
+- Preserve safe error handling, loading states and user input.
+- Protect sensitive user data and never expose server credentials to the browser.
+
+## 6.6 Part 6 PASS criteria
+
+- AI output is genuine when advertised as live.
+- Market intelligence is source-backed and dated.
+- Calculations disclose their assumptions and limitations.
+- Unsupported claims are not fabricated.
+- Content routes and services integrate with Part 2.
+- Relevant AI, content and calculation tests pass.
+
+---
+
+# PART 7 — PROFESSIONAL SAAS & TRANSACTION WORKFLOWS
+
+**Goal:** Build an authorized professional workspace for HOMIO operations, inventory, enquiries and transactions.
+
+## 7.1 Existing professional files — audit and integrate
+
+```text
 src/features/f11_professional/
 ├── ProWorkspace.tsx
 ├── ProDashboard.tsx
@@ -297,7 +646,11 @@ src/features/f11_professional/
 ├── ProShell.tsx
 ├── pro-server.ts
 └── pro.types.ts
+```
 
+## 7.2 Existing transaction files — audit and integrate
+
+```text
 src/features/f10_transaction/
 ├── TransactionShell.tsx
 ├── DealOverview.tsx
@@ -309,16 +662,59 @@ src/features/f10_transaction/
 ├── CommissionStatus.tsx
 ├── DealCompletion.tsx
 └── transaction.types.ts
+```
 
+## 7.3 Proposed additions
 
-Proposed additions
+```text
 src/features/f11_professional/pro.service.ts
 src/features/f10_transaction/transaction.service.ts
+```
 
+Reuse existing `pro-server.ts` and transaction integrations where appropriate. Do not create competing service layers.
 
-Part 7 PASS: verified role + organization + record-level authorization, real data, authorised deal/document access, server-confirmed transaction state. Existing prohibition on broker directories, bidding and lead auctions remains in place.
-Part 8 — Global Markets & Localization
-Existing files — UPDATE / INTEGRATE
+## 7.4 Authorization requirements
+
+Permitted role categories:
+
+- HOMIO
+- HOMIO authorized brokerage operators
+- Builder
+- Owner or authorized inventory partner
+- Enterprise white-label partner
+
+These role names do not prove a signed-in user's permission.
+
+Create a permission matrix for role, organization, record ownership/scope and allowed actions. Verify authorization on the server for every protected read and write, including direct record URLs and document access.
+
+Professional features must remain safely unavailable until their verified service and authorization requirements are met.
+
+## 7.5 Required transaction behaviour
+
+- No invented deal, offer, negotiation or commission status.
+- Document access must be authorized.
+- Milestones and completion states must come from the authoritative service.
+- No client-side flag may grant transaction privileges.
+- Preserve the prohibition on broker directories, broker comparisons, bidding, lead auctions and competing-broker marketplaces.
+
+## 7.6 Part 7 PASS criteria
+
+- Role, organization and record-level authorization are enforced.
+- Protected actions fail safely when access is absent.
+- Inventory and transaction states reflect verified service data.
+- Documents and personal records remain protected.
+- Existing business-model boundaries remain enforced.
+- Authorization and transaction regression tests pass.
+
+---
+
+# PART 8 — GLOBAL MARKETS, LOCALIZATION & MARKET ACTIVATION
+
+**Goal:** Prepare HOMIO for international markets while keeping market activation controlled and truthful.
+
+## 8.1 Existing files — audit and integrate
+
+```text
 src/features/f12_globalization/
 ├── MarketActivationWorkspace.tsx
 ├── MarketSelector.tsx
@@ -333,82 +729,169 @@ src/features/f12_globalization/
 ├── market-activation.constants.ts
 ├── market-activation.types.ts
 └── market-activation.utils.ts
+```
 
+Preserve existing market policies and the current Pune activation behaviour unless an approved authority explicitly changes them.
 
-Proposed shared files
+## 8.2 Proposed shared localization files
+
+```text
 src/lib/i18n/
 ├── config.ts
 ├── locale.ts
 ├── formatters.ts
 └── messages/
     └── en.json
+```
 
+Check existing locale, formatter, market and translation infrastructure before adding new shared files. Do not create duplicate localization systems.
 
-Additional languages reviewed translations ke saath introduce honge. Pune active-market policy tab tak unchanged rahegi jab tak approved service aur market-governance rules activation permit na karein.
-Part 8 PASS: correct language/currency/unit formats, no accidental market activation, server-enforced market capabilities and clear unavailable-market states.
-Part 9 — Browser E2E, Accessibility & Release Verification
-Current frontend verification mein static feature gates, TypeScript, lint aur production build hain. Current source tree mein Playwright/Cypress browser test suite nahi mili. Part 9 mein real browser tests add karenge.
-Proposed files
+## 8.3 Required integration
+
+- Correct language, date, number, currency and area-unit formatting.
+- Explicit locale fallback behaviour.
+- Reviewed translations before enabling additional languages.
+- Clear unavailable-market and unsupported-capability states.
+- Server-enforced market permissions for protected operations.
+- Do not treat a selector option, configured city or UI feature flag as proof of operational availability.
+- Market activation requires approved policy and verified service readiness.
+- Keep market data and service-availability status distinct.
+
+## 8.4 Part 8 PASS criteria
+
+- Locale formatting is correct.
+- Unsupported markets remain unavailable.
+- No accidental activation of a market or service.
+- Server-side enforcement protects market capabilities.
+- Pune activation policy remains unchanged unless formally authorized.
+- Market and localization tests pass.
+
+---
+
+# PART 9 — BROWSER E2E, ACCESSIBILITY, CI & RELEASE VERIFICATION
+
+**Goal:** Verify real user journeys and prevent regressions before release.
+
+## 9.1 Existing verification infrastructure
+
+The current frontend `package.json` contains scripts for foundation, authentication, F02–F13 verifiers, typecheck, lint and build.
+
+Audit and preserve those scripts. Inspect the existing lockfile and verification scripts before modifying dependencies or commands.
+
+Current checks are not a substitute for real browser E2E coverage.
+
+## 9.2 Proposed Playwright files
+
+```text
 REOS_CONTROL_CENTER/Frontend/
 ├── playwright.config.ts
-├── tests/
-│   └── e2e/
-│       ├── design-system.spec.ts
-│       ├── navigation.spec.ts
-│       ├── home-discovery.spec.ts
-│       ├── search-property.spec.ts
-│       ├── save-compare.spec.ts
-│       ├── authentication.spec.ts
-│       ├── owner-listing.spec.ts
-│       ├── enquiry-visit.spec.ts
-│       ├── professional-access.spec.ts
-│       ├── market-gating.spec.ts
-│       └── accessibility.spec.ts
-├── package.json
-├── package-lock.json
-└── .github/
-    └── workflows/
-        └── frontend-ci.yml
+└── tests/
+    └── e2e/
+        ├── design-system.spec.ts
+        ├── navigation.spec.ts
+        ├── home-discovery.spec.ts
+        ├── search-property.spec.ts
+        ├── save-compare.spec.ts
+        ├── authentication.spec.ts
+        ├── owner-listing.spec.ts
+        ├── enquiry-visit.spec.ts
+        ├── professional-access.spec.ts
+        ├── market-gating.spec.ts
+        └── accessibility.spec.ts
+```
 
+These are proposed additions. Check for an existing Playwright/Cypress setup or overlapping tests first.
 
-Part 9 PASS: mobile/tablet/desktop browser runs, tested navigation and main journeys, keyboard and reduced-motion accessibility, safe role/market access, no horizontal overflow, visual screenshot review and full CI green.
+## 9.3 GitHub Actions workflow — correct repository-level location
 
-Final execution order
-01
+```text
+.github/
+└── workflows/
+    └── frontend-ci.yml
+```
 
-Design system: colours, fonts, CSS sync & animations
+**Important:** This workflow belongs in the repository root's `.github/workflows/` directory, not inside `REOS_CONTROL_CENTER/Frontend/.github/workflows/`.
 
-02
+The workflow must explicitly target the frontend directory and use the appropriate Node version. Keep CI commands aligned with the committed lockfile and existing scripts.
 
-Routes and navigation
+## 9.4 Dependency and CI requirements
 
-03
+- Add Playwright only if no suitable browser-testing setup already exists.
+- Update `package.json` and `package-lock.json` together.
+- Use deterministic browser installation and test setup.
+- Ensure CI does not require private production credentials.
+- Provide safe, clearly identified test fixtures and mock services where required.
+- Do not allow test mocks to imply that a production service is live.
+- Upload useful test reports or screenshots when CI supports them.
+- Keep secrets out of logs and browser bundles.
+- Fail CI on genuine test failures; do not weaken tests to force a green result.
 
-Verified inventory and search
+## 9.5 Required browser coverage
 
-04
+- Design tokens, typography, shared components and reduced motion.
+- Desktop, tablet and mobile navigation.
+- Home discovery, search, property and project journeys.
+- Save/compare and authentication-dependent behaviour.
+- Owner listing form validation and submission states.
+- Enquiry and visit workflows.
+- Professional role and direct-record access denial.
+- Market activation and unavailable-market behaviour.
+- Keyboard navigation, visible focus, dialog behaviour and accessibility.
+- Horizontal overflow and responsive layout regressions.
 
-Owner/builder listing
+## 9.6 Part 9 PASS criteria
 
-05
+- Browser tests execute against the intended frontend build.
+- Core user journeys and protected-access denial are tested.
+- Mobile, tablet and desktop checks pass.
+- Keyboard and reduced-motion checks pass.
+- No unexpected horizontal overflow.
+- Screenshot or visual review evidence is retained where appropriate.
+- Existing verifiers, typecheck, lint, production build and configured CI pass.
+- Commit SHA and actual CI run result are recorded.
 
-Saved properties, My HOMIO, enquiries & visits
+---
 
-06
+# FINAL EXECUTION ORDER
 
-AI, content, tools & market intelligence
+| Order | Part | Required outcome |
+|---|---|---|
+| 01 | Design system | Central colours, typography, shared CSS and motion |
+| 02 | Routes and navigation | Valid destinations and complete discoverability |
+| 03 | Search and inventory | Verified data contracts and honest data states |
+| 04 | Owner/builder listing | Validated, authorized listing workflow |
+| 05 | Saved/My HOMIO/enquiries/visits | Integrated records and accurate confirmations |
+| 06 | AI/content/intelligence | Verified services, source disclosures and safe fallbacks |
+| 07 | Professional SaaS/transactions | Authorized professional operations |
+| 08 | Globalization | Correct localization and controlled market activation |
+| 09 | E2E and release verification | Browser tests, accessibility, CI and release gate |
 
-07
+Parts may have dependent work identified during audit, but do not claim a later Part is complete while its required dependencies remain unresolved.
 
-Professional SaaS and transactions
+---
 
-08
+# MANDATORY PART EXECUTION TEMPLATE
 
-Global-market readiness
+Before implementing a Part:
 
-09
+1. Read the current canonical files and their imports, exports and callers.
+2. Compare actual implementation against this document.
+3. Identify exact gaps and integration dependencies.
+4. List the precise files to preserve, replace and add.
+5. Confirm no duplicate route, service, store or component will be introduced.
+6. Implement the smallest complete set of changes that satisfies the requirements.
+7. Run the relevant tests and required regression checks.
+8. Review actual results and record the commit SHA.
 
-End-to-end verification and launch gate
+For each completed Part, publish:
 
+```text
+PART:
+STATUS: PASS / PARTIAL / BLOCKED
 
-Ab pehla kaam Part 1 hoga. tokens.css, layout.tsx, base.css aur foundation.css ko audit karke central design system set karenge. Uske baad shared components aur feature CSS ko sync karenge. Existing passing features ko unnecessary rewrite nahi karenge, aur har part ke baad GitHub CI ke actual result se verify karenge.
+FILES REPLACED:
+FILES ADDED:
+FILES PRESERVED:
+
+IMPLEMENTATION RESULT:
+VERIFICATION COMMAND
