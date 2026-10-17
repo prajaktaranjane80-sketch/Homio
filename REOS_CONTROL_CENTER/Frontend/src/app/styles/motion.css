@@ -1,0 +1,68 @@
+/*
+ * HOMIO motion foundation.
+ * Keep animation subtle, purposeful and respectful of reduced-motion settings.
+ */
+
+:root {
+  --motion-distance-sm: 6px;
+  --motion-distance-md: 14px;
+  --motion-distance-lg: 22px;
+}
+
+@keyframes homio-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes homio-rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--motion-distance-md), 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes homio-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.motion-fade-in {
+  animation: homio-fade-in var(--motion-slow) var(--ease-standard) both;
+}
+
+.motion-rise-in {
+  animation: homio-rise-in var(--motion-slow) var(--ease-emphasized) both;
+}
+
+.motion-scale-in {
+  animation: homio-scale-in var(--motion-slow) var(--ease-emphasized) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+}
