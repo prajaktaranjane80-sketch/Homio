@@ -1,3 +1,4 @@
+
 """CORE-008 Point 01 — Financial Domain.
 
 This module owns only the foundational financial-domain vocabulary:
@@ -627,7 +628,13 @@ class FinancialDomainRecord:
                     "JSON-safe primitives."
                 )
 
-            normalized[key.strip()] = value
+            normalized_key = key.strip()
+            if normalized_key in normalized:
+                raise FinancialValidationError(
+                    "metadata keys must be unique after normalization."
+                )
+
+            normalized[normalized_key] = value
 
         object.__setattr__(
             self,
