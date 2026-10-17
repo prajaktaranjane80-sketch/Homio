@@ -1,258 +1,372 @@
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Note = "CORE-008-T02 evidence: commit $PassingCodeCommit passed GitHub Actions run $PassingRunId with 482 tests passing. Implemented immutable read-only attribution binding against CORE-003 LeadAttribution, CORE-006 Deal, ARCH-011 ownership binding and ARCH-014 evidence. The complete gate acceptance criteria remain subject to their own evidence and validation."
+PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER> # 3. Live branch guards; no state mutation in the code commit
+PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Push-Location $ControlRoot
-PS C:\Users\Sandip RanjanePatil\AppData\Local\Temp\HOMIO_CORE008_T02_05bdd9eea5d0435dbcae2d0656d077e7\REOS_CONTROL_CENTER> try {
->>     & python $ControllerPath verify-state
->>     if ($LASTEXITCODE -ne 0) {
->>         throw 'Canonical state verification failed before the transition.'
+PS D:\Homio\REOS_CONTROL_CENTER> function ConvertTo-Utf8Base64 {
+>>     param([string]$Text)
+>>     return [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($Text))
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Ref = Invoke-GhApi -Method GET -Path "git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Ref.object.sha -ne $ExpectedHead) {
+>>     throw "Branch HEAD changed. Expected $ExpectedHead; found $($Ref.object.sha). Rerun only after re-audit."
+>> }
+Branch HEAD changed. Expected 6456017847433d1007cb7121548ee61cdbcd46a6; found af663972bb8203b2a9d3b6976783a396021f770c. Rerun only after re-audit.
+At line:2 char:5
++     throw "Branch HEAD changed. Expected $ExpectedHead; found $($Ref. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Branch HEAD cha...after re-audit.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Branch HEAD changed. Expected 6456017847433d1007cb7121548ee61cdbcd46a6; found af663972bb8203b2a9d3b6976783a396021f770c. Reru
+   n only after re-audit.
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $HeadCommit = Invoke-GhApi -Method GET -Path "git/commits/$ExpectedHead"
+PS D:\Homio\REOS_CONTROL_CENTER> $BaseTreeSha = $HeadCommit.tree.sha
+PS D:\Homio\REOS_CONTROL_CENTER> $Tree = Invoke-GhApi -Method GET -Path "git/trees/$BaseTreeSha`?recursive=1"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Tree.truncated) { throw 'GitHub returned a truncated tree; stopped safely.' }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $RemoteFiles = @{}
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Entry in $Tree.tree) { $RemoteFiles[$Entry.path] = $Entry.sha }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Pinned = @{
+>>     $StatePath = $StateSha
+>>     $ControllerPath = $ControllerSha
+>>     $ProjectionPath = $ProjectionSha
+>>     $AllocationPath = $AllocationSha
+>>     $InitPath = $InitSha
+>>     $AttributionPath = $AttributionSha
+>>     $AttributionTestsPath = $AttributionTestsSha
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Path in $Pinned.Keys) {
+>>     if ($RemoteFiles[$Path] -ne $Pinned[$Path]) {
+>>         throw "Safety guard failed for $Path; no write performed."
 >>     }
->>
->>     & python $ControllerPath verify-criterion CORE-008-AC02 --evidence $Evidence
->>     if ($LASTEXITCODE -ne 0) {
->>         throw 'Official AC02 criterion verification failed.'
->>     }
->>
->>     & python $ControllerPath complete-subtask CORE-008-T02 --note $Note
->>     if ($LASTEXITCODE -ne 0) {
->>         throw 'Official T02 completion command failed.'
->>     }
->>
->>     & python $ControllerPath verify-state
->>     if ($LASTEXITCODE -ne 0) {
->>         throw 'Generated canonical state failed integrity or phase/gate coherence verification.'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Path in @($SplitPath, $SplitTestsPath)) {
+>>     if ($RemoteFiles.ContainsKey($Path)) {
+>>         throw "Target file already exists: $Path. No overwrite performed."
 >>     }
 >> }
->> finally {
->>     Pop-Location
->> }
-STATE HASH STORED: f6e6a666be67490c4b9964203c3a930eb6d6f3dd7ee0a5b999f9749e34830c47
-STATE HASH CALCULATED: f6e6a666be67490c4b9964203c3a930eb6d6f3dd7ee0a5b999f9749e34830c47
-INTEGRITY: PASS
-PHASE/GATE COHERENCE: PASS
-VERIFIED: CORE-008-AC02
-COMPLETED: CORE-008-T02
-NEXT: CORE-008-T03: Implement split and participant logic.
-STATE HASH STORED: 6f27f7589bdaf366017521b31fd12d82a3e96c625dbb1a1894b6428d781a68c6
-STATE HASH CALCULATED: 6f27f7589bdaf366017521b31fd12d82a3e96c625dbb1a1894b6428d781a68c6
-INTEGRITY: PASS
-PHASE/GATE COHERENCE: PASS
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 5. Independently validate generated state and the controller-generated handoff.
-PS D:\Homio\REOS_CONTROL_CENTER> $NewStatePath = Join-Path $ControlRoot 'data/state.json'
-PS D:\Homio\REOS_CONTROL_CENTER> $NewState = Get-Content -Raw -Encoding UTF8 $NewStatePath | ConvertFrom-Json
-PS D:\Homio\REOS_CONTROL_CENTER> $GateState = $NewState.gate_plans.'CORE-008'
+PS D:\Homio\REOS_CONTROL_CENTER> # Download exact audited blob and apply fail-closed, single-anchor replacements.
+PS D:\Homio\REOS_CONTROL_CENTER> $AllocationText = Normalize-Lf (Get-GitBlobText -Sha $AllocationSha)
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $T02 = @($GateState.subtasks | Where-Object { $_.id -eq 'CORE-008-T02' })
-PS D:\Homio\REOS_CONTROL_CENTER> $T03 = @($GateState.subtasks | Where-Object { $_.id -eq 'CORE-008-T03' })
-PS D:\Homio\REOS_CONTROL_CENTER> $AC02 = @($GateState.criteria_state | Where-Object { $_.id -eq 'CORE-008-AC02' })
-PS D:\Homio\REOS_CONTROL_CENTER> $StillPending = @($GateState.criteria_state | Where-Object {
->>     $_.id -ne 'CORE-008-AC02' -and $_.status -eq 'PENDING'
->> })
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($T02.Count -ne 1 -or $T02[0].status -ne 'DONE') {
->>     throw 'Official controller output does not show T02 DONE.'
->> }
-PS D:\Homio\REOS_CONTROL_CENTER> if ($T03.Count -ne 1 -or $T03[0].status -ne 'CURRENT') {
->>     throw 'Official controller did not advance to T03.'
->> }
-PS D:\Homio\REOS_CONTROL_CENTER> if ($GateState.current_subtask -ne 'CORE-008-T03' -or
->>     $NewState.execution.current_subtask -ne 'CORE-008-T03') {
->>     throw 'Current-subtask projection does not consistently point to T03.'
->> }
-PS D:\Homio\REOS_CONTROL_CENTER> if ($AC02.Count -ne 1 -or $AC02[0].status -ne 'VERIFIED') {
->>     throw 'AC02 was not marked VERIFIED by the official controller.'
->> }
-PS D:\Homio\REOS_CONTROL_CENTER> if ($StillPending.Count -ne 5) {
->>     throw 'The other five gate acceptance criteria were unexpectedly altered.'
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $PacketPath = Join-Path $ControlRoot 'packets/NEW_CHAT_PACKET.txt'
-PS D:\Homio\REOS_CONTROL_CENTER> $NextChatPath = Join-Path $ControlRoot 'REOS_NEXT_CHAT.txt'
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not (Test-Path $PacketPath) -or -not (Test-Path $NextChatPath)) {
->>     throw 'Official controller did not generate both handoff files.'
->> }
-PS D:\Homio\REOS_CONTROL_CENTER> $PacketB64 = [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($PacketPath))
-PS D:\Homio\REOS_CONTROL_CENTER> $NextChatB64 = [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($NextChatPath))
-PS D:\Homio\REOS_CONTROL_CENTER> if ($PacketB64 -ne $NextChatB64) {
->>     throw 'Handoff packet and REOS_NEXT_CHAT differ.'
->> }
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not (Get-Content -Raw -Encoding UTF8 $PacketPath).Contains('CURRENT_SUBTASK=CORE-008-T03')) {
->>     throw 'Generated handoff does not point to T03.'
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $SnapshotFiles = @(Get-ChildItem (Join-Path $ControlRoot 'snapshots') -Filter 'state_*.json' -File)
-PS D:\Homio\REOS_CONTROL_CENTER> if ($SnapshotFiles.Count -ne 2) {
->>     throw "Expected two official transition snapshots, found $($SnapshotFiles.Count)."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $PreTransitionSnapshotCount = 0
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Snapshot in $SnapshotFiles) {
->>     $SnapshotB64 = [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($Snapshot.FullName))
->>     if ($SnapshotB64 -eq $OriginalStateBase64) { $PreTransitionSnapshotCount++ }
->> }
-PS D:\Homio\REOS_CONTROL_CENTER> if ($PreTransitionSnapshotCount -ne 1) {
->>     throw 'The expected pre-transition canonical-state snapshot was not preserved exactly.'
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 6. Prepare one atomic commit containing canonical state, the two handoff
-PS D:\Homio\REOS_CONTROL_CENTER> # projections and both controller-generated snapshots.
-PS D:\Homio\REOS_CONTROL_CENTER> $FilesToCommit = @(
->>     [pscustomobject]@{
->>         repoPath = 'REOS_CONTROL_CENTER/data/state.json'
->>         fullPath = $NewStatePath
->>     },
->>     [pscustomobject]@{
->>         repoPath = 'REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt'
->>         fullPath = $PacketPath
->>     },
->>     [pscustomobject]@{
->>         repoPath = 'REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt'
->>         fullPath = $NextChatPath
->>     }
+PS D:\Homio\REOS_CONTROL_CENTER> $OldImports = @'
+>> from .commission_calculation import CommissionCalculation
+>> from .commission_contract import CommissionPartyReference
+>> from .commission_entitlement import (
+>>     CommissionEntitlement,
 >> )
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER> $NewImports = @'
+>> from .commission_calculation import (
+>>     CommissionCalculation,
+>>     CommissionCalculationState,
+>> )
+>> from .commission_contract import CommissionPartyReference
+>> from .commission_entitlement import (
+>>     CommissionEntitlement,
+>>     CommissionEntitlementState,
+>> )
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER> $AllocationText = Replace-ExactlyOnce $AllocationText (Normalize-Lf $OldImports) (Normalize-Lf $NewImports) 'allocation imports'
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Snapshot in $SnapshotFiles) {
->>     $RepoPath = "REOS_CONTROL_CENTER/snapshots/$($Snapshot.Name)"
->>     if ($RemoteFiles.ContainsKey($RepoPath)) {
->>         throw "Snapshot path already exists remotely: $RepoPath"
->>     }
->>     $FilesToCommit += [pscustomobject]@{
->>         repoPath = $RepoPath
->>         fullPath = $Snapshot.FullName
->>     }
+PS D:\Homio\REOS_CONTROL_CENTER> $OldRatioPolicy = @'
+>>         if ratio_sum != Decimal("100"):
+>>             raise CommissionAllocationValidationError(
+>>                 "Allocation ratios must total exactly 100."
+>>             )
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER> $NewRatioPolicy = @'
+>>         expected_ratio_sum = (
+>>             Decimal("0")
+>>             if self.total_amount.amount == 0
+>>             else Decimal("100")
+>>         )
+>>         if ratio_sum != expected_ratio_sum:
+>>             raise CommissionAllocationValidationError(
+>>                 f"Allocation ratios must total exactly {expected_ratio_sum}."
+>>             )
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER> $AllocationText = Replace-ExactlyOnce $AllocationText (Normalize-Lf $OldRatioPolicy) (Normalize-Lf $NewRatioPolicy) 'zero-total ratio policy'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $OldAmountStart = @'
+>>         total = calculation.commission_amount
+>>
+>>         amount_sum = sum(
+>>             (
+>>                 item.entitled_amount.amount
+>>                 for item in items
+>>             ),
+>>             Decimal("0"),
+>>         )
+>>
+>>         if amount_sum != total.amount:
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER> $NewAmountStart = @'
+>>         if calculation.state is not CommissionCalculationState.CALCULATED:
+>>             raise CommissionAllocationValidationError(
+>>                 "Only CALCULATED commission results can be allocated."
+>>             )
+>>
+>>         total = calculation.commission_amount
+>>
+>>         for index, item in enumerate(items, start=1):
+>>             if not isinstance(item, CommissionEntitlement):
+>>                 raise CommissionAllocationValidationError(
+>>                     f"Invalid entitlement at index {index}."
+>>                 )
+>>             if item.state not in (
+>>                 CommissionEntitlementState.CONFIRMED,
+>>                 CommissionEntitlementState.FROZEN,
+>>             ):
+>>                 raise CommissionAllocationValidationError(
+>>                     "Only confirmed or frozen entitlements can be allocated."
+>>                 )
+>>             if item.tenant_id != calculation.tenant_id:
+>>                 raise CommissionAllocationValidationError(
+>>                     "Entitlement tenant differs from calculation tenant."
+>>                 )
+>>             if item.commission_id != calculation.commission_id:
+>>                 raise CommissionAllocationValidationError(
+>>                     "Entitlement commission differs from calculation commission."
+>>                 )
+>>             if item.contract_version != calculation.contract_version:
+>>                 raise CommissionAllocationValidationError(
+>>                     "Entitlement contract_version does not match calculation."
+>>                 )
+>>             if item.calculation_id != calculation.calculation_id:
+>>                 raise CommissionAllocationValidationError(
+>>                     "Entitlement calculation reference mismatch."
+>>                 )
+>>             if item.calculation_version != calculation.calculation_version:
+>>                 raise CommissionAllocationValidationError(
+>>                     "Entitlement calculation_version does not match calculation."
+>>                 )
+>>             if item.entitled_amount.currency.identity_key != total.currency.identity_key:
+>>                 raise FinancialCurrencyMismatchError(
+>>                     "Entitlement currency does not match calculated commission."
+>>                 )
+>>             if item.entitled_amount.amount < 0:
+>>                 raise CommissionAllocationValidationError(
+>>                     "Entitlement amount cannot be negative."
+>>                 )
+>>
+>>         amount_sum = sum(
+>>             (item.entitled_amount.amount for item in items),
+>>             Decimal("0"),
+>>         )
+>>
+>>         if amount_sum != total.amount:
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER> $AllocationText = Replace-ExactlyOnce $AllocationText (Normalize-Lf $OldAmountStart) (Normalize-Lf $NewAmountStart) 'entitlement/calculation guard'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $OldDerivedRatioGuard = @'
+>>         ratio_sum = sum(
+>>             (
+>>                 line.allocation_ratio
+>>                 for line in lines
+>>             ),
+>>             Decimal("0"),
+>>         )
+>>
+>>         if (
+>>             ratio_sum != Decimal("100")
+>>             and total.amount != 0
+>>         ):
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER> $NewDerivedRatioGuard = @'
+>>         if total.amount != 0:
+>>             ratio_sum_before_correction = sum(
+>>                 (line.allocation_ratio for line in lines),
+>>                 Decimal("0"),
+>>             )
+>>             ratio_delta = Decimal("100") - ratio_sum_before_correction
+>>             if ratio_delta != 0:
+>>                 # Assign finite-precision percentage residue deterministically
+>>                 # to the largest monetary line (first line wins ties).
+>>                 target_index = max(
+>>                     range(len(lines)),
+>>                     key=lambda i: (lines[i].amount.amount, -i),
+>>                 )
+>>                 current = lines[target_index]
+>>                 corrected_ratio = current.allocation_ratio + ratio_delta
+>>                 if corrected_ratio < 0 or corrected_ratio > 100:
+>>                     raise CommissionAllocationValidationError(
+>>                         "Rounded allocation ratio residue is outside the valid range."
+>>                     )
+>>                 lines[target_index] = CommissionAllocationLine(
+>>                     allocation_id=current.allocation_id,
+>>                     entitlement_id=current.entitlement_id,
+>>                     party=current.party,
+>>                     amount=current.amount,
+>>                     allocation_ratio=corrected_ratio,
+>>                     rank=current.rank,
+>>                     metadata=current.metadata,
+>>                 )
+>>
+>>         ratio_sum = sum(
+>>             (line.allocation_ratio for line in lines),
+>>             Decimal("0"),
+>>         )
+>>
+>>         if (
+>>             ratio_sum != Decimal("100")
+>>             and total.amount != 0
+>>         ):
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER> $AllocationText = Replace-ExactlyOnce $AllocationText (Normalize-Lf $OldDerivedRatioGuard) (Normalize-Lf $NewDerivedRatioGuard) 'percentage rounding correction'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $AllocationText.Contains('CommissionEntitlementState.CONFIRMED')) {
+>>     throw 'Entitlement state validation insertion failed.'
 >> }
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $AllocationText.Contains('corrected_ratio')) {
+>>     throw 'Rounding residue correction insertion failed.'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $InitText = Normalize-Lf (Get-GitBlobText -Sha $InitSha)
+PS D:\Homio\REOS_CONTROL_CENTER> $ImportBlock = @'
+>> from .commission_participant_split import (
+>>     CORE008_COMMISSION_PARTICIPANT_SPLIT_SCHEMA_VERSION,
+>>     CommissionParticipantSplit,
+>>     CommissionParticipantSplitError,
+>>     CommissionParticipantSplitLine,
+>>     CommissionParticipantSplitValidationError,
+>> )
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER> $AllAnchor = "`n__all__ = ["
+PS D:\Homio\REOS_CONTROL_CENTER> $InitText = Replace-ExactlyOnce $InitText $AllAnchor "`n$($ImportBlock.TrimEnd())`n__all__ = [" 'participant split import anchor'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $ExportAnchor = '    "CommissionAttributionValidationError",'
+PS D:\Homio\REOS_CONTROL_CENTER> $ExportBlock = @'
+>>     "CORE008_COMMISSION_PARTICIPANT_SPLIT_SCHEMA_VERSION",
+>>     "CommissionParticipantSplit",
+>>     "CommissionParticipantSplitError",
+>>     "CommissionParticipantSplitLine",
+>>     "CommissionParticipantSplitValidationError",
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER> $InitText = Replace-ExactlyOnce $InitText $ExportAnchor ($ExportAnchor + "`n" + $ExportBlock.TrimEnd()) 'participant split exports'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # Prepare the exact four-file code commit.
+PS D:\Homio\REOS_CONTROL_CENTER> $Files = @(
+>>     @{ path = $AllocationPath; content = $AllocationText }
+>>     @{ path = $SplitPath; content = (Normalize-Lf $SplitModule) }
+>>     @{ path = $SplitTestsPath; content = (Normalize-Lf $SplitTests) }
+>>     @{ path = $InitPath; content = $InitText }
+>> )
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $TreeEntries = @()
 PS D:\Homio\REOS_CONTROL_CENTER> $ExpectedBlobs = @{}
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($File in $FilesToCommit) {
->>     $FileBytes = [System.IO.File]::ReadAllBytes($File.fullPath)
->>     $FileBase64 = [Convert]::ToBase64String($FileBytes)
->>
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($File in $Files) {
 >>     $Blob = Invoke-GhApi -Method POST -Path 'git/blobs' -Body @{
->>         content = $FileBase64
+>>         content = (ConvertTo-Utf8Base64 -Text $File.content)
 >>         encoding = 'base64'
 >>     }
->>
->>     $ExpectedBlobs[$File.repoPath] = $Blob.sha
+>>     $ExpectedBlobs[$File.path] = $Blob.sha
 >>     $TreeEntries += @{
->>         path = $File.repoPath
+>>         path = $File.path
 >>         mode = '100644'
 >>         type = 'blob'
 >>         sha = $Blob.sha
 >>     }
+>>     Write-Host "Prepared: $($File.path)"
 >> }
+Prepared: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_allocation.py
+Prepared: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_participant_split.py
+Prepared: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t03_allocation_participants.py
+Prepared: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/__init__.py
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Recheck HEAD immediately before creating/updating the remote ref.
-PS D:\Homio\REOS_CONTROL_CENTER> $RefBeforeWrite = Invoke-GhApi -Method GET -Path "git/ref/heads/$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER> if ($RefBeforeWrite.object.sha -ne $HeadSha) {
->>     throw "Branch moved before upload. Expected $HeadSha; found $($RefBeforeWrite.object.sha). No state commit made."
+PS D:\Homio\REOS_CONTROL_CENTER> $RefPreWrite = Invoke-GhApi -Method GET -Path "git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($RefPreWrite.object.sha -ne $ExpectedHead) {
+>>     throw 'Branch moved during preparation. No commit/ref update performed.'
 >> }
+Branch moved during preparation. No commit/ref update performed.
+At line:2 char:5
++     throw 'Branch moved during preparation. No commit/ref update perf ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Branch moved du...date performed.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Branch moved during preparation. No commit/ref update performed.
+
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $NewTree = Invoke-GhApi -Method POST -Path 'git/trees' -Body @{
 >>     base_tree = $BaseTreeSha
 >>     tree = $TreeEntries
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $NewCommit = Invoke-GhApi -Method POST -Path 'git/commits' -Body @{
->>     message = 'control-center: complete CORE-008-T02 with verified attribution evidence'
+PS D:\Homio\REOS_CONTROL_CENTER> $CodeCommit = Invoke-GhApi -Method POST -Path 'git/commits' -Body @{
+>>     message = 'Implement CORE-008 participant split and precision guards'
 >>     tree = $NewTree.sha
->>     parents = @($HeadSha)
+>>     parents = @($ExpectedHead)
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> $null = Invoke-GhApi -Method PATCH -Path "git/refs/heads/$Branch" -Body @{
->>     sha = $NewCommit.sha
+>>     sha = $CodeCommit.sha
 >>     force = $false
 >> }
+Invoke-RestMethod : {"message":"Update is not a fast
+forward","documentation_url":"https://docs.github.com/rest/git/refs#update-a-reference","status":"422"}
+At line:12 char:12
++     return Invoke-RestMethod -Method $Method -Uri $Uri -Headers $Head ...
++            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 7. Read-back verification: exact changed paths, blobs, and unchanged code.
-PS D:\Homio\REOS_CONTROL_CENTER> $AfterRef = Invoke-GhApi -Method GET -Path "git/ref/heads/$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER> if ($AfterRef.object.sha -ne $NewCommit.sha) {
->>     throw 'Remote branch did not read back the transition commit.'
+PS D:\Homio\REOS_CONTROL_CENTER> $RefAfterCode = Invoke-GhApi -Method GET -Path "git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($RefAfterCode.object.sha -ne $CodeCommit.sha) {
+>>     throw 'Code commit did not read back as branch HEAD.'
+>> }
+Code commit did not read back as branch HEAD.
+At line:2 char:5
++     throw 'Code commit did not read back as branch HEAD.'
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Code commit did...as branch HEAD.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Code commit did not read back as branch HEAD.
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Committed = Invoke-GhApi -Method GET -Path "commits/$($CodeCommit.sha)"
+PS D:\Homio\REOS_CONTROL_CENTER> $ChangedPaths = @($Committed.files | ForEach-Object { $_.filename } | Sort-Object)
+PS D:\Homio\REOS_CONTROL_CENTER> $ExpectedChanged = @($Files | ForEach-Object { $_.path } | Sort-Object)
+PS D:\Homio\REOS_CONTROL_CENTER> if (($ChangedPaths -join "`n") -ne ($ExpectedChanged -join "`n")) {
+>>     throw "Unexpected code commit file set: $($ChangedPaths -join ', ')"
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Committed = Invoke-GhApi -Method GET -Path "commits/$($NewCommit.sha)"
-PS D:\Homio\REOS_CONTROL_CENTER> $ActualPaths = @($Committed.files | ForEach-Object { $_.filename } | Sort-Object)
-PS D:\Homio\REOS_CONTROL_CENTER> $ExpectedPaths = @($FilesToCommit | ForEach-Object { $_.repoPath } | Sort-Object)
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (($ActualPaths -join "`n") -ne ($ExpectedPaths -join "`n")) {
->>     throw "Unexpected transition commit file set: $($ActualPaths -join ', ')"
+PS D:\Homio\REOS_CONTROL_CENTER> $CodeTree = Invoke-GhApi -Method GET -Path "git/trees/$($NewTree.sha)`?recursive=1"
+PS D:\Homio\REOS_CONTROL_CENTER> $CodeTreeFiles = @{}
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Entry in $CodeTree.tree) { $CodeTreeFiles[$Entry.path] = $Entry.sha }
+PS D:\Homio\REOS_CONTROL_CENTER> if ($CodeTreeFiles[$StatePath] -ne $StateSha) {
+>>     throw 'Code commit modified canonical state; stopping.'
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER> if ($ActualPaths -contains 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_attribution.py' -or
->>     $ActualPaths -contains 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t02_attribution_binding.py') {
->>     throw 'Transition commit unexpectedly changed attribution code.'
+PS D:\Homio\REOS_CONTROL_CENTER> if ($CodeTreeFiles[$ControllerPath] -ne $ControllerSha -or
+>>     $CodeTreeFiles[$ProjectionPath] -ne $ProjectionSha) {
+>>     throw 'Controller/projection changed unexpectedly.'
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $AfterCommit = Invoke-GhApi -Method GET -Path "git/commits/$($NewCommit.sha)"
-PS D:\Homio\REOS_CONTROL_CENTER> $AfterTree = Invoke-GhApi -Method GET -Path "git/trees/$($AfterCommit.tree.sha)`?recursive=1"
-PS D:\Homio\REOS_CONTROL_CENTER> if ($AfterTree.truncated) { throw 'Post-write tree read-back was truncated.' }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $AfterBlobs = @{}
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Entry in $AfterTree.tree) { $AfterBlobs[$Entry.path] = $Entry.sha }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($FilePath in $ExpectedBlobs.Keys) {
->>     if ($AfterBlobs[$FilePath] -ne $ExpectedBlobs[$FilePath]) {
->>         throw "Remote read-back mismatch for $FilePath"
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Path in $ExpectedBlobs.Keys) {
+>>     if ($CodeTreeFiles[$Path] -ne $ExpectedBlobs[$Path]) {
+>>         throw "Code commit read-back mismatch: $Path"
 >>     }
->> }
-PS D:\Homio\REOS_CONTROL_CENTER> if ($AfterBlobs['REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/__init__.py'] -ne $InitSha -or
->>     $AfterBlobs['REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_attribution.py'] -ne $ModuleSha -or
->>     $AfterBlobs['REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t02_attribution_binding.py'] -ne $TestsSha) {
->>     throw 'Attribution implementation/package blobs changed unexpectedly during state transition.'
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ''
 
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host 'OFFICIAL CONTROL CENTER TRANSITION VERIFIED'
-OFFICIAL CONTROL CENTER TRANSITION VERIFIED
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit: $($NewCommit.sha)"
-Commit: 7cb3a6603c89d01531d8fb195a3d5769878ae474
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit URL: https://github.com/$Repo/commit/$($NewCommit.sha)"
-Commit URL: https://github.com/prajaktaranjane80-sketch/Homio/commit/7cb3a6603c89d01531d8fb195a3d5769878ae474
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Previous state snapshot preserved: $ExpectedStateSha"
-Previous state snapshot preserved: 44a6d4fc0a0fd7a2dac0e8df06be2476badbaf25
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "AC02: VERIFIED"
-AC02: VERIFIED
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host 'CORE-008-T02: DONE'
-CORE-008-T02: DONE
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CORE-008-T03: CURRENT"
-CORE-008-T03: CURRENT
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Other acceptance criteria still PENDING: $($StillPending.Count)"
-Other acceptance criteria still PENDING: 5
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Changed files ($($ActualPaths.Count)):"
-Changed files (5):
-PS D:\Homio\REOS_CONTROL_CENTER> $ActualPaths | ForEach-Object { Write-Host " - $_" }
- - REOS_CONTROL_CENTER/data/state.json
- - REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt
- - REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt
- - REOS_CONTROL_CENTER/snapshots/state_20261017_155146_796246.json
- - REOS_CONTROL_CENTER/snapshots/state_20261017_155147_025553.json
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host 'T03 CODE COMMIT VERIFIED'
+T03 CODE COMMIT VERIFIED
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit: $($CodeCommit.sha)"
+Commit: fa0545f609a8e46b28a20030b4a78bdf4b3526b5
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "URL: https://github.com/$Repo/commit/$($CodeCommit.sha)"
+URL: https://github.com/prajaktaranjane80-sketch/Homio/commit/fa0545f609a8e46b28a20030b4a78bdf4b3526b5
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host 'Canonical state is unchanged by the code commit.'
+Canonical state is unchanged by the code commit.
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # 8. Check whether CI for the exact transition commit has appeared yet.
-PS D:\Homio\REOS_CONTROL_CENTER> $TransitionRun = $null
-PS D:\Homio\REOS_CONTROL_CENTER> for ($Attempt = 1; $Attempt -le 12; $Attempt++) {
->>     $RunList = Invoke-GhApi -Method GET -Path "actions/runs?head_sha=$($NewCommit.sha)&per_page=10"
->>     $TransitionRun = $RunList.workflow_runs |
->>         Where-Object { $_.head_sha -eq $NewCommit.sha } |
+PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER> # 4. Wait for CI on this exact code commit. No transition on failure.
+PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $CodeRun = $null
+PS D:\Homio\REOS_CONTROL_CENTER> for ($Attempt = 1; $Attempt -le 36; $Attempt++) {
+>>     $RunList = Invoke-GhApi -Method GET -Path "actions/runs?head_sha=$($CodeCommit.sha)&per_page=10"
+>>     $CodeRun = $RunList.workflow_runs |
+>>         Where-Object { $_.head_sha -eq $CodeCommit.sha } |
 >>         Select-Object -First 1
 >>
->>     if ($TransitionRun -and $TransitionRun.status -eq 'completed') { break }
->>     if ($Attempt -lt 12) { Start-Sleep -Seconds 5 }
+>>     if ($CodeRun -and $CodeRun.status -eq 'completed') { break }
+>>     if ($Attempt -lt 36) { Start-Sleep -Seconds 5 }
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($TransitionRun) {
->>     Write-Host "Transition CI: $($TransitionRun.status) / $($TransitionRun.conclusion)"
->>     Write-Host "Transition CI URL: $($TransitionRun.html_url)"
->> } else {
->>     Write-Host 'Transition commit verified; exact CI run not visible yet.'
->>     Write-Host "Check: https://github.com/$Repo/actions"
->> }
-Transition CI: completed / success
-Transition CI URL: https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39024613989
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Remove only this script's unique temporary execution directory.
-PS D:\Homio\REOS_CONTROL_CENTER> Remove-Item -LiteralPath $TempRoot -Recurse -Force
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host 'Temporary execution folder cleaned up.'
-Temporary execution folder cleaned up.
-PS D:\Homio\REOS_CONTROL_CENTER>
