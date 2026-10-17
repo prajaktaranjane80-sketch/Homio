@@ -8,7 +8,7 @@ general ledger or the canonical reconciliation authority.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import json
 from typing import Any, Mapping
@@ -127,8 +127,6 @@ class FinancialLedgerEntry:
     A single MonetaryAmount is applied to the debit and credit legs.
     This record can validate its own structure; it cannot establish
     account balances across multiple entries or certify a posted journal.
-    Those responsibilities belong to the approved ledger and reconciliation
-    authorities.
     """
 
     entry_id: str
@@ -148,8 +146,17 @@ class FinancialLedgerEntry:
 
     metadata: Mapping[str, Any] = ()
 
+    # Fingerprint captured after construction-time validation and
+    # normalization. It is deliberately excluded from initialization,
+    # equality, representation and serialized business data.
+    _integrity_fingerprint: str = field(
+        init=False,
+        repr=False,
+        compare=False,
+    )
+
     def __post_init__(self) -> None:
-        for field in (
+        for field_name in (
             "entry_id",
             "tenant_id",
             "commission_id",
@@ -159,8 +166,8 @@ class FinancialLedgerEntry:
         ):
             object.__setattr__(
                 self,
-                field,
-                _text(getattr(self, field), field),
+                field_name,
+                _text(getattr(self, field_name), field_name),
             )
 
         if (
@@ -219,6 +226,14 @@ class FinancialLedgerEntry:
             _freeze_json_metadata(metadata),
         )
 
+        # Anchor the validated record only after every field has been
+        # normalized and metadata has been deeply frozen.
+        object.__setattr__(
+            self,
+            "_integrity_fingerprint",
+            self.immutable_fingerprint,
+        )
+
     @property
     def identity_key(self) -> tuple[str, str, int]:
         """Tenant-scoped identity and version of this entry."""
@@ -230,7 +245,7 @@ class FinancialLedgerEntry:
 
     @property
     def immutable_fingerprint(self) -> str:
-        """Deterministic digest of the complete serialized entry."""
+        """Deterministic digest of the current serialized entry."""
         return fingerprint(
             self.to_dict(include_fingerprint=False)
         )
@@ -240,6 +255,8 @@ class FinancialLedgerEntry:
 
         The entry model uses the same positive amount on both legs.
         This method does not certify aggregate ledger or account balances.
+        Those responsibilities belong to the approved ledger and
+        reconciliation authorities.
         """
         if self.debit.account_id == self.credit.account_id:
             raise FinancialLedgerValidationError(
@@ -263,8 +280,17 @@ class FinancialLedgerEntry:
             )
 
     def verify_integrity(self) -> bool:
-        """Recompute the deterministic digest for the current entry."""
-        return bool(self.immutable_fingerprint)
+        """Compare the current record with its construction-time digest.
+
+        A changed field must not be silently accepted as the original
+        validated record. Normal field assignment is also blocked by the
+        frozen dataclass; this check provides an independent integrity
+        verification for the record's current content.
+        """
+        return (
+            self.immutable_fingerprint
+            == self._integrity_fingerprint
+        )
 
     def to_dict(
         self,
