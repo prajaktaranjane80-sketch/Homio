@@ -1,34 +1,45 @@
-# HOMIO F01 Experience Foundation — Change Set
+# HOMIO F01 — Design System
 
-Repository: `prajaktaranjane80-sketch/Homio`
-Branch audited: `reos-development`
+The shared design system is the foundation for HOMIO / REOS frontend
+features. Preserve existing components, exports, routes and integrations
+when making visual changes.
 
-## Why this change is needed
+## Canonical visual direction
 
-The canonical branch contains the F01 React components, but the global styles only covered a small set of base primitives. The shell/header/navigation, global search, overlay dialogs, form controls, status components and responsive shared layout did not have a dedicated loaded foundation stylesheet. This change set adds that stylesheet and makes the existing global-search component perform a real navigation using the F03-supported `q` query parameter. It also removes a global shortcut that pointed every user to a sample project record.
+- Charcoal: #111111
+- Ivory: #F8F7F4
+- Champagne gold: #C59B63
+- White: #FFFFFF
 
-## Apply in this order
+Gold is a restrained accent. Preserve meaningful success, warning, error
+and information colours. Keep keyboard focus visible and respect reduced
+motion preferences.
 
-The prefixes `ADD/` and `REPLACE/` are package labels and are not part of repository paths. Preserve the remainder of each path exactly.
+## Canonical styles
 
-1. **ADD** `REOS_CONTROL_CENTER/Frontend/src/app/styles/foundation.css` from `ADD/REOS_CONTROL_CENTER/Frontend/src/app/styles/foundation.css`.
-2. **REPLACE** `REOS_CONTROL_CENTER/Frontend/src/app/globals.css`.
-3. **REPLACE** `REOS_CONTROL_CENTER/Frontend/src/components/navigation/GlobalSearch.tsx`.
-4. **REPLACE** `REOS_CONTROL_CENTER/Frontend/src/components/shell/ResponsiveNavigation.tsx`.
-5. **REPLACE** `REOS_CONTROL_CENTER/Frontend/src/components/shell/Header.tsx`.
-6. **REPLACE** `REOS_CONTROL_CENTER/Frontend/src/components/shell/GlobalActionLayer.tsx`.
-7. **REPLACE** `REOS_CONTROL_CENTER/Frontend/scripts/verify-foundation.mjs` last, so the new style-contract gate is enabled only after its stylesheet is present.
+- `tokens.css` — shared design tokens
+- `base.css` — reset, typography defaults, focus states and base primitives
+- `foundation.css` — shared shell, navigation, forms, cards and UI states
+- `motion.css` — lightweight motion utilities and reduced-motion behaviour
+- `../globals.css` — global stylesheet entry point
 
-Each replacement file in this package contains the complete file, not a partial patch. Do not delete any existing files.
+Use existing tokens and components before introducing new variables,
+duplicate controls or separate theme systems. Do not add network-dependent
+font loading or animation dependencies without a demonstrated need.
 
-## Targeted verification after all files are saved
+## Verification
 
-Run from `REOS_CONTROL_CENTER/Frontend`:
+Run the following commands from `REOS_CONTROL_CENTER/Frontend`:
 
-`npm run verify:foundation`
+1. `npm run verify:lockfile`
+2. `npm run verify:design-system`
+3. `npm run verify:foundation`
+4. `npm run typecheck`
+5. `npm run lint`
+6. `npm run build`
 
-The full `npm run verify` also runs F02–F05, TypeScript, lint and production build; keep the planned combined regression run for after all five layer parts are implemented. GitHub CI may run according to the repository's existing workflow triggers.
+Run `npm run verify` for the complete existing frontend regression suite.
 
-## Write-permission limitation
-
-The connected GitHub integration allowed reading the canonical branch but returned HTTP 403 for GitHub file writes and branch creation. Therefore this package has not been committed to GitHub. The canonical branch remains unchanged by this assistant's attempted write operations.
+A Part 1 PASS requires actual successful command output and a desktop/mobile
+browser review. Do not mark the part PASS based only on file presence or
+static source inspection.
