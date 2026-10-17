@@ -17,7 +17,8 @@ function readJson(relativePath) {
   }
 
   try {
-    return JSON.parse(fs.readFileSync(absolutePath, "utf8"));
+    const source = fs.readFileSync(absolutePath, "utf8");
+    return JSON.parse(source.replace(/^\uFEFF/, ""));
   } catch {
     fail(`Invalid JSON in dependency file: ${relativePath}`);
   }
