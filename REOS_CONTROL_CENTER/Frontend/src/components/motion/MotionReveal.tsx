@@ -5,16 +5,9 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type ReactNode,
 } from "react";
 import styles from "./MotionReveal.module.css";
-
-export interface MotionRevealProps {
-  children: ReactNode;
-  className?: string;
-  delayMs?: number;
-  once?: boolean;
-}
+import type { MotionRevealProps } from "./motion.types";
 
 export default function MotionReveal({
   children,
@@ -47,14 +40,18 @@ export default function MotionReveal({
       (entries) => {
         const entry = entries[0];
 
-        if (!entry?.isIntersecting) {
+        if (!entry) {
           return;
         }
 
-        setVisible(true);
+        if (entry.isIntersecting) {
+          setVisible(true);
 
-        if (once) {
-          observer?.unobserve(entry.target);
+          if (once) {
+            observer?.unobserve(entry.target);
+          }
+        } else if (!once) {
+          setVisible(false);
         }
       },
       {
@@ -70,7 +67,8 @@ export default function MotionReveal({
     };
   }, [once]);
 
-  const delay = Math.max(0, Math.min(delayMs, 1000));
+  const requestedDelay = Number.isFinite(delayMs) ? delayMs : 0;
+  const delay = Math.max(0, Math.min(requestedDelay, 1000));
 
   const style = {
     "--motion-reveal-delay": `${delay}ms`,
