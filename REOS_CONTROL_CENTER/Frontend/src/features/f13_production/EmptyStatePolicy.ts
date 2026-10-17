@@ -15,10 +15,7 @@ export interface EmptyStateCopy {
   tone: "neutral" | "notice";
 }
 
-export const EMPTY_STATE_POLICY: Record<
-  EmptyStateKind,
-  EmptyStateCopy
-> = {
+export const EMPTY_STATE_POLICY: Record<EmptyStateKind, EmptyStateCopy> = {
   "no-results": {
     title: "No matching properties yet",
     description:
@@ -26,7 +23,6 @@ export const EMPTY_STATE_POLICY: Record<
     actionLabel: "Clear filters",
     tone: "neutral",
   },
-
   "no-saved-items": {
     title: "Your shortlist starts here",
     description:
@@ -35,30 +31,26 @@ export const EMPTY_STATE_POLICY: Record<
     actionHref: "/search",
     tone: "neutral",
   },
-
   "no-comparisons": {
-    title: "Compare with confidence",
+    title: "Your comparison starts here",
     description:
-      "Add two or more properties to compare their key details side by side.",
+      "Add properties, projects or locations from a connected HOMIO experience. Once options are available, meaningful differences will appear side by side.",
     actionLabel: "Explore properties",
     actionHref: "/search",
     tone: "neutral",
   },
-
   "no-enquiries": {
     title: "No enquiries yet",
     description:
       "When you contact HOMIO about a property, your enquiry status will appear here.",
     tone: "neutral",
   },
-
   "no-visits": {
     title: "No visits scheduled",
     description:
       "Request a property visit to keep its coordination details together.",
     tone: "neutral",
   },
-
   unavailable: {
     title: "This experience is temporarily unavailable",
     description:
@@ -66,7 +58,6 @@ export const EMPTY_STATE_POLICY: Record<
     actionLabel: "Try again",
     tone: "notice",
   },
-
   "not-activated": {
     title: "This market is not active yet",
     description:
@@ -75,8 +66,6 @@ export const EMPTY_STATE_POLICY: Record<
   },
 };
 
-export function getEmptyStateCopy(
-  kind: EmptyStateKind,
-): EmptyStateCopy {
+export function getEmptyStateCopy(kind: EmptyStateKind): EmptyStateCopy {
   return EMPTY_STATE_POLICY[kind];
 }
