@@ -1,33 +1,76 @@
 :root {
-  /* Brand */
+  /* HOMIO brand */
   --homio-brand: #111111;
   --homio-brand-soft: #262626;
   --homio-accent: #c59b63;
+  --homio-accent-strong: #a97d45;
+  --homio-accent-soft: #f5ecdf;
 
-  /* Surface */
+  /* Semantic brand aliases */
+  --color-brand: var(--homio-brand);
+  --color-brand-hover: var(--homio-brand-soft);
+  --color-accent: var(--homio-accent);
+  --color-accent-hover: var(--homio-accent-strong);
+
+  /* Surfaces */
   --homio-bg: #f8f7f4;
   --homio-surface: #ffffff;
   --homio-surface-soft: #f2f0eb;
   --homio-surface-muted: #ebe8e1;
+  --homio-surface-raised: #ffffff;
+  --homio-surface-inverse: #171717;
+
+  --color-background: var(--homio-bg);
+  --color-surface: var(--homio-surface);
+  --color-surface-soft: var(--homio-surface-soft);
+  --color-surface-muted: var(--homio-surface-muted);
 
   /* Text */
   --homio-text: #171717;
   --homio-text-soft: #555555;
   --homio-text-muted: #777777;
   --homio-text-inverse: #ffffff;
+  --homio-text-disabled: #999999;
 
-  /* Border */
+  --color-text: var(--homio-text);
+  --color-text-secondary: var(--homio-text-soft);
+  --color-text-muted: var(--homio-text-muted);
+  --color-text-inverse: var(--homio-text-inverse);
+
+  /* Borders and dividers */
   --homio-border: #e4e0d8;
   --homio-border-strong: #d5d0c7;
+  --homio-border-focus: #a97d45;
 
-  /* State */
+  --color-border: var(--homio-border);
+  --color-border-strong: var(--homio-border-strong);
+  --color-divider: var(--homio-border);
+
+  /* Status colours */
   --homio-success: #2e7d5b;
-  --homio-warning: #b7791f;
+  --homio-success-soft: #edf7f0;
+  --homio-warning: #94621c;
+  --homio-warning-soft: #fbf2e3;
   --homio-danger: #b42318;
+  --homio-danger-soft: #fff0ef;
+  --homio-info: #426d98;
+  --homio-info-soft: #eff6fd;
 
-  /* Typography */
-  --font-sans: Arial, Helvetica, sans-serif;
-  --font-serif: Georgia, "Times New Roman", serif;
+  --color-success: var(--homio-success);
+  --color-warning: var(--homio-warning);
+  --color-danger: var(--homio-danger);
+  --color-info: var(--homio-info);
+
+  /* Typography — local/system fallbacks, no remote font dependency */
+  --font-sans: "Inter", "Aptos", "Segoe UI", Arial, sans-serif;
+  --font-serif: "Iowan Old Style", "Baskerville", "Palatino Linotype", Georgia, serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
 
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
@@ -37,6 +80,15 @@
   --text-2xl: 2rem;
   --text-3xl: 3rem;
   --text-4xl: 4.5rem;
+
+  --line-height-tight: 1.15;
+  --line-height-heading: 1.25;
+  --line-height-body: 1.65;
+  --line-height-relaxed: 1.8;
+
+  --letter-spacing-tight: -0.035em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.08em;
 
   /* Spacing */
   --space-1: 0.25rem;
@@ -53,24 +105,40 @@
   --space-24: 6rem;
 
   /* Radius */
+  --radius-xs: 0.25rem;
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
   --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
   --radius-pill: 999px;
 
-  /* Shadow */
-  --shadow-sm: 0 4px 16px rgba(17, 17, 17, 0.06);
-  --shadow-md: 0 12px 32px rgba(17, 17, 17, 0.1);
-  --shadow-lg: 0 24px 60px rgba(17, 17, 17, 0.14);
+  /* Shadows */
+  --shadow-sm: 0 4px 16px rgb(17 17 17 / 6%);
+  --shadow-md: 0 12px 32px rgb(17 17 17 / 10%);
+  --shadow-lg: 0 24px 60px rgb(17 17 17 / 14%);
+  --shadow-overlay: 0 28px 80px rgb(17 17 17 / 22%);
 
   /* Layout */
   --container-width: 1280px;
   --container-padding: 24px;
+  --header-height: 76px;
+  --layer-dropdown: 20;
+  --layer-sticky: 30;
+  --layer-overlay: 100;
+  --layer-toast: 200;
 
   /* Motion */
-  --ease-standard: 180ms ease;
-  --ease-slow: 320ms ease;
+  --motion-fast: 120ms;
+  --motion-normal: 180ms;
+  --motion-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Compatibility aliases used by existing components */
+  --ease-standard-duration: var(--motion-normal);
+  --ease-slow: var(--motion-slow) var(--ease-standard);
 }
 
 @media (max-width: 768px) {
@@ -78,5 +146,6 @@
     --text-3xl: 2.25rem;
     --text-4xl: 3rem;
     --container-padding: 16px;
+    --header-height: 64px;
   }
 }
