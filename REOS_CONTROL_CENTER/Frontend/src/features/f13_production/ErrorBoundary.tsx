@@ -6,6 +6,8 @@ import {
   type ReactNode,
 } from "react";
 
+import { ErrorState } from "@/components/ui/ErrorState";
+
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
@@ -17,70 +19,45 @@ interface State {
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = {
-    hasError: false,
-  };
+  state: State = { hasError: false };
 
   static getDerivedStateFromError(): State {
-    return {
-      hasError: true,
-    };
+    return { hasError: true };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    this.props.onError?.(error, info);
+    try {
+      this.props.onError?.(error, info);
+    } catch {
+      // Error reporting must not cause a second render failure.
+    }
 
     if (process.env.NODE_ENV !== "production") {
-      console.error(
-        "HOMIO feature boundary caught an error:",
-        error,
-      );
+      console.error("HOMIO feature boundary caught a rendering error.");
     }
   }
 
   private retry = (): void => {
-    this.setState({ hasError: false });
+    if (typeof window !== "undefined") {
+      window.location.reload();
+    }
   };
 
   render(): ReactNode {
-    if (!this.state.hasError) {
-      return this.props.children;
-    }
-
-    if (this.props.fallback) {
-      return this.props.fallback;
-    }
+    if (!this.state.hasError) return this.props.children;
+    if (this.props.fallback) return this.props.fallback;
 
     return (
-      <section
-        className="page-container page-container--narrow"
-        role="alert"
-        aria-live="assertive"
-      >
-        <div
-          className="card"
-          style={{
-            padding: "clamp(1.25rem, 3vw, 2rem)",
-          }}
-        >
-          <p style={{ marginTop: 0, fontWeight: 750 }}>
-            This section could not load
-          </p>
-
-          <p style={{ color: "var(--homio-text-soft)" }}>
-            Your saved information has not been changed by
-            this display error.
-          </p>
-
-          <button
-            className="button button--primary"
-            type="button"
-            onClick={this.retry}
-          >
-            Try again
-          </button>
+      <main className="page-shell">
+        <div className="page-container page-container--narrow">
+          <ErrorState
+            title="This HOMIO view could not load"
+            description="Reload the page to try again. This display error does not create or change a property, enquiry, visit or transaction."
+            actionLabel="Reload page"
+            onAction={this.retry}
+          />
         </div>
-      </section>
+      </main>
     );
   }
 }
