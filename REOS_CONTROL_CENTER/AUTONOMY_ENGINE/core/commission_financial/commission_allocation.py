@@ -5,10 +5,14 @@ from decimal import Decimal
 from typing import Any, Mapping
 
 from ..contract_primitives import fingerprint
-from .commission_calculation import CommissionCalculation
+from .commission_calculation import (
+    CommissionCalculation,
+    CommissionCalculationState,
+)
 from .commission_contract import CommissionPartyReference
 from .commission_entitlement import (
     CommissionEntitlement,
+    CommissionEntitlementState,
 )
 from .financial_domain import (
     FinancialCurrencyMismatchError,
@@ -287,9 +291,14 @@ class CommissionAllocation:
             Decimal("0"),
         )
 
-        if ratio_sum != Decimal("100"):
+        expected_ratio_sum = (
+            Decimal("0")
+            if self.total_amount.amount == 0
+            else Decimal("100")
+        )
+        if ratio_sum != expected_ratio_sum:
             raise CommissionAllocationValidationError(
-                "Allocation ratios must total exactly 100."
+                f"Allocation ratios must total exactly {expected_ratio_sum}."
             )
 
         allocation_ids = [
@@ -407,13 +416,56 @@ class CommissionAllocation:
                 "At least one entitlement is required."
             )
 
+        if calculation.state is not CommissionCalculationState.CALCULATED:
+            raise CommissionAllocationValidationError(
+                "Only CALCULATED commission results can be allocated."
+            )
+
         total = calculation.commission_amount
 
+        for index, item in enumerate(items, start=1):
+            if not isinstance(item, CommissionEntitlement):
+                raise CommissionAllocationValidationError(
+                    f"Invalid entitlement at index {index}."
+                )
+            if item.state not in (
+                CommissionEntitlementState.CONFIRMED,
+                CommissionEntitlementState.FROZEN,
+            ):
+                raise CommissionAllocationValidationError(
+                    "Only confirmed or frozen entitlements can be allocated."
+                )
+            if item.tenant_id != calculation.tenant_id:
+                raise CommissionAllocationValidationError(
+                    "Entitlement tenant differs from calculation tenant."
+                )
+            if item.commission_id != calculation.commission_id:
+                raise CommissionAllocationValidationError(
+                    "Entitlement commission differs from calculation commission."
+                )
+            if item.contract_version != calculation.contract_version:
+                raise CommissionAllocationValidationError(
+                    "Entitlement contract_version does not match calculation."
+                )
+            if item.calculation_id != calculation.calculation_id:
+                raise CommissionAllocationValidationError(
+                    "Entitlement calculation reference mismatch."
+                )
+            if item.calculation_version != calculation.calculation_version:
+                raise CommissionAllocationValidationError(
+                    "Entitlement calculation_version does not match calculation."
+                )
+            if item.entitled_amount.currency.identity_key != total.currency.identity_key:
+                raise FinancialCurrencyMismatchError(
+                    "Entitlement currency does not match calculated commission."
+                )
+            if item.entitled_amount.amount < 0:
+                raise CommissionAllocationValidationError(
+                    "Entitlement amount cannot be negative."
+                )
+
         amount_sum = sum(
-            (
-                item.entitled_amount.amount
-                for item in items
-            ),
+            (item.entitled_amount.amount for item in items),
             Decimal("0"),
         )
 
@@ -496,11 +548,37 @@ class CommissionAllocation:
                 )
             )
 
+        if total.amount != 0:
+            ratio_sum_before_correction = sum(
+                (line.allocation_ratio for line in lines),
+                Decimal("0"),
+            )
+            ratio_delta = Decimal("100") - ratio_sum_before_correction
+            if ratio_delta != 0:
+                # Assign finite-precision percentage residue deterministically
+                # to the largest monetary line (first line wins ties).
+                target_index = max(
+                    range(len(lines)),
+                    key=lambda i: (lines[i].amount.amount, -i),
+                )
+                current = lines[target_index]
+                corrected_ratio = current.allocation_ratio + ratio_delta
+                if corrected_ratio < 0 or corrected_ratio > 100:
+                    raise CommissionAllocationValidationError(
+                        "Rounded allocation ratio residue is outside the valid range."
+                    )
+                lines[target_index] = CommissionAllocationLine(
+                    allocation_id=current.allocation_id,
+                    entitlement_id=current.entitlement_id,
+                    party=current.party,
+                    amount=current.amount,
+                    allocation_ratio=corrected_ratio,
+                    rank=current.rank,
+                    metadata=current.metadata,
+                )
+
         ratio_sum = sum(
-            (
-                line.allocation_ratio
-                for line in lines
-            ),
+            (line.allocation_ratio for line in lines),
             Decimal("0"),
         )
 

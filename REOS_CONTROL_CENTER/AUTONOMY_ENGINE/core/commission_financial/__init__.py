@@ -74,6 +74,13 @@ from .commission_attribution import (
     CommissionAttributionError,
     CommissionAttributionValidationError,
 )
+from .commission_participant_split import (
+    CORE008_COMMISSION_PARTICIPANT_SPLIT_SCHEMA_VERSION,
+    CommissionParticipantSplit,
+    CommissionParticipantSplitError,
+    CommissionParticipantSplitLine,
+    CommissionParticipantSplitValidationError,
+)
 __all__ = [
     "CORE008_FINANCIAL_DOMAIN_SCHEMA_VERSION",
     "CORE008_FINANCIAL_DOMAIN_SOURCE",
@@ -128,4 +135,9 @@ __all__ = [
     "CommissionAttributionBinding",
     "CommissionAttributionError",
     "CommissionAttributionValidationError",
+    "CORE008_COMMISSION_PARTICIPANT_SPLIT_SCHEMA_VERSION",
+    "CommissionParticipantSplit",
+    "CommissionParticipantSplitError",
+    "CommissionParticipantSplitLine",
+    "CommissionParticipantSplitValidationError",
 ]
