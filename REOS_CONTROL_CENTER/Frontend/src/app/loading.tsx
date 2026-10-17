@@ -1,19 +1,16 @@
-import { Skeleton } from "@/components/ui/Skeleton";
+
+import { LoadingBoundary } from "@/features/f13_production/LoadingBoundary";
 
 export default function Loading() {
   return (
-    <main className="page-shell" aria-busy="true" aria-live="polite">
+    <main className="page-shell">
       <div className="page-container">
-        <div className="loading-stack">
-          <Skeleton width="140px" height="14px" />
-          <Skeleton width="72%" height="64px" />
-          <Skeleton width="58%" height="24px" />
-          <div className="loading-grid">
-            <Skeleton height="180px" />
-            <Skeleton height="180px" />
-            <Skeleton height="180px" />
-          </div>
-        </div>
+        <LoadingBoundary
+          isLoading={true}
+          label="Loading HOMIO content"
+        >
+          {null}
+        </LoadingBoundary>
       </div>
     </main>
   );
