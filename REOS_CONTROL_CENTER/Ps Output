@@ -1,93 +1,89 @@
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ''
+
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host 'T02 IMPLEMENTATION WRITE AND REPOSITORY READ-BACK: PASS'
+T02 IMPLEMENTATION WRITE AND REPOSITORY READ-BACK: PASS
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host 'No canonical state transition was made by this script.'
+No canonical state transition was made by this script.
+PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = 'Stop'
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER> # 3. Guarded GitHub write: verify current HEAD/state, create 3 blobs, 1 commit
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Repo = 'prajaktaranjane80-sketch/Homio'
+PS D:\Homio\REOS_CONTROL_CENTER> $Branch = 'reos-development'
+PS D:\Homio\REOS_CONTROL_CENTER> $InitPath = 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/__init__.py'
+PS D:\Homio\REOS_CONTROL_CENTER> $StatePath = 'REOS_CONTROL_CENTER/data/state.json'
 PS D:\Homio\REOS_CONTROL_CENTER> $ModulePath = 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_attribution.py'
-PS D:\Homio\REOS_CONTROL_CENTER> $TestsPath  = 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t02_attribution_binding.py'
-PS D:\Homio\REOS_CONTROL_CENTER> $InitPath   = 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/__init__.py'
-PS D:\Homio\REOS_CONTROL_CENTER> $StatePath  = 'REOS_CONTROL_CENTER/data/state.json'
+PS D:\Homio\REOS_CONTROL_CENTER> $TestsPath = 'REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t02_attribution_binding.py'
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Ref = Invoke-GhApi -Method GET -Path "git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> $OriginalInitSha = '1ce5036bbac7ac51e98d90777597379be4ae7f04'
+PS D:\Homio\REOS_CONTROL_CENTER> $BrokenInitSha = '07650ba30b0a6181cff5b1cdf5e7ef3469c79e3d'
+PS D:\Homio\REOS_CONTROL_CENTER> $StateSha = '44a6d4fc0a0fd7a2dac0e8df06be2476badbaf25'
+PS D:\Homio\REOS_CONTROL_CENTER> $ModuleSha = '0edabcb9d197ac28f5bf6c8d66f7e77d08af9bf2'
+PS D:\Homio\REOS_CONTROL_CENTER> $TestsSha = '382bd9011355c1f1efdb5c7e139dcc579030b3a3'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Token = (& gh auth token 2>$null | Out-String).Trim()
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $Token) { throw 'GitHub authentication missing. Run gh auth login first.' }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Headers = @{
+>>     Authorization = "Bearer $Token"
+>>     Accept = 'application/vnd.github+json'
+>>     'X-GitHub-Api-Version' = '2022-11-28'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> function Invoke-GhApi {
+>>     param(
+>>         [Parameter(Mandatory)][string]$Method,
+>>         [Parameter(Mandatory)][string]$Path,
+>>         [object]$Body = $null
+>>     )
+>>     $Uri = "https://api.github.com/repos/$Repo/$Path"
+>>     if ($null -eq $Body) {
+>>         return Invoke-RestMethod -Method $Method -Uri $Uri -Headers $Headers
+>>     }
+>>     $Json = ConvertTo-Json -InputObject $Body -Depth 50 -Compress
+>>     return Invoke-RestMethod -Method $Method -Uri $Uri -Headers $Headers `
+>>         -ContentType 'application/json; charset=utf-8' -Body $Json
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 1. Check branch, state and all three relevant file blobs.
+PS D:\Homio\REOS_CONTROL_CENTER> $Ref = Invoke-GhApi GET "git/ref/heads/$Branch"
 PS D:\Homio\REOS_CONTROL_CENTER> $HeadSha = $Ref.object.sha
-PS D:\Homio\REOS_CONTROL_CENTER> $HeadCommit = Invoke-GhApi -Method GET -Path "git/commits/$HeadSha"
-PS D:\Homio\REOS_CONTROL_CENTER> $TreeSha = $HeadCommit.tree.sha
-PS D:\Homio\REOS_CONTROL_CENTER> $Tree = Invoke-GhApi -Method GET -Path "git/trees/$TreeSha?recursive=1"
-Invoke-RestMethod : {"message":"Not Found","documentation_url":"https://docs.github.com/rest/git/trees#get-a-tree","status":"404"}
-At line:11 char:16
-+ ...      return Invoke-RestMethod -Method $Method -Uri $Uri -Headers $Hea ...
-+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
-    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+PS D:\Homio\REOS_CONTROL_CENTER> $HeadCommit = Invoke-GhApi GET "git/commits/$HeadSha"
+PS D:\Homio\REOS_CONTROL_CENTER> $BaseTreeSha = $HeadCommit.tree.sha
+PS D:\Homio\REOS_CONTROL_CENTER> $Tree = Invoke-GhApi GET "git/trees/$BaseTreeSha`?recursive=1"
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($Tree.truncated) {
->>     throw 'Repository tree response is truncated; refusing to write without complete path verification.'
->> }
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Tree.truncated) { throw 'GitHub tree response truncated; stopped safely.' }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $CurrentState = $Tree.tree | Where-Object { $_.path -eq $StatePath } | Select-Object -First 1
-PS D:\Homio\REOS_CONTROL_CENTER> $CurrentInit = $Tree.tree | Where-Object { $_.path -eq $InitPath } | Select-Object -First 1
+PS D:\Homio\REOS_CONTROL_CENTER> $Entries = @{}
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Entry in $Tree.tree) { $Entries[$Entry.path] = $Entry.sha }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $CurrentState -or $CurrentState.sha -ne $ExpectedStateSha) {
->>     throw "state.json SHA changed. Expected $ExpectedStateSha; found $($CurrentState.sha). No write performed."
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Entries[$InitPath] -ne $BrokenInitSha) {
+>>     throw "Initializer SHA changed from audited broken version. Found: $($Entries[$InitPath]). Stop for re-audit."
 >> }
-state.json SHA changed. Expected 44a6d4fc0a0fd7a2dac0e8df06be2476badbaf25; found . No write performed.
-At line:2 char:5
-+     throw "state.json SHA changed. Expected $ExpectedStateSha; found  ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (state.json SHA ...rite performed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : state.json SHA changed. Expected 44a6d4fc0a0fd7a2dac0e8df06be2476badbaf25; found . No write performed.
-
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $CurrentInit -or $CurrentInit.sha -ne $ExpectedInitSha) {
->>     throw "commission_financial/__init__.py changed from audited version. No write performed."
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Entries[$StatePath] -ne $StateSha) {
+>>     throw "Canonical state SHA changed. Found: $($Entries[$StatePath]). No write performed."
 >> }
-commission_financial/__init__.py changed from audited version. No write performed.
-At line:2 char:5
-+     throw "commission_financial/__init__.py changed from audited vers ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (commission_fina...rite performed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : commission_financial/__init__.py changed from audited version. No write performed.
-
-PS D:\Homio\REOS_CONTROL_CENTER> if ($Tree.tree | Where-Object { $_.path -in @($ModulePath, $TestsPath) }) {
->>     throw 'At least one target file already exists on the branch. Refusing to overwrite it.'
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Entries[$ModulePath] -ne $ModuleSha) {
+>>     throw "Attribution module differs from audited version. No write performed."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Entries[$TestsPath] -ne $TestsSha) {
+>>     throw "Attribution tests differ from audited version. No write performed."
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $InitResponse = Invoke-GhApi -Method GET -Path "contents/$InitPath?ref=$Branch"
-Invoke-RestMethod : {"message":"Not Found","documentation_url":"https://docs.github.com/rest/repos/contents#get-repository-content","status":"404"}
-At line:11 char:16
-+ ...      return Invoke-RestMethod -Method $Method -Uri $Uri -Headers $Hea ...
-+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
-    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
-PS D:\Homio\REOS_CONTROL_CENTER> if ($InitResponse.sha -ne $ExpectedInitSha) {
->>     throw 'Package initializer blob SHA did not match the expected value.'
->> }
-Package initializer blob SHA did not match the expected value.
-At line:2 char:5
-+     throw 'Package initializer blob SHA did not match the expected va ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Package initial...expected value.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Package initializer blob SHA did not match the expected value.
-
-PS D:\Homio\REOS_CONTROL_CENTER> $InitEncoded = ($InitResponse.content -replace '\s', '')
-PS D:\Homio\REOS_CONTROL_CENTER> $InitText = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($InitEncoded))
+PS D:\Homio\REOS_CONTROL_CENTER> # 2. Recover original initializer directly from its known good Git blob.
+PS D:\Homio\REOS_CONTROL_CENTER> $OriginalBlob = Invoke-GhApi GET "git/blobs/$OriginalInitSha"
+PS D:\Homio\REOS_CONTROL_CENTER> $OriginalBase64 = ($OriginalBlob.content -replace '\s', '')
+PS D:\Homio\REOS_CONTROL_CENTER> $InitText = [System.Text.Encoding]::UTF8.GetString(
+>>     [Convert]::FromBase64String($OriginalBase64)
+>> )
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($InitText.Contains('from .commission_attribution import')) {
->>     throw 'Attribution exports already exist in __init__.py; refusing duplicate insertion.'
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $InitText.Contains('__all__ = [')) {
+>>     throw 'Recovered original did not contain its expected public export list.'
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER> $Anchor = '__all__ = ['
-PS D:\Homio\REOS_CONTROL_CENTER> $AnchorIndex = $InitText.IndexOf($Anchor, [System.StringComparison]::Ordinal)
-PS D:\Homio\REOS_CONTROL_CENTER> if ($AnchorIndex -lt 0) {
->>     throw 'Could not find __all__ anchor in existing package initializer.'
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $InitText.Contains('    "compare_ledger_entries",')) {
+>>     throw 'Original public API validation failed. Stop.'
 >> }
-Could not find __all__ anchor in existing package initializer.
-At line:2 char:5
-+     throw 'Could not find __all__ anchor in existing package initiali ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Could not find ...ge initializer.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Could not find __all__ anchor in existing package initializer.
-
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $ImportText = @'
+PS D:\Homio\REOS_CONTROL_CENTER> # 3. Add new attribution exports without deleting original exports.
+PS D:\Homio\REOS_CONTROL_CENTER> $ImportBlock = @'
 >> from .commission_attribution import (
 >>     CORE008_COMMISSION_ATTRIBUTION_SCHEMA_VERSION,
 >>     CommissionAttributionBinding,
@@ -95,169 +91,121 @@ PS D:\Homio\REOS_CONTROL_CENTER> $ImportText = @'
 >>     CommissionAttributionValidationError,
 >> )
 >> '@
-PS D:\Homio\REOS_CONTROL_CENTER> $Prefix = $InitText.Substring(0, $AnchorIndex).TrimEnd("`r", "`n")
-Exception calling "Substring" with "2" argument(s): "Length cannot be less than zero.
-Parameter name: length"
-At line:1 char:1
-+ $Prefix = $InitText.Substring(0, $AnchorIndex).TrimEnd("`r", "`n")
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ArgumentOutOfRangeException
-
-PS D:\Homio\REOS_CONTROL_CENTER> $Suffix = $InitText.Substring($AnchorIndex)
-Exception calling "Substring" with "1" argument(s): "StartIndex cannot be less than zero.
-Parameter name: startIndex"
-At line:1 char:1
-+ $Suffix = $InitText.Substring($AnchorIndex)
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : ArgumentOutOfRangeException
-
-PS D:\Homio\REOS_CONTROL_CENTER> $UpdatedInit = "$Prefix`n`n$ImportText`n`n$Suffix"
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Files = @(
->>     [pscustomobject]@{ path = $ModulePath; content = $AttributionModule }
->>     [pscustomobject]@{ path = $TestsPath; content = $AttributionTests }
->>     [pscustomobject]@{ path = $InitPath; content = $UpdatedInit }
+PS D:\Homio\REOS_CONTROL_CENTER> $AllAnchor = "`n__all__ = ["
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $InitText.Contains($AllAnchor)) {
+>>     throw 'Could not locate __all__ insertion anchor. No write performed.'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> $UpdatedInit = $InitText.Replace(
+>>     $AllAnchor,
+>>     "`n$ImportBlock`n__all__ = ["
 >> )
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $TreeElements = @()
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($File in $Files) {
->>     $Bytes = [System.Text.Encoding]::UTF8.GetBytes([string]$File.content)
->>     $Base64Content = [Convert]::ToBase64String($Bytes)
->>     $Blob = Invoke-GhApi -Method POST -Path 'git/blobs' -Body @{
->>         content = $Base64Content
->>         encoding = 'base64'
+PS D:\Homio\REOS_CONTROL_CENTER> $ExportAnchor = '    "validate_reos_contract",'
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $UpdatedInit.Contains($ExportAnchor)) {
+>>     throw 'Could not locate final public export anchor.'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> $UpdatedInit = $UpdatedInit.Replace(
+>>     $ExportAnchor,
+>>     $ExportAnchor + "`n" +
+>>     '    "CORE008_COMMISSION_ATTRIBUTION_SCHEMA_VERSION",' + "`n" +
+>>     '    "CommissionAttributionBinding",' + "`n" +
+>>     '    "CommissionAttributionError",' + "`n" +
+>>     '    "CommissionAttributionValidationError",'
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Required in @(
+>>     '    "compare_ledger_entries",',
+>>     '    "CommissionProtection",',
+>>     '    "CommissionAttributionBinding",',
+>>     '    "validate_reos_contract",'
+>> )) {
+>>     if (-not $UpdatedInit.Contains($Required)) {
+>>         throw "Required public export missing: $Required"
 >>     }
->>     $TreeElements += @{
->>         path = $File.path
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 4. Prepare the replacement with UTF-8 bytes; create one guarded commit.
+PS D:\Homio\REOS_CONTROL_CENTER> $NewBytes = [System.Text.Encoding]::UTF8.GetBytes($UpdatedInit)
+PS D:\Homio\REOS_CONTROL_CENTER> $NewBase64 = [Convert]::ToBase64String($NewBytes)
+PS D:\Homio\REOS_CONTROL_CENTER> $NewBlob = Invoke-GhApi POST 'git/blobs' @{
+>>     content = $NewBase64
+>>     encoding = 'base64'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $NewTree = Invoke-GhApi POST 'git/trees' @{
+>>     base_tree = $BaseTreeSha
+>>     tree = @(@{
+>>         path = $InitPath
 >>         mode = '100644'
 >>         type = 'blob'
->>         sha = $Blob.sha
->>     }
->>     Write-Host "Prepared blob: $($File.path) [$($Blob.sha)]"
+>>         sha = $NewBlob.sha
+>>     })
 >> }
-Prepared blob: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_attribution.py [0edabcb9d197ac28f5bf6c8d66f7e77d08af9bf2]
-Prepared blob: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t02_attribution_binding.py [382bd9011355c1f1efdb5c7e139dcc579030b3a3]
-Prepared blob: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/__init__.py [07650ba30b0a6181cff5b1cdf5e7ef3469c79e3d]
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $NewTree = Invoke-GhApi -Method POST -Path 'git/trees' -Body @{
->>     base_tree = $TreeSha
->>     tree = $TreeElements
+PS D:\Homio\REOS_CONTROL_CENTER> $RefCheck = Invoke-GhApi GET "git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($RefCheck.object.sha -ne $HeadSha) {
+>>     throw 'Branch moved during repair preparation. No branch update performed.'
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER> $NewCommit = Invoke-GhApi -Method POST -Path 'git/commits' -Body @{
->>     message = 'Implement canonical CORE-008 commission attribution binding'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Commit = Invoke-GhApi POST 'git/commits' @{
+>>     message = 'Restore CORE-008 public API and export attribution binding'
 >>     tree = $NewTree.sha
 >>     parents = @($HeadSha)
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # Recheck immediately before updating the branch ref. Non-force update prevents rewrite.
-PS D:\Homio\REOS_CONTROL_CENTER> $RefBeforeUpdate = Invoke-GhApi -Method GET -Path "git/ref/heads/$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER> if ($RefBeforeUpdate.object.sha -ne $HeadSha) {
->>     throw "Branch moved during preparation. Expected $HeadSha; found $($RefBeforeUpdate.object.sha). No ref update performed."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $null = Invoke-GhApi -Method PATCH -Path "git/refs/heads/$Branch" -Body @{
->>     sha = $NewCommit.sha
+PS D:\Homio\REOS_CONTROL_CENTER> $null = Invoke-GhApi PATCH "git/refs/heads/$Branch" @{
+>>     sha = $Commit.sha
 >>     force = $false
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $RefAfterUpdate = Invoke-GhApi -Method GET -Path "git/ref/heads/$Branch"
-PS D:\Homio\REOS_CONTROL_CENTER> if ($RefAfterUpdate.object.sha -ne $NewCommit.sha) {
->>     throw 'Post-write verification failed: branch ref does not point to the new commit.'
+PS D:\Homio\REOS_CONTROL_CENTER> # 5. Read back the branch and prove state/module/tests stayed unchanged.
+PS D:\Homio\REOS_CONTROL_CENTER> $AfterRef = Invoke-GhApi GET "git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($AfterRef.object.sha -ne $Commit.sha) {
+>>     throw 'Branch read-back did not match repair commit.'
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $Committed = Invoke-GhApi -Method GET -Path "commits/$($NewCommit.sha)"
-PS D:\Homio\REOS_CONTROL_CENTER> $ChangedPaths = @($Committed.files | ForEach-Object { $_.filename } | Sort-Object)
-PS D:\Homio\REOS_CONTROL_CENTER> $ExpectedPaths = @($ModulePath, $TestsPath, $InitPath | Sort-Object)
+PS D:\Homio\REOS_CONTROL_CENTER> $AfterCommit = Invoke-GhApi GET "git/commits/$($Commit.sha)"
+PS D:\Homio\REOS_CONTROL_CENTER> $AfterTree = Invoke-GhApi GET "git/trees/$($AfterCommit.tree.sha)`?recursive=1"
+PS D:\Homio\REOS_CONTROL_CENTER> $AfterEntries = @{}
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Entry in $AfterTree.tree) { $AfterEntries[$Entry.path] = $Entry.sha }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($ChangedPaths.Count -ne 3 -or ($ChangedPaths -join '|') -ne ($ExpectedPaths -join '|')) {
->>     throw "Unexpected changed file set: $($ChangedPaths -join ', ')"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($AfterEntries[$StatePath] -ne $StateSha) {
+>>     throw 'Canonical state changed unexpectedly; investigate immediately.'
 >> }
-PS D:\Homio\REOS_CONTROL_CENTER> if ($ChangedPaths -contains $StatePath) {
->>     throw 'Safety violation: state.json unexpectedly appears in this commit.'
+PS D:\Homio\REOS_CONTROL_CENTER> if ($AfterEntries[$ModulePath] -ne $ModuleSha) {
+>>     throw 'Attribution module changed unexpectedly.'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> if ($AfterEntries[$TestsPath] -ne $TestsSha) {
+>>     throw 'Attribution tests changed unexpectedly.'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> if ($AfterEntries[$InitPath] -ne $NewBlob.sha) {
+>>     throw 'Initializer read-back verification failed.'
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $VerifiedCommit = Invoke-GhApi -Method GET -Path "git/commits/$($NewCommit.sha)"
-PS D:\Homio\REOS_CONTROL_CENTER> $VerifiedTree = Invoke-GhApi -Method GET -Path "git/trees/$($VerifiedCommit.tree.sha)?recursive=1"
-PS D:\Homio\REOS_CONTROL_CENTER> $StateAfter = $VerifiedTree.tree | Where-Object { $_.path -eq $StatePath } | Select-Object -First 1
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $StateAfter -or $StateAfter.sha -ne $ExpectedStateSha) {
->>     throw 'Post-write safety check failed: state.json changed.'
+PS D:\Homio\REOS_CONTROL_CENTER> $VerifyBlob = Invoke-GhApi GET "git/blobs/$($AfterEntries[$InitPath])"
+PS D:\Homio\REOS_CONTROL_CENTER> $VerifiedInit = [System.Text.Encoding]::UTF8.GetString(
+>>     [Convert]::FromBase64String(($VerifyBlob.content -replace '\s', ''))
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $VerifiedInit.Contains('    "compare_ledger_entries",')) {
+>>     throw 'Restored initializer did not retain compare_ledger_entries.'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $VerifiedInit.Contains('    "CommissionAttributionBinding",')) {
+>>     throw 'Attribution public export not found after read-back.'
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ''
 
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host 'WRITE VERIFIED'
-WRITE VERIFIED
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit: $($NewCommit.sha)"
-Commit: 10aafa56275de8053a53f28aedba74a71945d352
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit URL: https://github.com/$Repo/commit/$($NewCommit.sha)"
-Commit URL: https://github.com/prajaktaranjane80-sketch/Homio/commit/10aafa56275de8053a53f28aedba74a71945d352
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "state.json unchanged: $($StateAfter.sha)"
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host 'PACKAGE RESTORE VERIFIED'
+PACKAGE RESTORE VERIFIED
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit: $($Commit.sha)"
+Commit: 7cb43d506fab2a4be966814e49a9d6da690f2234
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit URL: https://github.com/$Repo/commit/$($Commit.sha)"
+Commit URL: https://github.com/prajaktaranjane80-sketch/Homio/commit/7cb43d506fab2a4be966814e49a9d6da690f2234
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "state.json unchanged: $($AfterEntries[$StatePath])"
 state.json unchanged: 44a6d4fc0a0fd7a2dac0e8df06be2476badbaf25
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host 'Changed files:'
-Changed files:
-PS D:\Homio\REOS_CONTROL_CENTER> $ChangedPaths | ForEach-Object { Write-Host " - $_" }
- - REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/__init__.py
- - REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_attribution.py
- - REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t02_attribution_binding.py
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER> # 4. Confirm the CI run for this exact commit
-PS D:\Homio\REOS_CONTROL_CENTER> # ---------------------------------------------------------------------------
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ''
-
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host 'Checking GitHub Actions for this exact commit...'
-Checking GitHub Actions for this exact commit...
-PS D:\Homio\REOS_CONTROL_CENTER> $Run = $null
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> for ($Attempt = 1; $Attempt -le 36; $Attempt++) {
->>     $RunsResponse = Invoke-GhApi -Method GET -Path "actions/runs?head_sha=$($NewCommit.sha)&per_page=10"
->>     $Run = $RunsResponse.workflow_runs |
->>         Where-Object { $_.head_sha -eq $NewCommit.sha } |
->>         Select-Object -First 1
->>
->>     if ($Run -and $Run.status -eq 'completed') {
->>         break
->>     }
->>
->>     if ($Attempt -lt 36) {
->>         Start-Sleep -Seconds 5
->>     }
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if (-not $Run) {
->>     Write-Host 'Commit verified; matching CI run is not visible yet.'
->>     Write-Host "Check: https://github.com/$Repo/actions"
->>     exit 0
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CI URL: $($Run.html_url)"
-CI URL: https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39023793757
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CI status: $($Run.status)"
-CI status: completed
-PS D:\Homio\REOS_CONTROL_CENTER> if ($Run.status -eq 'completed') {
->>     Write-Host "CI conclusion: $($Run.conclusion)"
->>     if ($Run.conclusion -ne 'success') {
->>         throw 'The new commit did not pass CI. CORE-008-T02 remains CURRENT and state.json is unchanged.'
->>     }
->> } else {
->>     Write-Host 'CI is still running. Do not mark CORE-008-T02 DONE until this exact run succeeds.'
->> }
-CI conclusion: failure
-The new commit did not pass CI. CORE-008-T02 remains CURRENT and state.json is unchanged.
-At line:4 char:9
-+         throw 'The new commit did not pass CI. CORE-008-T02 remains C ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (The new commit ...n is unchanged.:String) [], RuntimeException
-    + FullyQualifiedErrorId : The new commit did not pass CI. CORE-008-T02 remains CURRENT and state.json is unchanged.
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host ''
-
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host 'T02 IMPLEMENTATION WRITE AND REPOSITORY READ-BACK: PASS'
-T02 IMPLEMENTATION WRITE AND REPOSITORY READ-BACK: PASS
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host 'No canonical state transition was made by this script.'
-No canonical state transition was made by this script.
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host 'Original public API and new attribution exports both verified.'
+Original public API and new attribution exports both verified.
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "CI: https://github.com/$Repo/actions"
+CI: https://github.com/prajaktaranjane80-sketch/Homio/actions
 PS D:\Homio\REOS_CONTROL_CENTER>
