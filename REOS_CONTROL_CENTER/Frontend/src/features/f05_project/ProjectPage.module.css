@@ -1,6 +1,6 @@
 .page {
   padding: 20px 0 84px;
-  background: #f7f8fa;
+  background: var(--homio-bg);
 }
 
 .breadcrumbs {
@@ -8,24 +8,24 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 20px;
-  color: #7a8590;
+  color: var(--homio-text-muted);
   font-size: 12px;
   line-height: 1.5;
 }
 
 .breadcrumbs a {
-  color: #53606d;
+  color: var(--homio-text-soft);
   text-decoration: none;
   font-weight: 700;
 }
 
 .breadcrumbs a:hover {
-  color: #17212b;
+  color: var(--homio-text);
 }
 
 .breadcrumbs a:focus-visible,
 .contextLink:focus-visible {
-  outline: 3px solid #6b9fd1;
+  outline: 3px solid var(--homio-border-focus);
   outline-offset: 3px;
   border-radius: 4px;
 }
@@ -45,14 +45,14 @@
 .collectionContext {
   margin-top: 18px;
   padding: 28px;
-  border: 1px solid #e1e6eb;
+  border: 1px solid var(--homio-border);
   border-radius: 20px;
-  background: #ffffff;
+  background: var(--homio-surface);
 }
 
 .eyebrow {
   display: block;
-  color: #8b949d;
+  color: var(--homio-text-muted);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -68,7 +68,7 @@
 
 .collectionContent h2 {
   margin: 0;
-  color: #17212b;
+  color: var(--homio-text);
   font-size: 26px;
   line-height: 1.2;
 }
@@ -76,30 +76,32 @@
 .collectionContent p {
   max-width: 700px;
   margin: 9px 0 0;
-  color: #697480;
+  color: var(--homio-text-muted);
   font-size: 14px;
   line-height: 1.7;
 }
 
 .contextLink {
   flex: 0 0 auto;
-  color: #17212b;
+  color: var(--homio-text);
   font-size: 12px;
   font-weight: 800;
   text-decoration: none;
 }
 
 .contextLink:hover {
+  color: var(--homio-accent-strong);
   text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 @media (max-width: 1000px) {
   .heroGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .summaryColumn {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
