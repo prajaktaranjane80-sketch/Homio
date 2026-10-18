@@ -1,3 +1,37 @@
+
+& {
+    $ErrorActionPreference = "Stop"
+
+    $owner  = "prajaktaranjane80-sketch"
+    $repo   = "Homio"
+    $branch = "reos-development"
+    $relativePath = "REOS_CONTROL_CENTER/Frontend/src/components/motion/MotionReveal.tsx"
+    $localPath = "D:\Homio\REOS_CONTROL_CENTER\Frontend\src\components\motion\MotionReveal.tsx"
+
+    $token = $env:GH_TOKEN
+    if ([string]::IsNullOrWhiteSpace($token)) {
+        $token = $env:GITHUB_TOKEN
+    }
+    if ([string]::IsNullOrWhiteSpace($token) -and (Get-Command gh -ErrorAction SilentlyContinue)) {
+        $token = (& gh auth token 2>$null | Out-String).Trim()
+    }
+    if ([string]::IsNullOrWhiteSpace($token)) {
+        throw "STOP: GitHub CLI login ya GH_TOKEN/GITHUB_TOKEN authentication nahi mili. Koi file change nahi ki."
+    }
+
+    $headers = @{
+        Authorization = "Bearer $token"
+        Accept = "application/vnd.github+json"
+        "X-GitHub-Api-Version" = "2022-11-28"
+        "User-Agent" = "HOMIO-MotionReveal-Fix"
+    }
+
+    $identity = Invoke-RestMethod -Uri "https://api.github.com/user" -Headers $headers
+    if ($identity.login -ne $owner) {
+        throw "STOP: Active GitHub account '$($identity.login)' hai, expected '$owner' hai. Koi file change nahi ki."
+    }
+
+    $content = @'
 "use client";
 
 import {
@@ -34,7 +68,7 @@ export default function MotionReveal({
       return;
     }
 
-    // Graceful fallback for browsers without IntersectionObserver.
+    // Fallback for browsers without IntersectionObserver.
     if (!("IntersectionObserver" in window)) {
       const frameId = window.requestAnimationFrame(() => {
         setVisible(true);
@@ -98,4 +132,77 @@ export default function MotionReveal({
       {children}
     </div>
   );
+}
+'@
+
+    $apiUrl = "https://api.github.com/repos/$owner/$repo/contents/$relativePath"
+    $remote = Invoke-RestMethod -Uri "$apiUrl`?ref=$branch" -Headers $headers
+
+    $body = @{
+        message = "fix(frontend): avoid synchronous state update in MotionReveal"
+        content = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($content))
+        sha = [string]$remote.sha
+        branch = $branch
+    } | ConvertTo-Json -Depth 5
+
+    $updated = Invoke-RestMethod -Method Put -Uri $apiUrl `
+        -Headers $headers -ContentType "application/json" -Body $body
+
+    $commitSha = [string]$updated.commit.sha
+    if ([string]::IsNullOrWhiteSpace($commitSha)) {
+        throw "STOP: GitHub did not return a commit SHA."
+    }
+
+    # Read back the committed content from the canonical branch.
+    $check = Invoke-RestMethod -Uri "$apiUrl`?ref=$branch" -Headers $headers
+    $remoteText = [System.Text.Encoding]::UTF8.GetString(
+        [Convert]::FromBase64String(($check.content -replace "\s", ""))
+    )
+    if ($remoteText -cne $content) {
+        throw "STOP: GitHub read-back does not match the replacement. Commit: $commitSha"
+    }
+
+    # Backup and replace the local preview copy only after remote read-back passes.
+    if (!(Test-Path -LiteralPath $localPath -PathType Leaf)) {
+        throw "GitHub was updated, but local file was not found: $localPath. Commit: $commitSha"
+    }
+
+    $backupPath = "$localPath.bak_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+    Copy-Item -LiteralPath $localPath -Destination $backupPath -Force
+
+    [System.IO.File]::WriteAllText(
+        $localPath,
+        $content,
+        [System.Text.UTF8Encoding]::new($false)
+    )
+
+    Write-Host "GITHUB COMMIT: $commitSha"
+    Write-Host "REMOTE FILE READ-BACK: PASS"
+    Write-Host "LOCAL REPLACEMENT: PASS"
+    Write-Host "LOCAL BACKUP: $backupPath"
+
+    Set-Location "D:\Homio\REOS_CONTROL_CENTER\Frontend"
+
+    npm run lint
+    if ($LASTEXITCODE -ne 0) {
+        throw "LINT = FAIL. Read the actual error above."
+    }
+
+    npm run typecheck
+    if ($LASTEXITCODE -ne 0) {
+        throw "TYPECHECK = FAIL. Read the actual error above."
+    }
+
+    npm run verify:foundation
+    if ($LASTEXITCODE -ne 0) {
+        throw "FOUNDATION VERIFICATION = FAIL."
+    }
+
+    npm run build
+    if ($LASTEXITCODE -ne 0) {
+        throw "BUILD = FAIL."
+    }
+
+    Write-Host ""
+    Write-Host "MOTIONREVEAL FIX AND TARGETED CHECKS = PASS"
 }
