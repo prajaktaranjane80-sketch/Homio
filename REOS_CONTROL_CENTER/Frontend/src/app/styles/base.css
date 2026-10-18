@@ -1,3 +1,4 @@
+
 *,
 *::before,
 *::after {
@@ -10,12 +11,19 @@ body {
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
+  min-width: 320px;
   background: var(--homio-bg);
   color: var(--homio-text);
   font-family: var(--font-sans);
-  line-height: 1.5;
+  font-size: var(--text-md);
+  line-height: var(--line-height-body);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
@@ -35,26 +43,70 @@ button {
   border: 0;
 }
 
-img {
+img,
+picture,
+video,
+canvas,
+svg {
   display: block;
   max-width: 100%;
 }
 
-button,
-a,
-input,
-select,
-textarea {
-  outline: none;
+img {
+  height: auto;
 }
 
 :focus-visible {
-  outline: 3px solid rgba(197, 155, 99, 0.55);
+  outline: 3px solid rgb(169 133 86 / 65%);
   outline-offset: 3px;
 }
 
+::selection {
+  color: var(--homio-text-inverse);
+  background: var(--homio-brand);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--homio-text);
+  font-family: var(--font-serif);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-heading);
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(2.25rem, 5vw, 4.5rem);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.04em;
+}
+
+h2 {
+  font-size: clamp(1.75rem, 3.2vw, 3rem);
+}
+
+h3 {
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+}
+
+p {
+  text-wrap: pretty;
+}
+
+small {
+  font-size: var(--text-sm);
+}
+
 .homio-container {
-  width: min(100% - (var(--container-padding) * 2), var(--container-width));
+  width: min(
+    100% - (var(--container-padding) * 2),
+    var(--container-width)
+  );
   margin-inline: auto;
 }
 
@@ -98,16 +150,25 @@ textarea {
   justify-content: center;
   min-height: 44px;
   padding: 0 var(--space-5);
+  border: 1px solid transparent;
   border-radius: var(--radius-pill);
   cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-semibold);
   transition:
-    transform var(--ease-standard),
-    box-shadow var(--ease-standard),
-    background var(--ease-standard);
+    transform var(--motion-normal) var(--ease-standard-curve),
+    box-shadow var(--motion-normal) var(--ease-standard-curve),
+    background-color var(--motion-normal) var(--ease-standard-curve),
+    border-color var(--motion-normal) var(--ease-standard-curve),
+    color var(--motion-normal) var(--ease-standard-curve);
 }
 
 .button:hover {
   transform: translateY(-1px);
+}
+
+.button:active {
+  transform: translateY(0);
 }
 
 .button--primary {
@@ -115,21 +176,42 @@ textarea {
   color: var(--homio-text-inverse);
 }
 
+.button--primary:hover {
+  background: var(--homio-brand-soft);
+}
+
 .button--secondary {
+  border-color: var(--homio-border-strong);
   background: var(--homio-surface);
-  border: 1px solid var(--homio-border);
   color: var(--homio-text);
 }
 
+.button--secondary:hover {
+  border-color: var(--homio-accent);
+  background: var(--homio-surface-soft);
+}
+
 .card {
-  background: var(--homio-surface);
   border: 1px solid var(--homio-border);
   border-radius: var(--radius-lg);
+  background: var(--homio-surface);
   box-shadow: var(--shadow-sm);
 }
 
 @media (max-width: 768px) {
   .homio-section {
     padding-block: var(--space-12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
   }
 }
