@@ -1,3 +1,4 @@
+
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -35,6 +36,7 @@ function requireExactlyOnce(source, requiredText, context) {
 
 const requiredFiles = [
   "package.json",
+  "src/app/layout.tsx",
   "src/app/globals.css",
   "src/app/styles/tokens.css",
   "src/app/styles/base.css",
@@ -62,6 +64,7 @@ for (const relativePath of requiredFiles) {
 }
 
 const packageJson = JSON.parse(read("package.json"));
+const layout = read("src/app/layout.tsx");
 const tokens = read("src/app/styles/tokens.css");
 const globals = read("src/app/globals.css");
 const base = read("src/app/styles/base.css");
@@ -90,13 +93,15 @@ const marketStatesTheme = read(
   "src/features/f12_globalization/MarketStates.module.css"
 );
 
-/* 1. Canonical HOMIO brand and surface contract */
+/* 1. HOMIO colour, typography and motion token contract */
 
 const requiredTokens = [
-  "--homio-brand: #111111;",
-  "--homio-accent: #c59b63;",
-  "--homio-bg: #f8f7f4;",
+  "--homio-brand: #241c1a;",
+  "--homio-brand-soft: #352925;",
+  "--homio-accent: #a98556;",
+  "--homio-bg: #f7f4ef;",
   "--homio-surface: #ffffff;",
+  "--homio-surface-soft: #eae1d7;",
   "--font-sans:",
   "--font-serif:",
   "--homio-success:",
@@ -113,7 +118,12 @@ for (const token of requiredTokens) {
   requireContains(tokens, token, "Design token contract");
 }
 
-/* 2. Preserve legacy transition shorthand and curve-only contract */
+requireContains(tokens, "--font-serif:", "Editorial heading font");
+requireContains(tokens, "--font-sans:", "UI and body font");
+requireContains(base, "font-family: var(--font-serif)", "Heading typography");
+requireContains(base, "font-family: var(--font-sans)", "Body typography");
+
+/* 2. Preserve existing transition contracts */
 
 requireContains(
   tokens,
@@ -134,11 +144,11 @@ for (const [fileName, source] of [
   requireContains(
     source,
     "var(--ease-standard)",
-    `${fileName} legacy transition compatibility`
+    `${fileName} transition compatibility`
   );
 }
 
-/* 3. Global CSS load order and unique imports */
+/* 3. Global stylesheet imports must remain unique and ordered */
 
 const requiredImports = [
   '@import "./styles/tokens.css";',
@@ -155,7 +165,7 @@ for (const styleImport of requiredImports) {
   const currentPosition = globals.indexOf(styleImport);
 
   if (currentPosition <= previousPosition) {
-    fail("Global CSS import order must be tokens, base, foundation, motion.");
+    fail("Global CSS imports must be tokens, base, foundation, motion.");
   }
 
   previousPosition = currentPosition;
@@ -171,61 +181,39 @@ for (const requiredClass of [
   requireContains(motion, requiredClass, "Motion utility contract");
 }
 
+requireContains(motion, ".motion-soft-reveal", "Soft reveal utility");
 requireContains(
   motion,
   "@media (prefers-reduced-motion: reduce)",
   "Motion utility accessibility"
 );
-
 requireContains(
   motion,
   "var(--ease-standard-curve)",
   "Motion timing contract"
 );
 
-requireContains(
-  revealCss,
-  ".revealVisible",
-  "Reveal component visible state"
-);
-
+requireContains(revealCss, ".revealVisible", "Reveal visible state");
 requireContains(
   revealCss,
   "@media (prefers-reduced-motion: reduce)",
   "Reveal reduced-motion support"
 );
-
-requireContains(
-  revealComponent,
-  "IntersectionObserver",
-  "Reveal viewport observer"
-);
-
+requireContains(revealComponent, "IntersectionObserver", "Reveal observer");
 requireContains(
   revealComponent,
   "prefers-reduced-motion: reduce",
   "Reveal reduced-motion runtime contract"
 );
-
-requireContains(
-  revealComponent,
-  'from "./motion.types"',
-  "Reveal type import"
-);
-
+requireContains(revealComponent, 'from "./motion.types"', "Reveal type import");
 requireContains(
   motionTypes,
   "export interface MotionRevealProps",
   "Reveal type definition"
 );
+requireContains(motionTypes, "children: ReactNode;", "Reveal children type");
 
-requireContains(
-  motionTypes,
-  "children: ReactNode;",
-  "Reveal children type"
-);
-
-/* 5. Shared navigation and system modules use the theme */
+/* 5. Shared navigation and system modules use semantic theme tokens */
 
 const themedModules = [
   ["GlobalMenus.module.css", globalMenus],
@@ -261,7 +249,7 @@ for (const [fileName, source] of featureThemeModules) {
   );
 }
 
-/* 7. Reject the old competing navy/blue-grey palette in audited modules */
+/* 7. Reject the competing navy/blue-grey palette */
 
 const legacyPaletteValues = [
   "#15283c",
@@ -296,33 +284,37 @@ for (const legacyColor of legacyPaletteValues) {
   }
 }
 
-/* 8. Reduced-motion behaviour in animated modules */
+/* 8. Existing animated modules retain reduced-motion handling */
 
 requireContains(
   propertyPageTheme,
   "@media (prefers-reduced-motion: reduce)",
   "Property page motion accessibility"
 );
-
 requireContains(
   marketFieldsTheme,
   "@media (prefers-reduced-motion: reduce)",
   "Market field motion accessibility"
 );
-
 requireContains(
   sharedSystem,
   "@media (prefers-reduced-motion: reduce)",
   "Shared system motion accessibility"
 );
-
 requireContains(
   systemComponents,
   "@media (prefers-reduced-motion: reduce)",
   "System component motion accessibility"
 );
 
-/* 9. Wire the verifier into standard frontend checks */
+/* 9. Runtime shell and theme metadata */
+
+requireContains(layout, 'themeColor: "#f7f4ef"', "Browser theme colour");
+requireContains(layout, "<AppShell>{children}</AppShell>", "Existing app shell");
+requireContains(layout, "<ProductionQualityMonitor />", "Production monitor");
+requireContains(layout, "<ErrorBoundary>", "Root error boundary");
+
+/* 10. Keep the existing verification pipeline wired */
 
 if (!packageJson.scripts?.["verify:design-system"]) {
   fail("npm script verify:design-system is missing.");
@@ -346,16 +338,18 @@ if (
 
 console.log("");
 console.log("==================================================");
-console.log("HOMIO DESIGN SYSTEM CONTRACT       = PASS");
-console.log(`FILES VERIFIED                     = ${requiredFiles.length}`);
-console.log("BRAND / TYPOGRAPHY TOKENS           = PASS");
-console.log("LEGACY TRANSITION COMPATIBILITY     = PASS");
-console.log("GLOBAL CSS IMPORT ORDER             = PASS");
-console.log("MOTION UTILITY CONTRACT             = PASS");
-console.log("MOTION REVEAL / TYPES               = PASS");
-console.log("REDUCED-MOTION ACCESSIBILITY         = PASS");
-console.log("SHARED NAVIGATION / SYSTEM THEME    = PASS");
-console.log("FEATURE PALETTE CONTRACT             = PASS");
-console.log("LEGACY THEME COLOUR CHECK            = PASS");
-console.log("VERIFY PIPELINE INTEGRATION          = PASS");
+console.log("HOMIO DESIGN SYSTEM CONTRACT        = PASS");
+console.log(`FILES VERIFIED                      = ${requiredFiles.length}`);
+console.log("LUXURY PALETTE TOKENS                = PASS");
+console.log("EDITORIAL TYPOGRAPHY CONTRACT        = PASS");
+console.log("LEGACY TRANSITION COMPATIBILITY      = PASS");
+console.log("GLOBAL CSS IMPORT ORDER              = PASS");
+console.log("MOTION UTILITY CONTRACT              = PASS");
+console.log("MOTION REVEAL / TYPES                = PASS");
+console.log("REDUCED-MOTION ACCESSIBILITY          = PASS");
+console.log("SHARED NAVIGATION / SYSTEM THEME     = PASS");
+console.log("FEATURE PALETTE CONTRACT              = PASS");
+console.log("LEGACY THEME COLOUR CHECK             = PASS");
+console.log("ROOT SHELL / METADATA CONTRACT        = PASS");
+console.log("VERIFY PIPELINE INTEGRATION           = PASS");
 console.log("==================================================");
