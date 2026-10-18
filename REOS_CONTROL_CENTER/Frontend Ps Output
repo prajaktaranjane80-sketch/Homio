@@ -1,3 +1,11 @@
+
+PS D:\Homio> Set-Location "D:\Homio"
+PS D:\Homio>
+PS D:\Homio> Write-Host "`n--- BRANCH AND WORKTREE ---"
+
+--- BRANCH AND WORKTREE ---
+PS D:\Homio> git status --short --branch
+## reos-development...origin/reos-development [ahead 6, behind 1305]
  M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__init__.py
  M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/__init__.py
  M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
@@ -33,9 +41,43 @@
 ?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_697927.json
 ?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_990397.json
 ?? REOS_CONTROL_CENTER/snapshots/state_20261002_210707_222976.json
-Working tree clean nahi hai. Koi file overwrite nahi ki.
-At line:21 char:5
-+     throw "Working tree clean nahi hai. Koi file overwrite nahi ki."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Working tree cl...rwrite nahi ki.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Working tree clean nahi hai. Koi file overwrite nahi ki.
+PS D:\Homio>
+PS D:\Homio> Write-Host "`n--- LOCAL HEAD ---"
+
+--- LOCAL HEAD ---
+PS D:\Homio> git log -1 --oneline --decorate
+1590a050 (HEAD -> reos-development) Fix CORE-008 financial ledger integrity
+PS D:\Homio>
+PS D:\Homio> Write-Host "`n--- LOCAL COMMIT ---"
+
+--- LOCAL COMMIT ---
+PS D:\Homio> git rev-parse HEAD
+1590a050bc74174315f418d350dc4c95b3f99141
+PS D:\Homio>
+PS D:\Homio> Write-Host "`n--- ORIGIN BRANCH REF ---"
+
+--- ORIGIN BRANCH REF ---
+PS D:\Homio> if (git show-ref --verify --quiet refs/remotes/origin/reos-development) {
+>>     git rev-parse origin/reos-development
+>> } else {
+>>     Write-Host "origin/reos-development local ref available nahi hai."
+>> }
+origin/reos-development local ref available nahi hai.
+PS D:\Homio>
+PS D:\Homio> Write-Host "`n--- FRONTEND TRACKING CHECK ---"
+
+--- FRONTEND TRACKING CHECK ---
+PS D:\Homio> git ls-files --error-unmatch "REOS_CONTROL_CENTER/Frontend/src/app/styles/tokens.css" 2>&1
+git : error: pathspec 'REOS_CONTROL_CENTER/Frontend/src/app/styles/tokens.css' did not match any file(s) known to git
+At line:1 char:1
++ git ls-files --error-unmatch "REOS_CONTROL_CENTER/Frontend/src/app/st ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (error: pathspec...s) known to git:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+Did you forget to 'git add'?
+PS D:\Homio>
+PS D:\Homio> Write-Host "`n--- COMPLETE ---"
+
+--- COMPLETE ---
+PS D:\Homio>
