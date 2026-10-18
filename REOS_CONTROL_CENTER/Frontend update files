@@ -17,7 +17,7 @@ Upgrade the existing HOMIO frontend into a premium, international real-estate di
 
 The target includes:
 
-- Consistent global design system, typography and professional motion.
+- A consistent global design system, typography and professional motion.
 - Premium property discovery, search, project and listing experiences.
 - Complete navigation and discoverable routes.
 - Saved properties, comparison, enquiries, visits and My HOMIO.
@@ -53,6 +53,9 @@ Do not use `PS Output`, preview catalogues, mock records or local state as proof
 - Never import ACRL, AUTONOMY_ENGINE or Control Center runtime state into the frontend.
 - Do not enable broker directories, broker comparison, bidding, lead auctions or competing-broker marketplaces.
 - Do not claim a file was saved, a test passed or a feature is live without actual evidence.
+- Do not treat this specification as evidence that a listed file exists, that an integration is operational or that a verification has passed.
+- Preserve existing property imagery unless a separate, explicit image-change approval is given.
+- A visual refresh must not silently change property content, listing data, business rules, route ownership or service behaviour.
 
 ### 0.4 File classification and implementation gate
 
@@ -88,22 +91,78 @@ A Part is `PASS` only when every required gate for that Part has actual passing 
 # PART 1 — GLOBAL DESIGN SYSTEM, FONTS, ADVANCED SAAS UI & PROFESSIONAL ANIMATIONS
 
 **Priority:** First  
-**Target:** Establish a consistent, premium design foundation without breaking the existing application shell.
+**Target:** Establish a consistent, premium design foundation without breaking the existing application shell or changing existing property imagery.
 
-## 1.1 Brand direction
+## 1.1 Final brand direction
 
-Canonical brand palette:
+The following palette is the approved HOMIO visual direction for this specification. Use it consistently across the frontend after auditing the existing implementation.
 
-- Charcoal: `#111111`
-- Ivory: `#F8F7F4`
-- Champagne Gold: `#C59B63`
-- White: `#FFFFFF`
+| Token | Colour | Intended use |
+|---|---|---|
+| Deep Espresso | `#241C1A` | Primary dark surfaces, navigation, headings and selected dark sections |
+| Dark Rosewood | `#75464A` | Restrained brand accent, selected states and carefully chosen emphasis |
+| Matte Antique Gold | `#A98556` | Premium highlights, fine borders, selected indicators and restrained CTAs |
+| Matte Ivory | `#F7F4EF` | Main page background and spacious light surfaces |
+| Warm Stone | `#EAE1D7` | Secondary surfaces, subtle dividers and muted panels |
+| Pure White | `#FFFFFF` | Cards, forms, dialogs and clean content surfaces |
 
-Gold is a restrained premium accent, not a dominant background colour. Use accessible contrast for text, controls, status indicators and focus states.
+### Brand and appearance rules
 
-The design should feel international, polished, modern and high-end—not like a generic admin template. Real-estate discovery must remain easy to understand and use.
+- The overall look must be rich, dark, matte, elegant and international.
+- Deep Espresso is the primary dark colour. Dark Rosewood is a restrained signature accent, not a bright or dominant pink.
+- Matte Antique Gold must remain restrained. Do not make entire pages or large surfaces gold.
+- Matte Ivory and Warm Stone should provide warmth and visual breathing room.
+- Pure White is reserved for clean, readable cards, forms and panels.
+- Do not use neon colours, glossy buttons, shiny metallic gradients, exaggerated glow, excessive shadows or bright pink accents.
+- Do not apply the palette mechanically to every element. Preserve readable contrast, visual hierarchy and meaningful status colours.
+- Use accessible contrast for text, controls, disabled states, focus indicators and interactive elements. If a colour combination fails contrast requirements, adjust the foreground/background pairing rather than sacrificing accessibility.
+- Use semantic design tokens rather than scattering repeated literal colour values across components.
+- Preserve existing information hierarchy and usable layouts while aligning their appearance with the approved brand direction.
+- This is a controlled visual-system update, not permission to redesign every screen or rebuild the frontend.
 
-## 1.2 Existing files — audit and update as needed
+Suggested semantic token names may include:
+
+```css
+--color-brand-primary: #241C1A;
+--color-brand-accent: #75464A;
+--color-brand-gold: #A98556;
+--color-background: #F7F4EF;
+--color-surface-muted: #EAE1D7;
+--color-surface: #FFFFFF;
+```
+
+These names are examples of the intended token contract, not an instruction to create a second token system. Inspect the current tokens first and reuse or extend the canonical implementation.
+
+## 1.2 Typography direction
+
+The typography should feel premium and editorial while remaining practical for a global real-estate and SaaS product.
+
+### Headings
+
+- Prefer a refined serif typeface for major page headings, hero titles and selected editorial headings **only if an appropriate existing, licensed font asset or reliable approved font source is available**.
+- Use restrained weights and a clear hierarchy.
+- Avoid overly decorative, thin or difficult-to-read heading styles.
+- Preserve legibility on small screens and long international place names.
+
+### Body and interface
+
+- Use a clean, modern sans-serif font stack for body copy, forms, buttons, navigation, labels, data tables and SaaS dashboards.
+- Prioritize readability, consistent spacing and predictable text wrapping.
+- Use tabular numerals where appropriate for prices, counts and financial values if supported by the selected typeface.
+- Avoid inconsistent font weights, arbitrary font-size overrides and layout-breaking letter spacing.
+
+### Font-loading constraints
+
+- Audit `layout.tsx`, existing font imports, font assets, CSS tokens and build configuration before changing font loading.
+- Do not invent font filenames or reference assets that do not exist.
+- Do not introduce a network-dependent font-loading requirement that makes builds or production rendering unreliable.
+- Prefer existing local font assets when available and properly licensed.
+- If a suitable serif asset is not already available, use a verified and properly licensed option only after checking its loading method and dependency implications. Otherwise retain a sensible serif fallback stack for headings.
+- Keep a sensible sans-serif fallback stack for interface and body text.
+- Prevent unnecessary font-induced layout shifts. Use appropriate fallback metrics and loading behaviour where supported.
+- Do not add a new font dependency merely to satisfy the visual direction if the same result can be achieved safely with the existing setup.
+
+## 1.3 Existing files — audit and update as needed
 
 Root: `REOS_CONTROL_CENTER/Frontend/`
 
@@ -142,7 +201,11 @@ package-lock.json
 
 These are an audit inventory, not an instruction to rewrite every file. Preserve current exports, APIs, component contracts and integrations.
 
-## 1.3 New files — add only after checking for duplicates
+Before editing, confirm each path against the current `reos-development` branch. If the actual repository has a different filename or already contains a canonical equivalent, use the actual repository structure instead of creating a duplicate.
+
+## 1.4 New files — add only after checking for duplicates
+
+Potential additions:
 
 ```text
 src/app/styles/motion.css
@@ -155,9 +218,9 @@ src/components/motion/
 scripts/verify-design-system.mjs
 ```
 
-If a suitable motion component or verifier already exists, extend or reuse it instead of creating another.
+If a suitable motion component or verifier already exists, extend or reuse it instead of creating another. Add no new file merely because it appears in this proposal.
 
-## 1.4 Design-system contract
+## 1.5 Design-system contract
 
 Centralize and document:
 
@@ -169,20 +232,43 @@ Centralize and document:
 - Standard states for hover, active, focus-visible, disabled, loading, error and success.
 - Consistent form fields, buttons, cards, tabs, dialogs, drawers, sheets, toasts, skeletons and navigation surfaces.
 
-Choose the actual font stack only after inspecting available font assets, current loading and build constraints. Do not invent font files or add a network-dependent font-loading requirement that makes production builds unreliable. Use a verified, properly licensed font source and a sensible fallback stack.
+All shared CSS modules should consume the same design tokens. Audit existing hard-coded navy, blue-grey, gold and other colour values. Replace them only when they conflict with the approved system; preserve meaningful status colours and existing visual states that carry information.
 
-All shared CSS modules should consume the same design tokens. Audit existing hard-coded navy, blue-grey, gold and other colour values. Replace them only when they conflict with the approved system; preserve meaningful status colours.
+Do not create parallel global tokens or competing component styles. If existing tokens already serve a purpose, extend those tokens and migrate dependent consumers coherently.
 
-## 1.5 Motion behaviour
+### Property image preservation — mandatory
+
+The approved colour, font and motion update must **not alter existing property imagery**.
+
+Unless a separate image change is explicitly approved, preserve:
+
+- Existing image files and asset references.
+- Existing image URLs and `src`/`srcSet` values.
+- Existing image selection and order in galleries, cards and property/project pages.
+- Existing crop, `object-fit`, `object-position` and focal-point settings.
+- Existing aspect ratios, image container dimensions and layout allocation.
+- Existing gallery interactions, thumbnails and image-navigation behaviour.
+- Existing fallback-image logic and loading behaviour.
+
+Do not replace, regenerate, recolour, retouch, reorder, reposition, zoom or otherwise alter property images as part of this visual refresh.
+
+Do not add image zoom to property-card hover animations. Restrained card border and shadow transitions are acceptable only when they do not change the image's rendered appearance or framing.
+
+During implementation, compare image-related markup, URLs, CSS properties and layout dimensions before and after changes. If a proposed shared-style change could affect image rendering, isolate it from the image styles or leave the relevant image rule unchanged.
+
+A property-image change is outside the scope of this Part and requires its own explicit approval.
+
+## 1.6 Motion behaviour
 
 | Interaction | Expected behaviour |
 |---|---|
 | Buttons and chips | Subtle colour, border and press transitions |
-| Property cards | Restrained lift, shadow and image zoom |
+| Property cards | Restrained border, shadow or surface transition; no image zoom or image-framing change |
 | Mega menus | Smooth opacity and short vertical movement |
 | Modals and drawers | Controlled fade/slide without abrupt appearance |
 | Selected content sections | Optional subtle reveal; no compulsory animation on every element |
 | Loading states | Calm skeleton pulse without distracting shimmer |
+| Navigation and tabs | Clear, short state transitions without delaying interaction |
 | Reduced motion | Disable or substantially reduce nonessential motion |
 
 Rules:
@@ -194,8 +280,15 @@ Rules:
 - Avoid unnecessary animation on large listing collections.
 - Ensure motion styles are actually imported and applied.
 - Do not add `MotionReveal` to every page indiscriminately.
+- Prefer restrained transitions and short durations over theatrical animations.
+- Do not use motion that delays navigation, form submission or essential feedback.
+- Do not animate property images or change their crop, position, scale or visual content.
+- Avoid hover-only information that cannot be accessed on touch devices or with a keyboard.
+- Ensure animations do not create horizontal overflow or shift surrounding content.
+- Keep focus indicators visible during and after transitions.
+- Motion must degrade safely when reduced-motion preferences are enabled.
 
-## 1.6 Integration requirements
+## 1.7 Integration requirements
 
 - Inspect `layout.tsx`, `globals.css`, tokens, base styles and foundation styles before editing.
 - Preserve `AppShell`, `ErrorBoundary`, `ProductionQualityMonitor`, metadata and existing global imports.
@@ -204,18 +297,26 @@ Rules:
 - Update `package.json` and lockfile together only when dependencies or scripts genuinely change.
 - Preserve the existing `verify:foundation`, feature verifiers, authentication verifier, typecheck, lint and build workflow.
 - Add `verify:design-system` only if the new verifier is implemented and its command is correct.
+- Do not remove, bypass or weaken existing verification commands to make a change appear successful.
+- Inspect shared CSS consumers before changing a token that could affect unrelated features.
+- Keep the visual refresh separate from API contracts, authentication, authorization and business logic.
+- Preserve all existing property images, image references, order, crop, position, aspect ratio and dimensions.
+- Review responsive layouts and image rendering at representative mobile, tablet and desktop widths.
 
-## 1.7 Part 1 PASS criteria
+## 1.8 Part 1 PASS criteria
 
-- Brand and semantic tokens are consistent across shared components and audited navigation/system CSS.
-- Font loading is deterministic and typography is consistent.
+- Approved Deep Espresso, Dark Rosewood, Matte Antique Gold, Matte Ivory, Warm Stone and Pure White tokens are consistently applied where appropriate.
+- Serif headings and sans-serif body/UI typography follow the approved direction without invented font assets or unreliable loading.
 - Existing layout and F01–F13 behaviour remain intact.
+- Existing property images and their URLs, order, crop, position, aspect ratio and dimensions remain unchanged.
 - Reduced motion and visible keyboard focus work.
 - Components have consistent interactive and disabled states.
 - Layout checks cover 320px mobile through tablet and desktop.
 - No unexpected horizontal overflow or layout shift.
 - Design-system verifier, relevant existing verifiers, typecheck, lint and production build pass.
 - Actual results and commit SHA are recorded.
+
+Do not mark Part 1 `PASS` based only on visual inspection or a successful commit. All required checks must have actual evidence.
 
 ---
 
@@ -297,6 +398,9 @@ Reuse the canonical content components when present:
 - Distinguish preview, unavailable, draft and published content honestly.
 - Avoid links to placeholder destinations or inert buttons.
 - Preserve the existing application shell and global action handling.
+- Avoid duplicate route definitions or competing navigation ownership.
+- Preserve authentication and market-access boundaries.
+- Ensure direct route access follows the same authorization rules as navigation-based access.
 
 ## 2.4 Part 2 PASS criteria
 
@@ -392,6 +496,8 @@ If a canonical service or contract already exists, reuse it. Do not create a par
 - Handle stale data and service failure without fabricating successful results.
 - Preserve verification and freshness disclosures.
 - Do not mark a property or project as verified unless its source establishes that status.
+- Preserve existing image references and rendering when updating search and property styling.
+- Do not use sample records to imply that a live market or inventory feed is operational.
 
 ## 3.6 Part 3 PASS criteria
 
@@ -455,6 +561,8 @@ Check existing listing routes and services before adding these files.
 - Display a reference ID only when returned or generated by the verified submission service.
 - Keep `draft`, `submitted`, `under review`, `verified` and `published` states distinct.
 - Do not claim that a listing is published merely because a form submission was attempted.
+- Do not change existing property imagery during visual-system work.
+- Do not create a second `/post-property` route or competing listing submission owner.
 
 ## 4.4 Part 4 PASS criteria
 
@@ -530,6 +638,7 @@ These are conditional additions, not mandatory duplicate services. Search for ex
 - Protect personal information and document access.
 - Show empty, loading, error, success and unavailable states honestly.
 - Keep My HOMIO activity labels and history attributable to a real source.
+- Preserve existing feature APIs and cross-feature integrations.
 
 ## 5.4 Part 5 PASS criteria
 
@@ -611,6 +720,7 @@ Only add these after identifying existing service ownership and the actual appro
 - Content routes must distinguish published content from preview, missing and stale material.
 - Preserve safe error handling, loading states and user input.
 - Protect sensitive user data and never expose server credentials to the browser.
+- Maintain the distinction between UI availability and actual backend capability.
 
 ## 6.6 Part 6 PASS criteria
 
@@ -696,6 +806,7 @@ Professional features must remain safely unavailable until their verified servic
 - Milestones and completion states must come from the authoritative service.
 - No client-side flag may grant transaction privileges.
 - Preserve the prohibition on broker directories, broker comparisons, bidding, lead auctions and competing-broker marketplaces.
+- Do not confuse an attractive dashboard or visible action with an authorized or completed transaction.
 
 ## 7.6 Part 7 PASS criteria
 
@@ -756,6 +867,7 @@ Check existing locale, formatter, market and translation infrastructure before a
 - Do not treat a selector option, configured city or UI feature flag as proof of operational availability.
 - Market activation requires approved policy and verified service readiness.
 - Keep market data and service-availability status distinct.
+- Do not activate additional markets through a visual or typography update.
 
 ## 8.4 Part 8 PASS criteria
 
@@ -825,6 +937,8 @@ The workflow must explicitly target the frontend directory and use the appropria
 - Upload useful test reports or screenshots when CI supports them.
 - Keep secrets out of logs and browser bundles.
 - Fail CI on genuine test failures; do not weaken tests to force a green result.
+- Preserve existing verification scripts and their meaningful assertions.
+- Keep the design-system and image-preservation checks aligned with Part 1.
 
 ## 9.5 Required browser coverage
 
@@ -838,6 +952,7 @@ The workflow must explicitly target the frontend directory and use the appropria
 - Market activation and unavailable-market behaviour.
 - Keyboard navigation, visible focus, dialog behaviour and accessibility.
 - Horizontal overflow and responsive layout regressions.
+- Property-image rendering regression checks where practical, including image source, order, framing and responsive dimensions.
 
 ## 9.6 Part 9 PASS criteria
 
@@ -846,6 +961,7 @@ The workflow must explicitly target the frontend directory and use the appropria
 - Mobile, tablet and desktop checks pass.
 - Keyboard and reduced-motion checks pass.
 - No unexpected horizontal overflow.
+- Existing property images remain unchanged unless separately approved.
 - Screenshot or visual review evidence is retained where appropriate.
 - Existing verifiers, typecheck, lint, production build and configured CI pass.
 - Commit SHA and actual CI run result are recorded.
@@ -856,7 +972,7 @@ The workflow must explicitly target the frontend directory and use the appropria
 
 | Order | Part | Required outcome |
 |---|---|---|
-| 01 | Design system | Central colours, typography, shared CSS and motion |
+| 01 | Design system | Approved colours, typography, shared CSS and restrained motion; preserve property images |
 | 02 | Routes and navigation | Valid destinations and complete discoverability |
 | 03 | Search and inventory | Verified data contracts and honest data states |
 | 04 | Owner/builder listing | Validated, authorized listing workflow |
@@ -867,6 +983,8 @@ The workflow must explicitly target the frontend directory and use the appropria
 | 09 | E2E and release verification | Browser tests, accessibility, CI and release gate |
 
 Parts may have dependent work identified during audit, but do not claim a later Part is complete while its required dependencies remain unresolved.
+
+A visual refresh does not authorize rewriting all nine Parts or rebuilding features that already meet their acceptance criteria. Change only what the current repository audit proves is necessary.
 
 ---
 
@@ -882,6 +1000,8 @@ Before implementing a Part:
 6. Implement the smallest complete set of changes that satisfies the requirements.
 7. Run the relevant tests and required regression checks.
 8. Review actual results and record the commit SHA.
+9. Confirm that no prohibited files or unrelated project areas were changed.
+10. Record any unverified service or authorization dependencies as blockers rather than marking them PASS.
 
 For each completed Part, publish:
 
@@ -894,4 +1014,36 @@ FILES ADDED:
 FILES PRESERVED:
 
 IMPLEMENTATION RESULT:
-VERIFICATION COMMAND
+
+VERIFICATION COMMANDS:
+ACTUAL VERIFICATION OUTPUTS:
+
+REGRESSION RESULTS:
+PROPERTY IMAGE PRESERVATION RESULT:
+
+COMMIT SHA:
+CHANGED PATHS:
+
+UNVERIFIED DEPENDENCIES / BLOCKERS:
+
+FINAL STATUS: PASS / PARTIAL / BLOCKED
+```
+
+A missing test result must be recorded as **NOT RUN**; it must not be represented as a pass. A commit SHA proves that a commit exists, not that the feature works. A visual preview does not prove backend integration, authorization or production readiness.
+
+---
+
+# CHANGE CONTROL FOR THIS SPECIFICATION
+
+This document is the canonical frontend implementation specification on `reos-development`.
+
+When updating it:
+
+1. Read the latest branch head and the current version of this exact file.
+2. Confirm the expected file path and current content before replacing it.
+3. Keep the final approved brand palette and property-image preservation rule consistent throughout the document.
+4. Preserve existing Part 2–9 requirements unless the audit identifies a concrete conflict or defect.
+5. Do not modify `REOS_CONTROL_CENTER/data/state.json` as part of a specification update.
+6. Do not modify `AI_AGENT_ENTRYPOINT.py` or workflow policy as part of this design-specification change.
+7. Do not report a GitHub save or commit as successful until the resulting branch, parent commit and exact file content have been independently verified.
+8. After saving this specification, implement frontend changes as a separate, audited task. Updating this document alone does not implement Part 1 or establish a PASS result.
