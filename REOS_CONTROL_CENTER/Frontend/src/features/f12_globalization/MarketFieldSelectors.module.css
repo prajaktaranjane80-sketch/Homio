@@ -1,11 +1,10 @@
-
 .fieldCard {
-  --field-ink: #14263a;
-  --field-muted: #6e7d8f;
-  --field-subtle: #8b99a8;
-  --field-line: #e1e8ef;
-  --field-gold: #b08a4d;
-  --field-focus: rgb(217 187 130 / 25%);
+  --field-ink: var(--homio-text);
+  --field-muted: var(--homio-text-muted);
+  --field-subtle: var(--homio-text-muted);
+  --field-line: var(--homio-border);
+  --field-gold: var(--homio-accent-strong);
+  --field-focus: color-mix(in srgb, var(--homio-accent) 25%, transparent);
 
   display: grid;
   align-content: start;
@@ -14,11 +13,12 @@
   padding: clamp(16px, 2.4vw, 22px);
   border: 1px solid var(--field-line);
   border-radius: 18px;
-  background:
-    linear-gradient(165deg, #ffffff 0%, #fcfdff 100%);
-  box-shadow:
-    0 8px 22px rgb(20 38 58 / 3%),
-    0 1px 3px rgb(20 38 58 / 2%);
+  background: linear-gradient(
+    165deg,
+    var(--homio-surface) 0%,
+    var(--homio-surface-soft) 100%
+  );
+  box-shadow: var(--shadow-sm);
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease,
@@ -26,10 +26,8 @@
 }
 
 .fieldCard:hover {
-  border-color: #d1dce6;
-  box-shadow:
-    0 12px 26px rgb(20 38 58 / 5%),
-    0 2px 4px rgb(20 38 58 / 2%);
+  border-color: var(--homio-border-strong);
+  box-shadow: var(--shadow-md);
 }
 
 .fieldHead {
@@ -65,10 +63,13 @@
   min-width: 0;
   min-height: 54px;
   overflow: hidden;
-  border: 1px solid #dfe6ed;
+  border: 1px solid var(--homio-border);
   border-radius: 13px;
-  background:
-    linear-gradient(180deg, #ffffff 0%, #fafbfd 100%);
+  background: linear-gradient(
+    180deg,
+    var(--homio-surface) 0%,
+    var(--homio-surface-soft) 100%
+  );
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease,
@@ -76,11 +77,11 @@
 }
 
 .controlShell:focus-within {
-  border-color: #bd9e68;
-  background: #ffffff;
+  border-color: var(--homio-border-focus);
+  background: var(--homio-surface);
   box-shadow:
     0 0 0 4px var(--field-focus),
-    0 5px 14px rgb(20 38 58 / 4%);
+    var(--shadow-sm);
 }
 
 .leadingMark {
@@ -114,19 +115,19 @@
 }
 
 .select option {
-  background: #ffffff;
+  background: var(--homio-surface);
   color: var(--field-ink);
   font-weight: 550;
 }
 
 .select:disabled {
-  color: #929eaa;
+  color: var(--homio-text-disabled);
   cursor: not-allowed;
 }
 
 .controlShell:has(.select:disabled) {
-  border-color: #e8edf2;
-  background: #f6f8fa;
+  border-color: var(--homio-border);
+  background: var(--homio-surface-soft);
 }
 
 .chevron {
@@ -197,5 +198,9 @@
   .fieldCard,
   .controlShell {
     transition: none;
+  }
+
+  .fieldCard:hover {
+    transform: none;
   }
 }
