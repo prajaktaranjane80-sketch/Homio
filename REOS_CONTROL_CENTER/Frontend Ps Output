@@ -1,18 +1,262 @@
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Test-Path .\package.json
-True
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> npm run dev
+file:///D:/Homio/REOS_CONTROL_CENTER/Frontend/scripts/.part1-local-update.mjs:15
+    throw new Error(label + ": expected exactly one anchor, found " + matches.length);
+          ^
 
-> homio-frontend@0.1.0 dev
-> next dev --turbopack
+Error: design verifier required-files list: expected exactly one anchor, found 0
+    at replaceExactlyOnce (file:///D:/Homio/REOS_CONTROL_CENTER/Frontend/scripts/.part1-local-update.mjs:15:11)
+    at file:///D:/Homio/REOS_CONTROL_CENTER/Frontend/scripts/.part1-local-update.mjs:308:12
+    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:661:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
 
-▲ Next.js 16.2.11 (Turbopack)
-- Local:         http://localhost:3000
-- Network:       http://192.168.1.3:3000
-✓ Ready in 4.7s
-⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
- We detected multiple lockfiles and selected the directory of D:\Homio\REOS_CONTROL_CENTER\package-lock.json as the root directory.
- To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
-   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
- Detected additional lockfiles:
-   * D:\Homio\REOS_CONTROL_CENTER\Frontend\package-lock.json
+Node.js v24.14.0
+Source updater failed. Backup is available at C:\Users\SANDIP~1\AppData\Local\Temp\HOMIO_PART1_BACKUP_20261018_121907
+At line:10 char:9
++         throw "Source updater failed. Backup is available at $backupR ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Source updater ...20261018_121907:String) [], RuntimeException
+    + FullyQualifiedErrorId : Source updater failed. Backup is available at C:\Users\SANDIP~1\AppData\Local\Temp\HOMIO_PART1_BACKUP_20261018_121907
 
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> Write-Host "`nRunning complete frontend verification..." -ForegroundColor Cyan
+
+Running complete frontend verification...
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend>
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> $verifyOutput = New-Object 'System.Collections.Generic.List[string]'
+PS D:\Homio\REOS_CONTROL_CENTER\Frontend> & npm run verify 2>&1 | ForEach-Object {
+>>     $line = $_.ToString()
+>>     $verifyOutput.Add($line)
+>>     Write-Host $line
+>> }
+
+> homio-frontend@0.1.0 verify
+> npm run verify:foundation && npm run verify:auth && npm run verify:f02 && npm run verify:f03 && npm run verify:f04 && npm run verify:f05 && npm run verify:f06 && npm run verify:f07 && npm run verify:f08 && npm run verify:f09 && npm run verify:f10 && npm run verify:f11 && npm run verify:f12 && npm run verify:f13 && npm run typecheck && npm run lint && npm run build
+
+
+> homio-frontend@0.1.0 verify:foundation
+> npm run verify:lockfile && node ./scripts/verify-foundation.mjs && npm run verify:design-system
+
+
+> homio-frontend@0.1.0 verify:lockfile
+> node ./scripts/verify-lockfile.mjs
+
+
+===============================================
+FRONTEND DEPENDENCY LOCK CONTRACT = PASS
+LOCKFILE V3                      = PASS
+ROOT PACKAGE IDENTITY            = PASS
+DIRECT DEPENDENCY DECLARATIONS    = PASS
+RESOLVED DIRECT DEPENDENCIES      = PASS
+HTTPS PACKAGE SOURCES             = PASS
+INTEGRITY METADATA                = PASS
+===============================================
+
+==================================================
+F01 FOUNDATION CONTRACT         = PASS
+FILES VERIFIED                  = 41
+ROOT DOCUMENT AND SHELL         = PASS
+SKIP LINK AND STICKY OFFSET     = PASS
+RESPONSIVE NAVIGATION           = PASS
+GLOBAL SEARCH AND F03 CONTRACT  = PASS
+UNIQUE INPUT IDS / ARIA         = PASS
+UNIQUE SELECT IDS / ARIA        = PASS
+DIALOG ACCESSIBILITY CONTRACT   = PASS
+KEYBOARD FOCUS MANAGEMENT       = PASS
+CSS IMPORT ORDER                = PASS
+CSS TOKEN RESOLUTION            = PASS
+MOBILE SAFE-AREA / MOTION       = PASS
+COMBINED CI PIPELINE            = PASS
+NO STATE.JSON RUNTIME           = PASS
+NO MASTER ARCH RUNTIME          = PASS
+NO ACRL / AUTONOMY RUNTIME      = PASS
+NO PROTOTYPE IMPORT             = PASS
+==================================================
+
+> homio-frontend@0.1.0 verify:design-system
+> node ./scripts/verify-design-system.mjs
+
+
+==================================================
+HOMIO DESIGN SYSTEM CONTRACT       = PASS
+FILES VERIFIED                     = 13
+BRAND / TYPOGRAPHY TOKENS           = PASS
+LEGACY TRANSITION COMPATIBILITY     = PASS
+GLOBAL CSS IMPORT ORDER             = PASS
+MOTION UTILITY CONTRACT             = PASS
+MOTION REVEAL / TYPES               = PASS
+REDUCED-MOTION ACCESSIBILITY         = PASS
+SHARED NAVIGATION / SYSTEM THEME    = PASS
+LEGACY THEME COLOUR CHECK            = PASS
+VERIFY PIPELINE INTEGRATION          = PASS
+==================================================
+
+> homio-frontend@0.1.0 verify:auth
+> node --test ./scripts/auth-runtime.test.mjs && node ./scripts/verify-auth.mjs
+
+Γ£ö PKCE S256 matches the RFC 7636 known vector (1.1829ms)
+Γ£ö random tokens have the expected safe format and are not repeated (0.4755ms)
+Γ£ö state comparison handles equal, unequal, and different-length values (0.1568ms)
+Γ£ö return target accepts approved paths and rejects unsafe redirects (0.3227ms)
+Γ£ö configuration rejects a short session secret (0.6079ms)
+Γ£ö production configuration rejects insecure HTTP URLs (0.195ms)
+Γ£ö encrypted session cookie round-trips a valid session (1.627ms)
+Γ£ö session cookie rejects tampering, malformed data, and oversized values (0.3758ms)
+Γ£ö session cookie rejects wrong secrets and issuer values (0.5511ms)
+Γ£ö session cookie rejects expired and future-issued sessions (0.5182ms)
+Γä╣ tests 10
+Γä╣ suites 0
+Γä╣ pass 10
+Γä╣ fail 0
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 1386.1431
+AUTH ROUTE CONTRACT: PASS
+OIDC PKCE, state/nonce, encrypted session, logout origin guard: PASS
+Protected /my route and real sign-in/sign-up entry points: PASS
+
+> homio-frontend@0.1.0 verify:f02
+> node ./scripts/verify-f02.mjs
+
+
+==================================================
+F02 HOME DISCOVERY HARDENED CONTRACT = PASS
+43 COMPONENTS / 43 CSS MODULES        = PASS
+HOMEPAGE ROUTE COMPOSITION            = PASS
+INTERNAL ROUTES CHECKED                = 121
+SEARCH LINKS CHECKED                   = 77
+HOMEPAGE ANCHORS CHECKED               = 17
+DYNAMIC PROPERTY LINKS CHECKED          = 3
+DYNAMIC PROJECT LINKS CHECKED           = 0
+PROPERTY DETAIL IDS REGISTERED         = PASS
+PROJECT DETAIL IDS REGISTERED          = PASS
+SEARCH QUERY KEYS SUPPORTED            = PASS
+PREVIEW / INVENTORY DISCLOSURES         = PASS
+NO UNWIRED ENABLED TYPE=BUTTON CONTROLS = PASS
+RELATIVE IMPORTS                        = PASS
+LEGACY DIRECTORY CLEANUP                = PASS
+NO LEGACY HOMEPAGE IMPORTS              = PASS
+==================================================
+
+> homio-frontend@0.1.0 verify:f03
+> node ./scripts/verify-f03.mjs
+
+F03 SEARCH CONTRACT GATE = PASS
+FILES VERIFIED = 23
+SHARED PROPERTY + PROJECT CATALOGUES = PASS
+FILTER CONTRACT COVERAGE = PASS
+URL RESTORE + SHARE CONTRACT = PASS
+DRAFT/APPLY/CANCEL FILTER FLOW = PASS
+PAGINATION + INTENT CONTROLS = PASS
+NO SYNTHETIC MAP COORDINATES = PASS
+NO STATE.JSON RUNTIME = PASS
+NO ACRL RUNTIME = PASS
+
+> homio-frontend@0.1.0 verify:f04
+> node ./scripts/verify-f04.mjs
+
+F04 PROPERTY CONTRACT GATE = PASS
+FILES VERIFIED = 41
+ROUTE + PREVIEW SEO BOUNDARY = PASS
+DYNAMIC INTERNATIONAL DISCOVERY LINKS = PASS
+UNVERIFIED PREVIEW DISCLOSURE = PASS
+EMPTY-STATE DATA SAFETY = PASS
+MEDIA + LOCATION DISCLOSURE = PASS
+AI + ENQUIRY + VISIT CAPABILITY BOUNDARIES = PASS
+PROJECT REFERENCE INTEGRITY = PASS
+SIMILAR PROPERTY RELEVANCE = PASS
+NO STATE.JSON RUNTIME = PASS
+NO ACRL RUNTIME = PASS
+
+> homio-frontend@0.1.0 verify:f05
+> node ./scripts/verify-f05.mjs
+
+F05 PROJECT & COLLECTION CONTRACT GATE = PASS
+FILES VERIFIED = 36
+PROJECT CATALOGUE + ROUTE = PASS
+PREVIEW SEO + NOT-FOUND + ERROR RECOVERY = PASS
+UNVERIFIED PROJECTS ARE NON-INDEXED = PASS
+PROJECT MEDIA PREVIEW DISCLOSURE = PASS
+INVENTORY DOES NOT CLAIM LIVE AVAILABILITY = PASS
+RELATED PROJECT REFERENCES RESOLVE = PASS
+PROPERTY REFERENCES RESOLVE THROUGH F04 = PASS
+PROJECT DISCOVERY SEARCH DESTINATION = PASS
+NO STATE.JSON RUNTIME = PASS
+NO ACRL RUNTIME = PASS
+
+> homio-frontend@0.1.0 verify:f06
+> node ./scripts/verify-f06.mjs
+
+F06 SAVE & COMPARE CONTRACT GATE = PASS
+EXISTING SHELLS AND ROUTES = PASS
+ENTITY-AWARE COMPARISON IDENTITY = PASS
+SESSION-ONLY DISCLOSURE = PASS
+FOUR-ITEM COMPARE LIMIT = PASS
+NO DUPLICATE ROUTE STYLESHEET = PASS
+NO FORBIDDEN BACKEND RUNTIME COUPLING = PASS
+F06 INCLUDED IN FULL VERIFY = PASS
+
+> homio-frontend@0.1.0 verify:f07
+> node ./scripts/verify-f07.mjs
+
+F07 MY HOMIO CONTRACT = PASS
+PROTECTED AUTHENTICATED ROUTE = PASS
+SESSION ACTIVITY / SEARCH INTEGRATION = PASS
+ENTITY-AWARE SEARCH AND COMPARISON = PASS
+F06 SHARED STORE INTEGRATION = PASS
+NO FORBIDDEN BACKEND RUNTIME COUPLING = PASS
+F07 INCLUDED IN FULL VERIFY = PASS
+
+> homio-frontend@0.1.0 verify:f08
+> node ./scripts/verify-f08.mjs
+
+F08 HOMIO AI CONTRACT = PASS
+REQUIRED MODULES AND RESPONSIVE STYLES = PASS
+/ai ROUTE AND PRIMARY NAVIGATION = PASS
+F03 SEARCH HANDOFF = PASS
+F06 COMPARE STORE REUSE = PASS
+AI SERVICE LIMITATIONS DISCLOSED = PASS
+ACCESSIBLE ERROR AND UPDATE STATES = PASS
+NO FORBIDDEN BACKEND RUNTIME COUPLING = PASS
+F08 INCLUDED IN FULL VERIFY = PASS
+
+> homio-frontend@0.1.0 verify:f09
+> node ./scripts/verify-f09.mjs
+
+F09 verification passed: 23 required modules, 65 CSS-module selectors, target-aware enquiry/visit entry points, and draft-only service flags.
+
+> homio-frontend@0.1.0 verify:f10
+> node ./scripts/verify-f10.mjs
+
+F10 REQUIRED MODULES = PASS
+F10 CSS SYNTAX AND SELECTORS = PASS
+F10 EMPTY-STATE VARIABLES = PASS
+F10 RELATIVE IMPORTS = PASS
+F10 TRANSACTION SECTIONS = PASS
+F10 KEYBOARD TAB NAVIGATION = PASS
+F10 AUTH-GATED ROUTE = PASS
+F10 SAFE AUTH RETURN PATH = PASS
+F10 NO FORBIDDEN BACKEND RUNTIME COUPLING = PASS
+F10 INCLUDED IN FULL VERIFY = PASS
+
+> homio-frontend@0.1.0 verify:f11
+> node ./scripts/verify-f11.mjs
+
+F11 verification passed: 19 feature files, 12 protected preview routes, CSS references, safe return paths and runtime boundaries.
+
+> homio-frontend@0.1.0 verify:f12
+> node ./scripts/verify-f12.mjs
+
+F12 verification passed: 95 required files, 58 CSS module imports, 584 CSS class references, market policy and runtime boundaries.
+
+> homio-frontend@0.1.0 verify:f13
+> node ./scripts/verify-f13.mjs
+
+F13 integration verification passed: 15 feature files, shared route boundaries, SEO metadata, image policy, empty-state policy, runtime diagnostics and production guard wiring.
+
+> homio-frontend@0.1.0 typecheck
+> tsc --noEmit
+
+
+> homio-frontend@0.1.0 lint
+> eslint .
