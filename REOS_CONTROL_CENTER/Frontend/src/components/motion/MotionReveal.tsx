@@ -29,13 +29,12 @@ export default function MotionReveal({
       "(prefers-reduced-motion: reduce)",
     );
 
-    // The reduced-motion CSS makes content visible without state updates.
     if (reduceMotion.matches) {
       return;
     }
 
-    // Fallback for browsers without IntersectionObserver.
-    if (!("IntersectionObserver" in window)) {
+    // Keep the window object correctly typed for TypeScript.
+    if (typeof window.IntersectionObserver !== "function") {
       const frameId = window.requestAnimationFrame(() => {
         setVisible(true);
       });
