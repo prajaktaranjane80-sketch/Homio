@@ -1,136 +1,59 @@
-
-D:\Homio\REOS_CONTROL_CENTER\Frontend\src\components\motion\MotionReveal.tsx
-  33:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
-
-Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
-* Update external systems with the latest state from React.
-* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
-
-Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
-
-D:\Homio\REOS_CONTROL_CENTER\Frontend\src\components\motion\MotionReveal.tsx:33:7
-  31 |
-  32 |     if (reduceMotion.matches || !("IntersectionObserver" in window)) {
-> 33 |       setVisible(true);
-     |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
-  34 |       return;
-  35 |     }
-  36 |  react-hooks/set-state-in-effect
-
-✖ 1 problem (1 error, 0 warnings)
-
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> npm run verify:foundation
-
-> homio-frontend@0.1.0 verify:foundation
-> npm run verify:lockfile && node ./scripts/verify-foundation.mjs && npm run verify:design-system
-
-
-> homio-frontend@0.1.0 verify:lockfile
-> node ./scripts/verify-lockfile.mjs
-
-
-===============================================
-FRONTEND DEPENDENCY LOCK CONTRACT = PASS
-LOCKFILE V3                      = PASS
-ROOT PACKAGE IDENTITY            = PASS
-DIRECT DEPENDENCY DECLARATIONS    = PASS
-RESOLVED DIRECT DEPENDENCIES      = PASS
-HTTPS PACKAGE SOURCES             = PASS
-INTEGRITY METADATA                = PASS
-===============================================
-
-==================================================
-F01 FOUNDATION CONTRACT         = PASS
-FILES VERIFIED                  = 41
-ROOT DOCUMENT AND SHELL         = PASS
-SKIP LINK AND STICKY OFFSET     = PASS
-RESPONSIVE NAVIGATION           = PASS
-GLOBAL SEARCH AND F03 CONTRACT  = PASS
-UNIQUE INPUT IDS / ARIA         = PASS
-UNIQUE SELECT IDS / ARIA        = PASS
-DIALOG ACCESSIBILITY CONTRACT   = PASS
-KEYBOARD FOCUS MANAGEMENT       = PASS
-CSS IMPORT ORDER                = PASS
-CSS TOKEN RESOLUTION            = PASS
-MOBILE SAFE-AREA / MOTION       = PASS
-COMBINED CI PIPELINE            = PASS
-NO STATE.JSON RUNTIME           = PASS
-NO MASTER ARCH RUNTIME          = PASS
-NO ACRL / AUTONOMY RUNTIME      = PASS
-NO PROTOTYPE IMPORT             = PASS
-==================================================
-
-> homio-frontend@0.1.0 verify:design-system
-> node ./scripts/verify-design-system.mjs
-
-
-==================================================
-HOMIO DESIGN SYSTEM CONTRACT       = PASS
-FILES VERIFIED                     = 13
-BRAND / TYPOGRAPHY TOKENS           = PASS
-LEGACY TRANSITION COMPATIBILITY     = PASS
-GLOBAL CSS IMPORT ORDER             = PASS
-MOTION UTILITY CONTRACT             = PASS
-MOTION REVEAL / TYPES               = PASS
-REDUCED-MOTION ACCESSIBILITY         = PASS
-SHARED NAVIGATION / SYSTEM THEME    = PASS
-LEGACY THEME COLOUR CHECK            = PASS
-VERIFY PIPELINE INTEGRATION          = PASS
-==================================================
-PS D:\Homio\REOS_CONTROL_CENTER\Frontend> npm run build
-
-> homio-frontend@0.1.0 build
-> next build
-
-⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
- We detected multiple lockfiles and selected the directory of D:\Homio\REOS_CONTROL_CENTER\package-lock.json as the root directory.
- To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
-   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
- Detected additional lockfiles:
-   * D:\Homio\REOS_CONTROL_CENTER\Frontend\package-lock.json
-
-▲ Next.js 16.2.11 (Turbopack)
-
-  Creating an optimized production build ...
-✓ Compiled successfully in 3.5s
-✓ Finished TypeScript in 7.4s
-✓ Collecting page data using 11 workers in 884ms
-✓ Generating static pages using 11 workers (14/14) in 378ms
-✓ Finalizing page optimization in 30ms
-
-Route (app)
-┌ ○ /
-├ ○ /_not-found
-├ ○ /ai
-├ ƒ /api/auth/callback
-├ ƒ /api/auth/login
-├ ƒ /api/auth/logout
-├ ƒ /api/auth/session
-├ ○ /compare
-├ ƒ /enquiry
-├ ƒ /login
-├ ƒ /my
-├ ƒ /pro
-├ ƒ /pro/clients
-├ ƒ /pro/deals
-├ ƒ /pro/documents
-├ ƒ /pro/enquiries
-├ ƒ /pro/follow-ups
-├ ƒ /pro/inventory
-├ ƒ /pro/inventory/[inventoryId]
-├ ƒ /pro/leads
-├ ƒ /pro/performance
-├ ƒ /pro/projects
-├ ƒ /pro/visits
-├ ƒ /project/[projectId]
-├ ƒ /property/[propertyId]
-├ ○ /saved
-├ ○ /search
-├ ƒ /signup
-└ ƒ /transaction/[transactionId]
-
-
-ƒ Proxy (Middleware)
-
-○  (Static)   prerendered as static content
-ƒ  (Dynamic)  server-rendered on demand
+>> # HOMIO / REOS — PowerShell → GitHub Sync Workflow
+>>
+>> ## Purpose and active scope
+>>
+>> This document defines the safe, repeatable workflow for authenticated PowerShell-to-GitHub operations.
+>>
+>> - Repository: `prajaktaranjane80-sketch/Homio`
+>> - Canonical branch: `reos-development`
+>> - Canonical code/history source: GitHub branch `reos-development`
+>> - Canonical state authority: `REOS_CONTROL_CENTER/data/state.json`
+>> - Diagnostic evidence: `REOS_CONTROL_CENTER/Ps Output`
+>>
+>> **Scope rule:** Work only on the task explicitly authorized in the current conversation. A workflow-only task must not start CORE-008 implementation, frontend changes, ACRL changes, or state transitions. Do not modify `data/state.json` as part of workflow repair.
+>>
+>> ## Non-negotiable safety rules
+>>
+>> 1. Never print, save, paste, or commit access tokens.
+>> 2. Verify the authenticated GitHub account and exact repository before any write.
+>> 3. Read the live branch HEAD and exact target file/blob immediately before preparing a write.
+>> 4. Create the new commit with the verified live HEAD as its parent.
+>> 5. Re-read the branch HEAD immediately before moving the ref.
+>> 6. Update the branch only through a non-force ref update. If the update is rejected, inspect the latest HEAD and rebuild; never force-push.
+>> 7. After writing, independently read the commit, parent, changed path/blob, resulting content, and branch HEAD.
+>> 8. Record only verified facts and actual test/CI results in `REOS_CONTROL_CENTER/Ps Output`.
+>> 9. Do not treat local output or intended actions as proof of a remote commit.
+>> 10. Make one approved change at a time. Do not create a parallel workflow runner or edit unrelated files.
+>>
+>> ## Read-first preflight
+>>
+>> Run in PowerShell:
+>>
+>> ```powershell
+>> $ErrorActionPreference = 'Stop'
+>> $Repo = 'prajaktaranjane80-sketch/Homio'
+>> $Branch = 'reos-development'
+>>
+>> gh auth status
+>> if ($LASTEXITCODE -ne 0) { throw 'GitHub CLI authentication failed.' }
+>>
+>> $me = gh api user
+>> if ($LASTEXITCODE -ne 0) { throw 'Cannot verify authenticated GitHub user.' }
+>> $me = $me | ConvertFrom-Json
+>>
+>> $repoData = gh api "repos/$Repo"
+>> if ($LASTEXITCODE -ne 0) { throw "Cannot read repository: $Repo" }
+>> $repoData = $repoData | ConvertFrom-Json
+>>
+>> $ref = gh api "repos/$Repo/git/ref/heads/$Branch"
+>> if ($LASTEXITCODE -ne 0) { throw "Cannot read branch: $Branch" }
+>> $ref = $ref | ConvertFrom-Json
+>>
+>> [pscustomobject]@{
+>>     AuthenticatedUser = $me.login
+>>     Repository        = $repoData.full_name
+>>     PushPermission    = $repoData.permissions.push
+>>     Branch            = $Branch
+>>     LiveHead          = $ref.object.sha
+>> } | Format-List
+>>
