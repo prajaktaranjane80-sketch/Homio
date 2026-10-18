@@ -29,9 +29,20 @@ export default function MotionReveal({
       "(prefers-reduced-motion: reduce)",
     );
 
-    if (reduceMotion.matches || !("IntersectionObserver" in window)) {
-      setVisible(true);
+    // The reduced-motion CSS makes content visible without state updates.
+    if (reduceMotion.matches) {
       return;
+    }
+
+    // Fallback for browsers without IntersectionObserver.
+    if (!("IntersectionObserver" in window)) {
+      const frameId = window.requestAnimationFrame(() => {
+        setVisible(true);
+      });
+
+      return () => {
+        window.cancelAnimationFrame(frameId);
+      };
     }
 
     let observer: IntersectionObserver | undefined;
