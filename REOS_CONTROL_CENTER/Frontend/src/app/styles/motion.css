@@ -1,12 +1,14 @@
+
 /*
  * HOMIO motion foundation.
- * Keep animation subtle, purposeful and respectful of reduced-motion settings.
+ * Purposeful, restrained movement only.
+ * Never animate property images with zoom or scale effects.
  */
 
 :root {
-  --motion-distance-sm: 6px;
-  --motion-distance-md: 14px;
-  --motion-distance-lg: 22px;
+  --motion-distance-sm: 5px;
+  --motion-distance-md: var(--motion-reveal-distance);
+  --motion-distance-lg: 20px;
 }
 
 @keyframes homio-fade-in {
@@ -31,15 +33,15 @@
   }
 }
 
-@keyframes homio-scale-in {
+@keyframes homio-soft-reveal {
   from {
     opacity: 0;
-    transform: scale(0.985);
+    transform: translate3d(0, var(--motion-distance-sm), 0);
   }
 
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -60,11 +62,53 @@
 }
 
 .motion-scale-in {
+  /*
+   * Keep the existing class name for compatibility.
+   * No scaling: the effect is a soft fade instead.
+   */
   animation:
-    homio-scale-in
+    homio-fade-in
     var(--motion-slow)
     var(--ease-emphasized)
     both;
+}
+
+.motion-soft-reveal {
+  animation:
+    homio-soft-reveal
+    var(--motion-slow)
+    var(--ease-emphasized)
+    both;
+}
+
+/* Matte global header, aligned with the new ivory palette */
+.site-header {
+  background: var(--homio-bg);
+  border-bottom-color: var(--homio-border);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Editorial HOMIO wordmark */
+.brand__name {
+  color: var(--homio-text);
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.045em;
+}
+
+/* Restrained interactive feedback */
+a,
+button,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline-color: var(--homio-accent);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -76,5 +120,12 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     transition-delay: 0ms !important;
+  }
+
+  .motion-fade-in,
+  .motion-rise-in,
+  .motion-scale-in,
+  .motion-soft-reveal {
+    animation: none !important;
   }
 }
