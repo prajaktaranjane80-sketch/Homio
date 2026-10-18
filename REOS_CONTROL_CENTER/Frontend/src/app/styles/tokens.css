@@ -1,10 +1,11 @@
+
 :root {
-  /* HOMIO brand */
-  --homio-brand: #111111;
-  --homio-brand-soft: #262626;
-  --homio-accent: #c59b63;
-  --homio-accent-strong: #a97d45;
-  --homio-accent-soft: #f5ecdf;
+  /* HOMIO — refined international luxury palette */
+  --homio-brand: #241c1a;
+  --homio-brand-soft: #352925;
+  --homio-accent: #a98556;
+  --homio-accent-strong: #89683e;
+  --homio-accent-soft: #f0e7db;
 
   /* Semantic brand aliases */
   --color-brand: var(--homio-brand);
@@ -13,12 +14,12 @@
   --color-accent-hover: var(--homio-accent-strong);
 
   /* Surfaces */
-  --homio-bg: #f8f7f4;
+  --homio-bg: #f7f4ef;
   --homio-surface: #ffffff;
-  --homio-surface-soft: #f2f0eb;
-  --homio-surface-muted: #ebe8e1;
+  --homio-surface-soft: #eae1d7;
+  --homio-surface-muted: #e4d9cd;
   --homio-surface-raised: #ffffff;
-  --homio-surface-inverse: #171717;
+  --homio-surface-inverse: #241c1a;
 
   --color-background: var(--homio-bg);
   --color-surface: var(--homio-surface);
@@ -26,42 +27,42 @@
   --color-surface-muted: var(--homio-surface-muted);
 
   /* Text */
-  --homio-text: #171717;
-  --homio-text-soft: #555555;
-  --homio-text-muted: #777777;
+  --homio-text: #241c1a;
+  --homio-text-soft: #5e514b;
+  --homio-text-muted: #796e66;
   --homio-text-inverse: #ffffff;
-  --homio-text-disabled: #999999;
+  --homio-text-disabled: #9b9188;
 
   --color-text: var(--homio-text);
   --color-text-secondary: var(--homio-text-soft);
   --color-text-muted: var(--homio-text-muted);
   --color-text-inverse: var(--homio-text-inverse);
 
-  /* Borders and dividers */
-  --homio-border: #e4e0d8;
-  --homio-border-strong: #d5d0c7;
-  --homio-border-focus: #a97d45;
+  /* Borders and focus */
+  --homio-border: #ded5ca;
+  --homio-border-strong: #cfc2b3;
+  --homio-border-focus: #89683e;
 
   --color-border: var(--homio-border);
   --color-border-strong: var(--homio-border-strong);
   --color-divider: var(--homio-border);
 
-  /* Status colours */
-  --homio-success: #2e7d5b;
-  --homio-success-soft: #edf7f0;
-  --homio-warning: #94621c;
-  --homio-warning-soft: #fbf2e3;
-  --homio-danger: #b42318;
-  --homio-danger-soft: #fff0ef;
-  --homio-info: #426d98;
-  --homio-info-soft: #eff6fd;
+  /* Accessible semantic status colours */
+  --homio-success: #286448;
+  --homio-success-soft: #e9f2ec;
+  --homio-warning: #80551b;
+  --homio-warning-soft: #f8efdf;
+  --homio-danger: #a52b25;
+  --homio-danger-soft: #f9eae7;
+  --homio-info: #365d78;
+  --homio-info-soft: #eaf0f5;
 
   --color-success: var(--homio-success);
   --color-warning: var(--homio-warning);
   --color-danger: var(--homio-danger);
   --color-info: var(--homio-info);
 
-  /* Typography */
+  /* Typography: editorial serif + clean product UI */
   --font-sans: "Inter", "Aptos", "Segoe UI", Arial, sans-serif;
   --font-serif: "Iowan Old Style", "Baskerville", "Palatino Linotype", Georgia, serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
@@ -104,7 +105,7 @@
   --space-20: 5rem;
   --space-24: 6rem;
 
-  /* Radius */
+  /* Refined, restrained corner radii */
   --radius-xs: 0.25rem;
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
@@ -113,11 +114,11 @@
   --radius-2xl: 2rem;
   --radius-pill: 999px;
 
-  /* Shadows */
-  --shadow-sm: 0 4px 16px rgb(17 17 17 / 6%);
-  --shadow-md: 0 12px 32px rgb(17 17 17 / 10%);
-  --shadow-lg: 0 24px 60px rgb(17 17 17 / 14%);
-  --shadow-overlay: 0 28px 80px rgb(17 17 17 / 22%);
+  /* Matte surfaces: restrained elevation, no glossy effects */
+  --shadow-sm: 0 3px 12px rgb(36 28 26 / 5%);
+  --shadow-md: 0 10px 28px rgb(36 28 26 / 8%);
+  --shadow-lg: 0 22px 54px rgb(36 28 26 / 12%);
+  --shadow-overlay: 0 28px 72px rgb(36 28 26 / 20%);
 
   /* Layout */
   --container-width: 1280px;
@@ -128,21 +129,16 @@
   --layer-overlay: 100;
   --layer-toast: 200;
 
-  /* Motion durations */
-  --motion-fast: 120ms;
-  --motion-normal: 180ms;
-  --motion-slow: 320ms;
+  /* Motion */
+  --motion-fast: 140ms;
+  --motion-normal: 220ms;
+  --motion-slow: 420ms;
+  --motion-reveal-distance: 12px;
 
-  /*
-   * Compatibility contracts:
-   * Existing base.css and foundation.css expect duration + timing function.
-   */
+  /* Compatibility: existing CSS expects duration + easing together */
   --ease-standard: 180ms ease;
   --ease-slow: 320ms ease;
 
-  /*
-   * Curve-only token for transitions/animations that specify duration separately.
-   */
   --ease-standard-curve: cubic-bezier(0.2, 0, 0, 1);
   --ease-emphasized: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
