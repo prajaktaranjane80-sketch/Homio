@@ -46,7 +46,13 @@ const requiredFiles = [
   "src/components/system/SystemComponents.module.css",
   "src/components/motion/MotionReveal.tsx",
   "src/components/motion/MotionReveal.module.css",
-  "src/components/motion/motion.types.ts"
+  "src/components/motion/motion.types.ts",
+  "src/features/f03_search/SearchShell.module.css",
+  "src/features/f04_property/PropertyPage.module.css",
+  "src/features/f05_project/ProjectPage.module.css",
+  "src/features/f12_globalization/MarketActivationWorkspace.module.css",
+  "src/features/f12_globalization/MarketFieldSelectors.module.css",
+  "src/features/f12_globalization/MarketStates.module.css"
 ];
 
 for (const relativePath of requiredFiles) {
@@ -61,13 +67,28 @@ const globals = read("src/app/globals.css");
 const base = read("src/app/styles/base.css");
 const foundation = read("src/app/styles/foundation.css");
 const motion = read("src/app/styles/motion.css");
+
 const globalMenus = read("src/components/navigation/GlobalMenus.module.css");
 const megaMenu = read("src/components/navigation/MegaMenu.module.css");
 const sharedSystem = read("src/components/system/SharedSystem.module.css");
 const systemComponents = read("src/components/system/SystemComponents.module.css");
+
 const revealComponent = read("src/components/motion/MotionReveal.tsx");
 const revealCss = read("src/components/motion/MotionReveal.module.css");
 const motionTypes = read("src/components/motion/motion.types.ts");
+
+const searchShellTheme = read("src/features/f03_search/SearchShell.module.css");
+const propertyPageTheme = read("src/features/f04_property/PropertyPage.module.css");
+const projectPageTheme = read("src/features/f05_project/ProjectPage.module.css");
+const marketWorkspaceTheme = read(
+  "src/features/f12_globalization/MarketActivationWorkspace.module.css"
+);
+const marketFieldsTheme = read(
+  "src/features/f12_globalization/MarketFieldSelectors.module.css"
+);
+const marketStatesTheme = read(
+  "src/features/f12_globalization/MarketStates.module.css"
+);
 
 /* 1. Canonical HOMIO brand and surface contract */
 
@@ -92,7 +113,7 @@ for (const token of requiredTokens) {
   requireContains(tokens, token, "Design token contract");
 }
 
-/* 2. Preserve old transition shorthand and new curve-only contract */
+/* 2. Preserve legacy transition shorthand and curve-only contract */
 
 requireContains(
   tokens,
@@ -140,7 +161,7 @@ for (const styleImport of requiredImports) {
   previousPosition = currentPosition;
 }
 
-/* 4. Motion CSS and reduced-motion support */
+/* 4. Motion utilities and reduced-motion support */
 
 for (const requiredClass of [
   ".motion-fade-in",
@@ -204,7 +225,7 @@ requireContains(
   "Reveal children type"
 );
 
-/* 5. Navigation and system components must use the shared theme */
+/* 5. Shared navigation and system modules use the theme */
 
 const themedModules = [
   ["GlobalMenus.module.css", globalMenus],
@@ -221,22 +242,51 @@ for (const [fileName, source] of themedModules) {
   );
 }
 
-/* Reject the previous competing navy/blue-grey theme in these modules. */
+/* 6. Core feature page shells use the same HOMIO palette */
+
+const featureThemeModules = [
+  ["SearchShell.module.css", searchShellTheme],
+  ["PropertyPage.module.css", propertyPageTheme],
+  ["ProjectPage.module.css", projectPageTheme],
+  ["MarketActivationWorkspace.module.css", marketWorkspaceTheme],
+  ["MarketFieldSelectors.module.css", marketFieldsTheme],
+  ["MarketStates.module.css", marketStatesTheme]
+];
+
+for (const [fileName, source] of featureThemeModules) {
+  requireContains(
+    source,
+    "var(--homio-",
+    `${fileName} canonical HOMIO palette`
+  );
+}
+
+/* 7. Reject the old competing navy/blue-grey palette in audited modules */
 
 const legacyPaletteValues = [
   "#15283c",
   "#14283d",
+  "#14263a",
   "#14263b",
   "#152a40",
   "#1a3046",
+  "#17212b",
+  "#f7f8fa",
   "#e1e8ef",
   "#e2e8ef",
+  "#dce2e8",
+  "#d5dbe2",
   "#708095",
   "#d9bb82",
-  "#d8ba82"
+  "#d8ba82",
+  "#987443",
+  "#b08a4d",
+  "#52657b",
+  "#dfbd80",
+  "#f6f8fa"
 ];
 
-const combinedThemeModules = themedModules
+const combinedThemeModules = [...themedModules, ...featureThemeModules]
   .map(([, source]) => source.toLowerCase())
   .join("\n");
 
@@ -246,7 +296,19 @@ for (const legacyColor of legacyPaletteValues) {
   }
 }
 
-/* 6. Reduced-motion rules for animated system skeletons/loaders */
+/* 8. Reduced-motion behaviour in animated modules */
+
+requireContains(
+  propertyPageTheme,
+  "@media (prefers-reduced-motion: reduce)",
+  "Property page motion accessibility"
+);
+
+requireContains(
+  marketFieldsTheme,
+  "@media (prefers-reduced-motion: reduce)",
+  "Market field motion accessibility"
+);
 
 requireContains(
   sharedSystem,
@@ -260,7 +322,7 @@ requireContains(
   "System component motion accessibility"
 );
 
-/* 7. Wire verifier into the standard frontend checks */
+/* 9. Wire the verifier into standard frontend checks */
 
 if (!packageJson.scripts?.["verify:design-system"]) {
   fail("npm script verify:design-system is missing.");
@@ -293,6 +355,7 @@ console.log("MOTION UTILITY CONTRACT             = PASS");
 console.log("MOTION REVEAL / TYPES               = PASS");
 console.log("REDUCED-MOTION ACCESSIBILITY         = PASS");
 console.log("SHARED NAVIGATION / SYSTEM THEME    = PASS");
+console.log("FEATURE PALETTE CONTRACT             = PASS");
 console.log("LEGACY THEME COLOUR CHECK            = PASS");
 console.log("VERIFY PIPELINE INTEGRATION          = PASS");
 console.log("==================================================");
