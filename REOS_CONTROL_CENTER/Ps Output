@@ -1,107 +1,43 @@
-PS D:\Homio> git fetch origin
-remote: Enumerating objects: 7, done.
-remote: Counting objects: 100% (7/7), done.
-remote: Compressing objects: 100% (4/4), done.
-remote: Total 4 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (4/4), 1.67 KiB | 57.00 KiB/s, done.
-From https://github.com/prajaktaranjane80-sketch/Homio
-   651c8ceb..bb92e112  reos-development -> origin/reos-development
-PS D:\Homio> if ($LASTEXITCODE -ne 0) { throw "Fetch failed; stop here." }
 PS D:\Homio>
-PS D:\Homio> $target = "D:\HOMIO_ACRL_AUDIT_WORK_20261019"
+PS D:\Homio> Write-Host "=== CHECKED-OUT COMMIT ==="
+=== CHECKED-OUT COMMIT ===
+PS D:\Homio> git -C $target rev-parse HEAD
+ff13a3db18e6e5983f4128e6dcbb132a3ee92e51
 PS D:\Homio>
-PS D:\Homio> if (Test-Path $target) {
->>     throw "Target folder already exists. Do not overwrite it; choose another folder."
->> }
+PS D:\Homio> Write-Host "=== TEST FILE EXISTS ==="
+=== TEST FILE EXISTS ===
+PS D:\Homio> Test-Path "$target\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\acrl\runtime_integration\test_full_acrl_spine.py"
+False
 PS D:\Homio>
-PS D:\Homio> git worktree add -b homio-acrl-audit-work-20261019 $target origin/reos-development
-Preparing worktree (new branch 'homio-acrl-audit-work-20261019')
-branch 'homio-acrl-audit-work-20261019' set up to track 'origin/reos-development'.
-error: invalid path 'Project: HOMIO'
-fatal: Could not reset index file to revision 'HEAD'.
-PS D:\Homio> if ($LASTEXITCODE -ne 0) { throw "Worktree creation failed; stop here." }
-Worktree creation failed; stop here.
-At line:1 char:28
-+ ... $LASTEXITCODE -ne 0) { throw "Worktree creation failed; stop here." }
-+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Worktree creation failed; stop here.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Worktree creation failed; stop here.
-
-PS D:\Homio>
-PS D:\Homio> Push-Location $target
-Push-Location : Cannot find path 'D:\HOMIO_ACRL_AUDIT_WORK_20261019' because it does not exist.
+PS D:\Homio> Push-Location "$target\REOS_CONTROL_CENTER"
+Push-Location : Cannot find path 'D:\HOMIO_ACRL_AUDIT_SPARSE_20261019\REOS_CONTROL_CENTER' because it does not exist.
 At line:1 char:1
-+ Push-Location $target
-+ ~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (D:\HOMIO_ACRL_AUDIT_WORK_20261019:String) [Push-Location], ItemNotFoundException
++ Push-Location "$target\REOS_CONTROL_CENTER"
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (D:\HOMIO_ACRL_A..._CONTROL_CENTER:String) [Push-Location], ItemNotFoundException
     + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.PushLocationCommand
 
 PS D:\Homio> try {
->>     Write-Host "=== CHECKED-OUT COMMIT ==="
->>     git rev-parse HEAD
->>
->>     Write-Host "=== WORKTREE STATUS ==="
->>     git status --short --branch
->>
->>     $test = ".\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\acrl\runtime_integration\test_full_acrl_spine.py"
+>>     $test = ".\AUTONOMY_ENGINE\continuity\acrl\runtime_integration\test_full_acrl_spine.py"
 >>
 >>     if (-not (Test-Path $test)) {
->>         throw "Expected test file is missing from the checked-out branch."
+>>         throw "ACRL test file missing from sparse checkout."
 >>     }
 >>
 >>     Write-Host "=== NEW ACRL SPINE TEST ==="
 >>     python -m pytest $test -q
 >>     if ($LASTEXITCODE -ne 0) { throw "Spine test failed." }
 >>
->>     Write-Host "=== EXISTING RUNTIME INTEGRATION TESTS ==="
->>     python -m pytest ".\REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\acrl\runtime_integration" -q
+>>     Write-Host "=== EXISTING RUNTIME-INTEGRATION TESTS ==="
+>>     python -m pytest ".\AUTONOMY_ENGINE\continuity\acrl\runtime_integration" -q
 >>     if ($LASTEXITCODE -ne 0) { throw "Runtime integration tests failed." }
 >> }
 >> finally {
 >>     Pop-Location
 >> }
-=== CHECKED-OUT COMMIT ===
-1590a050bc74174315f418d350dc4c95b3f99141
-=== WORKTREE STATUS ===
-## reos-development...origin/reos-development [ahead 6, behind 1366]
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__init__.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/__init__.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/contract_primitives.py
- M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
- M REOS_CONTROL_CENTER/data/state.json
-?? HOMIO_Frontend_Backup_20261017_203609/
-?? HOMIO_Frontend_Backup_20261017_204602/
-?? HOMIO_Frontend_Backup_20261017_205108/
-?? "New folder/"
-?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t01_financial_ledger_boundary.py
-?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_closure_c2_c3.py
-?? "REOS_CONTROL_CENTER/Frontend Ps Output"
-?? REOS_CONTROL_CENTER/Frontend/.next/
-?? REOS_CONTROL_CENTER/Frontend/AUTHENTICATION_SETUP.md
-?? REOS_CONTROL_CENTER/Frontend/_homio_sync_backup_20261017_184735/
-?? REOS_CONTROL_CENTER/Frontend/eslint.config.mjs
-?? REOS_CONTROL_CENTER/Frontend/next-env.d.ts
-?? REOS_CONTROL_CENTER/Frontend/next.config.ts
-?? REOS_CONTROL_CENTER/Frontend/next.config.ts.backup-20261018-115823
-?? REOS_CONTROL_CENTER/Frontend/node_modules/
-?? REOS_CONTROL_CENTER/Frontend/package-lock.json
-?? REOS_CONTROL_CENTER/Frontend/package.json
-?? REOS_CONTROL_CENTER/Frontend/scripts/
-?? REOS_CONTROL_CENTER/Frontend/src/
-?? REOS_CONTROL_CENTER/Frontend/tsconfig.json
-?? REOS_CONTROL_CENTER/Frontend/tsconfig.tsbuildinfo
-?? REOS_CONTROL_CENTER/package-lock.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210705_675096.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210705_920438.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_186837.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_460015.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_697927.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_990397.json
-?? REOS_CONTROL_CENTER/snapshots/state_20261002_210707_222976.json
-Expected test file is missing from the checked-out branch.
-At line:11 char:9
-+         throw "Expected test file is missing from the checked-out bra ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Expected test f...ked-out branch.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Expected test file is missing from the checked-out branch.
+ACRL test file missing from sparse checkout.
+At line:5 char:9
++         throw "ACRL test file missing from sparse checkout."
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ACRL test file ...parse checkout.:String) [], RuntimeException
+    + FullyQualifiedErrorId : ACRL test file missing from sparse checkout.
