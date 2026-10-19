@@ -1,73 +1,56 @@
-PS D:\Homio\REOS_CONTROL_CENTER> cd D:\Homio\REOS_CONTROL_CENTER
-PS D:\Homio\REOS_CONTROL_CENTER> git status --short --branch
-## reos-development...origin/reos-development [ahead 6, behind 1305]
- M AUTONOMY_ENGINE/core/__init__.py
- M AUTONOMY_ENGINE/core/commission_financial/__init__.py
- M AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
- M AUTONOMY_ENGINE/core/contract_primitives.py
- M AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
- M data/state.json
-?? ../HOMIO_Frontend_Backup_20261017_203609/
-?? ../HOMIO_Frontend_Backup_20261017_204602/
-?? ../HOMIO_Frontend_Backup_20261017_205108/
-?? "../New folder/"
-?? AUTONOMY_ENGINE/core/commission_financial/test_core008_t01_financial_ledger_boundary.py
-?? AUTONOMY_ENGINE/core/test_closure_c2_c3.py
-?? "Frontend Ps Output"
-?? Frontend/.next/
-?? Frontend/AUTHENTICATION_SETUP.md
-?? Frontend/_homio_sync_backup_20261017_184735/
-?? Frontend/eslint.config.mjs
-?? Frontend/next-env.d.ts
-?? Frontend/next.config.ts
-?? Frontend/next.config.ts.backup-20261018-115823
-?? Frontend/node_modules/
-?? Frontend/package-lock.json
-?? Frontend/package.json
-?? Frontend/scripts/
-?? Frontend/src/
-?? Frontend/tsconfig.json
-?? Frontend/tsconfig.tsbuildinfo
-?? package-lock.json
-?? snapshots/state_20261002_210705_675096.json
-?? snapshots/state_20261002_210705_920438.json
-?? snapshots/state_20261002_210706_186837.json
-?? snapshots/state_20261002_210706_460015.json
-?? snapshots/state_20261002_210706_697927.json
-?? snapshots/state_20261002_210706_990397.json
-?? snapshots/state_20261002_210707_222976.json
-PS D:\Homio\REOS_CONTROL_CENTER> git rev-parse --show-toplevel
-D:/Homio
-PS D:\Homio\REOS_CONTROL_CENTER> git fetch origin
-remote: Enumerating objects: 318, done.
-remote: Counting objects: 100% (48/48), done.
-remote: Compressing objects: 100% (48/48), done.
-remote: Total 318 (delta 21), reused 0 (delta 0), pack-reused 270 (from 1)
-Receiving objects: 100% (318/318), 149.30 KiB | 4.98 MiB/s, done.
-Resolving deltas: 100% (198/198), done.
-From https://github.com/prajaktaranjane80-sketch/Homio
-   afb5c37f..dcf65172  reos-development -> origin/reos-development
-PS D:\Homio\REOS_CONTROL_CENTER> git pull --ff-only origin reos-development
-From https://github.com/prajaktaranjane80-sketch/Homio
- * branch              reos-development -> FETCH_HEAD
-hint: Diverging branches can't be fast-forwarded, you need to either:
-hint:
-hint:   git merge --no-ff
-hint:
-hint: or:
-hint:
-hint:   git rebase
-hint:
-hint: Disable this message with "git config set advice.diverging false"
-fatal: Not possible to fast-forward, aborting.
-PS D:\Homio\REOS_CONTROL_CENTER> Test-Path ".\AUTONOMY_ENGINE\continuity\acrl\runtime_integration\test_full_acrl_spine.py"
-False
-PS D:\Homio\REOS_CONTROL_CENTER> python -m pytest ".\AUTONOMY_ENGINE\continuity\acrl\runtime_integration\test_full_acrl_spine.py" -q
-
-no tests ran in 0.01s
-ERROR: file or directory not found: .\AUTONOMY_ENGINE\continuity\acrl\runtime_integration\test_full_acrl_spine.py
-
-PS D:\Homio\REOS_CONTROL_CENTER> python -m pytest ".\AUTONOMY_ENGINE\continuity\acrl\runtime_integration" -q
-...................                                                                                                                                  [100%]
-19 passed in 1.43s
-PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio> git rev-parse HEAD
+1590a050bc74174315f418d350dc4c95b3f99141
+PS D:\Homio> git rev-parse origin/reos-development
+dcf651725c8b85a297f34d0891b37c448783b3fe
+PS D:\Homio> git log --oneline --decorate --left-right HEAD...origin/reos-development | Select-Object -First 40
+> dcf65172 (origin/reos-development) Create test_full_acrl_spine.py
+> 1b28e9d4 Update operational_runtime.py
+> 0ded5c54 Rename HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN..json to HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN.json
+> 08517bac Add HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN.json file
+> e03dbb21 Create HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN
+> e399c2c0 Delete HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN
+> 7ba6ecf9 Create HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN
+> b81313c3 Update MotionReveal.module.css
+> 85402be5 Update foundation.css
+> 52b4fdb1 Update foundation.css
+> d9fa5eb6 Update tokens.css
+> 2cbd12b5 Update base.css
+> c10bc9ce Update verify-design-system.mjs
+> 4185df9e Update themeColor in viewport configuration
+> 490fd765 Update motion.css
+> a3f0bf7b Refactor base.css for improved styling consistency
+> fc326e3f Update tokens.css
+> 5cdc0352 Update and rename Frantend update files to Frontend update files
+> 3b988b0b Update Frontend Ps Output
+> d64c32fc Update Frontend Ps Output
+> 2bbd40b9 Update Frontend Ps Output
+> 1650da55 Update Ps Output
+> 8c8f1e57 Update Frontend Ps Output
+> aac0ee19 Refactor design system verification script
+> c78f434d Update MarketStates.module.css
+> 81ced6a3 Update MarketFieldSelectors.module.css
+> ced70b06 Update MarketActivationWorkspace.module.css
+> 90ae085a Update ProjectPage.module.css
+> d2057f0a Update PropertyPage.module.css
+> f6bb5a8e Update SearchShell.module.css
+> 8f2016a9 Update Ps Output
+> a674ea13 Update Ps Output
+> 9981e01e Update MotionReveal.tsx
+> 114c0236 Update Ps Output
+> 5b0d266c Improve motion reveal handling for accessibility
+> 25518d58 Update MotionReveal.module.css
+> 96c9e388 Update Ps Output
+> 3fa4c678 Update MotionReveal.module.css
+> a19ae324 Update MotionReveal.module.css
+> 2cea737b Update Ps Output
+PS D:\Homio> git diff --stat
+warning: in the working copy of 'REOS_CONTROL_CENTER/data/state.json', CRLF will be replaced by LF the next time Git touches it
+ .../AUTONOMY_ENGINE/core/__init__.py               |  114 +-
+ .../core/commission_financial/__init__.py          |   12 +-
+ .../commission_financial/commission_calculation.py |   10 +-
+ .../AUTONOMY_ENGINE/core/contract_primitives.py    |   19 +
+ .../core/deal_transaction/deal_evidence_audit.py   |    6 +-
+ REOS_CONTROL_CENTER/data/state.json                | 9018 ++++++++++----------
+ 6 files changed, 4639 insertions(+), 4540 deletions(-)
+PS D:\Homio> git diff --cached --stat
+PS D:\Homio>
