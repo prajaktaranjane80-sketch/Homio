@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 """
-Final ACRL operational runtime.
+Read-only ACRL operational preflight.
 
-This is intentionally self-contained: it does not import sibling files from
-runtime_integration such as runtime_orchestrator.py or runtime_bindings.py.
-It validates the canonical Control Center state, validates the complete ACRL
-T01-T30 spine, then crosses the existing AUTONOMY_ENGINE execution pipeline
-for one explicit, harmless Control Center checkpoint mutation.
+Safety contract:
+- Read and validate canonical Control Center state.
+- Discover T01-T30 through the canonical ACRLTaskRegistry.
+- Collect local Git identity for verification.
+- Never execute a checkpoint, mutate state.json, or self-authorize execution.
+
+The legacy run_final_operational_proof name is retained for compatibility,
+but the function now performs read-only preflight only.
 """
 
 from dataclasses import dataclass
@@ -18,9 +21,6 @@ import sys
 from pathlib import Path
 from typing import Any, Mapping
 
-# ---------------------------------------------------------------------------
-# Bootstrap import roots before importing existing execution modules.
-# ---------------------------------------------------------------------------
 
 FILE = Path(__file__).resolve()
 CONTROL_CENTER_ROOT = FILE.parents[4]
@@ -33,10 +33,11 @@ for root in (CONTROL_CENTER_ROOT, AUTONOMY_ENGINE_ROOT):
     if value not in sys.path:
         sys.path.insert(0, value)
 
-from execution.controller_executor import ControllerExecutor
-from execution.execution_pipeline import ExecutionPipeline
-from orchestration.execution_coordinator import ExecutionContext
-from protocols.action_protocol import ActionProposal
+# Use the one canonical T-layer registry. Do not maintain a second
+# directory-counting implementation here.
+from continuity.acrl.runtime_integration.task_registry import (  # noqa: E402
+    ACRLTaskRegistry,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,33 +78,58 @@ class OperationalResult:
 
 
 def _load_state() -> dict[str, Any]:
+    """Load the canonical state as a JSON object without modifying it."""
+
     if not STATE_PATH.is_file():
         raise RuntimeError(f"Canonical state missing: {STATE_PATH}")
+
     try:
-        return json.loads(STATE_PATH.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        raise RuntimeError(f"Invalid state.json: {exc}") from exc
+        value = json.loads(STATE_PATH.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"Unable to read valid state.json: {exc}") from exc
+
+    if not isinstance(value, dict):
+        raise RuntimeError("Canonical state.json root must be a JSON object")
+
+    return value
 
 
 def _state_hash(state: dict[str, Any]) -> str:
+    """Calculate the Control Center's canonical integrity hash."""
+
     clone = json.loads(json.dumps(state, ensure_ascii=False))
-    clone.setdefault("integrity", {})["sha256"] = None
+    integrity = clone.get("integrity")
+
+    if not isinstance(integrity, dict):
+        raise RuntimeError("Canonical state integrity object is missing")
+
+    integrity["sha256"] = None
+
     canonical = json.dumps(
         clone,
         sort_keys=True,
         ensure_ascii=False,
         separators=(",", ":"),
     ).encode("utf-8")
+
     return hashlib.sha256(canonical).hexdigest()
 
 
 def _state_integrity(state: dict[str, Any]) -> bool:
-    stored = state.get("integrity", {}).get("sha256")
+    integrity = state.get("integrity")
+
+    if not isinstance(integrity, dict):
+        return False
+
+    stored = integrity.get("sha256")
+
     return isinstance(stored, str) and stored == _state_hash(state)
 
 
 def _git(*args: str) -> str:
-    p = subprocess.run(
+    """Run a read-only Git query and fail closed on command errors."""
+
+    process = subprocess.run(
         ["git", *args],
         cwd=CONTROL_CENTER_ROOT,
         capture_output=True,
@@ -112,57 +138,74 @@ def _git(*args: str) -> str:
         errors="replace",
         check=False,
     )
-    if p.returncode != 0:
-        raise RuntimeError(f"git {' '.join(args)} failed: {p.stderr.strip()}")
-    return p.stdout.strip()
+
+    if process.returncode != 0:
+        message = process.stderr.strip() or "no error detail returned"
+        raise RuntimeError(
+            f"Read-only Git query failed ({' '.join(args)}): {message}"
+        )
+
+    return process.stdout.strip()
 
 
 def _validate_acrl_spine() -> tuple[str, ...]:
+    """
+    Validate the existing canonical T01-T30 registry.
+
+    T14 directory compatibility rules belong to ACRLTaskRegistry, not here.
+    """
+
     if not ACRL_ROOT.is_dir():
         raise RuntimeError(f"ACRL root missing: {ACRL_ROOT}")
 
-    found: dict[str, list[Path]] = {}
-    for child in ACRL_ROOT.iterdir():
-        if not child.is_dir():
-            continue
-        if len(child.name) < 3 or not child.name.startswith("T"):
-            continue
-        if not child.name[1:3].isdigit():
-            continue
-        number = int(child.name[1:3])
-        if 1 <= number <= 30:
-            found.setdefault(f"T{number:02d}", []).append(child)
+    descriptors = ACRLTaskRegistry(ACRL_ROOT).validate()
 
-    expected = tuple(f"T{i:02d}" for i in range(1, 31))
-    missing = [x for x in expected if x not in found]
-    duplicate = [x for x in expected if len(found.get(x, [])) > 1]
+    expected = tuple(f"T{number:02d}" for number in range(1, 31))
+    actual = tuple(descriptor.task_id for descriptor in descriptors)
 
-    if missing:
-        raise RuntimeError("ACRL spine incomplete: " + ", ".join(missing))
-    if duplicate:
-        raise RuntimeError("ACRL spine duplicated: " + ", ".join(duplicate))
+    if actual != expected:
+        raise RuntimeError(
+            "Canonical ACRL registry returned an unexpected T-layer order: "
+            f"{actual}"
+        )
 
-    return expected
+    return actual
 
 
-def _build_context(*, mission_id: str, objective: str) -> OperationalContext:
-    mission_id = mission_id.strip()
-    objective = objective.strip()
-    if not mission_id:
+def _build_context(
+    *,
+    mission_id: str,
+    objective: str,
+) -> OperationalContext:
+    """Build a read-only context from the current repository and state."""
+
+    if not isinstance(mission_id, str) or not mission_id.strip():
         raise ValueError("mission_id is required")
-    if not objective:
+
+    if not isinstance(objective, str) or not objective.strip():
         raise ValueError("objective is required")
 
+    mission_id = mission_id.strip()
+    objective = objective.strip()
+
     state = _load_state()
+
     if not _state_integrity(state):
         raise RuntimeError("Preflight state.json integrity check failed")
 
-    # Confirm the canonical execution authority is still state.json-backed.
     constitution = state.get("constitution")
+
     if not isinstance(constitution, dict):
         raise RuntimeError("Canonical constitution is missing")
 
+    integrity = state.get("integrity")
+    state_sha256 = integrity.get("sha256") if isinstance(integrity, dict) else None
+
+    if not isinstance(state_sha256, str) or not state_sha256:
+        raise RuntimeError("Canonical state fingerprint is missing")
+
     task_ids = _validate_acrl_spine()
+
     branch = _git("branch", "--show-current")
     head = _git("rev-parse", "HEAD")
     clean = _git("status", "--porcelain") == ""
@@ -172,12 +215,19 @@ def _build_context(*, mission_id: str, objective: str) -> OperationalContext:
         "objective": objective,
         "branch": branch,
         "head": head,
-        "clean": clean,
+        "worktree_clean": clean,
+        "state_sha256": state_sha256,
         "task_ids": task_ids,
         "state_path": str(STATE_PATH.resolve()),
     }
+
     fingerprint = hashlib.sha256(
-        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        json.dumps(
+            payload,
+            sort_keys=True,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ).encode("utf-8")
     ).hexdigest()
 
     return OperationalContext(
@@ -191,125 +241,92 @@ def _build_context(*, mission_id: str, objective: str) -> OperationalContext:
     )
 
 
-def run_final_operational_proof(*, mission_id: str, note: str) -> OperationalResult:
-    """Run one real ACRL -> Control Center mutation through existing safety gates."""
+def validate_operational_readiness(
+    *,
+    mission_id: str,
+    note: str,
+) -> OperationalResult:
+    """
+    Validate read-only readiness.
 
-    ctx = _build_context(
+    This routine deliberately has no controller, pipeline, checkpoint,
+    state-write, or execution-authorization integration.
+    """
+
+    if not isinstance(note, str) or not note.strip():
+        raise ValueError("note is required")
+
+    state_before_bytes = STATE_PATH.read_bytes()
+    state_before = _load_state()
+
+    if not _state_integrity(state_before):
+        raise RuntimeError("Preflight state.json integrity check failed")
+
+    context = _build_context(
         mission_id=mission_id,
-        objective="Final ACRL operational runtime proof",
-    )
-    before = _load_state()
-
-    proposal = ActionProposal.create(
-        action="checkpoint",
-        target="REOS_CONTROL_CENTER",
-        parameters={
-            "note": note,
-            "mission_id": ctx.mission_id,
-            "context_fingerprint": ctx.context_fingerprint,
-        },
-        requester="ACRL",
-        reason="Final operational proof",
+        objective="Read-only ACRL operational preflight",
     )
 
-    # Existing coordinator is deliberately default-deny. For this final proof,
-    # all required decisions are explicitly supplied, while architecture_lock
-    # is false because we are executing an operational checkpoint rather than
-    # changing the frozen architecture.
-    exec_context = ExecutionContext(
-        authorized=True,
-        capability_available=True,
-        policy_allowed=True,
-        risk_allowed=True,
-        guard_allowed=True,
-        idempotency_clear=True,
-        tripwires_clear=True,
-        architecture_locked=False,
-        evidence={
-            "source": "ACRL",
-            "mission_id": ctx.mission_id,
-            "context_fingerprint": ctx.context_fingerprint,
-            "git_branch": ctx.git_branch,
-            "git_head_sha": ctx.git_head_sha,
-            "acrl_task_count": 30,
-            "preflight_state_integrity": True,
-        },
-    )
+    state_after_bytes = STATE_PATH.read_bytes()
+    state_after = _load_state()
 
-    # Explicit command only; ControllerExecutor never infers commands.
-    command = ("checkpoint", note)
-    executor = ControllerExecutor(
-        CONTROL_CENTER_ROOT,
-        allowed_mutations=("checkpoint",),
-    )
-
-    pipeline = ExecutionPipeline()
-    pipeline_result = pipeline.execute(
-        proposal,
-        exec_context,
-        executor=lambda p: executor.execute(
-            p,
-            command=command,
-            evidence={
-                "source": "ACRL",
-                "mission_id": ctx.mission_id,
-                "context_fingerprint": ctx.context_fingerprint,
-            },
-        ),
-        postflight={
-            "evidence_complete": True,
-            "provenance_valid": True,
-            "state_consistent": True,
-        },
-    )
-
-    if pipeline_result.status.value != "EXECUTED":
+    if state_before_bytes != state_after_bytes:
         raise RuntimeError(
-            "Final ACRL operational proof failed: "
-            + json.dumps(pipeline_result.to_dict(), ensure_ascii=False)
+            "Read-only preflight detected a change to canonical state.json; "
+            "result is rejected"
         )
 
-    after = _load_state()
-    integrity = _state_integrity(after)
-    changed = before != after
-
-    if not integrity:
-        raise RuntimeError("state.json integrity failed after controller execution")
-    if not changed:
-        raise RuntimeError("Controller reported execution but state.json did not change")
-
-    stdout = ""
-    stderr = ""
-    coordination = pipeline_result.coordination
-    if coordination is not None and coordination.mutation is not None:
-        raw = coordination.mutation.result
-        if raw is not None:
-            stdout = str(getattr(raw, "stdout", ""))
-            stderr = str(getattr(raw, "stderr", ""))
+    if not _state_integrity(state_after):
+        raise RuntimeError("Canonical state integrity failed after preflight")
 
     return OperationalResult(
-        mission_id=ctx.mission_id,
-        action_id=proposal.action_id,
-        status=pipeline_result.status.value,
-        controller_command=command,
-        state_integrity=integrity,
-        state_changed=changed,
-        stdout=stdout,
-        stderr=stderr,
+        mission_id=context.mission_id,
+        action_id=f"{context.mission_id}:READ_ONLY_PREFLIGHT",
+        status="READ_ONLY_PREFLIGHT_PASS",
+        controller_command=(),
+        state_integrity=True,
+        state_changed=False,
+        stdout="",
+        stderr="",
         evidence={
-            **dict(pipeline_result.evidence),
-            "acrl_runtime_working": True,
-            "t01_t30_validated": True,
-            "controller_execution_working": True,
-            "canonical_state_changed": changed,
-            "canonical_state_integrity": integrity,
+            "mode": "READ_ONLY_PREFLIGHT",
+            "note": note.strip(),
+            "canonical_registry_used": True,
+            "acrl_task_count": len(context.acrl_task_ids),
+            "acrl_task_ids": list(context.acrl_task_ids),
+            "git_branch": context.git_branch,
+            "git_head_sha": context.git_head_sha,
+            "worktree_clean": context.worktree_clean,
+            "context_fingerprint": context.context_fingerprint,
+            "state_sha256": state_after["integrity"]["sha256"],
+            "state_bytes_unchanged": True,
+            "mutation_attempted": False,
+            "self_authorized_execution": False,
         },
+    )
+
+
+def run_final_operational_proof(
+    *,
+    mission_id: str,
+    note: str,
+) -> OperationalResult:
+    """
+    Backward-compatible alias.
+
+    Despite the historic name, this entry point is read-only. A mutating
+    operational proof must not be performed by this module.
+    """
+
+    return validate_operational_readiness(
+        mission_id=mission_id,
+        note=note,
     )
 
 
 if __name__ == "__main__":
-    result = run_final_operational_proof(
-        mission_id="ACRL-FINAL-OPERATIONAL-PROOF-001",
-        note="Final ACRL operational runtime proof",
+    result = validate_operational_readiness(
+        mission_id="ACRL-READ-ONLY-PREFLIGHT-001",
+        note="Read-only registry, Git identity, and state-integrity check",
     )
     print(json.dumps(result.to_dict(), indent=2, ensure_ascii=False))
