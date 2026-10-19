@@ -1,48 +1,79 @@
-PS D:\Homio> git rev-parse HEAD
-1590a050bc74174315f418d350dc4c95b3f99141
-PS D:\Homio> git rev-parse origin/reos-development
-dcf651725c8b85a297f34d0891b37c448783b3fe
-PS D:\Homio> git log --oneline --decorate --left-right HEAD...origin/reos-development | Select-Object -First 40
-> dcf65172 (origin/reos-development) Create test_full_acrl_spine.py
-> 1b28e9d4 Update operational_runtime.py
-> 0ded5c54 Rename HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN..json to HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN.json
-> 08517bac Add HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN.json file
-> e03dbb21 Create HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN
-> e399c2c0 Delete HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN
-> 7ba6ecf9 Create HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN
-> b81313c3 Update MotionReveal.module.css
-> 85402be5 Update foundation.css
-> 52b4fdb1 Update foundation.css
-> d9fa5eb6 Update tokens.css
-> 2cbd12b5 Update base.css
-> c10bc9ce Update verify-design-system.mjs
-> 4185df9e Update themeColor in viewport configuration
-> 490fd765 Update motion.css
-> a3f0bf7b Refactor base.css for improved styling consistency
-> fc326e3f Update tokens.css
-> 5cdc0352 Update and rename Frantend update files to Frontend update files
-> 3b988b0b Update Frontend Ps Output
-> d64c32fc Update Frontend Ps Output
-> 2bbd40b9 Update Frontend Ps Output
-> 1650da55 Update Ps Output
-> 8c8f1e57 Update Frontend Ps Output
-> aac0ee19 Refactor design system verification script
-> c78f434d Update MarketStates.module.css
-> 81ced6a3 Update MarketFieldSelectors.module.css
-> ced70b06 Update MarketActivationWorkspace.module.css
-> 90ae085a Update ProjectPage.module.css
-> d2057f0a Update PropertyPage.module.css
-> f6bb5a8e Update SearchShell.module.css
-> 8f2016a9 Update Ps Output
-> a674ea13 Update Ps Output
-> 9981e01e Update MotionReveal.tsx
-> 114c0236 Update Ps Output
-> 5b0d266c Improve motion reveal handling for accessibility
-> 25518d58 Update MotionReveal.module.css
-> 96c9e388 Update Ps Output
-> 3fa4c678 Update MotionReveal.module.css
-> a19ae324 Update MotionReveal.module.css
-> 2cea737b Update Ps Output
+PS D:\Homio> "=== LOCAL STATUS ==="
+=== LOCAL STATUS ===
+PS D:\Homio> git status --short --branch
+## reos-development...origin/reos-development [ahead 6, behind 1363]
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/__init__.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/__init__.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/contract_primitives.py
+ M REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/deal_transaction/deal_evidence_audit.py
+ M REOS_CONTROL_CENTER/data/state.json
+?? HOMIO_Frontend_Backup_20261017_203609/
+?? HOMIO_Frontend_Backup_20261017_204602/
+?? HOMIO_Frontend_Backup_20261017_205108/
+?? "New folder/"
+?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t01_financial_ledger_boundary.py
+?? REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/test_closure_c2_c3.py
+?? "REOS_CONTROL_CENTER/Frontend Ps Output"
+?? REOS_CONTROL_CENTER/Frontend/.next/
+?? REOS_CONTROL_CENTER/Frontend/AUTHENTICATION_SETUP.md
+?? REOS_CONTROL_CENTER/Frontend/_homio_sync_backup_20261017_184735/
+?? REOS_CONTROL_CENTER/Frontend/eslint.config.mjs
+?? REOS_CONTROL_CENTER/Frontend/next-env.d.ts
+?? REOS_CONTROL_CENTER/Frontend/next.config.ts
+?? REOS_CONTROL_CENTER/Frontend/next.config.ts.backup-20261018-115823
+?? REOS_CONTROL_CENTER/Frontend/node_modules/
+?? REOS_CONTROL_CENTER/Frontend/package-lock.json
+?? REOS_CONTROL_CENTER/Frontend/package.json
+?? REOS_CONTROL_CENTER/Frontend/scripts/
+?? REOS_CONTROL_CENTER/Frontend/src/
+?? REOS_CONTROL_CENTER/Frontend/tsconfig.json
+?? REOS_CONTROL_CENTER/Frontend/tsconfig.tsbuildinfo
+?? REOS_CONTROL_CENTER/package-lock.json
+?? REOS_CONTROL_CENTER/snapshots/state_20261002_210705_675096.json
+?? REOS_CONTROL_CENTER/snapshots/state_20261002_210705_920438.json
+?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_186837.json
+?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_460015.json
+?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_697927.json
+?? REOS_CONTROL_CENTER/snapshots/state_20261002_210706_990397.json
+?? REOS_CONTROL_CENTER/snapshots/state_20261002_210707_222976.json
+PS D:\Homio>
+PS D:\Homio> "=== AHEAD / BEHIND COUNTS ==="
+=== AHEAD / BEHIND COUNTS ===
+PS D:\Homio> git rev-list --left-right --count HEAD...origin/reos-development
+6       1363
+PS D:\Homio>
+PS D:\Homio> "=== LOCAL COMMITS NOT ON REMOTE ==="
+=== LOCAL COMMITS NOT ON REMOTE ===
+PS D:\Homio> git log --oneline origin/reos-development..HEAD
+1590a050 (HEAD -> reos-development) Fix CORE-008 financial ledger integrity
+8fecdbbf Fix CORE-008 financial ledger integrity
+8e663bd0 Restore AI agent entrypoint after accidental output overwrite
+db303439 Restore authorized PowerShell Git execution contract
+036f9071 REOS: harden ARCH-039 transition integrity
+d12eb32d Finalize HOMIO frontend implementation blueprint v3.2
+PS D:\Homio>
+PS D:\Homio> "=== LATEST REMOTE COMMITS ==="
+=== LATEST REMOTE COMMITS ===
+PS D:\Homio> git log --oneline HEAD..origin/reos-development -10
+8a5f1ea5 (origin/reos-development) Update Ps Output
+870c5d03 Update Ps Output
+dcf65172 Create test_full_acrl_spine.py
+1b28e9d4 Update operational_runtime.py
+0ded5c54 Rename HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN..json to HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN.json
+08517bac Add HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN.json file
+e03dbb21 Create HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN
+e399c2c0 Delete HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN
+7ba6ecf9 Create HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN
+b81313c3 Update MotionReveal.module.css
+PS D:\Homio>
+PS D:\Homio> "=== STATE DIFF, IGNORING CRLF ==="
+=== STATE DIFF, IGNORING CRLF ===
+PS D:\Homio> git diff --ignore-cr-at-eol --stat -- REOS_CONTROL_CENTER/data/state.json
+warning: in the working copy of 'REOS_CONTROL_CENTER/data/state.json', CRLF will be replaced by LF the next time Git touches it
+PS D:\Homio>
+PS D:\Homio> "=== ALL UNSTAGED CHANGES ==="
+=== ALL UNSTAGED CHANGES ===
 PS D:\Homio> git diff --stat
 warning: in the working copy of 'REOS_CONTROL_CENTER/data/state.json', CRLF will be replaced by LF the next time Git touches it
  .../AUTONOMY_ENGINE/core/__init__.py               |  114 +-
@@ -52,5 +83,8 @@ warning: in the working copy of 'REOS_CONTROL_CENTER/data/state.json', CRLF will
  .../core/deal_transaction/deal_evidence_audit.py   |    6 +-
  REOS_CONTROL_CENTER/data/state.json                | 9018 ++++++++++----------
  6 files changed, 4639 insertions(+), 4540 deletions(-)
+PS D:\Homio>
+PS D:\Homio> "=== STAGED CHANGES ==="
+=== STAGED CHANGES ===
 PS D:\Homio> git diff --cached --stat
 PS D:\Homio>
