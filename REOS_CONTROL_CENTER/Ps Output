@@ -21,23 +21,27 @@ PS D:\Homio> try {
 >>     $test = ".\AUTONOMY_ENGINE\continuity\acrl\runtime_integration\test_full_acrl_spine.py"
 >>
 >>     if (-not (Test-Path $test)) {
->>         throw "ACRL test file missing from sparse checkout."
+>>         throw "Test file is missing. Stop before pytest."
 >>     }
 >>
 >>     Write-Host "=== NEW ACRL SPINE TEST ==="
 >>     python -m pytest $test -q
->>     if ($LASTEXITCODE -ne 0) { throw "Spine test failed." }
+>>     if ($LASTEXITCODE -ne 0) {
+>>         throw "Spine test failed."
+>>     }
 >>
 >>     Write-Host "=== EXISTING RUNTIME-INTEGRATION TESTS ==="
 >>     python -m pytest ".\AUTONOMY_ENGINE\continuity\acrl\runtime_integration" -q
->>     if ($LASTEXITCODE -ne 0) { throw "Runtime integration tests failed." }
+>>     if ($LASTEXITCODE -ne 0) {
+>>         throw "Runtime integration tests failed."
+>>     }
 >> }
 >> finally {
 >>     Pop-Location
 >> }
-ACRL test file missing from sparse checkout.
+Test file is missing. Stop before pytest.
 At line:5 char:9
-+         throw "ACRL test file missing from sparse checkout."
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (ACRL test file ...parse checkout.:String) [], RuntimeException
-    + FullyQualifiedErrorId : ACRL test file missing from sparse checkout.
++         throw "Test file is missing. Stop before pytest."
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Test file is mi... before pytest.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Test file is missing. Stop before pytest.
