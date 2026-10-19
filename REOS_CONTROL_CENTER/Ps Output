@@ -1,76 +1,92 @@
+PS D:\Homio> $ErrorActionPreference = "Stop"
 PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== CONFIGURE SAFE SPARSE CHECKOUT ==="
-
-=== CONFIGURE SAFE SPARSE CHECKOUT ===
-PS D:\Homio> git -C $target sparse-checkout set --cone `
->>     REOS_CONTROL_CENTER/AUTONOMY_ENGINE `
->>     REOS_CONTROL_CENTER/data
+PS D:\Homio> $target = "D:\HOMIO_ACRL_AUDIT_SPARSE_20261019"
 PS D:\Homio>
-PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw "Sparse-checkout configuration failed. Save this output."
+PS D:\Homio> if (-not (Test-Path "$target\.git")) {
+>>     throw "Temporary Git worktree is not valid. Stop."
 >> }
 PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== CHECK OUT CANONICAL REMOTE BRANCH IN TEMP WORKTREE ==="
+PS D:\Homio> Write-Host "`n=== 1. FETCH ==="
 
-=== CHECK OUT CANONICAL REMOTE BRANCH IN TEMP WORKTREE ===
+=== 1. FETCH ===
+PS D:\Homio> git fetch origin
+remote: Enumerating objects: 7, done.
+remote: Counting objects: 100% (7/7), done.
+remote: Compressing objects: 100% (4/4), done.
+remote: Total 4 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (4/4), 2.35 KiB | 109.00 KiB/s, done.
+From https://github.com/prajaktaranjane80-sketch/Homio
+   b51880c4..4362b105  reos-development -> origin/reos-development
+PS D:\Homio> if ($LASTEXITCODE -ne 0) { throw "Fetch failed." }
+PS D:\Homio>
+PS D:\Homio> Write-Host "`n=== 2. APPLY NON-CONE SPARSE RULES ==="
+
+=== 2. APPLY NON-CONE SPARSE RULES ===
+PS D:\Homio> git -C $target sparse-checkout set --no-cone `
+>>     '/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**' `
+>>     '/REOS_CONTROL_CENTER/data/state.json'
+PS D:\Homio>
+PS D:\Homio> if ($LASTEXITCODE -ne 0) {
+>>     throw "Sparse rules failed. Stop and save the output."
+>> }
+PS D:\Homio>
+PS D:\Homio> Write-Host "`n=== 3. VERIFY SPARSE RULES ==="
+
+=== 3. VERIFY SPARSE RULES ===
+PS D:\Homio> git -C $target sparse-checkout list
+/REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**
+/REOS_CONTROL_CENTER/data/state.json
+PS D:\Homio> if ($LASTEXITCODE -ne 0) { throw "Cannot read sparse rules." }
+PS D:\Homio>
+PS D:\Homio> $badPath = Join-Path $target "Project: HOMIO"
+PS D:\Homio> if (Test-Path $badPath) {
+>>     throw "Invalid root filename is still materialized. Stop."
+>> }
+PS D:\Homio>
+PS D:\Homio> Write-Host "`n=== 4. CHECK OUT REMOTE BRANCH ==="
+
+=== 4. CHECK OUT REMOTE BRANCH ===
 PS D:\Homio> git -C $target checkout --detach origin/reos-development
 error: invalid path 'Project: HOMIO'
 PS D:\Homio> if ($LASTEXITCODE -ne 0) {
->>     throw "Temporary worktree checkout failed. Save this output."
+>>     throw "Checkout still failed. Save the exact error."
 >> }
-Temporary worktree checkout failed. Save this output.
+Checkout still failed. Save the exact error.
 At line:2 char:5
-+     throw "Temporary worktree checkout failed. Save this output."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Temporary workt...ve this output.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Temporary worktree checkout failed. Save this output.
++     throw "Checkout still failed. Save the exact error."
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Checkout still ...he exact error.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Checkout still failed. Save the exact error.
 
 PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== CHECKED-OUT COMMIT ==="
+PS D:\Homio> Write-Host "`n=== 5. VERIFY REQUIRED FILES ==="
 
-=== CHECKED-OUT COMMIT ===
+=== 5. VERIFY REQUIRED FILES ===
 PS D:\Homio> git -C $target rev-parse HEAD
 ff13a3db18e6e5983f4128e6dcbb132a3ee92e51
 PS D:\Homio>
-PS D:\Homio> $test = Join-Path $target `
->>     "REOS_CONTROL_CENTER\AUTONOMY_ENGINE\continuity\acrl\runtime_integration\test_full_acrl_spine.py"
+PS D:\Homio> $cc = Join-Path $target "REOS_CONTROL_CENTER"
+PS D:\Homio> $test = Join-Path $cc "AUTONOMY_ENGINE\continuity\acrl\runtime_integration\test_full_acrl_spine.py"
+PS D:\Homio> $state = Join-Path $cc "data\state.json"
 PS D:\Homio>
-PS D:\Homio> $controlCenter = Join-Path $target "REOS_CONTROL_CENTER"
-PS D:\Homio> $statePath = Join-Path $controlCenter "data\state.json"
-PS D:\Homio>
-PS D:\Homio> Write-Host "`n=== VERIFY REQUIRED FILES ==="
+PS D:\Homio> if (-not (Test-Path $test)) { throw "ACRL spine test file is missing." }
+ACRL spine test file is missing.
+At line:1 char:31
++ ... (-not (Test-Path $test)) { throw "ACRL spine test file is missing." }
++                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ACRL spine test file is missing.:String) [], RuntimeException
+    + FullyQualifiedErrorId : ACRL spine test file is missing.
 
-=== VERIFY REQUIRED FILES ===
-PS D:\Homio> Test-Path $controlCenter
-False
-PS D:\Homio> Test-Path $test
-False
-PS D:\Homio> Test-Path $statePath
-False
-PS D:\Homio>
-PS D:\Homio> if (-not (Test-Path $test)) {
->>     throw "ACRL spine test file still missing. Do not run pytest."
->> }
-ACRL spine test file still missing. Do not run pytest.
-At line:2 char:5
-+     throw "ACRL spine test file still missing. Do not run pytest."
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (ACRL spine test...not run pytest.:String) [], RuntimeException
-    + FullyQualifiedErrorId : ACRL spine test file still missing. Do not run pytest.
+PS D:\Homio> if (-not (Test-Path $state)) { throw "Canonical state file is missing." }
+Canonical state file is missing.
+At line:1 char:32
++ ... -not (Test-Path $state)) { throw "Canonical state file is missing." }
++                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Canonical state file is missing.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Canonical state file is missing.
 
 PS D:\Homio>
-PS D:\Homio> if (-not (Test-Path $statePath)) {
->>     throw "Canonical state file missing from isolated worktree. Stop."
->> }
-Canonical state file missing from isolated worktree. Stop.
-At line:2 char:5
-+     throw "Canonical state file missing from isolated worktree. Stop. ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Canonical state...worktree. Stop.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Canonical state file missing from isolated worktree. Stop.
-
-PS D:\Homio>
-PS D:\Homio> $stateHashBefore = (Get-FileHash $statePath -Algorithm SHA256).Hash
+PS D:\Homio> $before = (Get-FileHash $state -Algorithm SHA256).Hash
 Resolve-Path : Cannot find path 'D:\HOMIO_ACRL_AUDIT_SPARSE_20261019\REOS_CONTROL_CENTER\data\state.json' because it does not exist.
 At C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules\Microsoft.PowerShell.Utility\Microsoft.PowerShell.Utility.psm1:110 char:36
 +                 $pathsToProcess += Resolve-Path $Path | Foreach-Objec ...
@@ -79,55 +95,64 @@ At C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules\Microsoft.PowerShell.Utili
     + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.ResolvePathCommand
 
 PS D:\Homio>
-PS D:\Homio> Push-Location $controlCenter
+PS D:\Homio> Push-Location $cc
 Push-Location : Cannot find path 'D:\HOMIO_ACRL_AUDIT_SPARSE_20261019\REOS_CONTROL_CENTER' because it does not exist.
 At line:1 char:1
-+ Push-Location $controlCenter
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ Push-Location $cc
++ ~~~~~~~~~~~~~~~~~
     + CategoryInfo          : ObjectNotFound: (D:\HOMIO_ACRL_A..._CONTROL_CENTER:String) [Push-Location], ItemNotFoundException
     + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.PushLocationCommand
 
 PS D:\Homio> try {
->>     Write-Host "`n=== NEW ACRL SPINE TEST ==="
->>     python -m pytest `
->>         ".\AUTONOMY_ENGINE\continuity\acrl\runtime_integration\test_full_acrl_spine.py" -q
+>>     Write-Host "`n=== 6. NEW ACRL SPINE TEST ==="
+>>     python -m pytest ".\AUTONOMY_ENGINE\continuity\acrl\runtime_integration\test_full_acrl_spine.py" -q
+>>     if ($LASTEXITCODE -ne 0) { throw "ACRL spine test failed." }
 >>
->>     if ($LASTEXITCODE -ne 0) {
->>         throw "New ACRL spine test failed."
->>     }
->>
->>     Write-Host "`n=== EXISTING RUNTIME-INTEGRATION TESTS ==="
->>     python -m pytest `
->>         ".\AUTONOMY_ENGINE\continuity\acrl\runtime_integration" -q
->>
->>     if ($LASTEXITCODE -ne 0) {
->>         throw "Runtime-integration tests failed."
->>     }
+>>     Write-Host "`n=== 7. ALL RUNTIME-INTEGRATION TESTS ==="
+>>     python -m pytest ".\AUTONOMY_ENGINE\continuity\acrl\runtime_integration" -q
+>>     if ($LASTEXITCODE -ne 0) { throw "Runtime-integration tests failed." }
 >> }
 >> finally {
 >>     Pop-Location
 >> }
 
-=== NEW ACRL SPINE TEST ===
+=== 6. NEW ACRL SPINE TEST ===
 
-no tests ran in 0.00s
+no tests ran in 0.01s
 ERROR: file or directory not found: .\AUTONOMY_ENGINE\continuity\acrl\runtime_integration\test_full_acrl_spine.py
 
-New ACRL spine test failed.
-At line:7 char:9
-+         throw "New ACRL spine test failed."
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (New ACRL spine test failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : New ACRL spine test failed.
+ACRL spine test failed.
+At line:4 char:32
++     if ($LASTEXITCODE -ne 0) { throw "ACRL spine test failed." }
++                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (ACRL spine test failed.:String) [], RuntimeException
+    + FullyQualifiedErrorId : ACRL spine test failed.
 
 PS D:\Homio>
-PS D:\Homio> $stateHashAfter = (Get-FileHash $statePath -Algorithm
->>
-At line:1 char:54
-+ $stateHashAfter = (Get-FileHash $statePath -Algorithm
-+                                                      ~
-Missing closing ')' in expression.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : MissingEndParenthesisInExpression
+PS D:\Homio> $after = (Get-FileHash $state -Algorithm SHA256).Hash
+Resolve-Path : Cannot find path 'D:\HOMIO_ACRL_AUDIT_SPARSE_20261019\REOS_CONTROL_CENTER\data\state.json' because it does not exist.
+At C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules\Microsoft.PowerShell.Utility\Microsoft.PowerShell.Utility.psm1:110 char:36
++                 $pathsToProcess += Resolve-Path $Path | Foreach-Objec ...
++                                    ~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (D:\HOMIO_ACRL_A...data\state.json:String) [Resolve-Path], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.ResolvePathCommand
 
+PS D:\Homio>
+PS D:\Homio> Write-Host "`n=== 8. STATE FILE SAFETY ==="
+
+=== 8. STATE FILE SAFETY ===
+PS D:\Homio> Write-Host "Before: $before"
+Before:
+PS D:\Homio> Write-Host "After:  $after"
+After:
+PS D:\Homio>
+PS D:\Homio> if ($before -ne $after) {
+>>     throw "State file changed in the temporary worktree. Do not commit or push."
+>> }
+PS D:\Homio>
+PS D:\Homio> Write-Host "`nPASS: Both test commands passed; state file remained unchanged."
+
+PASS: Both test commands passed; state file remained unchanged.
+PS D:\Homio> Write-Host "No commit or push performed."
+No commit or push performed.
 PS D:\Homio>
