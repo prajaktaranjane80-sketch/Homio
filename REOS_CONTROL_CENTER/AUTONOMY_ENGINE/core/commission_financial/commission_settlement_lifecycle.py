@@ -180,6 +180,22 @@ class CommissionSettlementLifecycleEvent:
                 ),
             )
 
+                for field_name in (
+            "reconciliation_id",
+            "reconciliation_fingerprint",
+        ):
+            value = getattr(self, field_name)
+
+            if value is not None:
+                object.__setattr__(
+                    self,
+                    field_name,
+                    _required_text(
+                        value,
+                        field_name,
+                    ),
+                )
+
         if self.previous_event_fingerprint is not None:
             object.__setattr__(
                 self,
