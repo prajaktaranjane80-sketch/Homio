@@ -565,6 +565,7 @@ class CommissionSettlementLifecycle:
         ) = None
 
         linked_reconciliation_events = []
+        ordered_settlement_history_fingerprints: list[str] = []
 
         for expected_sequence, event in enumerate(
             record.lifecycle_events,
@@ -597,6 +598,38 @@ class CommissionSettlementLifecycle:
             if event.event_type not in self._KNOWN_EVENT_TYPES:
                 raise CommissionSettlementIntegrityError(
                     "Lifecycle event type is not recognised."
+                )
+
+            if (
+                event.event_type == "SETTLEMENT_STATE_TRANSITION"
+                and event.to_state
+                in {
+                    CommissionSettlementState.AUTHORIZED.value,
+                    CommissionSettlementState.CANCELLED.value,
+                }
+            ):
+                if not event.authorization_reference:
+                    raise CommissionSettlementIntegrityError(
+                        "Sensitive settlement transition is missing "
+                        "an authorization reference."
+                    )
+
+                if (
+                    event.authorization_reference
+                    != settlement.authorization_reference
+                ):
+                    raise CommissionSettlementIntegrityError(
+                        "Sensitive settlement transition authorization "
+                        "reference does not match the settlement."
+                    )
+
+            if (
+                event.event_type in self._RECONCILIATION_EVENT_TYPES
+                and not event.authorization_reference
+            ):
+                raise CommissionSettlementIntegrityError(
+                    "Reconciliation event is missing an authorization "
+                    "reference."
                 )
 
             if previous_event is None:
@@ -650,6 +683,15 @@ class CommissionSettlementLifecycle:
                 raise CommissionSettlementIntegrityError(
                     "Lifecycle event does not match its "
                     "settlement history entry."
+                )
+
+            if (
+                not ordered_settlement_history_fingerprints
+                or ordered_settlement_history_fingerprints[-1]
+                != event.settlement_fingerprint
+            ):
+                ordered_settlement_history_fingerprints.append(
+                    event.settlement_fingerprint
                 )
 
             is_reconciliation_event = (
@@ -786,6 +828,20 @@ class CommissionSettlementLifecycle:
 
             previous_fingerprint = event.event_fingerprint
             previous_event = event
+
+        history_fingerprints = tuple(
+            entry.settlement_fingerprint
+            for entry in record.settlement_history.entries
+        )
+        event_history_fingerprints = tuple(
+            ordered_settlement_history_fingerprints
+        )
+
+        if history_fingerprints != event_history_fingerprints:
+            raise CommissionSettlementIntegrityError(
+                "Settlement history order does not match lifecycle "
+                "event order."
+            )
 
         last_event = record.lifecycle_events[-1]
 
