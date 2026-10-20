@@ -1,0 +1,24 @@
+{
+  "contract_id": "ACRL-T10-DRIFT-DETECTION",
+  "contract_version": "1.0",
+  "layer": "T10",
+  "name": "Drift Detection",
+  "mode": "READ_ONLY",
+  "authority": {
+    "canonical_source": "REOS_CONTROL_CENTER/data/state.json",
+    "execution_authorized": false,
+    "write_authorized": false,
+    "approval_authorized": false,
+    "chat_history_authoritative": false
+  },
+  "guarantees": [
+    "Drift is reported against an independently observed baseline.",
+    "An unknown baseline is not treated as a successful comparison.",
+    "Detection does not silently rewrite the source of truth."
+  ],
+  "failure_policy": {
+    "missing_baseline": "UNRESOLVED",
+    "mismatch": "REPORT_DRIFT",
+    "unknown_authority": "FAIL_CLOSED"
+  }
+}
