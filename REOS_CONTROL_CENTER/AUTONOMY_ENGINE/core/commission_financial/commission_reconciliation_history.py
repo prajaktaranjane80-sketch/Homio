@@ -25,6 +25,7 @@ class CommissionReconciliationHistoryEntry:
     match_type: str
     variance_amount: str
     reconciliation_fingerprint: str
+    external_evidence_fingerprint: str | None = None
 
     @classmethod
     def from_reconciliation(
@@ -40,17 +41,32 @@ class CommissionReconciliationHistoryEntry:
                 "CommissionReconciliation."
             )
 
+        raw_evidence_fingerprint = (
+            reconciliation.metadata.get(
+                "external_evidence_fingerprint"
+            )
+        )
+
+        if (
+            not isinstance(
+                raw_evidence_fingerprint,
+                str,
+            )
+            or not raw_evidence_fingerprint.strip()
+        ):
+            raw_evidence_fingerprint = None
+        else:
+            raw_evidence_fingerprint = (
+                raw_evidence_fingerprint.strip()
+            )
+
         return cls(
             reconciliation_id=(
                 reconciliation.reconciliation_id
             ),
             tenant_id=reconciliation.tenant_id,
-            commission_id=(
-                reconciliation.commission_id
-            ),
-            settlement_id=(
-                reconciliation.settlement_id
-            ),
+            commission_id=reconciliation.commission_id,
+            settlement_id=reconciliation.settlement_id,
             reconciliation_version=(
                 reconciliation.reconciliation_version
             ),
@@ -63,6 +79,9 @@ class CommissionReconciliationHistoryEntry:
             reconciliation_fingerprint=(
                 reconciliation.immutable_fingerprint
             ),
+            external_evidence_fingerprint=(
+                raw_evidence_fingerprint
+            ),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -71,12 +90,8 @@ class CommissionReconciliationHistoryEntry:
                 self.reconciliation_id
             ),
             "tenant_id": self.tenant_id,
-            "commission_id": (
-                self.commission_id
-            ),
-            "settlement_id": (
-                self.settlement_id
-            ),
+            "commission_id": self.commission_id,
+            "settlement_id": self.settlement_id,
             "reconciliation_version": (
                 self.reconciliation_version
             ),
@@ -87,6 +102,9 @@ class CommissionReconciliationHistoryEntry:
             ),
             "reconciliation_fingerprint": (
                 self.reconciliation_fingerprint
+            ),
+            "external_evidence_fingerprint": (
+                self.external_evidence_fingerprint
             ),
         }
 
@@ -118,6 +136,16 @@ class CommissionReconciliationHistory:
             ):
                 raise CommissionReconciliationHistoryError(
                     "Reconciliation history identity mismatch."
+                )
+
+            if (
+                latest.commission_id
+                != entry.commission_id
+                or latest.settlement_id
+                != entry.settlement_id
+            ):
+                raise CommissionReconciliationHistoryError(
+                    "Reconciliation history subject mismatch."
                 )
 
             if (
