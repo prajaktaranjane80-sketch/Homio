@@ -16,7 +16,13 @@ class ACRLTaskDescriptor:
 
     @property
     def healthy(self) -> bool:
-        return self.exists and bool(self.test_files)
+        """Require the core package, contract and regression-test artifacts."""
+        return (
+            self.exists
+            and self.has_init
+            and bool(self.contract_files)
+            and bool(self.test_files)
+        )
 
 
 @dataclass(frozen=True)
@@ -54,19 +60,17 @@ class ACRLIntegrationSnapshot:
 
     @property
     def healthy(self) -> bool:
+        expected_ids = tuple(f"T{number:02d}" for number in range(1, 31))
+        actual_ids = tuple(task.task_id for task in self.tasks)
+
         return (
-            self.architecture_authority
-            == "FROZEN_APPROVED_ARCHITECTURE"
-            and self.roadmap_authority
-            == "REOS_CONTROL_CENTER"
+            self.architecture_authority == "FROZEN_APPROVED_ARCHITECTURE"
+            and self.roadmap_authority == "REOS_CONTROL_CENTER"
             and self.execution_state_authority
             == "REOS_CONTROL_CENTER/data/state.json"
-            and self.code_authority
-            == "GIT_REPOSITORY"
-            and self.continuity_authority
-            == "DERIVED_FROM_EXECUTION_STATE"
-            and self.chat_authority
-            == "NONE"
-            and len(self.tasks) == 30
+            and self.code_authority == "GIT_REPOSITORY"
+            and self.continuity_authority == "DERIVED_FROM_EXECUTION_STATE"
+            and self.chat_authority == "NONE"
+            and actual_ids == expected_ids
             and all(task.healthy for task in self.tasks)
         )
