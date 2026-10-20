@@ -1,0 +1,25 @@
+{
+  "contract_id": "ACRL-T14-REPOSITORY-INTELLIGENCE-CONTEXT",
+  "contract_version": "1.0",
+  "layer": "T14",
+  "name": "Repository Intelligence Context",
+  "mode": "READ_ONLY",
+  "authority": {
+    "canonical_source": "REOS_CONTROL_CENTER/data/state.json",
+    "execution_authorized": false,
+    "write_authorized": false,
+    "approval_authorized": false,
+    "chat_history_authoritative": false
+  },
+  "guarantees": [
+    "Repository context is derived from versioned source evidence.",
+    "Resume manifests are disposable, non-authoritative caches.",
+    "Live branch HEAD and state.json are checked independently.",
+    "Frontend files may be analyzed statically without importing ACRL runtime."
+  ],
+  "failure_policy": {
+    "stale_manifest": "TARGETED_OR_FULL_REAUDIT",
+    "authority_mismatch": "FULL_BOOTSTRAP_REQUIRED",
+    "invalid_contract": "FAIL_CLOSED"
+  }
+}
