@@ -1,0 +1,100 @@
+Bhai, latest GitHub readback ke hisaab se CORE-008 ka formal progress 30% hai. T04 ka implementation aur tests ka kaam ho chuka hai, lekin official Control Center completion abhi pending hai.
+Current status — 20 October 2026
+CORE-008 formally completed
+3 / 10
+
+
+
+
+Acceptance criteria verified
+2 / 6
+
+T01–T03 DONE · T04 CURRENT · T05–T10 PENDING
+
+Jo kaam successful hai:
+- T04 implementation and integrity tests GitHub par saved hain.
+- Latest successful Actions run #86: 24 ACRL runtime tests + 520 backend/regression tests PASS.
+- T04 evidence file saved hai.
+- Latest Ps Output mein completion transition successful hone ka proof nahi hai. Latest attempt mein URL error aaya, aur local state CORE-008-T01 dikhata hai, jabki canonical GitHub state CORE-008-T04 batata hai.
+- Canonical state.json abhi unchanged hai. T04 ko DONE ya T05 ko CURRENT manually mark nahi karna hai.
+New chat ke liye prompt
+Neeche ka poora prompt new chat mein paste karna. Ismein latest status, failed attempt aur next steps included hain.
+HOMIO / REOS — CORE-008 T04 Formal Closure Recovery and Continue
+Project identity
+- Repository: prajaktaranjane80-sketch/Homio
+- Canonical branch: reos-development
+- Authoritative state: REOS_CONTROL_CENTER/data/state.json
+- Controller: REOS_CONTROL_CENTER/reos_control_center.py
+- Latest diagnostic output: REOS_CONTROL_CENTER/Ps Output
+- Current evidence: REOS_CONTROL_CENTER/evidence/CORE-008/T04-settlement-reconciliation-ci-evidence.md
+Latest verified GitHub state
+- Branch HEAD: 1df7b302b0681902ca243f2f5aaad1027ddc0dc3
+- Latest HEAD commit: Update Ps Output
+- Canonical state file blob SHA: 92296fb10b0c7a37d0fc7fa97c4328f587512150
+- Canonical current subtask: CORE-008-T04
+- T01, T02, T03: DONE
+- T04: CURRENT
+- T05 through T10: PENDING
+- Acceptance criteria AC02 and AC03: VERIFIED
+- AC01, AC04, AC05, AC06: PENDING
+T04 implementation and test evidence
+Implementation:
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_settlement_lifecycle.py
+
+Implementation blob SHA:
+3d89c650e9a45f220d546abf298dc1e22313d152
+
+Integrity-linkage tests:
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t04_settlement_integrity_linkage.py
+
+Test blob SHA:
+78e083609e78c298c924602f3e6a094a753be3a3
+
+Evidence:
+REOS_CONTROL_CENTER/evidence/CORE-008/T04-settlement-reconciliation-ci-evidence.md
+
+Evidence blob SHA:
+ac76f80a9dbf014d37daff2ec7c5fa1557ad14ff
+
+GitHub Actions run #86:
+https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39384833424
+
+Run commit:
+1d4875ed4e0810b9d7532e2ccb0484acc03c03d7
+
+Confirmed successful result:
+- Compilation: PASS
+- ACRL runtime integration: 24 passed
+- Backend/regression suite: 520 passed
+- Workflow conclusion: success
+Do not rewrite these already-saved T04 files unless a real defect is established.
+Immediate blocker — diagnose, do not repeat the failed command
+Latest Ps Output reports:
+- Invoke-RestMethod failed with Invalid URI: The hostname could not be parsed.
+- Local execution state says CORE-008-T01.
+- Remote state fields are blank because the fetch failed.
+- The diagnostic ended without making file changes.
+An earlier diagnostic also recorded a Windows checkout error for the repository path Project: HOMIO, followed by missing-file errors. That earlier script printed a PASS message even though its test commands had failed. Do not treat that output as successful verification.
+Required next steps
+1. Re-read the current live branch HEAD, canonical state.json, current Ps Output, controller, and T04 evidence from GitHub. Do not rely solely on local files or the conversation history.
+2. Diagnose the malformed URI and the local-versus-GitHub state mismatch. Determine whether the local controller and state schema actually match the live canonical files before running controller commands.
+3. Recover a reliable, safe local read/verification workspace using the existing gpt-ps-git-sync.md workflow and ACRL Git-coordination safeguards. Handle Windows-invalid repository paths safely; do not delete or rewrite canonical files to make checkout work.
+4. Reconfirm the state integrity hash and gate coherence. Do not modify canonical state.json manually, and do not run the earlier transition PowerShell block unchanged.
+5. Use the existing authorized Control Center process to record T04 completion only after its evidence is validated. Then synchronize the complete required state transition, generated handoff, snapshots, and related required files through the guarded GitHub workflow as one coherent operation, using the verified live HEAD as the parent. Abort safely if HEAD changes. No force push and no partial state-only commit.
+6. Read the committed files back from GitHub. Confirm T04 is DONE and T05 is CURRENT before proceeding.
+7. Continue CORE-008 sequentially from T05 through T10 using the real task definitions in canonical state.json. Do not mark acceptance criteria VERIFIED based only on general test success. Gather criterion-specific evidence and preserve Control Center approval rules.
+Working rules
+- Act as the developer and prioritize actual implementation and recovery over another generic audit or plan.
+- Do not disturb passing backend/frontend work or reimplement T01–T04 without evidence of a defect.
+- Treat GitHub reos-development as the canonical code source and state.json as the authoritative execution state.
+- Distinguish code saved, tests passed, acceptance criteria verified, subtask completed, and gate approved.
+- Never claim a remote commit or state transition succeeded until GitHub readback proves it.
+- Do not mix in Imperium AI or unrelated frontend work.
+- The user is a non-developer: provide complete, exact, copy-paste PowerShell or complete file replacements when needed, with exact paths and simple instructions.
+- Do actual work in this chat; do not ask the user to repeat information already provided.
+Start now: live-read the repository and state, correct the URI/workspace synchronization failure safely, and complete the formal T04 transition without manually editing canonical state. Then continue with T05 once the remote transition is verified.
+
+
+
+
+New chat mein yahin se continue karna hai—T04 ko dobara implement nahi karna; pehle state/workflow synchronization sahi karke official completion verify karni hai.
