@@ -1,0 +1,25 @@
+{
+  "contract_id": "ACRL-T07-NEW-CHAT-BOOTSTRAP",
+  "contract_version": "1.0",
+  "layer": "T07",
+  "name": "New Chat Bootstrap",
+  "mode": "READ_ONLY",
+  "authority": {
+    "canonical_source": "REOS_CONTROL_CENTER/data/state.json",
+    "execution_authorized": false,
+    "write_authorized": false,
+    "approval_authorized": false,
+    "chat_history_authoritative": false
+  },
+  "guarantees": [
+    "Checkpoint integrity is verified before resume.",
+    "The current gate, task and subtask are cross-checked against authoritative state.",
+    "A stale or mismatched checkpoint blocks resume.",
+    "Bootstrap does not grant execution permission or mutate canonical state."
+  ],
+  "failure_policy": {
+    "invalid_checkpoint": "FAIL_CLOSED",
+    "authority_mismatch": "BLOCK_RESUME",
+    "stale_position": "BLOCK_RESUME"
+  }
+}
