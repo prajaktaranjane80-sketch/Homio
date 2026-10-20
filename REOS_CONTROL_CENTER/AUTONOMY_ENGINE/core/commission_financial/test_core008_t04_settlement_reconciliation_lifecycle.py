@@ -45,10 +45,44 @@ def _lifecycle(
     *,
     authorization_allowed: bool = True,
     evidence_allowed: bool = True,
+    authorization_requests: list[FinancialAuthorizationRequest]
+    | None = None,
 ) -> CommissionSettlementLifecycle:
     def verify_authorization(
         request: FinancialAuthorizationRequest,
     ) -> bool:
+        if authorization_requests is not None:
+            authorization_requests.append(request)
+
+        context = request.context or {}
+
+        reconciliation_context_valid = True
+
+        if request.action is FinancialAuthorizationAction.RECONCILE:
+            reconciliation_version = context.get(
+                "reconciliation_version"
+            )
+
+            required_text_fields = (
+                "settlement_fingerprint",
+                "external_evidence_fingerprint",
+                "reconciliation_id",
+                "reconciliation_reference",
+                "provenance_reference",
+            )
+
+            reconciliation_context_valid = (
+                context.get("operation") == "RECONCILE"
+                and all(
+                    isinstance(context.get(field_name), str)
+                    and bool(context.get(field_name).strip())
+                    for field_name in required_text_fields
+                )
+                and isinstance(reconciliation_version, int)
+                and not isinstance(reconciliation_version, bool)
+                and reconciliation_version >= 1
+            )
+
         return (
             authorization_allowed
             and request.tenant_id == request.resource_tenant_id
@@ -60,6 +94,7 @@ def _lifecycle(
                 FinancialAuthorizationAction.SETTLE,
                 FinancialAuthorizationAction.RECONCILE,
             }
+            and reconciliation_context_valid
         )
 
     def verify_evidence(
@@ -284,6 +319,79 @@ def test_stale_fingerprint_is_rejected() -> None:
             actor_reference=ACTOR,
             at=NOW + timedelta(hours=5),
         )
+
+
+def test_reconciliation_authorization_is_bound_to_exact_request() -> None:
+    authorization_requests: list[FinancialAuthorizationRequest] = []
+    lifecycle = _lifecycle(
+        authorization_requests=authorization_requests
+    )
+
+    submitted = _submit(lifecycle)
+    evidence = _evidence(submitted)
+
+    _reconcile(
+        lifecycle,
+        submitted,
+        evidence,
+        version=7,
+    )
+
+    reconciliation_requests = [
+        request
+        for request in authorization_requests
+        if request.action is FinancialAuthorizationAction.RECONCILE
+    ]
+
+    assert len(reconciliation_requests) == 1
+
+    request = reconciliation_requests[0]
+
+    assert request.tenant_id == submitted.settlement.tenant_id
+    assert request.resource_tenant_id == submitted.settlement.tenant_id
+    assert request.resource_reference == submitted.settlement.settlement_id
+    assert request.actor_reference == ACTOR
+    assert request.authorization_reference == RECONCILIATION_AUTH
+
+    assert request.context == {
+        "operation": "RECONCILE",
+        "settlement_fingerprint": (
+            submitted.settlement.immutable_fingerprint
+        ),
+        "external_evidence_fingerprint": (
+            evidence.immutable_fingerprint
+        ),
+        "reconciliation_id": "reconciliation-001",
+        "reconciliation_version": 7,
+        "reconciliation_reference": "reconciliation-reference-001",
+        "provenance_reference": "reconciliation-provenance-007",
+    }
+
+
+def test_invalid_reconciliation_version_is_rejected_before_authorization() -> None:
+    authorization_requests: list[FinancialAuthorizationRequest] = []
+    lifecycle = _lifecycle(
+        authorization_requests=authorization_requests
+    )
+
+    submitted = _submit(lifecycle)
+    evidence = _evidence(submitted)
+
+    with pytest.raises(
+        CommissionSettlementLifecycleValidationError,
+        match="reconciliation_version must be a positive integer",
+    ):
+        _reconcile(
+            lifecycle,
+            submitted,
+            evidence,
+            version=True,
+        )
+
+    assert not any(
+        request.action is FinancialAuthorizationAction.RECONCILE
+        for request in authorization_requests
+    )
 
 
 def test_only_matching_reconciliation_confirms_settlement() -> None:
