@@ -6,7 +6,7 @@
 **Document path:** `REOS_CONTROL_CENTER/architecture/HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md`  
 **Document type:** Ordered implementation and verification plan  
 **Execution authority:** `REOS_CONTROL_CENTER/data/state.json` and the existing Control Center  
-**Status:** PLANNING DOCUMENT — NOT EXECUTION AUTHORITY
+**Status:** PLANNING DOCUMENT - NOT EXECUTION AUTHORITY
 
 ---
 
@@ -22,7 +22,7 @@ This document defines one ordered work sequence for:
 6. Verifying every change against its exact GitHub commit and test/CI evidence.
 7. Reducing repeated repository scans when starting a new chat or resuming work.
 
-The purpose is to fix the actual problems—not to create another architecture, another state store, another Git sync engine, or duplicate versions of existing modules.
+The purpose is to fix the actual problems-not to create another architecture, another state store, another Git sync engine, or duplicate versions of existing modules.
 
 ## 2. Canonical authority rules
 
@@ -64,12 +64,12 @@ The repository was inspected on the `reos-development` branch during preparation
 - Observed branch HEAD: `719bd3f4ff08c1033fb765be80938d389205a4be`
 - Observed `data/state.json` blob SHA: `92296fb10b0c7a37d0fc7fa97c4328f587512150`
 - Observed audit-plan blob SHA: `975a007187dae9e957330c594e8348a4135abb18`
-- Canonical execution state reports: `CORE-008-T04 — Implement settlement and reconciliation lifecycle`
+- Canonical execution state reports: `CORE-008-T04 - Implement settlement and reconciliation lifecycle`
 - Two existing workflows were found: `backend-ci.yml` and `frontend-ci.yml`.
 - The existing T14 resume-manifest code, schema, JSON and tests were found.
 - Some proposed audit test paths are absent and require a duplicate/equivalence check before creation.
 - The audit plan's recorded HEAD is older than the observed branch HEAD.
-- A recent backend CI success was found for SHA `dfc967588dcbe4cb29373198f86a37c82833ebb0` (verify the exact SHA against live Actions data before citing it in any formal report). That success is not proof that the currently observed HEAD passed.
+- A recent backend CI success was found for SHA `dfc967588dcbe4cb79793b53382042ec2ea2d36b` (verify the exact SHA against live Actions data before citing it in any formal report). That success is not proof that the currently observed HEAD passed.
 - `REOS_CONTROL_CENTER/reos_state.json` contains older metadata than `data/state.json`. Trace references before deciding whether it is a compatibility artifact, derived snapshot, or obsolete file.
 
 **These are historical observations, not permanent constants. Before every implementation batch, fetch the live branch HEAD, state file, exact target paths and relevant test evidence again.**
@@ -92,116 +92,116 @@ This is the existing structure and the intended location of work. It is not a co
 
 ```text
 Homio/
-├── .github/
-│   └── workflows/
-│       ├── backend-ci.yml
-│       └── frontend-ci.yml
-│
-├── HOMIO PowerShell–GitHub Workflow Plan
-├── HOMIO_REOS_FIX_EXECUTION_STRUCTURE
-│
-└── REOS_CONTROL_CENTER/
-    ├── AI_AGENT_ENTRYPOINT.py
-    ├── gpt-ps-git-sync.md
-    ├── reos_control_center.py
-    ├── manifest.json
-    ├── reos_state.json
-    ├── HOMIO_AUTONOMOUS_MASTER_PLAN.json
-    ├── GATE_TEMPLATES.json
-    ├── requirements-auth.txt
-    ├── README.txt
-    ├── MANIFEST.txt
-    ├── REOS_NEXT_CHAT.txt
-    ├── PS Output
-    ├── Frontend Ps Output
-    ├── Frontend update files
-    ├── New chat work
-    │
-    ├── data/
-    │   └── state.json
-    │
-    ├── architecture/
-    │   ├── HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN.json
-    │   ├── HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md
-    │   ├── backend/
-    │   │   └── plans/
-    │   │       └── CORE-001 to CORE-008 Closure,
-    │   │           Hardening & Architecture Integrity Active Plan
-    │   ├── frontend/
-    │   ├── governance/
-    │   └── master/
-    │
-    ├── evidence/
-    │   └── CORE-008/
-    │       └── T04-settlement-reconciliation-ci-evidence.md
-    │
-    ├── tets/
-    │   ├── test_l3_canonical_authority.py
-    │   └── test_ai_agent_entrypoint_contract.py
-    │       [PROPOSED: verify no equivalent before ADD]
-    │
-    ├── AUTONOMY_ENGINE/
-    │   ├── core/
-    │   │   ├── commission_financial/
-    │   │   ├── identity_tenant/
-    │   │   ├── lead_ownership/
-    │   │   ├── inventory/
-    │   │   ├── search_matching/
-    │   │   ├── deal_transaction/
-    │   │   ├── trust_fraud_governance/
-    │   │   └── event_platform/
-    │   │
-    │   ├── continuity/
-    │   │   ├── canonical_truth/
-    │   │   └── acrl/
-    │   │       ├── T01_Project_DNA/
-    │   │       ├── T02_Architecture_Lock/
-    │   │       ├── T03_State_Reconstruction/
-    │   │       ├── T04_Gate_Subtask_Continuity/
-    │   │       ├── T05_Dependency_Authority_Map/
-    │   │       ├── T06_Checkpoint_Engine/
-    │   │       ├── T07_New_Chat_Bootstrap/
-    │   │       ├── T08_Context_Compression/
-    │   │       ├── T09_State_Fingerprint/
-    │   │       ├── T10_Drift_Detection/
-    │   │       ├── T11_Recovery_Fail_Closed/
-    │   │       ├── T12_Resume_Safety_Validation/
-    │   │       ├── T13_Controller_Integration/
-    │   │       ├── T14_Repository_Intelligence_Context/
-    │   │       ├── T14_Full_Regression/
-    │   │       ├── T15_AI_Operator_Autonomy/
-    │   │       ├── T16_Repository_Intelligence_File_Discovery/
-    │   │       ├── T17_Change_Impact_Dependency_Analysis/
-    │   │       ├── T18_Safe_Execution_Authorization_Guard/
-    │   │       ├── T19_Intelligent_Test_Selection_Failure_Diagnosis/
-    │   │       ├── T20_Autonomous_Repair_Patch_Verification/
-    │   │       ├── T21_Git_Repository_Read_Write_Coordination/
-    │   │       ├── T22_Commit_Execution_Checkpoint_Coordination/
-    │   │       ├── T23_Reference_Evidence_Resolution_Engine/
-    │   │       ├── T24_Cross_Chat_Continuity_Recovery_Engine/
-    │   │       ├── T25_Context_Token_Work_Budget_Manager/
-    │   │       ├── T26_Autonomous_Execution_Loop_Controller/
-    │   │       ├── T27_Dependency_Aware_Work_Scheduler/
-    │   │       ├── T28_Conflict_Resolution_Reconciliation_Engine/
-    │   │       ├── T29_Human_Decision_Boundary_Controller/
-    │   │       ├── T30_Autonomous_Completion_Handoff_Engine/
-    │   │       └── runtime_integration/
-    │   │
-    │   ├── security/
-    │   ├── contracts/
-    │   ├── runtime/
-    │   └── tests/
-    │
-    └── Frontend/
-        ├── package.json
-        ├── package-lock.json
-        ├── tsconfig.json
-        ├── scripts/
-        └── src/
-            ├── app/
-            ├── components/
-            ├── features/
-            └── lib/
+??? .github/
+?   ??? workflows/
+?       ??? backend-ci.yml
+?       ??? frontend-ci.yml
+?
+??? HOMIO PowerShell-GitHub Workflow Plan
+??? HOMIO_REOS_FIX_EXECUTION_STRUCTURE
+?
+??? REOS_CONTROL_CENTER/
+    ??? AI_AGENT_ENTRYPOINT.py
+    ??? gpt-ps-git-sync.md
+    ??? reos_control_center.py
+    ??? manifest.json
+    ??? reos_state.json
+    ??? HOMIO_AUTONOMOUS_MASTER_PLAN.json
+    ??? GATE_TEMPLATES.json
+    ??? requirements-auth.txt
+    ??? README.txt
+    ??? MANIFEST.txt
+    ??? REOS_NEXT_CHAT.txt
+    ??? PS Output
+    ??? Frontend Ps Output
+    ??? Frontend update files
+    ??? New chat work
+    ?
+    ??? data/
+    ?   ??? state.json
+    ?
+    ??? architecture/
+    ?   ??? HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN.json
+    ?   ??? HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md
+    ?   ??? backend/
+    ?   ?   ??? plans/
+    ?   ?       ??? CORE-001 to CORE-008 Closure,
+    ?   ?           Hardening & Architecture Integrity Active Plan
+    ?   ??? frontend/
+    ?   ??? governance/
+    ?   ??? master/
+    ?
+    ??? evidence/
+    ?   ??? CORE-008/
+    ?       ??? T04-settlement-reconciliation-ci-evidence.md
+    ?
+    ??? tets/
+    ?   ??? test_l3_canonical_authority.py
+    ?   ??? test_ai_agent_entrypoint_contract.py
+    ?       [PROPOSED: verify no equivalent before ADD]
+    ?
+    ??? AUTONOMY_ENGINE/
+    ?   ??? core/
+    ?   ?   ??? commission_financial/
+    ?   ?   ??? identity_tenant/
+    ?   ?   ??? lead_ownership/
+    ?   ?   ??? inventory/
+    ?   ?   ??? search_matching/
+    ?   ?   ??? deal_transaction/
+    ?   ?   ??? trust_fraud_governance/
+    ?   ?   ??? event_platform/
+    ?   ?
+    ?   ??? continuity/
+    ?   ?   ??? canonical_truth/
+    ?   ?   ??? acrl/
+    ?   ?       ??? T01_Project_DNA/
+    ?   ?       ??? T02_Architecture_Lock/
+    ?   ?       ??? T03_State_Reconstruction/
+    ?   ?       ??? T04_Gate_Subtask_Continuity/
+    ?   ?       ??? T05_Dependency_Authority_Map/
+    ?   ?       ??? T06_Checkpoint_Engine/
+    ?   ?       ??? T07_New_Chat_Bootstrap/
+    ?   ?       ??? T08_Context_Compression/
+    ?   ?       ??? T09_State_Fingerprint/
+    ?   ?       ??? T10_Drift_Detection/
+    ?   ?       ??? T11_Recovery_Fail_Closed/
+    ?   ?       ??? T12_Resume_Safety_Validation/
+    ?   ?       ??? T13_Controller_Integration/
+    ?   ?       ??? T14_Repository_Intelligence_Context/
+    ?   ?       ??? T14_Full_Regression/
+    ?   ?       ??? T15_AI_Operator_Autonomy/
+    ?   ?       ??? T16_Repository_Intelligence_File_Discovery/
+    ?   ?       ??? T17_Change_Impact_Dependency_Analysis/
+    ?   ?       ??? T18_Safe_Execution_Authorization_Guard/
+    ?   ?       ??? T19_Intelligent_Test_Selection_Failure_Diagnosis/
+    ?   ?       ??? T20_Autonomous_Repair_Patch_Verification/
+    ?   ?       ??? T21_Git_Repository_Read_Write_Coordination/
+    ?   ?       ??? T22_Commit_Execution_Checkpoint_Coordination/
+    ?   ?       ??? T23_Reference_Evidence_Resolution_Engine/
+    ?   ?       ??? T24_Cross_Chat_Continuity_Recovery_Engine/
+    ?   ?       ??? T25_Context_Token_Work_Budget_Manager/
+    ?   ?       ??? T26_Autonomous_Execution_Loop_Controller/
+    ?   ?       ??? T27_Dependency_Aware_Work_Scheduler/
+    ?   ?       ??? T28_Conflict_Resolution_Reconciliation_Engine/
+    ?   ?       ??? T29_Human_Decision_Boundary_Controller/
+    ?   ?       ??? T30_Autonomous_Completion_Handoff_Engine/
+    ?   ?       ??? runtime_integration/
+    ?   ?
+    ?   ??? security/
+    ?   ??? contracts/
+    ?   ??? runtime/
+    ?   ??? tests/
+    ?
+    ??? Frontend/
+        ??? package.json
+        ??? package-lock.json
+        ??? tsconfig.json
+        ??? scripts/
+        ??? src/
+            ??? app/
+            ??? components/
+            ??? features/
+            ??? lib/
 ```
 
 Important details:
@@ -216,7 +216,7 @@ Important details:
 
 ## 5. The ordered implementation plan
 
-## Phase 0 — Fresh read-only preflight and instruction reconciliation
+## Phase 0 - Fresh read-only preflight and instruction reconciliation
 
 **Purpose:** Establish current truth before making any edits.
 
@@ -241,11 +241,11 @@ Each target file must be marked:
 
 **Completion criteria:** Every target has a verified path, an action classification and a known owner. No project code or canonical state is mutated by this preflight.
 
-## Phase 1 — Respect the active Control Center task
+## Phase 1 - Respect the active Control Center task
 
 The committed canonical state currently identifies:
 
-`CORE-008-T04 — Implement settlement and reconciliation lifecycle`
+`CORE-008-T04 - Implement settlement and reconciliation lifecycle`
 
 Before making workflow-sync implementation changes as a separate task, establish how the existing Control Center authorizes that cross-cutting task without overwriting or bypassing T04.
 
@@ -253,7 +253,7 @@ The workflow audit and file plan may be prepared now, but this document does not
 
 **Do not change `state.json` to make this plan active. Do not mark any work complete from the existence of this document.**
 
-## Phase 2 — P0 safety and continuity corrections
+## Phase 2 - P0 safety and continuity corrections
 
 Audit the current versions first. Several relevant files already contain apparent corrective work, so preserve them unless tests reveal a current defect.
 
@@ -263,10 +263,10 @@ Existing paths:
 
 ```text
 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/runtime_integration/
-├── task_registry.py
-├── integration_models.py
-├── operational_runtime.py
-└── test_full_acrl_spine.py
+??? task_registry.py
+??? integration_models.py
+??? operational_runtime.py
+??? test_full_acrl_spine.py
 ```
 
 Required checks:
@@ -285,10 +285,10 @@ Existing/new paths:
 
 ```text
 T07_New_Chat_Bootstrap/
-├── new_chat_bootstrap.py                 [VERIFY / UPDATE IF NEEDED]
-├── test_new_chat_bootstrap.py            [EXISTING]
-├── test_fast_resume_and_stale_manifest.py [EXISTING]
-└── test_checkpoint_state_coherence.py    [ADD IF STILL MISSING]
+??? new_chat_bootstrap.py                 [VERIFY / UPDATE IF NEEDED]
+??? test_new_chat_bootstrap.py            [EXISTING]
+??? test_fast_resume_and_stale_manifest.py [EXISTING]
+??? test_checkpoint_state_coherence.py    [ADD IF STILL MISSING]
 ```
 
 Required checks:
@@ -304,8 +304,8 @@ Paths:
 
 ```text
 T23_Reference_Evidence_Resolution_Engine/
-├── evidence_resolver.py                 [UPDATE IF DEFECT CONFIRMED]
-└── test_requested_evidence_scope.py      [ADD IF STILL MISSING]
+??? evidence_resolver.py                 [UPDATE IF DEFECT CONFIRMED]
+??? test_requested_evidence_scope.py      [ADD IF STILL MISSING]
 ```
 
 Required checks:
@@ -320,11 +320,11 @@ Paths:
 
 ```text
 T24_Cross_Chat_Continuity_Recovery_Engine/
-├── continuity_coordinator.py             [UPDATE IF DEFECT CONFIRMED]
-├── continuity_evidence.py                [UPDATE IF DEFECT CONFIRMED]
-├── continuity_validation.py              [UPDATE IF DEFECT CONFIRMED]
-├── test_authoritative_context_required.py [ADD IF STILL MISSING]
-└── test_continuity_freshness.py          [ADD IF STILL MISSING]
+??? continuity_coordinator.py             [UPDATE IF DEFECT CONFIRMED]
+??? continuity_evidence.py                [UPDATE IF DEFECT CONFIRMED]
+??? continuity_validation.py              [UPDATE IF DEFECT CONFIRMED]
+??? test_authoritative_context_required.py [ADD IF STILL MISSING]
+??? test_continuity_freshness.py          [ADD IF STILL MISSING]
 ```
 
 Required checks:
@@ -336,7 +336,7 @@ Required checks:
 
 **Phase completion:** All P0 items have targeted regressions and confirmed results for the tested commit.
 
-## Phase 3 — Guarded GitHub synchronization foundations
+## Phase 3 - Guarded GitHub synchronization foundations
 
 Implement this phase in dependency order, using existing responsibilities.
 
@@ -344,9 +344,9 @@ Implement this phase in dependency order, using existing responsibilities.
 
 ```text
 T18_Safe_Execution_Authorization_Guard/
-├── authorization_models.py              [UPDATE IF NEEDED]
-├── authorization_validation.py           [UPDATE IF NEEDED]
-└── test_authenticated_approval_binding.py [ADD IF STILL MISSING]
+??? authorization_models.py              [UPDATE IF NEEDED]
+??? authorization_validation.py           [UPDATE IF NEEDED]
+??? test_authenticated_approval_binding.py [ADD IF STILL MISSING]
 ```
 
 Approval evidence must bind to a trusted principal and the requested operation/scope. Do not build a second authentication or identity engine.
@@ -355,15 +355,15 @@ Approval evidence must bind to a trusted principal and the requested operation/s
 
 ```text
 T16_Repository_Intelligence_File_Discovery/
-├── repository_intelligence.py                 [UPDATE IF NEEDED]
-├── repository_discovery/classification.py      [UPDATE IF NEEDED]
-└── source_intelligence/
-    ├── dependency_graph.py                     [UPDATE IF NEEDED]
-    ├── web_source_parser.py                    [ADD AFTER DUPLICATE CHECK]
-    └── test_web_source_parser.py               [ADD AFTER DUPLICATE CHECK]
+??? repository_intelligence.py                 [UPDATE IF NEEDED]
+??? repository_discovery/classification.py      [UPDATE IF NEEDED]
+??? source_intelligence/
+    ??? dependency_graph.py                     [UPDATE IF NEEDED]
+    ??? web_source_parser.py                    [ADD AFTER DUPLICATE CHECK]
+    ??? test_web_source_parser.py               [ADD AFTER DUPLICATE CHECK]
 
 T17_Change_Impact_Dependency_Analysis/
-└── impact_dependency.py                        [UPDATE IF NEEDED]
+??? impact_dependency.py                        [UPDATE IF NEEDED]
 ```
 
 Required checks:
@@ -378,9 +378,9 @@ Required checks:
 
 ```text
 T20_Autonomous_Repair_Patch_Verification/
-├── repair_models.py                         [UPDATE IF NEEDED]
-├── patch_verification.py                    [UPDATE IF NEEDED]
-└── test_non_python_verification_evidence.py [ADD IF STILL MISSING]
+??? repair_models.py                         [UPDATE IF NEEDED]
+??? patch_verification.py                    [UPDATE IF NEEDED]
+??? test_non_python_verification_evidence.py [ADD IF STILL MISSING]
 ```
 
 Required checks:
@@ -396,32 +396,32 @@ Existing T21 ownership:
 
 ```text
 T21_Git_Repository_Read_Write_Coordination/
-├── git_authorization.py
-├── git_commit.py
-├── git_identity.py
-├── git_lock.py
-├── git_models.py
-├── git_policy.py
-├── git_provenance.py
-├── git_push.py
-├── git_read.py
-├── git_registry.py
-├── git_repository.py
-├── git_scope.py
-├── git_stage.py
-├── git_transaction.py
-├── git_validation.py
-├── t21.contract.json
-├── test_git_commit.py
-├── test_git_concurrency.py
-├── test_git_read.py
-├── test_git_scope.py
-├── test_git_security.py
-├── test_git_stage.py
-├── test_git_transaction.py
-├── test_t21_contract.py
-├── github_api_error_recovery.py       [ADD IF STILL MISSING]
-└── test_github_api_error_recovery.py  [ADD IF STILL MISSING]
+??? git_authorization.py
+??? git_commit.py
+??? git_identity.py
+??? git_lock.py
+??? git_models.py
+??? git_policy.py
+??? git_provenance.py
+??? git_push.py
+??? git_read.py
+??? git_registry.py
+??? git_repository.py
+??? git_scope.py
+??? git_stage.py
+??? git_transaction.py
+??? git_validation.py
+??? t21.contract.json
+??? test_git_commit.py
+??? test_git_concurrency.py
+??? test_git_read.py
+??? test_git_scope.py
+??? test_git_security.py
+??? test_git_stage.py
+??? test_git_transaction.py
+??? test_t21_contract.py
+??? github_api_error_recovery.py       [ADD IF STILL MISSING]
+??? test_github_api_error_recovery.py  [ADD IF STILL MISSING]
 ```
 
 Do not create a competing T21 coordinator. Integrate error classification into the existing T21 contracts and registry after checking existing error-handling functions.
@@ -445,7 +445,7 @@ Use existing T22 mechanisms to preserve commit/checkpoint order and required evi
 
 **Phase completion:** Authorization, change verification, Git coordination, classified error handling and commit/checkpoint boundaries are covered by focused tests.
 
-## Phase 4 — GPT and GitHub workflow alignment
+## Phase 4 - GPT and GitHub workflow alignment
 
 Update the existing policy and instructions rather than creating a standalone runner.
 
@@ -453,23 +453,23 @@ Update the existing policy and instructions rather than creating a standalone ru
 
 ```text
 REOS_CONTROL_CENTER/
-├── AI_AGENT_ENTRYPOINT.py                  [UPDATE]
-├── gpt-ps-git-sync.md                      [UPDATE]
-├── tets/
-│   ├── test_l3_canonical_authority.py       [EXISTING]
-│   └── test_ai_agent_entrypoint_contract.py [ADD IF STILL MISSING]
-│
-├── architecture/
-│   ├── HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN.json
-│   │   [RECONCILE AUDIT EVIDENCE; DO NOT CHANGE STATE AUTHORITY]
-│   └── HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md
-│       [THIS PLAN]
-│
-└── reos_control_center.py                  [VERIFY; UPDATE ONLY IF NECESSARY]
+??? AI_AGENT_ENTRYPOINT.py                  [UPDATE]
+??? gpt-ps-git-sync.md                      [UPDATE]
+??? tets/
+?   ??? test_l3_canonical_authority.py       [EXISTING]
+?   ??? test_ai_agent_entrypoint_contract.py [ADD IF STILL MISSING]
+?
+??? architecture/
+?   ??? HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN.json
+?   ?   [RECONCILE AUDIT EVIDENCE; DO NOT CHANGE STATE AUTHORITY]
+?   ??? HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md
+?       [THIS PLAN]
+?
+??? reos_control_center.py                  [VERIFY; UPDATE ONLY IF NECESSARY]
 
 Repository root:
-├── HOMIO PowerShell–GitHub Workflow Plan   [REVIEW FOR CONFLICTS]
-└── HOMIO_REOS_FIX_EXECUTION_STRUCTURE      [REVIEW FOR CONFLICTS]
+??? HOMIO PowerShell-GitHub Workflow Plan   [REVIEW FOR CONFLICTS]
+??? HOMIO_REOS_FIX_EXECUTION_STRUCTURE      [REVIEW FOR CONFLICTS]
 ```
 
 Required GPT behavior:
@@ -497,7 +497,7 @@ It should verify the intended workflow boundaries: canonical repository/branch, 
 
 Prompt text alone cannot guarantee an agent will always comply. Runtime contracts, tests, scoped permissions and verified write procedures provide additional enforcement.
 
-## Phase 5 — Backend and frontend CI synchronization
+## Phase 5 - Backend and frontend CI synchronization
 
 Do not create a second frontend workflow.
 
@@ -505,8 +505,8 @@ Do not create a second frontend workflow.
 
 ```text
 .github/workflows/
-├── backend-ci.yml    [UPDATE EXISTING]
-└── frontend-ci.yml   [VERIFY AND UPDATE ONLY IF NEEDED]
+??? backend-ci.yml    [UPDATE EXISTING]
+??? frontend-ci.yml   [VERIFY AND UPDATE ONLY IF NEEDED]
 ```
 
 ### Backend CI
@@ -542,28 +542,28 @@ Preserve the existing workflow at `.github/workflows/frontend-ci.yml`. Verify:
 - Preserve failed-run links and the failing job/step as diagnostic evidence.
 - Do not claim full ACRL PASS until the intended suite actually passes on the relevant current commit.
 
-## Phase 6 — Complete the active CORE-008-T04 task
+## Phase 6 - Complete the active CORE-008-T04 task
 
-Do not restart already completed T01–T03 implementation.
+Do not restart already completed T01-T03 implementation.
 
 ### Existing source structure
 
 ```text
 REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/
-├── commission_settlement.py
-├── commission_settlement_lifecycle.py
-├── commission_settlement_validation.py
-├── commission_settlement_integrity.py
-├── commission_settlement_provenance.py
-├── commission_settlement_snapshot.py
-├── commission_settlement_history.py
-├── commission_settlement_conflict.py
-├── commission_settlement_temporal.py
-├── commission_reconciliation.py
-├── commission_reconciliation_validation.py
-├── commission_closeout.py
-├── test_core008_t04_settlement_integrity_linkage.py
-└── test_core008_t04_settlement_reconciliation_lifecycle.py
+??? commission_settlement.py
+??? commission_settlement_lifecycle.py
+??? commission_settlement_validation.py
+??? commission_settlement_integrity.py
+??? commission_settlement_provenance.py
+??? commission_settlement_snapshot.py
+??? commission_settlement_history.py
+??? commission_settlement_conflict.py
+??? commission_settlement_temporal.py
+??? commission_reconciliation.py
+??? commission_reconciliation_validation.py
+??? commission_closeout.py
+??? test_core008_t04_settlement_integrity_linkage.py
+??? test_core008_t04_settlement_reconciliation_lifecycle.py
 ```
 
 These files already exist in the observed branch tree. Their existence does not prove that T04 is complete.
@@ -590,71 +590,71 @@ After the implementation:
 6. Read the committed state and required handoff/evidence files back from GitHub.
 7. Report the next task only from the new canonical state.
 
-## Phase 7 — Remaining ACRL stateful hardening
+## Phase 7 - Remaining ACRL stateful hardening
 
-### T25 — budget and reservation invariants
+### T25 - budget and reservation invariants
 
 ```text
 T25_Context_Token_Work_Budget_Manager/
-├── budget_manager.py                  [UPDATE IF NEEDED]
-├── budget_validation.py               [UPDATE IF NEEDED]
-└── test_reservation_invariants.py     [ADD IF STILL MISSING]
+??? budget_manager.py                  [UPDATE IF NEEDED]
+??? budget_validation.py               [UPDATE IF NEEDED]
+??? test_reservation_invariants.py     [ADD IF STILL MISSING]
 ```
 
 Validate negative amounts, booleans where integers are required, invalid numeric inputs, over-capacity reservations, identity mismatches and atomic update failure behavior.
 
-### T26 — execution result binding
+### T26 - execution result binding
 
 ```text
 T26_Autonomous_Execution_Loop_Controller/
-├── loop_models.py                     [UPDATE IF NEEDED]
-├── loop_controller.py                 [UPDATE IF NEEDED]
-├── loop_validation.py                 [UPDATE IF NEEDED]
-└── test_upstream_result_binding.py    [ADD IF STILL MISSING]
+??? loop_models.py                     [UPDATE IF NEEDED]
+??? loop_controller.py                 [UPDATE IF NEEDED]
+??? loop_validation.py                 [UPDATE IF NEEDED]
+??? test_upstream_result_binding.py    [ADD IF STILL MISSING]
 ```
 
 Bind upstream results to request identity/fingerprint and the relevant budget reservation. Reject mismatched results and replay.
 
-### T29 — human decision boundary
+### T29 - human decision boundary
 
 ```text
 T29_Human_Decision_Boundary_Controller/
-├── decision_gate.py                           [UPDATE IF NEEDED]
-├── decision_validation.py                    [UPDATE IF NEEDED]
-├── decision_store.py                         [UPDATE IF NEEDED]
-├── decision_controller.py                    [UPDATE IF NEEDED]
-└── test_decision_expiry_and_nonce_replay.py  [ADD IF STILL MISSING]
+??? decision_gate.py                           [UPDATE IF NEEDED]
+??? decision_validation.py                    [UPDATE IF NEEDED]
+??? decision_store.py                         [UPDATE IF NEEDED]
+??? decision_controller.py                    [UPDATE IF NEEDED]
+??? test_decision_expiry_and_nonce_replay.py  [ADD IF STILL MISSING]
 ```
 
 Verify expiry, nonce/replay rejection, atomic state transitions and deterministic concurrent behavior through the existing store.
 
-### T30 — completion handoff
+### T30 - completion handoff
 
 ```text
 T30_Autonomous_Completion_Handoff_Engine/
-├── completion_controller.py             [UPDATE IF NEEDED]
-└── test_completion_store_replay.py       [ADD IF STILL MISSING]
+??? completion_controller.py             [UPDATE IF NEEDED]
+??? test_completion_store_replay.py       [ADD IF STILL MISSING]
 ```
 
 Ensure the existing completion store/record is correctly wired into the controller lifecycle. Duplicate completion requests must be handled deterministically, and a handoff must use validated persisted completion evidence.
 
-## Phase 8 — Fast resume and incremental audit
+## Phase 8 - Fast resume and incremental audit
 
 Use the existing T07 and T14 system.
 
 ```text
 T07_New_Chat_Bootstrap/
-├── new_chat_bootstrap.py
-├── test_new_chat_bootstrap.py
-└── test_fast_resume_and_stale_manifest.py
+??? new_chat_bootstrap.py
+??? test_new_chat_bootstrap.py
+??? test_fast_resume_and_stale_manifest.py
 
 T14_Repository_Intelligence_Context/
-├── repository_context.py
-├── audit_resume_manifest.py
-├── audit_resume_manifest.schema.json
-├── audit_resume_manifest.json
-├── test_repository_context.py
-└── test_audit_resume_manifest.py
+??? repository_context.py
+??? audit_resume_manifest.py
+??? audit_resume_manifest.schema.json
+??? audit_resume_manifest.json
+??? test_repository_context.py
+??? test_audit_resume_manifest.py
 ```
 
 These paths exist in the observed repository. Audit and test them before changing anything.
@@ -692,19 +692,21 @@ For every implementation batch, record:
 
 If a test fails, diagnose the failing assertion or step. Do not repeat the same failed operation blindly, loosen a necessary safety check solely to get green CI, or alter canonical state to hide the failure.
 
-## 7. Work order summary
+## 7. Work order summary - execution order is gated by canonical state
 
-| Sequence | Work | Required outcome |
+This table is the recommended work-package order, but it never overrides `data/state.json`. Because the current canonical task is CORE-008-T04, T04 must be completed through its prescribed controller workflow before unrelated runtime packages begin, unless the owner explicitly authorizes a separate compliant scope.
+
+| Order | Work package | Required outcome |
 |---:|---|---|
 | 0 | Live GitHub preflight and authority reconciliation | Current state, branch, exact paths and relevant evidence are known |
-| 1 | Honour the active canonical task and resolve authorization for cross-cutting work | No invented task or unauthorized state transition |
-| 2 | Close/verify P0 registry, read-only proof, T07, T23 and T24 safety findings | Critical authority and continuity regressions pass |
-| 3 | T18 → T16/T17 → T20 → T21 → T22 | Secure, evidence-based repository changes and error recovery |
-| 4 | Align EntryPoint, GPT sync document and supporting plans | No stale or contradictory workflow instructions |
-| 5 | Correct existing backend/frontend CI coverage | Path-safe and SHA-specific verification |
-| 6 | Complete CORE-008-T04 according to canonical plan and criteria | Settlement/reconciliation evidence and controller transition |
-| 7 | T25 → T26 → T29 → T30 hardening | Reservation, result identity, human decision and completion integrity |
-| 8 | Verify T07/T14 incremental audit and resume | Safe continuation without unnecessary full scans |
+| 1 | Phase 0-1 current-task and authorization reconciliation | Supporting instructions agree with the active canonical task; no state mutation |
+| 2 | Complete/verify the current CORE-008-T04 task | Criterion-specific settlement/reconciliation evidence and authorized controller transition |
+| 3 | P0 registry, read-only proof, T07, T23 and T24 safety findings | Start only when the canonical task/authorized scope permits; critical regressions pass |
+| 4 | T18 ? T16/T17 ? T20 ? T21 ? T22 guarded change path | Secure, evidence-based repository changes and classified error recovery |
+| 5 | GPT/EntryPoint/supporting-plan alignment | No stale next-task instruction or competing workflow authority |
+| 6 | Existing backend/frontend CI coverage | Path-safe, SHA-specific results; no duplicate workflow |
+| 7 | T25 ? T26, then T29 ? T30 hardening | Reservation, result identity, human decision and completion integrity |
+| 8 | T07/T14 incremental audit and resume | Safe continuation without unnecessary full scans |
 | 9 | Final evidence reconciliation | Every finding has a verified result or an explicit remaining blocker |
 
 ## 8. Final boundaries
@@ -719,3 +721,62 @@ If a test fails, diagnose the failing assertion or step. Do not repeat the same 
 - If repository evidence contradicts this document, stop and reconcile the difference before editing files.
 
 **End of plan.**
+
+---
+
+## 9. Phase 0-1 reconciliation record - 2026-10-20
+
+**Record status:** COMPLETE FOR READ-ONLY BASELINE AND DOCUMENT/AUTHORITY RECONCILIATION  
+**Canonical state mutation:** NONE  
+**Runtime/business implementation performed by this phase:** NONE
+
+### Phase 0 - Live baseline
+
+- Re-read the live `reos-development` branch and full Git tree immediately before this reconciliation.
+- Pre-reconciliation HEAD: 0fca7c9edb98770bc648551d6c6b2cc9118adbf5.
+- Canonical state blob SHA: `92296fb10b0c7a37d0fc7fa97c4328f587512150`.
+- The committed state identifies `CORE-008-T04` as CURRENT; this plan, GPT prompts and supporting documents must not override it.
+- Both existing workflows were confirmed: `.github/workflows/backend-ci.yml` and `.github/workflows/frontend-ci.yml`. Do not add duplicates.
+- T04 source/test blob SHAs in `REOS_CONTROL_CENTER/evidence/CORE-008/T04-settlement-reconciliation-ci-evidence.md` were re-read and matched their live files.
+- The CI commit typo has been corrected to `dfc967588dcbe4cb79793b53382042ec2ea2d36b`.
+- `REOS_CONTROL_CENTER/reos_state.json` is retained as a legacy/non-authoritative snapshot. The primary Control Center and ACRL operational runtime explicitly read `REOS_CONTROL_CENTER/data/state.json`. Repository search did not surface active references to `reos_state.json`; because search alone cannot prove absence of every dynamic reference, the file is not deleted and must not be treated as current authority.
+- `PS Output` and `Frontend Ps Output` are diagnostic snapshots only. The local `Frontend Ps Output` evidence is stale and is not used to infer current remote state.
+
+### Phase 1 - Current task and authorized route
+
+The authoritative state remains:
+- Gate: `CORE-008`
+- Current subtask: `CORE-008-T04 - Implement settlement and reconciliation lifecycle`
+- T01-T03: DONE; T04: CURRENT; T05-T10: PENDING.
+
+| Criterion | Current status | Phase 1 disposition |
+|---|---|---|
+| AC01 - Commission source of truth is authoritative | PENDING | Keep pending until criterion-specific evidence and prescribed verification exist |
+| AC02 - Deal and ownership attribution is traceable | VERIFIED | Preserve existing evidence |
+| AC03 - Financial amounts use safe fixed-precision semantics | VERIFIED | Preserve existing evidence |
+| AC04 - Settlement and reversal are auditable | PENDING | Validate against T04 lifecycle/evidence before any transition |
+| AC05 - Critical financial actions require appropriate approval | PENDING | Validate required authorization evidence before any transition |
+| AC06 - Security and concurrency tests pass | PENDING | Do not infer from unrelated/general CI alone |
+
+Latest read-back evidence for the verified code snapshot is Actions run [39429640103](https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39429640103) on `dfc967588dcbe4cb79793b53382042ec2ea2d36b`: 32 runtime-integration tests passed, 56 T07/T14 tests passed, and the combined regression command passed 522 tests. This is evidence for that exact code snapshot, not a claim that the documentation-only HEAD ran CI.
+
+The owner explicitly authorized completing Phase 0-1. That authorization was used only to reconcile planning/handoff documents and record the route. It did not authorize a manual state transition, mark T04 complete, close CORE-008, or authorize unrelated runtime changes.
+
+### Verified workflow/authority route
+
+1. `data/state.json` and the existing Control Center determine the active task.
+2. Agent-facing instructions must read the live branch/state before acting.
+3. The existing EntryPoint policy remains the agent-facing workflow policy; it does not execute writes.
+4. GPT/PowerShell/handoff documents are aligned to the canonical task and point to this master plan.
+5. Any implementation outside the active task must wait for the existing controller to select/authorize it or for explicit owner approval of a compliant cross-cutting scope. No document may silently switch the current task.
+6. State-changing transitions use the existing authorized Control Center route; no direct state-file edits.
+7. Phase 0-1 closes the baseline and documentation/authority reconciliation only. It does not close T04 or automatically authorize later ACRL implementation phases.
+
+### Phase 0-1 exit decision
+
+- **Phase 0:** COMPLETE - baseline captured, old/current evidence distinguished, legacy state-file disposition recorded without deletion.
+- **Phase 1:** COMPLETE - current task and acceptance-criteria statuses reconciled; a non-state-mutating workflow-document synchronization route is recorded.
+- **Next canonical task remains:** `CORE-008-T04`.
+- **T04 formal completion:** PENDING until all required criteria/evidence and the existing controller transition are verified.
+
+This record is not execution authority and does not mutate canonical project state.

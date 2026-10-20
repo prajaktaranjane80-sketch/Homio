@@ -1,4 +1,14 @@
-# HOMIO / REOS — Continue CORE-008 Backend Execution (T03 Transition Recovery → T04–T10)
+# HOMIO / REOS - Canonical Task Continuity and Guarded GitHub Sync
+
+> **CURRENT AUTHORITATIVE OVERLAY - 2026-10-20**
+>
+> - Always re-read the live `reos-development` HEAD and `REOS_CONTROL_CENTER/data/state.json` before acting.
+> - The current canonical subtask is **CORE-008-T04**. T01-T03 are DONE; T04 is CURRENT; T05-T10 are PENDING.
+> - The former T03 transition-recovery procedure below is historical context, **not** the current first action. Do not repeat T03 or run its old transition script.
+> - Phase 0-1 reconciliation is recorded in `REOS_CONTROL_CENTER/architecture/HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md`.
+> - The owner authorized Phase 0-1 reconciliation only. That does not change state.json, complete T04, or authorize unrelated runtime/state mutations.
+> - Preserve verified T04 implementation. Validate pending acceptance criteria and existing evidence; only fix a demonstrated defect.
+> - Do not infer a passing result on a newer SHA from a CI run on an older SHA.
 
 ## 1. Project and canonical references
 
@@ -29,7 +39,7 @@ Follow the repository's actual file and subtask definitions. Do not invent missi
 - Previous T02 completion transition: `7cb3a6603c89d01531d8fb195a3d5769878ae474`.
 - Prior acceptance-criterion evidence for AC02 and the corresponding test runs is documented in the preceding work context.
 
-### T03 — Commission allocation and participant split logic
+### T03 - Commission allocation and participant split logic
 
 **Implementation commit:**  
 `5adc036e7581345714d2d323a07beae5e4aea1ee`
@@ -53,7 +63,7 @@ The implementation covers deterministic finite-precision ratio residue handling,
 
 **Do not rewrite or repeat T03 implementation without evidence of a real defect.**
 
-## 3. Latest T03 transition attempt — actual result
+## 3. Latest T03 transition attempt - historical record only (NOT THE CURRENT ACTION)
 
 The latest PowerShell output reported:
 
@@ -70,7 +80,7 @@ STATE HASH CALCULATED: 8df15eb0c98fa7b2a3bd6cea66e1e3c935ccf553e986537515a519d92
 INTEGRITY: PASS
 PHASE/GATE COHERENCE: PASS
 
-T03 TRANSITION STOPPED — NO SUCCESS CLAIM
+T03 TRANSITION STOPPED - NO SUCCESS CLAIM
 Guarded file changed during transition: REOS_CONTROL_CENTER/data/state.json
 Guarded file changed during transition: REOS_CONTROL_CENTER/data/state.json
 ```
@@ -79,38 +89,41 @@ Guarded file changed during transition: REOS_CONTROL_CENTER/data/state.json
 
 The printed hashes above are not proof that the corresponding state has been committed to GitHub.
 
-### First task in this new chat
+### Current first action - follow canonical T04 state, not the historical T03 attempt
 
-Perform a **targeted live readback**, not a broad re-audit:
+1. Read live `reos-development` HEAD, `data/state.json`, the current CORE-008 gate plan and T04 evidence.
+2. Confirm T04 source/test blob SHAs and the corresponding CI run before changing implementation.
+3. Use the canonical state for criterion status. AC01, AC04, AC05 and AC06 currently remain PENDING; AC02 and AC03 are VERIFIED.
+4. Validate each pending criterion against existing implementation/tests. Do not repeat work without evidence of a defect.
+5. Use the existing Control Center/controller workflow for any authorized state transition. Never edit `data/state.json` directly.
+6. The owner-approved Phase 0-1 work updates supporting documents only. Later code changes must follow the active task or a separately authorized compliant scope.
+7. If live branch/task differs from this snapshot, stop and follow fresh canonical evidence.
 
-1. Read the current `reos-development` HEAD.
-2. Read the actual committed `REOS_CONTROL_CENTER/data/state.json`.
-3. Read the latest `REOS_CONTROL_CENTER/PS Output`.
-4. Check the relevant GitHub Actions run/commit evidence if available.
+Do not use the historical T03 guard failure, old local state, or old HEAD values as current operational instructions.
 
-Then establish which of these is true:
-- The T03 state transition was committed successfully by a later operation; or
-- The code commit is present and passes CI, but the T03 state transition remains uncommitted.
+## 4. Current CORE-008 acceptance-criteria context
 
-Do not assume either outcome in advance.
+The live canonical `data/state.json` read on 2026-10-20 reports:
+- AC01 - Commission source of truth is authoritative: **PENDING**.
+- AC02 - Deal and ownership attribution is traceable: **VERIFIED**.
+- AC03 - Financial amounts use safe fixed-precision semantics: **VERIFIED**.
+- AC04 - Settlement and reversal are auditable: **PENDING**.
+- AC05 - Critical financial actions require appropriate approval: **PENDING**.
+- AC06 - Security and concurrency tests pass: **PENDING**.
 
-If the transition is still pending, recover **only the T03 completion transition**. Do not rerun the implementation, claim success prematurely, or overwrite newer branch work.
+Current subtask: **CORE-008-T04**.
 
-The prior script's guard on `state.json` may have treated the controller's expected local state mutation as an unexpected change. Review that guard. Compare immutable source files against their expected hashes, validate the generated state and handoff separately, and atomically commit the canonical state, required handoff files and controller-generated snapshots. Use the live branch HEAD as the commit parent and abort safely if it changes during execution. Never force-push or make a partial state-only commit when the transition requires multiple artifacts.
+The T04 evidence record confirms these source/test blob SHAs matched the live branch:
+- `commission_settlement_lifecycle.py`: `629e2388eeb40819923c943a5bb4ba2097ae2a2a`
+- `commission_reconciliation.py`: `ffa7b4d0d392618b95d72360e0191988f9b3c167`
+- `test_core008_t04_settlement_reconciliation_lifecycle.py`: `00e3bb5936d39eab155e4dbc119a587c92120019`
+- `test_core008_t04_settlement_integrity_linkage.py`: `78e083609e78c298c924602f3e6a094a753be3a3`
 
-Verify the transition by reading the committed files back from GitHub and checking its exact CI run. If verification cannot be completed, state precisely what remains unverified.
+Latest verified CI snapshot: [run 39429640103](https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39429640103), commit `dfc967588dcbe4cb79793b53382042ec2ea2d36b`: 32 ACRL runtime-integration tests, 56 T07/T14 tests and 522 combined regressions passed. This evidence does not automatically verify every criterion or complete the T04 transition.
 
-## 4. CORE-008 acceptance-criteria context
+Re-read live state before relying on these values in a later session.
 
-Previously observed state:
-- AC02: VERIFIED.
-- AC03: PENDING before the latest attempted transition; the local controller output subsequently reported `VERIFIED: CORE-008-AC03`.
-- AC01, AC04, AC05 and AC06: PENDING before the latest attempted transition.
-- CORE-008-T04 through T10: PENDING before the latest attempted transition.
-
-Recheck the live state and use its current values as authoritative. Do not copy these historical statuses over newer committed state.
-
-## 5. Remaining work after transition recovery
+## 5. Remaining CORE-008 work - canonical sequence
 
 Continue CORE-008 from **T04 through T10**, in the exact sequence and with the exact task definitions in the canonical plan and current `state.json`.
 
@@ -120,7 +133,7 @@ The reported description is:
 
 **Implement settlement and reconciliation lifecycle.**
 
-Inspect the relevant existing financial/commission modules, contracts, tests and task acceptance criteria. Follow the established architecture and repository conventions. Implement the actual lifecycle, including its required state transitions, validation and reconciliation safeguards, based on the canonical contracts—not guessed business rules.
+Inspect the relevant existing financial/commission modules, contracts, tests and task acceptance criteria. Follow the established architecture and repository conventions. Implement the actual lifecycle, including its required state transitions, validation and reconciliation safeguards, based on the canonical contracts-not guessed business rules.
 
 Write and run targeted regression tests. Run the required gate verification and available CI checks for the exact resulting commit. Do not update the authoritative state until the acceptance criteria and evidence satisfy the project's prescribed controller workflow.
 
@@ -163,3 +176,9 @@ Report briefly:
 If any step is blocked, distinguish code/test success from formal state completion and specify the concrete blocker.
 
 **Start now:** perform the targeted live GitHub readback for the T03 transition, recover it only if necessary, and then proceed with CORE-008-T04. Do not restart the project or redo working T03 code.
+
+## 8. Phase 0-1 work-order reference
+
+Master plan: `REOS_CONTROL_CENTER/architecture/HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md`.
+
+Phase 0-1 is closed for the read-only baseline and documentation/authority reconciliation only. The canonical task remains T04. Audit-phase closure is not a business-subtask completion and does not permit direct state edits.

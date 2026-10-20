@@ -1,16 +1,22 @@
-# HOMIO / REOS — Fix Execution Structure
+# HOMIO / REOS - Fix Execution Structure
 
-**Status:** ACTIVE EXECUTION PLAN — WF-01 VERIFIED; AUTH-01 INVENTORY COMPLETE; AUTH-02 NEXT
+**Status:** SUPPORTING PLAN - WF-01 VERIFIED; AUTH-01 INVENTORY COMPLETE; AUTH-02 IS HISTORICAL SEQUENCE, NOT CURRENT CANONICAL NEXT TASK
 **Scope:** Workflow consistency, authentication, security verification, CI, T21 Git-policy handling, and final EntryPoint/ACRL alignment.  
 **Canonical repository:** `prajaktaranjane80-sketch/Homio`  
 **Canonical branch:** `reos-development`
+
+## Current authoritative clarification - 2026-10-20
+
+The live `REOS_CONTROL_CENTER/data/state.json` identifies `CORE-008-T04` as CURRENT. The AUTH-02 row in the original issue register records an earlier plan sequence; it does not override the current canonical task. Use `REOS_CONTROL_CENTER/architecture/HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md` as the ordered supporting work plan, and re-read the canonical state before every next-task decision.
+
+Phase 0-1 reconciliation was owner-authorized and is recorded in that master plan. It reconciles supporting documents only; it does not mutate `state.json`, complete T04, or silently authorize additional runtime work.
 
 ## 1. Authority and operating rules
 
 1. GitHub branch `reos-development` is the canonical code and history source.
 2. `REOS_CONTROL_CENTER/data/state.json` remains the authoritative machine-readable execution/gate state. This document is a human-readable work plan only; it must never override or silently rewrite machine state.
 3. Re-read current branch HEAD and relevant files before acting. Old chat notes and PowerShell output files are diagnostic evidence, not current source truth.
-4. Work one issue at a time: reproduce/inspect → establish root cause → make one bounded correction → run targeted verification → record PASS/FAIL with evidence.
+4. Work one issue at a time: reproduce/inspect ? establish root cause ? make one bounded correction ? run targeted verification ? record PASS/FAIL with evidence.
 5. Do not claim PASS without a real result. Do not bypass, suppress, or relabel failures to obtain a green result.
 6. PowerShell may perform guarded GitHub REST API writes against the canonical remote branch under AI_AGENT_ENTRYPOINT.py. Local worktree source writes and local Git mutation remain forbidden. Read live HEAD and exact targets before writes, fail closed on mismatch, use non-force updates, and verify commit parent plus exact remote content.
 7. Do not reset, force-pull, or merge a stale local checkout. Use guarded remote GitHub REST API writes by default; use manual GitHub UI saving only when the owner explicitly requests that fallback.
@@ -20,55 +26,55 @@
 
 ## 2. Fix execution sequence
 
-### Phase 0 — Current GitHub baseline
+### Phase 0 - Current GitHub baseline
 
 **ID:** BASE-01  
 **Action:** Confirm current `reos-development` HEAD, inspect only relevant files and current failure evidence, and distinguish current errors from stale logs.  
 **Exit condition:** The current baseline and the evidence for the first issue are recorded.
 
-### Phase 1 — Workflow and state consistency
+### Phase 1 - Workflow and state consistency
 
 **ID:** WF-01  
 **Action:** Compare `REOS_CONTROL_CENTER/data/state.json` fields such as `execution`, `phases.current`, and `gate_plans` with current controller validation rules, relevant tests, and repository evidence. Investigate any conflict before changing state.  
 **Exit condition:** The correct current task/gate is evidenced and any supported correction passes relevant checks. Do not guess which field should win.
 
-### Phase 2 — Authentication implementation audit
+### Phase 2 - Authentication implementation audit
 
 **ID:** AUTH-01  
 **Action:** Inventory existing frontend routes, API/backend entrypoints, packages, environment/config examples, auth/session code, identity modules, and tenant boundaries. Verify the current implementation on the canonical branch.  
 **Exit condition:** A path-specific list distinguishes missing, implemented, and broken pieces. Do not select an auth provider before checking the actual stack and existing configuration.
 
-### Phase 3 — Authentication foundation
+### Phase 3 - Authentication foundation
 
 **ID:** AUTH-02  
 **Action:** Based on the audit, settle the compatible auth provider/service and establish credential verification, session/callback behavior, secure configuration, and integration with identity and tenant boundaries. Keep secrets out of source files.  
 **Exit condition:** The chosen design matches the existing repository and its required configuration is explicit.
 
-### Phase 4 — Login, signup, and My HOMIO user flow
+### Phase 4 - Login, signup, and My HOMIO user flow
 
 **ID:** AUTH-03  
 **Action:** Implement only the verified missing routes and flows: login, signup/account verification as required, callback/session handling, protected `/my`, logout, and account recovery where supported by the selected foundation.  
 **Exit condition:** Implemented routes have targeted evidence for expected success and denial behavior.
 
-### Phase 5 — Security and regression tests
+### Phase 5 - Security and regression tests
 
 **ID:** SEC-01  
 **Action:** Add or repair relevant tests for valid/invalid credentials, signup/verification, expired sessions, logout, disabled accounts, unauthorized API calls, and cross-tenant access denial. Adapt the list to the actual implemented auth provider and supported flows.  
 **Exit condition:** Relevant tests pass and failures are not hidden or bypassed.
 
-### Phase 6 — CI and workflow verification
+### Phase 6 - CI and workflow verification
 
 **ID:** CI-01  
 **Action:** Connect appropriate authentication regression tests to CI and verify workflow/gate checks. A passing frontend build or unrelated CI run is not proof that authentication works.  
 **Exit condition:** The required checks execute against the intended branch and their results are inspectable.
 
-### Phase 7 — T21 Git repository policy errors
+### Phase 7 - T21 Git repository policy errors
 
 **ID:** T21-01  
 **Action:** Keep this work near the end, as previously requested. Inspect existing T21 code and reproduce/classify the actual operation failure before changing anything. Review handling and tests for HTTP 401, 403, 404, 407, and 429; authentication/authorization distinction; network/TLS errors; push rejection; bounded retries; write verification; safe failure behavior; and secret redaction.  
 **Exit condition:** Changes are minimal, match the existing T21 contracts, and the relevant failure-mode tests support the result. A connector permission/scope error must not automatically be labelled a bad repository token.
 
-### Phase 8 — Final AI Agent EntryPoint + ACRL alignment
+### Phase 8 - Final AI Agent EntryPoint + ACRL alignment
 
 **ID:** FINAL-01  
 **Action:** Do this last, after preceding fixes are stable. Align `AI_AGENT_ENTRYPOINT.py`, ACRL policy/contracts, Git workflow rules, and verified canonical repository state without duplicating engines or shifting domain ownership into ACRL.  
@@ -83,7 +89,7 @@ Statuses below reflect the initial read-only audit of the canonical branch on 20
 | BASE-01 | GitHub baseline | HEAD verified: `13d3350d512b5242accc01a311ff2c4098e9bfe1`; canonical state/controller evidence collected | PASS (READ-ONLY BASELINE) |
 | WF-01 | State/gate consistency | Semantic phase/gate guard, CLI failure behavior and regression coverage verified in CI run 39006245777 | PASS |
 | AUTH-01 | Auth inventory | Path-specific frontend OIDC, backend verifier, identity/tenant boundaries, configuration and missing integrations inventoried | PASS (READ-ONLY AUDIT) |
-| AUTH-02 | Auth foundation | Integrate existing provider-neutral OIDC verification with canonical identity, persistence and tenant authorization after inspecting the existing persistence owner | READY — NEXT |
+| AUTH-02 | Auth foundation | Integrate existing provider-neutral OIDC verification with canonical identity, persistence and tenant authorization after inspecting the existing persistence owner | DEFERRED - HISTORICAL PLAN SEQUENCE; current canonical task is CORE-008-T04 |
 | AUTH-03 | Login/signup/My HOMIO | Implement confirmed missing functionality | BLOCKED BY AUTH-02 |
 | SEC-01 | Security tests | Test actual supported auth flows and tenant boundaries | BLOCKED BY AUTH-02/AUTH-03 |
 | CI-01 | CI integration | Run the relevant checks on the intended branch | BLOCKED BY REQUIRED TESTS |
@@ -104,14 +110,14 @@ For each issue, record:
 
 A status may be marked PASS only when the relevant result is available and tied to the current canonical change. When verification fails, stay on the same issue and correct that failure before moving forward.
 
-## 5. Initial next action (historical baseline — 2026-10-10)
+## 5. Initial next action (historical baseline - 2026-10-10)
 
 **BASE-01 baseline captured:** current branch HEAD was `13d3350d512b5242accc01a311ff2c4098e9bfe1`. Continue with **WF-01**: establish the intended phase-to-gate mapping, add a semantic consistency check and targeted regression coverage if confirmed necessary, then reconcile derived state only through the approved Control Center flow. Do not classify execution-plan and architecture-lifecycle statuses as contradictory without semantic proof. Proceed to **AUTH-01** only after WF-01 is resolved or explicitly shown not to require a change.
 
 **This plan controls the order of investigation only. It does not itself mark any gate, test, authentication flow, or repository policy as complete.**
 
 
-## 6. Initial read-only audit notes — 2026-10-10
+## 6. Initial read-only audit notes - 2026-10-10
 
 - Canonical branch HEAD observed: `13d3350d512b5242accc01a311ff2c4098e9bfe1` (`Create backend-ci.yml`). Re-fetch HEAD before any later change.
 - `REOS_CONTROL_CENTER/data/state.json` reports `execution.current_gate = CORE-008`, `execution.current_subtask = CORE-008-T01`, while `phases.current = PRE-CODING ARCHITECTURE`. Treat this as suspected phase-projection drift until the gate-to-phase contract is confirmed.
@@ -121,7 +127,7 @@ A status may be marked PASS only when the relevant result is available and tied 
 - The state shows `ARCH-039` as `COMPLETE` in `execution_plan` and `PENDING` under `architecture`. The existing `test_semantic_consistency.py` explicitly treats `execution_plan.status` and `architecture.status` as different lifecycle dimensions (`NOT_COMPARABLE`), so this difference is **not** declared a defect by this audit.
 - No repository files were modified by this audit. GitHub file creation for this plan was rejected by the active integration with HTTP 403, so the plan is available as a file for manual addition to the canonical branch.
 
-## 7. Guarded remote-sync follow-up — 2026-10-16
+## 7. Guarded remote-sync follow-up - 2026-10-16
 
 - T21 concurrency fix commit: 0ef7dcf48c95a536b84a6e48f407a9e01c28601d.
 - GitHub Actions run 38924480474 reported success for T21 syntax and regression verification.
@@ -129,7 +135,7 @@ A status may be marked PASS only when the relevant result is available and tied 
 - The workflow must stop on any failed preflight, use live HEAD and exact target SHA guards, perform non-force ref updates, and verify exact remote content.
 - WF-01 remains open. T21 CI success does not prove complete state/gate, authentication or final ACRL alignment.
 
-## 8. WF-01 semantic command guard — VERIFIED (CI PASS)
+## 8. WF-01 semantic command guard - VERIFIED (CI PASS)
 
 - Canonical branch HEAD verified: `8e0ba08035c87122b268df36f8620d984d2b09ad`; parent: `6742a901a285e5f4b3cc1ec82f4002ace8d90119`.
 - GitHub Actions run `39006245777` (`HOMIO T21 CI`) completed successfully on 2026-10-17 for this exact commit.
@@ -141,25 +147,25 @@ A status may be marked PASS only when the relevant result is available and tied 
 - `REOS_CONTROL_CENTER/data/state.json` was not changed. T21 Git transaction implementation files were not changed.
 - GitHub currently reports branch protection disabled and no required status checks. CI is green, but this run is not configured as a mandatory branch-protection gate; do not claim otherwise.
 
-## 9. AUTH-01 — Authentication implementation inventory (read-only audit, 2026-10-17)
+## 9. AUTH-01 - Authentication implementation inventory (read-only audit, 2026-10-17)
 
 ### Existing frontend authentication
 
-- `REOS_CONTROL_CENTER/Frontend/src/lib/auth/oidc.ts` — blob `4c6f2b3f8fe7838954305dc689130b01647f45bd`. Contains provider-neutral OIDC authorization-code/PKCE handling, issuer and token validation, encrypted session-cookie handling, and redirect safeguards.
+- `REOS_CONTROL_CENTER/Frontend/src/lib/auth/oidc.ts` - blob `4c6f2b3f8fe7838954305dc689130b01647f45bd`. Contains provider-neutral OIDC authorization-code/PKCE handling, issuer and token validation, encrypted session-cookie handling, and redirect safeguards.
 - Existing routes: login `src/app/api/auth/login/route.ts` (`2accd9e6ee2c3147eb10eb7be057d084320266d3`); callback (`5dd056911118c30fe1c581fb07fab218cf3d167b`); logout (`0f574531fc331972da84d96fb846456a25f997c6`); session (`87dac52f57017f1e24ec2e2532fd9b133cd77bff`).
-- `REOS_CONTROL_CENTER/Frontend/scripts/verify-auth.mjs` — blob `84342f9c955d9f9d105e652f3fe8369831cb59a5`; `scripts/auth-runtime.test.mjs` — blob `de8595f016b0bed5486d9eb9c2eda028cc935d99`.
-- `REOS_CONTROL_CENTER/Frontend/AUTHENTICATION_SETUP.md` — blob `4ae21471c19d52a27eff6abce092fef323ff9d6c`; documents required OIDC/session environment variables and secure configuration. No secret values should be committed.
+- `REOS_CONTROL_CENTER/Frontend/scripts/verify-auth.mjs` - blob `84342f9c955d9f9d105e652f3fe8369831cb59a5`; `scripts/auth-runtime.test.mjs` - blob `de8595f016b0bed5486d9eb9c2eda028cc935d99`.
+- `REOS_CONTROL_CENTER/Frontend/AUTHENTICATION_SETUP.md` - blob `4ae21471c19d52a27eff6abce092fef323ff9d6c`; documents required OIDC/session environment variables and secure configuration. No secret values should be committed.
 - The last known full frontend verification was run `39003972267` on commit `072bed2d1a0d092cc45158515e076d957cb574b5`. The subsequent commits in this execution sequence did not modify frontend files, but that frontend run is not a new run against commit `8e0ba08035c87122b268df36f8620d984d2b09ad`.
 
 ### Existing backend authentication and tenant boundaries
 
-- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication/oidc_config.py` — blob `8f3a86b4b9682f95e45f6f7ce78d8eea9eca8dc6`.
-- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication/oidc_verifier.py` — blob `20deeeb26eb84ce7208a9ca112afa76a19b34fe9`.
-- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication/test_oidc_verifier.py` — blob `bcce5c79de1452a3645c96363a8059fc99e7352c`; covers valid and invalid token/configuration cases, supported algorithms, signatures and JWKS failure paths.
-- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/identity_tenant/identity.py` — blob `49564ab0e7b3f19d192c343bd444ba3b45ced192`. The registry is a deterministic in-memory domain boundary, not a persistent identity database.
-- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/identity_tenant/tenant_isolation.py` — blob `d96a41cd85b61b67d1a3c789750d441d71078a5b`; tenant-isolation tests include `test_identity.py` (`518d8c2b749c3f8129672a13dbc8462527c5edac`) and `test_tenant_isolation.py` (`e7e5adb30a0fdc932cec3594c63f789c4be810a3`).
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication/oidc_config.py` - blob `8f3a86b4b9682f95e45f6f7ce78d8eea9eca8dc6`.
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication/oidc_verifier.py` - blob `20deeeb26eb84ce7208a9ca112afa76a19b34fe9`.
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/authentication/test_oidc_verifier.py` - blob `bcce5c79de1452a3645c96363a8059fc99e7352c`; covers valid and invalid token/configuration cases, supported algorithms, signatures and JWKS failure paths.
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/identity_tenant/identity.py` - blob `49564ab0e7b3f19d192c343bd444ba3b45ced192`. The registry is a deterministic in-memory domain boundary, not a persistent identity database.
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/identity_tenant/tenant_isolation.py` - blob `d96a41cd85b61b67d1a3c789750d441d71078a5b`; tenant-isolation tests include `test_identity.py` (`518d8c2b749c3f8129672a13dbc8462527c5edac`) and `test_tenant_isolation.py` (`e7e5adb30a0fdc932cec3594c63f789c4be810a3`).
 
-### Confirmed limitations — not implementation PASS claims
+### Confirmed limitations - not implementation PASS claims
 
 - A durable adapter from external `(issuer, sub)` identity to the canonical account has not been verified as integrated into live authentication requests.
 - The persistent identity/account repository owner and runtime persistence configuration still need to be established from the existing project architecture.
