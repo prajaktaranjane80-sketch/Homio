@@ -171,15 +171,11 @@ class CommissionSettlementLifecycleEvent:
             "reconciliation_fingerprint",
         ):
             value = getattr(self, field_name)
-
             if value is not None:
                 object.__setattr__(
                     self,
                     field_name,
-                    _required_text(
-                        value,
-                        field_name,
-                    ),
+                    _required_text(value, field_name),
                 )
 
         object.__setattr__(
@@ -258,7 +254,7 @@ class SettlementLifecycleRecord:
     snapshot: CommissionSettlementSnapshot
     lifecycle_events: tuple[
         CommissionSettlementLifecycleEvent,
-        ...
+        ...,
     ]
     reconciliation_history: CommissionReconciliationHistory = field(
         default_factory=CommissionReconciliationHistory
@@ -305,12 +301,12 @@ class CommissionSettlementLifecycle:
     """
     Pure lifecycle orchestration around existing CORE-008 domain components.
 
-    This class does not execute payments, post a ledger, create a second
+    This module does not execute payments, post a ledger, create a second
     authorization system, or write project state. Callers must persist
     successful results through the existing authorized financial path.
 
-    CONFIRMED is allowed only through independently verified, authorized,
-    MATCHED reconciliation evidence linked to the lifecycle event chain.
+    A settlement can become CONFIRMED only through independently verified,
+    authorized MATCHED reconciliation evidence linked to the event chain.
     """
 
     _ALLOWED_TRANSITIONS = {
@@ -413,7 +409,6 @@ class CommissionSettlementLifecycle:
             sensitive=True,
             context=dict(context),
         )
-
         self._security_boundary.authorize(request)
 
     @staticmethod
@@ -758,10 +753,7 @@ class CommissionSettlementLifecycle:
                         "match reconciliation history."
                     )
 
-                if (
-                    event.event_type
-                    == "RECONCILIATION_MATCHED"
-                ):
+                if event.event_type == "RECONCILIATION_MATCHED":
                     if (
                         reconciliation_entry.state
                         != CommissionReconciliationState.MATCHED.value
@@ -905,7 +897,7 @@ class CommissionSettlementLifecycle:
         reconciliation_history: CommissionReconciliationHistory,
         lifecycle_events: tuple[
             CommissionSettlementLifecycleEvent,
-            ...
+            ...,
         ],
         at: datetime,
     ) -> SettlementLifecycleRecord:
@@ -929,7 +921,10 @@ class CommissionSettlementLifecycle:
             settlement
         )
 
-        assert_settlement_integrity(settlement, snapshot)
+        assert_settlement_integrity(
+            settlement,
+            snapshot,
+        )
 
         record = SettlementLifecycleRecord(
             allocation=allocation,
@@ -999,4 +994,431 @@ class CommissionSettlementLifecycle:
                 settlement.authorization_reference
             ),
             evidence_fingerprint=fingerprint(
-                {"provenance
+                {"provenance_reference": provenance}
+            ),
+        )
+
+        return self._build_record(
+            settlement=settlement,
+            allocation=allocation,
+            settlement_history=CommissionSettlementHistory(),
+            reconciliation_history=CommissionReconciliationHistory(),
+            lifecycle_events=(event,),
+            at=requested_time,
+        )
+
+    def transition(
+        self,
+        record: SettlementLifecycleRecord,
+        target_state: CommissionSettlementState,
+        *,
+        expected_settlement_version: int,
+        expected_settlement_fingerprint: str,
+        actor_reference: str,
+        at: datetime,
+        external_reference: str | None = None,
+        failure_code: str | None = None,
+    ) -> SettlementLifecycleRecord:
+        """
+        Apply an allowed state transition using optimistic identity checks.
+
+        CONFIRMED is deliberately excluded: only a matched reconciliation
+        of independently verified evidence may confirm a settlement.
+        """
+        now = _aware_utc(at, "at")
+        self._validate_record(record, at=now)
+
+        current = record.settlement
+        actor = _required_text(
+            actor_reference,
+            "actor_reference",
+        )
+
+        if (
+            isinstance(expected_settlement_version, bool)
+            or not isinstance(expected_settlement_version, int)
+            or expected_settlement_version
+            != current.settlement_version
+        ):
+            raise CommissionSettlementConcurrencyError(
+                "Expected settlement version is stale."
+            )
+
+        if (
+            _required_text(
+                expected_settlement_fingerprint,
+                "expected_settlement_fingerprint",
+            )
+            != current.immutable_fingerprint
+        ):
+            raise CommissionSettlementConcurrencyError(
+                "Expected settlement fingerprint is stale."
+            )
+
+        try:
+            destination = CommissionSettlementState(target_state)
+        except (TypeError, ValueError) as exc:
+            raise CommissionSettlementTransitionError(
+                "Unsupported settlement destination state."
+            ) from exc
+
+        if destination is CommissionSettlementState.CONFIRMED:
+            raise CommissionSettlementTransitionError(
+                "Settlement can be CONFIRMED only by a MATCHED "
+                "reconciliation."
+            )
+
+        allowed = self._ALLOWED_TRANSITIONS[current.state]
+
+        if destination not in allowed:
+            raise CommissionSettlementTransitionError(
+                f"Transition {current.state.value} -> "
+                f"{destination.value} is not allowed."
+            )
+
+        if destination is CommissionSettlementState.SUBMITTED:
+            external_reference = _required_text(
+                external_reference,
+                "external_reference",
+            )
+        elif external_reference is not None:
+            raise CommissionSettlementLifecycleValidationError(
+                "external_reference is accepted only when submitting."
+            )
+
+        if destination is CommissionSettlementState.FAILED:
+            failure_code = _required_text(
+                failure_code,
+                "failure_code",
+            )
+        elif failure_code is not None:
+            raise CommissionSettlementLifecycleValidationError(
+                "failure_code is accepted only for a FAILED transition."
+            )
+
+        authorization_reference: str | None = None
+
+        if destination in {
+            CommissionSettlementState.AUTHORIZED,
+            CommissionSettlementState.CANCELLED,
+        }:
+            authorization_reference = (
+                current.authorization_reference
+            )
+
+            self._authorize(
+                settlement=current,
+                action=FinancialAuthorizationAction.SETTLE,
+                actor_reference=actor,
+                authorization_reference=authorization_reference,
+                context={
+                    "operation": destination.value,
+                    "settlement_fingerprint": (
+                        current.immutable_fingerprint
+                    ),
+                },
+            )
+
+        updated = current.with_state(
+            destination,
+            external_reference=external_reference,
+            failure_code=failure_code,
+        )
+
+        event_evidence_fingerprint: str | None = None
+
+        if external_reference is not None:
+            event_evidence_fingerprint = fingerprint(
+                {"external_reference": external_reference}
+            )
+        elif failure_code is not None:
+            event_evidence_fingerprint = fingerprint(
+                {"failure_code": failure_code}
+            )
+
+        event = self._new_event(
+            record=record,
+            settlement=updated,
+            event_type="SETTLEMENT_STATE_TRANSITION",
+            from_state=current.state.value,
+            to_state=updated.state.value,
+            occurred_at=now,
+            actor_reference=actor,
+            authorization_reference=authorization_reference,
+            evidence_fingerprint=event_evidence_fingerprint,
+        )
+
+        return self._build_record(
+            settlement=updated,
+            allocation=record.allocation,
+            settlement_history=record.settlement_history,
+            reconciliation_history=record.reconciliation_history,
+            lifecycle_events=(
+                record.lifecycle_events + (event,)
+            ),
+            at=now,
+        )
+
+    def reconcile(
+        self,
+        record: SettlementLifecycleRecord,
+        evidence: CommissionExternalSettlementEvidence,
+        *,
+        reconciliation_id: str,
+        reconciliation_version: int = 1,
+        reconciliation_reference: str,
+        provenance_reference: str,
+        actor_reference: str,
+        authorization_reference: str,
+        reconciled_at: datetime,
+        at: datetime,
+        variance_tolerance: MonetaryAmount | None = None,
+        metadata: Mapping[str, Any] | None = None,
+    ) -> CommissionSettlementReconciliationResult:
+        """
+        Reconcile a submitted settlement using verified external evidence.
+
+        A variance remains SUBMITTED for follow-up. Only a MATCHED
+        reconciliation creates a CONFIRMED settlement.
+        """
+        now = _aware_utc(at, "at")
+
+        reconciliation_time = _aware_utc(
+            reconciled_at,
+            "reconciled_at",
+        )
+
+        self._validate_record(
+            record,
+            at=now,
+        )
+
+        settlement = record.settlement
+
+        if settlement.state is not CommissionSettlementState.SUBMITTED:
+            raise CommissionSettlementTransitionError(
+                "Only SUBMITTED settlements may be reconciled."
+            )
+
+        if not isinstance(
+            evidence,
+            CommissionExternalSettlementEvidence,
+        ):
+            raise CommissionSettlementLifecycleValidationError(
+                "evidence must be "
+                "CommissionExternalSettlementEvidence."
+            )
+
+        if evidence.tenant_id != settlement.tenant_id:
+            raise FinancialTenantScopeError(
+                "Settlement and external evidence tenant mismatch."
+            )
+
+        if (
+            not settlement.external_reference
+            or evidence.external_reference
+            != settlement.external_reference
+        ):
+            raise CommissionSettlementEvidenceError(
+                "External evidence reference does not match "
+                "the submitted settlement."
+            )
+
+        if evidence.observed_at > now:
+            raise CommissionSettlementLifecycleValidationError(
+                "External evidence cannot be observed after "
+                "validation time."
+            )
+
+        if reconciliation_time < evidence.observed_at:
+            raise CommissionSettlementLifecycleValidationError(
+                "Reconciliation cannot predate the external evidence."
+            )
+
+        if reconciliation_time > now:
+            raise CommissionSettlementLifecycleValidationError(
+                "Reconciliation cannot occur after validation time."
+            )
+
+        actor = _required_text(
+            actor_reference,
+            "actor_reference",
+        )
+
+        authorization_ref = _required_text(
+            authorization_reference,
+            "authorization_reference",
+        )
+
+        self._authorize(
+            settlement=settlement,
+            action=FinancialAuthorizationAction.RECONCILE,
+            actor_reference=actor,
+            authorization_reference=authorization_ref,
+            context={
+                "operation": "RECONCILE",
+                "settlement_fingerprint": (
+                    settlement.immutable_fingerprint
+                ),
+                "external_evidence_fingerprint": (
+                    evidence.immutable_fingerprint
+                ),
+            },
+        )
+
+        try:
+            independently_verified = self._evidence_verifier(
+                evidence,
+                settlement,
+            )
+        except Exception as exc:
+            raise CommissionSettlementEvidenceError(
+                "External evidence verifier failed; "
+                "reconciliation blocked."
+            ) from exc
+
+        if independently_verified is not True:
+            raise CommissionSettlementEvidenceError(
+                "External settlement evidence was not "
+                "independently verified."
+            )
+
+        if metadata is not None and not isinstance(
+            metadata,
+            Mapping,
+        ):
+            raise CommissionSettlementLifecycleValidationError(
+                "metadata must be a mapping."
+            )
+
+        audit_metadata = (
+            {}
+            if metadata is None
+            else dict(metadata)
+        )
+
+        reserved_metadata = {
+            "authorized_actor_reference": actor,
+            "authorization_reference": authorization_ref,
+            "settlement_fingerprint": (
+                settlement.immutable_fingerprint
+            ),
+            "external_evidence_fingerprint": (
+                evidence.immutable_fingerprint
+            ),
+        }
+
+        for key, value in reserved_metadata.items():
+            if (
+                key in audit_metadata
+                and audit_metadata[key] != value
+            ):
+                raise CommissionSettlementLifecycleValidationError(
+                    "metadata cannot override reserved audit field: "
+                    f"{key}"
+                )
+
+            audit_metadata[key] = value
+
+        reconciliation = CommissionReconciliation.reconcile(
+            settlement,
+            evidence,
+            reconciliation_id=reconciliation_id,
+            reconciliation_version=reconciliation_version,
+            variance_tolerance=variance_tolerance,
+            reconciled_at=reconciliation_time,
+            reconciliation_reference=reconciliation_reference,
+            provenance_reference=provenance_reference,
+            metadata=audit_metadata,
+        )
+
+        errors = validate_reconciliation(
+            reconciliation,
+            settlement,
+            evidence,
+            at=now,
+        )
+
+        if errors:
+            raise CommissionSettlementLifecycleValidationError(
+                "Reconciliation validation failed: "
+                + "; ".join(errors)
+            )
+
+        reconciliation_snapshot = (
+            CommissionReconciliationSnapshot.from_reconciliation(
+                reconciliation
+            )
+        )
+
+        assert_reconciliation_integrity(
+            reconciliation,
+            reconciliation_snapshot,
+        )
+
+        updated_reconciliation_history = (
+            record.reconciliation_history.append(reconciliation)
+        )
+
+        if (
+            reconciliation.state
+            is CommissionReconciliationState.MATCHED
+        ):
+            updated_settlement = settlement.with_state(
+                CommissionSettlementState.CONFIRMED,
+                external_reference=evidence.external_reference,
+            )
+            event_type = "RECONCILIATION_MATCHED"
+        else:
+            updated_settlement = settlement
+            event_type = "RECONCILIATION_VARIANCE"
+
+        event = self._new_event(
+            record=record,
+            settlement=updated_settlement,
+            event_type=event_type,
+            from_state=settlement.state.value,
+            to_state=updated_settlement.state.value,
+            occurred_at=reconciliation_time,
+            actor_reference=actor,
+            authorization_reference=authorization_ref,
+            evidence_fingerprint=(
+                evidence.immutable_fingerprint
+            ),
+            reconciliation_id=reconciliation.reconciliation_id,
+            reconciliation_fingerprint=(
+                reconciliation.immutable_fingerprint
+            ),
+        )
+
+        updated_record = self._build_record(
+            settlement=updated_settlement,
+            allocation=record.allocation,
+            settlement_history=record.settlement_history,
+            reconciliation_history=updated_reconciliation_history,
+            lifecycle_events=(
+                record.lifecycle_events + (event,)
+            ),
+            at=now,
+        )
+
+        return CommissionSettlementReconciliationResult(
+            settlement_record=updated_record,
+            evidence=evidence,
+            reconciliation=reconciliation,
+            reconciliation_snapshot=reconciliation_snapshot,
+        )
+
+
+__all__ = [
+    "CommissionSettlementLifecycleError",
+    "CommissionSettlementLifecycleValidationError",
+    "CommissionSettlementTransitionError",
+    "CommissionSettlementConcurrencyError",
+    "CommissionSettlementIntegrityError",
+    "CommissionSettlementEvidenceError",
+    "CommissionSettlementLifecycleEvent",
+    "SettlementLifecycleRecord",
+    "CommissionSettlementReconciliationResult",
+    "CommissionSettlementLifecycle",
+]
