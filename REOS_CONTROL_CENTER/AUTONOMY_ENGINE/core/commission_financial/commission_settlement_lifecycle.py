@@ -122,6 +122,8 @@ class CommissionSettlementLifecycleEvent:
     evidence_fingerprint: str | None = None
     previous_event_fingerprint: str | None = None
     event_fingerprint: str = ""
+    reconciliation_id: str | None = None
+    reconciliation_fingerprint: str | None = None
 
     def __post_init__(self) -> None:
         if (
