@@ -1,0 +1,24 @@
+{
+  "contract_id": "ACRL-T04-GATE-SUBTASK-CONTINUITY",
+  "contract_version": "1.0",
+  "layer": "T04",
+  "name": "Gate and Subtask Continuity",
+  "mode": "READ_ONLY",
+  "authority": {
+    "canonical_source": "REOS_CONTROL_CENTER/data/state.json",
+    "execution_authorized": false,
+    "write_authorized": false,
+    "approval_authorized": false,
+    "chat_history_authoritative": false
+  },
+  "guarantees": [
+    "Execution position is derived from independently observed authoritative state.",
+    "Unknown or contradictory gate/task/subtask values fail closed.",
+    "Continuity reconstruction cannot mutate state.json or advance a gate."
+  ],
+  "failure_policy": {
+    "missing_authority": "FAIL_CLOSED",
+    "position_mismatch": "BLOCK_RESUME",
+    "unknown_position": "BLOCK_RESUME"
+  }
+}
