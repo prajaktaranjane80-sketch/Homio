@@ -1,21 +1,8 @@
 """ACRL T07 — New-Chat Bootstrap / Handoff.
 
-Builds a compact deterministic restart payload from reconstructed
-continuity context.
-
-Authority remains:
-    REOS_CONTROL_CENTER
-
-T07 does not:
-    - modify canonical state
-    - create a second state store
-    - invent project position
-    - advance gates
-    - complete subtasks
-    - authorize execution
-    - depend on chat history
+T07 reconstructs a compact restart payload from independently observed
+continuity context. It does not change state or grant execution authority.
 """
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -40,10 +27,8 @@ class BootstrapAuthorityError(BootstrapError):
     """Raised when authoritative continuity cannot be established."""
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class RestartPayload:
-    """Minimal machine-readable payload required for a new session."""
-
     authority: str
     project_identity: str
     current_gate: str
@@ -68,23 +53,18 @@ class RestartPayload:
         }
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class BootstrapContext:
-    """Immutable machine-readable new-session bootstrap."""
-
     schema_version: str
     bootstrap_id: str
     authority: str
-
     project_dna: Mapping[str, Any]
     architecture_lock: Mapping[str, Any]
     execution_state: Mapping[str, Any]
     gate_continuity: Mapping[str, Any]
     dependency_authority: Mapping[str, Any]
     checkpoint: Mapping[str, Any]
-
     restart_payload: Mapping[str, Any]
-
     resume_mode: str
     fingerprint: str
 
@@ -94,22 +74,12 @@ class BootstrapContext:
             "bootstrap_id": self.bootstrap_id,
             "authority": self.authority,
             "project_dna": dict(self.project_dna),
-            "architecture_lock": dict(
-                self.architecture_lock
-            ),
-            "execution_state": dict(
-                self.execution_state
-            ),
-            "gate_continuity": dict(
-                self.gate_continuity
-            ),
-            "dependency_authority": dict(
-                self.dependency_authority
-            ),
+            "architecture_lock": dict(self.architecture_lock),
+            "execution_state": dict(self.execution_state),
+            "gate_continuity": dict(self.gate_continuity),
+            "dependency_authority": dict(self.dependency_authority),
             "checkpoint": dict(self.checkpoint),
-            "restart_payload": dict(
-                self.restart_payload
-            ),
+            "restart_payload": dict(self.restart_payload),
             "resume_mode": self.resume_mode,
             "fingerprint": self.fingerprint,
         }
@@ -120,40 +90,28 @@ class BootstrapContext:
             "bootstrap_id": self.bootstrap_id,
             "authority": self.authority,
             "project_dna": dict(self.project_dna),
-            "architecture_lock": dict(
-                self.architecture_lock
-            ),
-            "execution_state": dict(
-                self.execution_state
-            ),
-            "gate_continuity": dict(
-                self.gate_continuity
-            ),
-            "dependency_authority": dict(
-                self.dependency_authority
-            ),
+            "architecture_lock": dict(self.architecture_lock),
+            "execution_state": dict(self.execution_state),
+            "gate_continuity": dict(self.gate_continuity),
+            "dependency_authority": dict(self.dependency_authority),
             "checkpoint": dict(self.checkpoint),
-            "restart_payload": dict(
-                self.restart_payload
-            ),
+            "restart_payload": dict(self.restart_payload),
             "resume_mode": self.resume_mode,
         }
-
-        canonical = json.dumps(
-            payload,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-        )
-
-        expected = hashlib.sha256(
-            canonical.encode("utf-8")
-        ).hexdigest()
-
-        return expected == self.fingerprint
+        return _fingerprint(payload) == self.fingerprint
 
     def restart_payload_dict(self) -> dict[str, Any]:
         return dict(self.restart_payload)
+
+
+def _fingerprint(payload: Mapping[str, Any]) -> str:
+    canonical = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 class NewChatBootstrapEngine:
@@ -188,15 +146,38 @@ class NewChatBootstrapEngine:
         self.checkpoint_engine = checkpoint_engine
 
     @staticmethod
+    def evaluate_fast_resume(
+        *,
+        manifest: Mapping[str, Any],
+        live_snapshot: Mapping[str, Any],
+        dependency_graph: Mapping[str, Any] | None = None,
+        now=None,
+    ):
+        """Assess the cache before expensive repository discovery.
+
+        Live HEAD, state.json SHA, branch and cleanliness must be obtained
+        independently by the caller. The manifest itself never supplies
+        current execution authority.
+        """
+        from AUTONOMY_ENGINE.continuity.acrl.T14_Repository_Intelligence_Context.audit_resume_manifest import (
+            assess_resume_manifest,
+        )
+
+        return assess_resume_manifest(
+            manifest,
+            live_snapshot,
+            dependency_graph=dependency_graph,
+            now=now,
+        )
+
+    @staticmethod
     def _as_dict(value: Any) -> dict[str, Any]:
         if hasattr(value, "to_dict"):
             result = value.to_dict()
-
             if not isinstance(result, Mapping):
                 raise BootstrapValidationError(
                     "to_dict() must return a mapping."
                 )
-
             return dict(result)
 
         if isinstance(value, Mapping):
@@ -213,78 +194,45 @@ class NewChatBootstrapEngine:
         )
 
     @staticmethod
-    def _required_string(
-        value: Any,
-        field_name: str,
-    ) -> str:
+    def _required_string(value: Any, field_name: str) -> str:
         if not isinstance(value, str) or not value.strip():
             raise BootstrapAuthorityError(
                 f"{field_name} cannot be reconstructed."
             )
-
         return value.strip()
 
-    @classmethod
-    def _fingerprint(
-        cls,
-        payload: Mapping[str, Any],
-    ) -> str:
-        canonical = json.dumps(
-            payload,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-        )
-
-        return hashlib.sha256(
-            canonical.encode("utf-8")
-        ).hexdigest()
-
     @staticmethod
-    def _validate_checkpoint(
-        checkpoint: Any,
-    ) -> dict[str, Any]:
-        if not hasattr(
-            checkpoint,
-            "verify_integrity",
+    def _validate_checkpoint(checkpoint: Any) -> dict[str, Any]:
+        if (
+            not hasattr(checkpoint, "verify_integrity")
+            or not checkpoint.verify_integrity()
         ):
-            raise BootstrapValidationError(
-                "Invalid checkpoint object."
-            )
-
-        if not checkpoint.verify_integrity():
             raise BootstrapIntegrityError(
                 "Checkpoint integrity verification failed."
             )
 
-        if hasattr(checkpoint, "to_dict"):
-            data = checkpoint.to_dict()
-        else:
-            try:
-                data = dict(checkpoint)
-            except (TypeError, ValueError) as exc:
-                raise BootstrapIntegrityError(
-                    "Checkpoint payload is not machine-readable."
-                ) from exc
+        try:
+            data = (
+                checkpoint.to_dict()
+                if hasattr(checkpoint, "to_dict")
+                else dict(checkpoint)
+            )
+        except (TypeError, ValueError) as exc:
+            raise BootstrapIntegrityError(
+                "Checkpoint payload is not machine-readable."
+            ) from exc
 
         if not isinstance(data, Mapping):
             raise BootstrapIntegrityError(
                 "Checkpoint payload is not machine-readable."
             )
 
-        checkpoint_data = dict(data)
-
-        checkpoint_id = (
-            checkpoint_data.get("checkpoint_id")
-            or checkpoint_data.get("id")
-        )
-
+        result = dict(data)
         NewChatBootstrapEngine._required_string(
-            checkpoint_id,
+            result.get("checkpoint_id") or result.get("id"),
             "checkpoint_id",
         )
-
-        return checkpoint_data
+        return result
 
     def _validate_architecture(
         self,
@@ -293,10 +241,7 @@ class NewChatBootstrapEngine:
         status = str(
             architecture_lock.get(
                 "status",
-                architecture_lock.get(
-                    "lock_status",
-                    "",
-                ),
+                architecture_lock.get("lock_status", ""),
             )
         ).upper()
 
@@ -318,15 +263,10 @@ class NewChatBootstrapEngine:
 
         for field in self.REQUIRED_EXECUTION_FIELDS:
             value = execution_state.get(field)
-
-            if (
-                not isinstance(value, str)
-                or not value.strip()
-            ):
+            if not isinstance(value, str) or not value.strip():
                 raise BootstrapAuthorityError(
                     f"Missing authoritative execution field: {field}"
                 )
-
             result[field] = value.strip()
 
         return result
@@ -340,44 +280,26 @@ class NewChatBootstrapEngine:
         dependency_authority: Mapping[str, Any],
         checkpoint: Mapping[str, Any],
     ) -> RestartPayload:
-        project_identity = (
+        project_identity = self._required_string(
             project_dna.get("project")
             or project_dna.get("project_name")
-            or project_dna.get("name")
-        )
-
-        project_identity = self._required_string(
-            project_identity,
+            or project_dna.get("name"),
             "project_identity",
         )
 
-        first_valid_work_unit = (
-            gate_continuity.get(
-                "first_valid_work_unit"
-            )
-            or dependency_authority.get(
-                "first_valid_work_unit"
-            )
+        first_valid = (
+            gate_continuity.get("first_valid_work_unit")
+            or dependency_authority.get("first_valid_work_unit")
         )
 
-        if not first_valid_work_unit:
-            first_valid_work_unit = (
+        if not first_valid:
+            first_valid = (
                 f"{execution['current_gate']}:"
                 f"{execution['current_subtask']}"
             )
 
-        first_valid_work_unit = self._required_string(
-            first_valid_work_unit,
-            "first_valid_work_unit",
-        )
-
-        checkpoint_id = (
-            checkpoint.get("checkpoint_id")
-            or checkpoint.get("id")
-        )
-
         checkpoint_id = self._required_string(
-            checkpoint_id,
+            checkpoint.get("checkpoint_id") or checkpoint.get("id"),
             "checkpoint_id",
         )
 
@@ -387,76 +309,39 @@ class NewChatBootstrapEngine:
             current_gate=execution["current_gate"],
             current_task=execution["current_task"],
             current_subtask=execution["current_subtask"],
-            current_subtask_status=(
-                execution["current_subtask_status"]
+            current_subtask_status=execution["current_subtask_status"],
+            first_valid_work_unit=self._required_string(
+                first_valid,
+                "first_valid_work_unit",
             ),
-            first_valid_work_unit=first_valid_work_unit,
             checkpoint_id=checkpoint_id,
             resume_mode=self.RESUME_MODE,
         )
 
-    def build(
-        self,
-        *,
-        bootstrap_id: str,
-        checkpoint: Any,
-    ) -> BootstrapContext:
-        if not isinstance(
-            bootstrap_id,
-            str,
-        ):
-            raise BootstrapValidationError(
-                "bootstrap_id must be a string."
-            )
-
-        bootstrap_id = bootstrap_id.strip()
-
-        if not bootstrap_id:
+    def build(self, *, bootstrap_id: str, checkpoint: Any) -> BootstrapContext:
+        if not isinstance(bootstrap_id, str) or not bootstrap_id.strip():
             raise BootstrapValidationError(
                 "bootstrap_id cannot be empty."
             )
 
-        project_dna = self._as_dict(
-            self.project_dna
-        )
+        bootstrap_id = bootstrap_id.strip()
+        project_dna = self._as_dict(self.project_dna)
+        architecture_lock = self._as_dict(self.architecture_lock)
+        execution_state = self._as_dict(self.execution_state)
+        gate_continuity = self._as_dict(self.gate_continuity)
+        dependency_authority = self._as_dict(self.dependency_map)
+        checkpoint_data = self._validate_checkpoint(checkpoint)
 
-        architecture_lock = self._as_dict(
-            self.architecture_lock
-        )
+        self._validate_architecture(architecture_lock)
+        execution = self._validate_execution(execution_state)
 
-        execution_state = self._as_dict(
-            self.execution_state
-        )
-
-        gate_continuity = self._as_dict(
-            self.gate_continuity
-        )
-
-        dependency_authority = self._as_dict(
-            self.dependency_map
-        )
-
-        checkpoint_data = self._validate_checkpoint(
-            checkpoint
-        )
-
-        self._validate_architecture(
-            architecture_lock
-        )
-
-        execution = self._validate_execution(
-            execution_state
-        )
-
-        restart_payload = (
-            self._build_restart_payload(
-                project_dna=project_dna,
-                execution=execution,
-                gate_continuity=gate_continuity,
-                dependency_authority=dependency_authority,
-                checkpoint=checkpoint_data,
-            )
-        )
+        restart = self._build_restart_payload(
+            project_dna=project_dna,
+            execution=execution,
+            gate_continuity=gate_continuity,
+            dependency_authority=dependency_authority,
+            checkpoint=checkpoint_data,
+        ).to_dict()
 
         payload = {
             "schema_version": self.SCHEMA_VERSION,
@@ -468,15 +353,9 @@ class NewChatBootstrapEngine:
             "gate_continuity": gate_continuity,
             "dependency_authority": dependency_authority,
             "checkpoint": checkpoint_data,
-            "restart_payload": (
-                restart_payload.to_dict()
-            ),
+            "restart_payload": restart,
             "resume_mode": self.RESUME_MODE,
         }
-
-        fingerprint = self._fingerprint(
-            payload
-        )
 
         return BootstrapContext(
             schema_version=self.SCHEMA_VERSION,
@@ -488,25 +367,15 @@ class NewChatBootstrapEngine:
             gate_continuity=gate_continuity,
             dependency_authority=dependency_authority,
             checkpoint=checkpoint_data,
-            restart_payload=(
-                restart_payload.to_dict()
-            ),
+            restart_payload=restart,
             resume_mode=self.RESUME_MODE,
-            fingerprint=fingerprint,
+            fingerprint=_fingerprint(payload),
         )
 
     @classmethod
-    def validate_for_resume(
-        cls,
-        context: BootstrapContext,
-    ) -> None:
-        if not isinstance(
-            context,
-            BootstrapContext,
-        ):
-            raise BootstrapValidationError(
-                "Invalid bootstrap context."
-            )
+    def validate_for_resume(cls, context: BootstrapContext) -> None:
+        if not isinstance(context, BootstrapContext):
+            raise BootstrapValidationError("Invalid bootstrap context.")
 
         if not context.verify_integrity():
             raise BootstrapIntegrityError(
@@ -514,14 +383,10 @@ class NewChatBootstrapEngine:
             )
 
         if context.authority != cls.AUTHORITY:
-            raise BootstrapAuthorityError(
-                "Bootstrap authority mismatch."
-            )
+            raise BootstrapAuthorityError("Bootstrap authority mismatch.")
 
         if context.resume_mode != cls.RESUME_MODE:
-            raise BootstrapValidationError(
-                "Unsafe resume mode."
-            )
+            raise BootstrapValidationError("Unsafe resume mode.")
 
         if not context.project_dna:
             raise BootstrapAuthorityError(
@@ -533,18 +398,11 @@ class NewChatBootstrapEngine:
                 "Execution context is missing."
             )
 
-        execution = dict(context.execution_state)
-
         for field in cls.REQUIRED_EXECUTION_FIELDS:
-            value = execution.get(field)
-
-            if (
-                not isinstance(value, str)
-                or not value.strip()
-            ):
+            value = context.execution_state.get(field)
+            if not isinstance(value, str) or not value.strip():
                 raise BootstrapAuthorityError(
-                    "Execution context is incomplete: "
-                    f"{field}"
+                    f"Execution context is incomplete: {field}"
                 )
 
         if not context.gate_continuity:
@@ -562,11 +420,8 @@ class NewChatBootstrapEngine:
                 "Checkpoint context is missing."
             )
 
-        restart = dict(
-            context.restart_payload
-        )
-
-        required_restart_fields = (
+        restart = dict(context.restart_payload)
+        required = (
             "authority",
             "project_identity",
             "current_gate",
@@ -578,16 +433,11 @@ class NewChatBootstrapEngine:
             "resume_mode",
         )
 
-        for field in required_restart_fields:
+        for field in required:
             value = restart.get(field)
-
-            if (
-                not isinstance(value, str)
-                or not value.strip()
-            ):
+            if not isinstance(value, str) or not value.strip():
                 raise BootstrapAuthorityError(
-                    "Restart payload is incomplete: "
-                    f"{field}"
+                    f"Restart payload is incomplete: {field}"
                 )
 
         if restart["authority"] != cls.AUTHORITY:
@@ -606,35 +456,18 @@ class NewChatBootstrapEngine:
         context: BootstrapContext,
     ) -> dict[str, str]:
         cls.validate_for_resume(context)
-
-        restart = dict(
-            context.restart_payload
-        )
+        restart = dict(context.restart_payload)
 
         return {
             "authority": context.authority,
             "bootstrap_id": context.bootstrap_id,
-            "project_identity": restart[
-                "project_identity"
-            ],
-            "current_gate": restart[
-                "current_gate"
-            ],
-            "current_task": restart[
-                "current_task"
-            ],
-            "current_subtask": restart[
-                "current_subtask"
-            ],
-            "current_subtask_status": restart[
-                "current_subtask_status"
-            ],
-            "first_valid_work_unit": restart[
-                "first_valid_work_unit"
-            ],
-            "checkpoint_id": restart[
-                "checkpoint_id"
-            ],
+            "project_identity": restart["project_identity"],
+            "current_gate": restart["current_gate"],
+            "current_task": restart["current_task"],
+            "current_subtask": restart["current_subtask"],
+            "current_subtask_status": restart["current_subtask_status"],
+            "first_valid_work_unit": restart["first_valid_work_unit"],
+            "checkpoint_id": restart["checkpoint_id"],
             "resume_mode": context.resume_mode,
             "fingerprint": context.fingerprint,
         }
