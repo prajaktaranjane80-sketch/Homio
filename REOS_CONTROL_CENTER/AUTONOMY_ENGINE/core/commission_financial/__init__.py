@@ -1,4 +1,3 @@
-
 """CORE-008 Commission & Financial Core public API."""
 
 from .financial_domain import (
@@ -74,6 +73,7 @@ from .commission_attribution import (
     CommissionAttributionError,
     CommissionAttributionValidationError,
 )
+
 from .commission_participant_split import (
     CORE008_COMMISSION_PARTICIPANT_SPLIT_SCHEMA_VERSION,
     CommissionParticipantSplit,
@@ -81,6 +81,86 @@ from .commission_participant_split import (
     CommissionParticipantSplitLine,
     CommissionParticipantSplitValidationError,
 )
+
+# CORE-008 T04: settlement domain
+from .commission_settlement import (
+    CORE008_COMMISSION_SETTLEMENT_SCHEMA_VERSION,
+    CommissionSettlement,
+    CommissionSettlementError,
+    CommissionSettlementMode,
+    CommissionSettlementState,
+    CommissionSettlementValidationError,
+)
+
+from .commission_settlement_history import (
+    CommissionSettlementHistory,
+    CommissionSettlementHistoryEntry,
+    CommissionSettlementHistoryError,
+)
+
+from .commission_settlement_snapshot import (
+    CommissionSettlementSnapshot,
+)
+
+from .commission_settlement_integrity import (
+    CommissionSettlementIntegrityError as
+    CommissionSettlementSnapshotIntegrityError,
+    CommissionSettlementIntegrityReport,
+    assert_integrity as assert_settlement_integrity,
+    inspect_integrity as inspect_settlement_integrity,
+)
+
+from .commission_settlement_validation import (
+    settlement_validation_report,
+    validate_settlement,
+)
+
+# CORE-008 T04: reconciliation domain
+from .commission_reconciliation import (
+    CORE008_COMMISSION_RECONCILIATION_SCHEMA_VERSION,
+    CommissionExternalSettlementEvidence,
+    CommissionReconciliation,
+    CommissionReconciliationError,
+    CommissionReconciliationMatchType,
+    CommissionReconciliationState,
+    CommissionReconciliationValidationError,
+)
+
+from .commission_reconciliation_history import (
+    CommissionReconciliationHistory,
+    CommissionReconciliationHistoryEntry,
+    CommissionReconciliationHistoryError,
+)
+
+from .commission_reconciliation_snapshot import (
+    CommissionReconciliationSnapshot,
+)
+
+from .commission_reconciliation_integrity import (
+    CommissionReconciliationIntegrityError,
+    CommissionReconciliationIntegrityReport,
+    assert_integrity as assert_reconciliation_integrity,
+    inspect_integrity as inspect_reconciliation_integrity,
+)
+
+from .commission_reconciliation_validation import (
+    reconciliation_validation_report,
+    validate_reconciliation,
+)
+
+# CORE-008 T04: settlement/reconciliation lifecycle orchestration
+from .commission_settlement_lifecycle import (
+    CommissionSettlementConcurrencyError,
+    CommissionSettlementEvidenceError,
+    CommissionSettlementLifecycle,
+    CommissionSettlementLifecycleError,
+    CommissionSettlementLifecycleEvent,
+    CommissionSettlementLifecycleValidationError,
+    CommissionSettlementReconciliationResult,
+    CommissionSettlementTransitionError,
+    SettlementLifecycleRecord,
+)
+
 __all__ = [
     "CORE008_FINANCIAL_DOMAIN_SCHEMA_VERSION",
     "CORE008_FINANCIAL_DOMAIN_SOURCE",
@@ -140,4 +220,15 @@ __all__ = [
     "CommissionParticipantSplitError",
     "CommissionParticipantSplitLine",
     "CommissionParticipantSplitValidationError",
-]
+    "CORE008_COMMISSION_SETTLEMENT_SCHEMA_VERSION",
+    "CommissionSettlement",
+    "CommissionSettlementError",
+    "CommissionSettlementMode",
+    "CommissionSettlementState",
+    "CommissionSettlementValidationError",
+    "CommissionSettlementHistory",
+    "CommissionSettlementHistoryEntry",
+    "CommissionSettlementHistoryError",
+    "CommissionSettlementSnapshot",
+    "CommissionSettlementSnapshotIntegrityError",
+    "Commission
