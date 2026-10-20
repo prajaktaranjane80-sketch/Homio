@@ -1,0 +1,24 @@
+{
+  "contract_id": "ACRL-T12-RESUME-SAFETY-VALIDATION",
+  "contract_version": "1.0",
+  "layer": "T12",
+  "name": "Resume Safety Validation",
+  "mode": "READ_ONLY",
+  "authority": {
+    "canonical_source": "REOS_CONTROL_CENTER/data/state.json",
+    "execution_authorized": false,
+    "write_authorized": false,
+    "approval_authorized": false,
+    "chat_history_authoritative": false
+  },
+  "guarantees": [
+    "Resume safety requires current authoritative state and valid evidence.",
+    "Stale checkpoints and authority mismatches block resume.",
+    "A resume decision does not authorize execution or writes."
+  ],
+  "failure_policy": {
+    "stale_evidence": "BLOCK_RESUME",
+    "mismatched_authority": "BLOCK_RESUME",
+    "unknown_authority": "FAIL_CLOSED"
+  }
+}
