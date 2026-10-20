@@ -35,23 +35,19 @@ FORBIDDEN_AUTHORITY_FLAGS = frozenset(
     }
 )
 
-
-# One canonical runtime directory is selected when historical or
-# compatibility directories share the same numeric task prefix.
 CANONICAL_DIRECTORY_OVERRIDES: dict[int, str] = {
     14: "T14_Repository_Intelligence_Context",
 }
 
-
-# Keep historical compatibility folders in the repository, but never
-# select them as a second canonical task.
 COMPATIBILITY_DIRECTORIES: dict[int, frozenset[str]] = {
     14: frozenset({"T14_Full_Regression"}),
 }
 
 
 def _reject_nonstandard_json_constant(value: str) -> None:
-    raise ValueError(f"Non-standard JSON constant is not allowed: {value}")
+    raise ValueError(
+        f"Non-standard JSON constant is not allowed: {value}"
+    )
 
 
 def _walk_mapping(value: Any):
@@ -72,11 +68,19 @@ def _validate_json_contract(
 ) -> None:
     """Validate machine-readable contract shape and authority boundaries."""
     try:
+        # utf-8-sig accepts ordinary UTF-8 and removes an optional UTF-8 BOM.
+        # It does not relax JSON syntax or the authority checks below.
+        raw_text = contract_path.read_text(encoding="utf-8-sig")
         document = json.loads(
-            contract_path.read_text(encoding="utf-8"),
+            raw_text,
             parse_constant=_reject_nonstandard_json_constant,
         )
-    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
+    except (
+        OSError,
+        UnicodeError,
+        json.JSONDecodeError,
+        ValueError,
+    ) as exc:
         raise ValueError(
             f"Invalid JSON contract for {expected_task_id}: "
             f"{contract_path.name}: {exc}"
@@ -88,7 +92,10 @@ def _validate_json_contract(
             f"{contract_path.name} must contain a JSON object"
         )
 
-    if not any(key in document for key in CONTRACT_IDENTITY_KEYS):
+    if not any(
+        key in document
+        for key in CONTRACT_IDENTITY_KEYS
+    ):
         raise ValueError(
             f"Invalid JSON contract for {expected_task_id}: "
             f"{contract_path.name} has no recognized identity metadata"
@@ -100,6 +107,7 @@ def _validate_json_contract(
             raise ValueError(
                 f"Invalid layer value in contract: {contract_path.name}"
             )
+
         if declared_layer.strip().upper() != expected_task_id:
             raise ValueError(
                 f"Contract layer mismatch for {expected_task_id}: "
@@ -112,14 +120,14 @@ def _validate_json_contract(
             match.upper()
             for match in LAYER_ID_PATTERN.findall(contract_id)
         }
+
         if declared_ids and declared_ids != {expected_task_id}:
             raise ValueError(
                 f"Contract identity mismatch for {expected_task_id}: "
                 f"{contract_path.name} declares {sorted(declared_ids)}"
             )
 
-    # These flags can never grant the contract authority to mutate the
-    # canonical state, change approved architecture or authorize execution.
+    # A contract describes boundaries; it cannot grant itself privileges.
     for key, value in _walk_mapping(document):
         if key in FORBIDDEN_AUTHORITY_FLAGS and value is True:
             raise ValueError(
@@ -150,7 +158,9 @@ class ACRLTaskRegistry:
 
         if canonical_name is not None:
             canonical_matches = [
-                path for path in matches if path.name == canonical_name
+                path
+                for path in matches
+                if path.name == canonical_name
             ]
 
             unexpected_duplicates = [
@@ -158,7 +168,10 @@ class ACRLTaskRegistry:
                 for path in matches
                 if path.name != canonical_name
                 and path.name
-                not in COMPATIBILITY_DIRECTORIES.get(number, frozenset())
+                not in COMPATIBILITY_DIRECTORIES.get(
+                    number,
+                    frozenset(),
+                )
             ]
 
             if unexpected_duplicates:
@@ -187,17 +200,21 @@ class ACRLTaskRegistry:
     def discover(self) -> tuple[ACRLTaskDescriptor, ...]:
         """Discover layers without treating discovery as proof of health."""
         if not self.acrl_root.is_dir():
-            raise ValueError(f"Canonical ACRL root is missing: {self.acrl_root}")
+            raise ValueError(
+                f"Canonical ACRL root is missing: {self.acrl_root}"
+            )
 
         descriptors: list[ACRLTaskDescriptor] = []
 
         for number in range(1, 31):
             prefix = f"T{number:02d}_"
+
             matches = sorted(
                 (
                     path
                     for path in self.acrl_root.iterdir()
-                    if path.is_dir() and path.name.startswith(prefix)
+                    if path.is_dir()
+                    and path.name.startswith(prefix)
                 ),
                 key=lambda path: path.name.lower(),
             )
@@ -212,7 +229,9 @@ class ACRLTaskRegistry:
                     ACRLTaskDescriptor(
                         task_id=f"T{number:02d}",
                         directory_name="",
-                        path=str(self.acrl_root / f"{prefix}<MISSING>"),
+                        path=str(
+                            self.acrl_root / f"{prefix}<MISSING>"
+                        ),
                         exists=False,
                         has_init=False,
                         contract_files=(),
@@ -255,7 +274,9 @@ class ACRLTaskRegistry:
                     directory_name=directory.name,
                     path=str(directory),
                     exists=True,
-                    has_init=(directory / "__init__.py").is_file(),
+                    has_init=(
+                        directory / "__init__.py"
+                    ).is_file(),
                     contract_files=contract_files,
                     test_files=test_files,
                 )
@@ -284,11 +305,17 @@ class ACRLTaskRegistry:
             )
 
     def validate(self) -> tuple[ACRLTaskDescriptor, ...]:
-        """Fail closed on missing tasks, package boundaries, tests or contracts."""
+        """Fail closed on missing tasks, packages, tests or contracts."""
         tasks = self.discover()
 
-        expected_ids = tuple(f"T{number:02d}" for number in range(1, 31))
-        actual_ids = tuple(task.task_id for task in tasks)
+        expected_ids = tuple(
+            f"T{number:02d}"
+            for number in range(1, 31)
+        )
+        actual_ids = tuple(
+            task.task_id
+            for task in tasks
+        )
 
         if actual_ids != expected_ids:
             raise ValueError(
@@ -296,13 +323,22 @@ class ACRLTaskRegistry:
                 f"{actual_ids}"
             )
 
-        missing = [task.task_id for task in tasks if not task.exists]
+        missing = [
+            task.task_id
+            for task in tasks
+            if not task.exists
+        ]
         if missing:
             raise ValueError(
-                f"ACRL integration cannot start; missing tasks: {missing}"
+                "ACRL integration cannot start; "
+                f"missing tasks: {missing}"
             )
 
-        unhealthy = [task.task_id for task in tasks if not task.healthy]
+        unhealthy = [
+            task.task_id
+            for task in tasks
+            if not task.healthy
+        ]
         if unhealthy:
             raise ValueError(
                 "ACRL integration cannot start; unhealthy tasks "
@@ -310,8 +346,7 @@ class ACRLTaskRegistry:
                 f"{unhealthy}"
             )
 
-        # Contract parsing is separate from discovery, so a file's presence
-        # cannot make malformed or self-authorizing JSON pass validation.
+        # File presence alone is not sufficient: validate the JSON content.
         for task in tasks:
             self._validate_contracts(task)
 
