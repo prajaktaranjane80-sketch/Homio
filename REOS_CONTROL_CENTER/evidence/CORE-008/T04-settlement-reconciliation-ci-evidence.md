@@ -1,86 +1,103 @@
-# CORE-008-T04 — Settlement Lifecycle Verification Evidence
+# CORE-008-T04 — Settlement and Reconciliation Verification Evidence
 
-## Canonical execution
+## 1. Canonical Scope
 
 - Project: HOMIO / REOS
-- Branch: reos-development
-- Subtask: CORE-008-T04
-- Scope: Settlement and reconciliation lifecycle
-- Evidence type: Implementation and CI regression verification
+- Branch: `reos-development`
+- Authorized subtask: `CORE-008-T04`
+- Objective: Implement settlement and reconciliation lifecycle
+- Evidence type: Source verification and CI regression evidence
+- Authority: `REOS_CONTROL_CENTER/data/state.json`
 
-## Implementation
+## 2. Verified Source Snapshot
 
-Path:
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_settlement_lifecycle.py
+The following source files were read back from the canonical `reos-development` branch.
 
-Verified blob SHA:
-3d89c650e9a45f220d546abf298dc1e22313d152
+| File | Verified Git blob SHA |
+|---|---|
+| `AUTONOMY_ENGINE/core/commission_financial/commission_settlement_lifecycle.py` | `629e2388eeb40819923c943a5bb4ba2097ae2a2a` |
+| `AUTONOMY_ENGINE/core/commission_financial/commission_reconciliation.py` | `ffa7b4d0d392618b95d72360e0191988f9b3c167` |
+| `AUTONOMY_ENGINE/core/commission_financial/test_core008_t04_settlement_reconciliation_lifecycle.py` | `00e3bb5936d39eab155e4dbc119a587c92120019` |
+| `AUTONOMY_ENGINE/core/commission_financial/test_core008_t04_settlement_integrity_linkage.py` | `78e083609e78c298c924602f3e6a094a753be3a3` |
+| `.github/workflows/backend-ci.yml` | `c2383d5c1b5b8e49fbea2155b0b13d68339ea1e9` |
 
-## Targeted regression coverage
+All paths above are relative to `REOS_CONTROL_CENTER/`, except the workflow path, which is relative to repository root.
 
-Path:
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t04_settlement_reconciliation_lifecycle.py
+## 3. Targeted Test Coverage
+
+### Settlement and reconciliation lifecycle
+
+Test file:
+
+`REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t04_settlement_reconciliation_lifecycle.py`
 
 Coverage includes:
-- Authorized settlement transitions
-- Rejection of denied authorization
-- Stale settlement fingerprint protection
-- MATCHED reconciliation required for confirmation
-- Variance remains SUBMITTED and supports later reconciliation
-- External evidence verification and reference validation
-- Tampered snapshot rejection
 
-Integrity linkage tests:
+- Settlement state-transition rules.
+- Rejection of denied authorization without advancing the lifecycle.
+- Stale settlement version and fingerprint rejection.
+- Authorization bound to the reconciliation request.
+- Invalid reconciliation versions rejected before authorization.
+- Confirmation only after a matching reconciliation.
+- Variance remains submitted and can be reconciled again.
+- Independently unverified external evidence cannot confirm settlement.
+- External-reference mismatches are rejected.
+- Tampered snapshots fail closed.
 
-Path:
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t04_settlement_integrity_linkage.py
+### Settlement integrity and event linkage
 
-Verified blob SHA:
-78e083609e78c298c924602f3e6a094a753be3a3
+Test file:
 
-Ten tests cover:
-- Reconciliation history required for CONFIRMED settlements
-- Exact reconciliation fingerprint linkage
-- External evidence fingerprint linkage
-- Settlement fingerprint linkage to history
-- Event state continuity
-- Non-decreasing event timestamps
-- Settlement history ordering
-- Authorization reference validation for AUTHORIZED transitions
-- Authorization reference validation for CANCELLED transitions
-- Authorization reference validation for reconciliation events
+`REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t04_settlement_integrity_linkage.py`
 
-## GitHub Actions evidence
+Coverage includes:
 
-Workflow:
-HOMIO Backend and ACRL Runtime CI
+- Reconciliation history is required for confirmed settlement records.
+- Lifecycle events reference the exact reconciliation fingerprint.
+- Evidence and settlement fingerprints are linked to history.
+- Event state continuity and chronological ordering are validated.
+- Settlement history ordering is validated.
+- Required authorization references cannot be removed from protected transitions.
+- Reconciliation audit linkage is validated.
 
-Run:
-https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39384833424
+The current CI command includes the complete `AUTONOMY_ENGINE/core/commission_financial` test directory, so these targeted files are included in the configured regression run.
 
-Commit:
-1d4875ed4e0810b9d7532e2ccb0484acc03c03d7
+## 4. Latest Verified GitHub Actions Evidence
 
-Verified result:
-- Backend and ACRL compilation: PASS
-- ACRL runtime integration: 24 passed
-- Backend/regression suite: 520 passed
+Workflow: `HOMIO Backend and ACRL Runtime CI`
+
+Successful run:
+
+https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39429640103
+
+Verified code snapshot commit:
+
+`dfc967588dcbe4cb79793b53382042ec2ea2d36b`
+
+Observed result:
+
+- Backend and ACRL module compilation: PASS
+- ACRL runtime-integration regression: 32 passed
+- T07 and T14 fast-resume regression: 56 passed
+- Combined canonical-truth, authentication, financial, T21, context and tenant regression command: 522 passed
 - Overall workflow: SUCCESS
 
-## Architecture boundaries
+The 522 figure is the combined regression command's total, not a financial-only test count.
 
-- Settlement and reconciliation remain within CORE-008.
-- Existing financial authorization boundary is reused.
-- External evidence must be independently verified.
-- CONFIRMED requires linked MATCHED reconciliation evidence.
-- No payment execution or ledger-posting engine is introduced here.
-- No ACRL runtime ownership of financial state is introduced.
-- No Control Center state update is performed by this evidence document.
+## 5. Lifecycle and Security Boundaries
 
-## Completion boundary
+The implementation and tests cover settlement lifecycle transitions, authorization checks, immutable fingerprints, external settlement evidence verification, reconciliation history, and integrity checks.
 
-This evidence supports CORE-008-T04 implementation and regression verification.
+A matching reconciliation is required before a settlement is confirmed. Variances remain available for follow-up reconciliation. The lifecycle reuses the existing financial authorization boundary and does not create a second financial source of truth or transfer financial domain ownership to ACRL.
 
-It does not, by itself, mark the subtask DONE, verify every CORE-008 gate acceptance criterion, or approve/freeze CORE-008.
+## 6. Canonical State and Completion Boundary
 
-Formal subtask completion must be recorded through the existing authorized Control Center workflow after verifying the evidence against the live canonical branch.
+At the latest verification, the canonical `REOS_CONTROL_CENTER/data/state.json` blob SHA remained:
+
+`92296fb10b0c7a37d0fc7fa97c4328f587512150`
+
+The authoritative current subtask remains `CORE-008-T04`.
+
+This evidence document does not change execution state, mark a subtask complete, verify every CORE-008 acceptance criterion, approve the gate, or freeze CORE-008.
+
+Formal completion remains subject to the existing Control Center workflow, evidence review, all required acceptance criteria, and authorized validation.
