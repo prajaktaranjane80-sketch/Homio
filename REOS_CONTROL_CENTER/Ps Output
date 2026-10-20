@@ -1,98 +1,60 @@
-STOP: Local state differs from canonical GitHub state. No transition performed.
-At line:2 char:5
-+     throw "STOP: Local state differs from canonical GitHub state. No  ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STOP: Local sta...tion performed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : STOP: Local state differs from canonical GitHub state. No transition performed.
+PS C:\Users\Sandip RanjanePatil> Set-Location "D:\Homio\REOS_CONTROL_CENTER"
+PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $cc = "D:\Homio\REOS_CONTROL_CENTER"
+PS D:\Homio\REOS_CONTROL_CENTER> $statePath = Join-Path $cc "data\state.json"
+PS D:\Homio\REOS_CONTROL_CENTER> $controllerPath = Join-Path $cc "reos_control_center.py"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $remoteUrl = "https://raw.githubusercontent.com/prajaktaranjane80-sketch/Homio/reos-development/REOS_CONTROL_CENTER/data/state.json"
+PS D:\Homio\REOS_CONTROL_CENTER> $remoteState = Invoke-RestMethod -Uri "$remoteUrl?cb=$([DateTime]::UtcNow.Ticks)"
+Invoke-RestMethod : Invalid URI: The hostname could not be parsed.
+At line:1 char:16
++ ... moteState = Invoke-RestMethod -Uri "$remoteUrl?cb=$([DateTime]::UtcNo ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [Invoke-RestMethod], UriFormatException
+    + FullyQualifiedErrorId : System.UriFormatException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+
+PS D:\Homio\REOS_CONTROL_CENTER> $localState = Get-Content $statePath -Raw | ConvertFrom-Json
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== LOCAL VS GITHUB STATE ==="
+
+=== LOCAL VS GITHUB STATE ===
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Local integrity hash:  $($localState.integrity.sha256)"
+Local integrity hash:  7c82717c8b36763e8b5352ec6da2e627210803bb1fb04fe794b101a640c62cf8
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "GitHub integrity hash: $($remoteState.integrity.sha256)"
+GitHub integrity hash:
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Local current subtask:  $($localState.execution.current_subtask)"
+Local current subtask:  CORE-008-T01
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "GitHub current subtask: $($remoteState.execution.current_subtask)"
+GitHub current subtask:
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== LOCAL CORE-008 STATUS ==="
+
+=== LOCAL CORE-008 STATUS ===
+PS D:\Homio\REOS_CONTROL_CENTER> $localGate = $localState.gate_plans.'CORE-008'
+PS D:\Homio\REOS_CONTROL_CENTER> $localGate.subtasks |
+>>     Where-Object { $_.id -in @("CORE-008-T04", "CORE-008-T05") } |
+>>     Select-Object id, title, status |
+>>     Format-Table -AutoSize
+
+id           title                                             status
+--           -----                                             ------
+CORE-008-T04 Implement settlement and reconciliation lifecycle PENDING
+CORE-008-T05 Implement dispute and reversal rules              PENDING
+
 
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($remoteState.execution.current_subtask -ne "CORE-008-T04") {
->>     throw "STOP: GitHub no longer identifies CORE-008-T04 as current."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $gate = $remoteState.gate_plans.'CORE-008'
-PS D:\Homio\REOS_CONTROL_CENTER> $t04 = $gate.subtasks | Where-Object { $_.id -eq "CORE-008-T04" }
-PS D:\Homio\REOS_CONTROL_CENTER> $t05 = $gate.subtasks | Where-Object { $_.id -eq "CORE-008-T05" }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> if ($t04.status -ne "CURRENT" -or $t05.status -ne "PENDING") {
->>     throw "STOP: Expected T04 CURRENT and T05 PENDING."
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> function Normalize-Text([string]$value) {
->>     return (($value -replace "^\uFEFF", "") -replace "`r`n", "`n" -replace "`r", "`n")
->> }
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $checks = @(
->>     @{
->>         Local = $controllerPath
->>         Remote = "$rawBase/reos_control_center.py?cb=$cache"
->>     },
->>     @{
->>         Local = $phasePath
->>         Remote = "$rawBase/context/phase_projection.py?cb=$cache"
->>     }
->> )
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($check in $checks) {
->>     $localText = Get-Content $check.Local -Raw
->>     $remoteText = (Invoke-WebRequest -UseBasicParsing -Uri $check.Remote).Content
->>
->>     if ((Normalize-Text $localText) -cne (Normalize-Text $remoteText)) {
->>         throw "STOP: Local controller dependency differs from GitHub: $($check.Local)"
->>     }
->> }
-STOP: Local controller dependency differs from GitHub: D:\Homio\REOS_CONTROL_CENTER\reos_control_center.py
-At line:6 char:9
-+         throw "STOP: Local controller dependency differs from GitHub: ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (STOP: Local con...ntrol_center.py:String) [], RuntimeException
-    + FullyQualifiedErrorId : STOP: Local controller dependency differs from GitHub: D:\Homio\REOS_CONTROL_CENTER\reos_control_center.py
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== DUPLICATE COMMAND REGISTRATIONS ==="
 
+=== DUPLICATE COMMAND REGISTRATIONS ===
+PS D:\Homio\REOS_CONTROL_CENTER> Select-String -Path $controllerPath `
+>>     -Pattern 'repair-arch039-transition' |
+>>     ForEach-Object { "$($_.LineNumber): $($_.Line.Trim())" }
+1143: "repair-arch039-transition",
+1147: p = sub.add_parser("repair-arch039-transition")
+1225: elif args.cmd == "repair-arch039-transition":
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Push-Location $cc
-PS D:\Homio\REOS_CONTROL_CENTER> try {
->>     python .\reos_control_center.py verify-state
->>     if ($LASTEXITCODE -ne 0) { throw "Control Center preflight failed." }
->>
->>     python .\reos_control_center.py complete-subtask CORE-008-T04 --note "Settlement lifecycle and integrity linkage verified. GitHub Actions run 39384833424 passed: 24 ACRL runtime tests and 520 backend/regression tests. Evidence: evidence/CORE-008/T04-settlement-reconciliation-ci-evidence.md"
->>     if ($LASTEXITCODE -ne 0) { throw "T04 completion transition failed." }
->>
->>     python .\reos_control_center.py verify-state
->>     if ($LASTEXITCODE -ne 0) { throw "Post-transition integrity verification failed." }
->>
->>     python .\reos_control_center.py status
->>     if ($LASTEXITCODE -ne 0) { throw "Post-transition status verification failed." }
->>
->>     $after = Get-Content $statePath -Raw | ConvertFrom-Json
->>
->>     if ($after.execution.current_subtask -ne "CORE-008-T05") {
->>         throw "STOP: Controller did not advance to CORE-008-T05."
->>     }
->>
->>     Write-Host "`nLOCAL CONTROL CENTER TRANSITION: PASS"
->>     Write-Host "Next task: $($after.execution.current_task)"
->>     Write-Host "Generated handoff: $cc\packets\NEW_CHAT_PACKET.txt"
->>     Write-Host "Generated next-chat file: $cc\REOS_NEXT_CHAT.txt"
->>     Write-Host "NOTE: Remote GitHub state has not yet been updated by this command."
->> }
->> finally {
->>     Pop-Location
->> }
-Traceback (most recent call last):
-  File "D:\Homio\REOS_CONTROL_CENTER\reos_control_center.py", line 1236, in <module>
-    main()
-  File "D:\Homio\REOS_CONTROL_CENTER\reos_control_center.py", line 1168, in main
-    parser = build_parser()
-             ^^^^^^^^^^^^^^
-  File "D:\Homio\REOS_CONTROL_CENTER\reos_control_center.py", line 1147, in build_parser
-    p = sub.add_parser("repair-arch039-transition")
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\argparse.py", line 1218, in add_parser
-    raise ArgumentError(self, _('conflicting subparser: %s') % name)
-argparse.ArgumentError: argument cmd: conflicting subparser: repair-arch039-transition
-Control Center preflight failed.
-At line:3 char:32
-+ ... if ($LASTEXITCODE -ne 0) { throw "Control Center preflight failed." }
-+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (Control Center preflight failed.:String) [], RuntimeException
-    + FullyQualifiedErrorId : Control Center preflight failed.
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n=== DIAGNOSTIC COMPLETE — NO FILES MODIFIED ==="
+
+=== DIAGNOSTIC COMPLETE — NO FILES MODIFIED ===
+PS D:\Homio\REOS_CONTROL_CENTER>
