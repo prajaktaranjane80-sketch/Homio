@@ -1,2 +1,57 @@
-"""ACRL T14 — Complete Test & Regression Layer."""
-from .regression_layer import *
+"""ACRL T14 — Repository Context and Fast Resume public package."""
+
+from .audit_resume_manifest import (
+    DEFAULT_MANIFEST_RELATIVE_PATH,
+    MANIFEST_STATUS,
+    ManifestValidationError,
+    ResumeAssessment,
+    ResumeDecision,
+    SCHEMA_VERSION as MANIFEST_SCHEMA_VERSION,
+    assess_resume_manifest,
+    build_manifest,
+    load_manifest_file,
+    manifest_fingerprint,
+    seal_manifest,
+    validate_manifest_shape,
+)
+from .repository_context import (
+    AUTHORITY,
+    SCHEMA_VERSION,
+    RepositoryContextAuthorityError,
+    RepositoryContextDecision,
+    RepositoryContextEngine,
+    RepositoryContextError,
+    RepositoryContextReason,
+    RepositoryContextReport,
+    RepositoryContextRequest,
+    RepositoryContextValidationError,
+    evaluate_fast_resume,
+    resolve_repository_context,
+)
+
+__all__ = [
+    "AUTHORITY",
+    "SCHEMA_VERSION",
+    "MANIFEST_SCHEMA_VERSION",
+    "MANIFEST_STATUS",
+    "DEFAULT_MANIFEST_RELATIVE_PATH",
+    "ManifestValidationError",
+    "ResumeAssessment",
+    "ResumeDecision",
+    "RepositoryContextAuthorityError",
+    "RepositoryContextDecision",
+    "RepositoryContextEngine",
+    "RepositoryContextError",
+    "RepositoryContextReason",
+    "RepositoryContextReport",
+    "RepositoryContextRequest",
+    "RepositoryContextValidationError",
+    "assess_resume_manifest",
+    "build_manifest",
+    "evaluate_fast_resume",
+    "load_manifest_file",
+    "manifest_fingerprint",
+    "resolve_repository_context",
+    "seal_manifest",
+    "validate_manifest_shape",
+]
