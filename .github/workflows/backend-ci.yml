@@ -1,4 +1,3 @@
-
 name: HOMIO Backend and ACRL Runtime CI
 
 on:
@@ -64,6 +63,8 @@ jobs:
             reos_control_center.py \
             AI_AGENT_ENTRYPOINT.py \
             context \
+            AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap \
+            AUTONOMY_ENGINE/continuity/acrl/T14_Repository_Intelligence_Context \
             AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination \
             AUTONOMY_ENGINE/continuity/acrl/runtime_integration
 
@@ -71,6 +72,14 @@ jobs:
         run: |
           python -m pytest -q \
             AUTONOMY_ENGINE/continuity/acrl/runtime_integration
+
+      - name: Run T07 and T14 fast-resume regression tests
+        run: |
+          python -m pytest -q \
+            AUTONOMY_ENGINE/continuity/acrl/T14_Repository_Intelligence_Context/test_audit_resume_manifest.py \
+            AUTONOMY_ENGINE/continuity/acrl/T14_Repository_Intelligence_Context/test_repository_context.py \
+            AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/test_fast_resume_and_stale_manifest.py \
+            AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/test_new_chat_bootstrap.py
 
       - name: Run canonical truth, authentication, finance, T21, context, and tenant regressions
         run: |
