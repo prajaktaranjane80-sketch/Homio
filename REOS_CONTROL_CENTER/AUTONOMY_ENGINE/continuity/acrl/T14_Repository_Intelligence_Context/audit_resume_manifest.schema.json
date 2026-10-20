@@ -1,0 +1,230 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "HOMIO-ACRL-AUDIT-RESUME-MANIFEST-001",
+  "title": "HOMIO ACRL Audit Resume Manifest",
+  "description": "Derived cache for incremental audit only. Never an execution authority or source of current task state.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "status",
+    "manifest_status",
+    "authority",
+    "repository",
+    "branch",
+    "audit_base_commit_sha",
+    "state_json_blob_sha",
+    "position_snapshot",
+    "audited_path_blob_shas",
+    "finding_status",
+    "test_ci_evidence",
+    "research_evidence",
+    "blockers",
+    "generated_at",
+    "manifest_fingerprint"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "status": {
+      "enum": ["UNINITIALIZED", "SEALED"]
+    },
+    "manifest_status": {
+      "const": "DERIVED_NON_AUTHORITATIVE_CACHE_ONLY"
+    },
+    "authority": {
+      "const": "REOS_CONTROL_CENTER"
+    },
+    "repository": {
+      "type": ["string", "null"],
+      "minLength": 1
+    },
+    "branch": {
+      "type": ["string", "null"],
+      "minLength": 1
+    },
+    "audit_base_commit_sha": {
+      "type": ["string", "null"],
+      "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "state_json_blob_sha": {
+      "type": ["string", "null"],
+      "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "position_snapshot": {
+      "type": "object",
+      "description": "Display-only snapshot. Never used to reconstruct current authority or task selection.",
+      "additionalProperties": true
+    },
+    "audited_path_blob_shas": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*(?:^|/)\\.(?:/|$))(?!.*//)[^?#]+$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+      }
+    },
+    "finding_status": {
+      "type": "object",
+      "description": "Finding IDs map to historical status plus exact affected paths and evidence IDs.",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["status", "paths", "evidence_ids"],
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "paths": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "test_ci_evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidence"
+      }
+    },
+    "research_evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidence"
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "generated_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "manifest_fingerprint": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "SEALED"
+          }
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "repository": {
+            "type": "string",
+            "minLength": 1
+          },
+          "branch": {
+            "type": "string",
+            "minLength": 1
+          },
+          "audit_base_commit_sha": {
+            "type": "string",
+            "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+          },
+          "state_json_blob_sha": {
+            "type": "string",
+            "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "manifest_fingerprint": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "repository": {
+            "type": ["string", "null"]
+          },
+          "branch": {
+            "type": ["string", "null"]
+          },
+          "audit_base_commit_sha": {
+            "type": ["string", "null"]
+          },
+          "state_json_blob_sha": {
+            "type": ["string", "null"]
+          },
+          "generated_at": {
+            "type": ["string", "null"]
+          },
+          "manifest_fingerprint": {
+            "type": ["string", "null"]
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "required": [
+        "evidence_id",
+        "kind",
+        "url",
+        "retrieved_at"
+      ],
+      "properties": {
+        "evidence_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": ["test", "ci", "research"]
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1
+        },
+        "source_commit_sha": {
+          "type": ["string", "null"],
+          "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+        },
+        "result": {
+          "type": ["string", "null"]
+        },
+        "retrieved_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "finding_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
