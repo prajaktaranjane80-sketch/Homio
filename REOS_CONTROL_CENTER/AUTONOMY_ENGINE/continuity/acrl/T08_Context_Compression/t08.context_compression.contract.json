@@ -1,0 +1,24 @@
+{
+  "contract_id": "ACRL-T08-CONTEXT-COMPRESSION",
+  "contract_version": "1.0",
+  "layer": "T08",
+  "name": "Context Compression",
+  "mode": "READ_ONLY",
+  "authority": {
+    "canonical_source": "REOS_CONTROL_CENTER/data/state.json",
+    "execution_authorized": false,
+    "write_authorized": false,
+    "approval_authorized": false,
+    "chat_history_authoritative": false
+  },
+  "guarantees": [
+    "Compression preserves source provenance and uncertainty.",
+    "Compressed context is not execution authority.",
+    "Missing or conflicting critical facts are not silently invented.",
+    "Context output cannot mutate state.json or advance a gate."
+  ],
+  "failure_policy": {
+    "unknown_critical_fact": "PRESERVE_UNKNOWN",
+    "conflicting_critical_fact": "FAIL_CLOSED"
+  }
+}
