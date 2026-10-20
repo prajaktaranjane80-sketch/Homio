@@ -1,10 +1,58 @@
---- READ-ONLY CHECK COMPLETE: NO FILES MODIFIED ---
-PS D:\Homio\REOS_CONTROL_CENTER> Get-ChildItem -LiteralPath "D:\Homio" `
->>   -Filter "gpt-ps-git-sync.md" `
->>   -File -Recurse -ErrorAction SilentlyContinue |
->>   Select-Object FullName, Length, LastWriteTime
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n--- READ-ONLY SEARCH COMPLETE: NO FILES MODIFIED ---"
+READ-BACK FAILURE: unexpected changed file set in commit 7c8fda91d69b6694aab00eed75ee11f6d0b74182.
+At line:2 char:5
++     throw "READ-BACK FAILURE: unexpected changed file set in commit $ ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (READ-BACK FAILU...ee11f6d0b74182.:String) [], RuntimeException
+    + FullyQualifiedErrorId : READ-BACK FAILURE: unexpected changed file set in commit 7c8fda91d69b6694aab00eed75ee11f6d0b74182.
 
---- READ-ONLY SEARCH COMPLETE: NO FILES MODIFIED ---
 PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Blob in $Blobs) {
+>>     $RemoteFile = Get-GHFile -Path $Blob.Path
+>>     if ($RemoteFile.Sha -ne $Blob.Sha -or $RemoteFile.Content -cne $Blob.Content) {
+>>         throw "READ-BACK FAILURE for $($Blob.Path). Read the current branch before retrying."
+>>     }
+>> }
+READ-BACK FAILURE for REOS_CONTROL_CENTER/architecture/HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md. Read the current branch before retrying.
+At line:4 char:9
++         throw "READ-BACK FAILURE for $($Blob.Path). Read the current  ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (READ-BACK FAILU...efore retrying.:String) [], RuntimeException
+    + FullyQualifiedErrorId : READ-BACK FAILURE for REOS_CONTROL_CENTER/architecture/HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md. Read the
+   current branch before retrying.
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $StateAfter = Get-GHFile -Path 'REOS_CONTROL_CENTER/data/state.json'
+PS D:\Homio\REOS_CONTROL_CENTER> if ($StateAfter.Sha -ne $ExpectedStateBlob) {
+>>     throw 'SAFETY CHECK FAILED: canonical state blob changed unexpectedly. Stop and investigate.'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> $StateAfterJson = $StateAfter.Content | ConvertFrom-Json
+PS D:\Homio\REOS_CONTROL_CENTER> if ($StateAfterJson.execution.current_subtask -ne 'CORE-008-T04') {
+>>     throw 'SAFETY CHECK FAILED: canonical task differs from the expected T04 state.'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> [pscustomobject]@{
+>>     Status = 'PASS — GUARDED REMOTE READ-BACK VERIFIED'
+>>     CommitSha = $NewCommit.sha
+>>     CommitUrl = $CommitDetails.html_url
+>>     ParentSha = $ExpectedHead
+>>     ChangedFiles = $ActualChangedPaths -join "`n"
+>>     CanonicalStateBlobUnchanged = ($StateAfter.Sha -eq $ExpectedStateBlob)
+>>     CanonicalTask = $StateAfterJson.execution.current_subtask
+>>     CI = 'Documentation-only paths; no backend/frontend CI run is claimed for this commit.'
+>> } | Format-List
+
+
+Status                      : PASS — GUARDED REMOTE READ-BACK VERIFIED
+CommitSha                   : 7c8fda91d69b6694aab00eed75ee11f6d0b74182
+CommitUrl                   : https://github.com/prajaktaranjane80-sketch/Homio/commit/7c8fda91d69b6694aab00eed75ee11f6d0b74182
+ParentSha                   : 0fca7c9edb98770bc648551d6c6b2cc9118adbf5
+ChangedFiles                : HOMIO PowerShell-GitHub Workflow Plan
+                              HOMIO_REOS_FIX_EXECUTION_STRUCTURE
+                              REOS_CONTROL_CENTER/architecture/HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md
+                              REOS_CONTROL_CENTER/gpt-ps-git-sync.md
+                              REOS_CONTROL_CENTER/New chat work
+                              REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt
+CanonicalStateBlobUnchanged : True
+CanonicalTask               : CORE-008-T04
+CI                          : Documentation-only paths; no backend/frontend CI run is claimed for this commit.
+
