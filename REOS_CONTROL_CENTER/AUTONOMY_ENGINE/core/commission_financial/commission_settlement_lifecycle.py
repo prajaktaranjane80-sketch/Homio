@@ -1306,6 +1306,28 @@ class CommissionSettlementLifecycle:
             "authorization_reference",
         )
 
+        if (
+            isinstance(reconciliation_version, bool)
+            or not isinstance(reconciliation_version, int)
+            or reconciliation_version < 1
+        ):
+            raise CommissionSettlementLifecycleValidationError(
+                "reconciliation_version must be a positive integer."
+            )
+
+        reconciliation_id_value = _required_text(
+            reconciliation_id,
+            "reconciliation_id",
+        )
+        reconciliation_reference_value = _required_text(
+            reconciliation_reference,
+            "reconciliation_reference",
+        )
+        provenance_reference_value = _required_text(
+            provenance_reference,
+            "provenance_reference",
+        )
+
         self._authorize(
             settlement=settlement,
             action=FinancialAuthorizationAction.RECONCILE,
@@ -1319,6 +1341,12 @@ class CommissionSettlementLifecycle:
                 "external_evidence_fingerprint": (
                     evidence.immutable_fingerprint
                 ),
+                "reconciliation_id": reconciliation_id_value,
+                "reconciliation_version": reconciliation_version,
+                "reconciliation_reference": (
+                    reconciliation_reference_value
+                ),
+                "provenance_reference": provenance_reference_value,
             },
         )
 
@@ -1379,12 +1407,12 @@ class CommissionSettlementLifecycle:
         reconciliation = CommissionReconciliation.reconcile(
             settlement,
             evidence,
-            reconciliation_id=reconciliation_id,
+            reconciliation_id=reconciliation_id_value,
             reconciliation_version=reconciliation_version,
             variance_tolerance=variance_tolerance,
             reconciled_at=reconciliation_time,
-            reconciliation_reference=reconciliation_reference,
-            provenance_reference=provenance_reference,
+            reconciliation_reference=reconciliation_reference_value,
+            provenance_reference=provenance_reference_value,
             metadata=audit_metadata,
         )
 
