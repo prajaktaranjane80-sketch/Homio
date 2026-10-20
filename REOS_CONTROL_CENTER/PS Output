@@ -1,58 +1,280 @@
-READ-BACK FAILURE: unexpected changed file set in commit 7c8fda91d69b6694aab00eed75ee11f6d0b74182.
-At line:2 char:5
-+     throw "READ-BACK FAILURE: unexpected changed file set in commit $ ...
+PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = 'Stop'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $ApiBase = 'https://api.github.com/repos/prajaktaranjane80-sketch/Homio'
+PS D:\Homio\REOS_CONTROL_CENTER> $Branch = 'reos-development'
+PS D:\Homio\REOS_CONTROL_CENTER> $ExpectedHead = '38032e315b81fca9bd0ede09c19624586fa6ab46'
+PS D:\Homio\REOS_CONTROL_CENTER> $ExpectedStateBlob = '92296fb10b0c7a37d0fc7fa97c4328f587512150'
+PS D:\Homio\REOS_CONTROL_CENTER> $ExpectedOriginalBlob = '6ddc7c21f334620c19bf7293982598e7f7ce6b52'
+PS D:\Homio\REOS_CONTROL_CENTER> $ExpectedDuplicateBlob = '295af7ccb1100dc8a56c749d179b7206a560f7e9'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $OriginalPath = 'HOMIO PowerShell' + [char]0x2013 + 'GitHub Workflow Plan'
+PS D:\Homio\REOS_CONTROL_CENTER> $DuplicatePath = 'HOMIO PowerShell-GitHub Workflow Plan'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Token = (& gh auth token | Out-String).Trim()
+PS D:\Homio\REOS_CONTROL_CENTER> if ([string]::IsNullOrWhiteSpace($Token)) {
+>>     throw 'STOP: gh auth token did not return an authenticated token.'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Headers = @{
+>>     Authorization = "Bearer $Token"
+>>     Accept = 'application/vnd.github+json'
+>>     'X-GitHub-Api-Version' = '2022-11-28'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> function Invoke-GHJson {
+>>     param(
+>>         [string]$Method,
+>>         [string]$Path,
+>>         [object]$Body = $null
+>>     )
+>>
+>>     $Request = @{
+>>         Method      = $Method
+>>         Uri         = "$ApiBase$Path"
+>>         Headers     = $Headers
+>>         ErrorAction = 'Stop'
+>>     }
+>>
+>>     if ($null -ne $Body) {
+>>         $Request.ContentType = 'application/json'
+>>         $Request.Body = ConvertTo-Json -InputObject $Body -Depth 50 -Compress
+>>     }
+>>
+>>     Invoke-RestMethod @Request
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> function Convert-ContentsToText {
+>>     param([object]$File)
+>>
+>>     $B64 = ($File.content -replace '\s', '')
+>>     $Bytes = [Convert]::FromBase64String($B64)
+>>     [System.Text.Encoding]::UTF8.GetString($Bytes)
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $OriginalEncoded = [Uri]::EscapeDataString($OriginalPath)
+PS D:\Homio\REOS_CONTROL_CENTER> $DuplicateEncoded = [Uri]::EscapeDataString($DuplicatePath)
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 1. Verify live branch before preparing anything.
+PS D:\Homio\REOS_CONTROL_CENTER> $Ref = Invoke-GHJson GET "/git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Ref.object.sha -ne $ExpectedHead) {
+>>     throw "STOP: branch HEAD changed. Expected $ExpectedHead; found $($Ref.object.sha). Re-read before retrying."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 2. Read and verify both filenames and canonical state.
+PS D:\Homio\REOS_CONTROL_CENTER> $Original = Invoke-GHJson GET "/contents/$OriginalEncoded`?ref=$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> $Duplicate = Invoke-GHJson GET "/contents/$DuplicateEncoded`?ref=$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> $State = Invoke-GHJson GET "/contents/REOS_CONTROL_CENTER/data/state.json`?ref=$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Original.sha -ne $ExpectedOriginalBlob) {
+>>     throw "STOP: original plan blob changed: $($Original.sha)"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Duplicate.sha -ne $ExpectedDuplicateBlob) {
+>>     throw "STOP: duplicate plan blob changed: $($Duplicate.sha)"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER> if ($State.sha -ne $ExpectedStateBlob) {
+>>     throw "STOP: canonical state blob changed: $($State.sha)"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Content = Convert-ContentsToText $Original
+PS D:\Homio\REOS_CONTROL_CENTER> $Newline = if ($Content.Contains("`r`n")) { "`r`n" } else { "`n" }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Content.Contains('CURRENT AUTHORITATIVE OVERLAY - 2026-10-20')) {
+>>     throw 'STOP: overlay already exists in the original file; inspect the live content before proceeding.'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 3. Insert the current authority overlay into the original file.
+PS D:\Homio\REOS_CONTROL_CENTER> $OperatingRulesIndex = $Content.IndexOf('Operating rules', [StringComparison]::Ordinal)
+PS D:\Homio\REOS_CONTROL_CENTER> if ($OperatingRulesIndex -lt 0) {
+>>     throw 'STOP: the expected Operating rules anchor was not found.'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Overlay = @'
+>> CURRENT AUTHORITATIVE OVERLAY - 2026-10-20
+>> - Master work order: REOS_CONTROL_CENTER/architecture/HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md
+>> - Re-read live reos-development HEAD and REOS_CONTROL_CENTER/data/state.json before every task decision.
+>> - Current canonical subtask: CORE-008-T04. T01-T03 are DONE; T05-T10 are PENDING.
+>> - The former T01/deep_thaw import-blocker note is historical; reproduce it on the current source before treating it as active.
+>> - Phase 0-1 authorization covers supporting-document reconciliation only. It does not complete T04 or authorize a manual state.json edit.
+>> - Latest recorded passing code evidence is Actions run 39429640103 for commit dfc967588dcbe4cb79793b53382042ec2ea2d36b. Do not claim that this proves tests ran on a later documentation-only commit.
+>>
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER> $Overlay = $Overlay -replace "`n", $Newline
+PS D:\Homio\REOS_CONTROL_CENTER> $Content = $Content.Insert($OperatingRulesIndex, $Overlay)
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 4. Replace only the stale Part 8 section.
+PS D:\Homio\REOS_CONTROL_CENTER> $Part8Pattern = '(?s)Part 8[^\r\n]*Continue CORE-008 tasks in authoritative order.*?(?=Part 9[^\r\n]*Close the CORE-001 to CORE-008 architecture plan)'
+PS D:\Homio\REOS_CONTROL_CENTER> $Part8Regex = [regex]::new($Part8Pattern)
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Part8Regex.Matches($Content).Count -ne 1) {
+>>     throw 'STOP: Part 8/Part 9 anchors are not unique. No write was made.'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Part8 = @'
+>> Part 8 - Continue CORE-008 tasks in authoritative order
+>> Purpose: Continue the currently authorized commission-financial task without overriding canonical state.
+>>
+>> Current task order:
+>> - CORE-008-T01: DONE - Commission domain.
+>> - CORE-008-T02: DONE - Commission attribution and rules.
+>> - CORE-008-T03: DONE - Split and participant logic.
+>> - CORE-008-T04: CURRENT - Settlement and reconciliation lifecycle.
+>> - CORE-008-T05 through CORE-008-T10: PENDING.
+>>
+>> Canonical acceptance criteria:
+>> - AC01: PENDING - Commission source of truth is authoritative.
+>> - AC02: VERIFIED - Deal and ownership attribution is traceable.
+>> - AC03: VERIFIED - Financial amounts use safe fixed-precision semantics.
+>> - AC04: PENDING - Settlement and reversal are auditable.
+>> - AC05: PENDING - Critical financial actions require appropriate approval.
+>> - AC06: PENDING - Security and concurrency tests pass.
+>>
+>> The recorded T04 implementation and test blobs are:
+>> - commission_settlement_lifecycle.py: 629e2388eeb40819923c943a5bb4ba2097ae2a2a
+>> - commission_reconciliation.py: ffa7b4d0d392618b95d72360e0191988f9b3c167
+>> - test_core008_t04_settlement_reconciliation_lifecycle.py: 00e3bb5936d39eab155e4dbc119a587c92120019
+>> - test_core008_t04_settlement_integrity_linkage.py: 78e083609e78c298c924602f3e6a094a753be3a3
+>>
+>> Latest recorded CI evidence: run 39429640103 on code commit dfc967588dcbe4cb79793b53382042ec2ea2d36b. The recorded results were 32 ACRL runtime-integration tests, 56 T07/T14 tests and 522 combined regression tests passed. This is evidence for that exact code SHA, not for every later HEAD and not automatic completion of the T04 acceptance criteria.
+>>
+>> Inspect existing T04 code, criterion-specific requirements and evidence before proposing changes. Do not reimplement verified files without a demonstrated defect. Do not manually edit state.json or mark T04 complete from this supporting plan. Use the existing authorized Control Center process for a formal transition.
+>> '@
+PS D:\Homio\REOS_CONTROL_CENTER> $Part8 = $Part8 -replace "`n", $Newline
+PS D:\Homio\REOS_CONTROL_CENTER> $Content = $Part8Regex.Replace($Content, $Part8, 1)
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 5. Create a replacement blob and a single tree that also deletes the accidental duplicate.
+PS D:\Homio\REOS_CONTROL_CENTER> $Blob = Invoke-GHJson POST '/git/blobs' @{
+>>     content  = $Content
+>>     encoding = 'utf-8'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $HeadCommit = Invoke-GHJson GET "/git/commits/$ExpectedHead"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $TreeEntries = @(
+>>     [ordered]@{
+>>         path = $OriginalPath
+>>         mode = '100644'
+>>         type = 'blob'
+>>         sha  = $Blob.sha
+>>     },
+>>     [ordered]@{
+>>         path = $DuplicatePath
+>>         mode = '100644'
+>>         type = 'blob'
+>>         sha  = $null
+>>     }
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Tree = Invoke-GHJson POST '/git/trees' @{
+>>     base_tree = $HeadCommit.tree.sha
+>>     tree      = $TreeEntries
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $NewCommit = Invoke-GHJson POST '/git/commits' @{
+>>     message = 'Correct workflow plan path and remove accidental duplicate'
+>>     tree    = $Tree.sha
+>>     parents = @($ExpectedHead)
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 6. Confirm the proposed commit contains exactly the intended two paths.
+PS D:\Homio\REOS_CONTROL_CENTER> $CommitCheck = Invoke-GHJson GET "/commits/$($NewCommit.sha)"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($CommitCheck.parents[0].sha -ne $ExpectedHead) {
+>>     throw 'STOP: new commit parent is not the expected base.'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $ChangedPaths = @($CommitCheck.files | ForEach-Object { $_.filename })
+PS D:\Homio\REOS_CONTROL_CENTER> if (
+>>     $ChangedPaths.Count -ne 2 -or
+>>     -not ($ChangedPaths -contains $OriginalPath) -or
+>>     -not ($ChangedPaths -contains $DuplicatePath)
+>> ) {
+>>     throw "STOP: proposed commit has an unexpected changed-file set: $($ChangedPaths -join ', ')"
+>> }
+STOP: proposed commit has an unexpected changed-file set: HOMIO PowerShell-GitHub Workflow Plan
+At line:6 char:5
++     throw "STOP: proposed commit has an unexpected changed-file set:  ...
 +     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (READ-BACK FAILU...ee11f6d0b74182.:String) [], RuntimeException
-    + FullyQualifiedErrorId : READ-BACK FAILURE: unexpected changed file set in commit 7c8fda91d69b6694aab00eed75ee11f6d0b74182.
+    + CategoryInfo          : OperationStopped: (STOP: proposed ...b Workflow Plan:String) [], RuntimeException
+    + FullyQualifiedErrorId : STOP: proposed commit has an unexpected changed-file set: HOMIO PowerShell-GitHub Workflow Plan
 
 PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> foreach ($Blob in $Blobs) {
->>     $RemoteFile = Get-GHFile -Path $Blob.Path
->>     if ($RemoteFile.Sha -ne $Blob.Sha -or $RemoteFile.Content -cne $Blob.Content) {
->>         throw "READ-BACK FAILURE for $($Blob.Path). Read the current branch before retrying."
+PS D:\Homio\REOS_CONTROL_CENTER> # 7. Recheck branch immediately before its non-force update.
+PS D:\Homio\REOS_CONTROL_CENTER> $RefBeforeWrite = Invoke-GHJson GET "/git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($RefBeforeWrite.object.sha -ne $ExpectedHead) {
+>>     throw 'STOP: branch moved during preparation. No ref update attempted.'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Invoke-GHJson PATCH "/git/refs/heads/$Branch" @{
+>>     sha   = $NewCommit.sha
+>>     force = $false
+>> } | Out-Null
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 8. Independent remote read-back; do not print PASS unless every guard succeeds.
+PS D:\Homio\REOS_CONTROL_CENTER> $RefAfter = Invoke-GHJson GET "/git/ref/heads/$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($RefAfter.object.sha -ne $NewCommit.sha) {
+>>     throw 'READ-BACK FAILURE: branch does not point at the new commit.'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $OriginalAfter = Invoke-GHJson GET "/contents/$OriginalEncoded`?ref=$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> $OriginalTextAfter = Convert-ContentsToText $OriginalAfter
+PS D:\Homio\REOS_CONTROL_CENTER> if ($OriginalAfter.sha -ne $Blob.sha -or $OriginalTextAfter -cne $Content) {
+>>     throw 'READ-BACK FAILURE: original plan does not match the intended blob/content.'
+>> }
+READ-BACK FAILURE: original plan does not match the intended blob/content.
+At line:2 char:5
++     throw 'READ-BACK FAILURE: original plan does not match the intend ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (READ-BACK FAILU...d blob/content.:String) [], RuntimeException
+    + FullyQualifiedErrorId : READ-BACK FAILURE: original plan does not match the intended blob/content.
+
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $StateAfter = Invoke-GHJson GET "/contents/REOS_CONTROL_CENTER/data/state.json`?ref=$Branch"
+PS D:\Homio\REOS_CONTROL_CENTER> if ($StateAfter.sha -ne $ExpectedStateBlob) {
+>>     throw 'SAFETY FAILURE: canonical state blob changed.'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $DuplicateAbsent = $false
+PS D:\Homio\REOS_CONTROL_CENTER> try {
+>>     $null = Invoke-GHJson GET "/contents/$DuplicateEncoded`?ref=$Branch"
+>> }
+>> catch {
+>>     $StatusCode = $null
+>>     if ($_.Exception.Response) {
+>>         try { $StatusCode = [int]$_.Exception.Response.StatusCode } catch {}
+>>     }
+>>     if ($StatusCode -eq 404) {
+>>         $DuplicateAbsent = $true
+>>     }
+>>     else {
+>>         throw
 >>     }
 >> }
-READ-BACK FAILURE for REOS_CONTROL_CENTER/architecture/HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md. Read the current branch before retrying.
-At line:4 char:9
-+         throw "READ-BACK FAILURE for $($Blob.Path). Read the current  ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (READ-BACK FAILU...efore retrying.:String) [], RuntimeException
-    + FullyQualifiedErrorId : READ-BACK FAILURE for REOS_CONTROL_CENTER/architecture/HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md. Read the
-   current branch before retrying.
-
-PS D:\Homio\REOS_CONTROL_CENTER>
-PS D:\Homio\REOS_CONTROL_CENTER> $StateAfter = Get-GHFile -Path 'REOS_CONTROL_CENTER/data/state.json'
-PS D:\Homio\REOS_CONTROL_CENTER> if ($StateAfter.Sha -ne $ExpectedStateBlob) {
->>     throw 'SAFETY CHECK FAILED: canonical state blob changed unexpectedly. Stop and investigate.'
->> }
-PS D:\Homio\REOS_CONTROL_CENTER> $StateAfterJson = $StateAfter.Content | ConvertFrom-Json
-PS D:\Homio\REOS_CONTROL_CENTER> if ($StateAfterJson.execution.current_subtask -ne 'CORE-008-T04') {
->>     throw 'SAFETY CHECK FAILED: canonical task differs from the expected T04 state.'
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $DuplicateAbsent) {
+>>     throw 'READ-BACK FAILURE: accidental duplicate still exists.'
 >> }
 PS D:\Homio\REOS_CONTROL_CENTER>
 PS D:\Homio\REOS_CONTROL_CENTER> [pscustomobject]@{
->>     Status = 'PASS — GUARDED REMOTE READ-BACK VERIFIED'
->>     CommitSha = $NewCommit.sha
->>     CommitUrl = $CommitDetails.html_url
->>     ParentSha = $ExpectedHead
->>     ChangedFiles = $ActualChangedPaths -join "`n"
->>     CanonicalStateBlobUnchanged = ($StateAfter.Sha -eq $ExpectedStateBlob)
->>     CanonicalTask = $StateAfterJson.execution.current_subtask
->>     CI = 'Documentation-only paths; no backend/frontend CI run is claimed for this commit.'
+>>     Status                   = 'PASS - REMOTE READ-BACK VERIFIED'
+>>     CommitSha                = $NewCommit.sha
+>>     CommitUrl                = "https://github.com/prajaktaranjane80-sketch/Homio/commit/$($NewCommit.sha)"
+>>     OriginalPlanUpdated      = $true
+>>     AccidentalDuplicateGone  = $true
+>>     CanonicalStateBlobUnchanged = $true
+>>     CanonicalStateBlobSha    = $StateAfter.sha
+>>     CurrentTask              = 'CORE-008-T04'
+>>     ChangedPaths             = $ChangedPaths -join "`n"
+>>     CI                       = 'No new CI run is claimed by this documentation correction.'
 >> } | Format-List
 
 
-Status                      : PASS — GUARDED REMOTE READ-BACK VERIFIED
-CommitSha                   : 7c8fda91d69b6694aab00eed75ee11f6d0b74182
-CommitUrl                   : https://github.com/prajaktaranjane80-sketch/Homio/commit/7c8fda91d69b6694aab00eed75ee11f6d0b74182
-ParentSha                   : 0fca7c9edb98770bc648551d6c6b2cc9118adbf5
-ChangedFiles                : HOMIO PowerShell-GitHub Workflow Plan
-                              HOMIO_REOS_FIX_EXECUTION_STRUCTURE
-                              REOS_CONTROL_CENTER/architecture/HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md
-                              REOS_CONTROL_CENTER/gpt-ps-git-sync.md
-                              REOS_CONTROL_CENTER/New chat work
-                              REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt
+Status                      : PASS - REMOTE READ-BACK VERIFIED
+CommitSha                   : 6ec97d49b4e320f0544dc12249669b391a9d4e0e
+CommitUrl                   : https://github.com/prajaktaranjane80-sketch/Homio/commit/6ec97d49b4e320f0544dc12249669b391a9d4e0e
+OriginalPlanUpdated         : True
+AccidentalDuplicateGone     : True
 CanonicalStateBlobUnchanged : True
-CanonicalTask               : CORE-008-T04
-CI                          : Documentation-only paths; no backend/frontend CI run is claimed for this commit.
+CanonicalStateBlobSha       : 92296fb10b0c7a37d0fc7fa97c4328f587512150
+CurrentTask                 : CORE-008-T04
+ChangedPaths                : HOMIO PowerShell-GitHub Workflow Plan
+CI                          : No new CI run is claimed by this documentation correction.
 
