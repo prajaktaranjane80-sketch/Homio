@@ -30,6 +30,26 @@ from .continuity_store import (
 )
 
 
+_AUTHORITATIVE_CONTEXT_FIELDS = (
+    "project_fingerprint",
+    "state_fingerprint",
+    "branch",
+    "commit_sha",
+)
+
+_UNRESOLVED_CONTEXT_VALUES = frozenset(
+    {
+        "",
+        "UNKNOWN",
+        "UNAVAILABLE",
+        "UNVERIFIED",
+        "N/A",
+        "NONE",
+        "NULL",
+    }
+)
+
+
 def _make_result(
     *,
     request: ContinuityRequest,
@@ -84,6 +104,31 @@ def _make_result(
         ),
         explanation=explanation,
     )
+
+
+def _unresolved_authoritative_context_fields(
+    project_context: object,
+) -> tuple[str, ...]:
+    """Return required fields that are absent or not independently usable."""
+
+    if not isinstance(project_context, dict):
+        return _AUTHORITATIVE_CONTEXT_FIELDS
+
+    unresolved: list[str] = []
+
+    for field_name in _AUTHORITATIVE_CONTEXT_FIELDS:
+        value = project_context.get(field_name)
+
+        if not isinstance(value, str):
+            unresolved.append(field_name)
+            continue
+
+        normalized = value.strip()
+
+        if normalized.upper() in _UNRESOLVED_CONTEXT_VALUES:
+            unresolved.append(field_name)
+
+    return tuple(unresolved)
 
 
 def recover_continuity(
@@ -151,30 +196,43 @@ def recover_continuity(
         in request.evidence_ids
     )
 
-    context = (
+    unresolved_fields = _unresolved_authoritative_context_fields(
         project_context
-        or {}
     )
 
-    project_fingerprint = context.get(
-        "project_fingerprint",
-        request.expected_project_fingerprint,
-    )
+    if unresolved_fields:
+        return _make_result(
+            request=request,
+            decision=ContinuityDecision.BLOCKED,
+            reason="AUTHORITATIVE_CONTEXT_REQUIRED",
+            selected=selected,
+            explanation=(
+                "Continuity recovery requires independently observed "
+                "authoritative context. Missing, empty, or unresolved "
+                "fields: "
+                f"{', '.join(unresolved_fields)}."
+            ),
+        )
 
-    state_fingerprint = context.get(
-        "state_fingerprint",
-        request.expected_state_fingerprint,
-    )
+    # Do not fall back to request.expected_* fields. Those are comparison
+    # inputs, not proof of the values being compared.
+    context = project_context
 
-    branch = context.get(
-        "branch",
-        request.expected_branch,
-    )
+    project_fingerprint = context[
+        "project_fingerprint"
+    ].strip()
 
-    commit_sha = context.get(
-        "commit_sha",
-        request.expected_commit_sha,
-    )
+    state_fingerprint = context[
+        "state_fingerprint"
+    ].strip()
+
+    branch = context[
+        "branch"
+    ].strip()
+
+    commit_sha = context[
+        "commit_sha"
+    ].strip()
 
     phase = context.get(
         "phase",
@@ -237,7 +295,8 @@ def recover_continuity(
             reason="PROJECT_FINGERPRINT_MISMATCH",
             selected=selected,
             explanation=(
-                "Project identity does not match expected identity."
+                "Observed project identity does not match the "
+                "expected project identity."
             ),
         )
 
@@ -253,7 +312,8 @@ def recover_continuity(
             reason="STATE_FINGERPRINT_MISMATCH",
             selected=selected,
             explanation=(
-                "State identity does not match expected identity."
+                "Observed state identity does not match the "
+                "expected state identity."
             ),
         )
 
@@ -269,7 +329,8 @@ def recover_continuity(
             reason="BRANCH_MISMATCH",
             selected=selected,
             explanation=(
-                "Continuity branch differs from expected branch."
+                "Observed continuity branch differs from the "
+                "expected branch."
             ),
         )
 
@@ -285,7 +346,8 @@ def recover_continuity(
             reason="COMMIT_MISMATCH",
             selected=selected,
             explanation=(
-                "Continuity commit differs from expected commit."
+                "Observed continuity commit differs from the "
+                "expected commit."
             ),
         )
 
