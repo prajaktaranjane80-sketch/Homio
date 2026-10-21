@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections import Counter
+
 from .evidence_models import (
     EvidenceReference,
     EvidenceStatus,
@@ -9,32 +11,73 @@ from .evidence_models import (
 from .evidence_policy import (
     EvidencePolicy,
     authority_weight,
+    validate_policy,
 )
-from .evidence_ranker import (
-    sort_evidence,
+from .evidence_ranker import sort_evidence
+from .evidence_validation import (
+    validate_evidence,
+    validate_resolution_request,
 )
 
 
 def resolve_references(
     *,
     request: ResolutionRequest,
-    evidence_items: tuple[
-        EvidenceReference, ...
-    ],
+    evidence_items: tuple[EvidenceReference, ...],
     policy: EvidencePolicy,
 ):
-    """Resolve only the evidence explicitly requested for this subject.
+    """Resolve only requested evidence under mandatory safety policy."""
 
-    Fail closed when requested evidence is missing, unusable, stale, or
-    ambiguous. Canonical evidence takes precedence when the request
-    requires it and matching canonical evidence is available.
-    """
+    validate_policy(policy)
+    validate_resolution_request(request)
+
+    for item in evidence_items:
+        validate_evidence(item, policy)
+
+    # A request can strengthen the default rules, but cannot weaken them.
+    if not request.require_current:
+        return (
+            ResolutionDecision.BLOCKED,
+            None,
+            tuple(),
+            tuple(),
+            tuple(),
+            tuple(),
+            "Policy requires current evidence; the request cannot disable it.",
+        )
 
     requested_ids = tuple(request.evidence_ids)
     requested_id_set = set(requested_ids)
 
-    # Scope selection before ranking: unrelated evidence must never win
-    # merely because it has greater authority or a canonical flag.
+    duplicate_counts = Counter(
+        item.evidence_id
+        for item in evidence_items
+        if item.evidence_id in requested_id_set
+    )
+    duplicate_ids = tuple(
+        sorted(
+            evidence_id
+            for evidence_id, count in duplicate_counts.items()
+            if count > 1
+        )
+    )
+
+    if duplicate_ids:
+        duplicate_items = tuple(
+            item
+            for item in evidence_items
+            if item.evidence_id in duplicate_ids
+        )
+        return (
+            ResolutionDecision.CONFLICT,
+            None,
+            duplicate_items,
+            tuple(),
+            tuple(),
+            tuple(),
+            "Duplicate requested evidence IDs are ambiguous.",
+        )
+
     candidates = tuple(
         item
         for item in evidence_items
@@ -47,25 +90,16 @@ def resolve_references(
         for item in candidates
     }
 
-    # An ID belonging to a different subject is not valid evidence for
-    # this request. Treat it as unavailable instead of allowing an empty
-    # selection to reach an unsafe candidates[0] access.
     missing = tuple(
         evidence_id
         for evidence_id in requested_ids
         if evidence_id not in candidate_ids
     )
 
-    stale = tuple(
+    non_current = tuple(
         item
         for item in candidates
-        if item.status is EvidenceStatus.STALE
-    )
-
-    unknown = tuple(
-        item
-        for item in candidates
-        if item.status is EvidenceStatus.UNKNOWN
+        if item.status is not EvidenceStatus.CURRENT
     )
 
     if missing:
@@ -74,7 +108,7 @@ def resolve_references(
             None,
             candidates,
             tuple(),
-            stale,
+            non_current,
             missing,
             (
                 "One or more requested evidence references are missing "
@@ -82,47 +116,51 @@ def resolve_references(
             ),
         )
 
-    selection_pool = candidates
-
-    if request.require_canonical_when_available:
-        canonical_candidates = tuple(
-            item
-            for item in selection_pool
-            if item.canonical
-        )
-
-        if canonical_candidates:
-            selection_pool = canonical_candidates
-
-    stale = tuple(
+    canonical_candidates = tuple(
         item
-        for item in selection_pool
-        if item.status is EvidenceStatus.STALE
+        for item in candidates
+        if item.canonical
     )
 
-    unknown = tuple(
-        item
-        for item in selection_pool
-        if item.status is EvidenceStatus.UNKNOWN
+    if (
+        canonical_candidates
+        and not request.require_canonical_when_available
+    ):
+        return (
+            ResolutionDecision.BLOCKED,
+            None,
+            candidates,
+            tuple(),
+            non_current,
+            tuple(),
+            (
+                "The request cannot disable the canonical-evidence "
+                "requirement when canonical evidence is available."
+            ),
+        )
+
+    # Canonical evidence takes precedence when it exists. The policy
+    # validator prevents unsafe non-canonical overrides.
+    selection_pool = (
+        canonical_candidates
+        if canonical_candidates
+        else candidates
     )
 
-    if request.require_current:
-        selectable = tuple(
-            item
-            for item in selection_pool
-            if item.status is EvidenceStatus.CURRENT
-        )
-    else:
-        selectable = selection_pool
+    selectable = tuple(
+        item
+        for item in selection_pool
+        if item.status is EvidenceStatus.CURRENT
+    )
 
     if not selectable:
-        if request.require_current and (stale or unknown):
+        if non_current:
             return (
                 ResolutionDecision.STALE,
                 None,
                 tuple(),
                 tuple(),
-                stale + unknown,
+                non_current,
                 tuple(),
                 (
                     "No current selectable evidence is available. "
@@ -136,13 +174,9 @@ def resolve_references(
             None,
             tuple(),
             selection_pool,
-            stale + unknown,
             tuple(),
-            (
-                "No evidence remains selectable after applying the "
-                "requested IDs, subject, canonical, and freshness "
-                "constraints."
-            ),
+            tuple(),
+            "No evidence remains selectable after policy constraints.",
         )
 
     selectable = sort_evidence(
@@ -151,7 +185,6 @@ def resolve_references(
         policy=policy,
     )
 
-    # The empty-selection guards above intentionally precede this access.
     selected = selectable[0]
 
     highest_weight = authority_weight(
@@ -159,19 +192,10 @@ def resolve_references(
         policy,
     )
 
-    same_subject = tuple(
-        item
-        for item in selectable
-        if item.subject == selected.subject
-    )
-
     top_authority = tuple(
         item
-        for item in same_subject
-        if authority_weight(
-            item.authority,
-            policy,
-        )
+        for item in selectable
+        if authority_weight(item.authority, policy)
         == highest_weight
     )
 
@@ -186,12 +210,9 @@ def resolve_references(
             None,
             selectable,
             tuple(),
-            stale,
+            non_current,
             tuple(),
-            (
-                "Authoritative evidence contains contradictory "
-                "identities."
-            ),
+            "Authoritative evidence contains contradictory identities.",
         )
 
     rejected = tuple(
@@ -205,7 +226,7 @@ def resolve_references(
         selected,
         selectable,
         rejected,
-        stale,
+        non_current,
         tuple(),
         "Deterministic authoritative evidence resolved.",
     )
