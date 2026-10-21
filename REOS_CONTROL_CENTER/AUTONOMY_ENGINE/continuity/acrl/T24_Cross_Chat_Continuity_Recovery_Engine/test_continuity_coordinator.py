@@ -1,15 +1,11 @@
-from .continuity_coordinator import (
-    recover_continuity,
-)
+from .continuity_coordinator import recover_continuity
 from .continuity_models import (
     ContinuityDecision,
     ContinuityEvidence,
     ContinuityRequest,
     ContinuityStatus,
 )
-from .continuity_store import (
-    ContinuityStore,
-)
+from .continuity_store import ContinuityStore
 
 
 def make_request():
@@ -21,10 +17,7 @@ def make_request():
         expected_state_fingerprint="b" * 64,
         expected_branch="reos-development",
         expected_commit_sha="c" * 40,
-        evidence_ids=(
-            "project",
-            "state",
-        ),
+        evidence_ids=("project", "state"),
         recovery_nonce="nonce",
     )
 
@@ -44,7 +37,7 @@ def make_evidence():
         ContinuityEvidence(
             evidence_id="state",
             subject="state",
-            source_layer="T03",
+            source_layer="T09",
             source_name="StateSnapshot",
             status=ContinuityStatus.CURRENT,
             content_fingerprint="e" * 64,
@@ -54,32 +47,42 @@ def make_evidence():
     )
 
 
+def make_context():
+    return {
+        "project_fingerprint": "a" * 64,
+        "state_fingerprint": "b" * 64,
+        "branch": "reos-development",
+        "commit_sha": "c" * 40,
+        "phase": "PRE-CODING ARCHITECTURE",
+        "gate_id": "T24",
+        "gate_status": "CURRENT",
+        "current_task": "T24",
+        "current_subtask": "T24-01",
+        "current_subtask_status": "READY",
+        "provenance": {
+            "authority": "REOS_CONTROL_CENTER",
+            "state_path": "REOS_CONTROL_CENTER/data/state.json",
+            "project_fingerprint_source_layer": "T03",
+            "state_fingerprint_source_layer": "T09",
+            "branch_source_layer": "T21",
+            "commit_sha_source_layer": "T21",
+            "source_resolution_id": "resolution-1",
+            "evidence_ids": ["project", "state"],
+        },
+    }
+
+
 def test_continuity_is_recovered():
     result = recover_continuity(
         request=make_request(),
         evidence_items=make_evidence(),
         store=ContinuityStore(),
-        project_context={
-            "project_fingerprint": "a" * 64,
-            "state_fingerprint": "b" * 64,
-            "branch": "reos-development",
-            "commit_sha": "c" * 40,
-            "phase": "PRE-CODING ARCHITECTURE",
-            "gate_id": "T24",
-            "gate_status": "CURRENT",
-            "current_task": "T24",
-            "current_subtask": "T24-01",
-            "current_subtask_status": "READY",
-        },
+        project_context=make_context(),
     )
 
-    assert (
-        result.decision
-        is ContinuityDecision.RECOVERED
-    )
-
+    assert result.decision is ContinuityDecision.RECOVERED
     assert result.snapshot is not None
-    assert (
-        result.snapshot.project_id
-        == "HOMIO"
-    )
+    assert result.snapshot.project_id == "HOMIO"
+    assert tuple(
+        item.evidence_id for item in result.selected_evidence
+    ) == ("project", "state")
