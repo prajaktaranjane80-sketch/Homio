@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections import Counter
+
 from .continuity_evidence import (
     detect_identity_conflicts,
     select_current_evidence,
@@ -10,39 +12,50 @@ from .continuity_models import (
     ContinuityRequest,
     ContinuityStatus,
 )
-from .continuity_policy import (
-    ContinuityPolicy,
-)
+from .continuity_policy import ContinuityPolicy
 
 
 def evaluate_recovery(
     *,
     request: ContinuityRequest,
-    evidence_items: tuple[
-        ContinuityEvidence, ...
-    ],
+    evidence_items: tuple[ContinuityEvidence, ...],
     policy: ContinuityPolicy,
 ):
-    """Evaluate only requested evidence and fail closed on unknown status."""
+    """Evaluate requested continuity evidence and fail closed on ambiguity."""
 
-    requested_ids = frozenset(request.evidence_ids)
+    requested_ids = set(request.evidence_ids)
 
-    # Unrequested evidence must not create an unrelated conflict or
-    # influence the decision for this particular recovery request.
     scoped_evidence = tuple(
         item
         for item in evidence_items
         if item.evidence_id in requested_ids
     )
 
-    conflicts = detect_identity_conflicts(
-        scoped_evidence
+    duplicate_counts = Counter(
+        item.evidence_id
+        for item in scoped_evidence
+    )
+    duplicate_ids = tuple(
+        sorted(
+            evidence_id
+            for evidence_id, count in duplicate_counts.items()
+            if count > 1
+        )
     )
 
-    selected, missing, stale = select_current_evidence(
-        evidence_items,
-        request.evidence_ids,
-    )
+    if duplicate_ids:
+        return (
+            ContinuityDecision.BLOCKED,
+            duplicate_ids,
+            tuple(),
+            tuple(),
+            (
+                "Duplicate continuity evidence IDs cannot establish "
+                "an unambiguous recovery."
+            ),
+        )
+
+    conflicts = detect_identity_conflicts(scoped_evidence)
 
     if conflicts:
         return (
@@ -50,8 +63,16 @@ def evaluate_recovery(
             conflicts,
             tuple(),
             tuple(),
-            "Contradictory requested continuity evidence detected.",
+            (
+                "Equally ranked continuity evidence contains "
+                "contradictory identities."
+            ),
         )
+
+    selected, missing, stale = select_current_evidence(
+        evidence_items,
+        request.evidence_ids,
+    )
 
     if missing:
         return (
