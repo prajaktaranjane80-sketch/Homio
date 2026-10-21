@@ -1,3 +1,4 @@
+from ._t23_test_support import build_t23_source_store
 from .continuity_coordinator import recover_continuity
 from .continuity_models import (
     ContinuityDecision,
@@ -73,11 +74,19 @@ def make_context():
 
 
 def test_continuity_is_recovered():
+    request = make_request()
+    evidence = make_evidence()
+    source_resolution_store = build_t23_source_store(
+        request,
+        evidence,
+    )
+
     result = recover_continuity(
-        request=make_request(),
-        evidence_items=make_evidence(),
+        request=request,
+        evidence_items=evidence,
         store=ContinuityStore(),
         project_context=make_context(),
+        source_resolution_store=source_resolution_store,
     )
 
     assert result.decision is ContinuityDecision.RECOVERED
