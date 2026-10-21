@@ -8,6 +8,7 @@ from .continuity_models import (
     ContinuityDecision,
     ContinuityEvidence,
     ContinuityRequest,
+    ContinuityStatus,
 )
 from .continuity_policy import (
     ContinuityPolicy,
@@ -22,8 +23,25 @@ def evaluate_recovery(
     ],
     policy: ContinuityPolicy,
 ):
+    """Evaluate only requested evidence and fail closed on unknown status."""
+
+    requested_ids = frozenset(request.evidence_ids)
+
+    # Unrequested evidence must not create an unrelated conflict or
+    # influence the decision for this particular recovery request.
+    scoped_evidence = tuple(
+        item
+        for item in evidence_items
+        if item.evidence_id in requested_ids
+    )
+
     conflicts = detect_identity_conflicts(
-        evidence_items
+        scoped_evidence
+    )
+
+    selected, missing, stale = select_current_evidence(
+        evidence_items,
+        request.evidence_ids,
     )
 
     if conflicts:
@@ -32,15 +50,8 @@ def evaluate_recovery(
             conflicts,
             tuple(),
             tuple(),
-            "Contradictory continuity evidence detected.",
+            "Contradictory requested continuity evidence detected.",
         )
-
-    selected, missing, stale = (
-        select_current_evidence(
-            evidence_items,
-            request.evidence_ids,
-        )
-    )
 
     if missing:
         return (
@@ -49,6 +60,29 @@ def evaluate_recovery(
             missing,
             stale,
             "Required continuity evidence is missing.",
+        )
+
+    unknown_ids = tuple(
+        sorted(
+            {
+                item.evidence_id
+                for item in scoped_evidence
+                if item.status is ContinuityStatus.UNKNOWN
+            }
+        )
+    )
+
+    if unknown_ids:
+        return (
+            ContinuityDecision.BLOCKED,
+            tuple(),
+            tuple(),
+            stale,
+            (
+                "Required continuity evidence has UNKNOWN status and "
+                "cannot establish current context: "
+                f"{', '.join(unknown_ids)}."
+            ),
         )
 
     if stale and policy.require_current_evidence:
@@ -66,7 +100,7 @@ def evaluate_recovery(
             tuple(),
             tuple(),
             stale,
-            "No recoverable authoritative evidence exists.",
+            "No recoverable current authoritative evidence exists.",
         )
 
     return (
