@@ -1,4 +1,3 @@
-
 HOMIO / REOS — PowerShell → GitHub Work Plan
 
 Canonical repository: prajaktaranjane80-sketch/Homio
@@ -6,38 +5,136 @@ Canonical branch: reos-development
 Canonical frontend root: REOS_CONTROL_CENTER/Frontend
 
 Purpose:
-Keep the PowerShell/GitHub workflow safe and verifiable, maintain one canonical source of execution state, prevent stale GPT instructions from overriding current work, and continue HOMIO implementation one authorized task at a time.
+Keep the PowerShell/GitHub workflow safe and verifiable, maintain one
+canonical source of execution state, prevent stale GPT instructions from
+overriding current work, and continue HOMIO implementation one authorized
+task at a time.
 
-## 0. CURRENT AUTHORITATIVE OVERLAY — 2026-10-20
+## 0. CURRENT VERIFIED OVERLAY — 2026-10-21
 
-This overlay supersedes conflicting historical statements elsewhere in this supporting plan.
+This overlay supersedes conflicting historical statements elsewhere in
+this supporting plan. It records the baseline observed on 2026-10-21; it
+does not claim that this replacement has already been saved.
 
-- Master work order: `REOS_CONTROL_CENTER/architecture/HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md`
-- Canonical state: `REOS_CONTROL_CENTER/data/state.json`
-- Current canonical task: `CORE-008-T04 — Implement settlement and reconciliation lifecycle`
-- CORE-008-T01, T02 and T03 are DONE.
-- CORE-008-T04 is CURRENT.
-- CORE-008-T05 through T10 are PENDING.
-- The old T01 selection and `deep_thaw` import-blocker description below are historical evidence. Do not treat them as the current blocker without reproducing the failure against the live source and current CI.
-- The owner authorized Phase 0–1 baseline and workflow-document reconciliation. That authorization did not permit a manual state transition, T04 completion, or unrelated runtime changes.
-- The master order, GPT continuity instructions, fix-execution supporting plan and handoff packet were reconciled to T04. This root-level workflow plan remained stale at the last audit and is the target of this replacement.
-- The latest audited branch HEAD before this replacement is `a58089e8fbaa950108ede56a4eb95e8cc7a60b14`. Re-read the live branch and canonical state before relying on any recorded SHA.
-- The canonical state blob at that audit was `92296fb10b0c7a37d0fc7fa97c4328f587512150`. Do not assume it remains current after future changes.
-- The accidental hyphen-named duplicate `HOMIO PowerShell-GitHub Workflow Plan` was confirmed absent in that audit. Keep the original en-dash filename; do not create a similarly named replacement file.
+### Live repository baseline
+
+- Repository: `prajaktaranjane80-sketch/Homio`
+- Branch: `reos-development`
+- Observed HEAD: `b917d5036ff5d9a3dea78a27ae9439cf8357f5fd`
+- HEAD commit:
+  `https://github.com/prajaktaranjane80-sketch/Homio/commit/b917d5036ff5d9a3dea78a27ae9439cf8357f5fd`
+- HEAD commit message: `Update and rename Frontend Ps Output to Chat histry`
+- HEAD parent / last code commit:
+  `9a6a6065ca4848b6b419a32e5bb1de5d3ab42246`
+- The HEAD commit adds `REOS_CONTROL_CENTER/Chat histry` and removes
+  `REOS_CONTROL_CENTER/Frontend Ps Output`. It is a diagnostic/history
+  rename, not a backend implementation commit.
+- The complete recursive Git tree returned 2,201 entries and was not
+  truncated.
+- The original en-dash path `HOMIO PowerShell–GitHub Workflow Plan`
+  exists. The accidental hyphen-named path
+  `HOMIO PowerShell-GitHub Workflow Plan` is absent.
+- The current version of this original workflow file, before replacement,
+  had blob SHA `279a30b294d9be9cf4edea0305987749a6f76088`.
+- Current `REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py` blob:
+  `2187ba939262863939beb0cadf8aa1b05af2117e`.
+- Current `REOS_CONTROL_CENTER/gpt-ps-git-sync.md` blob:
+  `d385ac78c42886a3a49c00b31155b25a157c2491`.
+- Current master work-order blob:
+  `0224eb081f13e88233fd8994ade80fe71aab856f`.
+- Current platform-wide audit-plan blob:
+  `975a007187dae9e957330c594e8348a4135abb18`.
+
+### Canonical execution state
+
+- Canonical state path:
+  `REOS_CONTROL_CENTER/data/state.json`
+- Observed state blob SHA:
+  `92296fb10b0c7a37d0fc7fa97c4328f587512150`
+- Current gate: `CORE-008`
+- Current subtask: `CORE-008-T04 — Implement settlement and reconciliation lifecycle`
+- T01–T03: DONE.
+- T04: CURRENT.
+- T05–T10: PENDING.
+
+Acceptance-criterion status from the current task/evidence record:
+
+- AC01 — Commission source of truth is authoritative: PENDING.
+- AC02 — Deal and ownership attribution is traceable: VERIFIED.
+- AC03 — Financial amounts use safe fixed-precision semantics: VERIFIED.
+- AC04 — Settlement and reversal are auditable: PENDING.
+- AC05 — Critical financial actions require appropriate approval: PENDING.
+- AC06 — Security and concurrency tests pass: PENDING.
+
+`state.json` is execution authority. This supporting plan is not execution
+authority and must never be edited to manufacture a task transition.
+
+### Current CI evidence
+
+The most recent successful backend/ACRL workflow run observed for this
+branch history is:
+
+- Run: `39600469687`
+- URL:
+  `https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39600469687`
+- Tested SHA: `9a6a6065ca4848b6b419a32e5bb1de5d3ab42246`
+- Result: SUCCESS.
+
+This is evidence for that exact tested SHA. It is not a run on HEAD
+`b917d5036ff5d9a3dea78a27ae9439cf8357f5fd`. The HEAD commit only renames
+a diagnostic/history file, and no backend run for that exact HEAD was
+observed.
+
+Older run `39429640103` is historical evidence for SHA
+`dfc967588dcbe4cb79793b53382042ec2ea2d36b`; it must not be presented as
+a test run on a newer commit.
+
+### Phase 0–1 scope
+
+The owner authorized the read-only baseline, path/duplicate inventory and
+workflow-document reconciliation only.
+
+- Do not edit `data/state.json`.
+- Do not complete T04 or change any acceptance-criterion status in a plan.
+- Do not implement unrelated runtime changes under the name of Phase 0–1.
+- Do not recreate target paths that already exist.
+- The current GPT sync document has a stale T03 transition instruction
+  near its final section. Replace that document using the separately
+  supplied full replacement and verify it after saving.
+- The master work-order's 2026-10-20 Phase 0–1 record is historical.
+  Append the fresh 2026-10-21 inventory record supplied separately.
+- Phase 0 inventory is read-only. Final repository-level Phase 0–1 closure
+  requires saving the prescribed document changes and independently
+  reading the committed contents back from GitHub.
 
 ## 1. AUTHORITY AND OPERATING RULES
 
-1. GitHub `reos-development` is the canonical source for committed code and history.
-2. `REOS_CONTROL_CENTER/data/state.json` is the authoritative machine-readable execution and gate state.
-3. `REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py` defines agent-facing workflow policy. It is not a second execution controller.
-4. The existing Control Center and its contracts own task selection, authorization and formal state transitions.
-5. ACRL is the continuity, validation and recovery boundary. It must not become a domain owner, an alternate state authority or a duplicate Git-sync engine.
-6. T18 governs safe execution authorization; T20 governs repair/patch verification; T21 governs Git repository read/write coordination; T22 governs commit/checkpoint coordination. Preserve the boundaries of the existing implementations.
-7. Markdown plans, chat summaries, generated handoffs, `PS Output`, `Frontend Ps Output` and local diagnostics must never override canonical state.
-8. Re-read live HEAD, `state.json`, the target path and the target's current blob SHA before deciding what to change.
-9. Preserve existing passing code. Inspect real files and equivalent tests before proposing new files or changing an implementation.
-10. Do not manually edit `state.json`, manufacture task transitions, claim a task complete from a document change, or infer acceptance-criterion status from unrelated tests.
-11. Do not create duplicate workflows, state engines, helper modules, tests, routes or plans merely because an older diagnostic suggests something is missing.
+1. GitHub `reos-development` is the canonical source for committed code
+   and history.
+2. `REOS_CONTROL_CENTER/data/state.json` is the authoritative
+   machine-readable execution and gate state.
+3. `REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py` defines agent-facing
+   workflow policy. It is not a second execution controller.
+4. The existing Control Center and its contracts own task selection,
+   authorization and formal state transitions.
+5. ACRL is the continuity, validation and recovery boundary. It must not
+   become a domain owner, alternate state authority or duplicate
+   Git-sync engine.
+6. T18 governs safe execution authorization; T20 governs repair/patch
+   verification; T21 governs Git repository read/write coordination;
+   T22 governs commit/checkpoint coordination. Preserve these boundaries.
+7. Markdown plans, chat summaries, generated handoffs, `PS Output`,
+   `Chat histry`, and local diagnostics must never override canonical state.
+8. Re-read live HEAD, `state.json`, the target path and the target blob SHA
+   before deciding what to change.
+9. Preserve existing passing code. Inspect real files and equivalent tests
+   before proposing new files or changing an implementation.
+10. Do not manually edit `state.json`, manufacture task transitions, claim
+    completion from a document change, or infer acceptance-criterion status
+    from unrelated tests.
+11. Do not create duplicate workflows, state engines, helper modules,
+    tests, routes or plans merely because an older diagnostic suggests a
+    path is missing.
 12. Keep HOMIO/REOS separate from the Imperium AI project.
 
 ## 2. VERIFY THE LIVE BASELINE
@@ -45,68 +142,84 @@ This overlay supersedes conflicting historical statements elsewhere in this supp
 Before each implementation part:
 
 1. Read the live `reos-development` branch HEAD.
-2. Read the canonical state and identify the actual current gate, current subtask and criterion statuses.
-3. Read the applicable task plan, EntryPoint policy and supporting workflow instructions.
-4. Inspect the exact remote file paths and current blob SHAs.
-5. Check relevant commits and Actions results for the exact tested code SHA.
+2. Read `data/state.json`; identify the current gate, subtask, criterion
+   statuses and applicable task plan.
+3. Read the applicable EntryPoint policy and supporting workflow documents.
+4. Inspect exact remote paths and current blob SHAs.
+5. Check relevant Actions runs and identify the exact tested SHA.
 6. Classify each target:
-   - `ADD`: the path is absent and no equivalent exists.
-   - `REPLACE`: the existing file owns the responsibility and needs a demonstrated correction.
-   - `VERIFY`: evidence is insufficient to decide.
-   - `NO CHANGE`: the existing implementation is already correct for the scope.
+   - `ADD`: exact path is absent, no equivalent exists, and adding it is
+     authorized.
+   - `UPDATE`: exact path exists, owns the responsibility, and a current
+     defect has been demonstrated.
+   - `VERIFY`: the path exists or is absent, but content/equivalence or
+     current defect has not been established.
+   - `NO CHANGE`: current implementation is correct for the authorized
+     scope, or the alleged addition already exists and must not be duplicated.
    - `BLOCKED`: authorization, dependency or required evidence is missing.
-7. Stop when the branch, target path, content, expected SHA or task scope differs from the verified baseline. Re-audit instead of forcing an old instruction through.
+7. Stop if the branch, path, content, SHA or task scope differs from the
+   verified baseline. Re-audit instead of forcing stale instructions through.
 
-The last historical preflight is evidence only. A new working session must obtain its own current baseline.
+A path-existence check is not proof that the implementation is correct.
+A nearby test is not, by itself, proof that all equivalent behavior is
+covered. Review test contents before adding or deleting tests.
 
 ## 3. GUARDED GITHUB WRITES
 
-Use the write method explicitly selected by the owner for the current operation.
+Use the write method explicitly selected by the owner for the current task.
 
-### When PowerShell/GitHub API is explicitly selected
+### If PowerShell/GitHub API is explicitly selected
 
-- Read the exact live branch, target blob and canonical state before preparing the write.
+- Read the exact live branch, target blob and canonical state.
 - Build a commit whose parent is the verified current HEAD.
-- Validate the complete intended file set and exact target paths before moving the branch.
+- Validate all intended paths and the complete changed-file set before
+  moving the branch.
 - Re-read the branch immediately before the ref update.
 - Use a non-force ref update.
-- After updating, independently re-read the commit, the actual changed paths, every changed file and canonical state.
-- Print PASS only after all required validations have completed successfully in the same fail-closed execution path.
-- If any validation fails, stop. Do not execute later success/reporting commands independently.
+- After updating, independently read the commit, changed paths, file
+  contents and canonical state.
+- Print PASS only after every required validation succeeds in the same
+  fail-closed execution path.
+- If a validation fails, stop; do not run orphaned success/reporting steps.
 
-### When the owner explicitly selects GitHub web editing and full replacement
+### If GitHub web editing and full replacement are selected
 
-- Open the exact existing file and confirm its complete path, including punctuation and Unicode characters.
-- Replace the entire existing file only when a complete replacement has been provided or approved.
-- Commit the change on `reos-development` using a truthful commit message.
-- Do not create a new similarly named file or duplicate.
-- After saving, inspect the committed file, branch HEAD and commit changed-file list.
-- If anything differs from the intended replacement, report the actual difference and stop.
+- Open the exact existing file and confirm its full path, punctuation
+  and Unicode characters.
+- Replace the whole file only when the complete replacement is available.
+- Commit on `reos-development` with a truthful commit message.
+- Do not create a similarly named file or accidental duplicate.
+- After saving, inspect the commit, changed-file list and committed content.
+- If anything differs from the intended replacement, report the difference
+  and stop.
 
 Neither method permits editing canonical state to force a workflow outcome.
 
-## 4. VERIFY REMOTE RESULTS AND KEEP PS OUTPUT TRUTHFUL
+## 4. VERIFY REMOTE RESULTS AND KEEP DIAGNOSTICS TRUTHFUL
 
 `REOS_CONTROL_CENTER/PS Output` is diagnostic evidence only.
+`REOS_CONTROL_CENTER/Chat histry` is a conversation/history record only.
+Neither is an execution authority.
 
-After each attempted write, record:
+After an attempted write, record:
 
-- Attempt date and scope.
+- Attempt date and bounded scope.
 - Verified base HEAD.
 - Target file paths and expected original blob SHAs.
-- Actual error message, if any.
-- Whether the branch reference moved.
-- Actual commit SHA and changed-file list, if a commit exists.
-- Independent remote read-back result for every intended file.
+- Exact error, if any.
+- Whether the branch ref moved.
+- Commit SHA and actual changed paths, if a commit exists.
+- Independent remote read-back for each intended file.
 - Canonical state blob SHA and current task after the attempt.
 - CI URL and exact tested SHA, if a relevant workflow ran.
-- Next permitted action.
+- The next permitted action.
 
-Never report a PASS after an earlier validation exception. Do not erase or misrepresent a failed attempt. When a prior PASS is found to contradict actual changed paths or read-back evidence, explicitly mark that result INVALID.
+Never report PASS after a validation exception. Preserve the factual error
+record. A proposed tree is not proof that the branch moved. A commit object
+is not proof that the intended files were changed. A successful ref update
+is not proof that every intended file reads back correctly.
 
-A proposed Git object is not proof that the branch was updated. A commit object is not proof that the intended paths were changed. A successful ref update is not proof that all intended file contents were read back correctly.
-
-The verified result is the live repository read-back, not the terminal's last printed line.
+Do not use a stale `PS Output` HEAD as the current branch HEAD.
 
 ## 5. GITHUB ACTIONS AND CI INTERPRETATION
 
@@ -119,44 +232,43 @@ Do not create duplicate workflows.
 
 For any relevant source change:
 
-1. Identify which workflow should run based on its configured triggers and changed paths.
-2. Locate the run associated with the actual resulting commit.
-3. Inspect its status and failed step if it is not green.
-4. Report the tested SHA and the actual result.
-5. Do not state that an older successful run validates a newer commit.
-6. Do not claim that a documentation-only commit passed backend or frontend CI unless a relevant run actually verifies it.
+1. Identify the configured workflow triggers and changed-path filters.
+2. Locate the run associated with the resulting commit.
+3. Inspect the status and failed step if it is not green.
+4. Report the exact tested SHA and actual result.
+5. Never state that an older run validates a newer SHA.
+6. Do not claim a documentation-only commit passed backend or frontend CI
+   unless the relevant workflow actually ran on that commit.
+7. A skipped workflow is not a passing test result.
 
-### Recorded CORE-008 / ACRL evidence
-
-The latest previously verified backend/ACRL evidence identified in the 2026-10-20 audit is:
-
-- Actions run: `39429640103`
-- Run URL: `https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39429640103`
-- Tested code commit: `dfc967588dcbe4cb79793b53382042ec2ea2d36b`
-- Reported results: 32 ACRL runtime-integration tests passed, 56 T07/T14 tests passed, and 522 combined regression tests passed.
-
-These results are evidence for that exact code snapshot. They do not by themselves verify every CORE-008 criterion, run CI on a later documentation-only commit, or formally complete T04.
-
-Re-read Actions if fresh evidence is required.
+Current observed evidence is listed in Section 0. Re-read Actions whenever
+new evidence is needed. The earlier run `39429640103` and its 522-test
+result remain evidence for its own SHA only.
 
 ## 6. HISTORICAL BACKEND CI BLOCKER — VERIFY BEFORE REUSE
 
-A diagnostic recorded on 2026-10-12 reported a possible collection-time import problem involving `deep_thaw`:
+A diagnostic recorded on 2026-10-12 reported a possible collection-time
+import problem involving `deep_thaw`:
 
-- Suspected importer: `AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py`
-- Suspected shared module: `AUTONOMY_ENGINE/core/contract_primitives.py`
+- Suspected importer:
+  `AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py`
+- Suspected shared module:
+  `AUTONOMY_ENGINE/core/contract_primitives.py`
 
-This note is historical. Do not assume it is the current blocker.
+This note is historical. Do not assume it is a current blocker.
 
 Before changing code:
 
 1. Read the live source files and current test configuration.
-2. Reproduce the exact import or collection failure on the current code.
-3. Check whether the helper exists under another supported name or is already exported.
-4. Inspect equivalent helper implementations and tests to avoid duplication.
-5. If a defect remains, make the smallest authorized correction and add focused coverage when needed.
+2. Reproduce the exact import or collection failure on current source.
+3. Check whether the helper exists under another supported name or is
+   already exported.
+4. Inspect equivalent helpers and tests to avoid duplication.
+5. If a current defect remains, make the smallest authorized correction
+   and add focused coverage where needed.
 6. Verify the resulting source commit through the existing backend workflow.
-7. Do not mark CORE-008-T01 complete because of this old error note; T01 is already marked DONE in the canonical state recorded by the latest audit.
+7. Do not reopen or repeat T01 because of this old note; T01 is DONE in the
+   canonical execution sequence.
 
 Do not reinstate an obsolete blocker without current evidence.
 
@@ -164,25 +276,31 @@ Do not reinstate an obsolete blocker without current evidence.
 
 Frontend source of truth remains under `REOS_CONTROL_CENTER/Frontend`.
 
-Previous audit notes reported F01 foundation and F02–F05 feature folders and an existing frontend verification workflow. These are historical observations, not a substitute for a fresh read.
-
 Before frontend changes:
 
-- Re-read the live frontend execution manifest and actual remote feature paths.
-- Read `.github/workflows/frontend-ci.yml` and verify its configured commands and triggers.
-- Compare manifest status against the actual files and latest relevant Actions run.
-- Mark stale plan facts for correction only after confirming the mismatch.
-- Preserve passing frontend files; do not rebuild already-completed F01–F05 just because an old note suggests migration or cleanup.
-- Keep frontend runtime independent from ACRL and Control Center state. Frontend must not import ACRL runtime modules or read `data/state.json` as live application data.
-- Do not change frontend files during a workflow-plan correction unless separately authorized and required.
+- Re-read the live frontend execution manifest and actual remote paths.
+- Read `.github/workflows/frontend-ci.yml` and verify commands and triggers.
+- Compare the manifest against actual files and relevant Actions results.
+- Correct stale plan facts only after confirming the mismatch.
+- Preserve passing frontend work. Do not rebuild a completed part because
+  an old diagnostic suggests it is missing.
+- Keep frontend runtime independent from ACRL and Control Center state.
+- The frontend must not import ACRL/AUTONOMY_ENGINE runtime modules or read
+  `data/state.json` as live application data.
+- Do not change frontend files during workflow-document correction unless
+  separately authorized and required.
+
+`Frontend Ps Output` is no longer the current path; HEAD renamed it to
+`REOS_CONTROL_CENTER/Chat histry`. The latter remains history/diagnostic
+content, not implementation source.
 
 ## 8. CONTINUE CORE-008 IN CANONICAL ORDER
 
-The canonical `REOS_CONTROL_CENTER/data/state.json` read on 2026-10-20 identified the current task as:
+The current canonical state identifies:
 
 `CORE-008-T04 — Implement settlement and reconciliation lifecycle`
 
-Recorded subtask order:
+Sequence:
 
 - CORE-008-T01 — Implement commission domain: DONE.
 - CORE-008-T02 — Implement commission attribution and rules: DONE.
@@ -195,7 +313,7 @@ Recorded subtask order:
 - CORE-008-T09 — Run financial security and approval review: PENDING.
 - CORE-008-T10 — Freeze commission and financial core: PENDING.
 
-### Recorded acceptance criteria
+### Acceptance criteria
 
 - AC01 — Commission source of truth is authoritative: PENDING.
 - AC02 — Deal and ownership attribution is traceable: VERIFIED.
@@ -204,54 +322,81 @@ Recorded subtask order:
 - AC05 — Critical financial actions require appropriate approval: PENDING.
 - AC06 — Security and concurrency tests pass: PENDING.
 
-The recorded T04 source/test blob SHAs were:
-
-- `commission_settlement_lifecycle.py`: `629e2388eeb40819923c943a5bb4ba2097ae2a2a`
-- `commission_reconciliation.py`: `ffa7b4d0d392618b95d72360e0191988f9b3c167`
-- `test_core008_t04_settlement_reconciliation_lifecycle.py`: `00e3bb5936d39eab155e4dbc119a587c92120019`
-- `test_core008_t04_settlement_integrity_linkage.py`: `78e083609e78c298c924602f3e6a094a753be3a3`
-
-Re-read the evidence record and live blobs before using these hashes for a later write.
+Re-read live evidence before relying on any recorded source/test SHA.
 
 ### T04 execution rules
 
-1. Inspect existing lifecycle/reconciliation implementations, contracts, tests and task acceptance criteria.
+1. Inspect existing lifecycle/reconciliation implementations, contracts,
+   tests and task acceptance criteria.
 2. Preserve verified implementation unless a concrete defect is demonstrated.
-3. Validate AC01, AC04, AC05 and AC06 against criterion-specific evidence; do not infer them from unrelated passing tests.
-4. Add no duplicate module or test when equivalent coverage already exists.
-5. Run targeted and required regression verification for the exact resulting code commit.
-6. Use the existing authorized Control Center process for any state transition.
-7. Distinguish implementation committed, tests passed, criteria verified, subtask completed and gate approved. They are separate statuses.
+3. Validate AC01, AC04, AC05 and AC06 using criterion-specific evidence.
+4. Do not infer criteria from unrelated/general CI success.
+5. Do not add a duplicate module or test when equivalent coverage exists.
+6. Run targeted tests and required regression verification for the exact
+   resulting code commit.
+7. Use the existing authorized Control Center process for state transitions.
+8. Distinguish implementation committed, tests passed, criterion verified,
+   subtask completed and gate approved. They are separate statuses.
 
-After T04, continue through T05–T10 in canonical sequence with their real task definitions, dependencies and acceptance criteria. Do not manually edit `state.json` or reorder tasks through this document.
+Continue T05–T10 only in canonical order, with each task's actual definition,
+dependencies and acceptance criteria. Do not edit `state.json` manually.
 
-## 9. CLOSE THE CORE-001 TO CORE-008 ARCHITECTURE PLAN
+## 9. PLATFORM-WIDE ACRL AUDIT PLAN
 
-This remains a separate closure scope. Required gate names recorded by the supporting plan are:
+Audit record:
 
-- C0 — Preflight/influence audit.
-- C1 — Architecture integrity.
-- C2 — Root CORE package wiring.
-- C3 — Immutability/historical truth.
-- C4 — Canonical authority boundaries.
-- C5 — Cross-core/adversarial regression.
-- C6 — Full CORE regression.
-- C7 — Git/architecture integrity.
+`REOS_CONTROL_CENTER/architecture/HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN.json`
 
-Read the active closure plan and evidence before determining current status. Passing tests in individual modules do not imply that every closure gate has passed.
+This plan is an audit record, not execution authority. Its recorded snapshot
+is historical; use the live branch and canonical state for current decisions.
 
-Close this scope only when all mandatory criteria have evidence and the authorized Control Center transition has occurred.
+The fresh Phase 0 inventory checked the complete non-truncated tree against
+the declared target paths:
+
+- There are 15 findings and 52 declared target-path references, including
+  repeated references to shared target files.
+- All replacement target paths are present in the tree.
+- Fifteen declared addition paths are absent.
+- Six declared addition paths already exist and must not be duplicated:
+  `runtime_integration/test_full_acrl_spine.py`,
+  `T14_Repository_Intelligence_Context/audit_resume_manifest.py`,
+  `audit_resume_manifest.schema.json`,
+  `audit_resume_manifest.json`,
+  `test_audit_resume_manifest.py`, and
+  `T07_New_Chat_Bootstrap/test_fast_resume_and_stale_manifest.py`.
+- Existing target paths remain `VERIFY` unless the specific finding has
+  been revalidated against current source and relevant tests.
+- Missing planned paths remain `VERIFY` until test-content/equivalence review
+  establishes whether a new file is really required.
+- Runtime findings outside the active authorized scope are BLOCKED from
+  implementation until the Control Center selects the work or the owner
+  authorizes a compliant additional scope.
+
+Do not treat the existence of a planned test file as proof that its test
+passes. Do not remove existing checks to make CI green.
+
+The retained `REOS_CONTROL_CENTER/reos_state.json` is a historical/legacy
+snapshot, not the execution authority. Repository search did not provide
+conclusive proof that every dynamic reference is absent; do not delete it
+as part of Phase 0–1. The canonical runtime and Control Center use
+`REOS_CONTROL_CENTER/data/state.json`.
 
 ## 10. FINAL ENTRYPOINT AND ACRL ALIGNMENT — LAST
 
-Perform final alignment only after the applicable implementation and verification scopes are stable.
+Perform final alignment only after the applicable implementation and
+verification scopes are stable.
 
-- Keep `AI_AGENT_ENTRYPOINT.py` aligned with the approved workflow policy.
-- Preserve ACRL's continuity/recovery responsibility without making it a domain owner or second execution authority.
-- Align T18 authorization, T20 patch verification, T21 Git coordination, T22 commit/checkpoint handling, T23 evidence resolution, T24 cross-chat continuity and the T07/T14 resume mechanisms.
-- Reuse existing modules and tests. Inspect before adding new files.
-- Reconcile GPT instructions, the master work order, current state, diagnostic output, remote branch and exact CI evidence.
-- Record any remaining mismatch as blocked rather than silently claiming completion.
+- Keep `AI_AGENT_ENTRYPOINT.py` aligned with approved workflow policy.
+- Preserve ACRL's continuity/recovery responsibility without making it a
+  domain owner or second execution authority.
+- Align T18 authorization, T20 patch verification, T21 Git coordination,
+  T22 commit/checkpoint handling, T23 evidence resolution, T24 cross-chat
+  continuity, and T07/T14 resume mechanisms.
+- Reuse existing modules and tests; inspect before adding files.
+- Reconcile GPT instructions, master work order, canonical state, diagnostic
+  output, remote branch and exact CI evidence.
+- Record any remaining mismatch as VERIFY/BLOCKED rather than claiming
+  completion without evidence.
 
 ## WORKING LEDGER
 
@@ -261,12 +406,13 @@ At the beginning and end of every authorized work item, record:
 - Current remote `reos-development` HEAD.
 - Current canonical task and state blob SHA.
 - Changed file paths or `NO CHANGE`.
-- Exact commit URL and changed-file list, if a commit exists.
+- Commit URL and actual changed-file list, if a commit exists.
 - Remote content read-back result.
-- CI run URL and exact tested SHA, when applicable.
+- CI run URL and exact tested SHA, where applicable.
 - Any blocker or failed validation.
 - Next authorized action.
 
-Only one authorized task is active at a time. Report progress through verified parts and evidence, not estimated overall completion.
+Only one authorized task is active at a time. Report progress through
+verified evidence, not estimated overall completion.
 
 END OF PLAN
