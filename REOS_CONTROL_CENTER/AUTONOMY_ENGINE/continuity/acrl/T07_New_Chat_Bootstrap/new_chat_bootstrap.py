@@ -271,6 +271,103 @@ class NewChatBootstrapEngine:
 
         return result
 
+    @classmethod
+    def _validate_checkpoint_state_coherence(
+        cls,
+        *,
+        checkpoint: Mapping[str, Any],
+        execution: Mapping[str, str],
+        gate_continuity: Mapping[str, Any],
+    ) -> None:
+        """Reject a valid-but-stale checkpoint that disagrees with live context."""
+        if checkpoint.get("source") != "REOS_STATE":
+            raise BootstrapAuthorityError(
+                "Checkpoint source is not the canonical REOS state authority."
+            )
+
+        snapshot = checkpoint.get("state_snapshot")
+        if not isinstance(snapshot, Mapping):
+            raise BootstrapIntegrityError(
+                "Checkpoint has no valid state snapshot."
+            )
+
+        checkpoint_fields = {
+            "phase": snapshot.get("phase"),
+            "current_gate": snapshot.get("current_gate"),
+            "current_subtask": snapshot.get("current_subtask"),
+            "status": snapshot.get("status"),
+        }
+        for field_name, value in checkpoint_fields.items():
+            if not isinstance(value, str) or not value.strip():
+                raise BootstrapAuthorityError(
+                    f"Checkpoint is missing authoritative field: {field_name}"
+                )
+
+        expected_fields = {
+            "current_gate": execution["current_gate"],
+            "current_subtask": execution["current_subtask"],
+            "status": execution["current_subtask_status"],
+        }
+        for field_name, expected in expected_fields.items():
+            if checkpoint_fields[field_name].strip() != expected:
+                raise BootstrapAuthorityError(
+                    f"Checkpoint {field_name} does not match the current "
+                    "execution state."
+                )
+
+        # T06 checkpoints historically do not carry a separate current_task.
+        # Bind that task ID to the canonical subtask when no explicit task
+        # identity is present in the checkpoint snapshot.
+        checkpoint_task = snapshot.get("current_task")
+        execution_task = execution["current_task"]
+        if checkpoint_task is not None:
+            if (
+                not isinstance(checkpoint_task, str)
+                or not checkpoint_task.strip()
+                or checkpoint_task.strip() != execution_task
+            ):
+                raise BootstrapAuthorityError(
+                    "Checkpoint current_task does not match the current "
+                    "execution state."
+                )
+        else:
+            task_identity = execution_task.strip()
+            for separator in (":", " — ", " - "):
+                if separator in task_identity:
+                    task_identity = task_identity.split(separator, 1)[0].strip()
+                    break
+            if task_identity != execution["current_subtask"]:
+                raise BootstrapAuthorityError(
+                    "Checkpoint cannot independently bind current_task to "
+                    "current_subtask."
+                )
+
+        # Gate continuity is another independently supplied projection, not
+        # a field to be inferred from the checkpoint itself.
+        for field_name in ("current_gate", "current_subtask"):
+            value = gate_continuity.get(field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise BootstrapAuthorityError(
+                    f"Gate-continuity authority is missing {field_name}."
+                )
+            if value.strip() != execution[field_name]:
+                raise BootstrapAuthorityError(
+                    f"Gate-continuity {field_name} conflicts with the "
+                    "current execution state."
+                )
+
+        continuity_task = gate_continuity.get("current_task")
+        if continuity_task is not None:
+            if (
+                not isinstance(continuity_task, str)
+                or not continuity_task.strip()
+                or continuity_task.strip() != execution_task
+            ):
+                raise BootstrapAuthorityError(
+                    "Gate-continuity current_task conflicts with the "
+                    "current execution state."
+                )
+
     def _build_restart_payload(
         self,
         *,
@@ -334,6 +431,11 @@ class NewChatBootstrapEngine:
 
         self._validate_architecture(architecture_lock)
         execution = self._validate_execution(execution_state)
+        self._validate_checkpoint_state_coherence(
+            checkpoint=checkpoint_data,
+            execution=execution,
+            gate_continuity=gate_continuity,
+        )
 
         restart = self._build_restart_payload(
             project_dna=project_dna,
@@ -419,6 +521,16 @@ class NewChatBootstrapEngine:
             raise BootstrapIntegrityError(
                 "Checkpoint context is missing."
             )
+
+        execution = {
+            field: context.execution_state[field].strip()
+            for field in cls.REQUIRED_EXECUTION_FIELDS
+        }
+        cls._validate_checkpoint_state_coherence(
+            checkpoint=context.checkpoint,
+            execution=execution,
+            gate_continuity=context.gate_continuity,
+        )
 
         restart = dict(context.restart_payload)
         required = (
