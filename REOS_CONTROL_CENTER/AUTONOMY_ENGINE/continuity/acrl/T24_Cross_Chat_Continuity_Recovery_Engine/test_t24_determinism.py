@@ -1,3 +1,4 @@
+from ._t23_test_support import build_t23_source_store
 from .continuity_coordinator import recover_continuity
 from .continuity_models import (
     ContinuityEvidence,
@@ -62,18 +63,29 @@ def make_context():
 
 
 def test_same_inputs_same_recovery():
+    request = make_request()
+    evidence = make_evidence()
+
     first = recover_continuity(
-        request=make_request(),
-        evidence_items=make_evidence(),
+        request=request,
+        evidence_items=evidence,
         store=ContinuityStore(),
         project_context=make_context(),
+        source_resolution_store=build_t23_source_store(
+            request,
+            evidence,
+        ),
     )
 
     second = recover_continuity(
-        request=make_request(),
-        evidence_items=make_evidence(),
+        request=request,
+        evidence_items=evidence,
         store=ContinuityStore(),
         project_context=make_context(),
+        source_resolution_store=build_t23_source_store(
+            request,
+            evidence,
+        ),
     )
 
     assert first.recovery_fingerprint == second.recovery_fingerprint
