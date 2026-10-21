@@ -1,0 +1,954 @@
+Maine PS Output, live GitHub branch aur related workflow documents ka influence audit kiya hai. Yeh state.json ya backend/frontend code ki failure nahi hai; failure workflow-plan update banane wale Git-tree payload mein hai.
+Confirmed audit
+Branch aur state safe hain
+
+Live branch HEAD a58089e8fbaa950108ede56a4eb95e8cc7a60b14 hai. Canonical state blob 92296fb10b0c7a37d0fc7fa97c4328f587512150 hai; current task CORE-008-T04 hai.
+
+
+
+Original plan abhi bhi update nahi hua
+
+HOMIO PowerShell–GitHub Workflow Plan ka blob abhi bhi 6ddc7c21f334620c19bf7293982598e7f7ce6b52 hai. Isliye usmein purana T01/import-blocker instruction abhi bhi conflict karta hai.
+
+
+
+Latest failure ne branch update nahi kiya
+
+Proposed tree ka guard PATCH /git/refs/... se pehle fail hua. Koi verified naya commit is attempt se branch par publish nahi hua.
+
+
+
+Failure ka likely direct cause
+PS Output mein $TreeEntries banane wale block mein do [ordered] objects ke beech comma nahi tha. Script ne banaye gaye Git tree mein exact original plan path aur expected blob verify nahi kiya, isliye guard ne kaam rok diya. GitHub ke Git Trees API ke mutabik existing tree par badlav karne ke liye har entry ka exact path, mode, type aur sha sahi serialize hona chahiye. 
+
+GitHub Docs
+
+
+
+
+Influence ke hisaab se abhi root-level workflow plan hi mismatched supporting document hai. Master work order, GPT sync instructions aur handoff pehle hi T04 ko current batate hain. Isliye correct fix ek naya plan banana nahi hai—usi original path ko update karna hai. state.json ko badalne ki zaroorat nahi.
+Ab corrected PowerShell fix
+Is script mein maine pichhli galti ke do guard add kiye hain: API request bhejne se pehle JSON payload mein dono entries verify hongi, aur branch update se pehle GitHub ke proposed tree aur commit ke exact paths verify honge. Dono files ek hi commit mein update honi chahiye; koi check fail hua to script PASS report nahi karega.
+$RunFix = {
+    $ErrorActionPreference = 'Stop'
+
+    $Repo = 'prajaktaranjane80-sketch/Homio'
+    $Branch = 'reos-development'
+    $Api = "https://api.github.com/repos/$Repo"
+
+    $ExpectedHead = 'a58089e8fbaa950108ede56a4eb95e8cc7a60b14'
+    $ExpectedPlanSha = '6ddc7c21f334620c19bf7293982598e7f7ce6b52'
+    $ExpectedOutputSha = 'a464c6fa234c82aa99b9bd43837fa95e2e198df0'
+    $ExpectedStateSha = '92296fb10b0c7a37d0fc7fa97c4328f587512150'
+
+    $PlanPath = 'HOMIO PowerShell' + [char]0x2013 + 'GitHub Workflow Plan'
+    $OutputPath = 'REOS_CONTROL_CENTER/PS Output'
+    $StatePath = 'REOS_CONTROL_CENTER/data/state.json'
+    $WrongDuplicate = 'HOMIO PowerShell-GitHub Workflow Plan'
+
+    $Token = (& gh auth token 2>$null | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($Token)) {
+        throw 'STOP: GitHub authentication unavailable.'
+    }
+
+    $Headers = @{
+        Authorization = "Bearer $Token"
+        Accept = 'application/vnd.github+json'
+        'X-GitHub-Api-Version' = '2022-11-28'
+    }
+
+    function Invoke-GHJson {
+        param(
+            [string]$Method,
+            [string]$Path,
+            [object]$Body = $null
+        )
+
+        $Params = @{
+            Method = $Method
+            Uri = "$Api$Path"
+            Headers = $Headers
+            ErrorAction = 'Stop'
+        }
+
+        if ($null -ne $Body) {
+            $Params.ContentType = 'application/json'
+            $Params.Body = ConvertTo-Json -InputObject $Body -Depth 50 -Compress
+        }
+
+        Invoke-RestMethod @Params
+    }
+
+    function Invoke-GHRawJson {
+        param(
+            [string]$Method,
+            [string]$Path,
+            [string]$JsonBody
+        )
+
+        Invoke-RestMethod `
+            -Method $Method `
+            -Uri "$Api$Path" `
+            -Headers $Headers `
+            -ContentType 'application/json; charset=utf-8' `
+            -Body $JsonBody `
+            -ErrorAction Stop
+    }
+
+    function Get-GHFile {
+        param(
+            [string]$Path,
+            [string]$RefName = $Branch
+        )
+
+        $EncodedPath = (($Path -split '/') | ForEach-Object {
+            [Uri]::EscapeDataString($_)
+        }) -join '/'
+
+        $EncodedRef = [Uri]::EscapeDataString($RefName)
+
+        Invoke-GHJson -Method GET -Path (
+            "/contents/$EncodedPath" + '?ref=' + $EncodedRef
+        )
+    }
+
+    function Get-GHText {
+        param([object]$File)
+
+        $Base64 = $File.content -replace '\s', ''
+        $Bytes = [Convert]::FromBase64String($Base64)
+        [System.Text.Encoding]::UTF8.GetString($Bytes)
+    }
+
+    # 1. Live branch, exact paths and state preflight.
+    $LiveRef = Invoke-GHJson -Method GET -Path "/git/ref/heads/$Branch"
+    if ($LiveRef.object.sha -cne $ExpectedHead) {
+        throw "STOP: live HEAD changed. Expected $ExpectedHead; found $($LiveRef.object.sha). Re-audit first."
+    }
+
+    $PlanFile = Get-GHFile -Path $PlanPath
+    $OutputFile = Get-GHFile -Path $OutputPath
+    $StateFile = Get-GHFile -Path $StatePath
+
+    if ($PlanFile.sha -cne $ExpectedPlanSha) {
+        throw "STOP: original plan SHA changed: $($PlanFile.sha)"
+    }
+    if ($OutputFile.sha -cne $ExpectedOutputSha) {
+        throw "STOP: PS Output SHA changed: $($OutputFile.sha)"
+    }
+    if ($StateFile.sha -cne $ExpectedStateSha) {
+        throw "SAFETY STOP: state.json SHA changed: $($StateFile.sha)"
+    }
+
+    $StateObject = (Get-GHText $StateFile) | ConvertFrom-Json
+    if ($StateObject.execution.current_subtask -cne 'CORE-008-T04') {
+        throw 'SAFETY STOP: canonical task changed; no write permitted.'
+    }
+
+    $ParentCommit = Invoke-GHJson -Method GET -Path "/git/commits/$ExpectedHead"
+    $BaseTreeSha = $ParentCommit.tree.sha
+
+    # Use a tree SHA, not the commit SHA, to read the current Git tree.
+    $CurrentTree = Invoke-GHJson -Method GET -Path (
+        "/git/trees/$BaseTreeSha" + '?recursive=1'
+    )
+
+    if ($CurrentTree.truncated -eq $true) {
+        throw 'STOP: current tree response is truncated.'
+    }
+
+    $CurrentPlanEntry = @($CurrentTree.tree | Where-Object {
+        $_.type -eq 'blob' -and $_.path -ceq $PlanPath
+    })
+
+    if ($CurrentPlanEntry.Count -ne 1 -or
+        $CurrentPlanEntry[0].sha -cne $ExpectedPlanSha) {
+        throw 'STOP: exact original plan path does not match the live Git tree.'
+    }
+
+    $DuplicateEntry = @($CurrentTree.tree | Where-Object {
+        $_.path -ceq $WrongDuplicate
+    })
+    if ($DuplicateEntry.Count -ne 0) {
+        throw 'STOP: unexpected hyphen-named duplicate exists; reconcile before writing.'
+    }
+
+    # 2. Prepare original workflow plan.
+    $PlanContent = Get-GHText $PlanFile
+    $OutputContent = Get-GHText $OutputFile
+
+    $NL = if ($PlanContent.Contains("`r`n")) { "`r`n" } else { "`n" }
+
+    if ($PlanContent.Contains('CURRENT AUTHORITATIVE OVERLAY - 2026-10-20')) {
+        throw 'STOP: authority overlay already exists; do not insert it twice.'
+    }
+
+    $OperatingRulesIndex = $PlanContent.IndexOf(
+        'Operating rules',
+        [StringComparison]::Ordinal
+    )
+    if ($OperatingRulesIndex -lt 0) {
+        throw 'STOP: expected Operating rules anchor missing.'
+    }
+
+    $OverlayRaw = @'
+CURRENT AUTHORITATIVE OVERLAY - 2026-10-20
+- Master work order: REOS_CONTROL_CENTER/architecture/HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md
+- Re-read live reos-development HEAD and data/state.json before each new task decision.
+- Current canonical subtask: CORE-008-T04. T01-T03 are DONE; T05-T10 are PENDING.
+- Older T01/deep_thaw import-blocker notes are historical until reproduced on current source.
+- Phase 0-1 reconciliation does not change state.json, complete T04, or authorize unrelated runtime changes.
+- Recorded passing code evidence is Actions run 39429640103 for code commit dfc967588dcbe4cb79793b53382042ec2ea2d36b. It is not fresh CI evidence for later documentation-only commits.
+
+'@
+    $Overlay = $OverlayRaw -replace "`n", $NL
+    $PlanContent = $PlanContent.Insert($OperatingRulesIndex, $Overlay + $NL)
+
+    # Replace exactly Part 8, preserving Part 9 and all later content.
+    $Part8Pattern = '(?ms)^Part 8[^\r\n]*Continue CORE-008 tasks in authoritative order\r?\n.*?(?=^Part 9[^\r\n]*Close the CORE-001 to CORE-008 architecture plan)'
+
+    $Part8Regex = [regex]::new($Part8Pattern)
+    if ($Part8Regex.Matches($PlanContent).Count -ne 1) {
+        throw 'STOP: expected one Part 8/Part 9 boundary.'
+    }
+
+    $Part8Raw = @'
+Part 8 - Continue CORE-008 tasks in authoritative order
+Purpose: Continue the active financial task without overriding canonical state.
+
+Current sequence:
+- CORE-008-T01: DONE - Commission domain.
+- CORE-008-T02: DONE - Commission attribution and rules.
+- CORE-008-T03: DONE - Split and participant logic.
+- CORE-008-T04: CURRENT - Settlement and reconciliation lifecycle.
+- CORE-008-T05 through CORE-008-T10: PENDING.
+
+Acceptance criteria:
+- AC01: PENDING - Commission source of truth is authoritative.
+- AC02: VERIFIED - Deal and ownership attribution is traceable.
+- AC03: VERIFIED - Financial amounts use safe fixed-precision semantics.
+- AC04: PENDING - Settlement and reversal are auditable.
+- AC05: PENDING - Critical financial actions require appropriate approval.
+- AC06: PENDING - Security and concurrency tests pass.
+
+Recorded T04 source/test blobs:
+- commission_settlement_lifecycle.py: 629e2388eeb40819923c943a5bb4ba2097ae2a2a
+- commission_reconciliation.py: ffa7b4d0d392618b95d72360e0191988f9b3c167
+- test_core008_t04_settlement_reconciliation_lifecycle.py: 00e3bb5936d39eab155e4dbc119a587c92120019
+- test_core008_t04_settlement_integrity_linkage.py: 78e083609e78c298c924602f3e6a094a753be3a3
+
+Recorded CI evidence: run 39429640103 for code commit dfc967588dcbe4cb79793b53382042ec2ea2d36b. The recorded results were 32 ACRL runtime-integration tests, 56 T07/T14 tests and 522 combined regressions passed. This evidence applies only to that code SHA.
+
+Preserve existing T04 implementation unless a concrete defect is demonstrated. Verify pending criteria with criterion-specific evidence. Never edit state.json manually or mark T04 complete from this supporting plan. Use the existing authorized Control Center transition process.
+'@
+    $Part8 = $Part8Raw -replace "`n", $NL
+    $PlanContent = $Part8Regex.Replace($PlanContent, $Part8, 1)
+
+    # 3. Record the real failure in PS Output; retain prior console trace.
+    $OutputNL = if ($OutputContent.Contains("`r`n")) { "`r`n" } else { "`n" }
+
+    $AuditRaw = @"
+========== ROOT-CAUSE AUDIT - 2026-10-20 ==========
+
+Previous PASS: INVALID. It is not proof of a completed update.
+
+Failure observed:
+STOP BEFORE REF UPDATE: original plan blob is not present in the proposed tree.
+
+Root-cause correction:
+- The prior PowerShell tree-entry block was not safely validated as a two-entry JSON array before submission.
+- The original plan path uses an en dash (U+2013). It must be updated at the exact existing path.
+- The new script builds two separate tree entries, serializes the payload explicitly, parses that JSON back, and asserts both exact paths and blob SHAs before posting it.
+- The previous guard stopped before the branch ref update. This record does not claim that failed attempt changed the original plan.
+
+Influence audit:
+- Master workflow plan and GPT handoff documents already identify CORE-008-T04 as current.
+- The root PowerShell-GitHub supporting plan remains stale until this exact original path is updated.
+- The accidental hyphen-named duplicate was confirmed absent at preflight.
+- Canonical state.json must remain unchanged at blob $ExpectedStateSha.
+- No frontend/backend runtime code change and no new CI run are claimed.
+
+Pre-repair HEAD: $ExpectedHead
+Original plan blob before repair: $ExpectedPlanSha
+PS Output blob before repair: $ExpectedOutputSha
+Canonical state blob: $ExpectedStateSha
+Canonical current task: CORE-008-T04
+
+The repair is accepted only after the exact two paths are present in the proposed tree, the commit has the expected parent and changed-file set, remote read-back matches both contents, and state.json remains unchanged.
+================================================
+"@
+    $AuditRecord = $AuditRaw -replace "`n", $OutputNL
+    $OutputUpdated = $OutputContent.TrimEnd([char[]]@([char]13, [char]10)) +
+        $OutputNL + $OutputNL + $AuditRecord + $OutputNL
+
+    # 4. Create both blobs.
+    $PlanBlob = Invoke-GHJson -Method POST -Path '/git/blobs' -Body ([ordered]@{
+        content = $PlanContent
+        encoding = 'utf-8'
+    })
+
+    $OutputBlob = Invoke-GHJson -Method POST -Path '/git/blobs' -Body ([ordered]@{
+        content = $OutputUpdated
+        encoding = 'utf-8'
+    })
+
+    # Build each entry separately and use an explicitly comma-separated array.
+    $PlanEntry = [ordered]@{
+        path = $PlanPath
+        mode = '100644'
+        type = 'blob'
+        sha = $PlanBlob.sha
+    }
+
+    $OutputEntry = [ordered]@{
+        path = $OutputPath
+        mode = '100644'
+        type = 'blob'
+        sha = $OutputBlob.sha
+    }
+
+    $TreeEntries = @(
+        $PlanEntry,
+        $OutputEntry
+    )
+
+    $TreeBody = [ordered]@{
+        base_tree = $BaseTreeSha
+        tree = $TreeEntries
+    }
+
+    $TreeJson = ConvertTo-Json -InputObject $TreeBody -Depth 50 -Compress
+
+    # Payload self-check BEFORE calling GitHub.
+    $JsonCheck = $TreeJson | ConvertFrom-Json
+    if (@($JsonCheck.tree).Count -ne 2) {
+        throw 'STOP BEFORE API: serialized JSON does not contain exactly two tree entries.'
+    }
+
+    if ($JsonCheck.tree[0].path -cne $PlanPath -or
+        $JsonCheck.tree[0].sha -cne $PlanBlob.sha -or
+        $JsonCheck.tree[1].path -cne $OutputPath -or
+        $JsonCheck.tree[1].sha -cne $OutputBlob.sha) {
+        throw 'STOP BEFORE API: serialized JSON path/SHA validation failed.'
+    }
+
+    # 5. Create the proposed tree using the exact, already-validated JSON.
+    $ProposedTree = Invoke-GHRawJson -Method POST -Path '/git/trees' -JsonBody $TreeJson
+
+    $ProposedTreeReadBack = Invoke-GHJson -Method GET -Path (
+        "/git/trees/$($ProposedTree.sha)" + '?recursive=1'
+    )
+
+    if ($ProposedTreeReadBack.truncated -eq $true) {
+        throw "STOP BEFORE REF UPDATE: proposed tree response is truncated. Tree SHA=$($ProposedTree.sha)"
+    }
+
+    $FoundPlan = @($ProposedTreeReadBack.tree | Where-Object {
+        $_.type -eq 'blob' -and $_.path -ceq $PlanPath
+    })
+    $FoundOutput = @($ProposedTreeReadBack.tree | Where-Object {
+        $_.type -eq 'blob' -and $_.path -ceq $OutputPath
+    })
+
+    if ($FoundPlan.Count -ne 1 -or $FoundPlan[0].sha -cne $PlanBlob.sha) {
+        $Observed = @($ProposedTreeReadBack.tree | Where-Object {
+            $_.path -like '*PowerShell*Workflow Plan*'
+        } | ForEach-Object { "$($_.path) => $($_.sha)" }) -join '; '
+
+        throw "STOP BEFORE REF UPDATE: proposed plan entry mismatch. Expected SHA=$($PlanBlob.sha); observed=$Observed; tree=$($ProposedTree.sha)"
+    }
+
+    if ($FoundOutput.Count -ne 1 -or $FoundOutput[0].sha -cne $OutputBlob.sha) {
+        throw "STOP BEFORE REF UPDATE: proposed PS Output entry mismatch. Expected SHA=$($OutputBlob.sha); tree=$($ProposedTree.sha)"
+    }
+
+    $ProposedDuplicate = @($ProposedTreeReadBack.tree | Where-Object {
+        $_.path -ceq $WrongDuplicate
+    })
+    if ($ProposedDuplicate.Count -ne 0) {
+        throw 'STOP BEFORE REF UPDATE: accidental duplicate unexpectedly exists.'
+    }
+
+    # 6. Create commit, then confirm exact two-file change before branch update.
+    $NewCommit = Invoke-GHJson -Method POST -Path '/git/commits' -Body ([ordered]@{
+        message = 'Fix workflow plan tree payload and document verified root cause'
+        tree = $ProposedTree.sha
+        parents = @($ExpectedHead)
+    })
+
+    $CommitCheck = Invoke-GHJson -Method GET -Path "/commits/$($NewCommit.sha)"
+    if ($CommitCheck.parents[0].sha -cne $ExpectedHead) {
+        throw 'STOP BEFORE REF UPDATE: commit parent mismatch.'
+    }
+
+    $ExpectedPaths = @($PlanPath, $OutputPath) | Sort-Object
+    $ActualPaths = @($CommitCheck.files | ForEach-Object { $_.filename }) | Sort-Object
+    $PathDiff = @(Compare-Object -ReferenceObject $ExpectedPaths -DifferenceObject $ActualPaths -CaseSensitive)
+
+    if ($ActualPaths.Count -ne 2 -or $PathDiff.Count -ne 0) {
+        throw "STOP BEFORE REF UPDATE: exact changed-file set mismatch: $($ActualPaths -join '; ')"
+    }
+
+    # Verify the commit's exact target content before moving the branch.
+    $PlanAtCommit = Get-GHFile -Path $PlanPath -RefName $NewCommit.sha
+    $OutputAtCommit = Get-GHFile -Path $OutputPath -RefName $NewCommit.sha
+
+    if ($PlanAtCommit.sha -cne $PlanBlob.sha -or (Get-GHText $PlanAtCommit) -cne $PlanContent) {
+        throw 'STOP BEFORE REF UPDATE: plan content at proposed commit does not match.'
+    }
+    if ($OutputAtCommit.sha -cne $OutputBlob.sha -or (Get-GHText $OutputAtCommit) -cne $OutputUpdated) {
+        throw 'STOP BEFORE REF UPDATE: PS Output at proposed commit does not match.'
+    }
+
+    # 7. Guarded, non-force branch update.
+    $RefImmediatelyBefore = Invoke-GHJson -Method GET -Path "/git/ref/heads/$Branch"
+    if ($RefImmediatelyBefore.object.sha -cne $ExpectedHead) {
+        throw 'STOP: branch changed during preparation; no update attempted.'
+    }
+
+    $null = Invoke-GHJson -Method PATCH -Path "/git/refs/heads/$Branch" -Body ([ordered]@{
+        sha = $NewCommit.sha
+        force = $false
+    })
+
+    # 8. Independent live read-back. PASS is printed only after every test.
+    $RefAfter = Invoke-GHJson -Method GET -Path "/git/ref/heads/$Branch"
+    if ($RefAfter.object.sha -cne $NewCommit.sha) {
+        throw 'READ-BACK FAILURE: branch is not at the proposed commit.'
+    }
+
+    $PlanAfter = Get-GHFile -Path $PlanPath
+    $OutputAfter = Get-GHFile -Path $OutputPath
+    $StateAfter = Get-GHFile -Path $StatePath
+
+    if ($PlanAfter.sha -cne $PlanBlob.sha -or (Get-GHText $PlanAfter) -cne $PlanContent) {
+        throw 'READ-BACK FAILURE: original plan differs from intended content.'
+    }
+    if ($OutputAfter.sha -cne $OutputBlob.sha -or (Get-GHText $OutputAfter) -cne $OutputUpdated) {
+        throw 'READ-BACK FAILURE: PS Output differs from intended content.'
+    }
+    if ($StateAfter.sha -cne $ExpectedStateSha) {
+        throw 'SAFETY FAILURE: canonical state blob changed.'
+    }
+
+    $StateFinal = (Get-GHText $StateAfter) | ConvertFrom-Json
+    if ($StateFinal.execution.current_subtask -cne 'CORE-008-T04') {
+        throw 'SAFETY FAILURE: canonical task changed.'
+    }
+
+    [pscustomobject]@{
+        Status = 'PASS - GUARDED WRITE AND REMOTE READ-BACK VERIFIED'
+        CommitSha = $NewCommit.sha
+        CommitUrl = "https://github.com/$Repo/commit/$($NewCommit.sha)"
+        ParentSha = $ExpectedHead
+        OriginalPlanVerified = $PlanAfter.sha
+        PSOutputVerified = $OutputAfter.sha
+        StateUnchanged = ($StateAfter.sha -eq $ExpectedStateSha)
+        CurrentTask = $StateFinal.execution.current_subtask
+        ChangedFiles = $ActualPaths -join "`n"
+        CI = 'No new CI run claimed; documentation/diagnostic files only.'
+    } | Format-List
+}
+
+& $RunFix
+
+
+Important: Is script ko ek hi baar poore block ke roop mein chalao. Agar koi guard fail ho, to uske baad alag se neeche ke commands execute mat karna. Is run ka output share kar dena; main commit, read-back aur final PS Output ko live GitHub par read-only verify karke hi completion confirm karunga.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+similar error agar koi file update hai to yaha dena mai direct git par full replacment karunga
+
+
+
+
+
+
+
+
+
+
+
+
+Worked for 1m 13s
+
+
+
+
+
+
+
+Ab is file ko PowerShell script se update karne ki zaroorat nahi. Neeche original file ka complete replacement diya hai. GitHub par usi existing file ko open karke Edit → Select all → paste → Commit changes karna. Nayi file create mat karna.
+
+Exact existing path: HOMIO PowerShell–GitHub Workflow Plan
+
+Is replacement mein T01/T04 conflict, purana deep_thaw blocker, CI evidence, current acceptance criteria, aur failed Git-tree write ka lesson correct kiya hai.
+
+HOMIO / REOS — PowerShell → GitHub Work Plan
+
+Canonical repository: prajaktaranjane80-sketch/Homio
+Canonical branch: reos-development
+Canonical frontend root: REOS_CONTROL_CENTER/Frontend
+
+Purpose:
+Keep the PowerShell/GitHub workflow safe and verifiable, maintain one canonical source of execution state, prevent stale GPT instructions from overriding current work, and continue HOMIO implementation one authorized task at a time.
+
+## 0. CURRENT AUTHORITATIVE OVERLAY — 2026-10-20
+
+This overlay supersedes conflicting historical statements elsewhere in this supporting plan.
+
+- Master work order: `REOS_CONTROL_CENTER/architecture/HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md`
+- Canonical state: `REOS_CONTROL_CENTER/data/state.json`
+- Current canonical task: `CORE-008-T04 — Implement settlement and reconciliation lifecycle`
+- CORE-008-T01, T02 and T03 are DONE.
+- CORE-008-T04 is CURRENT.
+- CORE-008-T05 through T10 are PENDING.
+- The old T01 selection and `deep_thaw` import-blocker description below are historical evidence. Do not treat them as the current blocker without reproducing the failure against the live source and current CI.
+- The owner authorized Phase 0–1 baseline and workflow-document reconciliation. That authorization did not permit a manual state transition, T04 completion, or unrelated runtime changes.
+- The master order, GPT continuity instructions, fix-execution supporting plan and handoff packet were reconciled to T04. This root-level workflow plan remained stale at the last audit and is the target of this replacement.
+- The latest audited branch HEAD before this replacement is `a58089e8fbaa950108ede56a4eb95e8cc7a60b14`. Re-read the live branch and canonical state before relying on any recorded SHA.
+- The canonical state blob at that audit was `92296fb10b0c7a37d0fc7fa97c4328f587512150`. Do not assume it remains current after future changes.
+- The accidental hyphen-named duplicate `HOMIO PowerShell-GitHub Workflow Plan` was confirmed absent in that audit. Keep the original en-dash filename; do not create a similarly named replacement file.
+
+## 1. AUTHORITY AND OPERATING RULES
+
+1. GitHub `reos-development` is the canonical source for committed code and history.
+2. `REOS_CONTROL_CENTER/data/state.json` is the authoritative machine-readable execution and gate state.
+3. `REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py` defines agent-facing workflow policy. It is not a second execution controller.
+4. The existing Control Center and its contracts own task selection, authorization and formal state transitions.
+5. ACRL is the continuity, validation and recovery boundary. It must not become a domain owner, an alternate state authority or a duplicate Git-sync engine.
+6. T18 governs safe execution authorization; T20 governs repair/patch verification; T21 governs Git repository read/write coordination; T22 governs commit/checkpoint coordination. Preserve the boundaries of the existing implementations.
+7. Markdown plans, chat summaries, generated handoffs, `PS Output`, `Frontend Ps Output` and local diagnostics must never override canonical state.
+8. Re-read live HEAD, `state.json`, the target path and the target's current blob SHA before deciding what to change.
+9. Preserve existing passing code. Inspect real files and equivalent tests before proposing new files or changing an implementation.
+10. Do not manually edit `state.json`, manufacture task transitions, claim a task complete from a document change, or infer acceptance-criterion status from unrelated tests.
+11. Do not create duplicate workflows, state engines, helper modules, tests, routes or plans merely because an older diagnostic suggests something is missing.
+12. Keep HOMIO/REOS separate from the Imperium AI project.
+
+## 2. VERIFY THE LIVE BASELINE
+
+Before each implementation part:
+
+1. Read the live `reos-development` branch HEAD.
+2. Read the canonical state and identify the actual current gate, current subtask and criterion statuses.
+3. Read the applicable task plan, EntryPoint policy and supporting workflow instructions.
+4. Inspect the exact remote file paths and current blob SHAs.
+5. Check relevant commits and Actions results for the exact tested code SHA.
+6. Classify each target:
+   - `ADD`: the path is absent and no equivalent exists.
+   - `REPLACE`: the existing file owns the responsibility and needs a demonstrated correction.
+   - `VERIFY`: evidence is insufficient to decide.
+   - `NO CHANGE`: the existing implementation is already correct for the scope.
+   - `BLOCKED`: authorization, dependency or required evidence is missing.
+7. Stop when the branch, target path, content, expected SHA or task scope differs from the verified baseline. Re-audit instead of forcing an old instruction through.
+
+The last historical preflight is evidence only. A new working session must obtain its own current baseline.
+
+## 3. GUARDED GITHUB WRITES
+
+Use the write method explicitly selected by the owner for the current operation.
+
+### When PowerShell/GitHub API is explicitly selected
+
+- Read the exact live branch, target blob and canonical state before preparing the write.
+- Build a commit whose parent is the verified current HEAD.
+- Validate the complete intended file set and exact target paths before moving the branch.
+- Re-read the branch immediately before the ref update.
+- Use a non-force ref update.
+- After updating, independently re-read the commit, the actual changed paths, every changed file and canonical state.
+- Print PASS only after all required validations have completed successfully in the same fail-closed execution path.
+- If any validation fails, stop. Do not execute later success/reporting commands independently.
+
+### When the owner explicitly selects GitHub web editing and full replacement
+
+- Open the exact existing file and confirm its complete path, including punctuation and Unicode characters.
+- Replace the entire existing file only when a complete replacement has been provided or approved.
+- Commit the change on `reos-development` using a truthful commit message.
+- Do not create a new similarly named file or duplicate.
+- After saving, inspect the committed file, branch HEAD and commit changed-file list.
+- If anything differs from the intended replacement, report the actual difference and stop.
+
+Neither method permits editing canonical state to force a workflow outcome.
+
+## 4. VERIFY REMOTE RESULTS AND KEEP PS OUTPUT TRUTHFUL
+
+`REOS_CONTROL_CENTER/PS Output` is diagnostic evidence only.
+
+After each attempted write, record:
+
+- Attempt date and scope.
+- Verified base HEAD.
+- Target file paths and expected original blob SHAs.
+- Actual error message, if any.
+- Whether the branch reference moved.
+- Actual commit SHA and changed-file list, if a commit exists.
+- Independent remote read-back result for every intended file.
+- Canonical state blob SHA and current task after the attempt.
+- CI URL and exact tested SHA, if a relevant workflow ran.
+- Next permitted action.
+
+Never report a PASS after an earlier validation exception. Do not erase or misrepresent a failed attempt. When a prior PASS is found to contradict actual changed paths or read-back evidence, explicitly mark that result INVALID.
+
+A proposed Git object is not proof that the branch was updated. A commit object is not proof that the intended paths were changed. A successful ref update is not proof that all intended file contents were read back correctly.
+
+The verified result is the live repository read-back, not the terminal's last printed line.
+
+## 5. GITHUB ACTIONS AND CI INTERPRETATION
+
+Existing workflows:
+
+- Backend: `.github/workflows/backend-ci.yml`
+- Frontend: `.github/workflows/frontend-ci.yml`
+
+Do not create duplicate workflows.
+
+For any relevant source change:
+
+1. Identify which workflow should run based on its configured triggers and changed paths.
+2. Locate the run associated with the actual resulting commit.
+3. Inspect its status and failed step if it is not green.
+4. Report the tested SHA and the actual result.
+5. Do not state that an older successful run validates a newer commit.
+6. Do not claim that a documentation-only commit passed backend or frontend CI unless a relevant run actually verifies it.
+
+### Recorded CORE-008 / ACRL evidence
+
+The latest previously verified backend/ACRL evidence identified in the 2026-10-20 audit is:
+
+- Actions run: `39429640103`
+- Run URL: `https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39429640103`
+- Tested code commit: `dfc967588dcbe4cb79793b53382042ec2ea2d36b`
+- Reported results: 32 ACRL runtime-integration tests passed, 56 T07/T14 tests passed, and 522 combined regression tests passed.
+
+These results are evidence for that exact code snapshot. They do not by themselves verify every CORE-008 criterion, run CI on a later documentation-only commit, or formally complete T04.
+
+Re-read Actions if fresh evidence is required.
+
+## 6. HISTORICAL BACKEND CI BLOCKER — VERIFY BEFORE REUSE
+
+A diagnostic recorded on 2026-10-12 reported a possible collection-time import problem involving `deep_thaw`:
+
+- Suspected importer: `AUTONOMY_ENGINE/core/commission_financial/commission_calculation.py`
+- Suspected shared module: `AUTONOMY_ENGINE/core/contract_primitives.py`
+
+This note is historical. Do not assume it is the current blocker.
+
+Before changing code:
+
+1. Read the live source files and current test configuration.
+2. Reproduce the exact import or collection failure on the current code.
+3. Check whether the helper exists under another supported name or is already exported.
+4. Inspect equivalent helper implementations and tests to avoid duplication.
+5. If a defect remains, make the smallest authorized correction and add focused coverage when needed.
+6. Verify the resulting source commit through the existing backend workflow.
+7. Do not mark CORE-008-T01 complete because of this old error note; T01 is already marked DONE in the canonical state recorded by the latest audit.
+
+Do not reinstate an obsolete blocker without current evidence.
+
+## 7. FRONTEND PLAN RECONCILIATION
+
+Frontend source of truth remains under `REOS_CONTROL_CENTER/Frontend`.
+
+Previous audit notes reported F01 foundation and F02–F05 feature folders and an existing frontend verification workflow. These are historical observations, not a substitute for a fresh read.
+
+Before frontend changes:
+
+- Re-read the live frontend execution manifest and actual remote feature paths.
+- Read `.github/workflows/frontend-ci.yml` and verify its configured commands and triggers.
+- Compare manifest status against the actual files and latest relevant Actions run.
+- Mark stale plan facts for correction only after confirming the mismatch.
+- Preserve passing frontend files; do not rebuild already-completed F01–F05 just because an old note suggests migration or cleanup.
+- Keep frontend runtime independent from ACRL and Control Center state. Frontend must not import ACRL runtime modules or read `data/state.json` as live application data.
+- Do not change frontend files during a workflow-plan correction unless separately authorized and required.
+
+## 8. CONTINUE CORE-008 IN CANONICAL ORDER
+
+The canonical `REOS_CONTROL_CENTER/data/state.json` read on 2026-10-20 identified the current task as:
+
+`CORE-008-T04 — Implement settlement and reconciliation lifecycle`
+
+Recorded subtask order:
+
+- CORE-008-T01 — Implement commission domain: DONE.
+- CORE-008-T02 — Implement commission attribution and rules: DONE.
+- CORE-008-T03 — Implement split and participant logic: DONE.
+- CORE-008-T04 — Implement settlement and reconciliation lifecycle: CURRENT.
+- CORE-008-T05 — Implement dispute and reversal rules: PENDING.
+- CORE-008-T06 — Implement financial audit and evidence: PENDING.
+- CORE-008-T07 — Implement financial reporting hooks: PENDING.
+- CORE-008-T08 — Run precision and concurrency tests: PENDING.
+- CORE-008-T09 — Run financial security and approval review: PENDING.
+- CORE-008-T10 — Freeze commission and financial core: PENDING.
+
+### Recorded acceptance criteria
+
+- AC01 — Commission source of truth is authoritative: PENDING.
+- AC02 — Deal and ownership attribution is traceable: VERIFIED.
+- AC03 — Financial amounts use safe fixed-precision semantics: VERIFIED.
+- AC04 — Settlement and reversal are auditable: PENDING.
+- AC05 — Critical financial actions require appropriate approval: PENDING.
+- AC06 — Security and concurrency tests pass: PENDING.
+
+The recorded T04 source/test blob SHAs were:
+
+- `commission_settlement_lifecycle.py`: `629e2388eeb40819923c943a5bb4ba2097ae2a2a`
+- `commission_reconciliation.py`: `ffa7b4d0d392618b95d72360e0191988f9b3c167`
+- `test_core008_t04_settlement_reconciliation_lifecycle.py`: `00e3bb5936d39eab155e4dbc119a587c92120019`
+- `test_core008_t04_settlement_integrity_linkage.py`: `78e083609e78c298c924602f3e6a094a753be3a3`
+
+Re-read the evidence record and live blobs before using these hashes for a later write.
+
+### T04 execution rules
+
+1. Inspect existing lifecycle/reconciliation implementations, contracts, tests and task acceptance criteria.
+2. Preserve verified implementation unless a concrete defect is demonstrated.
+3. Validate AC01, AC04, AC05 and AC06 against criterion-specific evidence; do not infer them from unrelated passing tests.
+4. Add no duplicate module or test when equivalent coverage already exists.
+5. Run targeted and required regression verification for the exact resulting code commit.
+6. Use the existing authorized Control Center process for any state transition.
+7. Distinguish implementation committed, tests passed, criteria verified, subtask completed and gate approved. They are separate statuses.
+
+After T04, continue through T05–T10 in canonical sequence with their real task definitions, dependencies and acceptance criteria. Do not manually edit `state.json` or reorder tasks through this document.
+
+## 9. CLOSE THE CORE-001 TO CORE-008 ARCHITECTURE PLAN
+
+This remains a separate closure scope. Required gate names recorded by the supporting plan are:
+
+- C0 — Preflight/influence audit.
+- C1 — Architecture integrity.
+- C2 — Root CORE package wiring.
+- C3 — Immutability/historical truth.
+- C4 — Canonical authority boundaries.
+- C5 — Cross-core/adversarial regression.
+- C6 — Full CORE regression.
+- C7 — Git/architecture integrity.
+
+Read the active closure plan and evidence before determining current status. Passing tests in individual modules do not imply that every closure gate has passed.
+
+Close this scope only when all mandatory criteria have evidence and the authorized Control Center transition has occurred.
+
+## 10. FINAL ENTRYPOINT AND ACRL ALIGNMENT — LAST
+
+Perform final alignment only after the applicable implementation and verification scopes are stable.
+
+- Keep `AI_AGENT_ENTRYPOINT.py` aligned with the approved workflow policy.
+- Preserve ACRL's continuity/recovery responsibility without making it a domain owner or second execution authority.
+- Align T18 authorization, T20 patch verification, T21 Git coordination, T22 commit/checkpoint handling, T23 evidence resolution, T24 cross-chat continuity and the T07/T14 resume mechanisms.
+- Reuse existing modules and tests. Inspect before adding new files.
+- Reconcile GPT instructions, the master work order, current state, diagnostic output, remote branch and exact CI evidence.
+- Record any remaining mismatch as blocked rather than silently claiming completion.
+
+## WORKING LEDGER
+
+At the beginning and end of every authorized work item, record:
+
+- Work item and bounded scope.
+- Current remote `reos-development` HEAD.
+- Current canonical task and state blob SHA.
+- Changed file paths or `NO CHANGE`.
+- Exact commit URL and changed-file list, if a commit exists.
+- Remote content read-back result.
+- CI run URL and exact tested SHA, when applicable.
+- Any blocker or failed validation.
+- Next authorized action.
+
+Only one authorized task is active at a time. Report progress through verified parts and evidence, not estimated overall completion.
+
+END OF PLAN
+
+
+
+GitHub par save karne ke baad verify karna
+Save ke baad mujhe usi file ka link bhej dena. Main read-only audit karke check karunga ki original filename badla nahi, T04 instructions correctly saved hain, aur current canonical state unchanged hai. PS Output ke purane failure traces ko abhi delete mat karna—unmein false PASS aur failed write ke evidence ko preserve karna zaroori hai.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+save kiya ab lekin error similar hai
+
+
+
+
+
+
+
+
+
+
+
+
+Worked for 1m 12s
+
+
+
+
+
+
+
+Maine tumhari save ki hui file dobara live GitHub se check ki hai. Workflow plan sahi tarah save hua hai, lekin PS Output mein abhi bhi purane error ka transcript hai. Isliye wahan wahi error dikh raha hai.
+Workflow plan — saved
+
+Commit e50cbf9
+
+Original filename retained · T04 current · stale T01 instruction corrected
+
+
+
+PS Output — old failure still recorded
+
+Blob SHA: a464c6fa234c82aa99b9bd43837fa95e2e198df0
+
+The latest saved plan commit did not update PS Output.
+
+
+
+Canonical state — unchanged
+
+data/state.json: 92296fb10b0c7a37d0fc7fa97c4328f587512150
+
+Current task: CORE-008-T04
+
+
+
+Ab PS Output ko correct karo
+Purane PowerShell transcript ko dobara chalane ki zaroorat nahi. REOS_CONTROL_CENTER/PS Output kholo, uska poora content replace karke yeh record paste karo, aur GitHub par save karo. Isse failed attempt ka sach preserve hoga aur usko current failure samajhne ki galti nahi hogi.
+HOMIO / REOS — POWERSHELL OUTPUT
+Remote audit date: 2026-10-20
+Repository: prajaktaranjane80-sketch/Homio
+Branch: reos-development
+
+CURRENT VERIFIED BASELINE
+HEAD: e50cbf92c53f2fae54c2bf81751e732de54c70d3
+
+LATEST VERIFIED DOCUMENT UPDATE
+Commit:
+https://github.com/prajaktaranjane80-sketch/Homio/commit/e50cbf92c53f2fae54c2bf81751e732de54c70d3
+
+Changed path:
+HOMIO PowerShell–GitHub Workflow Plan
+
+The original en-dash filename was preserved. The full replacement
+was read back from GitHub. The document now identifies CORE-008-T04
+as CURRENT and marks T01-T03 DONE and T05-T10 PENDING.
+
+CANONICAL STATE
+Path: REOS_CONTROL_CENTER/data/state.json
+Blob SHA: 92296fb10b0c7a37d0fc7fa97c4328f587512150
+Current task: CORE-008-T04
+State modification: NONE
+
+HISTORICAL POWERSHELL FAILURE — NOT A CURRENT SAVE FAILURE
+
+Earlier error:
+STOP BEFORE REF UPDATE: original plan blob is not present in the proposed tree.
+
+The earlier PowerShell attempt stopped before updating the branch ref.
+Its failure transcript remained in PS Output.
+
+Subsequently, the owner replaced the original workflow-plan file
+through GitHub web editing and committed it as e50cbf92c53f2fae54c2bf81751e732de54c70d3.
+
+Therefore:
+- The workflow plan save is confirmed.
+- The old STOP message in the existing PS Output is historical.
+- The old PowerShell script must not be rerun with its former HEAD/SHA assumptions.
+- This record does not claim that the failed PowerShell attempt succeeded.
+- This record does not claim a new backend or frontend CI run.
+- No change to data/state.json is authorized or required for this documentation correction.
+
+NEXT ACTION
+Continue from the fresh live GitHub branch and canonical state.
+Do not rerun the old tree-writing script. Use full-file replacement
+through GitHub web editing for further supporting-document corrections.
+
+
+Dhyan do: Yeh PS Output ka diagnostic record hai, code fix ya nayi CI run nahi. Iske save hone ke baad hum purane failed script ko repeat nahi karenge.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ps output ps output hai o project file nahi phir bhi maine save kiya ab next
+
+
+
+
+
+
+
+
+
+
+
+
+Worked for 8m 31s
+
+
+
+
+
+
+
+Theek hai. Ab actual T04 project-code audit mein ek concrete edge case mila hai. PS Output ko ab aur touch karne ki zaroorat nahi—woh diagnostic record hai, project implementation nahi.
+
+Issue: Agar ek hi reconciliation version dobara submit ho, to history component duplicate ko silently ignore karta hai, lekin lifecycle operation audit event append karne ki koshish karta hai. Isse generic integrity error aata hai. Duplicate attempt ko clearly reject karna chahiye, bina existing record/history ko corrupt kiye.
+
+Iske liye do project-file changes hain. Main GitHub par direct save nahi kar raha—neeche dono files ka content hai, tum existing file ko full replace aur second test file ko add kar sakte ho.
+1. Full replacement — reconciliation history
+GitHub path: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_reconciliation_history.py
+
+Purani file ka poora content replace karke yeh save karo:
+from __future__ import annotationsfrom dataclasses import dataclassfrom typing import Anyfrom .commission_reconciliation import (    CommissionReconciliation,)class CommissionReconciliationHistoryError(    ValueError):    """Invalid reconciliation history."""@dataclass(frozen=True, slots=True)class CommissionReconciliationHistoryEntry:    reconciliation_id: str    tenant_id: str    commission_id: str    settlement_id: str    reconciliation_version: int    state: str    match_type: str    variance_amount: str    reconciliation_fingerprint: str    external_evidence_fingerprint: str | None = None    @classmethod    def from_reconciliation(        cls,        reconciliation: CommissionReconciliation,    ) -> "CommissionReconciliationHistoryEntry":        if not isinstance(            reconciliation,
+
+
+
+2. Add a regression test
+New GitHub path: REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t04_reconciliation_replay.py
+
+GitHub mein Add file → Create new file use karo, aur yeh complete content paste karo:
+from __future__ import annotationsfrom datetime import timedeltafrom decimal import Decimalimport pytestfrom .commission_reconciliation import (    CommissionReconciliationState,)from .commission_reconciliation_history import (    CommissionReconciliationHistoryError,)from .commission_settlement import (    CommissionSettlementState,)from .financial_domain import MonetaryAmountfrom .test_core008_t02_attribution_binding import NOWfrom .test_core008_t04_settlement_reconciliation_lifecycle import (    _evidence,    _lifecycle,    _reconcile,    _submit,)def test_replayed_variance_reconciliation_is_rejected_without_corrupting_history():    lifecycle = _lifecycle()    submitted = _submit(lifecycle)    short_amount = MonetaryAmount.create(        submitted.settlement.amount.amount - Decimal("0.01"),        submitted.settlement.amount.currency,    )    evidence = _evidence(        submitted,
+
+
+
+3. Save and verification
+Pehle existing commission_reconciliation_history.py full replace karke save karo. Phir new test file add karke save karo. Dono paths backend CI ke covered AUTONOMY_ENGINE/** area mein hain, isliye configured workflow in changes ko test karega.
+
+Current canonical state abhi bhi CORE-008-T04 hai. state.json ko edit mat karna; T04 ke code/test changes verify hone ke baad hi existing Control Center transition process se task status update hona chahiye.
+
+Maine yeh content prepare kiya hai, lekin abhi yeh GitHub par save ya test-run verified nahi hai. Save hone ke baad commit/Actions result dekhkar next T04 checks continue karenge
