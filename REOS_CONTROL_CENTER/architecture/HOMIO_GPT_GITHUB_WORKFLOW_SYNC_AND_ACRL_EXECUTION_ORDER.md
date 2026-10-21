@@ -780,3 +780,220 @@ The owner explicitly authorized completing Phase 0-1. That authorization was use
 - **T04 formal completion:** PENDING until all required criteria/evidence and the existing controller transition are verified.
 
 This record is not execution authority and does not mutate canonical project state.
+
+
+---
+
+## 10. Phase 0–1 live refresh and target classification — 2026-10-21
+
+**Record type:** Fresh read-only baseline and authority reconciliation  
+**Execution authority:** `REOS_CONTROL_CENTER/data/state.json` and the existing Control Center  
+**Runtime code changed by this audit:** NONE  
+**Canonical state changed by this audit:** NONE
+
+### 10.1 Current live baseline
+
+- Repository: `prajaktaranjane80-sketch/Homio`
+- Branch: `reos-development`
+- Observed HEAD:
+  `b917d5036ff5d9a3dea78a27ae9439cf8357f5fd`
+- HEAD URL:
+  `https://github.com/prajaktaranjane80-sketch/Homio/commit/b917d5036ff5d9a3dea78a27ae9439cf8357f5fd`
+- HEAD parent:
+  `9a6a6065ca4848b6b419a32e5bb1de5d3ab42246`
+- HEAD changed paths:
+  - Added `REOS_CONTROL_CENTER/Chat histry`
+  - Removed `REOS_CONTROL_CENTER/Frontend Ps Output`
+- This HEAD commit is a diagnostic/history rename, not a backend implementation change.
+- Complete recursive tree: 2,201 entries; `truncated = false`.
+- Canonical state path: `REOS_CONTROL_CENTER/data/state.json`.
+- Canonical state blob SHA:
+  `92296fb10b0c7a37d0fc7fa97c4328f587512150`.
+- Canonical current gate: `CORE-008`.
+- Canonical current subtask: `CORE-008-T04 — Implement settlement and reconciliation lifecycle`.
+- The canonical state blob matched the previously recorded SHA. No manual state edit or transition was made.
+
+### 10.2 Current task and acceptance criteria
+
+- CORE-008-T01: DONE.
+- CORE-008-T02: DONE.
+- CORE-008-T03: DONE.
+- CORE-008-T04: CURRENT.
+- CORE-008-T05 through T10: PENDING.
+
+Recorded T04 criteria:
+
+| Criterion | Canonical recorded status |
+|---|---|
+| AC01 — Commission source of truth is authoritative | PENDING |
+| AC02 — Deal and ownership attribution is traceable | VERIFIED |
+| AC03 — Financial amounts use safe fixed-precision semantics | VERIFIED |
+| AC04 — Settlement and reversal are auditable | PENDING |
+| AC05 — Critical financial actions require appropriate approval | PENDING |
+| AC06 — Security and concurrency tests pass | PENDING |
+
+No criterion or task status is changed by this record.
+
+### 10.3 Exact GitHub Actions evidence
+
+The latest successful backend/ACRL run observed in the live branch history was:
+
+- Run: `39600469687`
+- URL:
+  `https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39600469687`
+- Tested SHA:
+  `9a6a6065ca4848b6b419a32e5bb1de5d3ab42246`
+- Result: SUCCESS.
+
+That result applies to the exact tested SHA. No backend Actions run on the current diagnostic-rename HEAD `b917d5036ff5d9a3dea78a27ae9439cf8357f5fd` was observed.
+
+The earlier run `39429640103` on
+`dfc967588dcbe4cb79793b53382042ec2ea2d36b` remains historical evidence
+for its own code snapshot.
+
+### 10.4 Workflow and supporting-document audit
+
+Exact paths and live blobs were checked:
+
+| File | Observed blob SHA | Classification |
+|---|---|---|
+| `REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py` | `2187ba939262863939beb0cadf8aa1b05af2117e` | VERIFY against its separate P1-07 finding; no Phase 0–1 code edit |
+| `REOS_CONTROL_CENTER/gpt-ps-git-sync.md` | `d385ac78c42886a3a49c00b31155b25a157c2491` | UPDATE — contradictory historical T03 “Start now” instruction |
+| `HOMIO PowerShell–GitHub Workflow Plan` | `279a30b294d9be9cf4edea0305987749a6f76088` | UPDATE — stale audit overlay and baseline text |
+| `REOS_CONTROL_CENTER/architecture/HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md` | `0224eb081f13e88233fd8994ade80fe71aab856f` | UPDATE by appending this fresh dated audit record |
+| `REOS_CONTROL_CENTER/architecture/HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN.json` | `975a007187dae9e957330c594e8348a4135abb18` | VERIFY/NO CHANGE for Phase 0–1; this is an audit specification, not execution authority |
+| `REOS_CONTROL_CENTER/PS Output` | `c59194274fa6cf441b29ff4831272115d000adc5` | NO CHANGE; diagnostic evidence only |
+| `REOS_CONTROL_CENTER/Chat histry` | `c1ba46da6757b224c9972d59415c5f872188b67b` | NO CHANGE; history record only |
+| `REOS_CONTROL_CENTER/data/state.json` | `92296fb10b0c7a37d0fc7fa97c4328f587512150` | NO CHANGE; canonical state must remain under Control Center authority |
+| `REOS_CONTROL_CENTER/reos_state.json` | `7e4e2d45a093a8e3b388ddddf39d060c470a84bf` | NO CHANGE; retain as historical/legacy snapshot, not current authority |
+| `.github/workflows/backend-ci.yml` | `c2383d5c1b5b8e49fbea2155b0b13d68339ea1e9` | VERIFY against the platform-wide CI finding |
+| `.github/workflows/frontend-ci.yml` | `9aecb9a11af30d2fb0b945f1ffe7d9eac235af15` | NO CHANGE for this work item; existing workflow present |
+
+The original root-level workflow path contains an en dash:
+`HOMIO PowerShell–GitHub Workflow Plan`. The exact path occurs in the
+tree. The accidental hyphen-named file
+`HOMIO PowerShell-GitHub Workflow Plan` is absent.
+
+The GitHub code-search query did not return conclusive repository-wide
+evidence for all references to `reos_state.json` or the former
+`Frontend Ps Output` path. Search results alone cannot prove the absence
+of dynamic references. Keep the legacy file and do not infer that it is
+safe to delete. The current Control Center state path remains
+`REOS_CONTROL_CENTER/data/state.json`.
+
+### 10.5 Platform-wide audit target-path inventory
+
+The current
+`REOS_CONTROL_CENTER/architecture/HOMIO_ACRL_PLATFORM_WIDE_AUDIT_PLAN.json`
+declares 15 findings and 52 path references, including repeated references
+to shared target files.
+
+The exact live tree check found:
+
+- 37 declared path references point to existing paths.
+- 15 declared addition paths are absent.
+- No declared replacement path was absent.
+- Six paths marked as additions already exist. Do not duplicate them:
+  - `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/runtime_integration/test_full_acrl_spine.py`
+  - `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Repository_Intelligence_Context/audit_resume_manifest.py`
+  - `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Repository_Intelligence_Context/audit_resume_manifest.schema.json`
+  - `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Repository_Intelligence_Context/audit_resume_manifest.json`
+  - `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Repository_Intelligence_Context/test_audit_resume_manifest.py`
+  - `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/test_fast_resume_and_stale_manifest.py`
+
+Classify existing replacement candidates as `VERIFY` until the specific
+current defect has been reproduced against source and relevant tests.
+For an alleged `ADD` path that already exists, classify the path-creation
+action as `NO CHANGE`; inspect the existing file before deciding whether
+any content change is justified.
+
+The following 15 declared addition paths were absent at this baseline:
+
+1. `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/test_checkpoint_state_coherence.py`
+2. `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine/test_requested_evidence_scope.py`
+3. `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T24_Cross_Chat_Continuity_Recovery_Engine/test_authoritative_context_required.py`
+4. `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T24_Cross_Chat_Continuity_Recovery_Engine/test_continuity_freshness.py`
+5. `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T25_Context_Token_Work_Budget_Manager/test_reservation_invariants.py`
+6. `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T26_Autonomous_Execution_Loop_Controller/test_upstream_result_binding.py`
+7. `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard/test_authenticated_approval_binding.py`
+8. `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T29_Human_Decision_Boundary_Controller/test_decision_expiry_and_nonce_replay.py`
+9. `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T30_Autonomous_Completion_Handoff_Engine/test_completion_store_replay.py`
+10. `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/web_source_parser.py`
+11. `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/source_intelligence/test_web_source_parser.py`
+12. `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification/test_non_python_verification_evidence.py`
+13. `REOS_CONTROL_CENTER/tets/test_ai_agent_entrypoint_contract.py`
+14. `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/github_api_error_recovery.py`
+15. `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination/test_github_api_error_recovery.py`
+
+The respective directories contain neighboring tests, but existence of
+neighboring files alone does not prove that the proposed behavior is
+covered or uncovered. The content/equivalence audit must precede a final
+`ADD` decision.
+
+Therefore the current classification is:
+
+- Existing targets: `VERIFY` unless a current correction is demonstrated.
+- Already-existing declared additions: `NO CHANGE` for path creation;
+  content still requires review if the underlying finding is authorized.
+- Absent declared additions: `VERIFY`; runtime creation is not authorized
+  merely by this inventory.
+- Runtime findings outside CORE-008-T04: `BLOCKED` for implementation
+  until the Control Center selects/authorizes that scope or the owner
+  explicitly authorizes a compliant additional scope.
+
+### 10.6 Phase 0 and Phase 1 disposition
+
+**Phase 0 — read-only baseline and inventory**
+
+- Live branch HEAD and complete tree verified.
+- Canonical state and active task verified.
+- EntryPoint, GPT sync instructions and supporting workflow files read.
+- Exact planned target-path existence checked.
+- Existing paths and absent additions classified.
+- Potential duplicates distinguished from missing paths.
+- CI run and tested SHA checked.
+- `PS Output`, `Chat histry`, `Frontend Ps Output` rename and legacy
+  `reos_state.json` disposition recorded without treating diagnostics
+  as authority.
+- No project code or canonical state was modified.
+
+**Phase 1 — task and authority reconciliation**
+
+- Current task remains `CORE-008-T04`.
+- Acceptance-criterion statuses remain unchanged.
+- The owner-authorized scope is Phase 0–1 and supporting-document
+  reconciliation only; this does not complete T04 or authorize unrelated
+  runtime work.
+- The contradictory T03 “Start now” directive in the old GPT sync document
+  is identified for replacement.
+- The stale baseline/replacement statement in the old root workflow plan
+  is identified for replacement.
+- These document contents must be saved manually and independently read
+  back from GitHub before the workflow-document synchronization is reported
+  as verified.
+
+### 10.7 Required post-save verification
+
+After the owner saves the two full replacements and this addition:
+
+1. Re-read live `reos-development` HEAD.
+2. Read back these exact paths:
+   - `HOMIO PowerShell–GitHub Workflow Plan`
+   - `REOS_CONTROL_CENTER/gpt-ps-git-sync.md`
+   - `REOS_CONTROL_CENTER/architecture/HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md`
+3. Verify the stale T03 first-action instruction is absent from the GPT sync
+   file and T04 remains the stated current task.
+4. Verify the root workflow has the corrected baseline and authority rules.
+5. Verify the master addition exists at the intended path.
+6. Read `REOS_CONTROL_CENTER/data/state.json` again and confirm its blob
+   and current task are unchanged.
+7. Inspect the actual commit changed-file list.
+8. Do not claim a CI run for a documentation-only SHA unless Actions shows
+   a run on that exact SHA.
+
+**Next authorized business task remains CORE-008-T04.** After the
+documentation read-back succeeds, continue the pending T04 acceptance
+criteria with existing implementation and criterion-specific evidence.
+
+This record is an audit ledger, not a competing authority. It does not
+mutate canonical state or mark T04 complete.
