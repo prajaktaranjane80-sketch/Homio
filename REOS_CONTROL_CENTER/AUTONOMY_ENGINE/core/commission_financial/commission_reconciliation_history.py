@@ -169,11 +169,17 @@ class CommissionReconciliationHistory:
                     "conflicting content."
                 )
 
+            # Do not silently treat an identical replay as a successful
+            # append. The lifecycle creates a corresponding audit event;
+            # history must reject the duplicate so the two cannot diverge.
             if (
                 entry.reconciliation_fingerprint
                 == latest.reconciliation_fingerprint
             ):
-                return self
+                raise CommissionReconciliationHistoryError(
+                    "Duplicate reconciliation fingerprint "
+                    "cannot be appended twice."
+                )
 
         return CommissionReconciliationHistory(
             entries=self.entries + (entry,)
