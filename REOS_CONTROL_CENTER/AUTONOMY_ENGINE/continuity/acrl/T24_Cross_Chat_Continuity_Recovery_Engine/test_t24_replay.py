@@ -1,3 +1,4 @@
+from ._t23_test_support import build_t23_source_store
 from .continuity_coordinator import recover_continuity
 from .continuity_models import (
     ContinuityDecision,
@@ -57,20 +58,26 @@ def test_same_recovery_is_read_only_replay():
         },
     }
 
-    store = ContinuityStore()
+    continuity_store = ContinuityStore()
+    source_resolution_store = build_t23_source_store(
+        request,
+        evidence,
+    )
 
     first = recover_continuity(
         request=request,
         evidence_items=evidence,
-        store=store,
+        store=continuity_store,
         project_context=context,
+        source_resolution_store=source_resolution_store,
     )
 
     second = recover_continuity(
         request=request,
         evidence_items=evidence,
-        store=store,
+        store=continuity_store,
         project_context=context,
+        source_resolution_store=source_resolution_store,
     )
 
     assert first.decision is ContinuityDecision.RECOVERED
