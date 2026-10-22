@@ -87,7 +87,6 @@
     "authority": "T18 authorizes; T20 verifies an isolated patch; T21 is responsible for the authorized Git transaction"
   },
   "api_error_recovery": {
-    "component": "github_api_error_recovery",
     "403": {
       "rate_limit": "Respect Retry-After or X-RateLimit-Reset and use bounded retries for safe reads; writes require remote readback before any retry.",
       "permission_denied": "Stop, inspect repository permission, scopes, branch protection and rulesets; do not blindly retry."
@@ -96,10 +95,22 @@
     "409": "Reread HEAD and the target path, reconcile stale state, and never force-overwrite.",
     "422": "Reread current state and validation details; rebuild from verified evidence.",
     "429": "Honor rate-limit reset information and use bounded retries for safe reads; writes require remote readback before any retry.",
+    "component": "github_api_error_recovery",
     "5xx": "Safe reads may use bounded retries; ambiguous writes require remote readback first.",
     "timeout_or_network_failure": "Writes require readback before retry because the outcome may be ambiguous.",
     "tls_failure": "Fail closed; never disable certificate verification.",
-    "unknown_failure": "Fail closed and inspect independently observed remote state."
+    "unknown_failure": "Fail closed and inspect independently observed remote state.",
+    "confirmed_404_readback": "A 404 starts as AMBIGUOUS_NOT_FOUND. Only the same verified identity, with successful 200 reads for exact repository, ref and exact parent tree, and the target absent from that parent's entries, may resolve it to CONFIRMED_NOT_FOUND. This is read-only evidence, not write authorization; never switch branches.",
+    "typed_outcomes": [
+      "PERMISSION_DENIED",
+      "RATE_LIMITED",
+      "AMBIGUOUS_NOT_FOUND",
+      "CONFIRMED_NOT_FOUND",
+      "STALE_SHA_NEEDS_RECONCILIATION",
+      "TRANSIENT_FAILURE_RETRYABLE",
+      "RECOVERY_REQUIRED_USER_ACTION",
+      "FAIL_CLOSED"
+    ]
   },
   "deep_audit": {
     "01_purpose": "Authorized Git coordination.",
