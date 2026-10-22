@@ -45,6 +45,24 @@
     "produce repair evidence",
     "carry the exact candidate patch as data on VERIFIED results"
   ],
+  "external_verification": {
+    "required_for_non_python_changes": true,
+    "request_commit_field": "RepairRequest.source_commit_sha",
+    "evidence_fields": [
+      "external_executor",
+      "command",
+      "run_id",
+      "source_commit_sha",
+      "result_fingerprint",
+      "evidence_fingerprint",
+      "syntax_passed",
+      "tests_passed",
+      "regression_passed"
+    ],
+    "commit_binding": "VerificationEvidence.source_commit_sha must equal RepairRequest.source_commit_sha.",
+    "fingerprint_binding": "evidence_fingerprint must match the canonical fingerprint of the external executor, command, run identity, source commit, result fingerprint and reported verification outcomes.",
+    "failure_policy": "Missing or mismatched non-Python verification metadata must not produce VERIFIED."
+  },
   "forbidden": [
     "state.json mutation",
     "controller state mutation",
