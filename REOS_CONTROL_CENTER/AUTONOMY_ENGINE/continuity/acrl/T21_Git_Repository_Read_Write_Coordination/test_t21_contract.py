@@ -45,7 +45,7 @@ def test_api_error_recovery_policy_is_present():
     recovery = _contract()["api_error_recovery"]
 
     assert recovery["component"] == "github_api_error_recovery"
-    assert "readback" in recovery["409"].lower()
+    assert "reread head" in recovery["409"].lower()
     assert "silently switch branches" in recovery["404"]
     assert "bounded retries" in recovery["429"]
     assert "readback" in recovery["timeout_or_network_failure"]
