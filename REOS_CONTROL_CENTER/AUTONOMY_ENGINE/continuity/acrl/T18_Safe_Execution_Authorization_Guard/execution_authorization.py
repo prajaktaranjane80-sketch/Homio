@@ -23,6 +23,7 @@ from .authorization_registry import (
     AuthorizationReason,
 )
 from .authorization_validation import (
+    PrincipalTokenVerifier,
     validate_authorization_scope,
     validate_human_approval,
     validate_read_only_invariant,
@@ -40,14 +41,16 @@ class ExecutionAuthorizationGuard:
     def __init__(
         self,
         policy: SafeAuthorizationPolicy | None = None,
+        *,
+        principal_verifier: PrincipalTokenVerifier | None = None,
     ) -> None:
         self.policy = (
             policy
             if policy is not None
             else SafeAuthorizationPolicy()
         )
-
         self.policy.validate()
+        self.principal_verifier = principal_verifier
 
     @staticmethod
     def _blocked(
@@ -124,8 +127,16 @@ class ExecutionAuthorizationGuard:
         ):
             return AuthorizationReason.INVALID_T15_PROPOSAL
 
-        if "human approval" in text:
+        if "explicit human approval is required" in text:
             return AuthorizationReason.APPROVAL_REQUIRED
+
+        if (
+            "approval" in text
+            or "approver" in text
+            or "authentication" in text
+            or "authenticated principal" in text
+        ):
+            return AuthorizationReason.APPROVAL_INVALID
 
         if "t15" in text:
             return AuthorizationReason.INVALID_T15_PROPOSAL
@@ -142,7 +153,6 @@ class ExecutionAuthorizationGuard:
         validate_request_structure(request)
 
         request_fp = request_fingerprint(request)
-
         operator_report = request.operator_report
         impact_report = request.impact_report
 
@@ -150,7 +160,6 @@ class ExecutionAuthorizationGuard:
             operator_report.request_fingerprint
         )
         impact_fp = impact_report.fingerprint
-
         proposal = operator_report.proposal
 
         try:
@@ -158,23 +167,20 @@ class ExecutionAuthorizationGuard:
                 request,
                 self.policy,
             )
-
             validate_authorization_scope(
                 request,
                 self.policy,
             )
-
             validate_human_approval(
                 request,
                 self.policy,
+                self.principal_verifier,
             )
-
         except SafeAuthorizationError as exc:
             reason = self._reason_for_validation_failure(
                 request,
                 exc,
             )
-
             return self._blocked(
                 request_fp,
                 operator_request_fp,
@@ -234,24 +240,22 @@ class ExecutionAuthorizationGuard:
             requires_external_executor=True,
         )
 
-        validate_read_only_invariant(
-            artifact
-        )
-
+        validate_read_only_invariant(artifact)
         return artifact
 
 
 def authorize_execution(
     request: AuthorizationRequest,
     policy: SafeAuthorizationPolicy | None = None,
+    *,
+    principal_verifier: PrincipalTokenVerifier | None = None,
 ) -> ExecutionAuthorization:
     """Convenience API for T18 authorization."""
 
     return ExecutionAuthorizationGuard(
-        policy
-    ).authorize(
-        request
-    )
+        policy,
+        principal_verifier=principal_verifier,
+    ).authorize(request)
 
 
 __all__ = [
