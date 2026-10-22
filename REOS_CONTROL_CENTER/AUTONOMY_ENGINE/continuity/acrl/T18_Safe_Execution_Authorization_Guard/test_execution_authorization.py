@@ -32,6 +32,52 @@ from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.auth
 from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.execution_authorization import (
     ExecutionAuthorizationGuard,
 )
+from AUTONOMY_ENGINE.security.authentication.oidc_verifier import (
+    AuthenticatedPrincipal,
+    AuthenticationError,
+)
+
+TEST_ISSUER = "https://identity.example.test/"
+TEST_SUBJECT = "provider-subject"
+TEST_ACCESS_TOKEN = "signed-test-token"
+
+
+class _TestOIDCVerifier:
+    """Test double for the existing OIDC verification interface."""
+
+    def verify_access_token(self, token: str) -> AuthenticatedPrincipal:
+        if token != TEST_ACCESS_TOKEN:
+            raise AuthenticationError("invalid_access_token")
+
+        return AuthenticatedPrincipal(
+            issuer=TEST_ISSUER,
+            subject=TEST_SUBJECT,
+            audiences=("homio-api",),
+        )
+
+
+def _test_policy() -> SafeAuthorizationPolicy:
+    return SafeAuthorizationPolicy(
+        trusted_approver_principals=((TEST_ISSUER, TEST_SUBJECT),)
+    )
+
+
+def _test_guard(
+    policy: SafeAuthorizationPolicy | None = None,
+) -> ExecutionAuthorizationGuard:
+    return ExecutionAuthorizationGuard(
+        policy=policy if policy is not None else _test_policy(),
+        principal_verifier=_TestOIDCVerifier(),
+    )
+
+
+def _build_test_approval(**kwargs) -> HumanApproval:
+    return HumanApproval(
+        **kwargs,
+        principal_issuer=TEST_ISSUER,
+        principal_subject=TEST_SUBJECT,
+        authentication_token=TEST_ACCESS_TOKEN,
+    )
 
 
 def build_operator_report():
@@ -84,13 +130,11 @@ def build_approved_request(tmp_path: Path):
         nonce="test-nonce-001",
     )
 
-    approval = HumanApproval(
+    approval = _build_test_approval(
         approval_id="HUMAN-APPROVAL-001",
         authority="HUMAN_APPROVER",
         approved=True,
-        scope_fingerprint=approval_scope_fingerprint(
-            provisional
-        ),
+        scope_fingerprint=approval_scope_fingerprint(provisional),
         evidence=("explicit approval evidence",),
     )
 
@@ -104,6 +148,7 @@ def build_approved_request(tmp_path: Path):
 
 def test_policy_is_safe():
     policy = SafeAuthorizationPolicy()
+
     assert policy.validate() is True
     assert policy.allow_state_mutation is False
     assert policy.allow_execution_by_guard is False
@@ -113,9 +158,7 @@ def test_policy_is_safe():
 def test_authorizes_valid_change(tmp_path: Path):
     request = build_approved_request(tmp_path)
 
-    artifact = ExecutionAuthorizationGuard().authorize(
-        request
-    )
+    artifact = _test_guard().authorize(request)
 
     assert artifact.decision is AuthorizationDecision.AUTHORIZE
     assert artifact.reason is AuthorizationReason.VALIDATED
@@ -135,9 +178,7 @@ def test_requires_approval(tmp_path: Path):
         nonce="missing-approval",
     )
 
-    artifact = ExecutionAuthorizationGuard().authorize(
-        request
-    )
+    artifact = _test_guard().authorize(request)
 
     assert artifact.decision is AuthorizationDecision.BLOCK
     assert artifact.execution_authorized is False
@@ -154,13 +195,11 @@ def test_rejects_unapproved_request(tmp_path: Path):
         nonce="rejected-approval",
     )
 
-    approval = HumanApproval(
+    approval = _build_test_approval(
         approval_id="HUMAN-APPROVAL-002",
         authority="HUMAN_APPROVER",
         approved=False,
-        scope_fingerprint=approval_scope_fingerprint(
-            provisional
-        ),
+        scope_fingerprint=approval_scope_fingerprint(provisional),
         evidence=("approval declined",),
     )
 
@@ -171,9 +210,7 @@ def test_rejects_unapproved_request(tmp_path: Path):
         nonce="rejected-approval",
     )
 
-    artifact = ExecutionAuthorizationGuard().authorize(
-        request
-    )
+    artifact = _test_guard().authorize(request)
 
     assert artifact.decision is AuthorizationDecision.BLOCK
 
@@ -197,13 +234,11 @@ def test_rejects_t17_unknown_path(tmp_path: Path):
         nonce="unknown-path",
     )
 
-    approval = HumanApproval(
+    approval = _build_test_approval(
         approval_id="HUMAN-APPROVAL-003",
         authority="HUMAN_APPROVER",
         approved=True,
-        scope_fingerprint=approval_scope_fingerprint(
-            provisional
-        ),
+        scope_fingerprint=approval_scope_fingerprint(provisional),
         evidence=("approval evidence",),
     )
 
@@ -214,9 +249,7 @@ def test_rejects_t17_unknown_path(tmp_path: Path):
         nonce="unknown-path",
     )
 
-    artifact = ExecutionAuthorizationGuard().authorize(
-        request
-    )
+    artifact = _test_guard().authorize(request)
 
     assert artifact.decision is AuthorizationDecision.BLOCK
     assert artifact.reason is AuthorizationReason.T17_UNKNOWN_PATH
@@ -246,13 +279,11 @@ def test_rejects_protected_impact(tmp_path: Path):
         nonce="protected-impact",
     )
 
-    approval = HumanApproval(
+    approval = _build_test_approval(
         approval_id="HUMAN-APPROVAL-004",
         authority="HUMAN_APPROVER",
         approved=True,
-        scope_fingerprint=approval_scope_fingerprint(
-            provisional
-        ),
+        scope_fingerprint=approval_scope_fingerprint(provisional),
         evidence=("approval evidence",),
     )
 
@@ -263,9 +294,7 @@ def test_rejects_protected_impact(tmp_path: Path):
         nonce="protected-impact",
     )
 
-    artifact = ExecutionAuthorizationGuard().authorize(
-        request
-    )
+    artifact = _test_guard().authorize(request)
 
     assert artifact.decision is AuthorizationDecision.BLOCK
     assert artifact.reason is AuthorizationReason.PROTECTED_IMPACT
@@ -304,9 +333,7 @@ def test_rejects_non_change_proposal(tmp_path: Path):
         nonce="observational-action",
     )
 
-    artifact = ExecutionAuthorizationGuard().authorize(
-        request
-    )
+    artifact = _test_guard().authorize(request)
 
     assert artifact.decision is AuthorizationDecision.BLOCK
 
@@ -321,7 +348,7 @@ def test_nonce_changes_authorization_identity(tmp_path: Path):
         nonce="different-nonce-002",
     )
 
-    guard = ExecutionAuthorizationGuard()
+    guard = _test_guard()
 
     artifact_one = guard.authorize(first)
     artifact_two = guard.authorize(second)
@@ -334,8 +361,7 @@ def test_nonce_changes_authorization_identity(tmp_path: Path):
 
 def test_authorization_is_deterministic(tmp_path: Path):
     request = build_approved_request(tmp_path)
-
-    guard = ExecutionAuthorizationGuard()
+    guard = _test_guard()
 
     first = guard.authorize(request)
     second = guard.authorize(request)
@@ -354,12 +380,9 @@ def test_t18_never_mutates_state(tmp_path: Path):
     )
 
     before = state.read_bytes()
-
     request = build_approved_request(tmp_path)
 
-    ExecutionAuthorizationGuard().authorize(
-        request
-    )
+    _test_guard().authorize(request)
 
     assert state.read_bytes() == before
 
@@ -367,9 +390,7 @@ def test_t18_never_mutates_state(tmp_path: Path):
 def test_external_executor_is_always_required(tmp_path: Path):
     request = build_approved_request(tmp_path)
 
-    artifact = ExecutionAuthorizationGuard().authorize(
-        request
-    )
+    artifact = _test_guard().authorize(request)
 
     assert artifact.requires_external_executor is True
 
@@ -377,9 +398,7 @@ def test_external_executor_is_always_required(tmp_path: Path):
 def test_authorization_artifact_does_not_mutate_state(tmp_path: Path):
     request = build_approved_request(tmp_path)
 
-    artifact = ExecutionAuthorizationGuard().authorize(
-        request
-    )
+    artifact = _test_guard().authorize(request)
 
     assert artifact.state_mutated is False
 
@@ -401,9 +420,7 @@ def test_authorized_artifact_is_bound_to_upstream_evidence(
 ):
     request = build_approved_request(tmp_path)
 
-    artifact = ExecutionAuthorizationGuard().authorize(
-        request
-    )
+    artifact = _test_guard().authorize(request)
 
     assert (
         artifact.operator_request_fingerprint
