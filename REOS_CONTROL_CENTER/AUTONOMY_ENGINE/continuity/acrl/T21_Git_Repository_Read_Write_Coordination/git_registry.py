@@ -6,26 +6,20 @@ from dataclasses import dataclass
 @dataclass(frozen=True, slots=True)
 class GitRegistry:
     layer: str = "T21"
-    name: str = (
-        "Git Repository Read/Write Coordination"
-    )
+    name: str = "Git Repository Read/Write Coordination"
     schema_version: str = "1.0"
     mode: str = "authorized-git-transaction"
+    api_error_recovery: str = "github_api_error_recovery"
 
     def validate(self) -> None:
         if self.layer != "T21":
-            raise ValueError(
-                "Invalid T21 layer."
-            )
+            raise ValueError("Invalid T21 layer.")
 
         if self.schema_version != "1.0":
-            raise ValueError(
-                "Unsupported T21 schema."
-            )
+            raise ValueError("Unsupported T21 schema.")
 
-        if self.mode != (
-            "authorized-git-transaction"
-        ):
-            raise ValueError(
-                "Invalid T21 mode."
-            )
+        if self.mode != "authorized-git-transaction":
+            raise ValueError("Invalid T21 mode.")
+
+        if self.api_error_recovery != "github_api_error_recovery":
+            raise ValueError("Invalid T21 API error-recovery component.")
