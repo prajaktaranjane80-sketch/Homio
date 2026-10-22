@@ -10,9 +10,8 @@ from .repair_policy import validate_policy
 from .repair_scope import normalize_path
 
 
-_SHA256 = re.compile(
-    r"^[0-9a-f]{64}$"
-)
+_SHA256 = re.compile(r"^[0-9a-f]{64}$")
+_SHA1 = re.compile(r"^[0-9a-f]{40}$")
 
 
 def validate_request(
@@ -22,52 +21,33 @@ def validate_request(
     validate_policy(policy)
 
     if not request.repair_id.strip():
-        raise ValueError(
-            "repair_id is required."
-        )
+        raise ValueError("repair_id is required.")
 
-    if not _SHA256.fullmatch(
-        request.authorization_fingerprint
-    ):
-        raise ValueError(
-            "Invalid authorization fingerprint."
-        )
+    if not _SHA256.fullmatch(request.authorization_fingerprint):
+        raise ValueError("Invalid authorization fingerprint.")
 
     if not request.authorization_nonce.strip():
-        raise ValueError(
-            "Authorization nonce is required."
-        )
+        raise ValueError("Authorization nonce is required.")
 
-    if not _SHA256.fullmatch(
-        request.diagnosis_fingerprint
-    ):
-        raise ValueError(
-            "Invalid diagnosis fingerprint."
-        )
+    if not _SHA256.fullmatch(request.diagnosis_fingerprint):
+        raise ValueError("Invalid diagnosis fingerprint.")
 
-    if not _SHA256.fullmatch(
-        request.impact_fingerprint
-    ):
-        raise ValueError(
-            "Invalid impact fingerprint."
-        )
+    if not _SHA256.fullmatch(request.impact_fingerprint):
+        raise ValueError("Invalid impact fingerprint.")
 
-    if not _SHA256.fullmatch(
-        request.baseline_fingerprint
+    if not _SHA256.fullmatch(request.baseline_fingerprint):
+        raise ValueError("Invalid baseline fingerprint.")
+
+    if request.source_commit_sha and not _SHA1.fullmatch(
+        request.source_commit_sha
     ):
-        raise ValueError(
-            "Invalid baseline fingerprint."
-        )
+        raise ValueError("Invalid source commit SHA.")
 
     if request.attempt <= 0:
-        raise ValueError(
-            "Repair attempt must be positive."
-        )
+        raise ValueError("Repair attempt must be positive.")
 
     if request.attempt > policy.max_attempts:
-        raise ValueError(
-            "Repair retry budget exhausted."
-        )
+        raise ValueError("Repair retry budget exhausted.")
 
     allowed = tuple(
         sorted(
@@ -78,11 +58,5 @@ def validate_request(
         )
     )
 
-    if allowed != tuple(
-        sorted(
-            request.allowed_paths
-        )
-    ):
-        raise ValueError(
-            "Allowed repair paths must be canonical."
-        )
+    if allowed != tuple(sorted(request.allowed_paths)):
+        raise ValueError("Allowed repair paths must be canonical.")
