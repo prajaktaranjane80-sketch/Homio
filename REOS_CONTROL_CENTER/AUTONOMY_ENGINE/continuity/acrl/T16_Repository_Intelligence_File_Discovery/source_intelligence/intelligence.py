@@ -1,4 +1,4 @@
-"""T16 PART-02 — Repository source intelligence projection."""
+"""T16 deterministic repository source-intelligence projection."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ from AUTONOMY_ENGINE.continuity.acrl.repository_discovery.topology import (
 )
 
 from .dependency_graph import (
+    ALL_SOURCE_SUFFIXES,
     DependencyGraph,
     build_dependency_graph,
 )
@@ -34,19 +35,19 @@ class SourceIntelligence:
 def inspect_source_intelligence(
     root: Path,
 ) -> SourceIntelligence:
-    """Create a deterministic source-intelligence snapshot."""
+    """Create a deterministic source and dependency snapshot."""
+    repository_root = Path(root).resolve()
 
-    identity = identify_repository(root)
-
-    topology = RepositoryTopologyScanner(root).scan()
-
-    graph = build_dependency_graph(root)
+    identity = identify_repository(repository_root)
+    topology = RepositoryTopologyScanner(repository_root).scan()
+    graph = build_dependency_graph(repository_root)
 
     source_nodes = tuple(
         sorted(
             entry.relative_path
             for entry in topology.entries
-            if entry.relative_path.endswith((".py", ".pyi"))
+            if Path(entry.relative_path).suffix.lower()
+            in ALL_SOURCE_SUFFIXES
         )
     )
 
