@@ -65,26 +65,53 @@ def syntax_check(
     workspace: Path | str,
     paths: tuple[str, ...],
 ) -> bool:
-    """Check Python syntax locally; external evidence covers other formats."""
+    """Validate all changed paths; parse Python and defer other syntax externally."""
     root = Path(workspace).resolve()
 
     for relative in paths:
-        if Path(relative).suffix.lower() not in _PYTHON_SUFFIXES:
-            continue
+        if not isinstance(relative, str) or not relative.strip():
+            return False
 
-        path = root / relative
+        normalized = relative.replace("\\", "/")
+        relative_path = Path(normalized)
+
+        # Require a canonical, repository-relative path.
+        if (
+            relative_path.is_absolute()
+            or any(
+                part in {"", ".", ".."}
+                for part in normalized.split("/")
+            )
+        ):
+            return False
+
+        candidate = root / relative_path
+
+        # Reject symlinks at every component, not only the final file.
+        current = root
+        for part in relative_path.parts:
+            current = current / part
+            if current.is_symlink():
+                return False
+
         try:
-            path.resolve().relative_to(root)
-        except ValueError:
+            resolved = candidate.resolve(strict=True)
+            resolved.relative_to(root)
+        except (OSError, ValueError):
             return False
 
-        if path.is_symlink() or not path.is_file():
+        if not candidate.is_file():
             return False
+
+        # Every file must pass containment/existence checks. Non-Python
+        # language syntax is proven through bound external evidence.
+        if relative_path.suffix.lower() not in _PYTHON_SUFFIXES:
+            continue
 
         try:
             ast.parse(
-                path.read_text(encoding="utf-8"),
-                filename=str(path),
+                candidate.read_text(encoding="utf-8"),
+                filename=str(candidate),
             )
         except (OSError, UnicodeError, SyntaxError):
             return False
@@ -121,6 +148,9 @@ def _valid_evidence(
     if not evidence.external_executor.strip():
         return False
 
+    if not isinstance(evidence.evidence_fingerprint, str):
+        return False
+
     if not _SHA256.fullmatch(evidence.evidence_fingerprint):
         return False
 
@@ -132,15 +162,30 @@ def _valid_evidence(
     if not non_python_changes:
         return True
 
-    # Non-Python files must be tied to a specific source commit and external
-    # verification run, with command identity and a stable result fingerprint.
+    # Non-Python changes must be bound to a source commit and a uniquely
+    # identified external verification execution.
+    if not isinstance(request.source_commit_sha, str):
+        return False
+
     if not _SHA1.fullmatch(request.source_commit_sha):
         return False
 
     if evidence.source_commit_sha != request.source_commit_sha:
         return False
 
-    if not evidence.command.strip() or not evidence.run_id.strip():
+    if (
+        not isinstance(evidence.command, str)
+        or not evidence.command.strip()
+    ):
+        return False
+
+    if (
+        not isinstance(evidence.run_id, str)
+        or not evidence.run_id.strip()
+    ):
+        return False
+
+    if not isinstance(evidence.result_fingerprint, str):
         return False
 
     if not _SHA256.fullmatch(evidence.result_fingerprint):
