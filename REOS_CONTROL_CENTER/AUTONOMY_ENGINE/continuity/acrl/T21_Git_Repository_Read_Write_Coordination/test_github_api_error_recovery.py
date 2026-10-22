@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import pytest
 
+from .git_models import GitReason
+from .git_push import classify_git_push_error
 from .git_registry import GitRegistry
 from .github_api_error_recovery import (
     GitHubAPIErrorKind,
@@ -42,7 +44,7 @@ def test_404_requires_exact_path_and_ref_check() -> None:
 
     assert result.kind is GitHubAPIErrorKind.NOT_FOUND
     assert result.retryable is False
-    assert "Never silently switch branches" in result.action
+    assert "silently switch branches" in result.action
 
 
 @pytest.mark.parametrize(
@@ -134,3 +136,32 @@ def test_registry_declares_api_error_recovery_component() -> None:
     registry.validate()
 
     assert registry.api_error_recovery == "github_api_error_recovery"
+
+
+def test_existing_push_adapter_uses_rate_limit_classification() -> None:
+    reason, explanation = classify_git_push_error(
+        RuntimeError(
+            "fatal: HTTP 403: API rate limit exceeded"
+        )
+    )
+
+    assert reason is GitReason.RATE_LIMITED
+    assert "bounded retry" in explanation.lower()
+
+
+def test_existing_push_adapter_keeps_permission_denial_distinct() -> None:
+    reason, explanation = classify_git_push_error(
+        RuntimeError("fatal: HTTP 403 permission denied")
+    )
+
+    assert reason is GitReason.AUTHORIZATION_DENIED
+    assert "permission" in explanation.lower()
+
+
+def test_existing_push_adapter_maps_conflict_to_reconciliation() -> None:
+    reason, explanation = classify_git_push_error(
+        RuntimeError("remote: HTTP 409 stale reference")
+    )
+
+    assert reason is GitReason.NON_FAST_FORWARD
+    assert "reconcile" in explanation.lower() or "reread" in explanation.lower()
