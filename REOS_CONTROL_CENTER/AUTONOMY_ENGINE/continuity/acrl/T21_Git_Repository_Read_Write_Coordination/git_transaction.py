@@ -928,7 +928,7 @@ def execute_git_transaction(
                 reason = GitReason.VALID
                 explanation = "Verified Git commit created."
 
-                if request.operation is GitOperation.PUSH:
+                               if request.operation is GitOperation.PUSH:
                     try:
                         from .git_push import (
                             classify_git_push_error,
@@ -966,10 +966,11 @@ def execute_git_transaction(
                             explanation = (
                                 "Remote branch did not resolve to the verified commit."
                             )
-                        except Exception as exc:
+
+                    except Exception as exc:
                         reason, safe_explanation = classify_git_push_error(exc)
 
-                        # Push may have reached the remote before the client
+                        # A push may have reached the remote before the client
                         # observed a timeout or server-side error. Never retry
                         # blindly: read back the exact requested remote branch.
                         try:
@@ -981,6 +982,7 @@ def execute_git_transaction(
                         except Exception:
                             remote_sha = None
 
+                        # Only an exact remote commit match may prove success.
                         if remote_sha == commit_sha:
                             return _result(
                                 request=request,
@@ -999,6 +1001,8 @@ def execute_git_transaction(
                                 ),
                             )
 
+                        # A readback mismatch is not a successful push. Do not
+                        # retry automatically or overwrite the remote branch.
                         if (
                             remote_sha is not None
                             and reason in {
