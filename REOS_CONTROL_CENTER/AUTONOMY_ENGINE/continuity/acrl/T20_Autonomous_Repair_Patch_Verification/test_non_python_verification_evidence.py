@@ -5,6 +5,7 @@ from pathlib import Path
 
 from .patch_verification import (
     external_evidence_fingerprint,
+    syntax_check,
     tree_fingerprint,
     verify_patch,
 )
@@ -26,7 +27,11 @@ PATCH = (
 )
 
 
-def make_request(root: Path, *, source_commit: str = SOURCE_COMMIT):
+def make_request(
+    root: Path,
+    *,
+    source_commit: str = SOURCE_COMMIT,
+) -> RepairRequest:
     return RepairRequest(
         repair_id="web-repair-001",
         authorization_fingerprint="c" * 64,
@@ -56,6 +61,7 @@ def make_external_evidence(
         source_commit_sha=source_commit,
         result_fingerprint=RESULT_FINGERPRINT,
     )
+
     return replace(
         evidence,
         evidence_fingerprint=external_evidence_fingerprint(evidence),
@@ -65,10 +71,12 @@ def make_external_evidence(
 def build_workspace(root: Path) -> Path:
     source = root / "src"
     source.mkdir(parents=True)
+
     (source / "component.tsx").write_text(
         "export const value = 2;\n",
         encoding="utf-8",
     )
+
     return root
 
 
@@ -118,7 +126,10 @@ def test_non_python_evidence_must_match_requested_source_commit(
     tmp_path: Path,
 ) -> None:
     workspace = build_workspace(tmp_path / "workspace")
-    request = make_request(workspace, source_commit="c" * 40)
+    request = make_request(
+        workspace,
+        source_commit="c" * 40,
+    )
     evidence = make_external_evidence(source_commit=SOURCE_COMMIT)
 
     result = verify_patch(
@@ -142,6 +153,7 @@ def test_result_fingerprint_is_part_of_evidence_binding(
         evidence,
         result_fingerprint="9" * 64,
     )
+
     result = verify_patch(
         workspace=workspace,
         request=request,
@@ -150,3 +162,46 @@ def test_result_fingerprint_is_part_of_evidence_binding(
 
     assert result.passed is False
     assert result.reason.value == "VERIFICATION_REQUIRED"
+
+
+def test_non_python_path_escape_is_rejected(
+    tmp_path: Path,
+) -> None:
+    workspace = build_workspace(tmp_path / "workspace")
+
+    (tmp_path / "outside.tsx").write_text(
+        "export const value = 1;\n",
+        encoding="utf-8",
+    )
+
+    assert syntax_check(workspace, ("../outside.tsx",)) is False
+
+
+def test_missing_non_python_path_is_rejected(
+    tmp_path: Path,
+) -> None:
+    workspace = build_workspace(tmp_path / "workspace")
+
+    assert syntax_check(workspace, ("src/missing.tsx",)) is False
+
+
+def test_non_python_symlink_is_rejected(
+    tmp_path: Path,
+) -> None:
+    workspace = build_workspace(tmp_path / "workspace")
+    outside = tmp_path / "outside.tsx"
+
+    outside.write_text(
+        "export const value = 1;\n",
+        encoding="utf-8",
+    )
+
+    link = workspace / "src" / "linked.tsx"
+
+    try:
+        link.symlink_to(outside)
+    except (OSError, NotImplementedError):
+        # Some Windows configurations do not permit symlink creation.
+        return
+
+    assert syntax_check(workspace, ("src/linked.tsx",)) is False
