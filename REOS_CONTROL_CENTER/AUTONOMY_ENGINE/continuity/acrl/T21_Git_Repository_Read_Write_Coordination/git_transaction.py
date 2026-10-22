@@ -1035,6 +1035,17 @@ def execute_git_transaction(
                             push_performed=True,
                             push_verified=False,
                             explanation=safe_explanation,
+                            request=request,
+                            decision=decision,
+                            reason=reason,
+                            before=before,
+                            after=reader.snapshot(),
+                            changed_paths=scoped_paths,
+                            staged=staged,
+                            commit_sha=commit_sha,
+                            push_performed=push_performed,
+                            push_verified=push_verified,
+                            explanation=explanation,
                         )
 
     except GitTransactionLockError as exc:
