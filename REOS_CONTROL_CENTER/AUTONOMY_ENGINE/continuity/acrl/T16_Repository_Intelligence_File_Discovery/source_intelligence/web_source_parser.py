@@ -39,7 +39,8 @@ CSS_SOURCE_SUFFIXES = frozenset(
 _SOURCE_LIMIT_BYTES = 2 * 1024 * 1024
 
 _FROM_IMPORT = re.compile(
-    r"""(?:\bimport\b|\bexport\b)[\s\S]{0,4096}?
+    r"""(?m)^[ \t]*(?:import|export)\b
+        (?:(?!^[ \t]*(?:import|export)\b)[\s\S]){0,4096}?
         \bfrom\s*["']([^"']+)["']""",
     re.VERBOSE,
 )
