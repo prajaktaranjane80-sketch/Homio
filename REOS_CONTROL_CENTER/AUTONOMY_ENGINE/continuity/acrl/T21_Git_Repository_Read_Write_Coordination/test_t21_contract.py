@@ -5,13 +5,8 @@ from pathlib import Path
 
 
 def _contract():
-    path = Path(__file__).with_name(
-        "t21.contract.json"
-    )
-
-    return json.loads(
-        path.read_text(encoding="utf-8")
-    )
+    path = Path(__file__).with_name("t21.contract.json")
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def test_t21_contract():
@@ -24,7 +19,6 @@ def test_t21_contract():
 
 def test_force_push_is_forbidden():
     payload = _contract()
-
     assert "force push" in payload["forbidden"]
 
 
@@ -45,3 +39,13 @@ def test_replay_claim_does_not_overstate_capability():
         "persistent replay prevention is not claimed"
         in payload["deep_audit"]["24_idempotency_replay_safety"]
     )
+
+
+def test_api_error_recovery_policy_is_present():
+    recovery = _contract()["api_error_recovery"]
+
+    assert recovery["component"] == "github_api_error_recovery"
+    assert "readback" in recovery["409"].lower()
+    assert "silently switch branches" in recovery["404"]
+    assert "bounded retries" in recovery["429"]
+    assert "readback" in recovery["timeout_or_network_failure"]
