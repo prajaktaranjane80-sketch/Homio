@@ -966,7 +966,7 @@ def execute_git_transaction(
                             explanation = (
                                 "Remote branch did not resolve to the verified commit."
                             )
-                                        except Exception as exc:
+                        except Exception as exc:
                         reason, safe_explanation = classify_git_push_error(exc)
 
                         # Push may have reached the remote before the client
