@@ -1,23 +1,24 @@
 
 # HOMIO / REOS — Canonical Task Continuity and Guarded GitHub Sync
 
-> **CURRENT VERIFIED OVERLAY — 2026-10-22**
+> **PHASE 4 VERIFICATION OVERLAY — 2026-10-22**
 >
 > - Canonical repository: `prajaktaranjane80-sketch/Homio`.
 > - Canonical branch: `reos-development`.
-> - Latest observed HEAD: `e716a1e3fe1bd5c12c7dd8d01ce935d7e0ad459b`.
+> - Phase 4 EntryPoint implementation commit verified: `75319507b8f433985fdefa7e042d50b12f9d6f7e`.
+> - Commit URL: https://github.com/prajaktaranjane80-sketch/Homio/commit/75319507b8f433985fdefa7e042d50b12f9d6f7e
+> - The commit has one changed path: `REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py`; it adds the explicit prohibition on a competing standalone runner.
+> - Backend/ACRL Actions Run #207 tested that exact commit and finished **successfully**: https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39803416638
+> - EntryPoint contract test: **15 passed**. The remaining targeted ACRL, T07/T14, T18–T24, canonical-truth, authentication, finance, context and tenant CI steps all completed successfully. Test outcomes shown in the log total 1,007 passes across 11 pytest invocations. This is the covered CI suite, not a claim that every platform-wide audit finding or all CORE-008 acceptance criteria are complete.
 > - Canonical state path: `REOS_CONTROL_CENTER/data/state.json`.
-> - Canonical state blob SHA at this baseline:
->   `92296fb10b0c7a37d0fc7fa97c4328f587512150`.
-> - Current canonical subtask remains **CORE-008-T04 — Implement settlement and reconciliation lifecycle**.
-> - T01–T03 are complete. T04 remains current; T05–T10 remain pending unless changed by the canonical Control Center.
-> - Phase 3 guarded synchronization foundations have targeted CI evidence on the latest observed commit. Do not interpret this as proof that all ACRL layers or all CORE-008 acceptance criteria are complete.
-> - The owner has explicitly directed that Phase 4 workflow alignment begin. This authorizes only the bounded workflow-document, contract-test, CI and final EntryPoint alignment work described below; it does not authorize changing canonical execution state or modifying unrelated financial runtime code.
-> - **Required implementation order:** reconcile supporting workflow documents → add and verify the EntryPoint contract test → wire the test into existing backend CI → update `AI_AGENT_ENTRYPOINT.py` last → independently verify the final commit and CI.
-> - `AI_AGENT_ENTRYPOINT.py` must not be updated early or repeatedly while upstream workflow policy is still changing.
-> - `state.json` remains canonical. This document, chat history and diagnostic outputs cannot authorize a state transition.
-> - A CI result applies only to its exact tested commit SHA.
-> - A file is not considered saved/verified until its committed content has been read back from GitHub.
+> - State blob SHA remains `92296fb10b0c7a37d0fc7fa97c4328f587512150`; it was not changed by the Phase 4 implementation commit.
+> - Current canonical subtask remains **CORE-008-T04 — Implement settlement and reconciliation lifecycle**. Phase 4 does not complete T04 or change any acceptance-criterion status.
+> - **Phase 4 closeout status: SUPPORTING-DOCUMENT READBACK STILL REQUIRED.** EntryPoint, contract test and backend CI are saved and green, but the supporting-plan overlays must be reconciled and read back before the phase is declared complete.
+> - The implementation history updated `AI_AGENT_ENTRYPOINT.py` before every supporting-plan overlay had been refreshed. Do not rewrite or revert passing code just to restage history. Record that sequence honestly, reconcile the remaining documents now, and do not update EntryPoint again without a demonstrated policy defect.
+> - Required authority boundary remains: `state.json` and the existing Control Center are authoritative; this document, chat history, diagnostic output and other plans are not.
+> - A CI result applies to its exact tested commit SHA. The relevant implementation SHA and Actions result are recorded above; later documentation-only commits do not change what code that run tested.
+>
+> **Next action:** reconcile/read back the remaining supporting workflow records against this evidence. Preserve the current state SHA and do not mark Phase 4 complete until the documentation readback succeeds.
 
 ## 1. Project and canonical references
 
@@ -55,7 +56,7 @@ https://github.com/prajaktaranjane80-sketch/Homio
 
 Do not invent task identifiers or assume a subtask status that has not been verified against live canonical state.
 
-## 2. Latest verified repository and CI baseline
+## 2. Pre-Phase 4 repository and CI baseline (historical snapshot)
 
 ### Repository
 
@@ -77,7 +78,7 @@ The exact existing root-level workflow path contains an en dash:
 
 Do not create a hyphen-named duplicate.
 
-### Latest observed backend/ACRL CI
+### Previous backend/ACRL CI evidence before Phase 4
 
 - Run: `39773259833` — Run #203.
 - URL:
@@ -289,6 +290,6 @@ At the beginning and end of each implementation batch, record:
 - Any unresolved blocker.
 - Next action in the owner-approved Phase 4 order.
 
-The next action is the supporting-document reconciliation. The EntryPoint remains the final update and is not to be edited during the initial document batch.
+At the Phase 4 implementation verification point, the EntryPoint consolidation is already committed at `75319507b8f433985fdefa7e042d50b12f9d6f7e` and has a successful Actions Run #207. Do not revert that passing work merely to restage the order. The remaining closeout is to reconcile and read back the other supporting workflow records against the exact implementation/test evidence above. The platform-wide audit JSON is a historical audit snapshot: retain its accurate historical limitations and change it only if a specific statement conflicts with this bounded Phase 4 result. Do not edit `data/state.json`, do not change CORE-008-T04 acceptance criteria, and do not reopen EntryPoint without a demonstrated mismatch.
 
 END OF DOCUMENT
