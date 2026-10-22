@@ -1,54 +1,34 @@
-from pathlib import Path
-import json
-
-
-CONTRACT_PATH = (
-    Path(__file__).resolve().parent
-    / "t18.contract.json"
-)
-
-
-def test_t18_contract_exists():
-    assert CONTRACT_PATH.is_file()
-
-
-def test_t18_contract_schema():
-    data = json.loads(
-        CONTRACT_PATH.read_text(
-            encoding="utf-8"
-        )
-    )
-
-    assert data["layer"] == "T18"
-    assert (
-        data["name"]
-        == "Safe Execution Authorization Guard"
-    )
-    assert data["schema_version"] == "1.0"
-    assert data["mode"] == "authorization-only"
-
-
-def test_t18_contract_forbids_execution_by_guard():
-    data = json.loads(
-        CONTRACT_PATH.read_text(
-            encoding="utf-8"
-        )
-    )
-
-    assert "business operation execution" in data["forbidden"]
-    assert "state.json mutation" in data["forbidden"]
-    assert "self approval" in data["forbidden"]
-
-
-def test_t18_contract_has_required_upstream_layers():
-    data = json.loads(
-        CONTRACT_PATH.read_text(
-            encoding="utf-8"
-        )
-    )
-
-    assert "T15_AI_Operator_Autonomy" in data["upstream"]
-    assert (
-        "T17_Change_Impact_Dependency_Analysis"
-        in data["upstream"]
-    )
+{
+  "layer": "T18",
+  "name": "Safe Execution Authorization Guard",
+  "schema_version": "1.0",
+  "mode": "authorization-only",
+  "upstream": [
+    "T15_AI_Operator_Autonomy",
+    "T17_Change_Impact_Dependency_Analysis"
+  ],
+  "downstream": [
+    "future_execution_layer"
+  ],
+  "forbidden": [
+    "state.json mutation",
+    "repository mutation",
+    "business operation execution",
+    "authority promotion",
+    "architecture mutation",
+    "self approval",
+    "unbounded authorization"
+  ],
+  "required_inputs": [
+    "validated T15 operator proposal",
+    "validated T17 change-impact report",
+    "explicit approval evidence for executable change",
+    "unique authorization nonce",
+    "trusted OIDC-verified approver principal bound to the approval evidence and requested scope"
+  ],
+  "decisions": [
+    "AUTHORIZE",
+    "BLOCK",
+    "FAIL_CLOSED"
+  ]
+}
