@@ -1023,7 +1023,7 @@ def execute_git_transaction(
                                 "no automatic retry was attempted."
                             )
 
-                                                return _result(
+                        return _result(
                             request=request,
                             decision=GitDecision.REJECTED,
                             reason=reason,
