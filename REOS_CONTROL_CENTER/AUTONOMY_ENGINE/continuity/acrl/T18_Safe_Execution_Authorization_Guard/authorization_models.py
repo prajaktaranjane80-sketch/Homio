@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from ..T15_AI_Operator_Autonomy.operator_policy import (
@@ -22,21 +22,34 @@ from .authorization_registry import (
 
 @dataclass(frozen=True, slots=True)
 class HumanApproval:
-    """Immutable explicit approval evidence."""
+    """Immutable approval evidence bound to an authenticated principal."""
 
     approval_id: str
     authority: str
     approved: bool
     scope_fingerprint: str
     evidence: tuple[str, ...]
+    principal_issuer: str | None = None
+    principal_subject: str | None = None
+    authentication_token: str | None = field(
+        default=None,
+        repr=False,
+        compare=False,
+    )
 
     def to_dict(self) -> dict[str, Any]:
+        """Return auditable approval metadata without bearer credentials."""
         return {
             "approval_id": self.approval_id,
             "authority": self.authority,
             "approved": self.approved,
             "scope_fingerprint": self.scope_fingerprint,
             "evidence": list(self.evidence),
+            "principal_issuer": self.principal_issuer,
+            "principal_subject": self.principal_subject,
+            "authentication_proof_present": bool(
+                self.authentication_token
+            ),
         }
 
 
@@ -84,9 +97,13 @@ class ExecutionAuthorization:
             "schema_version": self.schema_version,
             "decision": self.decision.value,
             "reason": self.reason.value,
-            "authorization_fingerprint": self.authorization_fingerprint,
+            "authorization_fingerprint": (
+                self.authorization_fingerprint
+            ),
             "request_fingerprint": self.request_fingerprint,
-            "operator_request_fingerprint": self.operator_request_fingerprint,
+            "operator_request_fingerprint": (
+                self.operator_request_fingerprint
+            ),
             "impact_fingerprint": self.impact_fingerprint,
             "action_type": (
                 self.action_type.value
@@ -100,7 +117,9 @@ class ExecutionAuthorization:
             ),
             "execution_authorized": self.execution_authorized,
             "state_mutated": self.state_mutated,
-            "requires_external_executor": self.requires_external_executor,
+            "requires_external_executor": (
+                self.requires_external_executor
+            ),
         }
 
 
