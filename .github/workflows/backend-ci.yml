@@ -72,6 +72,7 @@ jobs:
             AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery \
             AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis \
             AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard \
+            AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis \
             AUTONOMY_ENGINE/continuity/acrl/T20_Autonomous_Repair_Patch_Verification \
             AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination \
             AUTONOMY_ENGINE/continuity/acrl/T22_Commit_Execution_Checkpoint_Coordination \
@@ -103,6 +104,11 @@ jobs:
           python -m pytest -q \
             AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery \
             AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis
+
+      - name: Run T19 intelligent test-selection regressions
+        run: |
+          python -m pytest -q \
+            AUTONOMY_ENGINE/continuity/acrl/T19_Intelligent_Test_Selection_Failure_Diagnosis
 
       - name: Run T20 patch-verification regressions
         run: |
