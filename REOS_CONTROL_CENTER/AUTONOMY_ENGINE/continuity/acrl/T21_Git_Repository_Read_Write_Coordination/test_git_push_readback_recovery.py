@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -66,7 +67,10 @@ def build_repo(root: Path) -> Path:
     run_git(root, "config", "user.email", "test@example.com")
     run_git(root, "config", "user.name", "T21 Readback Test")
 
-    (root / "file.txt").write_text("one\n", encoding="utf-8")
+    (root / "file.txt").write_text(
+        "one\n",
+        encoding="utf-8",
+    )
     run_git(root, "add", "file.txt")
     run_git(root, "commit", "-m", "initial")
     run_git(
@@ -76,6 +80,7 @@ def build_repo(root: Path) -> Path:
         "origin",
         "https://example.invalid/owner/repository.git",
     )
+
     return root
 
 
@@ -98,13 +103,14 @@ def make_authorization() -> ExecutionAuthorization:
 
 def make_verified_repair(root: Path) -> RepairResult:
     baseline = tree_fingerprint(root)
-    file = root / "file.txt"
+    target = root / "file.txt"
 
-    file.write_text("two\n", encoding="utf-8")
+    target.write_text("two\n", encoding="utf-8")
     final_tree = tree_fingerprint(root)
-    file.write_text("one\n", encoding="utf-8")
+    target.write_text("one\n", encoding="utf-8")
 
     digest = patch_fingerprint(PATCH)
+
     evidence = VerificationEvidence(
         syntax_passed=True,
         tests_passed=True,
@@ -112,6 +118,7 @@ def make_verified_repair(root: Path) -> RepairResult:
         external_executor="isolated-test-runner",
         evidence_fingerprint="f" * 64,
     )
+
     verification = PatchVerification(
         passed=True,
         changed_paths=("file.txt",),
@@ -139,7 +146,10 @@ def make_verified_repair(root: Path) -> RepairResult:
     )
 
 
-def make_request(root: Path, repair: RepairResult) -> GitTransactionRequest:
+def make_request(
+    root: Path,
+    repair: RepairResult,
+) -> GitTransactionRequest:
     snapshot = GitReader(root).snapshot()
 
     return GitTransactionRequest(
@@ -163,7 +173,7 @@ def make_request(root: Path, repair: RepairResult) -> GitTransactionRequest:
 def run_push_with_simulated_error(
     root: Path,
     monkeypatch: pytest.MonkeyPatch,
-    readback_sha: str,
+    readback_sha: str | Callable[[Path], str],
 ):
     repair = make_verified_repair(root)
     request = make_request(root, repair)
@@ -172,6 +182,8 @@ def run_push_with_simulated_error(
         raise RuntimeError("request timed out")
 
     def fake_remote_readback(repository, *, remote, branch):
+        if callable(readback_sha):
+            return readback_sha(repository.root)
         return readback_sha
 
     monkeypatch.setattr(git_push, "push_branch", fail_push)
@@ -197,13 +209,17 @@ def test_ambiguous_push_is_verified_by_exact_remote_readback(
     result = run_push_with_simulated_error(
         root,
         monkeypatch,
-        readback_sha="placeholder",
+        readback_sha=lambda repository_root: run_git(
+            repository_root,
+            "rev-parse",
+            "HEAD",
+        ),
     )
 
-    # The readback stub is replaced to observe the just-created local commit.
+    assert result.decision.value == "PUSHED"
     assert result.push_performed is True
-    assert result.push_verified is False
-    assert result.decision.value == "REJECTED"
+    assert result.push_verified is True
+    assert result.reason.value == "VALID"
 
 
 def test_remote_readback_mismatch_never_claims_push_success(
@@ -219,5 +235,6 @@ def test_remote_readback_mismatch_never_claims_push_success(
     )
 
     assert result.decision.value == "REJECTED"
+    assert result.push_performed is True
     assert result.push_verified is False
     assert result.reason.value == "NON_FAST_FORWARD"
