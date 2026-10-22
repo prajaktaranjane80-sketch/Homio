@@ -49,7 +49,8 @@
     "stage explicit authorized paths using literal pathspecs",
     "create a verified commit",
     "push only an explicitly authorized branch",
-    "produce deterministic transaction evidence"
+    "produce deterministic transaction evidence",
+    "classify GitHub API failures and recommend bounded recovery"
   ],
   "forbidden": [
     "force push",
@@ -68,7 +69,10 @@
     "commit before final tree verification",
     "self authorization",
     "self approval",
-    "production deployment"
+    "production deployment",
+    "blind retries after permission denial or stale SHA",
+    "silent branch fallback after a 404",
+    "unverified retry after an ambiguous write"
   ],
   "repair_handoff": {
     "source": "T20 RepairResult",
@@ -81,6 +85,21 @@
     "paths": "T20 patch paths, T20 changed_paths, T20 verification.changed_paths and T21 authorized changed_paths must match exactly",
     "rollback": "On a pre-commit application or staging mismatch, T21 must reverse the patch and verify restoration; otherwise return FAIL_CLOSED",
     "authority": "T18 authorizes; T20 verifies an isolated patch; T21 is responsible for the authorized Git transaction"
+  },
+  "api_error_recovery": {
+    "component": "github_api_error_recovery",
+    "403": {
+      "rate_limit": "Respect Retry-After or X-RateLimit-Reset, then use bounded retries; writes require readback before any retry.",
+      "permission_denied": "Stop, inspect repository permission, scopes, branch protection and rulesets; do not blindly retry."
+    },
+    "404": "Verify owner, repository, ref, exact path and case, and authorized access. Do not silently switch branches.",
+    "409": "Reread HEAD and the target path, reconcile stale state, and never force-overwrite.",
+    "422": "Reread current state and validation details; rebuild from verified evidence.",
+    "429": "Honor rate-limit reset information and keep retries bounded.",
+    "5xx": "Safe reads may use bounded retries; ambiguous writes require remote readback first.",
+    "timeout_or_network_failure": "Writes require readback before retry because the outcome may be ambiguous.",
+    "tls_failure": "Fail closed; never disable certificate verification.",
+    "unknown_failure": "Fail closed and inspect independently observed remote state."
   },
   "deep_audit": {
     "01_purpose": "Authorized Git coordination.",
