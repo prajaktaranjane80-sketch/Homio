@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import tempfile
@@ -928,16 +927,18 @@ def execute_git_transaction(
                 reason = GitReason.VALID
                 explanation = "Verified Git commit created."
 
-                               if request.operation is GitOperation.PUSH:
+                if request.operation is GitOperation.PUSH:
+                    # Import before the try so the exception handler itself
+                    # cannot fail because the classifier was never bound.
+                    from .git_push import (
+                        classify_git_push_error,
+                        push_branch,
+                        verify_remote_branch,
+                    )
+
+                    target_branch = request.target_branch or after.branch
+
                     try:
-                        from .git_push import (
-                            classify_git_push_error,
-                            push_branch,
-                            verify_remote_branch,
-                        )
-
-                        target_branch = request.target_branch or after.branch
-
                         push_branch(
                             repository,
                             remote=request.remote_name,
@@ -970,9 +971,9 @@ def execute_git_transaction(
                     except Exception as exc:
                         reason, safe_explanation = classify_git_push_error(exc)
 
-                        # A push may have reached the remote before the client
-                        # observed a timeout or server-side error. Never retry
-                        # blindly: read back the exact requested remote branch.
+                        # The push may have reached the remote even if the
+                        # client observed a timeout or server-side error.
+                        # Never retry blindly: read back the exact branch.
                         try:
                             remote_sha = verify_remote_branch(
                                 repository,
@@ -982,7 +983,7 @@ def execute_git_transaction(
                         except Exception:
                             remote_sha = None
 
-                        # Only an exact remote commit match may prove success.
+                        # Only the exact expected commit proves success.
                         if remote_sha == commit_sha:
                             return _result(
                                 request=request,
@@ -1001,8 +1002,6 @@ def execute_git_transaction(
                                 ),
                             )
 
-                        # A readback mismatch is not a successful push. Do not
-                        # retry automatically or overwrite the remote branch.
                         if (
                             remote_sha is not None
                             and reason in {
