@@ -28,6 +28,9 @@ class SafeAuthorizationPolicy:
     reject_protected_impacts: bool = True
     require_human_approval_for_change: bool = True
     maximum_risk: OperatorRisk = OperatorRisk.MEDIUM
+    trusted_approver_principals: tuple[
+        tuple[str, str], ...
+    ] = ()
 
     def validate(self) -> bool:
         if self.schema_version != "1.0":
@@ -64,6 +67,47 @@ class SafeAuthorizationPolicy:
             raise SafeAuthorizationPolicyError(
                 "T18 cannot self-approve."
             )
+
+        if self.require_human_approval_for_change is not True:
+            raise SafeAuthorizationPolicyError(
+                "T18 requires explicit human approval "
+                "for executable changes."
+            )
+
+        if not isinstance(
+            self.trusted_approver_principals,
+            tuple,
+        ):
+            raise SafeAuthorizationPolicyError(
+                "trusted_approver_principals must be "
+                "an immutable tuple."
+            )
+
+        seen_principals: set[tuple[str, str]] = set()
+
+        for principal in self.trusted_approver_principals:
+            if (
+                not isinstance(principal, tuple)
+                or len(principal) != 2
+                or any(
+                    not isinstance(value, str)
+                    or not value.strip()
+                    or value != value.strip()
+                    for value in principal
+                )
+            ):
+                raise SafeAuthorizationPolicyError(
+                    "Each trusted approver must contain "
+                    "a non-empty, trimmed issuer and subject."
+                )
+
+            if principal in seen_principals:
+                raise SafeAuthorizationPolicyError(
+                    "trusted_approver_principals contains "
+                    "a duplicate identity."
+                )
+
+            seen_principals.add(principal)
 
         if not isinstance(
             self.maximum_risk,
