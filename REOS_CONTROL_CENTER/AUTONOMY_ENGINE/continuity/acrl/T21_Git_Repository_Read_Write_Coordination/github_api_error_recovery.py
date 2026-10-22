@@ -1,11 +1,8 @@
 """T21 safe, classified GitHub API recovery.
 
 This module classifies errors and returns a typed recovery decision.
-It does not bypass authentication, permissions, branch protection,
-repository access, or rate limits.
-
-A single 404 is ambiguous: GitHub may conceal inaccessible private
-resources behind the same status used for missing resources.
+It never bypasses authentication, permissions, repository access,
+branch protection, rulesets, or rate limits.
 """
 
 from __future__ import annotations
@@ -37,7 +34,9 @@ class GitHubAPIOutcome(str, Enum):
     RATE_LIMITED = "RATE_LIMITED"
     PERMISSION_DENIED = "PERMISSION_DENIED"
     AMBIGUOUS_NOT_FOUND = "AMBIGUOUS_NOT_FOUND"
-    STALE_SHA_NEEDS_RECONCILIATION = "STALE_SHA_NEEDS_RECONCILIATION"
+    STALE_SHA_NEEDS_RECONCILIATION = (
+        "STALE_SHA_NEEDS_RECONCILIATION"
+    )
     TRANSIENT_FAILURE_RETRYABLE = "TRANSIENT_FAILURE_RETRYABLE"
     RECOVERY_REQUIRED_USER_ACTION = "RECOVERY_REQUIRED_USER_ACTION"
     FAIL_CLOSED = "FAIL_CLOSED"
@@ -57,7 +56,6 @@ class GitHubAPIRecovery:
 def _normalized_headers(
     headers: Mapping[str, str] | None,
 ) -> dict[str, str]:
-    """Normalize header names without logging response secrets."""
     if headers is None:
         return {}
 
@@ -72,15 +70,14 @@ def _retry_after_seconds(
     *,
     now_epoch: int | None,
 ) -> int | None:
-    """Read a Retry-After delay or primary-rate-limit reset timestamp."""
+    """Read Retry-After or the primary-rate-limit reset timestamp."""
     retry_after = headers.get("retry-after", "")
 
     if retry_after:
-        # GitHub normally supplies seconds. Also accept a valid HTTP date.
         try:
-            numeric_delay = float(retry_after)
-            if math.isfinite(numeric_delay):
-                return max(0, math.ceil(numeric_delay))
+            value = float(retry_after)
+            if math.isfinite(value):
+                return max(0, math.ceil(value))
         except (TypeError, ValueError, OverflowError):
             pass
 
@@ -89,27 +86,32 @@ def _retry_after_seconds(
             if retry_at.tzinfo is None:
                 retry_at = retry_at.replace(tzinfo=timezone.utc)
 
-            current_epoch = (
+            current = (
                 int(time.time())
                 if now_epoch is None
                 else int(now_epoch)
             )
-            return max(0, math.ceil(retry_at.timestamp() - current_epoch))
+            return max(
+                0,
+                math.ceil(retry_at.timestamp() - current),
+            )
         except (TypeError, ValueError, OverflowError):
             pass
 
-    # X-RateLimit-Reset is meaningful as the required wait when the
-    # remaining request budget has reached zero.
     if headers.get("x-ratelimit-remaining") == "0":
         reset = headers.get("x-ratelimit-reset", "")
+
         if reset:
             try:
-                current_epoch = (
+                current = (
                     int(time.time())
                     if now_epoch is None
                     else int(now_epoch)
                 )
-                return max(0, math.ceil(float(reset) - current_epoch))
+                return max(
+                    0,
+                    math.ceil(float(reset) - current),
+                )
             except (TypeError, ValueError, OverflowError):
                 pass
 
@@ -174,8 +176,8 @@ def classify_github_api_failure(
             now_epoch=now_epoch,
         )
 
-        # GitHub's guidance for a secondary-rate-limit response without
-        # Retry-After or a usable primary reset is to wait at least 60 s.
+        # A secondary-rate-limit response without usable timing
+        # information must wait at least one minute.
         if delay is None:
             delay = 60
 
@@ -187,11 +189,11 @@ def classify_github_api_failure(
             retry_after_seconds=delay,
             max_retries=1 if not operation_is_write else 0,
             action=(
-                "RATE_LIMITED: stop requests until the server-directed "
-                "wait has elapsed. Safe reads may use at most one "
-                "bounded retry. Writes must not be retried automatically; "
-                "read back the target first and resolve the write outcome. "
-                "If the limit persists, stop and require a later retry."
+                "RATE_LIMITED: wait for the server-directed delay. "
+                "Safe reads may use at most one bounded retry. Writes "
+                "must not be automatically retried; read back the target "
+                "first and resolve the write outcome. If the limit "
+                "persists, stop and require a later retry."
             ),
         )
 
@@ -204,9 +206,10 @@ def classify_github_api_failure(
             retry_after_seconds=None,
             max_retries=0,
             action=(
-                "AUTHENTICATION_REQUIRED: verify the authenticated identity, "
-                "session validity, and required endpoint permissions through "
-                "the approved connection. Do not rotate credentials blindly."
+                "AUTHENTICATION_REQUIRED: verify the authenticated "
+                "identity, session validity, and endpoint permissions "
+                "through the approved connection. Do not rotate "
+                "credentials blindly."
             ),
         )
 
@@ -220,12 +223,11 @@ def classify_github_api_failure(
             max_retries=0,
             action=(
                 "PERMISSION_DENIED: do not retry or bypass the denial. "
-                "Verify which authorized connection made the request, "
-                "whether the GitHub App/connection has access to the exact "
-                "Homio repository, the endpoint's required permissions "
-                "(Contents: write for content writes), and applicable "
-                "branch protection/rulesets. If access is not granted, stop "
-                "and use an already-authorized owner workflow."
+                "Verify the authorized connection, access to the exact "
+                "repository, required endpoint permissions (Contents: "
+                "write for content writes), and branch protection or "
+                "rulesets. If access is not granted, stop and use an "
+                "already-authorized owner workflow."
             ),
         )
 
@@ -238,37 +240,38 @@ def classify_github_api_failure(
             retry_after_seconds=None,
             max_retries=0,
             action=(
-                "AMBIGUOUS_NOT_FOUND: a single 404 does not prove that the "
-                "resource is absent; GitHub may return 404 when credentials "
-                "cannot access a private resource. Verify the authenticated "
-                "identity and repository access first, then exact owner/repo, "
-                "HTTP endpoint and method, branch/ref, path spelling/case, "
-                "parent directory, and URL encoding. Use an authorized "
-                "read-only metadata or parent-tree check to confirm absence. "
-                "Do not sweep guessed paths, repeat the same failed request "
-                "blindly, or silently switch branches."
+                "AMBIGUOUS_NOT_FOUND: a single 404 does not prove that "
+                "the resource is absent; GitHub may return 404 when "
+                "credentials cannot access a private resource. Verify "
+                "the authenticated identity and repository access first, "
+                "then exact owner/repo, HTTP endpoint and method, "
+                "branch/ref, path spelling/case, parent directory, and "
+                "URL encoding. Use an authorized read-only metadata or "
+                "parent-tree check to confirm absence. "
+                "Never silently switch branches. Do not sweep guessed "
+                "paths or repeat the same failed request blindly."
             ),
         )
 
     if status_code in {409, 422}:
-        is_conflict = status_code == 409
-
         return GitHubAPIRecovery(
             kind=(
                 GitHubAPIErrorKind.CONFLICT
-                if is_conflict
+                if status_code == 409
                 else GitHubAPIErrorKind.VALIDATION_OR_STALE_SHA
             ),
-            outcome=GitHubAPIOutcome.STALE_SHA_NEEDS_RECONCILIATION,
+            outcome=(
+                GitHubAPIOutcome.STALE_SHA_NEEDS_RECONCILIATION
+            ),
             retryable=False,
             requires_readback=True,
             retry_after_seconds=None,
             max_retries=0,
             action=(
-                "STALE_SHA_NEEDS_RECONCILIATION: reread the live branch HEAD, "
-                "target path and current blob SHA. Rebuild the change from "
-                "the verified baseline. Never guess a SHA, overwrite newer "
-                "content, or force-push around the conflict."
+                "STALE_SHA_NEEDS_RECONCILIATION: reread the live branch "
+                "HEAD, target path, and current blob SHA. Rebuild the "
+                "change from the verified baseline. Never guess a SHA, "
+                "overwrite newer content, or force-push around conflict."
             ),
         )
 
@@ -288,14 +291,14 @@ def classify_github_api_failure(
             max_retries=2 if safe_to_retry else 0,
             action=(
                 "TRANSIENT_FAILURE_RETRYABLE: use at most two bounded "
-                "exponential-backoff retries for a safe read. For a write, "
-                "read back the exact branch, commit and path before any "
-                "decision to retry."
+                "backoff retries for a safe read. For a write, read back "
+                "the exact branch, commit, and path before deciding what "
+                "to do next."
                 if safe_to_retry
                 else
-                "RECOVERY_REQUIRED_USER_ACTION: the write outcome may be "
-                "ambiguous. Read back the exact target before proceeding; "
-                "do not automatically repeat the write."
+                "RECOVERY_REQUIRED_USER_ACTION: the write outcome may "
+                "be ambiguous. Read back the exact target before "
+                "proceeding; do not automatically repeat the write."
             ),
         )
 
@@ -334,12 +337,13 @@ def classify_github_api_failure(
                 retry_after_seconds=None,
                 max_retries=1 if safe_to_retry else 0,
                 action=(
-                    "TRANSIENT_FAILURE_RETRYABLE: one bounded retry is "
-                    "allowed for a safe read."
+                    "TRANSIENT_FAILURE_RETRYABLE: one bounded retry "
+                    "is allowed for a safe read."
                     if safe_to_retry
                     else
-                    "RECOVERY_REQUIRED_USER_ACTION: read back remote state "
-                    "before any retry because the write may have succeeded."
+                    "RECOVERY_REQUIRED_USER_ACTION: read back remote "
+                    "state before retrying because the write may "
+                    "already have succeeded."
                 ),
             )
 
@@ -358,12 +362,12 @@ def classify_github_api_failure(
                 retry_after_seconds=None,
                 max_retries=1 if safe_to_retry else 0,
                 action=(
-                    "TRANSIENT_FAILURE_RETRYABLE: one bounded retry is "
-                    "allowed for a safe read."
+                    "TRANSIENT_FAILURE_RETRYABLE: one bounded retry "
+                    "is allowed for a safe read."
                     if safe_to_retry
                     else
                     "RECOVERY_REQUIRED_USER_ACTION: independently read "
-                    "remote state before any retry of the write."
+                    "remote state before retrying the write."
                 ),
             )
 
@@ -375,9 +379,9 @@ def classify_github_api_failure(
         retry_after_seconds=None,
         max_retries=0,
         action=(
-            "FAIL_CLOSED: the error is unclassified. Do not retry blindly. "
-            "Inspect the error safely and independently check remote state "
-            "if a write might have been attempted."
+            "FAIL_CLOSED: the error is unclassified. Do not retry "
+            "blindly. Inspect it safely and independently check remote "
+            "state if a write might have been attempted."
         ),
     )
 
