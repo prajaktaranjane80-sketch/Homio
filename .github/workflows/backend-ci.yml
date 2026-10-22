@@ -67,18 +67,20 @@ jobs:
             context \
             AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap \
             AUTONOMY_ENGINE/continuity/acrl/T14_Repository_Intelligence_Context \
+            AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery \
+            AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis \
             AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard \
             AUTONOMY_ENGINE/continuity/acrl/T21_Git_Repository_Read_Write_Coordination \
             AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine \
             AUTONOMY_ENGINE/continuity/acrl/T24_Cross_Chat_Continuity_Recovery_Engine \
             AUTONOMY_ENGINE/continuity/acrl/runtime_integration
 
-      - name: Run ACRL runtime-integration regression tests
+      - name: Run ACRL runtime-integration regressions
         run: |
           python -m pytest -q \
             AUTONOMY_ENGINE/continuity/acrl/runtime_integration
 
-      - name: Run T07 and T14 fast-resume regression tests
+      - name: Run T07 and T14 fast-resume regressions
         run: |
           python -m pytest -q \
             AUTONOMY_ENGINE/continuity/acrl/T14_Repository_Intelligence_Context/test_audit_resume_manifest.py \
@@ -91,6 +93,12 @@ jobs:
         run: |
           python -m pytest -q \
             AUTONOMY_ENGINE/continuity/acrl/T18_Safe_Execution_Authorization_Guard
+
+      - name: Run T16 and T17 source-impact regressions
+        run: |
+          python -m pytest -q \
+            AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery \
+            AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis
 
       - name: Run T23 evidence-resolution and T24 continuity regressions
         run: |
