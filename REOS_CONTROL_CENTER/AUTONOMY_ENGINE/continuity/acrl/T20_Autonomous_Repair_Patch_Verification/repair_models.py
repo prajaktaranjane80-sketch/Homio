@@ -61,6 +61,7 @@ class RepairRequest:
     candidate_patch: str
     attempt: int = 1
     policy_version: str = "1.0"
+    source_commit_sha: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -75,6 +76,7 @@ class RepairRequest:
             "candidate_patch": self.candidate_patch,
             "attempt": self.attempt,
             "policy_version": self.policy_version,
+            "source_commit_sha": self.source_commit_sha,
         }
 
 
@@ -89,10 +91,7 @@ class BaselineSnapshot:
             "repository_root": self.repository_root,
             "tree_fingerprint": self.tree_fingerprint,
             "file_fingerprints": [
-                {
-                    "path": path,
-                    "fingerprint": digest,
-                }
+                {"path": path, "fingerprint": digest}
                 for path, digest in self.file_fingerprints
             ],
         }
@@ -106,6 +105,12 @@ class VerificationEvidence:
     external_executor: str
     evidence_fingerprint: str
 
+    # Required for independently identifying non-Python verification runs.
+    command: str = ""
+    run_id: str = ""
+    source_commit_sha: str = ""
+    result_fingerprint: str = ""
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "syntax_passed": self.syntax_passed,
@@ -113,6 +118,10 @@ class VerificationEvidence:
             "regression_passed": self.regression_passed,
             "external_executor": self.external_executor,
             "evidence_fingerprint": self.evidence_fingerprint,
+            "command": self.command,
+            "run_id": self.run_id,
+            "source_commit_sha": self.source_commit_sha,
+            "result_fingerprint": self.result_fingerprint,
         }
 
 
@@ -152,8 +161,7 @@ class RepairResult:
     verification: PatchVerification | None
     evidence_fingerprint: str
 
-    # Patch content is handed to T21 only for a VERIFIED result.
-    # All non-verified results retain the safe empty default.
+    # Patch content is handed to T21 only when the result is VERIFIED.
     candidate_patch: str = ""
 
     def to_dict(self) -> dict[str, Any]:
