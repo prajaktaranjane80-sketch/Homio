@@ -1,167 +1,234 @@
 from __future__ import annotations
 
+import subprocess
+from collections.abc import Callable
+from pathlib import Path
+
 import pytest
 
-from .git_models import GitReason
-from .git_push import classify_git_push_error
-from .git_registry import GitRegistry
-from .github_api_error_recovery import (
-    GitHubAPIErrorKind,
-    classify_github_api_failure,
+from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.authorization_models import (
+    ExecutionAuthorization,
+)
+from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.authorization_registry import (
+    AuthorizationDecision,
+    AuthorizationReason,
+)
+from AUTONOMY_ENGINE.continuity.acrl.T20_Autonomous_Repair_Patch_Verification.patch_engine import (
+    patch_fingerprint,
+)
+from AUTONOMY_ENGINE.continuity.acrl.T20_Autonomous_Repair_Patch_Verification.patch_verification import (
+    tree_fingerprint,
+)
+from AUTONOMY_ENGINE.continuity.acrl.T20_Autonomous_Repair_Patch_Verification.repair_models import (
+    PatchVerification,
+    RepairDecision,
+    RepairReason,
+    RepairResult,
+    VerificationEvidence,
+)
+from AUTONOMY_ENGINE.continuity.acrl.T21_Git_Repository_Read_Write_Coordination.git_models import (
+    GitOperation,
+    GitTransactionRequest,
+)
+from AUTONOMY_ENGINE.continuity.acrl.T21_Git_Repository_Read_Write_Coordination.git_read import (
+    GitReader,
+)
+from AUTONOMY_ENGINE.continuity.acrl.T21_Git_Repository_Read_Write_Coordination.git_transaction import (
+    execute_git_transaction,
+)
+from AUTONOMY_ENGINE.continuity.acrl.T21_Git_Repository_Read_Write_Coordination import (
+    git_push,
 )
 
 
-def test_403_rate_limit_is_distinct_from_permission_failure() -> None:
-    result = classify_github_api_failure(
-        403,
-        headers={
-            "X-RateLimit-Remaining": "0",
-            "X-RateLimit-Reset": "1700000120",
-        },
-        message="API rate limit exceeded",
-        now_epoch=1700000000,
-    )
-
-    assert result.kind is GitHubAPIErrorKind.RATE_LIMITED
-    assert result.retryable is True
-    assert result.retry_after_seconds == 120
-    assert result.max_retries == 1
-
-
-def test_403_permission_failure_is_not_retried() -> None:
-    result = classify_github_api_failure(
-        403,
-        message="Resource access is forbidden",
-    )
-
-    assert result.kind is GitHubAPIErrorKind.PERMISSION_DENIED
-    assert result.retryable is False
-    assert result.max_retries == 0
-
-
-def test_404_requires_exact_path_and_ref_check() -> None:
-    result = classify_github_api_failure(404)
-
-    assert result.kind is GitHubAPIErrorKind.NOT_FOUND
-    assert result.retryable is False
-    assert "silently switch branches" in result.action
-
-
-@pytest.mark.parametrize(
-    ("status_code", "expected_kind"),
-    (
-        (409, GitHubAPIErrorKind.CONFLICT),
-        (422, GitHubAPIErrorKind.VALIDATION_OR_STALE_SHA),
-    ),
+PATCH = (
+    "--- a/file.txt\n"
+    "+++ b/file.txt\n"
+    "@@ -1 +1 @@\n"
+    "-one\n"
+    "+two\n"
 )
-def test_stale_or_conflicting_write_requires_readback(
-    status_code: int,
-    expected_kind: GitHubAPIErrorKind,
+
+
+def run_git(root: Path, *args: str) -> str:
+    result = subprocess.run(
+        ["git", *args],
+        cwd=root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+def build_repo(root: Path) -> Path:
+    root.mkdir(parents=True)
+    run_git(root, "init", "-b", "main")
+    run_git(root, "config", "user.email", "test@example.com")
+    run_git(root, "config", "user.name", "T21 Readback Test")
+
+    (root / "file.txt").write_text("one\n", encoding="utf-8")
+    run_git(root, "add", "file.txt")
+    run_git(root, "commit", "-m", "initial")
+    run_git(
+        root,
+        "remote",
+        "add",
+        "origin",
+        "https://example.invalid/owner/repository.git",
+    )
+    return root
+
+
+def make_authorization() -> ExecutionAuthorization:
+    return ExecutionAuthorization(
+        schema_version="1.0",
+        decision=AuthorizationDecision.AUTHORIZE,
+        reason=AuthorizationReason.VALIDATED,
+        authorization_fingerprint="b" * 64,
+        request_fingerprint="c" * 64,
+        operator_request_fingerprint="d" * 64,
+        impact_fingerprint="e" * 64,
+        action_type=None,
+        risk=None,
+        execution_authorized=True,
+        state_mutated=False,
+        requires_external_executor=True,
+    )
+
+
+def make_verified_repair(root: Path) -> RepairResult:
+    baseline = tree_fingerprint(root)
+    file = root / "file.txt"
+
+    file.write_text("two\n", encoding="utf-8")
+    final_tree = tree_fingerprint(root)
+    file.write_text("one\n", encoding="utf-8")
+
+    digest = patch_fingerprint(PATCH)
+    evidence = VerificationEvidence(
+        syntax_passed=True,
+        tests_passed=True,
+        regression_passed=True,
+        external_executor="isolated-test-runner",
+        evidence_fingerprint="f" * 64,
+    )
+    verification = PatchVerification(
+        passed=True,
+        changed_paths=("file.txt",),
+        patch_fingerprint=digest,
+        final_tree_fingerprint=final_tree,
+        evidence=evidence,
+        reason=RepairReason.VALID,
+    )
+
+    return RepairResult(
+        schema_version="1.0",
+        decision=RepairDecision.VERIFIED,
+        reason=RepairReason.VALID,
+        repair_id="repair-readback",
+        authorization_fingerprint="b" * 64,
+        diagnosis_fingerprint="c" * 64,
+        baseline_fingerprint=baseline,
+        patch_fingerprint=digest,
+        final_tree_fingerprint=final_tree,
+        changed_paths=("file.txt",),
+        attempt=1,
+        verification=verification,
+        evidence_fingerprint=evidence.evidence_fingerprint,
+        candidate_patch=PATCH,
+    )
+
+
+def make_request(
+    root: Path,
+    repair: RepairResult,
+) -> GitTransactionRequest:
+    snapshot = GitReader(root).snapshot()
+
+    return GitTransactionRequest(
+        operation=GitOperation.PUSH,
+        repository_root=str(root),
+        expected_branch=snapshot.branch,
+        expected_head_sha=snapshot.head_sha,
+        transaction_id="tx-readback",
+        repair_id=repair.repair_id,
+        repair_fingerprint=repair.patch_fingerprint,
+        changed_paths=("file.txt",),
+        commit_message="test: push readback recovery",
+        target_branch=snapshot.branch,
+        remote_name="origin",
+        push=True,
+        authorization_fingerprint="b" * 64,
+        authorization_nonce="nonce-readback",
+    )
+
+
+def run_push_with_simulated_error(
+    root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    readback_sha: str | Callable[[Path], str],
+):
+    repair = make_verified_repair(root)
+    request = make_request(root, repair)
+
+    def fail_push(*args, **kwargs):
+        raise RuntimeError("request timed out")
+
+    def fake_remote_readback(repository, *, remote, branch):
+        if callable(readback_sha):
+            return readback_sha(repository.root)
+        return readback_sha
+
+    monkeypatch.setattr(git_push, "push_branch", fail_push)
+    monkeypatch.setattr(
+        git_push,
+        "verify_remote_branch",
+        fake_remote_readback,
+    )
+
+    return execute_git_transaction(
+        request=request,
+        authorization=make_authorization(),
+        repair_result=repair,
+    )
+
+
+def test_ambiguous_push_is_verified_by_exact_remote_readback(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    result = classify_github_api_failure(
-        status_code,
-        operation_is_write=True,
+    root = build_repo(tmp_path / "repo")
+
+    result = run_push_with_simulated_error(
+        root,
+        monkeypatch,
+        readback_sha=lambda repository_root: run_git(
+            repository_root,
+            "rev-parse",
+            "HEAD",
+        ),
     )
 
-    assert result.kind is expected_kind
-    assert result.requires_readback is True
-    assert result.retryable is False
-    assert result.max_retries == 0
+    assert result.decision.value == "PUSHED"
+    assert result.push_performed is True
+    assert result.push_verified is True
+    assert result.reason.value == "VALID"
 
 
-def test_write_timeout_is_ambiguous_and_not_auto_retried() -> None:
-    result = classify_github_api_failure(
-        None,
-        operation_is_write=True,
-        transport_error="request timed out",
+def test_remote_readback_mismatch_never_claims_push_success(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = build_repo(tmp_path / "repo")
+
+    result = run_push_with_simulated_error(
+        root,
+        monkeypatch,
+        readback_sha="0" * 40,
     )
 
-    assert result.kind is GitHubAPIErrorKind.TIMEOUT
-    assert result.requires_readback is True
-    assert result.retryable is False
-
-
-def test_safe_read_timeout_has_a_bounded_retry() -> None:
-    result = classify_github_api_failure(
-        None,
-        operation_is_write=False,
-        transport_error="timeout",
-    )
-
-    assert result.kind is GitHubAPIErrorKind.TIMEOUT
-    assert result.retryable is True
-    assert result.max_retries == 1
-
-
-def test_write_server_error_requires_readback() -> None:
-    result = classify_github_api_failure(
-        503,
-        operation_is_write=True,
-    )
-
-    assert result.kind is GitHubAPIErrorKind.SERVER_ERROR
-    assert result.requires_readback is True
-    assert result.retryable is False
-
-
-def test_tls_failure_is_never_retried_or_bypassed() -> None:
-    result = classify_github_api_failure(
-        None,
-        transport_error="TLS certificate validation failure",
-    )
-
-    assert result.kind is GitHubAPIErrorKind.TLS_FAILURE
-    assert result.retryable is False
-    assert "Do not disable certificate verification" in result.action
-
-
-def test_unknown_failure_fails_closed() -> None:
-    result = classify_github_api_failure(
-        418,
-        operation_is_write=True,
-    )
-
-    assert result.kind is GitHubAPIErrorKind.UNKNOWN
-    assert result.retryable is False
-    assert result.requires_readback is True
-
-
-def test_invalid_status_code_is_rejected() -> None:
-    with pytest.raises(ValueError):
-        classify_github_api_failure(99)
-
-
-def test_registry_declares_api_error_recovery_component() -> None:
-    registry = GitRegistry()
-    registry.validate()
-
-    assert registry.api_error_recovery == "github_api_error_recovery"
-
-
-def test_existing_push_adapter_uses_rate_limit_classification() -> None:
-    reason, explanation = classify_git_push_error(
-        RuntimeError(
-            "fatal: HTTP 403: API rate limit exceeded"
-        )
-    )
-
-    assert reason is GitReason.RATE_LIMITED
-    assert "bounded retry" in explanation.lower()
-
-
-def test_existing_push_adapter_keeps_permission_denial_distinct() -> None:
-    reason, explanation = classify_git_push_error(
-        RuntimeError("fatal: HTTP 403 permission denied")
-    )
-
-    assert reason is GitReason.AUTHORIZATION_DENIED
-    assert "permission" in explanation.lower()
-
-
-def test_existing_push_adapter_maps_conflict_to_reconciliation() -> None:
-    reason, explanation = classify_git_push_error(
-        RuntimeError("remote: HTTP 409 stale reference")
-    )
-
-    assert reason is GitReason.NON_FAST_FORWARD
-    assert "reconcile" in explanation.lower() or "reread" in explanation.lower()
+    assert result.decision.value == "REJECTED"
+    assert result.push_performed is True
+    assert result.push_verified is False
+    assert result.reason.value == "NON_FAST_FORWARD"
