@@ -2,68 +2,26 @@
 HOMIO / REOS — AI AGENT ENTRYPOINT
 ==================================
 
-Purpose
--------
-This file is the repository-level entry point for ANY new AI/GPT agent
-working on HOMIO / REOS.
+Repository-level operating contract for new GPT/AI sessions.
 
-It is NOT:
-    - a second Control Center
-    - a second ACRL
-    - a second state store
-    - an architecture engine
-    - an execution engine
-    - an authorization engine
-    - an AI decision engine
-    - a replacement for T07/T14/T15
+This file is not:
+- a second Control Center, state store, ACRL or execution engine;
+- a Git synchronization runner;
+- an authorization or task-selection engine.
 
-It exists so that a new AI session can recover the correct operating
-protocol from the repository without depending on previous GPT chat history.
+Canonical authorities:
+- Execution state: REOS_CONTROL_CENTER/data/state.json
+- Committed code and history: GitHub branch reos-development
+- Task selection and transitions: existing REOS Control Center
+- T18: execution authorization
+- T20: repair and patch verification
+- T21: Git repository coordination
+- T22: commit and checkpoint coordination
+- T23: evidence resolution
+- T24: continuity and recovery
 
-AUTHORITATIVE PROJECT SOURCES
------------------------------
-1. REOS_CONTROL_CENTER/data/state.json
-   -> canonical machine-readable project state
-
-2. GitHub repository branch reos-development
-   -> canonical implementation source, code, history, architecture
-      reference and repository evidence
-
-3. PowerShell execution
-   -> read-only local verification/diagnosis and guarded remote GitHub REST API writes under this contract
-
-4. ACRL
-   -> continuity, reconstruction, evidence, checkpoint, drift,
-      recovery and AI-operation framework
-
-CHAT HISTORY
-------------
-Chat history is communication only.
-It is NOT project memory.
-
-A new GPT session MUST NOT assume that previous chat context is:
-    - available
-    - correct
-    - current
-    - authoritative
-
-IMPORTANT
----------
-This entrypoint does not contain a copy of the project state.
-
-It tells an AI HOW TO DISCOVER the authoritative state and HOW TO WORK
-inside the existing REOS / ACRL system.
-
-The implementation workflow must protect against:
-    - stale local workspaces
-    - duplicate files
-    - duplicate routes
-    - duplicate components
-    - duplicate engines
-    - unnecessary reopening of completed layers
-    - blind replacement
-    - guessed repository structure
-    - unsafe local PowerShell code mutation
+Chat history, Markdown plans and diagnostic output are evidence/context,
+not execution authority.
 """
 
 from __future__ import annotations
@@ -78,40 +36,31 @@ from typing import Any
 # ---------------------------------------------------------------------------
 
 PROJECT_NAME = "HOMIO / REOS"
-
 PROJECT_DESCRIPTION = (
     "Global AI Real Estate OS + International Brokerage + SaaS."
 )
 
 CONTROL_CENTER_NAME = "REOS_CONTROL_CENTER"
-
 CONTROL_CENTER_PATH = Path(__file__).resolve().parent
 
-# Canonical local repository identity.
-# Descriptive/read-only contract only.
 CANONICAL_LOCAL_WORKSPACE = Path(r"D:\HOMIO")
 CANONICAL_CONTROL_CENTER = (
     CANONICAL_LOCAL_WORKSPACE / CONTROL_CENTER_NAME
 )
 
 REPOSITORY_FULL_NAME = "prajaktaranjane80-sketch/Homio"
-
 EXPECTED_BRANCH = "reos-development"
-
 EXPECTED_ORIGIN = (
     "https://github.com/prajaktaranjane80-sketch/Homio.git"
 )
 
-# Canonical implementation source.
 CANONICAL_CODE_SOURCE = (
     "GitHub repository branch reos-development"
 )
 
-# Owner-approved remote implementation workflow.
-# Policy metadata only; this entrypoint does not itself execute writes.
 IMPLEMENTATION_WRITE_INTERFACE = (
-    "Guarded PowerShell GitHub REST API writes to branch reos-development; "
-    "no separate workflow runner or parallel workflow authority"
+    "Guarded GitHub REST API writes to reos-development; "
+    "no competing workflow runner"
 )
 
 POWERSHELL_WRITE_ALLOWED = True
@@ -121,7 +70,6 @@ POWERSHELL_LOCAL_WORKTREE_WRITE_ALLOWED = False
 POWERSHELL_LOCAL_GIT_MUTATION_ALLOWED = False
 POWERSHELL_WRITE_MODE = "GUARDED_GITHUB_REST_API_ONLY"
 
-# PowerShell Output is evidence only.
 PS_OUTPUT_IS_EVIDENCE_ONLY = True
 
 GENERATED_ARTIFACT_PATTERNS: tuple[str, ...] = (
@@ -130,121 +78,76 @@ GENERATED_ARTIFACT_PATTERNS: tuple[str, ...] = (
     "*.pyo",
 )
 
-STATE_PATH = (
-    CONTROL_CENTER_PATH
-    / "data"
-    / "state.json"
-)
-
-AUTONOMY_ENGINE_PATH = (
-    CONTROL_CENTER_PATH / "AUTONOMY_ENGINE"
-)
-
-ACRL_PATH = (
-    AUTONOMY_ENGINE_PATH
-    / "continuity"
-    / "acrl"
-)
-
-
-# ---------------------------------------------------------------------------
-# EXISTING CANONICAL ACRL COMPONENTS
-# ---------------------------------------------------------------------------
+STATE_PATH = CONTROL_CENTER_PATH / "data" / "state.json"
+AUTONOMY_ENGINE_PATH = CONTROL_CENTER_PATH / "AUTONOMY_ENGINE"
+ACRL_PATH = AUTONOMY_ENGINE_PATH / "continuity" / "acrl"
 
 ACRL_ENTRYPOINT = (
     ACRL_PATH
     / "T07_New_Chat_Bootstrap"
     / "new_chat_bootstrap.py"
 )
-
 ACRL_REPOSITORY_CONTEXT = (
-    ACRL_PATH
-    / "T14_Repository_Intelligence_Context"
+    ACRL_PATH / "T14_Repository_Intelligence_Context"
 )
-
 ACRL_OPERATOR_AUTONOMY = (
-    ACRL_PATH
-    / "T15_AI_Operator_Autonomy"
+    ACRL_PATH / "T15_AI_Operator_Autonomy"
 )
-
 ACRL_EXECUTION_AUTHORIZATION = (
-    ACRL_PATH
-    / "T18_Safe_Execution_Authorization_Guard"
+    ACRL_PATH / "T18_Safe_Execution_Authorization_Guard"
 )
-
 ACRL_REPAIR_VERIFICATION = (
-    ACRL_PATH
-    / "T20_Autonomous_Repair_Patch_Verification"
+    ACRL_PATH / "T20_Autonomous_Repair_Patch_Verification"
 )
-
 ACRL_GIT_REPOSITORY_COORDINATION = (
-    ACRL_PATH
-    / "T21_Git_Repository_Read_Write_Coordination"
+    ACRL_PATH / "T21_Git_Repository_Read_Write_Coordination"
 )
-
 ACRL_COMMIT_CHECKPOINT_COORDINATION = (
-    ACRL_PATH
-    / "T22_Commit_Execution_Checkpoint_Coordination"
+    ACRL_PATH / "T22_Commit_Execution_Checkpoint_Coordination"
 )
-
 ACRL_EVIDENCE_RESOLUTION = (
-    ACRL_PATH
-    / "T23_Reference_Evidence_Resolution_Engine"
+    ACRL_PATH / "T23_Reference_Evidence_Resolution_Engine"
 )
-
 ACRL_CONTINUITY_RECOVERY = (
-    ACRL_PATH
-    / "T24_Cross_Chat_Continuity_Recovery_Engine"
+    ACRL_PATH / "T24_Cross_Chat_Continuity_Recovery_Engine"
 )
 
 
 # ---------------------------------------------------------------------------
-# OPERATING AUTHORITY
+# OPERATING CONTRACT
 # ---------------------------------------------------------------------------
 
 @dataclass(frozen=True)
 class REOSAgentOperatingContract:
     """
-    Compact repository-level contract for a new AI operator.
+    Descriptive repository contract.
 
-    This is descriptive metadata only.
-    It does not replace any ACRL or Control Center implementation.
+    This does not authorize execution or replace the Control Center/ACRL.
     """
 
     project: str = PROJECT_NAME
-
     project_description: str = PROJECT_DESCRIPTION
-
     authoritative_state: str = (
         "REOS_CONTROL_CENTER/data/state.json"
     )
-
     authoritative_code_reference: str = (
         "GitHub repository branch reos-development"
     )
-
     implementation_write_interface: str = (
         IMPLEMENTATION_WRITE_INTERFACE
     )
-
     current_verification: str = (
-        "Read-only local verification plus authorized, guarded remote GitHub REST API writes"
+        "Read-only local verification plus authorized guarded remote "
+        "GitHub REST API writes"
     )
-
     continuity_system: str = "ACRL"
-
     chat_history_authority: str = "NON_AUTHORITATIVE"
-
     control_authority: str = "REOS_CONTROL_CENTER"
-
     execution_authority: str = (
         "REOS Control Center and applicable ACRL authorization, "
         "repair-verification, evidence and checkpoint boundaries"
     )
-
-    ai_role: str = (
-        "Architecture-aware engineering operator"
-    )
+    ai_role: str = "Architecture-aware engineering operator"
 
 
 # ---------------------------------------------------------------------------
@@ -254,43 +157,26 @@ class REOSAgentOperatingContract:
 AI_OPERATING_RULES: tuple[str, ...] = (
     "Treat REOS_CONTROL_CENTER as the project control authority.",
     "Treat data/state.json as canonical machine-readable project state.",
-    "Treat GitHub branch reos-development as the canonical code and implementation source.",
+    "Treat GitHub branch reos-development as the canonical implementation source.",
     "Treat chat history as communication only, never as project truth.",
-    "Use PowerShell for read-only local verification/diagnosis and guarded remote GitHub REST API writes under this contract.",
-    "Do not mutate project code through local worktree operations; use guarded remote GitHub REST API writes for explicitly approved changes.",
-    "Before changing code, reconstruct the current repository state.",
-    "Before proposing a file change, inspect the exact target path on the canonical GitHub branch.",
-    "Before creating a new file, confirm that the target path is actually absent on the canonical branch.",
-    "Before creating a new component, route or module, confirm that an existing component, route or module does not already own the responsibility.",
-    "Classify every requested file action as ADD, REPLACE or NO CHANGE before providing implementation instructions.",
-    "Do not create a duplicate file merely because a stale local workspace does not contain the file.",
-    "Do not create a duplicate route when an existing route already owns the experience.",
-    "Do not create a duplicate component when an existing component already owns the responsibility.",
-    "Do not reopen a completed feature layer unless repository evidence shows a real dependency, regression or required integration change.",
-    "When a new layer depends on a completed layer, reuse the completed layer instead of rebuilding it.",
-    "Do not assume that a local checkout is current merely because it exists.",
-    "Do not allow stale local repository state to override canonical GitHub repository evidence.",
-    "Use existing ACRL continuity mechanisms instead of inventing new continuity.",
-    "Use T07 New Chat Bootstrap for new-session continuity.",
-    "Use T14 Repository Intelligence Context for repository-aware context.",
+    "Inspect the canonical repository before proposing code changes.",
+    "Inspect an exact target path before classifying it as ADD or REPLACE.",
+    "Do not create duplicate files, routes, components, modules or engines.",
+    "Do not reopen completed layers without repository evidence of a real need.",
+    "Use T07 for bootstrap and T14 for repository-aware context.",
     "Respect T15 AI Operator Autonomy boundaries.",
-    "Do not bypass architecture locks.",
-    "Do not bypass Control Center authority.",
-    "Do not directly invent or modify authoritative project state.",
-    "Do not create a second state store.",
-    "Do not create a second Control Center.",
-    "Do not create a second ACRL.",
-    "Do not create duplicate business engines.",
-    "Do not blindly patch from assumptions.",
-    "Use targeted repository evidence before making a change.",
-    "Prefer the smallest architecture-consistent change.",
-    "Run focused verification after a change.",
-    "Run relevant regression verification before declaring success.",
-    "Do not declare a task complete from code appearance alone.",
-    "Do not manipulate state.json directly to manufacture completion.",
-    "Do not self-authorize execution.",
-    "Do not self-approve architecture or governance decisions.",
-    "When evidence conflicts, stop and resolve the conflict instead of guessing.",
+    "Respect architecture locks and Control Center authority.",
+    "Never directly modify authoritative state to manufacture completion.",
+    "Never self-authorize execution or self-approve governance changes.",
+    "Do not assume a local checkout matches the live GitHub branch.",
+    "A dirty or untracked local worktree fails preflight closed.",
+    "Missing upstream configuration fails preflight closed.",
+    "Local ahead/behind counts must be zero for local-ready status.",
+    "A local upstream-tracking ref is cached evidence, not proof of live remote HEAD.",
+    "Local preflight, remote readback, canonical state and authorization are separate checks.",
+    "Do not claim tests or CI passed without evidence for the exact tested SHA.",
+    "Run focused verification and relevant regressions before declaring success.",
+    "When evidence conflicts or is insufficient, stop and report the blocker.",
 )
 
 
@@ -299,28 +185,24 @@ AI_OPERATING_RULES: tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 
 DEVELOPMENT_WORKFLOW_RULES: tuple[str, ...] = (
-    "This entrypoint is the single agent-facing home for canonical workflow-sync rules; it defines policy and does not execute writes.",
-    "GitHub branch reos-development is the canonical implementation source.",
-    "Guarded PowerShell GitHub REST API writes are the default implementation workflow; manual GitHub UI editing is a fallback only when explicitly requested by the owner.",
-    "Do not create, download, invoke, or rely on HOMIO_REMOTE_WORKFLOW_SYNC.ps1 or another standalone runner as a competing workflow authority.",
-    "Supporting work-plan files document execution sequence; they must not create a competing policy or override the authoritative Control Center state.",
-    "PowerShell may perform guarded remote GitHub REST API writes; local worktree source writes remain forbidden.",
-    "PowerShell MUST NOT change project code through a local worktree; approved remote changes require the guarded GitHub REST API workflow.",
-    "Before every requested change, inspect the canonical GitHub repository state.",
-    "Every requested file must be classified as ADD, REPLACE or NO CHANGE.",
-    "ADD means the exact target path is absent on the canonical branch and no existing owner satisfies the responsibility.",
-    "REPLACE means the exact target path exists and the requested change belongs in that existing file.",
-    "NO CHANGE means the existing implementation already satisfies the requested responsibility or no repository evidence justifies modification.",
-    "A completed layer must not be rebuilt merely because a dependent layer is being started.",
-    "A new layer must reuse completed-layer routes, components and contracts wherever the architecture allows.",
-    "A stale local workspace must never be used as proof that a canonical GitHub file is missing.",
-    "The AI must provide exact repository paths, operation, scope and verification steps; use guarded remote GitHub API writes for approved changes.",
-    "When a full replacement is required, the AI must provide the complete replacement file rather than an inferred patch.",
-    "When only a small verified change is required, the AI may still provide complete replacement content when the owner is safer using full-file replacement.",
-    "After a guarded remote GitHub API write, independently verify the resulting branch, commit parent and exact changed file content before declaring PASS; apply the same checks if the owner explicitly chooses a manual UI fallback.",
-    "Remote PowerShell writes are allowed only after canonical GitHub state is read and the live branch HEAD is captured.",
-    "For repair writes, T18 authorization, T20 VERIFIED patch evidence and T21 Git coordination are separate required boundaries.",
-    "Never treat T20 VERIFIED as a Git commit; report commit or push completion only after T21 verification evidence is available.",
+    "This entrypoint defines the agent-facing workflow policy; it does not execute writes.",
+    "GitHub branch reos-development is the canonical code source.",
+    "Guarded GitHub REST API writes are the approved remote implementation method.",
+    "Local worktree source writes and local Git mutations are forbidden.",
+    "Manual GitHub UI editing is permitted when explicitly chosen by the owner.",
+    "Supporting work plans cannot override the Control Center or state.json.",
+    "Inspect canonical GitHub state before every requested change.",
+    "Classify files as ADD, REPLACE, VERIFY, NO CHANGE or BLOCKED as appropriate.",
+    "ADD requires the exact path to be absent on the canonical branch.",
+    "REPLACE requires the exact path to exist and own the requested responsibility.",
+    "Never recreate a file merely because a local workspace is stale.",
+    "A full replacement request requires complete replacement content, not an inferred patch.",
+    "Verify remote branch, commit parent and exact content after writes.",
+    "T18 authorization, T20 patch verification and T21 Git coordination remain separate responsibilities.",
+    "Never treat T20 VERIFIED as proof that a Git commit occurred.",
+    "The existing backend-ci.yml workflow must run the EntryPoint contract regression.",
+    "The contract test must not be silently skipped if its file is missing.",
+    "During final workflow alignment, update AI_AGENT_ENTRYPOINT.py only after the required supporting policy, test and CI work.",
 )
 
 
@@ -332,36 +214,26 @@ REMOTE_GIT_SYNCHRONIZATION_RULES: tuple[str, ...] = (
     "REOS_CONTROL_CENTER remains the project control authority.",
     "REOS_CONTROL_CENTER/data/state.json remains the canonical project state.",
     "GitHub branch reos-development remains the canonical code source.",
-    "Guarded PowerShell GitHub REST API writes are the approved remote code implementation workflow; local worktree writes are forbidden.",
-    "Local PowerShell worktree operations are read-only; guarded GitHub REST API writes are allowed for explicitly approved remote changes.",
-    "PowerShell MUST NOT perform repository code writes through a local working tree.",
-    "AI_AGENT_ENTRYPOINT.py defines the canonical agent-facing workflow-sync policy but MUST NOT execute Git writes itself.",
-    "ACRL T18 remains the execution-authorization boundary where applicable.",
-    "ACRL T20 remains the repair and patch-verification boundary where applicable.",
-    "ACRL T21 remains the Git repository coordination boundary for ACRL-controlled Git transactions.",
-    "T20 VERIFIED provides candidate patch data only; T21 must revalidate the fingerprint, changed paths, baseline and final tree under T18 authorization.",
-    "If patch application or staging differs from the verified T20 result, T21 must verify rollback before reporting a recoverable failure; otherwise fail closed.",
-    "ACRL T22 remains the immutable checkpoint boundary where required.",
-    "ACRL T23 remains the authority for missing, stale or conflicting evidence resolution.",
-    "ACRL T24 remains the authority for continuity and recovery snapshots.",
-    "Each remote commit must use the captured live HEAD as its parent.",
-    "Re-read branch HEAD immediately before updating the ref and abort if it changed.",
-    "Run each guarded remote-write workflow as one invocation; stop after the first terminating error.",
-    "Never call repository metadata with an empty endpoint; map the metadata request to the exact repository URL.",
-    "Capture the live branch HEAD for every operation; never reuse a stale hard-coded SHA.",
-    "Pass API base, headers and branch explicitly to helpers; do not rely on ambiguous script scope.",
-    "Preflight failures must stop execution before branch-ref updates.",
-    "Report remote-write PASS only after independent branch, commit-parent and exact content readback verification.",
-    "Update the branch ref with force=false only.",
-    "A remote write is successful only after independent branch, commit-parent and exact file-content verification.",
-    "The active REOS branch MUST be verified before repository work is considered authoritative.",
-    "A failed, ambiguous or conflicting operation MUST fail closed.",
+    "AI_AGENT_ENTRYPOINT.py defines policy and does not execute Git writes.",
     "Do not create a second Git synchronization engine.",
-    "Do not create a second checkpoint engine.",
-    "Do not create a second evidence engine.",
-    "Do not create a second continuity engine.",
-    "Do not create a second state store.",
-    "Do not bypass REOS Control Center authority.",
+    "Do not create a second checkpoint, evidence, continuity or state engine.",
+    "T18 remains the applicable execution-authorization boundary.",
+    "T20 remains the repair and patch-verification boundary.",
+    "T21 remains the Git repository coordination boundary.",
+    "T22 remains the commit and checkpoint coordination boundary.",
+    "T23 remains the evidence-resolution boundary.",
+    "T24 remains the continuity and recovery boundary.",
+    "T07 and T14 responsibilities must be reused rather than duplicated.",
+    "Capture the live branch HEAD before an approved remote write.",
+    "Use the captured HEAD as the expected commit parent.",
+    "Re-read branch HEAD immediately before updating the ref.",
+    "Abort if branch HEAD changes unexpectedly.",
+    "Never force-update the active branch to bypass a conflict.",
+    "A failed, ambiguous or conflicting operation must fail closed.",
+    "Preflight failures must stop execution before any branch-ref update.",
+    "Local ahead/behind data does not prove the server-side branch tip.",
+    "Remote readback and commit-parent verification are separate evidence.",
+    "Report PASS only after exact branch, commit parent and file content are verified.",
 )
 
 
@@ -375,22 +247,20 @@ REPOSITORY_PREFLIGHT_RULES: tuple[str, ...] = (
     "Expected repository is prajaktaranjane80-sketch/Homio.",
     "Expected branch is reos-development.",
     "Expected origin resolves to the canonical GitHub repository.",
-    "GitHub reos-development is the implementation source of truth.",
     "Local workspace may be stale and must not override canonical GitHub evidence.",
-    "Local working directory is not a source for remote writes; source content is read from canonical GitHub.",
-    "Generated Python caches are artifacts, never project source or state.",
-    "PS Output is evidence only.",
-    "AI_AGENT_ENTRYPOINT.py defines the agent-facing Git/workflow synchronization policy but does not execute Git writes.",
-    "AI_AGENT_ENTRYPOINT.py does not perform implementation writes.",
-    "ACRL T21 remains the Git coordination authority for ACRL-controlled transactions.",
-    "T07 remains the new-chat bootstrap authority.",
-    "T14 remains the repository-intelligence context authority.",
-    "T15 remains the AI-operator boundary authority.",
-    "T18 remains the execution-authorization authority.",
-    "T20 remains the repair-verification authority.",
-    "T22 remains the immutable checkpoint authority.",
-    "T23 remains the evidence-resolution authority.",
-    "T24 remains the continuity/recovery authority.",
+    "Local worktree content is not a source for remote writes.",
+    "Inspect staged, modified, deleted and untracked files with Git porcelain status.",
+    "Inspect configured upstream without fetching or mutating the repository.",
+    "Report ahead/behind counts against the local upstream-tracking ref.",
+    "Missing status evidence or malformed count evidence fails closed.",
+    "Any dirty worktree fails local-ready status.",
+    "Missing upstream fails local-ready status.",
+    "Any nonzero ahead or behind count fails local-ready status.",
+    "A divergence fails local-ready status.",
+    "A clean local preflight does not establish that live remote HEAD is current.",
+    "Obtain separate live remote readback before remote-write verification.",
+    "PS Output and frontend diagnostics are evidence only.",
+    "Never mutate state.json directly.",
 )
 
 
@@ -399,13 +269,14 @@ REPOSITORY_PREFLIGHT_RULES: tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 
 FILE_CHANGE_CLASSIFICATION: tuple[str, ...] = (
-    "ADD = exact target path is absent from canonical GitHub branch reos-development and no existing owner performs the required responsibility.",
-    "REPLACE = exact target path already exists and the required responsibility belongs in that existing file.",
-    "NO CHANGE = exact target path already exists and repository evidence shows that changing it is unnecessary.",
-    "Existing route/component/module ownership takes precedence over creating a new duplicate.",
-    "A missing file in a stale local checkout is NOT sufficient evidence for ADD.",
-    "A new feature layer does NOT automatically justify changes to a completed previous layer.",
-    "A previous layer may be changed only when a verified dependency, integration requirement or regression requires it.",
+    "ADD: exact path is absent on canonical branch and no existing owner has the responsibility.",
+    "REPLACE: exact path exists and owns the requested responsibility.",
+    "NO CHANGE: repository evidence does not justify modification.",
+    "VERIFY: inspect evidence without changing the target.",
+    "BLOCKED: required authority, dependency or evidence is missing.",
+    "Existing routes, components and modules take precedence over duplicates.",
+    "A stale local checkout is not proof that a GitHub file is missing.",
+    "A completed layer is reopened only for a verified dependency, integration need or regression.",
 )
 
 
@@ -414,25 +285,20 @@ FILE_CHANGE_CLASSIFICATION: tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 
 EXECUTION_WORKFLOW: tuple[str, ...] = (
-    "1. Discover canonical project state from REOS_CONTROL_CENTER/data/state.json.",
-    "2. Verify the active branch and canonical GitHub repository reference.",
-    "3. Inspect the exact requested target paths on canonical GitHub.",
-    "4. Inspect existing related routes, components, modules and verifiers.",
-    "5. Determine responsibility ownership before creating anything new.",
-    "6. Classify every requested file as ADD, REPLACE or NO CHANGE.",
-    "7. Resolve architecture and dependency ownership before implementation.",
-    "8. Apply applicable ACRL authorization and repair-verification boundaries.",
-    "8a. For repair writes, verify T18 authorization, T20 patch evidence, exact T21 paths, baseline and final-tree fingerprints before claiming a successful Git transaction.",
-    "9. Prepare exact implementation instructions for the non-developer owner.",
-    "10. Apply approved implementation changes via the guarded PowerShell GitHub REST API workflow; use the manual GitHub UI only if the owner explicitly requests that fallback.",
-    "11. Independently verify the branch, commit parent and exact changed file content after the remote write.",
-    "12. Do not write through a local worktree; perform focused verification and inspect relevant CI.",
-    "13. Run focused verification for the changed scope.",
-    "14. Run relevant regression verification before declaring success.",
-    "15. Resolve evidence through T23 when evidence is missing, stale or conflicting.",
-    "16. Preserve checkpoint / continuity information through the applicable ACRL boundary.",
-    "17. Update canonical project state only through the existing REOS Control Center workflow.",
-    "18. Never report PASS without independent verification evidence.",
+    "1. Read canonical state from REOS_CONTROL_CENTER/data/state.json.",
+    "2. Verify the current GitHub branch and live repository baseline.",
+    "3. Inspect exact requested paths and existing responsibility owners.",
+    "4. Classify each requested file action.",
+    "5. Resolve applicable architecture and dependency constraints.",
+    "6. Apply required ACRL authorization and patch-verification boundaries.",
+    "7. Provide exact, complete implementation content for owner-approved changes.",
+    "8. Use the approved guarded remote-write workflow or the owner's explicit UI fallback.",
+    "9. Verify branch, commit parent and exact changed-file content.",
+    "10. Run focused tests and relevant regression checks.",
+    "11. Inspect CI for the exact commit SHA.",
+    "12. Resolve missing or conflicting evidence through the applicable ACRL boundary.",
+    "13. Change canonical state only through the existing Control Center workflow.",
+    "14. Never report PASS without independent verification evidence.",
 )
 
 
@@ -442,24 +308,18 @@ EXECUTION_WORKFLOW: tuple[str, ...] = (
 
 NEW_SESSION_WORKFLOW: tuple[str, ...] = (
     "1. Identify this repository as HOMIO / REOS.",
-    "2. Read this entrypoint.",
-    "3. Discover the existing ACRL T07 New Chat Bootstrap.",
-    "4. Reconstruct current project state from REOS_CONTROL_CENTER.",
-    "5. Verify canonical GitHub branch reos-development.",
-    "6. Inspect the active gate, task and subtask from canonical state.",
-    "7. Inspect relevant architecture and dependency authority.",
-    "8. Inspect the exact canonical GitHub paths relevant to the active work.",
-    "9. Inspect existing routes, modules, components and tests before proposing additions.",
-    "10. Classify required file actions as ADD, REPLACE or NO CHANGE.",
-    "11. Do not infer missing files from a stale local workspace.",
-    "12. Determine the smallest valid architecture-consistent change.",
-    "13. Prepare a complete guarded PowerShell remote-write block for approved changes, with exact scope and verification.",
-    "14. Verify the remote GitHub result.",
-    "15. Use PowerShell for read-only local diagnosis and guarded, authorized remote GitHub REST API writes.",
-    "16. Run relevant regression tests.",
-    "17. Update project state only through the existing Control Center workflow.",
-    "18. Preserve checkpoint / continuity information when required.",
-    "19. Report evidence, result and next controlled step.",
+    "2. Read this entrypoint and reconstruct current repository context.",
+    "3. Verify the live GitHub branch reos-development.",
+    "4. Read active gate, task and subtask from canonical state.",
+    "5. Reuse the existing T07 bootstrap and T14 repository context.",
+    "6. Inspect architecture ownership, exact paths, related modules and tests.",
+    "7. Classify required file actions before implementation.",
+    "8. Check repository readiness and distinguish local evidence from remote proof.",
+    "9. Apply applicable authorization and verification boundaries.",
+    "10. Run focused tests and relevant regression tests.",
+    "11. Verify the resulting commit and changed file content.",
+    "12. Update state only through the existing Control Center workflow.",
+    "13. Report evidence, results, unresolved blockers and the next controlled step.",
 )
 
 
@@ -468,20 +328,17 @@ NEW_SESSION_WORKFLOW: tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 
 SOURCE_OF_TRUTH: dict[str, str] = {
-    "project_state": (
-        "REOS_CONTROL_CENTER/data/state.json"
-    ),
-    "code_and_history": (
-        "GitHub repository branch reos-development"
-    ),
+    "project_state": "REOS_CONTROL_CENTER/data/state.json",
+    "code_and_history": "GitHub repository branch reos-development",
+    "agent_policy": "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py",
+    "control_center": "REOS_CONTROL_CENTER/reos_control_center.py",
     "implementation_write_interface": IMPLEMENTATION_WRITE_INTERFACE,
     "current_execution_evidence": (
-        "Verified GitHub commit, branch read-back, exact target content, focused tests and relevant CI evidence"
+        "Verified GitHub commit, branch readback, exact target content, "
+        "focused tests and relevant CI evidence"
     ),
     "ps_output": "Evidence only",
-    "continuity": (
-        "AUTONOMY_ENGINE/continuity/acrl"
-    ),
+    "continuity": "AUTONOMY_ENGINE/continuity/acrl",
     "new_session_bootstrap": (
         "AUTONOMY_ENGINE/continuity/acrl/"
         "T07_New_Chat_Bootstrap/new_chat_bootstrap.py"
@@ -527,21 +384,14 @@ SOURCE_OF_TRUTH: dict[str, str] = {
 # ---------------------------------------------------------------------------
 
 NON_DEVELOPER_OWNER_CONTRACT: tuple[str, ...] = (
-    "The project owner is not required to write or debug implementation code manually.",
-    "The AI must inspect the canonical GitHub branch before instructing the owner to change a file.",
-    "The AI must classify every requested file as ADD, REPLACE or NO CHANGE.",
-    "The AI must provide the exact repository path for every requested file change.",
-    "The AI must clearly state ADD, REPLACE or NO CHANGE for every requested file.",
-    "The AI must provide an exact anchor, section or location when a targeted change is appropriate.",
-    "The AI must provide complete replacement content when a full file replacement is required.",
-    "The AI must not require the owner to construct code from inferred patches.",
-    "The AI may provide a complete, self-contained guarded PowerShell block for an approved remote GitHub API change; local worktree writes remain forbidden.",
-    "PowerShell is read-only when inspecting the local worktree, but may perform guarded remote GitHub REST API writes under this contract.",
-    "Never ask the owner to run an unverified standalone sync script; workflow rules belong in this entrypoint, and any requested PowerShell block must be complete in the same message.",
-    "The AI must avoid asking the owner to perform unnecessary manual code editing.",
-    "The AI must verify the repository state before instructing the owner to replace a file.",
-    "The AI must never hide structural uncertainty behind a generic recommendation.",
-    "If repository evidence is insufficient, the AI must request targeted evidence rather than guess.",
+    "The owner is not required to write or debug implementation code manually.",
+    "Provide exact repository paths and clearly label each file action.",
+    "Inspect canonical GitHub before instructing the owner to replace a file.",
+    "Provide complete replacement content when full replacement is required.",
+    "Do not require the owner to construct a patch from inferred fragments.",
+    "Avoid unnecessary manual steps and unverified standalone sync scripts.",
+    "Do not hide uncertainty behind a generic recommendation.",
+    "Request targeted evidence when repository evidence is insufficient.",
 )
 
 
@@ -551,18 +401,14 @@ NON_DEVELOPER_OWNER_CONTRACT: tuple[str, ...] = (
 
 CHANGE_DECISION_RULES: tuple[str, ...] = (
     "FIRST: inspect the current canonical GitHub repository state.",
-    "SECOND: determine whether an existing file, route, component or module already owns the required responsibility.",
-    "THIRD: classify the requested action as ADD, REPLACE or NO CHANGE.",
-    "FOURTH: determine whether the existing owner can be minimally extended.",
-    "FIFTH: add a new file or module only when no existing owner exists and architecture permits it.",
-    "SIXTH: verify the change against completed-layer boundaries before implementation.",
-    "NEVER: create a duplicate module merely because discovery is inconvenient.",
-    "NEVER: create a duplicate route when an existing route owns the experience.",
-    "NEVER: create a duplicate component when an existing component owns the responsibility.",
-    "NEVER: treat a stale local checkout as proof that a file is missing.",
+    "SECOND: inspect existing ownership of the responsibility.",
+    "THIRD: classify the requested action.",
+    "FOURTH: determine whether the existing owner can be safely extended.",
+    "FIFTH: add a file only when no existing owner exists and architecture permits it.",
+    "SIXTH: verify completed-layer boundaries before implementation.",
+    "NEVER: create duplicate modules, routes, components or sources of truth.",
+    "NEVER: treat a stale local checkout as proof a file is missing.",
     "NEVER: reopen a completed layer without repository evidence.",
-    "NEVER: create a parallel source of truth.",
-    "NEVER: create a parallel execution path.",
 )
 
 
@@ -572,17 +418,16 @@ CHANGE_DECISION_RULES: tuple[str, ...] = (
 
 FAILURE_RULES: tuple[str, ...] = (
     "If canonical repository state is unclear, reconstruct it before editing.",
-    "If the exact target path has not been checked on canonical GitHub, do not classify it as ADD.",
+    "If the exact target path has not been checked, do not classify it as ADD.",
     "If architecture authority is unclear, stop before architectural change.",
-    "If local and remote repository evidence differs, treat canonical GitHub state as implementation authority and use local PowerShell only to diagnose the difference.",
-    "If a file exists remotely but not locally, do not recreate it merely to repair the local checkout.",
-    "If tests fail, diagnose the actual failure before patching.",
-    "If an existing implementation is approved and green, do not redesign it without evidence.",
-    "If a proposed change creates duplicate responsibility, reject the change.",
-    "If a proposed change unnecessarily reopens a completed layer, reject the change.",
-    "If execution authority is unavailable for a change that requires it, fail closed.",
+    "If local and remote evidence differs, treat canonical GitHub as code authority.",
+    "If a file exists remotely but not locally, do not recreate it just to repair a stale checkout.",
+    "If tests fail, diagnose the actual failure before changing the implementation.",
+    "If an approved implementation is green, do not redesign it without evidence.",
+    "If a change introduces duplicate responsibility, reject it.",
+    "If execution authority is required but unavailable, fail closed.",
     "If project state cannot be safely reconstructed, do not manufacture state.",
-    "If a remote GitHub API write or manual GitHub save cannot be independently verified, do not report PASS.",
+    "If remote writes or manual saves cannot be independently verified, do not report PASS.",
 )
 
 
@@ -594,31 +439,19 @@ def repository_paths() -> dict[str, str]:
     """Return important repository paths without reading or mutating state."""
 
     return {
-        "control_center": str(
-            CONTROL_CENTER_PATH
-        ),
+        "control_center": str(CONTROL_CENTER_PATH),
         "state": str(STATE_PATH),
-        "autonomy_engine": str(
-            AUTONOMY_ENGINE_PATH
-        ),
+        "autonomy_engine": str(AUTONOMY_ENGINE_PATH),
         "acrl": str(ACRL_PATH),
         "t07": str(ACRL_ENTRYPOINT),
         "t14": str(ACRL_REPOSITORY_CONTEXT),
         "t15": str(ACRL_OPERATOR_AUTONOMY),
         "t18": str(ACRL_EXECUTION_AUTHORIZATION),
         "t20": str(ACRL_REPAIR_VERIFICATION),
-        "t21": str(
-            ACRL_GIT_REPOSITORY_COORDINATION
-        ),
-        "t22": str(
-            ACRL_COMMIT_CHECKPOINT_COORDINATION
-        ),
-        "t23": str(
-            ACRL_EVIDENCE_RESOLUTION
-        ),
-        "t24": str(
-            ACRL_CONTINUITY_RECOVERY
-        ),
+        "t21": str(ACRL_GIT_REPOSITORY_COORDINATION),
+        "t22": str(ACRL_COMMIT_CHECKPOINT_COORDINATION),
+        "t23": str(ACRL_EVIDENCE_RESOLUTION),
+        "t24": str(ACRL_CONTINUITY_RECOVERY),
     }
 
 
@@ -630,14 +463,10 @@ def contract() -> REOSAgentOperatingContract:
 
 def startup_instructions() -> dict[str, Any]:
     """
-    Return the complete machine-readable instructions for a new AI session.
+    Return complete machine-readable instructions for a new AI session.
 
-    This function does NOT:
-        - mutate state
-        - execute project commands
-        - authorize execution
-        - change architecture
-        - replace ACRL
+    This does not mutate state, execute project commands, authorize execution,
+    change architecture or replace ACRL.
     """
 
     operating_contract = contract()
@@ -645,54 +474,38 @@ def startup_instructions() -> dict[str, Any]:
     return {
         "entrypoint": "AI_AGENT_ENTRYPOINT.py",
         "project": operating_contract.project,
-        "project_description": (
-            operating_contract.project_description
-        ),
+        "project_description": operating_contract.project_description,
         "authority": operating_contract.control_authority,
         "continuity": operating_contract.continuity_system,
-        "chat_history_authority": (
-            operating_contract.chat_history_authority
-        ),
+        "chat_history_authority": operating_contract.chat_history_authority,
         "canonical_code_source": CANONICAL_CODE_SOURCE,
-        "implementation_write_interface": (
-            IMPLEMENTATION_WRITE_INTERFACE
-        ),
+        "implementation_write_interface": IMPLEMENTATION_WRITE_INTERFACE,
         "powershell_verification_only": POWERSHELL_IS_VERIFICATION_ONLY,
         "powershell_write_allowed": POWERSHELL_WRITE_ALLOWED,
-        "powershell_remote_github_api_write_allowed": POWERSHELL_REMOTE_GITHUB_API_WRITE_ALLOWED,
-        "powershell_local_worktree_write_allowed": POWERSHELL_LOCAL_WORKTREE_WRITE_ALLOWED,
-        "powershell_local_git_mutation_allowed": POWERSHELL_LOCAL_GIT_MUTATION_ALLOWED,
+        "powershell_remote_github_api_write_allowed": (
+            POWERSHELL_REMOTE_GITHUB_API_WRITE_ALLOWED
+        ),
+        "powershell_local_worktree_write_allowed": (
+            POWERSHELL_LOCAL_WORKTREE_WRITE_ALLOWED
+        ),
+        "powershell_local_git_mutation_allowed": (
+            POWERSHELL_LOCAL_GIT_MUTATION_ALLOWED
+        ),
         "powershell_write_mode": POWERSHELL_WRITE_MODE,
         "source_of_truth": dict(SOURCE_OF_TRUTH),
         "paths": repository_paths(),
-        "operating_rules": list(
-            AI_OPERATING_RULES
-        ),
-        "development_workflow_rules": list(
-            DEVELOPMENT_WORKFLOW_RULES
-        ),
-        "file_change_classification": list(
-            FILE_CHANGE_CLASSIFICATION
-        ),
-        "repository_preflight_rules": list(
-            REPOSITORY_PREFLIGHT_RULES
-        ),
+        "operating_rules": list(AI_OPERATING_RULES),
+        "development_workflow_rules": list(DEVELOPMENT_WORKFLOW_RULES),
+        "file_change_classification": list(FILE_CHANGE_CLASSIFICATION),
+        "repository_preflight_rules": list(REPOSITORY_PREFLIGHT_RULES),
         "git_preflight": git_preflight(),
-        "new_session_workflow": list(
-            NEW_SESSION_WORKFLOW
-        ),
-        "execution_workflow": list(
-            EXECUTION_WORKFLOW
-        ),
-        "change_decision_rules": list(
-            CHANGE_DECISION_RULES
-        ),
+        "new_session_workflow": list(NEW_SESSION_WORKFLOW),
+        "execution_workflow": list(EXECUTION_WORKFLOW),
+        "change_decision_rules": list(CHANGE_DECISION_RULES),
         "remote_git_synchronization_rules": list(
             REMOTE_GIT_SYNCHRONIZATION_RULES
         ),
-        "failure_rules": list(
-            FAILURE_RULES
-        ),
+        "failure_rules": list(FAILURE_RULES),
         "non_developer_owner_contract": list(
             NON_DEVELOPER_OWNER_CONTRACT
         ),
@@ -701,7 +514,10 @@ def startup_instructions() -> dict[str, Any]:
 
 def _run_git(*args: str) -> tuple[int, str, str]:
     """
-    Run a read-only Git command from the canonical Control Center.
+    Run one Git command read-only from the Control Center.
+
+    Only commands used by git_preflight are invoked here. No fetch, checkout,
+    clean, commit, pull, push, reset, merge or ref-update command is issued.
     """
 
     import subprocess
@@ -725,39 +541,24 @@ def _run_git(*args: str) -> tuple[int, str, str]:
 
 
 def _normalize_origin(value: str) -> str:
-    """Normalize common GitHub HTTPS/SSH origins."""
+    """Normalize common GitHub HTTPS and SSH origins for comparison."""
 
     from urllib.parse import urlsplit
 
     origin = value.strip()
 
     if origin.startswith("git@github.com:"):
-        origin = (
-            "https://github.com/"
-            + origin.split(":", 1)[1]
-        )
-
+        origin = "https://github.com/" + origin.split(":", 1)[1]
     elif origin.startswith("ssh://git@github.com/"):
         origin = (
             "https://github.com/"
-            + origin.split(
-                "ssh://git@github.com/",
-                1,
-            )[1]
+            + origin.split("ssh://git@github.com/", 1)[1]
         )
 
     if origin.startswith("https://"):
         parsed = urlsplit(origin)
-        hostname = (
-            parsed.hostname.lower()
-            if parsed.hostname
-            else ""
-        )
-        origin = (
-            "https://"
-            + hostname
-            + parsed.path
-        )
+        hostname = parsed.hostname.lower() if parsed.hostname else ""
+        origin = "https://" + hostname + parsed.path
 
     if origin.endswith(".git"):
         origin = origin[:-4]
@@ -765,32 +566,49 @@ def _normalize_origin(value: str) -> str:
     return origin.rstrip("/").lower()
 
 
+# ---------------------------------------------------------------------------
+# READ-ONLY LOCAL REPOSITORY PREFLIGHT
+# ---------------------------------------------------------------------------
+
 def git_preflight() -> dict[str, Any]:
     """
-    Return a read-only local repository identity/preflight report.
+    Return a local repository readiness report.
 
-    Git synchronization, transaction, commit and remote verification
-    remain owned by the applicable repository workflow boundaries.
+    This function does not fetch or mutate Git state. Ahead/behind counts are
+    calculated against the local cached upstream-tracking ref. Such a ref
+    does not prove the current live server-side branch tip.
+
+    Therefore:
+    - dirty/untracked files block ready status;
+    - missing upstream blocks ready status;
+    - any ahead or behind commit blocks ready status;
+    - live remote proof remains false and remote readback remains required;
+    - authorization, remote writes and checkpoint evidence stay separate.
     """
 
     result: dict[str, Any] = {
-        "canonical_workspace": str(
-            CANONICAL_LOCAL_WORKSPACE
-        ),
-        "canonical_control_center": str(
-            CANONICAL_CONTROL_CENTER
-        ),
+        "canonical_workspace": str(CANONICAL_LOCAL_WORKSPACE),
+        "canonical_control_center": str(CANONICAL_CONTROL_CENTER),
         "current_cwd": str(Path.cwd()),
         "repository_root": "",
         "branch": "",
         "origin": "",
         "local_head": "",
+        "upstream_ref": "",
+        "ahead_by": None,
+        "behind_by": None,
         "cwd_ok": False,
         "control_center_ok": False,
         "repository_root_ok": False,
         "branch_ok": False,
         "origin_ok": False,
         "local_head_ok": False,
+        "clean_worktree": False,
+        "upstream_configured": False,
+        "ahead_behind_ok": False,
+        "divergent": False,
+        "live_remote_tip_proven": False,
+        "remote_readback_required": True,
         "t21_authority_ok": False,
         "ready": False,
     }
@@ -809,11 +627,10 @@ def git_preflight() -> dict[str, Any]:
         "rev-parse",
         "--show-toplevel",
     )
-
     result["repository_root"] = root
-
     result["repository_root_ok"] = (
         code == 0
+        and bool(root)
         and Path(root).resolve()
         == CANONICAL_LOCAL_WORKSPACE.resolve()
     )
@@ -822,9 +639,7 @@ def git_preflight() -> dict[str, Any]:
         "branch",
         "--show-current",
     )
-
     result["branch"] = branch
-
     result["branch_ok"] = (
         code == 0
         and branch == EXPECTED_BRANCH
@@ -835,34 +650,86 @@ def git_preflight() -> dict[str, Any]:
         "--get",
         "remote.origin.url",
     )
-
     result["origin"] = origin
-
-    normalized_origin = _normalize_origin(
-        origin
-    )
-
-    normalized_expected_origin = _normalize_origin(
-        EXPECTED_ORIGIN
-    )
-
+    normalized_origin = _normalize_origin(origin)
+    normalized_expected_origin = _normalize_origin(EXPECTED_ORIGIN)
     result["origin_ok"] = (
         code == 0
-        and normalized_origin
-        == normalized_expected_origin
+        and bool(normalized_origin)
+        and normalized_origin == normalized_expected_origin
     )
 
     code, local_head, _ = _run_git(
         "rev-parse",
         "HEAD",
     )
-
     result["local_head"] = local_head
-
     result["local_head_ok"] = (
         code == 0
         and bool(local_head)
     )
+
+    status_code, status_output, _ = _run_git(
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all",
+    )
+    result["clean_worktree"] = (
+        status_code == 0
+        and status_output == ""
+    )
+
+    upstream_code, upstream_ref, _ = _run_git(
+        "rev-parse",
+        "--abbrev-ref",
+        "--symbolic-full-name",
+        "@{upstream}",
+    )
+    result["upstream_ref"] = upstream_ref
+    result["upstream_configured"] = (
+        upstream_code == 0
+        and bool(upstream_ref)
+    )
+
+    if result["upstream_configured"]:
+        counts_code, counts_output, _ = _run_git(
+            "rev-list",
+            "--left-right",
+            "--count",
+            "HEAD...@{upstream}",
+        )
+
+        try:
+            count_parts = counts_output.split()
+
+            if counts_code == 0 and len(count_parts) == 2:
+                ahead_by = int(count_parts[0])
+                behind_by = int(count_parts[1])
+
+                if ahead_by < 0 or behind_by < 0:
+                    raise ValueError(
+                        "Git returned negative divergence counts."
+                    )
+
+                result["ahead_by"] = ahead_by
+                result["behind_by"] = behind_by
+                result["divergent"] = (
+                    ahead_by > 0
+                    and behind_by > 0
+                )
+                result["ahead_behind_ok"] = (
+                    ahead_by == 0
+                    and behind_by == 0
+                )
+        except (TypeError, ValueError):
+            result["ahead_by"] = None
+            result["behind_by"] = None
+            result["divergent"] = False
+            result["ahead_behind_ok"] = False
+
+    # Tracking refs are local cached evidence, not live remote proof.
+    result["live_remote_tip_proven"] = False
+    result["remote_readback_required"] = True
 
     result["t21_authority_ok"] = (
         ACRL_GIT_REPOSITORY_COORDINATION.is_dir()
@@ -876,6 +743,9 @@ def git_preflight() -> dict[str, Any]:
             result["branch_ok"],
             result["origin_ok"],
             result["local_head_ok"],
+            result["clean_worktree"],
+            result["upstream_configured"],
+            result["ahead_behind_ok"],
             result["t21_authority_ok"],
         )
     )
@@ -885,8 +755,8 @@ def git_preflight() -> dict[str, Any]:
 
 def validate_entrypoint() -> bool:
     """
-    Return True only when structural and local read-only
-    repository preflight is clean.
+    Return True only when required architecture paths exist and the local
+    read-only repository preflight is clean.
     """
 
     if not CONTROL_CENTER_PATH.is_dir():
@@ -904,9 +774,7 @@ def validate_entrypoint() -> bool:
     if not ACRL_ENTRYPOINT.is_file():
         return False
 
-    return bool(
-        git_preflight()["ready"]
-    )
+    return bool(git_preflight()["ready"])
 
 
 # ---------------------------------------------------------------------------
@@ -914,150 +782,63 @@ def validate_entrypoint() -> bool:
 # ---------------------------------------------------------------------------
 
 def print_startup_context() -> None:
-    """Print a compact new-AI startup contract."""
+    """Print the current agent contract and read-only local preflight."""
 
     print("=" * 72)
     print("HOMIO / REOS — AI AGENT ENTRYPOINT")
     print("=" * 72)
-
     print(f"PROJECT        : {PROJECT_NAME}")
-    print(
-        f"AUTHORITY      : {CONTROL_CENTER_NAME}"
-    )
+    print(f"AUTHORITY      : {CONTROL_CENTER_NAME}")
     print("CONTINUITY     : ACRL")
     print("CHAT HISTORY   : NON-AUTHORITATIVE")
-    print(
-        "STATE          : "
-        "REOS_CONTROL_CENTER/data/state.json"
-    )
-    print(
-        "CODE SOURCE    : "
-        "GitHub / reos-development"
-    )
-    print(
-        "WRITE METHOD   : "
-        "Guarded GitHub REST API write (remote branch only)"
-    )
-    print(
-        "POWERSHELL     : "
-        "Local verification; remote API writes are guarded"
-    )
-    print(
-        f"WORKSPACE      : "
-        f"{CANONICAL_LOCAL_WORKSPACE}"
-    )
-    print(
-        f"CONTROL CENTER : "
-        f"{CANONICAL_CONTROL_CENTER}"
-    )
-    print(
-        f"BRANCH         : "
-        f"{EXPECTED_BRANCH}"
-    )
-    print(
-        f"REPOSITORY     : "
-        f"{REPOSITORY_FULL_NAME}"
-    )
+    print("STATE          : REOS_CONTROL_CENTER/data/state.json")
+    print("CODE SOURCE    : GitHub / reos-development")
+    print("WRITE METHOD   : Guarded remote GitHub REST API writes")
+    print(f"WORKSPACE      : {CANONICAL_LOCAL_WORKSPACE}")
+    print(f"CONTROL CENTER : {CANONICAL_CONTROL_CENTER}")
+    print(f"BRANCH         : {EXPECTED_BRANCH}")
+    print(f"REPOSITORY     : {REPOSITORY_FULL_NAME}")
 
     preflight = git_preflight()
-
-    print(
-        f"CWD CHECK      : "
-        f"{preflight['cwd_ok']}"
-    )
-    print(
-        f"BRANCH CHECK   : "
-        f"{preflight['branch_ok']}"
-    )
-    print(
-        f"ORIGIN CHECK   : "
-        f"{preflight['origin_ok']}"
-    )
-    print(
-        f"T21 AUTHORITY  : "
-        f"{preflight['t21_authority_ok']}"
-    )
-
-    print(
-        "T07            : New Chat Bootstrap"
-    )
-    print(
-        "T14            : Repository Intelligence Context"
-    )
-    print(
-        "T15            : AI Operator Autonomy"
-    )
-    print(
-        "T18            : Safe Execution Authorization"
-    )
-    print(
-        "T20            : Repair / Patch Verification"
-    )
-    print(
-        "T21            : Git Repository Coordination"
-    )
-    print(
-        "T22            : Commit Execution Checkpoint"
-    )
-    print(
-        "T23            : Evidence Resolution"
-    )
-    print(
-        "T24            : Continuity Recovery"
-    )
+    print(f"CWD CHECK      : {preflight['cwd_ok']}")
+    print(f"ROOT CHECK     : {preflight['repository_root_ok']}")
+    print(f"BRANCH CHECK   : {preflight['branch_ok']}")
+    print(f"ORIGIN CHECK   : {preflight['origin_ok']}")
+    print(f"WORKTREE CLEAN : {preflight['clean_worktree']}")
+    print(f"UPSTREAM SET   : {preflight['upstream_configured']}")
+    print(f"AHEAD BY       : {preflight['ahead_by']}")
+    print(f"BEHIND BY      : {preflight['behind_by']}")
+    print(f"REMOTE PROVEN  : {preflight['live_remote_tip_proven']}")
+    print(f"REMOTE READBACK REQUIRED: {preflight['remote_readback_required']}")
+    print(f"T21 AUTHORITY  : {preflight['t21_authority_ok']}")
 
     print("-" * 72)
-
-    print(
-        "RULE           : "
-        "AUDIT BEFORE MODIFY"
-    )
-    print(
-        "RULE           : "
-        "ADD / REPLACE / NO CHANGE"
-    )
-    print(
-        "RULE           : "
-        "CANONICAL GITHUB STATE FIRST"
-    )
-    print(
-        "RULE           : "
-        "NO DUPLICATE FILES"
-    )
-    print(
-        "RULE           : "
-        "NO DUPLICATE ROUTES"
-    )
-    print(
-        "RULE           : "
-        "NO DUPLICATE ENGINES"
-    )
-    print(
-        "RULE           : "
-        "NO BLIND PATCHING"
-    )
-    print(
-        "RULE           : "
-        "LOCAL WORKTREE WRITE = FORBIDDEN"
-    )
-    print(
-        "RULE           : "
-        "REMOTE API WRITE = GUARDED"
-    )
-    print(
-        "RULE           : "
-        "FAIL CLOSED ON UNCERTAINTY"
-    )
+    for layer, title in (
+        ("T07", "New Chat Bootstrap"),
+        ("T14", "Repository Intelligence Context"),
+        ("T15", "AI Operator Autonomy"),
+        ("T18", "Safe Execution Authorization"),
+        ("T20", "Repair / Patch Verification"),
+        ("T21", "Git Repository Coordination"),
+        ("T22", "Commit / Checkpoint Coordination"),
+        ("T23", "Evidence Resolution"),
+        ("T24", "Continuity / Recovery"),
+    ):
+        print(f"{layer:14}: {title}")
 
     print("-" * 72)
-
+    print("RULE           : AUDIT BEFORE MODIFY")
+    print("RULE           : CLASSIFY FILE ACTIONS")
+    print("RULE           : CANONICAL GITHUB STATE FIRST")
+    print("RULE           : NO DUPLICATE FILES OR ENGINES")
+    print("RULE           : LOCAL WORKTREE WRITES FORBIDDEN")
+    print("RULE           : REMOTE API WRITES GUARDED")
+    print("RULE           : FAIL CLOSED ON UNCERTAINTY")
+    print("-" * 72)
     print(
         "STATUS         :",
-        "READY"
-        if validate_entrypoint()
-        else "VERIFY",
+        "READY" if validate_entrypoint() else "VERIFY",
     )
-
     print("=" * 72)
 
 
