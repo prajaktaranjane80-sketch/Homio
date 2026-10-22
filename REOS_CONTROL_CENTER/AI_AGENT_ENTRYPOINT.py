@@ -202,6 +202,7 @@ DEVELOPMENT_WORKFLOW_RULES: tuple[str, ...] = (
     "Never treat T20 VERIFIED as proof that a Git commit occurred.",
     "The existing backend-ci.yml workflow must run the EntryPoint contract regression.",
     "The contract test must not be silently skipped if its file is missing.",
+    "Do not create, download, invoke or rely on a standalone runner as a competing workflow authority.",
     "During final workflow alignment, update AI_AGENT_ENTRYPOINT.py only after the required supporting policy, test and CI work.",
 )
 
