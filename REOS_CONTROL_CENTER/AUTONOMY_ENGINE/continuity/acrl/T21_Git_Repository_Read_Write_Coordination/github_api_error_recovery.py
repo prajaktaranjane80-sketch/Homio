@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from datetime import timezone
 from email.utils import parsedate_to_datetime
 from enum import Enum
+from pathlib import PurePosixPath
 from typing import Mapping
 
 
@@ -34,6 +35,7 @@ class GitHubAPIOutcome(str, Enum):
     RATE_LIMITED = "RATE_LIMITED"
     PERMISSION_DENIED = "PERMISSION_DENIED"
     AMBIGUOUS_NOT_FOUND = "AMBIGUOUS_NOT_FOUND"
+    CONFIRMED_NOT_FOUND = "CONFIRMED_NOT_FOUND"
     STALE_SHA_NEEDS_RECONCILIATION = (
         "STALE_SHA_NEEDS_RECONCILIATION"
     )
@@ -51,6 +53,183 @@ class GitHubAPIRecovery:
     retry_after_seconds: int | None
     max_retries: int
     action: str
+
+
+@dataclass(frozen=True, slots=True)
+class GitHubNotFoundReadbackEvidence:
+    """Evidence from successful, authorized read-only API lookups.
+
+    Populate this from actual responses through the already-approved
+    connection. It does not make network requests or authenticate the
+    principal by itself.
+    """
+
+    original_status_code: int
+    original_authenticated_identity: str
+    original_identity_verified: bool
+    authenticated_identity: str
+    identity_verified: bool
+    owner: str
+    repository: str
+    ref: str
+    target_path: str
+    repository_status_code: int
+    ref_status_code: int
+    parent_tree_path: str
+    parent_tree_status_code: int
+    parent_tree_entry_names: tuple[str, ...]
+
+
+def _ambiguous_not_found(action: str) -> GitHubAPIRecovery:
+    return GitHubAPIRecovery(
+        kind=GitHubAPIErrorKind.NOT_FOUND,
+        outcome=GitHubAPIOutcome.AMBIGUOUS_NOT_FOUND,
+        retryable=False,
+        requires_readback=True,
+        retry_after_seconds=None,
+        max_retries=0,
+        action=action,
+    )
+
+
+def resolve_github_not_found(
+    evidence: GitHubNotFoundReadbackEvidence | None,
+    *,
+    expected_owner: str,
+    expected_repository: str,
+    expected_ref: str,
+    expected_path: str,
+) -> GitHubAPIRecovery:
+    """Resolve a 404 only after matching positive access/readback proof.
+
+    A plain 404 always remains ambiguous. Confirmation requires that the
+    original response was exactly 404, both identity observations are
+    verified and identical, repository and ref reads succeeded, and the
+    exact parent-tree read succeeded with the target absent. This function
+    does not authorize writes or choose a fallback branch.
+    """
+    if (
+        not isinstance(evidence, GitHubNotFoundReadbackEvidence)
+        or isinstance(evidence.original_status_code, bool)
+        or not isinstance(evidence.original_status_code, int)
+        or evidence.original_status_code != 404
+        or not isinstance(evidence.original_identity_verified, bool)
+        or evidence.original_identity_verified is not True
+        or not isinstance(evidence.identity_verified, bool)
+        or evidence.identity_verified is not True
+        or not isinstance(evidence.original_authenticated_identity, str)
+        or not isinstance(evidence.authenticated_identity, str)
+        or not evidence.original_authenticated_identity.strip()
+        or evidence.original_authenticated_identity
+        != evidence.authenticated_identity
+    ):
+        return _ambiguous_not_found(
+            "AMBIGUOUS_NOT_FOUND: an original 404 plus verified, matching "
+            "identity and readback evidence are required. Keep the 404 "
+            "unresolved; do not retry blindly, switch branches, or write."
+        )
+
+    expected_values = (
+        expected_owner,
+        expected_repository,
+        expected_ref,
+        expected_path,
+    )
+    evidence_values = (
+        evidence.owner,
+        evidence.repository,
+        evidence.ref,
+        evidence.target_path,
+    )
+    if (
+        any(
+            not isinstance(value, str)
+            or not value
+            or value != value.strip()
+            for value in expected_values + evidence_values
+        )
+        or evidence_values != expected_values
+    ):
+        return _ambiguous_not_found(
+            "AMBIGUOUS_NOT_FOUND: readback owner/repository, ref or exact "
+            "case-sensitive path does not match the request. Reconcile the "
+            "target; never silently switch branches."
+        )
+
+    if (
+        expected_path.startswith("/")
+        or "\\" in expected_path
+        or any(
+            part in {"", ".", ".."}
+            for part in expected_path.split("/")
+        )
+    ):
+        return _ambiguous_not_found(
+            "AMBIGUOUS_NOT_FOUND: target path is not a canonical repository "
+            "relative path; do not normalize it into a different target."
+        )
+
+    path = PurePosixPath(expected_path)
+    expected_parent = path.parent.as_posix()
+    if expected_parent == ".":
+        expected_parent = ""
+
+    if (
+        evidence.parent_tree_path != expected_parent
+        or isinstance(evidence.repository_status_code, bool)
+        or not isinstance(evidence.repository_status_code, int)
+        or evidence.repository_status_code != 200
+        or isinstance(evidence.ref_status_code, bool)
+        or not isinstance(evidence.ref_status_code, int)
+        or evidence.ref_status_code != 200
+        or isinstance(evidence.parent_tree_status_code, bool)
+        or not isinstance(evidence.parent_tree_status_code, int)
+        or evidence.parent_tree_status_code != 200
+        or not isinstance(evidence.parent_tree_entry_names, tuple)
+    ):
+        return _ambiguous_not_found(
+            "AMBIGUOUS_NOT_FOUND: authorized repository, ref and exact "
+            "parent-tree readback did not all return verified success. "
+            "The original 404 remains unresolved."
+        )
+
+    names = evidence.parent_tree_entry_names
+    if any(
+        not isinstance(name, str)
+        or not name
+        or name in {".", ".."}
+        or "/" in name
+        or "\\" in name
+        for name in names
+    ):
+        return _ambiguous_not_found(
+            "AMBIGUOUS_NOT_FOUND: parent-tree readback entries are invalid; "
+            "absence cannot be safely confirmed."
+        )
+
+    if path.name in names:
+        return _ambiguous_not_found(
+            "AMBIGUOUS_NOT_FOUND: the independently read parent tree still "
+            "contains the requested target, so the 404 conflicts with "
+            "readback. Check endpoint, method and encoding; do not write."
+        )
+
+    return GitHubAPIRecovery(
+        kind=GitHubAPIErrorKind.NOT_FOUND,
+        outcome=GitHubAPIOutcome.CONFIRMED_NOT_FOUND,
+        retryable=False,
+        requires_readback=False,
+        retry_after_seconds=None,
+        max_retries=0,
+        action=(
+            "CONFIRMED_NOT_FOUND: the same verified identity can access the "
+            "exact repository and ref, and the successful parent-tree "
+            "readback confirms the exact target path is absent. This confirms "
+            "absence only; it does not authorize creating or overwriting "
+            "anything. Any subsequent write still requires normal T18 "
+            "authorization, T20 verification, and T21 scope/branch checks."
+        ),
+    )
 
 
 def _normalized_headers(
@@ -236,7 +415,7 @@ def classify_github_api_failure(
             kind=GitHubAPIErrorKind.NOT_FOUND,
             outcome=GitHubAPIOutcome.AMBIGUOUS_NOT_FOUND,
             retryable=False,
-            requires_readback=operation_is_write,
+            requires_readback=True,
             retry_after_seconds=None,
             max_retries=0,
             action=(
@@ -390,5 +569,7 @@ __all__ = [
     "GitHubAPIErrorKind",
     "GitHubAPIOutcome",
     "GitHubAPIRecovery",
+    "GitHubNotFoundReadbackEvidence",
     "classify_github_api_failure",
+    "resolve_github_not_found",
 ]
