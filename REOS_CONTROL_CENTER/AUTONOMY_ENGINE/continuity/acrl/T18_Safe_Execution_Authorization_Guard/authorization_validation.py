@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+from typing import Protocol
+
+from ....security.authentication.oidc_verifier import (
+    AuthenticatedPrincipal,
+)
+
 from ..T15_AI_Operator_Autonomy.operator_policy import (
     OperatorActionType,
 )
@@ -21,10 +27,20 @@ from .authorization_identity import (
 )
 from .authorization_models import (
     AuthorizationRequest,
+    HumanApproval,
 )
 from .authorization_policy import (
     SafeAuthorizationPolicy,
 )
+
+
+class PrincipalTokenVerifier(Protocol):
+    """Adapter for HOMIO's existing OIDC access-token verifier."""
+
+    def verify_access_token(
+        self,
+        token: str,
+    ) -> AuthenticatedPrincipal: ...
 
 
 def validate_request_structure(
@@ -51,6 +67,14 @@ def validate_request_structure(
     if len(request.nonce) > 256:
         raise SafeAuthorizationInputError(
             "T18 nonce exceeds maximum length."
+        )
+
+    if (
+        request.approval is not None
+        and not isinstance(request.approval, HumanApproval)
+    ):
+        raise SafeAuthorizationInputError(
+            "T18 approval must be HumanApproval evidence."
         )
 
 
@@ -169,6 +193,7 @@ def validate_authorization_scope(
 def validate_human_approval(
     request: AuthorizationRequest,
     policy: SafeAuthorizationPolicy,
+    principal_verifier: PrincipalTokenVerifier | None = None,
 ) -> None:
     proposal = request.operator_report.proposal
 
@@ -188,33 +213,112 @@ def validate_human_approval(
                 "Explicit human approval is required."
             )
 
-        if not approval.approved:
+        if approval.approved is not True:
             raise SafeAuthorizationSecurityError(
                 "Human approval is not granted."
             )
 
-        if not approval.approval_id.strip():
+        if (
+            not isinstance(approval.approval_id, str)
+            or not approval.approval_id.strip()
+        ):
             raise SafeAuthorizationInputError(
-                "Approval ID must be non-empty."
+                "Approval ID must be non-empty text."
             )
 
-        if not approval.authority.strip():
+        if (
+            not isinstance(approval.authority, str)
+            or not approval.authority.strip()
+        ):
             raise SafeAuthorizationInputError(
-                "Approval authority must be non-empty."
+                "Approval authority must be non-empty text."
             )
 
-        if not approval.evidence:
+        if (
+            not isinstance(approval.evidence, tuple)
+            or not approval.evidence
+            or any(
+                not isinstance(item, str) or not item.strip()
+                for item in approval.evidence
+            )
+        ):
             raise SafeAuthorizationSecurityError(
-                "Approval evidence is required."
+                "Approval evidence must contain "
+                "non-empty text entries."
             )
 
-        expected_scope = approval_scope_fingerprint(
-            request
-        )
+        expected_scope = approval_scope_fingerprint(request)
 
         if approval.scope_fingerprint != expected_scope:
             raise SafeAuthorizationIntegrityError(
                 "Approval scope fingerprint mismatch."
+            )
+
+        token = approval.authentication_token
+
+        if (
+            not isinstance(token, str)
+            or not token
+            or token != token.strip()
+        ):
+            raise SafeAuthorizationSecurityError(
+                "Approval authentication proof is required."
+            )
+
+        issuer = approval.principal_issuer
+        subject = approval.principal_subject
+
+        if (
+            not isinstance(issuer, str)
+            or not issuer.strip()
+            or issuer != issuer.strip()
+            or not isinstance(subject, str)
+            or not subject.strip()
+            or subject != subject.strip()
+        ):
+            raise SafeAuthorizationSecurityError(
+                "Approval must declare its authenticated principal identity."
+            )
+
+        if principal_verifier is None:
+            raise SafeAuthorizationSecurityError(
+                "Trusted OIDC authentication verifier is not configured."
+            )
+
+        allowed_principals = policy.trusted_approver_principals
+
+        if not allowed_principals:
+            raise SafeAuthorizationSecurityError(
+                "No trusted approver principals are configured."
+            )
+
+        try:
+            authenticated = principal_verifier.verify_access_token(token)
+        except Exception:
+            # Avoid leaking token, issuer or key-provider details.
+            raise SafeAuthorizationSecurityError(
+                "Approval authentication proof could not be verified."
+            ) from None
+
+        if not isinstance(authenticated, AuthenticatedPrincipal):
+            raise SafeAuthorizationSecurityError(
+                "Authentication verifier returned an untrusted principal type."
+            )
+
+        if (
+            authenticated.issuer != issuer
+            or authenticated.subject != subject
+        ):
+            raise SafeAuthorizationIntegrityError(
+                "Approval principal does not match the authenticated principal."
+            )
+
+        if (
+            authenticated.issuer,
+            authenticated.subject,
+        ) not in allowed_principals:
+            raise SafeAuthorizationSecurityError(
+                "Authenticated principal is not a trusted approver."
             )
 
 
@@ -233,6 +337,7 @@ def validate_read_only_invariant(
 
 
 __all__ = [
+    "PrincipalTokenVerifier",
     "validate_request_structure",
     "validate_upstream_contracts",
     "validate_authorization_scope",
