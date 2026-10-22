@@ -966,8 +966,60 @@ def execute_git_transaction(
                             explanation = (
                                 "Remote branch did not resolve to the verified commit."
                             )
-                    except Exception as exc:
+                                        except Exception as exc:
                         reason, safe_explanation = classify_git_push_error(exc)
+
+                        # Push may have reached the remote before the client
+                        # observed a timeout or server-side error. Never retry
+                        # blindly: read back the exact requested remote branch.
+                        try:
+                            remote_sha = verify_remote_branch(
+                                repository,
+                                remote=request.remote_name,
+                                branch=target_branch,
+                            )
+                        except Exception:
+                            remote_sha = None
+
+                        if remote_sha == commit_sha:
+                            return _result(
+                                request=request,
+                                decision=GitDecision.PUSHED,
+                                reason=GitReason.VALID,
+                                before=before,
+                                after=reader.snapshot(),
+                                changed_paths=scoped_paths,
+                                staged=staged,
+                                commit_sha=commit_sha,
+                                push_performed=True,
+                                push_verified=True,
+                                explanation=(
+                                    "Push returned an error, but independent remote "
+                                    "readback confirms the exact expected commit."
+                                ),
+                            )
+
+                        if (
+                            remote_sha is not None
+                            and reason in {
+                                GitReason.NETWORK_FAILURE,
+                                GitReason.RATE_LIMITED,
+                                GitReason.NON_FAST_FORWARD,
+                                GitReason.PUSH_REJECTED,
+                            }
+                        ):
+                            reason = GitReason.NON_FAST_FORWARD
+                            safe_explanation = (
+                                "Remote readback returned a different commit. "
+                                "Reconcile the current remote branch before any retry."
+                            )
+                        else:
+                            safe_explanation = (
+                                f"{safe_explanation} "
+                                "The expected remote commit was not verified by readback; "
+                                "no automatic retry was attempted."
+                            )
+
                         return _result(
                             request=request,
                             decision=GitDecision.REJECTED,
@@ -977,25 +1029,10 @@ def execute_git_transaction(
                             changed_paths=scoped_paths,
                             staged=staged,
                             commit_sha=commit_sha,
-                            push_performed=push_performed,
+                            push_performed=True,
                             push_verified=False,
                             explanation=safe_explanation,
                         )
-
-                final = reader.snapshot()
-                return _result(
-                    request=request,
-                    decision=decision,
-                    reason=reason,
-                    before=before,
-                    after=final,
-                    changed_paths=scoped_paths,
-                    staged=staged,
-                    commit_sha=commit_sha,
-                    push_performed=push_performed,
-                    push_verified=push_verified,
-                    explanation=explanation,
-                )
 
     except GitTransactionLockError as exc:
         after = reader.snapshot()
