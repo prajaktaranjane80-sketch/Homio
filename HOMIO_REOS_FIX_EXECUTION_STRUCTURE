@@ -1,11 +1,30 @@
+
 # HOMIO / REOS - Fix Execution Structure
 
-**Status:** SUPPORTING PLAN - WF-01 VERIFIED; AUTH-01 INVENTORY COMPLETE; AUTH-02 IS HISTORICAL SEQUENCE, NOT CURRENT CANONICAL NEXT TASK
+**CURRENT VERIFIED OVERLAY — 2026-10-22**
+
+- Canonical repository: `prajaktaranjane80-sketch/Homio`.
+- Canonical branch: `reos-development`.
+- Current canonical task remains `CORE-008-T04 — Implement settlement and reconciliation lifecycle`; this supporting plan must not select a different task.
+- The observed branch HEAD before this document reconciliation was `fa048a1ca3511672294c8b43ab0ad211a96a5e24`. This is a baseline for this review, not a future HEAD claim; saving this replacement will create a newer documentation commit.
+- Phase 4 implementation commit: `75319507b8f433985fdefa7e042d50b12f9d6f7e`.
+- Exact CI evidence: Actions Run #207 `https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39803416638` completed `success` for that exact implementation SHA.
+- EntryPoint contract test: 15 passed. The workflow's targeted backend/ACRL, T07/T14, T18–T24, canonical-truth, authentication, finance, context and tenant pytest steps also passed (1,007 passing test outcomes across 11 pytest invocations).
+- EntryPoint commit changed only `REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py` and inserted the standalone-runner prohibition. Existing checks were not removed.
+- The canonical state blob remains `92296fb10b0c7a37d0fc7fa97c4328f587512150`; no Phase 4 change to `state.json` is authorized or required.
+- AUTH-02 remains a historical sequence entry, not the current next task. Do not follow it while canonical state still selects CORE-008-T04.
+- This plan remains supporting documentation; it is neither execution authority nor evidence that end-to-end production authentication is complete.
+- Phase 4 closeout requires readback of the exact reconciled supporting files. The passing EntryPoint/CI work must not be repeated, reverted or relabeled as full platform-wide ACRL completion.
+
+---
+
+
+**HISTORICAL SUPPORTING-PLAN STATUS — 2026-10-20:** WF-01 VERIFIED; AUTH-01 INVENTORY COMPLETE; AUTH-02 IS HISTORICAL SEQUENCE, NOT CURRENT CANONICAL NEXT TASK
 **Scope:** Workflow consistency, authentication, security verification, CI, T21 Git-policy handling, and final EntryPoint/ACRL alignment.  
 **Canonical repository:** `prajaktaranjane80-sketch/Homio`  
 **Canonical branch:** `reos-development`
 
-## Current authoritative clarification - 2026-10-20
+## Historical authoritative clarification - 2026-10-20
 
 The live `REOS_CONTROL_CENTER/data/state.json` identifies `CORE-008-T04` as CURRENT. The AUTH-02 row in the original issue register records an earlier plan sequence; it does not override the current canonical task. Use `REOS_CONTROL_CENTER/architecture/HOMIO_GPT_GITHUB_WORKFLOW_SYNC_AND_ACRL_EXECUTION_ORDER.md` as the ordered supporting work plan, and re-read the canonical state before every next-task decision.
 
@@ -16,7 +35,7 @@ Phase 0-1 reconciliation was owner-authorized and is recorded in that master pla
 1. GitHub branch `reos-development` is the canonical code and history source.
 2. `REOS_CONTROL_CENTER/data/state.json` remains the authoritative machine-readable execution/gate state. This document is a human-readable work plan only; it must never override or silently rewrite machine state.
 3. Re-read current branch HEAD and relevant files before acting. Old chat notes and PowerShell output files are diagnostic evidence, not current source truth.
-4. Work one issue at a time: reproduce/inspect ? establish root cause ? make one bounded correction ? run targeted verification ? record PASS/FAIL with evidence.
+4. Work one issue at a time: reproduce/inspect → establish root cause → make one bounded correction → run targeted verification → record PASS/FAIL with evidence.
 5. Do not claim PASS without a real result. Do not bypass, suppress, or relabel failures to obtain a green result.
 6. PowerShell may perform guarded GitHub REST API writes against the canonical remote branch under AI_AGENT_ENTRYPOINT.py. Local worktree source writes and local Git mutation remain forbidden. Read live HEAD and exact targets before writes, fail closed on mismatch, use non-force updates, and verify commit parent plus exact remote content.
 7. Do not reset, force-pull, or merge a stale local checkout. Use guarded remote GitHub REST API writes by default; use manual GitHub UI saving only when the owner explicitly requests that fallback.
@@ -173,8 +192,11 @@ A status may be marked PASS only when the relevant result is available and tied 
 - Deployment values for the actual issuer, client ID, audience/JWKS settings and session secret have not been verified. Provider-specific signup behavior must not be assumed without provider support.
 - Do not link accounts by email alone. Do not infer tenant roles from a valid frontend session or a successful token check.
 
-### AUTH-01 decision and next action
+### AUTH-01 audit disposition and task boundary — refreshed 2026-10-22
 
-- AUTH-01 is complete as a read-only inventory task: current implementation and unverified/missing integration pieces are distinguished by path.
-- AUTH-02 is next: inspect the existing persistence and API/runtime architecture, then define the smallest provider-compatible integration for canonical identity, tenant authorization and revocation with targeted denial-path tests.
-- This inventory does not claim end-to-end production authentication is complete. No authentication runtime code or secret configuration was changed by this audit.
+- AUTH-01 remains complete as a read-only inventory task only. It does not claim end-to-end production authentication is integrated.
+- AUTH-02 is a historical planned sequence, not the current canonical next action. The live canonical task remains CORE-008-T04. Do not begin AUTH-02 runtime work until the existing Control Center selects it or the owner explicitly authorizes a compliant additional scope.
+- Provider-specific identity, persistence, tenant authorization, revocation and deployment-secret integration remain unverified unless separate current code and criterion-specific tests prove otherwise.
+- Do not link accounts by email alone. Do not infer tenant roles from a valid frontend session or successful token verification.
+- No authentication runtime code or secret configuration was changed by this workflow-document reconciliation.
+- Phase 4 closes only the defined workflow/document alignment scope. It does not mark AUTH-02 complete, complete T04, alter acceptance-criterion statuses, or establish production authentication readiness.
