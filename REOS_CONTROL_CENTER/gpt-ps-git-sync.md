@@ -13,12 +13,12 @@
 > - Canonical state path: `REOS_CONTROL_CENTER/data/state.json`.
 > - State blob SHA remains `92296fb10b0c7a37d0fc7fa97c4328f587512150`; it was not changed by the Phase 4 implementation commit.
 > - Current canonical subtask remains **CORE-008-T04 — Implement settlement and reconciliation lifecycle**. Phase 4 does not complete T04 or change any acceptance-criterion status.
-> - **Phase 4 closeout status: SUPPORTING-DOCUMENT READBACK STILL REQUIRED.** EntryPoint, contract test and backend CI are saved and green, but the supporting-plan overlays must be reconciled and read back before the phase is declared complete.
-> - The implementation history updated `AI_AGENT_ENTRYPOINT.py` before every supporting-plan overlay had been refreshed. Do not rewrite or revert passing code just to restage history. Record that sequence honestly, reconcile the remaining documents now, and do not update EntryPoint again without a demonstrated policy defect.
+> - **Phase 4 evidence ledger:** EntryPoint, contract test and backend CI are green; supporting-document readbacks and their exact snapshots are listed below. This closeout version must also be read back from the canonical branch before its ledger is treated as verified.
+> - The historical commit sequence updated `AI_AGENT_ENTRYPOINT.py` before every supporting-plan overlay had been refreshed. That sequence is preserved; it is not being rebased or rewritten, and later document commits are not represented as part of the EntryPoint-tested SHA. Do not rewrite or revert passing code just to restage history. Do not update EntryPoint again without a demonstrated policy defect.
 > - Required authority boundary remains: `state.json` and the existing Control Center are authoritative; this document, chat history, diagnostic output and other plans are not.
 > - A CI result applies to its exact tested commit SHA. The relevant implementation SHA and Actions result are recorded above; later documentation-only commits do not change what code that run tested.
 >
-> **Next action:** reconcile/read back the remaining supporting workflow records against this evidence. Preserve the current state SHA and do not mark Phase 4 complete until the documentation readback succeeds.
+> **Phase 4 closeout protocol:** the implementation, contract test, CI result, root workflow plan, fix execution structure and earlier sync-file content have been independently read back. The final gate for this updated overlay is to read back its own new commit/blob SHA and confirm the exact content. If that check passes, close Phase 4 for the bounded workflow-alignment scope only. Do not edit `state.json`, update CORE-008-T04 statuses, or represent this as a full-platform ACRL audit completion.
 
 ## 1. Project and canonical references
 
@@ -290,6 +290,6 @@ At the beginning and end of each implementation batch, record:
 - Any unresolved blocker.
 - Next action in the owner-approved Phase 4 order.
 
-At the Phase 4 implementation verification point, the EntryPoint consolidation is already committed at `75319507b8f433985fdefa7e042d50b12f9d6f7e` and has a successful Actions Run #207. Do not revert that passing work merely to restage the order. The remaining closeout is to reconcile and read back the other supporting workflow records against the exact implementation/test evidence above. The platform-wide audit JSON is a historical audit snapshot: retain its accurate historical limitations and change it only if a specific statement conflicts with this bounded Phase 4 result. Do not edit `data/state.json`, do not change CORE-008-T04 acceptance criteria, and do not reopen EntryPoint without a demonstrated mismatch.
+At the Phase 4 implementation verification point, the EntryPoint consolidation is committed at `75319507b8f433985fdefa7e042d50b12f9d6f7e`, and Actions Run #207 passed on that exact SHA. The supporting sync file, root workflow plan, and fix execution structure have since been saved and read back at the recorded blob/commit identifiers in the verification overlay above. The master work-order and platform-wide audit JSON were reviewed and retained as planning/audit records rather than turned into execution authorities. After saving this closeout overlay, verify its own new blob SHA, commit parent, changed path and content. If it reads back exactly, Phase 4 workflow alignment is closed for its bounded scope. This does not complete the platform-wide ACRL audit, establish production authentication readiness, complete CORE-008-T04, or change any acceptance-criterion status. Do not edit `data/state.json`; do not reopen passing EntryPoint code without a demonstrated defect.
 
 END OF DOCUMENT
