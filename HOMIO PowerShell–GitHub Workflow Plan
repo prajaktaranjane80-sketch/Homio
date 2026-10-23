@@ -1,3 +1,4 @@
+
 HOMIO / REOS — PowerShell → GitHub Work Plan
 
 Canonical repository: prajaktaranjane80-sketch/Homio
@@ -10,11 +11,58 @@ canonical source of execution state, prevent stale GPT instructions from
 overriding current work, and continue HOMIO implementation one authorized
 task at a time.
 
-## 0. CURRENT VERIFIED OVERLAY — 2026-10-21
+## 0. CURRENT VERIFICATION OVERLAY — 2026-10-22
 
-This overlay supersedes conflicting historical statements elsewhere in
-this supporting plan. It records the baseline observed on 2026-10-21; it
-does not claim that this replacement has already been saved.
+This overlay records independently verified Phase 4 evidence. It does not
+override state.json or change the active product task.
+
+### Phase 4 implementation and CI evidence
+
+- Canonical branch observed before this documentation update:
+  reos-development
+- Latest observed HEAD before this documentation update:
+  fa048a1ca3511672294c8b43ab0ad211a96a5e24
+- Supporting workflow sync document save:
+  https://github.com/prajaktaranjane80-sketch/Homio/commit/fa048a1ca3511672294c8b43ab0ad211a96a5e24
+- EntryPoint implementation commit tested by CI:
+  75319507b8f433985fdefa7e042d50b12f9d6f7e
+- EntryPoint commit:
+  https://github.com/prajaktaranjane80-sketch/Homio/commit/75319507b8f433985fdefa7e042d50b12f9d6f7e
+- Exact backend/ACRL Actions run:
+  https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39803416638
+- Run #207 conclusion: SUCCESS; tested SHA:
+  75319507b8f433985fdefa7e042d50b12f9d6f7e
+- The focused EntryPoint contract test reported 15 passed.
+- The remaining targeted backend/ACRL, T07/T14, T18–T24, canonical
+  truth, authentication, finance, context and tenant steps succeeded.
+  The 11 pytest invocations show 1,007 passing test outcomes in aggregate.
+  This is targeted CI evidence, not a claim that every ACRL finding or
+  all CORE-008 acceptance criteria are complete.
+- EntryPoint commit changed only
+  REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py (one insertion).
+- The current state blob remains
+  92296fb10b0c7a37d0fc7fa97c4328f587512150 and was not changed.
+- Current canonical product task remains CORE-008-T04 — Implement
+  settlement and reconciliation lifecycle. Its acceptance-criterion
+  statuses are unchanged.
+- Do not modify or revert passing EntryPoint, contract-test or CI work
+  without a demonstrated defect.
+- The audit plan JSON remains a historical audit record, not execution
+  authority. Its statement that tests were not run during the original
+  audit describes that audit activity; it does not erase later CI evidence.
+
+The current workflow documentation is being reconciled to reflect this
+verified evidence. Phase 4 closeout is not inferred from file existence:
+check the committed supporting-document readbacks before marking it closed.
+Keep implementation/CI status separate from the active CORE-008 task.
+
+---
+
+## 0A. HISTORICAL BASELINE SNAPSHOT — 2026-10-21
+
+This historical snapshot records what was observed on 2026-10-21. It is
+retained as history and is superseded for current repository/CI status by
+the 2026-10-22 verification overlay above.
 
 ### Live repository baseline
 
@@ -69,25 +117,18 @@ Acceptance-criterion status from the current task/evidence record:
 `state.json` is execution authority. This supporting plan is not execution
 authority and must never be edited to manufacture a task transition.
 
-### Current CI evidence
+### Historical CI evidence before Phase 4
 
-The most recent successful backend/ACRL workflow run observed for this
-branch history is:
+The previously recorded successful backend/ACRL run was:
 
-- Run: `39600469687`
-- URL:
-  `https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39600469687`
-- Tested SHA: `9a6a6065ca4848b6b419a32e5bb1de5d3ab42246`
+- Run: 39600469687
+- Tested SHA: 9a6a6065ca4848b6b419a32e5bb1de5d3ab42246
 - Result: SUCCESS.
 
-This is evidence for that exact tested SHA. It is not a run on HEAD
-`b917d5036ff5d9a3dea78a27ae9439cf8357f5fd`. The HEAD commit only renames
-a diagnostic/history file, and no backend run for that exact HEAD was
-observed.
+That run is historical evidence for its exact SHA. For Phase 4 CI evidence,
+use the 2026-10-22 verification overlay at the top of this document, which
+records Run #207 testing the final EntryPoint implementation commit.
 
-Older run `39429640103` is historical evidence for SHA
-`dfc967588dcbe4cb79793b53382042ec2ea2d36b`; it must not be presented as
-a test run on a newer commit.
 
 ### Phase 0–1 scope
 
@@ -98,14 +139,17 @@ workflow-document reconciliation only.
 - Do not complete T04 or change any acceptance-criterion status in a plan.
 - Do not implement unrelated runtime changes under the name of Phase 0–1.
 - Do not recreate target paths that already exist.
-- The current GPT sync document has a stale T03 transition instruction
-  near its final section. Replace that document using the separately
-  supplied full replacement and verify it after saving.
-- The master work-order's 2026-10-20 Phase 0–1 record is historical.
-  Append the fresh 2026-10-21 inventory record supplied separately.
-- Phase 0 inventory is read-only. Final repository-level Phase 0–1 closure
-  requires saving the prescribed document changes and independently
-  reading the committed contents back from GitHub.
+- Historical note: the 2026-10-21 baseline identified a stale T03 transition
+  instruction in the prior GPT sync file. That file has since been replaced
+  and read back from GitHub in commit
+  `fa048a1ca3511672294c8b43ab0ad211a96a5e24`; use its current content rather
+  than treating the historical finding as still open.
+- The master work-order's 2026-10-20 and 2026-10-21 Phase 0–1 records remain
+  historical evidence. Do not repeat those inventory steps solely because
+  this plan contains their original instructions.
+- Phase 0 was read-only. Its original closeout criteria were assessed against
+  the then-required saves/readbacks; the current Phase 4 closeout has its
+  own evidence and must be tracked separately.
 
 ## 1. AUTHORITY AND OPERATING RULES
 
