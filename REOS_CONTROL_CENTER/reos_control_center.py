@@ -102,7 +102,7 @@ FALLBACK_TEMPLATES: dict[str, dict[str, Any]] = {
             ["T03", "Assemble database event and API contracts", "CRITICAL"],
             ["T04", "Assemble security governance and approval rules", "CRITICAL"],
             ["T05", "Assemble implementation dependency graph", "CRITICAL"],
-            ["T06", "Run architecture consistency and duplicate review", "CRITICAL"],
+            ["T06", "Run architecture consistency and duplication review", "CRITICAL"],
             ["T07", "Generate repository implementation map", "CRITICAL"],
             ["T08", "Freeze Master Blueprint", "CRITICAL"],
         ],
@@ -208,12 +208,7 @@ def synchronize_execution_projection(
     state: dict[str, Any],
 ) -> None:
     """
-    Synchronize execution metadata that is derived from the authoritative
-    current gate plan.
-
-    The gate plan is the source for current subtask, current task and
-    acceptance criteria. These execution fields are projections only and
-    must never retain criteria from an older gate.
+    Synchronize execution metadata derived from the current gate plan.
     """
     synchronize_current_phase(state)
     execution = state.setdefault("execution", {})
@@ -256,6 +251,7 @@ def synchronize_execution_projection(
         execution["current_acceptance_criteria"] = list(criteria)
 
     state.setdefault("meta", {})["control_center_version"] = VERSION
+
 
 def save_state(
     state: dict[str, Any],
@@ -454,7 +450,7 @@ def build_handoff_packet(
         encoding="utf-8",
     )
 
-    state["session"]["last_handoff"] = str(path)
+    state.setdefault("session", {})["last_handoff"] = str(path)
 
     return path
 
@@ -533,8 +529,10 @@ def cmd_gate(state: dict[str, Any]) -> None:
 
 def cmd_sync_gate(state: dict[str, Any]) -> None:
     gate = materialize_current_gate(state)
-    save_state(state)
+
+    # Persist the handoff metadata in the same save operation as the state.
     build_handoff_packet(state)
+    save_state(state)
 
     print("Gate synchronized:", gate["id"])
     print("Current subtask:", gate["current_subtask"])
@@ -628,8 +626,10 @@ def cmd_complete_subtask(
         },
     )
 
-    save_state(state)
+    # Build the packet before saving: build_handoff_packet updates
+    # session.last_handoff, which must be included in the integrity hash.
     build_handoff_packet(state)
+    save_state(state)
 
     print("COMPLETED:", subtask_id)
     print(
@@ -672,8 +672,8 @@ def cmd_verify_criterion(
         },
     )
 
-    save_state(state)
     build_handoff_packet(state)
+    save_state(state)
 
     print("VERIFIED:", criterion_id)
 
@@ -696,8 +696,8 @@ def cmd_verify_all(state: dict[str, Any]) -> None:
         {"gate": current_gate_id(state)},
     )
 
-    save_state(state)
     build_handoff_packet(state)
+    save_state(state)
 
     print(
         "VERIFIED CRITERIA:",
@@ -774,8 +774,8 @@ def cmd_validate_gate(
         {"gate": current_gate_id(state)},
     )
 
-    save_state(state)
     build_handoff_packet(state)
+    save_state(state)
 
     print(
         "GATE VALIDATED:",
@@ -877,7 +877,7 @@ def cmd_approve_gate(
         state["execution"]["current_task"] = next(
             x["name"]
             for x in sequence
-            if x["gate"] == next_gate
+            if x.get("gate") == next_gate
         )
 
         materialize_current_gate(state)
@@ -909,8 +909,8 @@ def cmd_approve_gate(
         },
     )
 
-    save_state(state)
     build_handoff_packet(state)
+    save_state(state)
 
     print(
         "GATE APPROVED & FROZEN:",
@@ -943,8 +943,8 @@ def cmd_checkpoint(
         item,
     )
 
-    save_state(state)
     build_handoff_packet(state)
+    save_state(state)
 
     print(item["id"])
 
@@ -1038,8 +1038,8 @@ def main() -> None:
 
     elif args.cmd == "sync-gate":
         gate = materialize_current_gate(state)
-        save_state(state)
         build_handoff_packet(state)
+        save_state(state)
         print("Gate synchronized:", gate["id"])
         print("Current subtask:", gate["current_subtask"])
 
