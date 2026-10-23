@@ -6,9 +6,24 @@ from enum import Enum
 from typing import Any, Mapping
 
 from ..contract_primitives import deep_freeze, fingerprint
-from .commission_dispute import CommissionDispute
-from .commission_reconciliation import CommissionReconciliation
-from .commission_settlement import CommissionSettlement
+from .commission_dispute import (
+    CommissionDispute,
+    CommissionDisputeResolution,
+    CommissionDisputeState,
+)
+from .commission_reconciliation import (
+    CommissionReconciliation,
+    CommissionReconciliationState,
+)
+from .commission_settlement import (
+    CommissionSettlement,
+    CommissionSettlementState,
+)
+from .commission_security import (
+    FinancialAuthorizationAction,
+    FinancialAuthorizationRequest,
+    FinancialSecurityBoundary,
+)
 from .financial_domain import (
     FinancialCurrencyMismatchError,
     FinancialTenantScopeError,
@@ -49,6 +64,7 @@ def _text(value: str, field: str) -> str:
         raise CommissionAdjustmentValidationError(
             f"{field} must be non-empty text."
         )
+
     return value.strip()
 
 
@@ -77,7 +93,25 @@ def _positive(value: int, field: str) -> int:
         raise CommissionAdjustmentValidationError(
             f"{field} must be a positive integer."
         )
+
     return value
+
+
+def _merge_reserved_audit_metadata(
+    metadata: Mapping[str, Any],
+    additions: Mapping[str, Any],
+) -> dict[str, Any]:
+    result = dict(metadata)
+
+    for key, value in additions.items():
+        if key in result and result[key] != value:
+            raise CommissionAdjustmentValidationError(
+                f"metadata cannot override reserved audit field: {key}"
+            )
+
+        result[key] = value
+
+    return result
 
 
 @dataclass(frozen=True, slots=True)
@@ -154,7 +188,7 @@ class CommissionAdjustment:
             state = CommissionAdjustmentState(
                 self.state
             )
-        except ValueError as exc:
+        except (TypeError, ValueError) as exc:
             raise CommissionAdjustmentValidationError(
                 "Unsupported adjustment enum."
             ) from exc
@@ -232,34 +266,53 @@ class CommissionAdjustment:
         reconciliation: CommissionReconciliation | None = None,
         metadata: Mapping[str, Any] | None = None,
     ) -> "CommissionAdjustment":
-        if not isinstance(
-            dispute,
-            CommissionDispute,
-        ):
+        if not isinstance(dispute, CommissionDispute):
             raise CommissionAdjustmentValidationError(
                 "dispute must be CommissionDispute."
             )
 
-        if not isinstance(
-            settlement,
-            CommissionSettlement,
-        ):
+        if not isinstance(settlement, CommissionSettlement):
             raise CommissionAdjustmentValidationError(
                 "settlement must be CommissionSettlement."
             )
 
+        if not isinstance(amount, MonetaryAmount):
+            raise CommissionAdjustmentValidationError(
+                "amount must be MonetaryAmount."
+            )
+
+        try:
+            resolved_type = CommissionAdjustmentType(
+                adjustment_type
+            )
+        except (TypeError, ValueError) as exc:
+            raise CommissionAdjustmentValidationError(
+                "Unsupported adjustment type."
+            ) from exc
+
         if (
-            dispute.tenant_id
-            != settlement.tenant_id
+            dispute.state is not CommissionDisputeState.RESOLVED
+            or dispute.resolution
+            not in {
+                CommissionDisputeResolution.ACCEPTED,
+                CommissionDisputeResolution.PARTIALLY_ACCEPTED,
+            }
         ):
+            raise CommissionAdjustmentValidationError(
+                "An adjustment requires a resolved, accepted dispute."
+            )
+
+        if dispute.tenant_id != settlement.tenant_id:
             raise CommissionAdjustmentValidationError(
                 "Dispute and settlement tenant mismatch."
             )
 
-        if (
-            dispute.settlement_id
-            != settlement.settlement_id
-        ):
+        if dispute.commission_id != settlement.commission_id:
+            raise CommissionAdjustmentValidationError(
+                "Dispute and settlement commission mismatch."
+            )
+
+        if dispute.settlement_id != settlement.settlement_id:
             raise CommissionAdjustmentValidationError(
                 "Dispute does not reference settlement."
             )
@@ -272,21 +325,32 @@ class CommissionAdjustment:
                 CommissionReconciliation,
             ):
                 raise CommissionAdjustmentValidationError(
-                    "reconciliation must be "
-                    "CommissionReconciliation."
+                    "reconciliation must be CommissionReconciliation."
                 )
 
             if (
-                reconciliation.settlement_id
-                != settlement.settlement_id
+                reconciliation.tenant_id != settlement.tenant_id
+                or reconciliation.commission_id != settlement.commission_id
             ):
+                raise CommissionAdjustmentValidationError(
+                    "Reconciliation tenant or commission mismatch."
+                )
+
+            if reconciliation.settlement_id != settlement.settlement_id:
                 raise CommissionAdjustmentValidationError(
                     "Reconciliation does not reference settlement."
                 )
 
-            reconciliation_id = (
-                reconciliation.reconciliation_id
-            )
+            if (
+                dispute.reconciliation_id is not None
+                and dispute.reconciliation_id
+                != reconciliation.reconciliation_id
+            ):
+                raise CommissionAdjustmentValidationError(
+                    "Reconciliation does not match the dispute."
+                )
+
+            reconciliation_id = reconciliation.reconciliation_id
 
         if (
             amount.currency.identity_key
@@ -296,6 +360,34 @@ class CommissionAdjustment:
                 "Adjustment currency must match settlement."
             )
 
+        if amount.amount > settlement.amount.amount:
+            raise CommissionAdjustmentValidationError(
+                "Adjustment amount cannot exceed settlement amount."
+            )
+
+        if (
+            dispute.disputed_amount is not None
+            and amount.amount > dispute.disputed_amount.amount
+        ):
+            raise CommissionAdjustmentValidationError(
+                "Adjustment amount cannot exceed disputed amount."
+            )
+
+        if resolved_type is CommissionAdjustmentType.REVERSAL:
+            if settlement.state is not CommissionSettlementState.CONFIRMED:
+                raise CommissionAdjustmentValidationError(
+                    "A reversal requires a confirmed settlement."
+                )
+
+            if (
+                reconciliation is None
+                or reconciliation.state
+                is not CommissionReconciliationState.MATCHED
+            ):
+                raise CommissionAdjustmentValidationError(
+                    "A reversal requires its matching reconciliation."
+                )
+
         return cls(
             adjustment_id=adjustment_id,
             tenant_id=dispute.tenant_id,
@@ -304,18 +396,14 @@ class CommissionAdjustment:
             settlement_id=settlement.settlement_id,
             reconciliation_id=reconciliation_id,
             adjustment_version=1,
-            adjustment_type=adjustment_type,
+            adjustment_type=resolved_type,
             amount=amount,
             reason_code=reason_code,
             authorization_reference=authorization_reference,
             provenance_reference=provenance_reference,
             evidence_reference=evidence_reference,
             effective_at=effective_at,
-            metadata=(
-                {}
-                if metadata is None
-                else metadata
-            ),
+            metadata={} if metadata is None else metadata,
         )
 
     @property
@@ -353,8 +441,72 @@ class CommissionAdjustment:
     def approve(
         self,
         *,
+        authorization_boundary: FinancialSecurityBoundary,
+        actor_reference: str,
         authorization_reference: str,
+        approved_at: datetime,
     ) -> "CommissionAdjustment":
+        if self.state is not CommissionAdjustmentState.PROPOSED:
+            raise CommissionAdjustmentValidationError(
+                "Only PROPOSED adjustments can be approved."
+            )
+
+        if not isinstance(
+            authorization_boundary,
+            FinancialSecurityBoundary,
+        ):
+            raise CommissionAdjustmentValidationError(
+                "authorization_boundary must be FinancialSecurityBoundary."
+            )
+
+        actor = _text(actor_reference, "actor_reference")
+        authorization_ref = _text(
+            authorization_reference,
+            "authorization_reference",
+        )
+        approved_time = _aware(approved_at, "approved_at")
+        source_fingerprint = self.immutable_fingerprint
+
+        audit_metadata = _merge_reserved_audit_metadata(
+            self.metadata,
+            {
+                "approval_source_fingerprint": source_fingerprint,
+                "approved_actor_reference": actor,
+                "approved_at": approved_time.isoformat(),
+                "approval_authorization_reference": authorization_ref,
+                "approval_operation": "APPROVE_ADJUSTMENT",
+            },
+        )
+
+        context = {
+            "operation": "APPROVE_ADJUSTMENT",
+            "adjustment_id": self.adjustment_id,
+            "adjustment_version": self.adjustment_version,
+            "adjustment_fingerprint": source_fingerprint,
+            "adjustment_type": self.adjustment_type.value,
+            "amount": self.amount.to_dict(),
+            "dispute_id": self.dispute_id,
+            "settlement_id": self.settlement_id,
+            "reconciliation_id": self.reconciliation_id,
+            "provenance_reference": self.provenance_reference,
+            "evidence_reference": self.evidence_reference,
+            "effective_at": self.effective_at.isoformat(),
+            "approved_at": approved_time.isoformat(),
+        }
+
+        authorization_boundary.authorize(
+            FinancialAuthorizationRequest(
+                tenant_id=self.tenant_id,
+                resource_tenant_id=self.tenant_id,
+                actor_reference=actor,
+                resource_reference=self.adjustment_id,
+                action=FinancialAuthorizationAction.ADJUST,
+                authorization_reference=authorization_ref,
+                sensitive=True,
+                context=context,
+            )
+        )
+
         return CommissionAdjustment(
             adjustment_id=self.adjustment_id,
             tenant_id=self.tenant_id,
@@ -366,20 +518,129 @@ class CommissionAdjustment:
             adjustment_type=self.adjustment_type,
             amount=self.amount,
             reason_code=self.reason_code,
-            authorization_reference=authorization_reference,
+            authorization_reference=authorization_ref,
             provenance_reference=self.provenance_reference,
             evidence_reference=self.evidence_reference,
             effective_at=self.effective_at,
             state=CommissionAdjustmentState.APPROVED,
-            metadata=self.metadata,
+            metadata=audit_metadata,
         )
 
-    def mark_applied(self) -> "CommissionAdjustment":
+    def mark_applied(
+        self,
+        *,
+        authorization_boundary: FinancialSecurityBoundary,
+        actor_reference: str,
+        authorization_reference: str,
+        applied_at: datetime,
+    ) -> "CommissionAdjustment":
         if self.state is not CommissionAdjustmentState.APPROVED:
             raise CommissionAdjustmentValidationError(
                 "Only APPROVED adjustments can be applied."
             )
 
+        if not isinstance(
+            authorization_boundary,
+            FinancialSecurityBoundary,
+        ):
+            raise CommissionAdjustmentValidationError(
+                "authorization_boundary must be FinancialSecurityBoundary."
+            )
+
+        approval_source_fingerprint = self.metadata.get(
+            "approval_source_fingerprint"
+        )
+        approved_actor = self.metadata.get(
+            "approved_actor_reference"
+        )
+        approved_at_value = self.metadata.get("approved_at")
+        approval_reference = self.metadata.get(
+            "approval_authorization_reference"
+        )
+
+        if not all(
+            isinstance(value, str) and value.strip()
+            for value in (
+                approval_source_fingerprint,
+                approved_actor,
+                approved_at_value,
+                approval_reference,
+            )
+        ):
+            raise CommissionAdjustmentValidationError(
+                "Approved adjustment is missing its authorization audit linkage."
+            )
+
+        try:
+            approved_time = _aware(
+                datetime.fromisoformat(approved_at_value),
+                "approved_at",
+            )
+        except (TypeError, ValueError) as exc:
+            raise CommissionAdjustmentValidationError(
+                "Approved adjustment has an invalid approved_at audit value."
+            ) from exc
+
+        actor = _text(actor_reference, "actor_reference")
+        authorization_ref = _text(
+            authorization_reference,
+            "authorization_reference",
+        )
+        applied_time = _aware(applied_at, "applied_at")
+
+        if applied_time < approved_time:
+            raise CommissionAdjustmentValidationError(
+                "Adjustment cannot be applied before approval."
+            )
+
+        if applied_time < self.effective_at:
+            raise CommissionAdjustmentValidationError(
+                "Adjustment cannot be applied before its effective_at time."
+            )
+
+        approved_fingerprint = self.immutable_fingerprint
+
+        audit_metadata = _merge_reserved_audit_metadata(
+            self.metadata,
+            {
+                "application_source_fingerprint": approved_fingerprint,
+                "applied_actor_reference": actor,
+                "applied_at": applied_time.isoformat(),
+                "application_authorization_reference": authorization_ref,
+                "application_operation": "APPLY_ADJUSTMENT",
+            },
+        )
+
+        context = {
+            "operation": "APPLY_ADJUSTMENT",
+            "adjustment_id": self.adjustment_id,
+            "adjustment_version": self.adjustment_version,
+            "adjustment_fingerprint": approved_fingerprint,
+            "approval_source_fingerprint": approval_source_fingerprint,
+            "approval_authorization_reference": approval_reference,
+            "approved_actor_reference": approved_actor,
+            "approved_at": approved_time.isoformat(),
+            "adjustment_type": self.adjustment_type.value,
+            "amount": self.amount.to_dict(),
+            "dispute_id": self.dispute_id,
+            "settlement_id": self.settlement_id,
+            "reconciliation_id": self.reconciliation_id,
+            "applied_at": applied_time.isoformat(),
+        }
+
+        authorization_boundary.authorize(
+            FinancialAuthorizationRequest(
+                tenant_id=self.tenant_id,
+                resource_tenant_id=self.tenant_id,
+                actor_reference=actor,
+                resource_reference=self.adjustment_id,
+                action=FinancialAuthorizationAction.ADJUST,
+                authorization_reference=authorization_ref,
+                sensitive=True,
+                context=context,
+            )
+        )
+
         return CommissionAdjustment(
             adjustment_id=self.adjustment_id,
             tenant_id=self.tenant_id,
@@ -391,12 +652,12 @@ class CommissionAdjustment:
             adjustment_type=self.adjustment_type,
             amount=self.amount,
             reason_code=self.reason_code,
-            authorization_reference=self.authorization_reference,
+            authorization_reference=authorization_ref,
             provenance_reference=self.provenance_reference,
             evidence_reference=self.evidence_reference,
             effective_at=self.effective_at,
             state=CommissionAdjustmentState.APPLIED,
-            metadata=self.metadata,
+            metadata=audit_metadata,
         )
 
     def to_dict(
