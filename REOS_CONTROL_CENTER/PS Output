@@ -1,48 +1,157 @@
-HOMIO / REOS — POWERSHELL OUTPUT
-Remote audit date: 2026-10-20
-Repository: prajaktaranjane80-sketch/Homio
-Branch: reos-development
+PS C:\Users\Sandip RanjanePatil> Set-Location "D:\Homio\REOS_CONTROL_CENTER"
+PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = "Stop"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Repo   = "prajaktaranjane80-sketch/Homio"
+PS D:\Homio\REOS_CONTROL_CENTER> $Branch = "reos-development"
+PS D:\Homio\REOS_CONTROL_CENTER> $Workflow = "frontend-ci.yml"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 1. GitHub CLI installed hai ya nahi check karo
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+>>     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+>>         throw "GitHub CLI install nahi hai. GitHub CLI install karna zaroori hai."
+>>     }
+>>
+>>     winget install --id GitHub.cli -e --accept-source-agreements --accept-package-agreements
+>>
+>>     if ($LASTEXITCODE -ne 0) {
+>>         throw "GitHub CLI installation fail hui. Error output mujhe bhejo."
+>>     }
+>>
+>>     $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
+>>                 [Environment]::GetEnvironmentVariable("Path", "User")
+>>
+>>     if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+>>         throw "GitHub CLI install ho gaya ho sakta hai. PowerShell band karke dobara kholo, phir isi script ko chalao."
+>>     }
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 2. GitHub login check; zaroorat pade to browser se sign-in
+PS D:\Homio\REOS_CONTROL_CENTER> gh auth status --hostname github.com *> $null
+PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     Write-Host "GitHub sign-in khulega. Browser mein apne GitHub account se sign in karo."
+>>     gh auth login --hostname github.com --web --git-protocol https
+>>
+>>     if ($LASTEXITCODE -ne 0) {
+>>         throw "GitHub sign-in complete nahi hua."
+>>     }
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 3. Independent Frontend CI run trigger karo
+PS D:\Homio\REOS_CONTROL_CENTER> $StartedAt = [DateTimeOffset]::UtcNow
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`nFrontend CI start kar rahe hain..." -ForegroundColor Cyan
 
-CURRENT VERIFIED BASELINE
-HEAD: e50cbf92c53f2fae54c2bf81751e732de54c70d3
+Frontend CI start kar rahe hain...
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> gh workflow run $Workflow --repo $Repo --ref $Branch
+✓ Created workflow_dispatch event for frontend-ci.yml at reos-development
+https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39960596638
 
-LATEST VERIFIED DOCUMENT UPDATE
-Commit:
-https://github.com/prajaktaranjane80-sketch/Homio/commit/e50cbf92c53f2fae54c2bf81751e732de54c70d3
+To see the created workflow run, try: gh run view 39960596638
+To see runs for this workflow, try: gh run list --workflow="frontend-ci.yml"
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "Frontend CI trigger nahi hua. Neeche ka error output mujhe bhejo."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 4. Naye run ka ID milne tak check karo
+PS D:\Homio\REOS_CONTROL_CENTER> $Run = $null
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> for ($i = 0; $i -lt 30; $i++) {
+>>     Start-Sleep -Seconds 3
+>>
+>>     $Output = gh run list `
+>>         --repo $Repo `
+>>         --workflow $Workflow `
+>>         --branch $Branch `
+>>         --event workflow_dispatch `
+>>         --limit 10 `
+>>         --json databaseId,event,createdAt,status,conclusion,headSha,url,name
+>>
+>>     if ($LASTEXITCODE -ne 0) {
+>>         throw "Workflow run ki details nahi mil paayin."
+>>     }
+>>
+>>     $Runs = @(ConvertFrom-Json -InputObject ($Output -join "`n"))
+>>
+>>     $Run = $Runs |
+>>         Where-Object {
+>>             $_.event -eq "workflow_dispatch" -and
+>>             ([DateTimeOffset]::Parse($_.createdAt).ToUniversalTime() -ge $StartedAt.AddSeconds(-10))
+>>         } |
+>>         Sort-Object createdAt -Descending |
+>>         Select-Object -First 1
+>>
+>>     if ($Run) { break }
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if (-not $Run) {
+>>     throw "Run trigger request bheji gayi, lekin naya run abhi nahi mila. Actions page check karo."
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`nRun URL: $($Run.url)" -ForegroundColor Yellow
 
-Changed path:
-HOMIO PowerShell–GitHub Workflow Plan
+Run URL: https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39960596638
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Run ID:  $($Run.databaseId)"
+Run ID:  39960596638
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`nCI ke complete hone aur result ke liye wait/check kar rahe hain..." -ForegroundColor Cyan
 
-The original en-dash filename was preserved. The full replacement
-was read back from GitHub. The document now identifies CORE-008-T04
-as CURRENT and marks T01-T03 DONE and T05-T10 PENDING.
+CI ke complete hone aur result ke liye wait/check kar rahe hain...
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 5. CI ke complete hone tak watch karo
+PS D:\Homio\REOS_CONTROL_CENTER> gh run watch $Run.databaseId --repo $Repo --exit-status
+✓ reos-development HOMIO Frontend CI · 39960596638
+Triggered via workflow_dispatch about 1 minute ago
 
-CANONICAL STATE
-Path: REOS_CONTROL_CENTER/data/state.json
-Blob SHA: 92296fb10b0c7a37d0fc7fa97c4328f587512150
-Current task: CORE-008-T04
-State modification: NONE
+JOBS
+✓ Frontend verification in 1m2s (ID 120437325440)
+  ✓ Set up job
+  ✓ Checkout canonical branch
+  ✓ Set up Node.js 24
+  ✓ Install locked frontend dependencies
+  ✓ Run frontend verification, TypeScript, lint and production build
+  ✓ Post Set up Node.js 24
+  ✓ Post Checkout canonical branch
+  ✓ Complete job
 
-HISTORICAL POWERSHELL FAILURE — NOT A CURRENT SAVE FAILURE
+ANNOTATIONS
+- "The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748"
+Frontend verification: .github#1
 
-Earlier error:
-STOP BEFORE REF UPDATE: original plan blob is not present in the proposed tree.
 
-The earlier PowerShell attempt stopped before updating the branch ref.
-Its failure transcript remained in PS Output.
+✓ Run HOMIO Frontend CI (39960596638) completed with 'success'
+PS D:\Homio\REOS_CONTROL_CENTER> $WatchExit = $LASTEXITCODE
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> # 6. Final result dikhao
+PS D:\Homio\REOS_CONTROL_CENTER> $FinalOutput = gh run view $Run.databaseId --repo $Repo `
+>>     --json name,event,status,conclusion,headSha,url
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($LASTEXITCODE -ne 0) {
+>>     throw "Final run details read nahi ho paayin. Run URL: $($Run.url)"
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $Final = ConvertFrom-Json -InputObject ($FinalOutput -join "`n")
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "`n========== FRONTEND CI RESULT ==========" -ForegroundColor Cyan
 
-Subsequently, the owner replaced the original workflow-plan file
-through GitHub web editing and committed it as e50cbf92c53f2fae54c2bf81751e732de54c70d3.
+========== FRONTEND CI RESULT ==========
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Workflow : $($Final.name)"
+Workflow : HOMIO Frontend CI
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Branch   : $Branch"
+Branch   : reos-development
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Commit   : $($Final.headSha)"
+Commit   : 8bf3c698046630e1dcf96d402f30578e8a3ffae6
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Status   : $($Final.status)"
+Status   : completed
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Result   : $($Final.conclusion)"
+Result   : success
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "Run URL  : $($Final.url)"
+Run URL  : https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/39960596638
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($Final.conclusion -eq "success" -and $WatchExit -eq 0) {
+>>     Write-Host "`nFRONTEND CI: PASS" -ForegroundColor Green
+>> } else {
+>>     Write-Host "`nFRONTEND CI: FAIL — run ke failed step/logs dekhne honge." -ForegroundColor Red
+>> }
 
-Therefore:
-- The workflow plan save is confirmed.
-- The old STOP message in the existing PS Output is historical.
-- The old PowerShell script must not be rerun with its former HEAD/SHA assumptions.
-- This record does not claim that the failed PowerShell attempt succeeded.
-- This record does not claim a new backend or frontend CI run.
-- No change to data/state.json is authorized or required for this documentation correction.
-
-NEXT ACTION
-Continue from the fresh live GitHub branch and canonical state.
-Do not rerun the old tree-writing script. Use full-file replacement
-through GitHub web editing for further supporting-document corrections.
+FRONTEND CI: PASS
+PS D:\Homio\REOS_CONTROL_CENTER>
