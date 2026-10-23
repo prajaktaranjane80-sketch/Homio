@@ -8,6 +8,10 @@ from .commission_reconciliation import (
     CommissionExternalSettlementEvidence,
     CommissionReconciliation,
 )
+from .commission_reconciliation_temporal import (
+    CommissionReconciliationTemporalError,
+    assert_reconciliation_temporal_order,
+)
 from .commission_settlement import CommissionSettlement
 
 
@@ -85,6 +89,17 @@ def validate_reconciliation(
         != expected_variance
     ):
         errors.append("variance calculation mismatch")
+
+    # Fail closed when evidence chronology is inconsistent.
+    # Reuse the existing canonical temporal validator.
+    try:
+        assert_reconciliation_temporal_order(
+            settlement,
+            evidence,
+            reconciliation,
+        )
+    except CommissionReconciliationTemporalError as exc:
+        errors.append(str(exc))
 
     if reconciliation.reconciled_at > at:
         errors.append(
