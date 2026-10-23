@@ -22,7 +22,7 @@ from AUTONOMY_ENGINE.continuity.acrl.new_chat_bootstrap import (
 
 
 class Projection:
-    """Minimal projection used for PART 08 acceptance tests."""
+    """Minimal projection used by PART 08 acceptance tests."""
 
     def __init__(
         self,
@@ -40,7 +40,7 @@ def make_checkpoint():
             "phase": "PRE-CODING ARCHITECTURE",
             "current_gate": "CORE-005",
             "current_subtask": "CORE-005-T01",
-            "status": "CONTROL_CENTER_DRIVEN",
+            "status": "CURRENT",
         },
         checkpoint_id="CP-P08-001",
         created_at="2026-08-31T00:00:00+00:00",
