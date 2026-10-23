@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 from dataclasses import replace
@@ -24,7 +25,10 @@ from .commission_security import (
     FinancialAuthorizationRequest,
     FinancialSecurityBoundary,
 )
-from .commission_settlement import CommissionSettlementState
+from .commission_settlement import (
+    CommissionSettlementMode,
+    CommissionSettlementState,
+)
 from .financial_domain import MonetaryAmount
 from .test_core008_t02_attribution_binding import NOW
 from .test_core008_t04_settlement_reconciliation_lifecycle import (
@@ -176,7 +180,11 @@ def test_settlement_uses_authoritative_allocation_as_its_source():
     assert settlement.amount.currency.identity_key == (
         allocation.total_amount.currency.identity_key
     )
-    assert settlement.amount.amount <= allocation.total_amount.amount
+
+    # _create uses the default full-allocation settlement amount.
+    # Equality prevents an accidentally reduced settlement from passing.
+    assert settlement.amount.amount == allocation.total_amount.amount
+    assert settlement.mode is CommissionSettlementMode.FULL
     assert settlement.immutable_fingerprint
 
 
@@ -390,3 +398,95 @@ def test_reversal_cannot_be_applied_before_approval_time():
 
     assert not application_requests
     assert approved.state is CommissionAdjustmentState.APPROVED
+
+
+def test_reversal_audit_metadata_cannot_be_rewritten_after_approval():
+    result = _matched_result()
+    proposal = _new_reversal_adjustment(result)
+
+    boundary, _ = _approval_boundary(
+        proposal,
+        actor_reference="finance-approver-001",
+        authorization_reference="reversal-approval-auth-001",
+        operation="APPROVE_ADJUSTMENT",
+    )
+    approved = proposal.approve(
+        authorization_boundary=boundary,
+        actor_reference="finance-approver-001",
+        authorization_reference="reversal-approval-auth-001",
+        approved_at=NOW + timedelta(hours=11),
+    )
+
+    original_fingerprint = approved.immutable_fingerprint
+    original_metadata = dict(approved.metadata)
+
+    with pytest.raises(TypeError):
+        approved.metadata["approval_source_fingerprint"] = "forged-source"
+
+    with pytest.raises(TypeError):
+        approved.metadata["approved_actor_reference"] = "forged-actor"
+
+    assert dict(approved.metadata) == original_metadata
+    assert approved.immutable_fingerprint == original_fingerprint
+    assert proposal.state is CommissionAdjustmentState.PROPOSED
+    assert proposal.immutable_fingerprint != approved.immutable_fingerprint
+
+
+def test_authorization_request_context_is_deeply_immutable():
+    source_context = {
+        "operation": "APPROVE_ADJUSTMENT",
+        "amount": {
+            "currency": "USD",
+            "minor_units": 100,
+        },
+        "references": [
+            "settlement-001",
+            "reconciliation-001",
+        ],
+    }
+
+    request = FinancialAuthorizationRequest(
+        tenant_id="tenant-a",
+        resource_tenant_id="tenant-a",
+        actor_reference="finance-approver-001",
+        resource_reference="adjustment-001",
+        action=FinancialAuthorizationAction.ADJUST,
+        authorization_reference="approval-auth-001",
+        context=source_context,
+    )
+
+    # Caller-owned data must not alter the captured authorization context.
+    source_context["amount"]["minor_units"] = 999
+    source_context["references"].append("forged-reference")
+
+    assert request.context is not None
+    assert request.context["amount"]["minor_units"] == 100
+    assert request.context["references"] == (
+        "settlement-001",
+        "reconciliation-001",
+    )
+
+    with pytest.raises(TypeError):
+        request.context["operation"] = "APPLY_ADJUSTMENT"
+
+    with pytest.raises(TypeError):
+        request.context["amount"]["minor_units"] = 999
+
+    assert request.context["operation"] == "APPROVE_ADJUSTMENT"
+    assert request.context["amount"]["minor_units"] == 100
+
+
+def test_authorization_request_rejects_non_mapping_context():
+    with pytest.raises(
+        FinancialAuthorizationError,
+        match="context must be a mapping or None",
+    ):
+        FinancialAuthorizationRequest(
+            tenant_id="tenant-a",
+            resource_tenant_id="tenant-a",
+            actor_reference="finance-approver-001",
+            resource_reference="adjustment-001",
+            action=FinancialAuthorizationAction.ADJUST,
+            authorization_reference="approval-auth-001",
+            context=["not", "a", "mapping"],
+        )
