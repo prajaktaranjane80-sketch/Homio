@@ -1,8 +1,11 @@
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Mapping, Any
+from typing import Any, Callable, Mapping
+
+from ..contract_primitives import ContractPrimitiveError, deep_freeze
 
 
 class FinancialSecurityError(PermissionError):
@@ -54,10 +57,7 @@ class FinancialAuthorizationRequest:
             value = getattr(self, field)
 
             if (
-                not isinstance(
-                    value,
-                    str,
-                )
+                not isinstance(value, str)
                 or not value.strip()
             ):
                 raise FinancialAuthorizationError(
@@ -78,12 +78,34 @@ class FinancialAuthorizationRequest:
                 "Invalid financial authorization action."
             )
 
-        if not isinstance(
-            self.sensitive,
-            bool,
-        ):
+        if not isinstance(self.sensitive, bool):
             raise FinancialAuthorizationError(
                 "sensitive must be boolean."
+            )
+
+        # Freeze authorization context recursively. A frozen dataclass
+        # alone does not protect a caller-owned dictionary or its
+        # nested mappings and lists from subsequent mutation.
+        if self.context is not None:
+            if not isinstance(self.context, Mapping):
+                raise FinancialAuthorizationError(
+                    "context must be a mapping or None."
+                )
+
+            try:
+                frozen_context = deep_freeze(
+                    dict(self.context),
+                    field_name="authorization context",
+                )
+            except (ContractPrimitiveError, TypeError) as exc:
+                raise FinancialAuthorizationError(
+                    "context contains unsupported values."
+                ) from exc
+
+            object.__setattr__(
+                self,
+                "context",
+                frozen_context,
             )
 
 
@@ -100,13 +122,9 @@ class FinancialAuthorizationDecision:
         return {
             "allowed": self.allowed,
             "tenant_valid": self.tenant_valid,
-            "authorization_valid": (
-                self.authorization_valid
-            ),
+            "authorization_valid": self.authorization_valid,
             "action": self.action,
-            "resource_reference": (
-                self.resource_reference
-            ),
+            "resource_reference": self.resource_reference,
             "reason": self.reason,
         }
 
@@ -157,9 +175,7 @@ class FinancialSecurityBoundary:
             )
 
         authorization_valid = bool(
-            self._authorization_verifier(
-                request
-            )
+            self._authorization_verifier(request)
         )
 
         decision = FinancialAuthorizationDecision(
