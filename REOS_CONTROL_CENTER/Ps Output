@@ -1,13 +1,38 @@
-PS D:\Homio\REOS_CONTROL_CENTER> python -B .\reos_control_center.py verify-state
-Traceback (most recent call last):
-  File "D:\Homio\REOS_CONTROL_CENTER\reos_control_center.py", line 1236, in <module>
-    main()
-  File "D:\Homio\REOS_CONTROL_CENTER\reos_control_center.py", line 1168, in main
-    parser = build_parser()
-             ^^^^^^^^^^^^^^
-  File "D:\Homio\REOS_CONTROL_CENTER\reos_control_center.py", line 1147, in build_parser
-    p = sub.add_parser("repair-arch039-transition")
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\Sandip RanjanePatil\AppData\Local\Programs\Python\Python312\Lib\argparse.py", line 1218, in add_parser
-    raise ArgumentError(self, _('conflicting subparser: %s') % name)
-argparse.ArgumentError: argument cmd: conflicting subparser: repair-arch039-transition
+
+PS C:\Users\Sandip RanjanePatil> Set-Location "D:\Homio\REOS_CONTROL_CENTER"
+PS D:\Homio\REOS_CONTROL_CENTER> $ErrorActionPreference = 'Stop'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $url = 'https://api.github.com/repos/prajaktaranjane80-sketch/Homio/contents/REOS_CONTROL_CENTER/reos_control_center.py?ref=reos-development'
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $r = Invoke-RestMethod -Uri $url -Headers @{
+>>     'User-Agent' = 'HOMIO-ReadOnly-Audit'
+>> }
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $source = [Text.Encoding]::UTF8.GetString(
+>>     [Convert]::FromBase64String(($r.content -replace '\s', ''))
+>> )
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> $lineCount = ($source -split "\r?\n").Count
+PS D:\Homio\REOS_CONTROL_CENTER> $occurrences = [regex]::Matches(
+>>     $source,
+>>     'repair-arch039-transition'
+>> ).Count
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "SOURCE: GitHub reos-development"
+SOURCE: GitHub reos-development
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "BLOB SHA: $($r.sha)"
+BLOB SHA: 1d789e3e0b0377e05d55a5e55df7431fcea5a7d8
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "LINES: $lineCount"
+LINES: 1084
+PS D:\Homio\REOS_CONTROL_CENTER> Write-Host "COMMAND REFERENCES: $occurrences"
+COMMAND REFERENCES: 0
+PS D:\Homio\REOS_CONTROL_CENTER>
+PS D:\Homio\REOS_CONTROL_CENTER> if ($occurrences -eq 0) {
+>>     Write-Host "PASS: Duplicate command is not present in GitHub file."
+>> } else {
+>>     Write-Host "CHECK REQUIRED: Command references found in GitHub file."
+>> }
+PASS: Duplicate command is not present in GitHub file.
+PS D:\Homio\REOS_CONTROL_CENTER>
+
+
