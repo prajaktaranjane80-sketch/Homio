@@ -42,7 +42,7 @@ def make_checkpoint():
             "phase": "PRE-CODING ARCHITECTURE",
             "current_gate": "CORE-005",
             "current_subtask": "CORE-005-T01",
-            "status": "CONTROL_CENTER_DRIVEN",
+            "status": "CURRENT",
         },
         checkpoint_id="CP-T08-001",
         created_at="2026-08-31T00:00:00+00:00",
@@ -312,4 +312,4 @@ def test_compression_version_is_present() -> None:
     assert (
         context.compression_version
         == "T08-1.0"
-    ) 
+    )
