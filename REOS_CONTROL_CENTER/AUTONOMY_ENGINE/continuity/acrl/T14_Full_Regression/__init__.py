@@ -1,57 +1,45 @@
-"""ACRL T14 — Repository Context and Fast Resume public package."""
+"""ACRL T14 — Full Regression Layer public package.
 
-from .audit_resume_manifest import (
-    DEFAULT_MANIFEST_RELATIVE_PATH,
-    MANIFEST_STATUS,
-    ManifestValidationError,
-    ResumeAssessment,
-    ResumeDecision,
-    SCHEMA_VERSION as MANIFEST_SCHEMA_VERSION,
-    assess_resume_manifest,
-    build_manifest,
-    load_manifest_file,
-    manifest_fingerprint,
-    seal_manifest,
-    validate_manifest_shape,
+This package exposes the read-only regression-layer API.
+Repository context and fast-resume APIs remain in their separate package.
+"""
+
+from .regression_layer import (
+    RegressionDecision,
+    RegressionLayerConflictError,
+    RegressionLayerEngine,
+    RegressionLayerError,
+    RegressionLayerIntegrityError,
+    RegressionLayerResult,
+    RegressionLayerSpec,
+    RegressionLayerValidationError,
+    RegressionReason,
+    RegressionReport,
+    acrl_regression_ready,
+    validate_acrl_regression,
 )
-from .repository_context import (
-    AUTHORITY,
-    SCHEMA_VERSION,
-    RepositoryContextAuthorityError,
-    RepositoryContextDecision,
-    RepositoryContextEngine,
-    RepositoryContextError,
-    RepositoryContextReason,
-    RepositoryContextReport,
-    RepositoryContextRequest,
-    RepositoryContextValidationError,
-    evaluate_fast_resume,
-    resolve_repository_context,
+from .regression_policy import RegressionPolicy
+from .regression_provenance import RegressionProvenance
+from .regression_registry import (
+    CanonicalLayerSpec,
+    RegressionRegistry,
 )
 
 __all__ = [
-    "AUTHORITY",
-    "SCHEMA_VERSION",
-    "MANIFEST_SCHEMA_VERSION",
-    "MANIFEST_STATUS",
-    "DEFAULT_MANIFEST_RELATIVE_PATH",
-    "ManifestValidationError",
-    "ResumeAssessment",
-    "ResumeDecision",
-    "RepositoryContextAuthorityError",
-    "RepositoryContextDecision",
-    "RepositoryContextEngine",
-    "RepositoryContextError",
-    "RepositoryContextReason",
-    "RepositoryContextReport",
-    "RepositoryContextRequest",
-    "RepositoryContextValidationError",
-    "assess_resume_manifest",
-    "build_manifest",
-    "evaluate_fast_resume",
-    "load_manifest_file",
-    "manifest_fingerprint",
-    "resolve_repository_context",
-    "seal_manifest",
-    "validate_manifest_shape",
+    "CanonicalLayerSpec",
+    "RegressionDecision",
+    "RegressionLayerConflictError",
+    "RegressionLayerEngine",
+    "RegressionLayerError",
+    "RegressionLayerIntegrityError",
+    "RegressionLayerResult",
+    "RegressionLayerSpec",
+    "RegressionLayerValidationError",
+    "RegressionPolicy",
+    "RegressionProvenance",
+    "RegressionReason",
+    "RegressionRegistry",
+    "RegressionReport",
+    "acrl_regression_ready",
+    "validate_acrl_regression",
 ]
