@@ -1,6 +1,17 @@
-﻿* text=auto
+* text=auto
 *.py   text eol=lf
 *.json text eol=lf
 *.md   text eol=lf
 *.txt  text eol=lf
 *.ps1  text eol=lf
+
+# Preserve the exact bytes of legacy CRLF or mixed-line-ending blobs.
+# These files are intentionally excluded from automatic EOL conversion until
+# a separate, controlled repository-wide renormalization is performed.
+Frontend/src/features/f01_experience_foundation/README.md -text !eol
+Frontend/src/features/f02_home_discovery/README.md -text !eol
+Frontend/tsconfig.json -text !eol
+REOS_NEXT_CHAT.txt -text !eol
+data/state.json -text !eol
+packets/NEW_CHAT_PACKET.txt -text !eol
+snapshots/state_*.json -text !eol
