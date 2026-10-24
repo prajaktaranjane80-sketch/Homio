@@ -152,8 +152,8 @@ jobs:
         run: |
           python -m pytest -q \
             AUTONOMY_ENGINE/continuity/acrl
-            # Explicit marker-prefixed push authorizes the guarded T04 transition.
 
+  # A marker-prefixed commit message explicitly authorizes this guarded transition.
   control_center_transition:
     name: Guarded Control Center transition (explicit commit authorization)
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/reos-development' && startsWith(github.event.head_commit.message, '[CONTROL-CENTER-COMPLETE-CORE-008-T04]') }}
@@ -214,7 +214,7 @@ jobs:
           git config --show-origin --get core.autocrlf || true
 
           if [[ -n "$(git status --porcelain=v1 --untracked-files=all)" ]]; then
-            echo "CHECKOUT_PREFLIGHT: checking whether changes are only CRLF/LF checkout drift."
+            echo "CHECKOUT_PREFLIGHT: checking whether changes are only CR-at-EOL checkout drift."
 
             if [[ -n "$(git ls-files --others --exclude-standard)" ]]; then
               echo "BLOCKED: checkout contains unexpected untracked files."
@@ -230,7 +230,7 @@ jobs:
             fi
 
             if ! git diff --quiet --ignore-cr-at-eol --; then
-              echo "BLOCKED: checkout contains substantive changes, not only CRLF/LF drift."
+              echo "BLOCKED: checkout contains substantive changes, not only CR-at-EOL drift."
               git status --short
               git diff --stat
               git diff --ignore-cr-at-eol --stat || true
@@ -239,6 +239,7 @@ jobs:
 
             python - <<'PY'
           import os
+          import re
           import subprocess
           from pathlib import Path
 
@@ -257,20 +258,26 @@ jobs:
           for raw_path in raw_paths:
               path = Path(os.fsdecode(raw_path))
               data = path.read_bytes()
-              normalized = data.replace(b"\r\n", b"\n")
+
+              # The diff check above proved that only CR-at-EOL differences exist.
+              # Remove runs of CR immediately before a newline or EOF, including
+              # repeated-CR variants, without changing ordinary file content.
+              normalized = re.sub(rb"\r+(?=\n|$)", b"", data)
+
               if normalized != data:
                   path.write_bytes(normalized)
+                  print(f"Normalized CR-at-EOL bytes: {path}")
           PY
 
             if [[ -n "$(git status --porcelain=v1 --untracked-files=all)" ]]; then
-              echo "BLOCKED: working tree did not become clean after CRLF-only normalization."
+              echo "BLOCKED: working tree did not become clean after CR-at-EOL normalization."
               git status --short
               git diff --stat
               git diff --ignore-cr-at-eol --stat || true
               exit 1
             fi
 
-            echo "CHECKOUT_PREFLIGHT PASS: normalized CRLF-only worktree drift; repository content remains unchanged."
+            echo "CHECKOUT_PREFLIGHT PASS: normalized CR-at-EOL worktree drift; repository content remains unchanged."
           fi
 
           python REOS_CONTROL_CENTER/reos_control_center.py verify-state
