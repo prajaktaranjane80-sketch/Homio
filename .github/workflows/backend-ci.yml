@@ -152,6 +152,7 @@ jobs:
         run: |
           python -m pytest -q \
             AUTONOMY_ENGINE/continuity/acrl
+            # Explicit marker-prefixed push authorizes the guarded T04 transition.
 
   control_center_transition:
     name: Guarded Control Center transition (explicit commit authorization)
