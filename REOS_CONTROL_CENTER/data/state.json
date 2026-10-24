@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-17T16:40:30+05:30",
+    "updated_at": "2026-10-24T13:16:21+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2285,14 +2285,23 @@
         "id": "CORE-008-T03",
         "note": "CORE-008-T03 evidence: commit 5adc036e7581345714d2d323a07beae5e4aea1ee passed GitHub Actions run 39026668724 with 502 tests. Implemented deterministic allocation-ratio precision correction and read-only commission participant binding against the canonical CORE-006 Deal, CORE-003 attribution and ARCH-011 ownership references. Remaining acceptance criteria remain independently evidence-gated."
       }
+    },
+    {
+      "id": "6e5de163-cf21-4146-96d3-5c39a5706f01",
+      "time": "2026-10-24T13:16:21+00:00",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-008-T04",
+        "note": "CORE-008-T04 completed through the existing Control Center after configured commission_financial and complete ACRL suites passed in GitHub Actions run 40097378073 for verified code commit 1d9450b1a93bce1b44ff39549c8f0ea762e29777. Acceptance criteria were not bulk-verified; AC01, AC04, AC05 and AC06 remain pending."
+      }
     }
   ],
   "integrity": {
-    "sha256": "8df15eb0c98fa7b2a3bd6cea66e1e3c935ccf553e986537515a519d92a9c8173"
+    "sha256": "e411e8d76b1c54f4bc8871ec2e4eb6d80add19856f59e87b7cddbcd9e392a8ca"
   },
   "execution": {
     "current_gate": "CORE-008",
-    "current_task": "CORE-008-T04: Implement settlement and reconciliation lifecycle.",
+    "current_task": "CORE-008-T05: Implement dispute and reversal rules.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
@@ -2303,7 +2312,7 @@
       "Critical financial actions require appropriate approval.",
       "Security and concurrency tests pass."
     ],
-    "current_subtask": "CORE-008-T04"
+    "current_subtask": "CORE-008-T05"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -4255,7 +4264,7 @@
       "name": "Commission & Financial Core",
       "objective": "Implement protected commission, financial and settlement lifecycle.",
       "status": "CURRENT",
-      "current_subtask": "CORE-008-T04",
+      "current_subtask": "CORE-008-T05",
       "subtasks": [
         {
           "id": "CORE-008-T01",
@@ -4285,13 +4294,15 @@
           "id": "CORE-008-T04",
           "title": "Implement settlement and reconciliation lifecycle",
           "priority": "CRITICAL",
-          "status": "CURRENT"
+          "status": "DONE",
+          "completed_at": "2026-10-24T13:16:21+00:00",
+          "note": "CORE-008-T04 completed through the existing Control Center after configured commission_financial and complete ACRL suites passed in GitHub Actions run 40097378073 for verified code commit 1d9450b1a93bce1b44ff39549c8f0ea762e29777. Acceptance criteria were not bulk-verified; AC01, AC04, AC05 and AC06 remain pending."
         },
         {
           "id": "CORE-008-T05",
           "title": "Implement dispute and reversal rules",
           "priority": "HIGH",
-          "status": "PENDING"
+          "status": "CURRENT"
         },
         {
           "id": "CORE-008-T06",
@@ -4556,6 +4567,6 @@
   "session": {
     "current_session_id": null,
     "last_checkpoint": null,
-    "last_handoff": null
+    "last_handoff": "REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt"
   }
 }

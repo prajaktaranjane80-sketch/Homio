@@ -165,15 +165,23 @@ https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/40030312521
 
 The configured financial-core suite passed 468 tests, and the configured ACRL suite passed 1,444 tests on that snapshot.
 
-After this document is saved:
+Pre-transition checklist (completed and read back as recorded in Section 9):
 
-1. Read this exact path back from `reos-development`.
-2. Confirm the returned content and blob SHA.
-3. Confirm the active task and current gate directly from `data/state.json`.
-4. Use the existing Control Center `complete-subtask` route for `CORE-008-T04` only when the verification evidence has been reconciled.
-5. Read back the resulting canonical state and handoff packet.
-6. Report the next subtask only from the resulting canonical state.
+The existing Control Center transition ran after all configured verification jobs passed. The resulting canonical state and both generated handoff files were checked before the evidence record was updated.
 
 Do not edit `data/state.json` manually. Do not manually mark gate acceptance criteria VERIFIED. Do not approve or freeze CORE-008 while required subtasks or acceptance criteria remain pending.
 
-**Disposition:** The T04 source and tests have successful current-commit CI evidence. The evidence record requires synchronization, followed by the prescribed Control Center transition and read-back. A green test result is not itself a canonical state transition.
+**Pre-transition disposition (superseded by Section 9):** The test evidence was reconciled before the Control Center transition.
+## 9. Post-transition Control Center Readback
+
+- Control Center transition: `CORE-008-T04` was marked `DONE` by `REOS_CONTROL_CENTER/reos_control_center.py complete-subtask`; `state.json` was not manually edited.
+- Verified code/test commit: `1d9450b1a93bce1b44ff39549c8f0ea762e29777`.
+- GitHub Actions run (verification passed before transition): https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/40097378073
+- Canonical `state.json` Git blob SHA after controller transition: `8b9256992ff0c00395e5462f4d89155d997de00d`.
+- Post-transition controller integrity and phase-coherence check: `PASS`.
+- Current task read from canonical state: `CORE-008-T05 — Implement dispute and reversal rules`.
+- Subtask readback: `CORE-008-T04=DONE`; `CORE-008-T05=CURRENT`.
+- Acceptance-criterion statuses were preserved: AC01=`PENDING`, AC02=`VERIFIED`, AC03=`VERIFIED`, AC04=`PENDING`, AC05=`PENDING`, AC06=`PENDING`.
+- Both generated handoff files identify T05 as current and T04 as done.
+
+**Final disposition:** Phase 6 (T04 implementation, CI verification, the prescribed Control Center transition and state/handoff readback) is complete. The CORE-008 gate remains open; this does not validate, approve or freeze the gate.
