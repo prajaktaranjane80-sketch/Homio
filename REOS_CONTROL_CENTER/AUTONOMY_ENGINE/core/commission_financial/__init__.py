@@ -162,6 +162,24 @@ from .commission_settlement_lifecycle import (
     SettlementLifecycleRecord,
 )
 
+# CORE-008 T06: financial audit chain and external evidence references
+from .commission_financial_audit import (
+    CORE008_FINANCIAL_AUDIT_SCHEMA_VERSION,
+    CommissionFinancialAuditAction,
+    CommissionFinancialAuditConflictError,
+    CommissionFinancialAuditEntry,
+    CommissionFinancialAuditError,
+    CommissionFinancialAuditIntegrityError,
+    CommissionFinancialAuditIntegrityReport,
+    CommissionFinancialAuditOutcome,
+    CommissionFinancialAuditRecord,
+    CommissionFinancialAuditTrail,
+    CommissionFinancialAuditValidationError,
+    CommissionFinancialEvidenceLink,
+    assert_financial_audit_trail_integrity,
+    inspect_financial_audit_trail,
+)
+
 __all__ = [
     "CORE008_FINANCIAL_DOMAIN_SCHEMA_VERSION",
     "CORE008_FINANCIAL_DOMAIN_SOURCE",
@@ -264,4 +282,18 @@ __all__ = [
     "CommissionSettlementReconciliationResult",
     "CommissionSettlementTransitionError",
     "SettlementLifecycleRecord",
+    "CORE008_FINANCIAL_AUDIT_SCHEMA_VERSION",
+    "CommissionFinancialAuditAction",
+    "CommissionFinancialAuditConflictError",
+    "CommissionFinancialAuditEntry",
+    "CommissionFinancialAuditError",
+    "CommissionFinancialAuditIntegrityError",
+    "CommissionFinancialAuditIntegrityReport",
+    "CommissionFinancialAuditOutcome",
+    "CommissionFinancialAuditRecord",
+    "CommissionFinancialAuditTrail",
+    "CommissionFinancialAuditValidationError",
+    "CommissionFinancialEvidenceLink",
+    "assert_financial_audit_trail_integrity",
+    "inspect_financial_audit_trail",
 ]
