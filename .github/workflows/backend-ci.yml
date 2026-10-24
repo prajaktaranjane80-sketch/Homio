@@ -630,7 +630,7 @@ jobs:
           echo "CANONICAL_BRANCH_HEAD=$REMOTE_SHA"
           echo "READBACK=PASS"
 
-  # T05 has its own explicit authorization marker; T04's transition remains unchanged.
+ # T05 has its own explicit authorization marker; T04's transition remains unchanged. This commit authorizes the guarded T05 transition.
   control_center_transition_t05:
     name: Guarded Control Center transition (CORE-008-T05)
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/reos-development' && startsWith(github.event.head_commit.message, '[CONTROL-CENTER-COMPLETE-CORE-008-T05]') }}
