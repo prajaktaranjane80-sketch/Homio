@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -21,9 +22,7 @@ class CommissionDisputeError(ValueError):
     """Base commission dispute error."""
 
 
-class CommissionDisputeValidationError(
-    CommissionDisputeError
-):
+class CommissionDisputeValidationError(CommissionDisputeError):
     """Invalid commission dispute."""
 
 
@@ -56,6 +55,20 @@ class CommissionDisputeResolution(str, Enum):
     SUPERSEDED = "SUPERSEDED"
 
 
+_ACTIVE_STATES = frozenset({
+    CommissionDisputeState.OPEN,
+    CommissionDisputeState.UNDER_REVIEW,
+    CommissionDisputeState.EVIDENCE_REQUIRED,
+    CommissionDisputeState.ESCALATED,
+})
+
+_ACCEPTED_RESOLUTIONS = frozenset({
+    CommissionDisputeResolution.ACCEPTED,
+    CommissionDisputeResolution.PARTIALLY_ACCEPTED,
+    CommissionDisputeResolution.SUPERSEDED,
+})
+
+
 def _text(value: str, field: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise CommissionDisputeValidationError(
@@ -64,10 +77,7 @@ def _text(value: str, field: str) -> str:
     return value.strip()
 
 
-def _aware(
-    value: datetime,
-    field: str,
-) -> datetime:
+def _aware(value: datetime, field: str) -> datetime:
     if (
         not isinstance(value, datetime)
         or value.tzinfo is None
@@ -76,7 +86,6 @@ def _aware(
         raise CommissionDisputeValidationError(
             f"{field} must be timezone-aware."
         )
-
     return value.astimezone(timezone.utc)
 
 
@@ -89,7 +98,6 @@ def _positive(value: int, field: str) -> int:
         raise CommissionDisputeValidationError(
             f"{field} must be a positive integer."
         )
-
     return value
 
 
@@ -116,12 +124,8 @@ class CommissionDispute:
     authorization_reference: str
     provenance_reference: str
     opened_at: datetime
-    state: CommissionDisputeState = (
-        CommissionDisputeState.OPEN
-    )
-    resolution: CommissionDisputeResolution = (
-        CommissionDisputeResolution.NONE
-    )
+    state: CommissionDisputeState = CommissionDisputeState.OPEN
+    resolution: CommissionDisputeResolution = CommissionDisputeResolution.NONE
     resolution_reference: str | None = None
     metadata: Mapping[str, Any] = ()
 
@@ -141,71 +145,40 @@ class CommissionDispute:
             object.__setattr__(
                 self,
                 field,
-                _text(
-                    getattr(self, field),
-                    field,
-                ),
+                _text(getattr(self, field), field),
             )
 
         if self.reconciliation_id is not None:
             object.__setattr__(
                 self,
                 "reconciliation_id",
-                _text(
-                    self.reconciliation_id,
-                    "reconciliation_id",
-                ),
+                _text(self.reconciliation_id, "reconciliation_id"),
             )
 
         object.__setattr__(
             self,
             "dispute_version",
-            _positive(
-                self.dispute_version,
-                "dispute_version",
-            ),
+            _positive(self.dispute_version, "dispute_version"),
         )
 
         try:
-            dispute_type = CommissionDisputeType(
-                self.dispute_type
-            )
-            state = CommissionDisputeState(
-                self.state
-            )
-            resolution = CommissionDisputeResolution(
-                self.resolution
-            )
-        except ValueError as exc:
+            dispute_type = CommissionDisputeType(self.dispute_type)
+            state = CommissionDisputeState(self.state)
+            resolution = CommissionDisputeResolution(self.resolution)
+        except (TypeError, ValueError) as exc:
             raise CommissionDisputeValidationError(
                 "Unsupported dispute enum."
             ) from exc
 
-        object.__setattr__(
-            self,
-            "dispute_type",
-            dispute_type,
-        )
-        object.__setattr__(
-            self,
-            "state",
-            state,
-        )
-        object.__setattr__(
-            self,
-            "resolution",
-            resolution,
-        )
+        object.__setattr__(self, "dispute_type", dispute_type)
+        object.__setattr__(self, "state", state)
+        object.__setattr__(self, "resolution", resolution)
 
         if self.disputed_amount is not None:
-            if not isinstance(
-                self.disputed_amount,
-                MonetaryAmount,
-            ):
+            if not isinstance(self.disputed_amount, MonetaryAmount):
                 raise CommissionDisputeValidationError(
                     "disputed_amount must be MonetaryAmount."
                 )
-
             if self.disputed_amount.amount < 0:
                 raise CommissionDisputeValidationError(
                     "disputed_amount cannot be negative."
@@ -214,41 +187,50 @@ class CommissionDispute:
         object.__setattr__(
             self,
             "opened_at",
-            _aware(
-                self.opened_at,
-                "opened_at",
-            ),
+            _aware(self.opened_at, "opened_at"),
         )
 
         if self.resolution_reference is not None:
             object.__setattr__(
                 self,
                 "resolution_reference",
-                _text(
-                    self.resolution_reference,
-                    "resolution_reference",
-                ),
+                _text(self.resolution_reference, "resolution_reference"),
             )
 
-        if (
-            self.resolution is not CommissionDisputeResolution.NONE
-            and not self.resolution_reference
-        ):
-            raise CommissionDisputeValidationError(
-                "Resolved dispute requires "
-                "resolution_reference."
-            )
+        # Enforce consistent terminal states and their resolution evidence.
+        if state is CommissionDisputeState.RESOLVED:
+            if resolution not in _ACCEPTED_RESOLUTIONS:
+                raise CommissionDisputeValidationError(
+                    "RESOLVED disputes require ACCEPTED, "
+                    "PARTIALLY_ACCEPTED, or SUPERSEDED resolution."
+                )
+            if not self.resolution_reference:
+                raise CommissionDisputeValidationError(
+                    "Resolved dispute requires resolution_reference."
+                )
 
-        metadata = (
-            {}
-            if self.metadata == ()
-            else self.metadata
-        )
+        elif state is CommissionDisputeState.REJECTED:
+            if resolution is not CommissionDisputeResolution.REJECTED:
+                raise CommissionDisputeValidationError(
+                    "REJECTED disputes require REJECTED resolution."
+                )
+            if not self.resolution_reference:
+                raise CommissionDisputeValidationError(
+                    "Rejected dispute requires resolution_reference."
+                )
 
-        if not isinstance(
-            metadata,
-            Mapping,
-        ):
+        else:
+            if resolution is not CommissionDisputeResolution.NONE:
+                raise CommissionDisputeValidationError(
+                    "Only RESOLVED or REJECTED disputes may carry a resolution."
+                )
+            if self.resolution_reference is not None:
+                raise CommissionDisputeValidationError(
+                    "Non-terminal disputes cannot carry resolution_reference."
+                )
+
+        metadata = {} if self.metadata == () else self.metadata
+        if not isinstance(metadata, Mapping):
             raise CommissionDisputeValidationError(
                 "metadata must be a mapping."
             )
@@ -256,10 +238,7 @@ class CommissionDispute:
         object.__setattr__(
             self,
             "metadata",
-            deep_freeze(
-                dict(metadata),
-                field_name="metadata",
-            ),
+            deep_freeze(dict(metadata), field_name="metadata"),
         )
 
     @classmethod
@@ -280,10 +259,7 @@ class CommissionDispute:
         reconciliation: CommissionReconciliation | None = None,
         metadata: Mapping[str, Any] | None = None,
     ) -> "CommissionDispute":
-        if not isinstance(
-            settlement,
-            CommissionSettlement,
-        ):
+        if not isinstance(settlement, CommissionSettlement):
             raise CommissionDisputeValidationError(
                 "settlement must be CommissionSettlement."
             )
@@ -291,36 +267,22 @@ class CommissionDispute:
         reconciliation_id = None
 
         if reconciliation is not None:
-            if not isinstance(
-                reconciliation,
-                CommissionReconciliation,
-            ):
+            if not isinstance(reconciliation, CommissionReconciliation):
                 raise CommissionDisputeValidationError(
-                    "reconciliation must be "
-                    "CommissionReconciliation."
+                    "reconciliation must be CommissionReconciliation."
                 )
 
-            if (
-                reconciliation.tenant_id
-                != settlement.tenant_id
-            ):
+            if reconciliation.tenant_id != settlement.tenant_id:
                 raise CommissionDisputeValidationError(
-                    "Settlement and reconciliation "
-                    "tenant mismatch."
+                    "Settlement and reconciliation tenant mismatch."
                 )
 
-            if (
-                reconciliation.settlement_id
-                != settlement.settlement_id
-            ):
+            if reconciliation.settlement_id != settlement.settlement_id:
                 raise CommissionDisputeValidationError(
-                    "Reconciliation does not reference "
-                    "the supplied settlement."
+                    "Reconciliation does not reference the supplied settlement."
                 )
 
-            reconciliation_id = (
-                reconciliation.reconciliation_id
-            )
+            reconciliation_id = reconciliation.reconciliation_id
 
         if disputed_amount is not None:
             if (
@@ -331,10 +293,7 @@ class CommissionDispute:
                     "Disputed amount currency must match settlement."
                 )
 
-            if (
-                disputed_amount.amount
-                > settlement.amount.amount
-            ):
+            if disputed_amount.amount > settlement.amount.amount:
                 raise CommissionDisputeValidationError(
                     "Disputed amount cannot exceed settlement amount."
                 )
@@ -355,17 +314,11 @@ class CommissionDispute:
             authorization_reference=authorization_reference,
             provenance_reference=provenance_reference,
             opened_at=opened_at,
-            metadata=(
-                {}
-                if metadata is None
-                else metadata
-            ),
+            metadata={} if metadata is None else metadata,
         )
 
     @property
-    def identity_key(
-        self,
-    ) -> tuple[str, str, int]:
+    def identity_key(self) -> tuple[str, str, int]:
         return (
             self.tenant_id,
             self.dispute_id,
@@ -374,21 +327,10 @@ class CommissionDispute:
 
     @property
     def immutable_fingerprint(self) -> str:
-        return fingerprint(
-            self.to_dict(
-                include_fingerprint=False
-            )
-        )
+        return fingerprint(self.to_dict(include_fingerprint=False))
 
-    def assert_tenant(
-        self,
-        tenant_id: str,
-    ) -> None:
-        tenant_id = _text(
-            tenant_id,
-            "tenant_id",
-        )
-
+    def assert_tenant(self, tenant_id: str) -> None:
+        tenant_id = _text(tenant_id, "tenant_id")
         if tenant_id != self.tenant_id:
             raise FinancialTenantScopeError(
                 "Commission dispute crossed tenant scope."
@@ -399,23 +341,35 @@ class CommissionDispute:
         *,
         resolution: CommissionDisputeResolution,
         resolution_reference: str,
-        state: CommissionDisputeState = (
-            CommissionDisputeState.RESOLVED
-        ),
+        state: CommissionDisputeState = CommissionDisputeState.RESOLVED,
     ) -> "CommissionDispute":
-        resolved_state = CommissionDisputeState(
-            state
-        )
-        resolved_resolution = CommissionDisputeResolution(
-            resolution
-        )
-
-        if (
-            resolved_resolution
-            is CommissionDisputeResolution.NONE
-        ):
+        if self.state not in _ACTIVE_STATES:
             raise CommissionDisputeValidationError(
-                "A resolution cannot be NONE."
+                "Only active disputes can be resolved; terminal disputes "
+                "cannot be resolved again."
+            )
+
+        try:
+            resolved_state = CommissionDisputeState(state)
+            resolved_resolution = CommissionDisputeResolution(resolution)
+        except (TypeError, ValueError) as exc:
+            raise CommissionDisputeValidationError(
+                "Unsupported dispute resolution transition."
+            ) from exc
+
+        if resolved_state is CommissionDisputeState.RESOLVED:
+            if resolved_resolution not in _ACCEPTED_RESOLUTIONS:
+                raise CommissionDisputeValidationError(
+                    "RESOLVED state requires an accepted or superseded resolution."
+                )
+        elif resolved_state is CommissionDisputeState.REJECTED:
+            if resolved_resolution is not CommissionDisputeResolution.REJECTED:
+                raise CommissionDisputeValidationError(
+                    "REJECTED state requires REJECTED resolution."
+                )
+        else:
+            raise CommissionDisputeValidationError(
+                "resolve() can transition only to RESOLVED or REJECTED."
             )
 
         return CommissionDispute(
@@ -446,12 +400,8 @@ class CommissionDispute:
         include_fingerprint: bool = True,
     ) -> dict[str, Any]:
         result = {
-            "source_of_truth": (
-                "CORE-008.COMMISSION_DISPUTE"
-            ),
-            "schema_version": (
-                CORE008_COMMISSION_DISPUTE_SCHEMA_VERSION
-            ),
+            "source_of_truth": "CORE-008.COMMISSION_DISPUTE",
+            "schema_version": CORE008_COMMISSION_DISPUTE_SCHEMA_VERSION,
             "dispute_id": self.dispute_id,
             "tenant_id": self.tenant_id,
             "commission_id": self.commission_id,
@@ -459,9 +409,7 @@ class CommissionDispute:
             "reconciliation_id": self.reconciliation_id,
             "dispute_version": self.dispute_version,
             "dispute_type": self.dispute_type.value,
-            "claimant_reference": (
-                self.claimant_reference
-            ),
+            "claimant_reference": self.claimant_reference,
             "disputed_amount": (
                 self.disputed_amount.to_dict()
                 if self.disputed_amount is not None
@@ -469,28 +417,18 @@ class CommissionDispute:
             ),
             "reason_code": self.reason_code,
             "description": self.description,
-            "evidence_reference": (
-                self.evidence_reference
-            ),
-            "authorization_reference": (
-                self.authorization_reference
-            ),
-            "provenance_reference": (
-                self.provenance_reference
-            ),
+            "evidence_reference": self.evidence_reference,
+            "authorization_reference": self.authorization_reference,
+            "provenance_reference": self.provenance_reference,
             "opened_at": self.opened_at.isoformat(),
             "state": self.state.value,
             "resolution": self.resolution.value,
-            "resolution_reference": (
-                self.resolution_reference
-            ),
+            "resolution_reference": self.resolution_reference,
             "metadata": dict(self.metadata),
         }
 
         if include_fingerprint:
-            result["immutable_fingerprint"] = (
-                self.immutable_fingerprint
-            )
+            result["immutable_fingerprint"] = self.immutable_fingerprint
 
         return result
 
