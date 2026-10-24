@@ -188,7 +188,7 @@ jobs:
           set -euo pipefail
 
           if [[ "$GITHUB_ACTOR" != "prajaktaranjane80-sketch" ]]; then
-            echo "BLOCKED: only the repository owner may authorize the explicit Control Center transition commit."
+            echo "BLOCKED: only the repository owner may authorize the explicit Control Center transition."
             exit 1
           fi
 
@@ -625,6 +625,623 @@ jobs:
 
           git show "$REMOTE_SHA:REOS_CONTROL_CENTER/evidence/CORE-008/T04-settlement-reconciliation-ci-evidence.md" \
             | grep -Fq 'Phase 6 (T04 implementation, CI verification, the prescribed Control Center transition and state/handoff readback) is complete.'
+
+          echo "TRANSITION_COMMIT=$LOCAL_COMMIT"
+          echo "CANONICAL_BRANCH_HEAD=$REMOTE_SHA"
+          echo "READBACK=PASS"
+
+  # T05 has its own explicit authorization marker; T04's transition remains unchanged.
+  control_center_transition_t05:
+    name: Guarded Control Center transition (CORE-008-T05)
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/reos-development' && startsWith(github.event.head_commit.message, '[CONTROL-CENTER-COMPLETE-CORE-008-T05]') }}
+    needs: verification
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+
+    steps:
+      - name: Preserve committed line endings before checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global core.autocrlf false
+          git config --global core.eol native
+
+      - name: Checkout the exact commit that passed verification
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies needed for guarded re-verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check pytest
+          python -m pip install --disable-pip-version-check \
+            -r REOS_CONTROL_CENTER/requirements-auth.txt
+
+      - name: Fail closed unless T05 is current and canonical state is unchanged
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "$GITHUB_ACTOR" != "prajaktaranjane80-sketch" ]]; then
+            echo "BLOCKED: only the repository owner may authorize this Control Center transition."
+            exit 1
+          fi
+
+          if [[ "$GITHUB_REF" != "refs/heads/reos-development" ]]; then
+            echo "BLOCKED: this transition is allowed only from reos-development."
+            exit 1
+          fi
+
+          ACTUAL_SHA="$(git rev-parse HEAD)"
+          if [[ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]]; then
+            echo "BLOCKED: checked-out SHA is not the triggering SHA."
+            echo "expected=$EXPECTED_SHA actual=$ACTUAL_SHA"
+            exit 1
+          fi
+
+          git fetch --no-tags origin refs/heads/reos-development
+          REMOTE_SHA="$(git rev-parse FETCH_HEAD)"
+          if [[ "$REMOTE_SHA" != "$EXPECTED_SHA" ]]; then
+            echo "BLOCKED: canonical branch moved after verification started."
+            echo "expected=$EXPECTED_SHA remote=$REMOTE_SHA"
+            exit 1
+          fi
+
+          if [[ -n "$(git status --porcelain=v1 --untracked-files=all)" ]]; then
+            echo "BLOCKED: checkout is not clean."
+            git status --short
+            exit 1
+          fi
+
+          python REOS_CONTROL_CENTER/reos_control_center.py verify-state
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          state_path = Path("REOS_CONTROL_CENTER/data/state.json")
+          state = json.loads(state_path.read_text(encoding="utf-8"))
+          execution = state.get("execution", {})
+          gate = state.get("gate_plans", {}).get("CORE-008", {})
+          subtasks = {item.get("id"): item for item in gate.get("subtasks", [])}
+          criteria = {
+              item.get("id"): item.get("status")
+              for item in gate.get("criteria_state", [])
+          }
+
+          expected_criteria = {
+              "CORE-008-AC01": "PENDING",
+              "CORE-008-AC02": "VERIFIED",
+              "CORE-008-AC03": "VERIFIED",
+              "CORE-008-AC04": "PENDING",
+              "CORE-008-AC05": "PENDING",
+              "CORE-008-AC06": "PENDING",
+          }
+
+          if execution.get("current_gate") != "CORE-008":
+              raise SystemExit("BLOCKED: canonical current gate is not CORE-008.")
+          if execution.get("current_subtask") != "CORE-008-T05":
+              raise SystemExit("BLOCKED: canonical current subtask is not CORE-008-T05.")
+          if gate.get("status") != "CURRENT":
+              raise SystemExit("BLOCKED: CORE-008 gate is not CURRENT.")
+          if subtasks.get("CORE-008-T04", {}).get("status") != "DONE":
+              raise SystemExit("BLOCKED: T04 is not DONE.")
+          if subtasks.get("CORE-008-T05", {}).get("status") != "CURRENT":
+              raise SystemExit("BLOCKED: T05 is not CURRENT.")
+          if subtasks.get("CORE-008-T06", {}).get("status") != "PENDING":
+              raise SystemExit("BLOCKED: T06 is not PENDING.")
+          if criteria != expected_criteria:
+              raise SystemExit(
+                  "BLOCKED: acceptance-criterion statuses changed; "
+                  f"observed={criteria!r}"
+              )
+
+          model_path = Path(
+              "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/"
+              "commission_financial/commission_dispute.py"
+          )
+          test_path = Path(
+              "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/"
+              "commission_financial/test_core008_t05_dispute_reversal_rules.py"
+          )
+          evidence_path = Path(
+              "REOS_CONTROL_CENTER/evidence/CORE-008/"
+              "T05-dispute-reversal-ci-evidence.md"
+          )
+
+          if not model_path.is_file():
+              raise SystemExit("BLOCKED: T05 dispute model is missing.")
+          if not test_path.is_file():
+              raise SystemExit("BLOCKED: T05 regression test file is missing.")
+          if evidence_path.exists():
+              raise SystemExit(
+                  "BLOCKED: T05 evidence already exists; refusing to duplicate the transition."
+              )
+
+          print("T05 PREFLIGHT PASS: canonical state, source, tests, and evidence destination are valid.")
+          PY
+
+      - name: Re-run T05, complete financial, and complete ACRL suites
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          T05_LOG="$RUNNER_TEMP/core008-t05-focused.txt"
+          FINANCIAL_LOG="$RUNNER_TEMP/core008-financial-full.txt"
+          ACRL_LOG="$RUNNER_TEMP/acrl-full.txt"
+
+          python -m pytest -q \
+            REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t05_dispute_reversal_rules.py \
+            | tee "$T05_LOG"
+
+          python -m pytest -q \
+            REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial \
+            | tee "$FINANCIAL_LOG"
+
+          python -m pytest -q \
+            REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl \
+            | tee "$ACRL_LOG"
+
+          read_pass_count() {
+            local log_path="$1"
+            local count
+            count="$(grep -Eo '[0-9]+ passed' "$log_path" | tail -n 1 | awk '{print $1}' || true)"
+            if [[ ! "$count" =~ ^[0-9]+$ ]] || [[ "$count" -lt 1 ]]; then
+              echo "BLOCKED: a successful pytest pass count could not be extracted from $log_path"
+              return 1
+            fi
+            printf '%s' "$count"
+          }
+
+          T05_COUNT="$(read_pass_count "$T05_LOG")"
+          FINANCIAL_COUNT="$(read_pass_count "$FINANCIAL_LOG")"
+          ACRL_COUNT="$(read_pass_count "$ACRL_LOG")"
+
+          echo "T05_TEST_COUNT=$T05_COUNT" >> "$GITHUB_ENV"
+          echo "FINANCIAL_TEST_COUNT=$FINANCIAL_COUNT" >> "$GITHUB_ENV"
+          echo "ACRL_TEST_COUNT=$ACRL_COUNT" >> "$GITHUB_ENV"
+
+          echo "T05_FOCUSED_TESTS_PASSED=$T05_COUNT"
+          echo "COMMISSION_FINANCIAL_TESTS_PASSED=$FINANCIAL_COUNT"
+          echo "COMPLETE_ACRL_TESTS_PASSED=$ACRL_COUNT"
+
+      - name: Complete CORE-008-T05 through the existing Control Center
+        env:
+          VERIFIED_CODE_SHA: ${{ github.sha }}
+          ACTIONS_RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          NOTE="CORE-008-T05 completed through the existing Control Center after the T05-specific regression, complete commission_financial suite (${FINANCIAL_TEST_COUNT} passed), and complete ACRL suite (${ACRL_TEST_COUNT} passed) succeeded in GitHub Actions run ${ACTIONS_RUN_ID} for verified code commit ${VERIFIED_CODE_SHA}. Focused T05 regression count: ${T05_TEST_COUNT}. Acceptance criteria were not bulk-verified; AC01, AC04, AC05 and AC06 remain pending."
+
+          export CONTROL_CENTER_TRANSITION_NOTE="$NOTE"
+
+          python - <<'PY'
+          import os
+          import sys
+          from pathlib import Path
+          import REOS_CONTROL_CENTER.reos_control_center as control_center
+
+          control_center.PACKETS = Path("REOS_CONTROL_CENTER/packets")
+          sys.argv = [
+              "reos_control_center.py",
+              "complete-subtask",
+              "CORE-008-T05",
+              "--note",
+              os.environ["CONTROL_CENTER_TRANSITION_NOTE"],
+          ]
+          control_center.main()
+          PY
+
+      - name: Verify controller output and write T05 evidence
+        env:
+          VERIFIED_CODE_SHA: ${{ github.sha }}
+          ACTIONS_RUN_ID: ${{ github.run_id }}
+          ACTIONS_SERVER_URL: ${{ github.server_url }}
+          ACTIONS_REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
+          import textwrap
+          from pathlib import Path
+
+          root = Path("REOS_CONTROL_CENTER")
+          state_path = root / "data" / "state.json"
+          packet_path = root / "packets" / "NEW_CHAT_PACKET.txt"
+          next_chat_path = root / "REOS_NEXT_CHAT.txt"
+          evidence_path = (
+              root / "evidence" / "CORE-008"
+              / "T05-dispute-reversal-ci-evidence.md"
+          )
+
+          # Restore the repository's existing newline convention only for
+          # legacy files originally stored entirely with CRLF line endings.
+          # The Control Center remains the authority for all file content.
+          for path in (state_path, packet_path, next_chat_path):
+              original = subprocess.check_output(
+                  ["git", "show", f"HEAD:{path.as_posix()}"]
+              )
+              original_lf = original.count(b"\n")
+              original_crlf = original.count(b"\r\n")
+
+              if original_lf > 0 and original_lf == original_crlf:
+                  current = path.read_bytes().replace(b"\r\n", b"\n")
+                  path.write_bytes(current.replace(b"\n", b"\r\n"))
+
+          subprocess.run(
+              [sys.executable, str(root / "reos_control_center.py"), "verify-state"],
+              check=True,
+          )
+
+          state = json.loads(state_path.read_text(encoding="utf-8"))
+          execution = state.get("execution", {})
+          gate = state.get("gate_plans", {}).get("CORE-008", {})
+          subtasks = {item.get("id"): item for item in gate.get("subtasks", [])}
+          criteria = {
+              item.get("id"): item.get("status")
+              for item in gate.get("criteria_state", [])
+          }
+
+          expected_criteria = {
+              "CORE-008-AC01": "PENDING",
+              "CORE-008-AC02": "VERIFIED",
+              "CORE-008-AC03": "VERIFIED",
+              "CORE-008-AC04": "PENDING",
+              "CORE-008-AC05": "PENDING",
+              "CORE-008-AC06": "PENDING",
+          }
+
+          if execution.get("current_gate") != "CORE-008":
+              raise SystemExit("POST-CHECK FAILED: current gate changed unexpectedly.")
+          if execution.get("current_subtask") != "CORE-008-T06":
+              raise SystemExit("POST-CHECK FAILED: controller did not advance to T06.")
+          if gate.get("status") != "CURRENT":
+              raise SystemExit("POST-CHECK FAILED: CORE-008 gate status changed unexpectedly.")
+          if state.get("session", {}).get("last_handoff") != "REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt":
+              raise SystemExit("POST-CHECK FAILED: the canonical handoff path is unexpected.")
+          if subtasks.get("CORE-008-T04", {}).get("status") != "DONE":
+              raise SystemExit("POST-CHECK FAILED: T04 is not DONE.")
+          if subtasks.get("CORE-008-T05", {}).get("status") != "DONE":
+              raise SystemExit("POST-CHECK FAILED: T05 is not DONE.")
+          if subtasks.get("CORE-008-T06", {}).get("status") != "CURRENT":
+              raise SystemExit("POST-CHECK FAILED: T06 is not CURRENT.")
+          if criteria != expected_criteria:
+              raise SystemExit(
+                  "POST-CHECK FAILED: acceptance-criterion statuses changed; "
+                  f"observed={criteria!r}"
+              )
+          if evidence_path.exists():
+              raise SystemExit("POST-CHECK FAILED: T05 evidence already exists.")
+
+          packet = packet_path.read_text(encoding="utf-8")
+          next_chat = next_chat_path.read_text(encoding="utf-8")
+
+          expected_handoff_lines = (
+              "CURRENT_SUBTASK=CORE-008-T06",
+              "CORE-008-T05|DONE|Implement dispute and reversal rules",
+              "CORE-008-T06|CURRENT|Implement financial audit and evidence",
+          )
+
+          for name, text in (
+              ("Control Center packet", packet),
+              ("next-chat handoff", next_chat),
+          ):
+              for expected_line in expected_handoff_lines:
+                  if expected_line not in text:
+                      raise SystemExit(
+                          f"POST-CHECK FAILED: {name} lacks handoff entry {expected_line!r}."
+                      )
+
+          snapshot_dir = root / "snapshots"
+          snapshots = sorted(
+              snapshot_dir.glob("state_*.json"),
+              key=lambda path: path.stat().st_mtime,
+              reverse=True,
+          )
+          if not snapshots:
+              raise SystemExit("POST-CHECK FAILED: the controller-created state snapshot is missing.")
+
+          from REOS_CONTROL_CENTER.reos_control_center import calculate_hash
+
+          snapshot_path = snapshots[0]
+          snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+          stored_hash = snapshot.get("integrity", {}).get("sha256")
+          if not isinstance(stored_hash, str) or stored_hash != calculate_hash(snapshot):
+              raise SystemExit("POST-CHECK FAILED: controller-created snapshot integrity check failed.")
+
+          run_url = (
+              f"{os.environ['ACTIONS_SERVER_URL']}/"
+              f"{os.environ['ACTIONS_REPOSITORY']}/actions/runs/"
+              f"{os.environ['ACTIONS_RUN_ID']}"
+          )
+
+          def blob_sha(path: str) -> str:
+              return subprocess.check_output(
+                  ["git", "rev-parse", f"{os.environ['VERIFIED_CODE_SHA']}:{path}"],
+                  text=True,
+              ).strip()
+
+          source_paths = [
+              "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_dispute.py",
+              "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_dispute_conflict.py",
+              "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_dispute_history.py",
+              "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_dispute_integrity.py",
+              "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_dispute_snapshot.py",
+              "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t05_dispute_reversal_rules.py",
+          ]
+
+          source_rows = "\n".join(
+              f"| `{path}` | `{blob_sha(path)}` |"
+              for path in source_paths
+          )
+
+          state_blob_sha = subprocess.check_output(
+              ["git", "hash-object", str(state_path)],
+              text=True,
+          ).strip()
+
+          evidence = textwrap.dedent(f"""
+          # CORE-008-T05 — Dispute and Reversal Verification Evidence
+
+          ## 1. Scope and authority
+
+          - Project: HOMIO / REOS
+          - Canonical branch: `reos-development`
+          - Completed subtask: `CORE-008-T05 — Implement dispute and reversal rules`
+          - Next current subtask after controller readback: `CORE-008-T06 — Implement financial audit and evidence`
+          - Canonical state authority: `REOS_CONTROL_CENTER/data/state.json`
+          - State was transitioned through `REOS_CONTROL_CENTER/reos_control_center.py complete-subtask`; it was not edited manually.
+
+          ## 2. Exact verified commit and Actions run
+
+          - Verified code/workflow commit: `{os.environ['VERIFIED_CODE_SHA']}`
+          - GitHub Actions run: {run_url}
+          - Focused T05 regression tests passed: **{os.environ['T05_TEST_COUNT']}**
+          - Complete `commission_financial` suite passed: **{os.environ['FINANCIAL_TEST_COUNT']}**
+          - Complete ACRL suite passed: **{os.environ['ACRL_TEST_COUNT']}**
+          - The focused T05 tests were rerun in the guarded transition job, followed by fresh full financial and ACRL suite runs.
+          - The transition job only began after the workflow's full `verification` job succeeded.
+
+          ## 3. Verified source and test blob SHAs
+
+          | File | Git blob SHA |
+          |---|---|
+          {source_rows}
+
+          The identifiers above are file blob SHAs, not commit SHAs.
+
+          ## 4. Dispute and reversal controls covered
+
+          The committed dispute model and supporting components enforce consistent terminal state/resolution combinations, require resolution references for resolved or rejected disputes, prevent nonterminal disputes from carrying terminal resolution data, reject repeated resolution of terminal disputes, and preserve immutable versioned records.
+
+          The focused T05 regression suite exercises accepted and rejected resolutions, version advancement, invalid state-resolution combinations, terminal-state restrictions, sequential history, identity integrity, conflicting same-version content, and tampered snapshot detection.
+
+          These results do not independently prove every acceptance criterion for CORE-008 or authorize final gate approval.
+
+          ## 5. Control Center transition and canonical readback
+
+          - Controller transition requested: `CORE-008-T05`.
+          - Controller integrity verification: `PASS`.
+          - Controller-created snapshot integrity verification: `PASS`.
+          - Canonical state Git blob SHA after the controller transition: `{state_blob_sha}`.
+          - Canonical current gate: `CORE-008`.
+          - Canonical current subtask: `CORE-008-T06`.
+          - Subtask readback: `CORE-008-T04=DONE`; `CORE-008-T05=DONE`; `CORE-008-T06=CURRENT`.
+          - Both handoff files were checked for the T06 current-subtask marker and the expected T05/T06 status entries.
+
+          ## 6. Acceptance-criterion boundary
+
+          The canonical criterion statuses were checked before and after the transition and remained unchanged:
+
+          | Criterion | Canonical status after transition |
+          |---|---|
+          | AC01 — Commission source of truth is authoritative | PENDING |
+          | AC02 — Deal and ownership attribution is traceable | VERIFIED |
+          | AC03 — Financial amounts use safe fixed-precision semantics | VERIFIED |
+          | AC04 — Settlement and reversal are auditable | PENDING |
+          | AC05 — Critical financial actions require appropriate approval | PENDING |
+          | AC06 — Security and concurrency tests pass | PENDING |
+
+          No acceptance criterion was bulk-verified by this process.
+
+          **Final disposition:** CORE-008-T05 implementation, targeted tests, full financial and ACRL regression runs, guarded Control Center transition, and post-transition readback succeeded for the verified commit and Actions run above. CORE-008 remains open; T06 is current. This evidence does not approve or freeze the gate.
+          """).strip() + "\n"
+
+          evidence_path.write_text(evidence, encoding="utf-8")
+
+          print("POST-CHECK PASS: T05 DONE, T06 CURRENT, acceptance criteria preserved.")
+          print(f"STATE_BLOB_SHA={state_blob_sha}")
+          print(f"SNAPSHOT_PATH={snapshot_path}")
+          print(f"ACTIONS_RUN={run_url}")
+          PY
+
+      - name: Stage only approved T05 transition artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git -c core.whitespace=cr-at-eol diff --check
+
+          ACTUAL_TRACKED="$(git diff --name-only | LC_ALL=C sort)"
+          EXPECTED_TRACKED="$(printf '%s\n' \
+            'REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt' \
+            'REOS_CONTROL_CENTER/data/state.json' \
+            'REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt' | LC_ALL=C sort)"
+
+          if [[ "$ACTUAL_TRACKED" != "$EXPECTED_TRACKED" ]]; then
+            echo "BLOCKED: unexpected tracked changes after controller transition."
+            echo "Expected:"
+            printf '%s\n' "$EXPECTED_TRACKED"
+            echo "Actual:"
+            printf '%s\n' "$ACTUAL_TRACKED"
+            exit 1
+          fi
+
+          mapfile -t UNTRACKED_PATHS < <(
+            git ls-files --others --exclude-standard | LC_ALL=C sort
+          )
+
+          if [[ "${#UNTRACKED_PATHS[@]}" -ne 2 ]]; then
+            echo "BLOCKED: expected the new T05 evidence file and one controller snapshot."
+            printf '%s\n' "${UNTRACKED_PATHS[@]}"
+            exit 1
+          fi
+
+          SNAPSHOT_PATH=""
+          EVIDENCE_FOUND="false"
+
+          for path in "${UNTRACKED_PATHS[@]}"; do
+            if [[ "$path" == "REOS_CONTROL_CENTER/evidence/CORE-008/T05-dispute-reversal-ci-evidence.md" ]]; then
+              EVIDENCE_FOUND="true"
+            elif [[ "$path" =~ ^REOS_CONTROL_CENTER/snapshots/state_[0-9]{8}_[0-9]{6}_[0-9]{6}\.json$ ]]; then
+              SNAPSHOT_PATH="$path"
+            else
+              echo "BLOCKED: unexpected untracked path: $path"
+              exit 1
+            fi
+          done
+
+          if [[ "$EVIDENCE_FOUND" != "true" ]] || [[ -z "$SNAPSHOT_PATH" ]]; then
+            echo "BLOCKED: expected evidence or controller snapshot is missing."
+            exit 1
+          fi
+
+          python - "$SNAPSHOT_PATH" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          from REOS_CONTROL_CENTER.reos_control_center import calculate_hash
+
+          snapshot_path = Path(sys.argv[1])
+          snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+          stored_hash = snapshot.get("integrity", {}).get("sha256")
+
+          if not isinstance(stored_hash, str) or stored_hash != calculate_hash(snapshot):
+              raise SystemExit("BLOCKED: controller-created T05 snapshot failed integrity validation.")
+
+          print(f"SNAPSHOT_INTEGRITY=PASS path={snapshot_path}")
+          PY
+
+          git add -- \
+            REOS_CONTROL_CENTER/data/state.json \
+            REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt \
+            REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt \
+            REOS_CONTROL_CENTER/evidence/CORE-008/T05-dispute-reversal-ci-evidence.md \
+            "$SNAPSHOT_PATH"
+
+          git -c core.whitespace=cr-at-eol diff --cached --check
+
+          STAGED="$(git diff --cached --name-only | LC_ALL=C sort)"
+          EXPECTED_STAGED="$(printf '%s\n' \
+            'REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt' \
+            'REOS_CONTROL_CENTER/data/state.json' \
+            'REOS_CONTROL_CENTER/evidence/CORE-008/T05-dispute-reversal-ci-evidence.md' \
+            'REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt' \
+            "$SNAPSHOT_PATH" | LC_ALL=C sort)"
+
+          if [[ "$STAGED" != "$EXPECTED_STAGED" ]]; then
+            echo "BLOCKED: staged file set is not the exact approved T05 transition set."
+            echo "Expected staged paths:"
+            printf '%s\n' "$EXPECTED_STAGED"
+            echo "Actual staged paths:"
+            printf '%s\n' "$STAGED"
+            exit 1
+          fi
+
+          git -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m "chore(control-center): complete CORE-008-T05 via controller"
+
+      - name: Push without force and read back canonical T05 state
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          LOCAL_COMMIT="$(git rev-parse HEAD)"
+
+          git push origin HEAD:refs/heads/reos-development
+          git fetch --no-tags origin refs/heads/reos-development
+          REMOTE_SHA="$(git rev-parse FETCH_HEAD)"
+
+          if ! git merge-base --is-ancestor "$LOCAL_COMMIT" "$REMOTE_SHA"; then
+            echo "READBACK FAILED: transition commit is not an ancestor of canonical branch HEAD."
+            exit 1
+          fi
+
+          git show "$REMOTE_SHA:REOS_CONTROL_CENTER/data/state.json" \
+            > "$RUNNER_TEMP/reos-state-readback.json"
+
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          state = json.loads(
+              Path(
+                  os.environ["RUNNER_TEMP"],
+                  "reos-state-readback.json",
+              ).read_text(encoding="utf-8")
+          )
+
+          execution = state.get("execution", {})
+          gate = state.get("gate_plans", {}).get("CORE-008", {})
+          subtasks = {item.get("id"): item for item in gate.get("subtasks", [])}
+          criteria = {
+              item.get("id"): item.get("status")
+              for item in gate.get("criteria_state", [])
+          }
+
+          expected_criteria = {
+              "CORE-008-AC01": "PENDING",
+              "CORE-008-AC02": "VERIFIED",
+              "CORE-008-AC03": "VERIFIED",
+              "CORE-008-AC04": "PENDING",
+              "CORE-008-AC05": "PENDING",
+              "CORE-008-AC06": "PENDING",
+          }
+
+          assert execution.get("current_gate") == "CORE-008", execution
+          assert execution.get("current_subtask") == "CORE-008-T06", execution
+          assert gate.get("status") == "CURRENT", gate
+          assert state.get("session", {}).get("last_handoff") == "REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt"
+          assert subtasks.get("CORE-008-T04", {}).get("status") == "DONE", subtasks
+          assert subtasks.get("CORE-008-T05", {}).get("status") == "DONE", subtasks
+          assert subtasks.get("CORE-008-T06", {}).get("status") == "CURRENT", subtasks
+          assert criteria == expected_criteria, criteria
+
+          print("CANONICAL READBACK PASS: T04=DONE, T05=DONE, T06=CURRENT; criteria unchanged.")
+          PY
+
+          for path in \
+            "REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt" \
+            "REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt"
+          do
+            git show "$REMOTE_SHA:$path" | grep -Fq 'CURRENT_SUBTASK=CORE-008-T06'
+            git show "$REMOTE_SHA:$path" | grep -Fq 'CORE-008-T05|DONE|Implement dispute and reversal rules'
+            git show "$REMOTE_SHA:$path" | grep -Fq 'CORE-008-T06|CURRENT|Implement financial audit and evidence'
+          done
+
+          git show "$REMOTE_SHA:REOS_CONTROL_CENTER/evidence/CORE-008/T05-dispute-reversal-ci-evidence.md" \
+            | grep -Fq 'CORE-008-T05 implementation, targeted tests, full financial and ACRL regression runs'
 
           echo "TRANSITION_COMMIT=$LOCAL_COMMIT"
           echo "CANONICAL_BRANCH_HEAD=$REMOTE_SHA"
