@@ -183,10 +183,12 @@ jobs:
           EXPECTED_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
+
           if [[ "$GITHUB_ACTOR" != "prajaktaranjane80-sketch" ]]; then
             echo "BLOCKED: only the repository owner may authorize the explicit Control Center transition commit."
             exit 1
           fi
+
           if [[ "$GITHUB_REF" != "refs/heads/reos-development" ]]; then
             echo "BLOCKED: Control Center transition is allowed only from reos-development."
             exit 1
@@ -211,13 +213,63 @@ jobs:
           git config --show-origin --get core.autocrlf || true
 
           if [[ -n "$(git status --porcelain=v1 --untracked-files=all)" ]]; then
-            echo "BLOCKED: checkout is not clean before the transition."
-            git status --short
-            echo "Changed-file summary:"
-            git diff --stat
-            echo "Summary ignoring end-of-line-only differences:"
-            git diff --ignore-space-at-eol --stat || true
-            exit 1
+            echo "CHECKOUT_PREFLIGHT: checking whether changes are only CRLF/LF checkout drift."
+
+            if [[ -n "$(git ls-files --others --exclude-standard)" ]]; then
+              echo "BLOCKED: checkout contains unexpected untracked files."
+              git status --short
+              exit 1
+            fi
+
+            if ! git diff --cached --quiet; then
+              echo "BLOCKED: checkout contains staged changes."
+              git status --short
+              git diff --cached --stat
+              exit 1
+            fi
+
+            if ! git diff --quiet --ignore-cr-at-eol --; then
+              echo "BLOCKED: checkout contains substantive changes, not only CRLF/LF drift."
+              git status --short
+              git diff --stat
+              git diff --ignore-cr-at-eol --stat || true
+              exit 1
+            fi
+
+            python - <<'PY'
+          import os
+          import subprocess
+          from pathlib import Path
+
+          result = subprocess.run(
+              ["git", "diff", "--name-only", "-z"],
+              check=True,
+              capture_output=True,
+          )
+
+          raw_paths = [
+              value
+              for value in result.stdout.split(b"\0")
+              if value
+          ]
+
+          for raw_path in raw_paths:
+              path = Path(os.fsdecode(raw_path))
+              data = path.read_bytes()
+              normalized = data.replace(b"\r\n", b"\n")
+              if normalized != data:
+                  path.write_bytes(normalized)
+          PY
+
+            if [[ -n "$(git status --porcelain=v1 --untracked-files=all)" ]]; then
+              echo "BLOCKED: working tree did not become clean after CRLF-only normalization."
+              git status --short
+              git diff --stat
+              git diff --ignore-cr-at-eol --stat || true
+              exit 1
+            fi
+
+            echo "CHECKOUT_PREFLIGHT PASS: normalized CRLF-only worktree drift; repository content remains unchanged."
           fi
 
           python REOS_CONTROL_CENTER/reos_control_center.py verify-state
@@ -231,7 +283,10 @@ jobs:
           execution = state.get("execution", {})
           gate = state.get("gate_plans", {}).get("CORE-008", {})
           subtasks = {item.get("id"): item for item in gate.get("subtasks", [])}
-          criteria = {item.get("id"): item.get("status") for item in gate.get("criteria_state", [])}
+          criteria = {
+              item.get("id"): item.get("status")
+              for item in gate.get("criteria_state", [])
+          }
 
           expected_criteria = {
               "CORE-008-AC01": "PENDING",
@@ -289,7 +344,6 @@ jobs:
           from pathlib import Path
           import REOS_CONTROL_CENTER.reos_control_center as control_center
 
-          # Keep the persisted handoff reference repository-relative.
           control_center.PACKETS = Path("REOS_CONTROL_CENTER/packets")
           sys.argv = [
               "reos_control_center.py",
