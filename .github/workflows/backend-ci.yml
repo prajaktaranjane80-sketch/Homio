@@ -161,6 +161,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
     steps:
       - name: Preserve committed line endings before checkout
         shell: bash
@@ -210,74 +212,12 @@ jobs:
             exit 1
           fi
 
-          echo "CHECKOUT_LINE_ENDING_POLICY:"
-          git config --show-origin --get core.autocrlf || true
-
           if [[ -n "$(git status --porcelain=v1 --untracked-files=all)" ]]; then
-            echo "CHECKOUT_PREFLIGHT: checking whether changes are only CR-at-EOL checkout drift."
-
-            if [[ -n "$(git ls-files --others --exclude-standard)" ]]; then
-              echo "BLOCKED: checkout contains unexpected untracked files."
-              git status --short
-              exit 1
-            fi
-
-            if ! git diff --cached --quiet; then
-              echo "BLOCKED: checkout contains staged changes."
-              git status --short
-              git diff --cached --stat
-              exit 1
-            fi
-
-            if ! git diff --quiet --ignore-cr-at-eol --; then
-              echo "BLOCKED: checkout contains substantive changes, not only CR-at-EOL drift."
-              git status --short
-              git diff --stat
-              git diff --ignore-cr-at-eol --stat || true
-              exit 1
-            fi
-
-            python - <<'PY'
-          import os
-          import re
-          import subprocess
-          from pathlib import Path
-
-          result = subprocess.run(
-              ["git", "diff", "--name-only", "-z"],
-              check=True,
-              capture_output=True,
-          )
-
-          raw_paths = [
-              value
-              for value in result.stdout.split(b"\0")
-              if value
-          ]
-
-          for raw_path in raw_paths:
-              path = Path(os.fsdecode(raw_path))
-              data = path.read_bytes()
-
-              # The diff check above proved that only CR-at-EOL differences exist.
-              # Remove runs of CR immediately before a newline or EOF, including
-              # repeated-CR variants, without changing ordinary file content.
-              normalized = re.sub(rb"\r+(?=\n|$)", b"", data)
-
-              if normalized != data:
-                  path.write_bytes(normalized)
-                  print(f"Normalized CR-at-EOL bytes: {path}")
-          PY
-
-            if [[ -n "$(git status --porcelain=v1 --untracked-files=all)" ]]; then
-              echo "BLOCKED: working tree did not become clean after CR-at-EOL normalization."
-              git status --short
-              git diff --stat
-              git diff --ignore-cr-at-eol --stat || true
-              exit 1
-            fi
-
-            echo "CHECKOUT_PREFLIGHT PASS: normalized CR-at-EOL worktree drift; repository content remains unchanged."
+            echo "BLOCKED: checkout is not clean under the committed path-specific line-ending policy."
+            git status --short
+            git diff --stat
+            git diff --ignore-cr-at-eol --stat || true
+            exit 1
           fi
 
           python REOS_CONTROL_CENTER/reos_control_center.py verify-state
@@ -378,6 +318,7 @@ jobs:
           import os
           import re
           import subprocess
+          import sys
           import textwrap
           from pathlib import Path
 
@@ -388,6 +329,24 @@ jobs:
           evidence_path = (
               root / "evidence" / "CORE-008"
               / "T04-settlement-reconciliation-ci-evidence.md"
+          )
+
+          # The Control Center serializes these files with LF. Preserve the
+          # exact existing CRLF style for legacy blobs whose line endings are
+          # not being intentionally migrated by this transition.
+          for path in (state_path, packet_path, next_chat_path):
+              original = subprocess.check_output(
+                  ["git", "show", f"HEAD:{path.as_posix()}"]
+              )
+              original_lf = original.count(b"\n")
+              original_crlf = original.count(b"\r\n")
+              if original_lf > 0 and original_lf == original_crlf:
+                  current = path.read_bytes().replace(b"\r\n", b"\n")
+                  path.write_bytes(current.replace(b"\n", b"\r\n"))
+
+          subprocess.run(
+              [sys.executable, str(root / "reos_control_center.py"), "verify-state"],
+              check=True,
           )
 
           state = json.loads(state_path.read_text(encoding="utf-8"))
@@ -520,7 +479,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git diff --check
+          git -c core.whitespace=cr-at-eol diff --check
 
           ACTUAL="$(git diff --name-only | LC_ALL=C sort)"
           EXPECTED="$(printf '%s\n' \
