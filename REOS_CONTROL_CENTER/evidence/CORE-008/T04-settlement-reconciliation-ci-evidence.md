@@ -4,26 +4,34 @@
 
 - Project: HOMIO / REOS
 - Canonical branch: `reos-development`
-- Active subtask: `CORE-008-T04 — Implement settlement and reconciliation lifecycle`
-- Evidence type: GitHub source readback, targeted financial regressions, backend/ACRL CI
-- Canonical execution state: `REOS_CONTROL_CENTER/data/state.json`
-- This document records source and verification evidence. It does not independently approve a task, verify a criterion in canonical state, or perform a state transition.
+- Active subtask at audit time: `CORE-008-T04 — Implement settlement and reconciliation lifecycle`
+- Canonical execution authority: `REOS_CONTROL_CENTER/data/state.json`
+- Implementation evidence: committed source and test files read from GitHub
+- CI evidence: GitHub Actions run `40030312521`
+
+This record documents implementation and verification evidence. It does not independently authorize a state transition, approve CORE-008, or replace the existing REOS Control Center.
 
 ## 2. Exact Tested Snapshot
 
-Verified branch HEAD and tested source/test snapshot:
-
-`5753a70e604f7f69103e589f98a2433c4889ee19`
-
-Commit message:
-
-`Update test_core008_t04_temporal_adversarial.py`
+- Branch: `reos-development`
+- Tested commit: `098c1e167bec46a63a55e1757227c92b694c159f`
+- Commit message: `Update test_core008_t04_acceptance_controls.py`
 
 Commit URL:
 
-https://github.com/prajaktaranjane80-sketch/Homio/commit/5753a70e604f7f69103e589f98a2433c4889ee19
+https://github.com/prajaktaranjane80-sketch/Homio/commit/098c1e167bec46a63a55e1757227c92b694c159f
 
-Verified implementation and regression-test Git blob SHAs:
+The latest verified backend/ACRL workflow run for this commit is:
+
+https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/40030312521
+
+Workflow: `HOMIO Backend and ACRL Runtime CI`
+
+Overall result: SUCCESS.
+
+## 3. Verified Source and Test Blob SHAs
+
+The following exact paths were read from `reos-development`.
 
 | File | Git blob SHA |
 |---|---|
@@ -34,7 +42,7 @@ Verified implementation and regression-test Git blob SHAs:
 | `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_reconciliation_validation.py` | `012cdb962b1547bfce02a78de624180b1ef291ca` |
 | `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_reconciliation_temporal.py` | `87b8d8ef9c661aaf2cdcc9d02acd47d5e5172db0` |
 | `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/commission_adjustment.py` | `f8a26c1e0c034087d8b232c78cadcb1740a2c7c6` |
-| `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t04_acceptance_controls.py` | `08401adcc2cb03fae9ca8bbc227f762bb7a2b2e7` |
+| `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t04_acceptance_controls.py` | `91d17c83a56d267012abfcdc9c24b255bbcee866` |
 | `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t04_temporal_adversarial.py` | `0a97a39e22d888537c5e7af5dbc91c7bcc6c109f` |
 | `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t04_settlement_reconciliation_lifecycle.py` | `00e3bb5936d39eab155e4dbc119a587c92120019` |
 | `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t04_settlement_integrity_linkage.py` | `78e083609e78c298c924602f3e6a094a753be3a3` |
@@ -45,162 +53,127 @@ Verified implementation and regression-test Git blob SHAs:
 | `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t13_financial_regression.py` | `62c2947c89e319f5a6e9d392ecac868cf11eaadb` |
 | `.github/workflows/backend-ci.yml` | `f7b2a6920798f5df63b49ea9ca4a46d3abccc8fe` |
 
-## 3. Latest Backend and ACRL CI Result
+These blob identifiers identify individual files, not commit identifiers.
 
-Workflow: `HOMIO Backend and ACRL Runtime CI`
+## 4. Latest Backend and ACRL CI Results
 
-Run ID: `40028416729`
+Actions run: `40030312521`
 
-Run URL:
+Tested commit: `098c1e167bec46a63a55e1757227c92b694c159f`
 
-https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/40028416729
+Verified outcomes from the completed job:
 
-Exact tested commit:
+| Verification | Result |
+|---|---:|
+| EntryPoint contract regressions | 15 passed |
+| ACRL runtime-integration regressions | 32 passed |
+| T07/T14 fast-resume regressions | 64 passed |
+| T18 authorization regressions | 23 passed |
+| T16/T17 source-impact regressions | 123 passed |
+| T19 intelligent test-selection regressions | 16 passed |
+| T20 patch-verification regressions | 57 passed |
+| T21 Git coordination and API recovery | 139 passed |
+| T22 commit/checkpoint regressions | 21 passed |
+| T23/T24 evidence and continuity regressions | 66 passed |
+| Complete configured `commission_financial` test directory | 468 passed |
+| Complete configured ACRL test suite | 1,444 passed |
 
-`5753a70e604f7f69103e589f98a2433c4889ee19`
+All listed workflow steps completed successfully.
 
-Overall conclusion: **SUCCESS**
+These counts come from separate test invocations, and some sets may overlap. They must not be summed and represented as a unique repository-wide test total.
 
-Job: `Backend, T21, and ACRL runtime verification`
+The evidence proves the configured tests passed on the stated commit. It does not prove every acceptance criterion or every future concurrency scenario has been closed.
 
-Observed outcomes from the completed job logs:
+## 5. Settlement and Reconciliation Controls
 
-- EntryPoint contract regressions: 15 passed.
-- ACRL runtime-integration regressions: 32 passed.
-- T07/T14 fast-resume regressions: 64 passed.
-- T18 authorization-guard regressions: 23 passed.
-- T16/T17 repository-intelligence regressions: 123 passed.
-- T19 intelligent test-selection regressions: 16 passed.
-- T20 patch-verification regressions: 57 passed.
-- T21 Git coordination and API-recovery regressions: 139 passed.
-- T22 commit/checkpoint regressions: 21 passed.
-- T23/T24 evidence and continuity regressions: 66 passed.
-- Complete `AUTONOMY_ENGINE/core/commission_financial` test directory: 465 passed.
-- Complete configured `AUTONOMY_ENGINE/continuity/acrl` suite: 1,444 passed.
+The committed implementation and regression suite cover the following areas:
 
-These are separate test invocations, and some test sets may overlap. Their counts must not be added together and represented as a unique total.
-
-The backend/ACRL workflow job completed successfully for the exact tested commit above.
-
-### 3.1 Temporal adversarial regression
-
-File:
-
-`REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t04_temporal_adversarial.py`
-
-Blob SHA:
-
-`0a97a39e22d888537c5e7af5dbc91c7bcc6c109f`
-
-The test file covers:
-
-- External settlement evidence cannot precede the settlement request.
-- Reconciliation cannot predate the external evidence.
-- External evidence cannot be observed after the validation time.
-- Reconciliation cannot occur after the validation time.
-
-For invalid temporal cases, the tests verify that the rejected operation leaves the settlement state, immutable fingerprint, lifecycle events, settlement history, and reconciliation history unchanged. The additional rejection tests also check that no new reconciliation authorization request is issued for the invalid operation.
-
-The updated test file was included in the 465-test `commission_financial` suite for commit `5753a70e604f7f69103e589f98a2433c4889ee19`. That CI job succeeded.
-
-### 3.2 Optimistic-concurrency regression
-
-File:
-
-`REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial/test_core008_t04_optimistic_concurrency.py`
-
-Blob SHA:
-
-`47e5c85dd1afb7b1733d01e9afe3df7e469d5f51`
-
-The test verifies that a settlement transition rejects a mismatched expected settlement version even when the supplied fingerprint matches the current record. It also checks that the rejected request does not proceed to authorization or alter the original settlement, event chain, or histories.
-
-This test was included in the financial regression suite. It verifies the tested version-mismatch guard; it does not, by itself, prove correctness under every real concurrent persistence race.
-
-## 4. Settlement and Reconciliation Controls
-
-The current source and regression set provides coverage for:
-
-- Settlement derivation from authoritative allocation data and preservation of tenant, commission, allocation, and amount identity.
-- Controlled settlement state transitions and optimistic identity checks.
-- Rejection of stale fingerprints and mismatched expected versions.
-- Prevention of direct settlement confirmation without matched reconciliation.
-- Verification of external settlement evidence, references, and temporal consistency.
-- Matching reconciliation records and snapshots.
-- Settlement-history, event-chain, fingerprint, and reconciliation-linkage integrity.
+- Settlement derivation from authoritative allocation data, including tenant, commission, allocation and amount identity.
+- Full-allocation settlement amount consistency.
+- Controlled settlement lifecycle transitions.
+- Expected-version and fingerprint checks for settlement transitions.
+- Rejection of direct settlement confirmation without the required matched reconciliation.
+- External settlement evidence and reconciliation identity validation.
+- Temporal ordering of settlement requests, external evidence and reconciliation.
+- Settlement history, lifecycle event-chain integrity and reconciliation linkage.
 - Duplicate reconciliation replay and tampered-snapshot rejection.
-- Reconciliation variance handling and subsequent corrected reconciliation.
+- Reconciliation variance handling and corrected reconciliation workflows.
 
-These controls are covered by the lifecycle, temporal, replay, direct-confirmation, optimistic-concurrency, and integrity-linkage regressions.
+Relevant regression files include:
 
-## 5. Adjustment and Reversal Controls
+- `test_core008_t04_acceptance_controls.py`
+- `test_core008_t04_settlement_reconciliation_lifecycle.py`
+- `test_core008_t04_settlement_integrity_linkage.py`
+- `test_core008_t04_direct_confirmation_guard.py`
+- `test_core008_t04_reconciliation_replay.py`
+- `test_core008_t04_temporal_adversarial.py`
+- `test_core008_t04_optimistic_concurrency.py`
 
-Existing implementation and test evidence covers:
+## 6. Approval and Reversal Controls
 
-- Requiring an appropriate resolved, accepted, or partially accepted dispute before creating the relevant adjustment.
-- Validating tenant, commission, settlement, and reconciliation relationships.
-- Requiring a confirmed settlement and matching reconciliation for reversal creation.
-- Checking adjustment currency and bounds against settlement and disputed amounts.
-- Applying the existing `FinancialSecurityBoundary` for approval and application.
-- Binding authorization requests to operation, actor, tenant, resource, amount, source fingerprint, and relevant references.
-- Ensuring denied approval does not mutate the original proposal.
-- Recording separate immutable approval and application versions with source-fingerprint and authorization linkage.
-- Rejecting application before the approval timestamp or adjustment effective time.
+The current implementation and its tests cover:
 
-The adjustment object does not execute a payment, post a ledger entry, or replace the wider financial-audit and dispute/reversal tasks.
+- Rejection of reversal proposals that do not meet the required dispute and settlement conditions.
+- Tenant, commission, settlement and reconciliation relationship validation.
+- Adjustment amount and currency bounds.
+- Approval through the existing `FinancialSecurityBoundary`.
+- Binding approval requests to the operation, actor, tenant, resource, amount, fingerprints and relevant references.
+- Denied approval leaving the original proposal unchanged.
+- Immutable approval and application metadata.
+- Separate approval and application authorization records.
+- Rejection of application before the required approval timestamp.
+- Optimistic-concurrency protection against mismatched expected versions.
 
-## 6. Acceptance-Criterion Evidence Map
+The adjustment model does not execute a payment, post a ledger entry, or replace the wider dispute/reversal, financial-audit or approval-review responsibilities assigned to subsequent CORE-008 subtasks.
 
-| Canonical criterion | Evidence available in this snapshot | Canonical status |
-|---|---|---|
-| AC01 — Commission source of truth is authoritative | Commission contract source declaration, contract authority-boundary regression, and settlement-to-allocation identity checks | PENDING |
-| AC02 — Deal and ownership attribution is traceable | Existing CORE-008-T02 attribution and CORE-008-T03 allocation evidence | VERIFIED |
-| AC03 — Financial amounts use safe fixed-precision semantics | Existing decimal, allocation, precision, and financial regression coverage | VERIFIED |
-| AC04 — Settlement and reversal are auditable | Settlement history/event-chain linkage, immutable adjustment versions, and approval/application fingerprint records | PENDING |
-| AC05 — Critical financial actions require appropriate approval | Authorization boundary, denied-approval behavior, and exact-request binding regressions | PENDING |
-| AC06 — Security and concurrency tests pass | Latest successful CI, expected-version mismatch regression, temporal adversarial tests, existing financial security tests, and configured ACRL suite | PENDING |
-
-These rows document available evidence, not authority to change canonical statuses. The broader dispute/reversal, financial-audit, precision/concurrency, and financial-security subtasks remain in their defined execution order. A green configured suite is not proof that all wider requirements are closed.
-
-## 7. Canonical State Boundary
+## 7. Canonical Acceptance-Criterion Status
 
 Canonical state file:
 
 `REOS_CONTROL_CENTER/data/state.json`
 
-Blob SHA from the latest read:
+Observed state blob SHA:
 
 `92296fb10b0c7a37d0fc7fa97c4328f587512150`
 
-Observed execution state:
+Observed active task:
 
-- Current gate: `CORE-008`.
-- Current subtask: `CORE-008-T04`.
-- Gate status: `CURRENT`.
-- T01–T03: `DONE`.
-- T04: `CURRENT`.
-- T05–T10: `PENDING`.
+`CORE-008-T04 — Implement settlement and reconciliation lifecycle`
 
-Canonical criterion statuses:
+Criterion status read from the canonical state:
 
-- AC01: `PENDING`.
-- AC02: `VERIFIED`.
-- AC03: `VERIFIED`.
-- AC04: `PENDING`.
-- AC05: `PENDING`.
-- AC06: `PENDING`.
+| Criterion | Canonical status | Evidence and boundary |
+|---|---|---|
+| AC01 — Commission source of truth is authoritative | PENDING | Source declaration, authority-boundary tests and settlement-to-allocation identity tests are present. Final criterion verification must use the Control Center process. |
+| AC02 — Deal and ownership attribution is traceable | VERIFIED | Previously recorded CORE-008-T02 attribution evidence remains authoritative for this criterion. |
+| AC03 — Financial amounts use safe fixed-precision semantics | VERIFIED | Previously recorded CORE-008-T03 allocation and precision evidence remains authoritative for this criterion. |
+| AC04 — Settlement and reversal are auditable | PENDING | Lifecycle, event-chain, reconciliation-linkage and immutable adjustment-audit tests are present. The broader criterion must not be closed ahead of its required work and verification. |
+| AC05 — Critical financial actions require appropriate approval | PENDING | Approval-boundary, denied-approval and authorization-binding regressions pass; final criterion verification remains a Control Center responsibility. |
+| AC06 — Security and concurrency tests pass | PENDING | Current configured financial and ACRL suites pass. Wider precision/concurrency and financial-security subtasks remain in the defined execution order. |
 
-This evidence document does not change `data/state.json`, complete a subtask, verify acceptance criteria, approve or freeze CORE-008, or authorize a new task.
+These are the canonical statuses observed during the audit. This evidence update must not alter or manufacture those statuses.
 
-## 8. Evidence Synchronization and Completion Boundary
+## 8. T04 Handoff and Completion Boundary
 
-- The exact tested commit `5753a70e604f7f69103e589f98a2433c4889ee19` passed backend/ACRL CI run `40028416729`.
-- The completed job reports 465 passed in the configured financial folder and 1,444 passed in the configured ACRL suite.
-- The updated temporal-adversarial test file SHA is recorded in Section 2.
-- After this evidence document is saved, it must be read back from GitHub before documentation synchronization is considered complete.
-- Implementation, regression results, criterion verification, subtask completion, and gate approval remain distinct outcomes.
-- Formal state transitions belong to the existing REOS Control Center.
-- Do not edit `REOS_CONTROL_CENTER/data/state.json` manually to manufacture completion.
-- Do not mark CORE-008 approved or frozen while required subtasks or acceptance criteria remain pending.
+The latest verified source/test snapshot is commit:
 
-**Disposition:** The tested T04 source/test snapshot passed the latest recorded backend/ACRL CI run. Temporal adversarial and optimistic-concurrency regressions are included in the tested financial suite. The canonical task remains `CORE-008-T04`, subject to the existing Control Center's required closeout and authorization process.
+`098c1e167bec46a63a55e1757227c92b694c159f`
+
+Its associated backend/ACRL Actions run is:
+
+https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/40030312521
+
+The configured financial-core suite passed 468 tests, and the configured ACRL suite passed 1,444 tests on that snapshot.
+
+After this document is saved:
+
+1. Read this exact path back from `reos-development`.
+2. Confirm the returned content and blob SHA.
+3. Confirm the active task and current gate directly from `data/state.json`.
+4. Use the existing Control Center `complete-subtask` route for `CORE-008-T04` only when the verification evidence has been reconciled.
+5. Read back the resulting canonical state and handoff packet.
+6. Report the next subtask only from the resulting canonical state.
+
+Do not edit `data/state.json` manually. Do not manually mark gate acceptance criteria VERIFIED. Do not approve or freeze CORE-008 while required subtasks or acceptance criteria remain pending.
+
+**Disposition:** The T04 source and tests have successful current-commit CI evidence. The evidence record requires synchronization, followed by the prescribed Control Center transition and read-back. A green test result is not itself a canonical state transition.
