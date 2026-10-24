@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-24T13:16:21+00:00",
+    "updated_at": "2026-10-24T14:05:40+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2294,14 +2294,23 @@
         "id": "CORE-008-T04",
         "note": "CORE-008-T04 completed through the existing Control Center after configured commission_financial and complete ACRL suites passed in GitHub Actions run 40097378073 for verified code commit 1d9450b1a93bce1b44ff39549c8f0ea762e29777. Acceptance criteria were not bulk-verified; AC01, AC04, AC05 and AC06 remain pending."
       }
+    },
+    {
+      "id": "fcffa544-86a8-4ba6-8e6b-2d140e4a3915",
+      "time": "2026-10-24T14:05:40+00:00",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-008-T05",
+        "note": "CORE-008-T05 completed through the existing Control Center after the T05-specific regression, complete commission_financial suite (235 passed), and complete ACRL suite (1444 passed) succeeded in GitHub Actions run 40100909536 for verified code commit 4671489d1a910922e8b1762e4175f9cffa550ca7. Focused T05 regression count: 21. Acceptance criteria were not bulk-verified; AC01, AC04, AC05 and AC06 remain pending."
+      }
     }
   ],
   "integrity": {
-    "sha256": "e411e8d76b1c54f4bc8871ec2e4eb6d80add19856f59e87b7cddbcd9e392a8ca"
+    "sha256": "bc05ac510755ce84fa5fdd6c7a2574e3262dd5ccfde6bdf3012296f5c113e7c3"
   },
   "execution": {
     "current_gate": "CORE-008",
-    "current_task": "CORE-008-T05: Implement dispute and reversal rules.",
+    "current_task": "CORE-008-T06: Implement financial audit and evidence.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
@@ -2312,7 +2321,7 @@
       "Critical financial actions require appropriate approval.",
       "Security and concurrency tests pass."
     ],
-    "current_subtask": "CORE-008-T05"
+    "current_subtask": "CORE-008-T06"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -4264,7 +4273,7 @@
       "name": "Commission & Financial Core",
       "objective": "Implement protected commission, financial and settlement lifecycle.",
       "status": "CURRENT",
-      "current_subtask": "CORE-008-T05",
+      "current_subtask": "CORE-008-T06",
       "subtasks": [
         {
           "id": "CORE-008-T01",
@@ -4302,13 +4311,15 @@
           "id": "CORE-008-T05",
           "title": "Implement dispute and reversal rules",
           "priority": "HIGH",
-          "status": "CURRENT"
+          "status": "DONE",
+          "completed_at": "2026-10-24T14:05:40+00:00",
+          "note": "CORE-008-T05 completed through the existing Control Center after the T05-specific regression, complete commission_financial suite (235 passed), and complete ACRL suite (1444 passed) succeeded in GitHub Actions run 40100909536 for verified code commit 4671489d1a910922e8b1762e4175f9cffa550ca7. Focused T05 regression count: 21. Acceptance criteria were not bulk-verified; AC01, AC04, AC05 and AC06 remain pending."
         },
         {
           "id": "CORE-008-T06",
           "title": "Implement financial audit and evidence",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "CURRENT"
         },
         {
           "id": "CORE-008-T07",
