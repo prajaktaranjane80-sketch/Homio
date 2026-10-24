@@ -35,7 +35,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: homio-backend-acrl-ci-${{ github.ref }}
+  group: homio-backend-acrl-ci-${{ github.ref }}-${{ github.sha }}
   cancel-in-progress: true
 
 jobs:
@@ -161,6 +161,13 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Preserve committed line endings before checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global core.autocrlf false
+          git config --global core.eol native
+
       - name: Checkout the exact commit that passed verification
         uses: actions/checkout@v4
         with:
@@ -184,12 +191,14 @@ jobs:
             echo "BLOCKED: Control Center transition is allowed only from reos-development."
             exit 1
           fi
+
           ACTUAL_SHA="$(git rev-parse HEAD)"
           if [[ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]]; then
             echo "BLOCKED: checkout SHA differs from the verified workflow SHA."
             echo "expected=$EXPECTED_SHA actual=$ACTUAL_SHA"
             exit 1
           fi
+
           git fetch --no-tags origin refs/heads/reos-development
           REMOTE_SHA="$(git rev-parse FETCH_HEAD)"
           if [[ "$REMOTE_SHA" != "$EXPECTED_SHA" ]]; then
@@ -197,12 +206,22 @@ jobs:
             echo "expected=$EXPECTED_SHA remote=$REMOTE_SHA"
             exit 1
           fi
+
+          echo "CHECKOUT_LINE_ENDING_POLICY:"
+          git config --show-origin --get core.autocrlf || true
+
           if [[ -n "$(git status --porcelain=v1 --untracked-files=all)" ]]; then
             echo "BLOCKED: checkout is not clean before the transition."
             git status --short
+            echo "Changed-file summary:"
+            git diff --stat
+            echo "Summary ignoring end-of-line-only differences:"
+            git diff --ignore-space-at-eol --stat || true
             exit 1
           fi
+
           python REOS_CONTROL_CENTER/reos_control_center.py verify-state
+
           python - <<'PY'
           import json
           from pathlib import Path
@@ -213,6 +232,7 @@ jobs:
           gate = state.get("gate_plans", {}).get("CORE-008", {})
           subtasks = {item.get("id"): item for item in gate.get("subtasks", [])}
           criteria = {item.get("id"): item.get("status") for item in gate.get("criteria_state", [])}
+
           expected_criteria = {
               "CORE-008-AC01": "PENDING",
               "CORE-008-AC02": "VERIFIED",
@@ -221,6 +241,7 @@ jobs:
               "CORE-008-AC05": "PENDING",
               "CORE-008-AC06": "PENDING",
           }
+
           if execution.get("current_gate") != "CORE-008":
               raise SystemExit("BLOCKED: current gate is not CORE-008.")
           if execution.get("current_subtask") != "CORE-008-T04":
@@ -236,14 +257,20 @@ jobs:
                   "BLOCKED: acceptance-criterion status differs from the reviewed baseline; "
                   f"observed={criteria!r}"
               )
-          evidence_path = Path("REOS_CONTROL_CENTER/evidence/CORE-008/T04-settlement-reconciliation-ci-evidence.md")
+
+          evidence_path = Path(
+              "REOS_CONTROL_CENTER/evidence/CORE-008/"
+              "T04-settlement-reconciliation-ci-evidence.md"
+          )
           evidence = evidence_path.read_text(encoding="utf-8")
+
           if "## 9. Post-transition Control Center Readback" in evidence:
               raise SystemExit("BLOCKED: T04 transition evidence already contains a post-transition record.")
           if "After this document is saved:" not in evidence:
               raise SystemExit("BLOCKED: expected T04 evidence checklist was not found.")
           if "The evidence record requires synchronization" not in evidence:
               raise SystemExit("BLOCKED: expected pre-transition disposition was not found.")
+
           print("PREFLIGHT PASS: T04 is current, criteria are unchanged, evidence is ready for transition record.")
           PY
 
@@ -255,15 +282,14 @@ jobs:
           set -euo pipefail
           NOTE="CORE-008-T04 completed through the existing Control Center after configured commission_financial and complete ACRL suites passed in GitHub Actions run ${ACTIONS_RUN_ID} for verified code commit ${VERIFIED_CODE_SHA}. Acceptance criteria were not bulk-verified; AC01, AC04, AC05 and AC06 remain pending."
           export CONTROL_CENTER_TRANSITION_NOTE="$NOTE"
+
           python - <<'PY'
           import os
           import sys
           from pathlib import Path
           import REOS_CONTROL_CENTER.reos_control_center as control_center
 
-          # Keep the handoff reference portable. The existing controller persists
-          # str(PACKETS / filename); use its repository-relative canonical path
-          # so a GitHub-hosted runner's temporary absolute path is never stored.
+          # Keep the persisted handoff reference repository-relative.
           control_center.PACKETS = Path("REOS_CONTROL_CENTER/packets")
           sys.argv = [
               "reos_control_center.py",
@@ -274,9 +300,10 @@ jobs:
           ]
           control_center.main()
           PY
+
           python REOS_CONTROL_CENTER/reos_control_center.py verify-state
 
-      - name: Verify the generated state and update T04 evidence record
+      - name: Verify generated state and update T04 evidence record
         env:
           VERIFIED_CODE_SHA: ${{ github.sha }}
           ACTIONS_RUN_ID: ${{ github.run_id }}
@@ -296,13 +323,20 @@ jobs:
           state_path = root / "data" / "state.json"
           packet_path = root / "packets" / "NEW_CHAT_PACKET.txt"
           next_chat_path = root / "REOS_NEXT_CHAT.txt"
-          evidence_path = root / "evidence" / "CORE-008" / "T04-settlement-reconciliation-ci-evidence.md"
+          evidence_path = (
+              root / "evidence" / "CORE-008"
+              / "T04-settlement-reconciliation-ci-evidence.md"
+          )
 
           state = json.loads(state_path.read_text(encoding="utf-8"))
           execution = state.get("execution", {})
           gate = state.get("gate_plans", {}).get("CORE-008", {})
           subtasks = {item.get("id"): item for item in gate.get("subtasks", [])}
-          criteria = {item.get("id"): item.get("status") for item in gate.get("criteria_state", [])}
+          criteria = {
+              item.get("id"): item.get("status")
+              for item in gate.get("criteria_state", [])
+          }
+
           expected_criteria = {
               "CORE-008-AC01": "PENDING",
               "CORE-008-AC02": "VERIFIED",
@@ -311,6 +345,7 @@ jobs:
               "CORE-008-AC05": "PENDING",
               "CORE-008-AC06": "PENDING",
           }
+
           if execution.get("current_gate") != "CORE-008":
               raise SystemExit("POST-CHECK FAILED: current gate changed unexpectedly.")
           if execution.get("current_subtask") != "CORE-008-T05":
@@ -323,39 +358,57 @@ jobs:
               raise SystemExit("POST-CHECK FAILED: T05 is not CURRENT.")
           if criteria != expected_criteria:
               raise SystemExit("POST-CHECK FAILED: gate acceptance criteria changed unexpectedly.")
+
           packet = packet_path.read_text(encoding="utf-8")
           next_chat = next_chat_path.read_text(encoding="utf-8")
-          for name, text in (("Control Center packet", packet), ("next-chat handoff", next_chat)):
-              if "CURRENT_SUBTASK=CORE-008-T05" not in text:
+
+          for name, packet_text in (
+              ("Control Center packet", packet),
+              ("next-chat handoff", next_chat),
+          ):
+              if "CURRENT_SUBTASK=CORE-008-T05" not in packet_text:
                   raise SystemExit(f"POST-CHECK FAILED: {name} does not identify T05 as current.")
-              if "CORE-008-T04|DONE|Implement settlement and reconciliation lifecycle" not in text:
+              if "CORE-008-T04|DONE|Implement settlement and reconciliation lifecycle" not in packet_text:
                   raise SystemExit(f"POST-CHECK FAILED: {name} does not record T04 as DONE.")
 
           evidence = evidence_path.read_text(encoding="utf-8")
           marker = "## 9. Post-transition Control Center Readback"
+
           if marker in evidence:
               raise SystemExit("POST-CHECK FAILED: duplicate post-transition evidence section.")
+
           pattern = re.compile(
               r"\*\*Disposition:\*\* The T04 source and tests have successful current-commit CI evidence\.\s+"
               r"The evidence record requires synchronization, followed by the prescribed Control Center transition and read-back\.\s+"
               r"A green test result is not itself a canonical state transition\."
           )
+
           if len(pattern.findall(evidence)) != 1:
               raise SystemExit("POST-CHECK FAILED: expected pre-transition disposition was not found exactly once.")
+
           evidence = pattern.sub(
               "**Pre-transition disposition (superseded by Section 9):** The test evidence was reconciled before the Control Center transition.",
               evidence,
               count=1,
           )
+
           evidence = evidence.replace(
               "After this document is saved:",
               "Pre-transition checklist (completed and read back as recorded in Section 9):",
               1,
           )
-          checklist_start = evidence.find("Pre-transition checklist (completed and read back as recorded in Section 9):")
-          checklist_end = evidence.find("\nDo not edit `data/state.json` manually.", checklist_start)
+
+          checklist_start = evidence.find(
+              "Pre-transition checklist (completed and read back as recorded in Section 9):"
+          )
+          checklist_end = evidence.find(
+              "\nDo not edit `state.json` manually.",
+              checklist_start,
+          )
+
           if checklist_start < 0 or checklist_end < 0:
               raise SystemExit("POST-CHECK FAILED: cannot update the completed transition checklist safely.")
+
           checklist_end = evidence.rfind("\n", checklist_start, checklist_end)
           evidence = evidence[:checklist_start] + (
               "Pre-transition checklist (completed and read back as recorded in Section 9):\n\n"
@@ -364,12 +417,16 @@ jobs:
           ) + evidence[checklist_end:]
 
           blob_sha = subprocess.check_output(
-              ["git", "hash-object", str(state_path)], text=True
+              ["git", "hash-object", str(state_path)],
+              text=True,
           ).strip()
+
           run_url = (
-              f"{os.environ['ACTIONS_SERVER_URL']}/{os.environ['ACTIONS_REPOSITORY']}"
-              f"/actions/runs/{os.environ['ACTIONS_RUN_ID']}"
+              f"{os.environ['ACTIONS_SERVER_URL']}/"
+              f"{os.environ['ACTIONS_REPOSITORY']}/actions/runs/"
+              f"{os.environ['ACTIONS_RUN_ID']}"
           )
+
           section = textwrap.dedent(f"""
 
           ## 9. Post-transition Control Center Readback
@@ -386,65 +443,139 @@ jobs:
 
           **Final disposition:** Phase 6 (T04 implementation, CI verification, the prescribed Control Center transition and state/handoff readback) is complete. The CORE-008 gate remains open; this does not validate, approve or freeze the gate.
           """).strip()
-          evidence_path.write_text(evidence.rstrip() + "\n" + section + "\n", encoding="utf-8")
+
+          evidence_path.write_text(
+              evidence.rstrip() + "\n" + section + "\n",
+              encoding="utf-8",
+          )
+
           print("POST-CHECK PASS: T04 DONE, T05 CURRENT, acceptance statuses preserved.")
           print(f"STATE_BLOB_SHA={blob_sha}")
           print(f"ACTIONS_RUN={run_url}")
           PY
 
-      - name: Stage only controller-generated transition artifacts
+      - name: Stage only verified controller transition artifacts
+        shell: bash
         run: |
           set -euo pipefail
           git diff --check
+
           ACTUAL="$(git diff --name-only | LC_ALL=C sort)"
           EXPECTED="$(printf '%s\n' \
             'REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt' \
             'REOS_CONTROL_CENTER/data/state.json' \
             'REOS_CONTROL_CENTER/evidence/CORE-008/T04-settlement-reconciliation-ci-evidence.md' \
             'REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt' | LC_ALL=C sort)"
+
           if [[ "$ACTUAL" != "$EXPECTED" ]]; then
             echo "BLOCKED: controller transition changed an unexpected tracked-file set."
-            echo "Expected:"
+            echo "Expected tracked changes:"
             printf '%s\n' "$EXPECTED"
-            echo "Actual:"
+            echo "Actual tracked changes:"
             printf '%s\n' "$ACTUAL"
             exit 1
           fi
+
+          mapfile -t UNTRACKED_PATHS < <(git ls-files --others --exclude-standard | LC_ALL=C sort)
+
+          if [[ "${#UNTRACKED_PATHS[@]}" -ne 1 ]]; then
+            echo "BLOCKED: expected exactly one controller-created state snapshot."
+            printf '%s\n' "${UNTRACKED_PATHS[@]}"
+            exit 1
+          fi
+
+          SNAPSHOT_PATH="${UNTRACKED_PATHS[0]}"
+
+          if [[ ! "$SNAPSHOT_PATH" =~ ^REOS_CONTROL_CENTER/snapshots/state_[0-9]{8}_[0-9]{6}_[0-9]{6}\.json$ ]]; then
+            echo "BLOCKED: unexpected untracked path: $SNAPSHOT_PATH"
+            exit 1
+          fi
+
+          python - "$SNAPSHOT_PATH" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          from REOS_CONTROL_CENTER.reos_control_center import calculate_hash
+
+          snapshot_path = Path(sys.argv[1])
+          snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+          stored_hash = snapshot.get("integrity", {}).get("sha256")
+
+          if not isinstance(stored_hash, str) or stored_hash != calculate_hash(snapshot):
+              raise SystemExit("BLOCKED: controller-created pre-transition snapshot failed integrity validation.")
+
+          print(f"SNAPSHOT_INTEGRITY=PASS path={snapshot_path}")
+          PY
+
           git add -- \
             REOS_CONTROL_CENTER/data/state.json \
             REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt \
             REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt \
-            REOS_CONTROL_CENTER/evidence/CORE-008/T04-settlement-reconciliation-ci-evidence.md
+            REOS_CONTROL_CENTER/evidence/CORE-008/T04-settlement-reconciliation-ci-evidence.md \
+            "$SNAPSHOT_PATH"
+
           STAGED="$(git diff --cached --name-only | LC_ALL=C sort)"
-          if [[ "$STAGED" != "$EXPECTED" ]]; then
-            echo "BLOCKED: staged paths do not match the exact approved transition set."
+          EXPECTED_STAGED="$(printf '%s\n' \
+            'REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt' \
+            'REOS_CONTROL_CENTER/data/state.json' \
+            'REOS_CONTROL_CENTER/evidence/CORE-008/T04-settlement-reconciliation-ci-evidence.md' \
+            'REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt' \
+            "$SNAPSHOT_PATH" | LC_ALL=C sort)"
+
+          if [[ "$STAGED" != "$EXPECTED_STAGED" ]]; then
+            echo "BLOCKED: staged paths do not match the exact approved controller transition set."
+            echo "Expected staged paths:"
+            printf '%s\n' "$EXPECTED_STAGED"
+            echo "Actual staged paths:"
+            printf '%s\n' "$STAGED"
             exit 1
           fi
+
           git -c user.name='github-actions[bot]' \
             -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
             commit -m "chore(control-center): complete CORE-008-T04 via controller"
 
       - name: Push without force and read back canonical state
+        shell: bash
         run: |
           set -euo pipefail
           LOCAL_COMMIT="$(git rev-parse HEAD)"
+
           git push origin HEAD:refs/heads/reos-development
           git fetch --no-tags origin refs/heads/reos-development
           REMOTE_SHA="$(git rev-parse FETCH_HEAD)"
+
           if ! git merge-base --is-ancestor "$LOCAL_COMMIT" "$REMOTE_SHA"; then
             echo "READBACK FAILED: the transition commit is not an ancestor of canonical branch HEAD."
             exit 1
           fi
-          git show "$REMOTE_SHA:REOS_CONTROL_CENTER/data/state.json" > "$RUNNER_TEMP/reos-state-readback.json"
+
+          git show "$REMOTE_SHA:REOS_CONTROL_CENTER/data/state.json" \
+            > "$RUNNER_TEMP/reos-state-readback.json"
+
           python - <<'PY'
           import json
           import os
           from pathlib import Path
-          state = json.loads(Path(os.environ["RUNNER_TEMP"], "reos-state-readback.json").read_text(encoding="utf-8"))
+
+          state = json.loads(
+              Path(
+                  os.environ["RUNNER_TEMP"],
+                  "reos-state-readback.json",
+              ).read_text(encoding="utf-8")
+          )
+
           execution = state.get("execution", {})
           gate = state.get("gate_plans", {}).get("CORE-008", {})
-          subtasks = {item.get("id"): item for item in gate.get("subtasks", [])}
-          criteria = {item.get("id"): item.get("status") for item in gate.get("criteria_state", [])}
+          subtasks = {
+              item.get("id"): item
+              for item in gate.get("subtasks", [])
+          }
+          criteria = {
+              item.get("id"): item.get("status")
+              for item in gate.get("criteria_state", [])
+          }
+
           expected = {
               "CORE-008-AC01": "PENDING",
               "CORE-008-AC02": "VERIFIED",
@@ -453,17 +584,26 @@ jobs:
               "CORE-008-AC05": "PENDING",
               "CORE-008-AC06": "PENDING",
           }
+
           assert execution.get("current_gate") == "CORE-008", execution
           assert execution.get("current_subtask") == "CORE-008-T05", execution
           assert state.get("session", {}).get("last_handoff") == "REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt", state.get("session")
           assert subtasks.get("CORE-008-T04", {}).get("status") == "DONE", subtasks
           assert subtasks.get("CORE-008-T05", {}).get("status") == "CURRENT", subtasks
           assert criteria == expected, criteria
+
           print("CANONICAL READBACK PASS: CORE-008-T04=DONE; CORE-008-T05=CURRENT; gate criteria unchanged.")
           PY
-          git show "$REMOTE_SHA:REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt" | grep -Fq 'CURRENT_SUBTASK=CORE-008-T05'
-          git show "$REMOTE_SHA:REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt" | grep -Fq 'CURRENT_SUBTASK=CORE-008-T05'
-          git show "$REMOTE_SHA:REOS_CONTROL_CENTER/evidence/CORE-008/T04-settlement-reconciliation-ci-evidence.md" | grep -Fq 'Phase 6 (T04 implementation, CI verification, the prescribed Control Center transition and state/handoff readback) is complete.'
+
+          git show "$REMOTE_SHA:REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt" \
+            | grep -Fq 'CURRENT_SUBTASK=CORE-008-T05'
+
+          git show "$REMOTE_SHA:REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt" \
+            | grep -Fq 'CURRENT_SUBTASK=CORE-008-T05'
+
+          git show "$REMOTE_SHA:REOS_CONTROL_CENTER/evidence/CORE-008/T04-settlement-reconciliation-ci-evidence.md" \
+            | grep -Fq 'Phase 6 (T04 implementation, CI verification, the prescribed Control Center transition and state/handoff readback) is complete.'
+
           echo "TRANSITION_COMMIT=$LOCAL_COMMIT"
           echo "CANONICAL_BRANCH_HEAD=$REMOTE_SHA"
           echo "READBACK=PASS"
