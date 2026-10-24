@@ -154,7 +154,7 @@ jobs:
             AUTONOMY_ENGINE/continuity/acrl
 
   control_center_transition:
-    name: Guarded Control Center transition (manual only)
+    name: Guarded Control Center transition (explicit commit authorization)
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/reos-development' && startsWith(github.event.head_commit.message, '[CONTROL-CENTER-COMPLETE-CORE-008-T04]') }}
     needs: verification
     runs-on: ubuntu-latest
