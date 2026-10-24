@@ -331,15 +331,16 @@ jobs:
               / "T04-settlement-reconciliation-ci-evidence.md"
           )
 
-          # The Control Center serializes these files with LF. Preserve the
-          # exact existing CRLF style for legacy blobs whose line endings are
-          # not being intentionally migrated by this transition.
+          # Preserve CRLF on legacy state and handoff blobs where every
+          # original newline was CRLF. The controller still owns all content
+          # and integrity updates; this only restores the original byte style.
           for path in (state_path, packet_path, next_chat_path):
               original = subprocess.check_output(
                   ["git", "show", f"HEAD:{path.as_posix()}"]
               )
               original_lf = original.count(b"\n")
               original_crlf = original.count(b"\r\n")
+
               if original_lf > 0 and original_lf == original_crlf:
                   current = path.read_bytes().replace(b"\r\n", b"\n")
                   path.write_bytes(current.replace(b"\n", b"\r\n"))
@@ -423,7 +424,7 @@ jobs:
               "Pre-transition checklist (completed and read back as recorded in Section 9):"
           )
           checklist_end = evidence.find(
-              "\nDo not edit `state.json` manually.",
+              "\nDo not edit `data/state.json` manually.",
               checklist_start,
           )
 
