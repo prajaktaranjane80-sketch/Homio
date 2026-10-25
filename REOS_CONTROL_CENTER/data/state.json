@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-25T06:59:39+00:00",
+    "updated_at": "2026-10-25T07:20:39+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2321,14 +2321,23 @@
         "id": "CORE-008-T07",
         "note": "CORE-008-T07 completed through the existing Control Center after focused T07 (10 passed), full financial (262 passed), and full ACRL (1444 passed) regressions succeeded in Actions run 40171059690 for verified code commit 5407f595a48a7bbde1abd9065334c228e6f9aece. CORE-008-AC01, AC04, AC05, and AC06 remain PENDING; this subtask transition does not verify gate-level acceptance criteria."
       }
+    },
+    {
+      "id": "7c378edf-5b0c-4d1f-ad8c-726fcfe9cbc4",
+      "time": "2026-10-25T07:20:39+00:00",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-008-T08",
+        "note": "CORE-008-T08 completed through the existing Control Center after focused precision/concurrency tests (73 passed), full financial regressions (262 passed), and full ACRL regressions (1444 passed) succeeded in Actions run 40172362212 for verified code commit bb46acfd3ddf0b467d25e9ab7244d6341f7f5b30. CORE-008-AC01, AC04, AC05, and AC06 remain PENDING; this subtask transition does not bulk-verify acceptance criteria."
+      }
     }
   ],
   "integrity": {
-    "sha256": "cddad8b267880b9a8464eede793260057e53991f22a4dfbba48267a03c3f61a2"
+    "sha256": "d2372851d1e1d18540cfbec2587cd45ed56c080951a37601396d6d5e1327f96e"
   },
   "execution": {
     "current_gate": "CORE-008",
-    "current_task": "CORE-008-T08: Run precision and concurrency tests.",
+    "current_task": "CORE-008-T09: Run financial security and approval review.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
@@ -2339,7 +2348,7 @@
       "Critical financial actions require appropriate approval.",
       "Security and concurrency tests pass."
     ],
-    "current_subtask": "CORE-008-T08"
+    "current_subtask": "CORE-008-T09"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -4291,7 +4300,7 @@
       "name": "Commission & Financial Core",
       "objective": "Implement protected commission, financial and settlement lifecycle.",
       "status": "CURRENT",
-      "current_subtask": "CORE-008-T08",
+      "current_subtask": "CORE-008-T09",
       "subtasks": [
         {
           "id": "CORE-008-T01",
@@ -4353,13 +4362,15 @@
           "id": "CORE-008-T08",
           "title": "Run precision and concurrency tests",
           "priority": "CRITICAL",
-          "status": "CURRENT"
+          "status": "DONE",
+          "completed_at": "2026-10-25T07:20:39+00:00",
+          "note": "CORE-008-T08 completed through the existing Control Center after focused precision/concurrency tests (73 passed), full financial regressions (262 passed), and full ACRL regressions (1444 passed) succeeded in Actions run 40172362212 for verified code commit bb46acfd3ddf0b467d25e9ab7244d6341f7f5b30. CORE-008-AC01, AC04, AC05, and AC06 remain PENDING; this subtask transition does not bulk-verify acceptance criteria."
         },
         {
           "id": "CORE-008-T09",
           "title": "Run financial security and approval review",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "CURRENT"
         },
         {
           "id": "CORE-008-T10",
