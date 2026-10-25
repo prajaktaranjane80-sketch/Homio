@@ -214,6 +214,8 @@ def test_t08_transition_requires_exact_control_center_commit_prefix():
         "github.ref == 'refs/heads/reos-development' && "
         "startsWith(github.event.head_commit.message, "
         "'[CONTROL-CENTER-COMPLETE-CORE-008-T08]') }}"
+
+        # Trigger the owner-authorized CORE-008-T08 transition.
     )
     assert expected_guard in main
     assert expected_guard in reusable
