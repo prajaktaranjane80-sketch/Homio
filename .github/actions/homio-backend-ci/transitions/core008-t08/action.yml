@@ -1,0 +1,9 @@
+name: Guarded CORE-008-T08 transition
+description: Run existing precision and concurrency tests, financial and ACRL regressions, then complete T08 through the canonical Control Center.
+
+runs:
+  using: composite
+  steps:
+    - name: Run guarded T08 verification and transition
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_transition.py"
