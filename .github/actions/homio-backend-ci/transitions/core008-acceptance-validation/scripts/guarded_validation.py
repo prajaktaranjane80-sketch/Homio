@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import os
 import re
@@ -115,6 +117,41 @@ def run(
         )
 
     return output.strip()
+
+
+def controller_command(arguments: list[str]) -> str:
+    """Run a Control Center command with repository-relative packet paths."""
+    import REOS_CONTROL_CENTER.reos_control_center as controller
+
+    # Preserve the canonical relative handoff-path contract. The controller's
+    # default PACKETS constant is absolute; the transition requires a
+    # repository-relative path in session.last_handoff.
+    controller.PACKETS = Path("REOS_CONTROL_CENTER/packets")
+
+    captured = io.StringIO()
+    previous_argv = sys.argv[:]
+
+    try:
+        sys.argv = ["reos_control_center.py", *arguments]
+
+        with contextlib.redirect_stdout(captured):
+            try:
+                controller.main()
+            except SystemExit as exc:
+                if exc.code not in (None, 0):
+                    fail(f"Control Center command failed: {exc}")
+
+        output = captured.getvalue()
+
+        if output:
+            print(
+                output,
+                end="" if output.endswith("\n") else "\n",
+            )
+
+        return output.strip()
+    finally:
+        sys.argv = previous_argv
 
 
 def pytest_count(output: str, label: str) -> int:
@@ -303,10 +340,8 @@ def controller_verify_criterion(
     criterion_id: str,
     evidence: str,
 ) -> None:
-    output = run(
+    output = controller_command(
         [
-            sys.executable,
-            "REOS_CONTROL_CENTER/reos_control_center.py",
             "verify-criterion",
             criterion_id,
             "--evidence",
@@ -465,13 +500,7 @@ def main() -> None:
     for criterion_id, evidence in evidence_notes.items():
         controller_verify_criterion(criterion_id, evidence)
 
-    validation_output = run(
-        [
-            sys.executable,
-            "REOS_CONTROL_CENTER/reos_control_center.py",
-            "validate-gate",
-        ]
-    )
+    validation_output = controller_command(["validate-gate"])
 
     if "GATE VALIDATED: CORE-008" not in validation_output:
         fail(
@@ -520,14 +549,15 @@ def main() -> None:
             if marker not in content:
                 fail(f"{path.name} lacks handoff marker {marker!r}")
 
-    untracked = sorted(
+    evidence_path = EVIDENCE.relative_to(ROOT).as_posix()
+    untracked_before_evidence = sorted(
         run(
             ["git", "ls-files", "--others", "--exclude-standard"]
         ).splitlines()
     )
 
     snapshot_paths = [
-        path for path in untracked
+        path for path in untracked_before_evidence
         if re.fullmatch(
             r"REOS_CONTROL_CENTER/snapshots/"
             r"state_\d{8}_\d{6}_\d{6}\.json",
@@ -541,13 +571,10 @@ def main() -> None:
             f"verifications and gate validation; found {snapshot_paths}"
         )
 
-    evidence_path = EVIDENCE.relative_to(ROOT).as_posix()
-    expected_untracked = set(snapshot_paths) | {evidence_path}
-
-    if set(untracked) != expected_untracked:
+    if set(untracked_before_evidence) != set(snapshot_paths):
         fail(
-            "untracked change allowlist mismatch: "
-            f"{sorted(untracked)}"
+            "unexpected untracked files before writing evidence: "
+            f"{untracked_before_evidence}"
         )
 
     from REOS_CONTROL_CENTER.reos_control_center import calculate_hash
@@ -631,6 +658,22 @@ def main() -> None:
         encoding="utf-8",
         newline="\n",
     )
+
+    # Check the untracked-file allowlist again after the evidence file has
+    # actually been created. It must include five controller snapshots and
+    # exactly one new evidence artifact.
+    untracked_after_evidence = sorted(
+        run(
+            ["git", "ls-files", "--others", "--exclude-standard"]
+        ).splitlines()
+    )
+    expected_untracked = set(snapshot_paths) | {evidence_path}
+
+    if set(untracked_after_evidence) != expected_untracked:
+        fail(
+            "untracked change allowlist mismatch after writing evidence: "
+            f"{untracked_after_evidence}"
+        )
 
     expected_tracked = {
         "REOS_CONTROL_CENTER/data/state.json",
