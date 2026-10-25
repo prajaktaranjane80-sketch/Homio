@@ -1,0 +1,37 @@
+name: Reusable HOMIO Backend and ACRL Verification
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Backend, T21, and ACRL runtime verification
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Checkout exact triggering commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pytest and authentication dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check pytest
+          python -m pip install --disable-pip-version-check \
+            -r REOS_CONTROL_CENTER/requirements-auth.txt
+
+      - name: Run modular backend verification suite
+        uses: ./.github/actions/homio-backend-ci/verification
