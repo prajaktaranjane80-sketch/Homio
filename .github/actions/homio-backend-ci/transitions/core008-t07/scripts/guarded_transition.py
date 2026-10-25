@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import json
@@ -52,12 +51,12 @@ def run(
         stderr=subprocess.STDOUT if capture else None,
         check=False,
     )
-    output = result.stdout or "" if capture else ""
+    output = (result.stdout or "") if capture else ""
     if output:
         print(output, end="" if output.endswith("\n") else "\n")
     if check and result.returncode:
         fail(f"command failed ({result.returncode}): {' '.join(command)}")
-    return output
+    return output.strip()
 
 
 def pytest_count(output: str, label: str) -> int:
@@ -75,7 +74,8 @@ def preserve_line_endings(path: Path) -> None:
         ["git", "show", f"HEAD:{relative}"], cwd=ROOT
     )
     if original.count(b"\n") and original.count(b"\n") == original.count(b"\r\n"):
-        path.write_bytes(path.read_bytes().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n"))
+        normalized = path.read_bytes().replace(b"\r\n", b"\n")
+        path.write_bytes(normalized.replace(b"\n", b"\r\n"))
 
 
 def check_state(
@@ -136,7 +136,7 @@ def main() -> None:
 
     if run(
         ["git", "status", "--porcelain=v1", "--untracked-files=all"]
-    ).strip():
+    ):
         fail("checkout is not clean before transition")
 
     run(
@@ -287,10 +287,10 @@ def main() -> None:
     for relative in source_paths:
         blob_sha = run(
             ["git", "rev-parse", f"{expected_sha}:{relative}"]
-        ).strip()
+        )
         source_rows.append(f"| `{relative}` | `{blob_sha}` |")
 
-    state_blob_sha = run(["git", "hash-object", str(STATE)]).strip()
+    state_blob_sha = run(["git", "hash-object", str(STATE)])
     run_url = (
         f"{os.environ['ACTIONS_SERVER_URL']}/"
         f"{os.environ['ACTIONS_REPOSITORY']}/actions/runs/"
@@ -365,7 +365,9 @@ def main() -> None:
 
     staged = sorted(expected_tracked | expected_untracked)
     run(["git", "add", "--", *staged])
-    run(["git", "-c", "core.whitespace=cr-at-eol", "diff", "--cached", "--check"])
+    run(
+        ["git", "-c", "core.whitespace=cr-at-eol", "diff", "--cached", "--check"]
+    )
     actual_staged = set(
         run(["git", "diff", "--cached", "--name-only"]).splitlines()
     )
@@ -385,8 +387,8 @@ def main() -> None:
         ],
         capture=False,
     )
-    local_commit = run(["git", "rev-parse", "HEAD"]).strip()
-    if run(["git", "rev-parse", "HEAD^"]).strip() != expected_sha:
+    local_commit = run(["git", "rev-parse", "HEAD"])
+    if run(["git", "rev-parse", "HEAD^"]) != expected_sha:
         fail("transition commit parent differs from verified code commit")
 
     run(
@@ -397,7 +399,7 @@ def main() -> None:
         ["git", "fetch", "--no-tags", "origin", "refs/heads/reos-development"],
         capture=False,
     )
-    remote_sha = run(["git", "rev-parse", "FETCH_HEAD"]).strip()
+    remote_sha = run(["git", "rev-parse", "FETCH_HEAD"])
     if remote_sha != local_commit:
         fail("remote branch readback does not match transition commit")
 
