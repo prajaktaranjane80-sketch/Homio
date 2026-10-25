@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import InitVar, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Mapping
@@ -30,10 +30,6 @@ _RELEASE_AUTHORIZATION_FIELDS = (
     "release_authorized_at",
     "release_authorization_reference",
 )
-
-# Private in-process capability: a caller-supplied string/reference is not proof
-# that the external CORE-001 authorization boundary allowed this release.
-_RELEASE_AUTHORIZATION_CAPABILITY = object()
 
 
 class CommissionReleaseError(ValueError):
@@ -146,12 +142,8 @@ class CommissionRelease:
 
     state: CommissionReleaseState
     metadata: Mapping[str, Any] = ()
-    _authorization_capability: InitVar[object | None] = None
 
-    def __post_init__(
-        self,
-        _authorization_capability: object | None,
-    ) -> None:
+    def __post_init__(self) -> None:
         for field in (
             "release_id",
             "tenant_id",
@@ -278,15 +270,6 @@ class CommissionRelease:
             ) from exc
 
         object.__setattr__(self, "state", state)
-
-        if (
-            state is CommissionReleaseState.RELEASED
-            and _authorization_capability
-            is not _RELEASE_AUTHORIZATION_CAPABILITY
-        ):
-            raise CommissionReleaseValidationError(
-                "Only authorize_release() can construct a RELEASED record."
-            )
 
         if (
             state is CommissionReleaseState.RELEASED
@@ -798,7 +781,6 @@ class CommissionRelease:
             released_at=authorization_time,
             state=CommissionReleaseState.RELEASED,
             metadata=audit_metadata,
-            _authorization_capability=_RELEASE_AUTHORIZATION_CAPABILITY,
         )
 
     def to_dict(
