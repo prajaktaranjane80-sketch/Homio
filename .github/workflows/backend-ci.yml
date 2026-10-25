@@ -1,3 +1,4 @@
+
 name: HOMIO Backend and ACRL Runtime CI
 
 on:
@@ -19,6 +20,7 @@ on:
       - ".github/workflows/backend-ci.yml"
       - ".github/workflows/reusable-backend-verification.yml"
       - ".github/workflows/reusable-core008-t06-transition.yml"
+      - ".github/workflows/reusable-core008-t07-transition.yml"
       - ".github/actions/homio-backend-ci/**"
 
   pull_request:
@@ -39,6 +41,7 @@ on:
       - ".github/workflows/backend-ci.yml"
       - ".github/workflows/reusable-backend-verification.yml"
       - ".github/workflows/reusable-core008-t06-transition.yml"
+      - ".github/workflows/reusable-core008-t07-transition.yml"
       - ".github/actions/homio-backend-ci/**"
 
   workflow_dispatch:
@@ -48,12 +51,10 @@ permissions:
 
 concurrency:
   group: homio-backend-acrl-ci-${{ github.ref }}
-  # Do not cancel a running guarded transition after its local state write.
   cancel-in-progress: false
 
-# CORE-008-T04 and T05 are already DONE in canonical state.
-# Their one-shot transition jobs are retired from this active orchestrator.
-# Historical Actions runs and evidence files remain the completion record.
+# T04, T05, and T06 are already DONE in canonical state.
+# Each guarded transition runs only for its exact owner-authorized commit prefix.
 
 jobs:
   verification:
@@ -69,3 +70,11 @@ jobs:
     permissions:
       contents: write
     uses: ./.github/workflows/reusable-core008-t06-transition.yml
+
+  control_center_transition_t07:
+    name: Guarded Control Center transition (CORE-008-T07)
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/reos-development' && startsWith(github.event.head_commit.message, '[CONTROL-CENTER-COMPLETE-CORE-008-T07]') }}
+    needs: verification
+    permissions:
+      contents: write
+    uses: ./.github/workflows/reusable-core008-t07-transition.yml
