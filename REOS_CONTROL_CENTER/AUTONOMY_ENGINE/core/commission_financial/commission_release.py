@@ -10,24 +10,33 @@ from ..contract_primitives import deep_freeze, fingerprint
 from .commission_closeout import CommissionCloseout
 from .commission_invoice import CommissionInvoice
 from .commission_reconciliation import CommissionReconciliation
+from .commission_security import (
+    FinancialAuthorizationAction,
+    FinancialAuthorizationRequest,
+    FinancialSecurityBoundary,
+)
 from .commission_statement import CommissionStatement
 from .commission_tax import CommissionTaxAssessment
 from .commission_settlement import CommissionSettlement
-from .financial_domain import (
-    FinancialTenantScopeError,
-)
+from .financial_domain import FinancialTenantScopeError
 
 
 CORE008_COMMISSION_RELEASE_SCHEMA_VERSION = 1
+
+_RELEASE_AUTHORIZATION_FIELDS = (
+    "release_authorization_source_fingerprint",
+    "release_authorized_actor_reference",
+    "release_authorization_operation",
+    "release_authorized_at",
+    "release_authorization_reference",
+)
 
 
 class CommissionReleaseError(ValueError):
     """Base financial release error."""
 
 
-class CommissionReleaseValidationError(
-    CommissionReleaseError
-):
+class CommissionReleaseValidationError(CommissionReleaseError):
     """Invalid financial release record."""
 
 
@@ -50,39 +59,25 @@ class CommissionReleaseCheck:
     reference: str | None = None
 
     def __post_init__(self) -> None:
-        if (
-            not isinstance(self.code, str)
-            or not self.code.strip()
-        ):
+        if not isinstance(self.code, str) or not self.code.strip():
             raise CommissionReleaseValidationError(
                 "check code is required."
             )
 
-        if not isinstance(
-            self.passed,
-            bool,
-        ):
+        if not isinstance(self.passed, bool):
             raise CommissionReleaseValidationError(
                 "check passed must be boolean."
             )
 
         if (
-            not isinstance(
-                self.description,
-                str,
-            )
+            not isinstance(self.description, str)
             or not self.description.strip()
         ):
             raise CommissionReleaseValidationError(
                 "check description is required."
             )
 
-        object.__setattr__(
-            self,
-            "code",
-            self.code.strip(),
-        )
-
+        object.__setattr__(self, "code", self.code.strip())
         object.__setattr__(
             self,
             "description",
@@ -91,10 +86,7 @@ class CommissionReleaseCheck:
 
         if self.reference is not None:
             if (
-                not isinstance(
-                    self.reference,
-                    str,
-                )
+                not isinstance(self.reference, str)
                 or not self.reference.strip()
             ):
                 raise CommissionReleaseValidationError(
@@ -120,10 +112,12 @@ class CommissionReleaseCheck:
 class CommissionRelease:
     """Immutable financial release decision record.
 
-    CORE-008 decides whether the financial package is internally
-    complete and records the external authorization reference.
+    CORE-008 evaluates internal financial readiness and records the
+    result of an external authorization decision. A reference by itself
+    does not authorize a release: authorize_release() must call the
+    existing CORE-001 authorization boundary.
 
-    It never executes payment.
+    This record never executes a payment.
     """
 
     release_id: str
@@ -157,31 +151,18 @@ class CommissionRelease:
             "statement_id",
             "provenance_reference",
         ):
-            value = getattr(
-                self,
-                field,
-            )
+            value = getattr(self, field)
 
-            if (
-                not isinstance(value, str)
-                or not value.strip()
-            ):
+            if not isinstance(value, str) or not value.strip():
                 raise CommissionReleaseValidationError(
                     f"{field} must be non-empty text."
                 )
 
-            object.__setattr__(
-                self,
-                field,
-                value.strip(),
-            )
+            object.__setattr__(self, field, value.strip())
 
         if self.closeout_id is not None:
             if (
-                not isinstance(
-                    self.closeout_id,
-                    str,
-                )
+                not isinstance(self.closeout_id, str)
                 or not self.closeout_id.strip()
             ):
                 raise CommissionReleaseValidationError(
@@ -195,14 +176,8 @@ class CommissionRelease:
             )
 
         if (
-            isinstance(
-                self.release_version,
-                bool,
-            )
-            or not isinstance(
-                self.release_version,
-                int,
-            )
+            isinstance(self.release_version, bool)
+            or not isinstance(self.release_version, int)
             or self.release_version < 1
         ):
             raise CommissionReleaseValidationError(
@@ -212,81 +187,49 @@ class CommissionRelease:
         object.__setattr__(
             self,
             "invoice_ids",
-            self._ids(
-                self.invoice_ids,
-                "invoice_ids",
-            ),
+            self._ids(self.invoice_ids, "invoice_ids"),
         )
-
         object.__setattr__(
             self,
             "settlement_ids",
-            self._ids(
-                self.settlement_ids,
-                "settlement_ids",
-            ),
+            self._ids(self.settlement_ids, "settlement_ids"),
         )
-
         object.__setattr__(
             self,
             "reconciliation_ids",
-            self._ids(
-                self.reconciliation_ids,
-                "reconciliation_ids",
-            ),
+            self._ids(self.reconciliation_ids, "reconciliation_ids"),
         )
-
         object.__setattr__(
             self,
             "tax_assessment_ids",
-            self._ids(
-                self.tax_assessment_ids,
-                "tax_assessment_ids",
-            ),
+            self._ids(self.tax_assessment_ids, "tax_assessment_ids"),
         )
 
         checks = tuple(self.checks)
-
         if not checks:
             raise CommissionReleaseValidationError(
                 "At least one release check is required."
             )
 
         if any(
-            not isinstance(
-                check,
-                CommissionReleaseCheck,
-            )
+            not isinstance(check, CommissionReleaseCheck)
             for check in checks
         ):
             raise CommissionReleaseValidationError(
                 "checks contain invalid values."
             )
 
-        check_codes = [
-            check.code
-            for check in checks
-        ]
-
-        if len(check_codes) != len(
-            set(check_codes)
-        ):
+        check_codes = [check.code for check in checks]
+        if len(check_codes) != len(set(check_codes)):
             raise CommissionReleaseValidationError(
                 "Duplicate release check codes are not allowed."
             )
 
-        object.__setattr__(
-            self,
-            "checks",
-            checks,
-        )
+        object.__setattr__(self, "checks", checks)
 
         if self.authorization_reference is not None:
             if (
-                not isinstance(
-                    self.authorization_reference,
-                    str,
-                )
+                not isinstance(self.authorization_reference, str)
                 or not self.authorization_reference.strip()
             ):
                 raise CommissionReleaseValidationError(
@@ -303,10 +246,7 @@ class CommissionRelease:
         object.__setattr__(
             self,
             "evaluated_at",
-            self._aware(
-                self.evaluated_at,
-                "evaluated_at",
-            ),
+            self._aware(self.evaluated_at, "evaluated_at"),
         )
 
         if self.released_at is not None:
@@ -320,26 +260,16 @@ class CommissionRelease:
                     "released_at cannot precede evaluated_at."
                 )
 
-            object.__setattr__(
-                self,
-                "released_at",
-                released_at,
-            )
+            object.__setattr__(self, "released_at", released_at)
 
         try:
-            state = CommissionReleaseState(
-                self.state
-            )
+            state = CommissionReleaseState(self.state)
         except ValueError as exc:
             raise CommissionReleaseValidationError(
                 "Unsupported release state."
             ) from exc
 
-        object.__setattr__(
-            self,
-            "state",
-            state,
-        )
+        object.__setattr__(self, "state", state)
 
         if (
             state is CommissionReleaseState.RELEASED
@@ -357,28 +287,92 @@ class CommissionRelease:
                 "RELEASED state requires released_at."
             )
 
-        metadata = (
-            {}
-            if self.metadata == ()
-            else self.metadata
-        )
-
-        if not isinstance(
-            metadata,
-            Mapping,
-        ):
+        metadata = {} if self.metadata == () else self.metadata
+        if not isinstance(metadata, Mapping):
             raise CommissionReleaseValidationError(
                 "metadata must be a mapping."
             )
 
-        object.__setattr__(
-            self,
-            "metadata",
-            deep_freeze(
-                dict(metadata),
-                field_name="metadata",
-            ),
+        frozen_metadata = deep_freeze(
+            dict(metadata),
+            field_name="metadata",
         )
+        object.__setattr__(self, "metadata", frozen_metadata)
+
+        has_authorization_metadata = any(
+            field in frozen_metadata
+            for field in _RELEASE_AUTHORIZATION_FIELDS
+        )
+
+        if (
+            state is CommissionReleaseState.AUTHORIZATION_PENDING
+            and has_authorization_metadata
+        ):
+            raise CommissionReleaseValidationError(
+                "AUTHORIZATION_PENDING release cannot contain "
+                "release authorization audit metadata."
+            )
+
+        if state is CommissionReleaseState.RELEASED:
+            if not all(
+                field in frozen_metadata
+                for field in _RELEASE_AUTHORIZATION_FIELDS
+            ):
+                raise CommissionReleaseValidationError(
+                    "RELEASED state requires verified "
+                    "authorization audit metadata."
+                )
+
+            source_fingerprint = frozen_metadata.get(
+                "release_authorization_source_fingerprint"
+            )
+            if (
+                not isinstance(source_fingerprint, str)
+                or len(source_fingerprint) != 64
+                or any(
+                    char not in "0123456789abcdef"
+                    for char in source_fingerprint
+                )
+            ):
+                raise CommissionReleaseValidationError(
+                    "RELEASED state requires a valid source fingerprint."
+                )
+
+            actor_reference = frozen_metadata.get(
+                "release_authorized_actor_reference"
+            )
+            if (
+                not isinstance(actor_reference, str)
+                or not actor_reference.strip()
+            ):
+                raise CommissionReleaseValidationError(
+                    "RELEASED state requires an authorized actor."
+                )
+
+            if (
+                frozen_metadata.get("release_authorization_operation")
+                != "AUTHORIZE_COMMISSION_RELEASE"
+            ):
+                raise CommissionReleaseValidationError(
+                    "RELEASED state requires the verified release "
+                    "authorization operation."
+                )
+
+            if (
+                frozen_metadata.get("release_authorized_at")
+                != self.released_at.isoformat()
+            ):
+                raise CommissionReleaseValidationError(
+                    "Release authorization time does not match released_at."
+                )
+
+            if (
+                frozen_metadata.get("release_authorization_reference")
+                != self.authorization_reference
+            ):
+                raise CommissionReleaseValidationError(
+                    "Release authorization audit reference does not match."
+                )
 
     @staticmethod
     def _ids(
@@ -388,11 +382,7 @@ class CommissionRelease:
         items = tuple(values)
 
         if any(
-            not isinstance(
-                value,
-                str,
-            )
-            or not value.strip()
+            not isinstance(value, str) or not value.strip()
             for value in items
         ):
             raise CommissionReleaseValidationError(
@@ -404,21 +394,12 @@ class CommissionRelease:
                 f"{field} contains duplicates."
             )
 
-        return tuple(
-            value.strip()
-            for value in items
-        )
+        return tuple(value.strip() for value in items)
 
     @staticmethod
-    def _aware(
-        value: datetime,
-        field: str,
-    ) -> datetime:
+    def _aware(value: datetime, field: str) -> datetime:
         if (
-            not isinstance(
-                value,
-                datetime,
-            )
+            not isinstance(value, datetime)
             or value.tzinfo is None
             or value.utcoffset() is None
         ):
@@ -426,14 +407,10 @@ class CommissionRelease:
                 f"{field} must be timezone-aware."
             )
 
-        return value.astimezone(
-            timezone.utc
-        )
+        return value.astimezone(timezone.utc)
 
     @property
-    def identity_key(
-        self,
-    ) -> tuple[str, str, int]:
+    def identity_key(self) -> tuple[str, str, int]:
         return (
             self.tenant_id,
             self.release_id,
@@ -442,27 +419,16 @@ class CommissionRelease:
 
     @property
     def all_checks_passed(self) -> bool:
-        return all(
-            check.passed
-            for check in self.checks
-        )
+        return all(check.passed for check in self.checks)
 
     @property
     def immutable_fingerprint(self) -> str:
         return fingerprint(
-            self.to_dict(
-                include_fingerprint=False
-            )
+            self.to_dict(include_fingerprint=False)
         )
 
-    def assert_tenant(
-        self,
-        tenant_id: str,
-    ) -> None:
-        if not isinstance(
-            tenant_id,
-            str,
-        ) or not tenant_id.strip():
+    def assert_tenant(self, tenant_id: str) -> None:
+        if not isinstance(tenant_id, str) or not tenant_id.strip():
             raise CommissionReleaseValidationError(
                 "tenant_id must be non-empty text."
             )
@@ -489,12 +455,15 @@ class CommissionRelease:
         release_version: int = 1,
         metadata: Mapping[str, Any] | None = None,
     ) -> "CommissionRelease":
-        if not isinstance(
-            statement,
-            CommissionStatement,
-        ):
+        if not isinstance(statement, CommissionStatement):
             raise CommissionReleaseValidationError(
                 "statement must be CommissionStatement."
+            )
+
+        if authorization_reference is not None:
+            raise CommissionReleaseValidationError(
+                "evaluate cannot authorize a release from a reference "
+                "alone; use authorize_release()."
             )
 
         if closeout is not None and not isinstance(
@@ -525,9 +494,7 @@ class CommissionRelease:
         checks.append(
             CommissionReleaseCheck(
                 code="OUTSTANDING_ZERO",
-                passed=(
-                    statement.outstanding_amount.is_zero
-                ),
+                passed=statement.outstanding_amount.is_zero,
                 description=(
                     "Financial statement has no outstanding amount."
                 ),
@@ -538,9 +505,7 @@ class CommissionRelease:
         checks.append(
             CommissionReleaseCheck(
                 code="VARIANCE_ZERO",
-                passed=(
-                    statement.unresolved_variance.is_zero
-                ),
+                passed=statement.unresolved_variance.is_zero,
                 description=(
                     "Financial statement has no unresolved "
                     "reconciliation variance."
@@ -566,10 +531,8 @@ class CommissionRelease:
                     code="CLOSEOUT_READY",
                     passed=(
                         closeout.tenant_id == tenant_id
-                        and closeout.commission_id
-                        == commission_id
-                        and closeout.statement_id
-                        == statement.statement_id
+                        and closeout.commission_id == commission_id
+                        and closeout.statement_id == statement.statement_id
                         and closeout.state.value == "CLOSED"
                     ),
                     description=(
@@ -645,29 +608,15 @@ class CommissionRelease:
             ]
         )
 
-        all_passed = all(
-            check.passed
-            for check in checks
-        )
+        all_passed = all(check.passed for check in checks)
 
         if all_passed:
-            if authorization_reference:
-                state = CommissionReleaseState.RELEASED
-                released_at = evaluated_at
-            else:
-                state = (
-                    CommissionReleaseState.AUTHORIZATION_PENDING
-                )
-                released_at = None
+            state = CommissionReleaseState.AUTHORIZATION_PENDING
         else:
             state = CommissionReleaseState.BLOCKED
-            released_at = None
 
         return cls(
-            release_id=(
-                release_id
-                or str(uuid4())
-            ),
+            release_id=release_id or str(uuid4()),
             tenant_id=tenant_id,
             commission_id=commission_id,
             release_version=release_version,
@@ -680,46 +629,158 @@ class CommissionRelease:
             invoice_ids=tuple(
                 item.invoice_id
                 for item in invoices
-                if isinstance(
-                    item,
-                    CommissionInvoice,
-                )
+                if isinstance(item, CommissionInvoice)
             ),
             settlement_ids=tuple(
                 item.settlement_id
                 for item in settlements
-                if isinstance(
-                    item,
-                    CommissionSettlement,
-                )
+                if isinstance(item, CommissionSettlement)
             ),
             reconciliation_ids=tuple(
                 item.reconciliation_id
                 for item in reconciliations
-                if isinstance(
-                    item,
-                    CommissionReconciliation,
-                )
+                if isinstance(item, CommissionReconciliation)
             ),
             tax_assessment_ids=tuple(
                 item.assessment_id
                 for item in tax_assessments
-                if isinstance(
-                    item,
-                    CommissionTaxAssessment,
-                )
+                if isinstance(item, CommissionTaxAssessment)
             ),
             checks=tuple(checks),
-            authorization_reference=authorization_reference,
+            authorization_reference=None,
             provenance_reference=provenance_reference,
             evaluated_at=evaluated_at,
-            released_at=released_at,
+            released_at=None,
             state=state,
-            metadata=(
-                {}
-                if metadata is None
-                else metadata
-            ),
+            metadata={} if metadata is None else metadata,
+        )
+
+    def authorize_release(
+        self,
+        *,
+        authorization_boundary: FinancialSecurityBoundary,
+        actor_reference: str,
+        authorization_reference: str,
+        authorized_at: datetime,
+    ) -> "CommissionRelease":
+        """Authorize a ready release through the existing security boundary.
+
+        The original pending record remains unchanged. The returned record
+        advances the version and binds the authorization to the original
+        release fingerprint and complete readiness-check context.
+        """
+
+        if self.state is not CommissionReleaseState.AUTHORIZATION_PENDING:
+            raise CommissionReleaseValidationError(
+                "Only AUTHORIZATION_PENDING releases can be authorized."
+            )
+
+        if not self.all_checks_passed:
+            raise CommissionReleaseValidationError(
+                "All release checks must pass before authorization."
+            )
+
+        if not isinstance(
+            authorization_boundary,
+            FinancialSecurityBoundary,
+        ):
+            raise CommissionReleaseValidationError(
+                "authorization_boundary must be FinancialSecurityBoundary."
+            )
+
+        if (
+            not isinstance(actor_reference, str)
+            or not actor_reference.strip()
+        ):
+            raise CommissionReleaseValidationError(
+                "actor_reference must be non-empty text."
+            )
+
+        if (
+            not isinstance(authorization_reference, str)
+            or not authorization_reference.strip()
+        ):
+            raise CommissionReleaseValidationError(
+                "authorization_reference must be non-empty text."
+            )
+
+        actor = actor_reference.strip()
+        authorization_ref = authorization_reference.strip()
+        authorization_time = self._aware(
+            authorized_at,
+            "authorized_at",
+        )
+
+        if authorization_time < self.evaluated_at:
+            raise CommissionReleaseValidationError(
+                "authorized_at cannot precede evaluated_at."
+            )
+
+        source_fingerprint = self.immutable_fingerprint
+        context = {
+            "operation": "AUTHORIZE_COMMISSION_RELEASE",
+            "release_id": self.release_id,
+            "release_version": self.release_version,
+            "release_fingerprint": source_fingerprint,
+            "statement_id": self.statement_id,
+            "closeout_id": self.closeout_id,
+            "invoice_ids": list(self.invoice_ids),
+            "settlement_ids": list(self.settlement_ids),
+            "reconciliation_ids": list(self.reconciliation_ids),
+            "tax_assessment_ids": list(self.tax_assessment_ids),
+            "checks": [check.to_dict() for check in self.checks],
+            "evaluated_at": self.evaluated_at.isoformat(),
+            "authorized_at": authorization_time.isoformat(),
+        }
+
+        authorization_boundary.authorize(
+            FinancialAuthorizationRequest(
+                tenant_id=self.tenant_id,
+                resource_tenant_id=self.tenant_id,
+                actor_reference=actor,
+                resource_reference=self.release_id,
+                action=FinancialAuthorizationAction.RELEASE,
+                authorization_reference=authorization_ref,
+                sensitive=True,
+                context=context,
+            )
+        )
+
+        audit_metadata = dict(self.metadata)
+        audit_metadata.update(
+            {
+                "release_authorization_source_fingerprint": (
+                    source_fingerprint
+                ),
+                "release_authorized_actor_reference": actor,
+                "release_authorization_operation": (
+                    "AUTHORIZE_COMMISSION_RELEASE"
+                ),
+                "release_authorized_at": (
+                    authorization_time.isoformat()
+                ),
+                "release_authorization_reference": authorization_ref,
+            }
+        )
+
+        return CommissionRelease(
+            release_id=self.release_id,
+            tenant_id=self.tenant_id,
+            commission_id=self.commission_id,
+            release_version=self.release_version + 1,
+            statement_id=self.statement_id,
+            closeout_id=self.closeout_id,
+            invoice_ids=self.invoice_ids,
+            settlement_ids=self.settlement_ids,
+            reconciliation_ids=self.reconciliation_ids,
+            tax_assessment_ids=self.tax_assessment_ids,
+            checks=self.checks,
+            authorization_reference=authorization_ref,
+            provenance_reference=self.provenance_reference,
+            evaluated_at=self.evaluated_at,
+            released_at=authorization_time,
+            state=CommissionReleaseState.RELEASED,
+            metadata=audit_metadata,
         )
 
     def to_dict(
@@ -728,45 +789,22 @@ class CommissionRelease:
         include_fingerprint: bool = True,
     ) -> dict[str, Any]:
         result = {
-            "source_of_truth": (
-                "CORE-008.COMMISSION_RELEASE"
-            ),
-            "schema_version": (
-                CORE008_COMMISSION_RELEASE_SCHEMA_VERSION
-            ),
+            "source_of_truth": "CORE-008.COMMISSION_RELEASE",
+            "schema_version": CORE008_COMMISSION_RELEASE_SCHEMA_VERSION,
             "release_id": self.release_id,
             "tenant_id": self.tenant_id,
             "commission_id": self.commission_id,
-            "release_version": (
-                self.release_version
-            ),
+            "release_version": self.release_version,
             "statement_id": self.statement_id,
             "closeout_id": self.closeout_id,
-            "invoice_ids": list(
-                self.invoice_ids
-            ),
-            "settlement_ids": list(
-                self.settlement_ids
-            ),
-            "reconciliation_ids": list(
-                self.reconciliation_ids
-            ),
-            "tax_assessment_ids": list(
-                self.tax_assessment_ids
-            ),
-            "checks": [
-                check.to_dict()
-                for check in self.checks
-            ],
-            "authorization_reference": (
-                self.authorization_reference
-            ),
-            "provenance_reference": (
-                self.provenance_reference
-            ),
-            "evaluated_at": (
-                self.evaluated_at.isoformat()
-            ),
+            "invoice_ids": list(self.invoice_ids),
+            "settlement_ids": list(self.settlement_ids),
+            "reconciliation_ids": list(self.reconciliation_ids),
+            "tax_assessment_ids": list(self.tax_assessment_ids),
+            "checks": [check.to_dict() for check in self.checks],
+            "authorization_reference": self.authorization_reference,
+            "provenance_reference": self.provenance_reference,
+            "evaluated_at": self.evaluated_at.isoformat(),
             "released_at": (
                 self.released_at.isoformat()
                 if self.released_at is not None
@@ -777,9 +815,7 @@ class CommissionRelease:
         }
 
         if include_fingerprint:
-            result["immutable_fingerprint"] = (
-                self.immutable_fingerprint
-            )
+            result["immutable_fingerprint"] = self.immutable_fingerprint
 
         return result
 
