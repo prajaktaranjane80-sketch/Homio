@@ -88,7 +88,7 @@ def test_direct_released_state_requires_authorization_audit_metadata() -> None:
 
     with pytest.raises(
         CommissionReleaseValidationError,
-        match="RELEASED state requires verified authorization audit metadata",
+        match="Only authorize_release\\(\\) can construct a RELEASED record",
     ):
         replace(
             pending,
@@ -116,6 +116,32 @@ def test_denied_release_authorization_does_not_mutate_pending_record() -> None:
     assert pending.state is CommissionReleaseState.AUTHORIZATION_PENDING
     assert pending.immutable_fingerprint == before_fingerprint
     assert pending.to_dict() == before_payload
+
+
+def test_fabricated_authorization_metadata_cannot_construct_released_record() -> None:
+    pending = _pending_release()
+    forged_metadata = dict(pending.metadata)
+    forged_metadata.update(
+        {
+            "release_authorization_source_fingerprint": "a" * 64,
+            "release_authorized_actor_reference": "forged-approver",
+            "release_authorization_operation": "AUTHORIZE_COMMISSION_RELEASE",
+            "release_authorized_at": (NOW + timedelta(minutes=5)).isoformat(),
+            "release_authorization_reference": "forged-approval-reference",
+        }
+    )
+
+    with pytest.raises(
+        CommissionReleaseValidationError,
+        match="Only authorize_release\\(\\) can construct a RELEASED record",
+    ):
+        replace(
+            pending,
+            authorization_reference="forged-approval-reference",
+            released_at=NOW + timedelta(minutes=5),
+            state=CommissionReleaseState.RELEASED,
+            metadata=forged_metadata,
+        )
 
 
 def test_release_authorization_binds_actor_action_tenant_and_fingerprint() -> None:
