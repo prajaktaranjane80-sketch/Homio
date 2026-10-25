@@ -997,3 +997,97 @@ criteria with existing implementation and criterion-specific evidence.
 
 This record is an audit ledger, not a competing authority. It does not
 mutate canonical state or mark T04 complete.
+
+
+---
+
+## 11. Phase 6 completion and canonical read-back — 2026-10-25
+
+**Record type:** Live canonical status reconciliation and CI evidence read-back  
+**Repository:** `prajaktaranjane80-sketch/Homio`  
+**Branch:** `reos-development`  
+**Execution authority:** `REOS_CONTROL_CENTER/data/state.json` and the existing Control Center  
+**Canonical state manually edited:** NO
+
+### 11.1 Phase 6 disposition
+
+**Phase 6 — Complete the active CORE-008-T04 task: COMPLETE.**
+
+The current canonical state records `CORE-008-T04` — Implement settlement and reconciliation lifecycle — as `DONE`.
+
+Do not restart or duplicate the T04 implementation. Its task transition was recorded through the existing Control Center. The subsequent criterion-specific validation has now also passed.
+
+### 11.2 Verified GitHub baseline
+
+- Current branch HEAD:
+  `e6ae837d5ae40686a38ea3b760a277d2c1722b27`
+- Acceptance-validation source commit:
+  `ef49d0ad2963d05949ba196388d549b85624992d`
+- GitHub Actions run:
+  [Run #290 — CORE-008 acceptance validation](https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/40180121455)
+- Latest canonical state blob SHA:
+  `79af30e09ea0f72fc853bf6c74e042d6bcd30ea4`
+- Acceptance-validation evidence:
+  `REOS_CONTROL_CENTER/evidence/CORE-008/acceptance-criteria-validation-ci-evidence.md`
+
+The two follow-up commits between the validation source and the current branch HEAD contain Control Center state, evidence, snapshots, and handoff/context updates. The compared changed-file list does not show application or test-source changes in those follow-up commits. The test results below remain explicitly tied to the validation source commit and are not misrepresented as a separate Actions run on the later HEAD.
+
+### 11.3 Acceptance-validation results
+
+GitHub Actions run #290 completed successfully.
+
+| Verification | Result |
+|---|---:|
+| CORE-008-AC01 focused tests | 42 passed |
+| CORE-008-AC04 focused tests | 59 passed |
+| CORE-008-AC05 focused tests | 9 passed |
+| CORE-008-AC06 focused tests | 13 passed |
+| Combined focused tests | 123 passed |
+| Complete commission financial suite | 271 passed |
+| Complete ACRL suite | 1,444 passed |
+
+The canonical read-back recorded all six CORE-008 acceptance criteria as `VERIFIED`:
+
+- AC01 — Commission source of truth is authoritative.
+- AC02 — Deal and ownership attribution is traceable.
+- AC03 — Financial amounts use safe fixed-precision semantics.
+- AC04 — Settlement and reversal are auditable.
+- AC05 — Critical financial actions require appropriate approval.
+- AC06 — Security and concurrency tests pass.
+
+### 11.4 Current authoritative gate status
+
+The current `REOS_CONTROL_CENTER/data/state.json` reports:
+
+- Gate: `CORE-008`
+- Gate status: `VALIDATED`
+- T01–T09: `DONE`
+- Current subtask: `CORE-008-T10`
+- T10 — Freeze commission and financial core: `READY_FOR_APPROVAL`
+- Acceptance criteria: all six `VERIFIED`
+
+The gate completion policy remains:
+
+`All blocking subtasks DONE + all criteria VERIFIED + explicit approval.`
+
+**Important boundary:** Phase 6/T04 is complete and the validation passed. Overall CORE-008 is not yet recorded as approved or frozen. T10 still requires the prescribed explicit approval through the existing Control Center. This record does not execute `approve-gate`, change canonical state, or authorize an approval on the owner's behalf.
+
+### 11.5 Historical-record reconciliation
+
+Earlier dated entries in this document report T04 as `CURRENT` and AC01/AC04/AC05/AC06 as `PENDING`. Those entries describe the earlier baseline when they were written. They must be retained as historical audit records, but they must not be used as the current status after the successful 2026-10-25 validation.
+
+For present status, use the canonical state, the acceptance-validation evidence above, and the latest applicable GitHub Actions result.
+
+### 11.6 Final Phase 6 exit decision
+
+- T04 implementation and authorized transition: `DONE`
+- Criterion-specific acceptance validation: `PASS`
+- Financial regression suite: `PASS`
+- ACRL regression suite: `PASS`
+- All six CORE-008 acceptance criteria: `VERIFIED`
+- Phase 6: `COMPLETE`
+- CORE-008 final freeze/approval: `PENDING EXPLICIT APPROVAL`
+
+No canonical state mutation is performed by this documentation record.
+
+---
