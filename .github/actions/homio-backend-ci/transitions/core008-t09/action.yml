@@ -1,0 +1,9 @@
+name: Guarded CORE-008-T09 transition
+description: Verify T09 financial security and approval controls, run full financial and ACRL regressions, then complete T09 through the canonical Control Center.
+
+runs:
+  using: composite
+  steps:
+    - name: Run guarded T09 verification and transition
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_transition.py"
