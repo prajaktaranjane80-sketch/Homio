@@ -1,0 +1,29 @@
+name: HOMIO backend and ACRL verification modules
+description: Runs focused compile, contracts, subsystem regressions, and the complete ACRL suite in isolated scripts.
+
+runs:
+  using: composite
+  steps:
+    - name: Verify workflow and action module wiring
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/wiring_tests.sh"
+
+    - name: Compile backend and verify agent contract
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/compile_and_contracts.sh"
+
+    - name: Verify ACRL runtime integration and resume paths
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/acrl_runtime_resume.sh"
+
+    - name: Verify ACRL authorization, source impact, repair, Git, checkpoints, and evidence
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/acrl_security_git_evidence.sh"
+
+    - name: Verify canonical truth, financial, context, authentication, and tenant regressions
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/financial_context_tenant.sh"
+
+    - name: Run complete ACRL suite
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/acrl_full_suite.sh"
