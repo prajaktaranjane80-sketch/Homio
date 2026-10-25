@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-25T09:19:35+00:00",
+    "updated_at": "2026-10-25T11:58:27+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -40,7 +40,7 @@
   "phases": {
     "phase_1": "Core Business & Protection Engines",
     "phase_2": "Data, Search, Services, Analytics, Security, DevOps & AI Infrastructure",
-    "current": "Core Business & Protection Engines"
+    "current": "Data, Search, Services, Analytics, Security, DevOps & AI Infrastructure"
   },
   "architecture": {
     "approved": [
@@ -2383,25 +2383,42 @@
       "payload": {
         "gate": "CORE-008"
       }
+    },
+    {
+      "id": "9a2e45b2-0511-484b-87f3-3979eb5430bc",
+      "time": "2026-10-25T11:58:27+00:00",
+      "type": "GATE_AUTO_MATERIALIZED",
+      "payload": {
+        "gate": "AI-001"
+      }
+    },
+    {
+      "id": "78b54b9a-d23a-4649-9c62-d99d184a0d57",
+      "time": "2026-10-25T11:58:27+00:00",
+      "type": "GATE_APPROVED_AND_FROZEN",
+      "payload": {
+        "gate": "CORE-008",
+        "next_gate": "AI-001"
+      }
     }
   ],
   "integrity": {
-    "sha256": "ec407cdba674a7519f0ae60c440883e1dd7dbaff483ac2e0b79150e83cba7d4b"
+    "sha256": "6911f9984f4ca679bb024be534ed431532109d71b94d38cb93c0eef3b0e22842"
   },
   "execution": {
-    "current_gate": "CORE-008",
-    "current_task": "CORE-008-T10: Freeze commission and financial core.",
-    "status": "READY_FOR_APPROVAL",
+    "current_gate": "AI-001",
+    "current_task": "AI-001-T01: Implement AI Gateway.",
+    "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
-      "Commission source of truth is authoritative.",
-      "Deal and ownership attribution is traceable.",
-      "Financial amounts use safe fixed-precision semantics.",
-      "Settlement and reversal are auditable.",
-      "Critical financial actions require appropriate approval.",
-      "Security and concurrency tests pass."
+      "AI providers are abstracted behind the gateway.",
+      "AI cannot bypass domain authorization.",
+      "Retrieval is tenant-scoped and rebuildable.",
+      "Model selection and cost controls are configurable.",
+      "Agent actions use authorized business tools.",
+      "Fallback and observability are operational."
     ],
-    "current_subtask": "CORE-008-T10"
+    "current_subtask": "AI-001-T01"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -2491,13 +2508,13 @@
         "id": "PLAN-014",
         "gate": "CORE-008",
         "name": "Commission & Financial Core",
-        "status": "CURRENT"
+        "status": "COMPLETE"
       },
       {
         "id": "PLAN-015",
         "gate": "AI-001",
         "name": "AI Platform & Agents",
-        "status": "FUTURE"
+        "status": "CURRENT"
       },
       {
         "id": "PLAN-016",
@@ -4352,7 +4369,7 @@
       "id": "CORE-008",
       "name": "Commission & Financial Core",
       "objective": "Implement protected commission, financial and settlement lifecycle.",
-      "status": "VALIDATED",
+      "status": "APPROVED",
       "current_subtask": "CORE-008-T10",
       "subtasks": [
         {
@@ -4431,7 +4448,8 @@
           "id": "CORE-008-T10",
           "title": "Freeze commission and financial core",
           "priority": "CRITICAL",
-          "status": "READY_FOR_APPROVAL"
+          "status": "DONE",
+          "completed_at": "2026-10-25T11:58:27+00:00"
         }
       ],
       "acceptance_criteria": [
@@ -4488,6 +4506,129 @@
       ],
       "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
       "created_at": "2026-09-30T17:56:33+05:30"
+    },
+    "AI-001": {
+      "id": "AI-001",
+      "name": "AI Platform & Agents",
+      "objective": "Implement the governed AI gateway, retrieval, agents and tool execution layer.",
+      "status": "CURRENT",
+      "current_subtask": "AI-001-T01",
+      "subtasks": [
+        {
+          "id": "AI-001-T01",
+          "title": "Implement AI Gateway",
+          "priority": "CRITICAL",
+          "status": "CURRENT"
+        },
+        {
+          "id": "AI-001-T02",
+          "title": "Implement provider and model registry",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "AI-001-T03",
+          "title": "Implement embeddings and retrieval integration",
+          "priority": "HIGH",
+          "status": "PENDING"
+        },
+        {
+          "id": "AI-001-T04",
+          "title": "Implement RAG pipeline",
+          "priority": "HIGH",
+          "status": "PENDING"
+        },
+        {
+          "id": "AI-001-T05",
+          "title": "Implement agent runtime and tools",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "AI-001-T06",
+          "title": "Implement AI authorization and tenant isolation",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "AI-001-T07",
+          "title": "Implement cost controls and usage tracking",
+          "priority": "HIGH",
+          "status": "PENDING"
+        },
+        {
+          "id": "AI-001-T08",
+          "title": "Implement AI observability and fallback",
+          "priority": "HIGH",
+          "status": "PENDING"
+        },
+        {
+          "id": "AI-001-T09",
+          "title": "Run AI safety security and reliability tests",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "AI-001-T10",
+          "title": "Freeze AI platform and agents",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        }
+      ],
+      "acceptance_criteria": [
+        "AI providers are abstracted behind the gateway.",
+        "AI cannot bypass domain authorization.",
+        "Retrieval is tenant-scoped and rebuildable.",
+        "Model selection and cost controls are configurable.",
+        "Agent actions use authorized business tools.",
+        "Fallback and observability are operational."
+      ],
+      "criteria_state": [
+        {
+          "id": "AI-001-AC01",
+          "criterion": "AI providers are abstracted behind the gateway.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "AI-001-AC02",
+          "criterion": "AI cannot bypass domain authorization.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "AI-001-AC03",
+          "criterion": "Retrieval is tenant-scoped and rebuildable.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "AI-001-AC04",
+          "criterion": "Model selection and cost controls are configurable.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "AI-001-AC05",
+          "criterion": "Agent actions use authorized business tools.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "AI-001-AC06",
+          "criterion": "Fallback and observability are operational.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        }
+      ],
+      "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
+      "created_at": "2026-10-25T11:58:27+00:00"
     }
   },
   "autonomous_engine": {
