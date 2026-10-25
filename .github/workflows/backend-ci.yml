@@ -21,6 +21,7 @@ on:
       - ".github/workflows/reusable-backend-verification.yml"
       - ".github/workflows/reusable-core008-t06-transition.yml"
       - ".github/workflows/reusable-core008-t07-transition.yml"
+      - ".github/workflows/reusable-core008-t08-transition.yml"
       - ".github/actions/homio-backend-ci/**"
 
   pull_request:
@@ -42,6 +43,7 @@ on:
       - ".github/workflows/reusable-backend-verification.yml"
       - ".github/workflows/reusable-core008-t06-transition.yml"
       - ".github/workflows/reusable-core008-t07-transition.yml"
+      - ".github/workflows/reusable-core008-t08-transition.yml"
       - ".github/actions/homio-backend-ci/**"
 
   workflow_dispatch:
@@ -53,8 +55,8 @@ concurrency:
   group: homio-backend-acrl-ci-${{ github.ref }}
   cancel-in-progress: false
 
-# T04, T05, and T06 are already DONE in canonical state.
-# Each guarded transition runs only for its exact owner-authorized commit prefix.
+# T04 through T07 are DONE in canonical state.
+# T08 runs only from the exact owner-authorized commit prefix.
 
 jobs:
   verification:
@@ -78,3 +80,11 @@ jobs:
     permissions:
       contents: write
     uses: ./.github/workflows/reusable-core008-t07-transition.yml
+
+  control_center_transition_t08:
+    name: Guarded Control Center transition (CORE-008-T08)
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/reos-development' && startsWith(github.event.head_commit.message, '[CONTROL-CENTER-COMPLETE-CORE-008-T08]') }}
+    needs: verification
+    permissions:
+      contents: write
+    uses: ./.github/workflows/reusable-core008-t08-transition.yml
