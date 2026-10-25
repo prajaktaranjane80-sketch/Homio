@@ -1,25 +1,124 @@
-HOMIO / REOS project ko previous chat se continue karo.
+# HOMIO / REOS — AI-001-T01 CONTINUE, DIAGNOSE AND VERIFY
 
-**Repository:** https://github.com/prajaktaranjane80-sketch/Homio  
-**Canonical branch:** `reos-development`
+Continue the existing HOMIO / REOS implementation. Do not restart planning, recreate files, or repeat completed work.
 
-### Confirmed handoff
-- Latest verified canonical transition commit: `fb9e1d2302d77129802f7ac86540b54ba00ee94e`
-- `CORE-008-T05 = DONE`
-- `CORE-008-T06 = DONE`
-- **Current subtask: `CORE-008-T07 — Implement financial reporting hooks`**
-- T06 evidence: [GitHub Actions Run #250](https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/40168521145)
-- T06 focused tests: 17 passed; full `commission_financial`: 252 passed; full ACRL: 1,444 passed.
-- Modular backend verification is wired through `.github/actions/homio-backend-ci/verification/` with six verification scripts.
+## Canonical repository and authority
 
-### Ab kya karna hai
-1. Sabse pehle GitHub se live `data/state.json`, current branch HEAD, execution-order document aur latest Actions verify karo.
-2. Canonical state aur execution-order document mein purane/stale instructions ko identify karo. Supporting plan ko execution authority mat samajhna.
-3. Current authorized subtask `CORE-008-T07` ka existing source, contracts aur tests inspect karke actual implementation shuru karo. Duplicate modules ya duplicate tests mat banana.
-4. Har required file ka exact GitHub path aur **poora replacement/addition content** isi chat mein dena. Main GitHub web par save karunga; assistant directly GitHub files modify nahi karega.
-5. Save ke baad Actions, job logs, tested commit SHA aur results verify karna.
-6. `REOS_CONTROL_CENTER/data/state.json` ko manually kabhi edit mat karna. State transitions sirf existing authorized Control Center workflow se hon.
-7. T06 ko reopen/repeat mat karna. Acceptance criteria AC01, AC04, AC05, AC06 abhi `PENDING` hain; evidence ke bina unhe `VERIFIED` mat karna.
-8. Phase ya task ko tabhi complete kehna jab implementation, tests, live readback aur required evidence sab verify hon.
+- Repository: `prajaktaranjane80-sketch/Homio`
+- Branch: `reos-development`
+- Canonical state: `REOS_CONTROL_CENTER/data/state.json`
+- Implementation blueprint: `REOS_CONTROL_CENTER/architecture/AI-001_PLATFORM_IMPLEMENTATION_BLUEPRINT.md`
+- Current task at the last verified read: `AI-001-T01 — Implement AI Gateway`
+- Previous gate: `CORE-008`, approved and frozen.
+- Do not manually edit `state.json`, manufacture task transitions, or claim AI-001 is complete.
 
-Planning mein atakna nahi—live verification ke baad current authorized task par actual kaam karo.
+First reread the live branch HEAD, canonical state, blueprint, existing AI package, relevant tests and workflow scripts. The live repository may have advanced since this prompt was written. Use the latest saved content, not earlier chat snippets.
+
+## A. Actions diagnosis — preserve the completed fix
+
+Inspect these exact records:
+
+- Failed Run #304: https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/40206085572
+- Successful Run #305: https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/40206656914
+- Existing regression-test fix commit: https://github.com/prajaktaranjane80-sketch/Homio/commit/d924f26a5944b38da2259f32e949d1c6dca451e2
+
+Confirmed failure:
+`REOS_CONTROL_CENTER/tets/test_l3_canonical_authority.py::test_complete_subtask_persists_integrity_after_handoff`
+
+Error:
+`SystemExit: Subtask not found: CORE-008-T04`
+
+The test was simulating a historical CORE-008-T04 transition but had not activated CORE-008 in the in-memory execution projection. The controller therefore looked at the current AI-001 gate.
+
+The fix in `d924f26a5944b38da2259f32e949d1c6dca451e2` explicitly sets the test fixture's `state["execution"]["current_gate"] = "CORE-008"` and synchronizes the execution projection.
+
+Do not revert this correction. Do not edit canonical `state.json` to satisfy the test. Confirm that the fixture fix remains present and that the current branch's latest Actions result still passes. The earlier failures on successive AI file commits must not be misreported as AI Gateway test failures; they exposed the existing stale regression fixture.
+
+## B. Verify AI package paths and eliminate structural mess
+
+Inspect the entire live tree under:
+
+`REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/`
+
+The last observed paths included:
+- `__init__.py`
+- `contracts.py`
+- `errors.py`
+- `ports.py`
+- `settings.py`
+- `model_gateway.py`
+- `test_contracts.py`
+- `test_model_gateway.py`
+- `tests/test_public_contract_stability.py`
+
+The blueprint specifies package-owned tests beneath `ai_platform/tests/`. Verify every exact current path and read the full contents before deciding whether a move, replacement, or no-change is required.
+
+If the two root-level test files are out of the required structure:
+1. Preserve their actual content and behavior.
+2. Provide the complete content for the intended `tests/` paths.
+3. Verify the new files and imports before removing obsolete root-level copies.
+4. Do not leave duplicate test copies or create speculative replacement tests.
+5. Keep all files aligned with Version 2.0 of the blueprint.
+
+Do not state that tests passed merely because the files exist.
+
+## C. AI Gateway implementation review
+
+Review the full saved contents of `contracts.py`, `errors.py`, `ports.py`, `settings.py`, `model_gateway.py`, `__init__.py` and the two test files.
+
+Check:
+- Python 3.12 syntax, imports and package exports.
+- Request and response contract validation.
+- Fail-closed behavior when the gateway is disabled, context is missing, authorization fails, usage control is unavailable, the provider is missing, or a provider response is invalid.
+- Usage reservation, release and settlement behavior, especially ambiguous provider timeouts and accounting failures.
+- Whether telemetry failure prevents an unsafe provider call.
+- That secrets and raw provider exceptions never leak to public errors or telemetry.
+- Whether any code bypasses existing tenant, identity, execution or Control Center boundaries.
+- Whether the tests accurately prove the behavior they claim to cover.
+
+Fix demonstrated defects only. Preserve working behavior. Do not enable live provider calls, customer-facing live-AI status, or business mutations at T01.
+
+Use existing HOMIO owners. Do not create a second identity engine, retrieval system, usage ledger, business-tool executor, context store or state authority.
+
+## D. AI test execution and CI coverage
+
+Inspect the current `.github/workflows/backend-ci.yml`, `.github/workflows/reusable-backend-verification.yml`, and the actual verification scripts under `.github/actions/homio-backend-ci/verification/scripts/`.
+
+Last review showed that the current compile-and-contract script did not explicitly compile or run the new `ai_platform` package tests. Therefore Run #305's success is existing repository/ACRL regression evidence, not proof of AI Gateway tests passing.
+
+Use the existing backend CI workflow; do not create a new competing workflow. Determine the smallest in-scope way to execute the T01 tests against the exact package paths. Keep full service/API integration and premature live-provider wiring deferred to the blueprint's later integration stage.
+
+Before editing CI:
+- Read the full current workflow and script contents.
+- Check the actual test command, working directory and Python import path.
+- Confirm expected test paths exist.
+- Keep all existing ACRL, financial, identity, tenant and controller regression steps enabled.
+- Do not loosen tests or alter historical fixtures just to get a green badge.
+
+After implementation changes, verify the exact commit and changed-file list, remote-read the saved files, and inspect Actions for that tested SHA. Report precisely which tests ran, their results, and which parts of AI-001 remain unverified.
+
+## E. Work protocol
+
+1. Follow `REOS_CONTROL_CENTER/architecture/AI-001_PLATFORM_IMPLEMENTATION_BLUEPRINT.md` Version 2.0.
+2. Re-read the live branch and canonical state before every implementation batch.
+3. Inspect exact files and imports before changing them.
+4. Use `ADD`, `UPDATE`, `VERIFY`, `NO CHANGE` or `BLOCKED` classifications.
+5. Give the owner the exact GitHub destination path and complete file contents for each required full-file change.
+6. Do not use downloads, fragments requiring manual reconstruction, duplicate files or speculative fixes.
+7. Do not edit `state.json` directly.
+8. Do not claim a test or CI pass without evidence for the relevant SHA.
+9. Do not reopen completed CORE-008 work unless fresh evidence proves a real regression.
+10. Do not mix Imperium AI into HOMIO / REOS.
+
+## F. Required response before proceeding
+
+First report:
+- Current live branch HEAD and canonical state SHA.
+- Latest Actions status and whether the CORE-008 test-fixture correction remains valid.
+- Exact AI package files and any duplicate/misplaced tests.
+- Actual test coverage gap in the existing workflow.
+- The smallest required correction batch, with exact paths.
+
+Then deliver the complete required file contents and verification commands. Do not stop at a plan or ask the owner to diagnose the logs manually. Continue T01 implementation according to the blueprint and remain honest about any test coverage that has not yet been executed.
+
+No completion claim until the saved code, relevant tests, Actions evidence and canonical state are independently verified.
