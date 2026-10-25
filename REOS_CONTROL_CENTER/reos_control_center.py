@@ -603,19 +603,31 @@ def cmd_complete_subtask(
     else:
         gate["status"] = "READY_FOR_VALIDATION"
 
-        state["execution"]["current_subtask"] = next(
+        # Point the execution projection at the approval/freeze subtask.
+        # Its status remains PENDING until acceptance criteria are validated.
+        approval_subtask = next(
             (
-                x["id"]
+                x
                 for x in gate["subtasks"]
                 if is_approval_subtask(x)
             ),
             None,
         )
 
-        state["execution"]["current_task"] = (
-            f"{current_gate_id(state)}: "
-            "Validate acceptance criteria."
-        )
+        if approval_subtask:
+            gate["current_subtask"] = approval_subtask["id"]
+            state["execution"]["current_subtask"] = approval_subtask["id"]
+            state["execution"]["current_task"] = (
+                f"{approval_subtask['id']}: "
+                f"{approval_subtask['title']}."
+            )
+        else:
+            gate["current_subtask"] = None
+            state["execution"]["current_subtask"] = None
+            state["execution"]["current_task"] = (
+                f"{current_gate_id(state)}: "
+                "Validate acceptance criteria."
+            )
 
     emit(
         state,
