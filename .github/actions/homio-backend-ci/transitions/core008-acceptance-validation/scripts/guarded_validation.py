@@ -1,3 +1,5 @@
+# Trigger evidence-backed CORE-008 acceptance validation.
+
 from __future__ import annotations
 
 import json
