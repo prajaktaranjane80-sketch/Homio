@@ -1,3 +1,4 @@
+
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[5]
@@ -12,22 +13,25 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def test_orchestrator_calls_verified_workflows_and_has_t06_gate():
+def test_orchestrator_calls_verification_and_both_guarded_transitions():
     main = read(WORKFLOWS / "backend-ci.yml")
     assert "uses: ./.github/workflows/reusable-backend-verification.yml" in main
     assert "uses: ./.github/workflows/reusable-core008-t06-transition.yml" in main
+    assert "uses: ./.github/workflows/reusable-core008-t07-transition.yml" in main
     assert "needs: verification" in main
     assert "[CONTROL-CENTER-COMPLETE-CORE-008-T06]" in main
+    assert "[CONTROL-CENTER-COMPLETE-CORE-008-T07]" in main
     assert "  control_center_transition:" not in main
     assert "  control_center_transition_t05:" not in main
 
 
-def test_all_reusable_workflows_and_actions_are_in_trigger_filters():
+def test_all_reusable_workflows_are_in_push_and_pr_trigger_filters():
     main = read(WORKFLOWS / "backend-ci.yml")
     for path in (
         '".github/workflows/backend-ci.yml"',
         '".github/workflows/reusable-backend-verification.yml"',
         '".github/workflows/reusable-core008-t06-transition.yml"',
+        '".github/workflows/reusable-core008-t07-transition.yml"',
         '".github/actions/homio-backend-ci/**"',
     ):
         assert main.count(path) == 2, (
@@ -39,9 +43,9 @@ def test_reusable_workflows_are_declared_with_workflow_call():
     for filename in (
         "reusable-backend-verification.yml",
         "reusable-core008-t06-transition.yml",
+        "reusable-core008-t07-transition.yml",
     ):
-        content = read(WORKFLOWS / filename)
-        assert "workflow_call:" in content
+        assert "workflow_call:" in read(WORKFLOWS / filename)
 
 
 def test_verification_workflow_invokes_owned_verification_action():
@@ -77,9 +81,7 @@ def test_t06_reusable_workflow_calls_owned_composite_action():
 
 
 def test_t06_composite_action_references_existing_scripts():
-    action = read(
-        ACTIONS / "transitions" / "core008-t06" / "action.yml"
-    )
+    action = read(ACTIONS / "transitions" / "core008-t06" / "action.yml")
     scripts = (
         "preflight.py",
         "run_regressions.sh",
@@ -89,24 +91,43 @@ def test_t06_composite_action_references_existing_scripts():
     for script in scripts:
         assert script in action
         assert (
-            ACTIONS / "transitions" / "core008-t06"
-            / "scripts" / script
+            ACTIONS / "transitions" / "core008-t06" / "scripts" / script
         ).is_file()
 
 
-def test_shared_transition_contract_is_in_one_canonical_location():
+def test_t07_reusable_workflow_calls_owned_composite_action():
+    content = read(WORKFLOWS / "reusable-core008-t07-transition.yml")
+    assert (
+        "uses: ./.github/actions/homio-backend-ci/transitions/core008-t07"
+    ) in content
+    assert "workflow_call:" in content
+
+
+def test_t07_composite_action_references_guarded_script():
+    action = read(ACTIONS / "transitions" / "core008-t07" / "action.yml")
+    assert "guarded_transition.py" in action
+    assert (
+        ACTIONS / "transitions" / "core008-t07"
+        / "scripts" / "guarded_transition.py"
+    ).is_file()
+
+
+def test_shared_transition_contract_remains_canonical():
     shared = read(ACTIONS / "shared" / "transition_contract.py")
-    preflight = read(
-        ACTIONS / "transitions" / "core008-t06"
-        / "scripts" / "preflight.py"
+    t06_preflight = read(
+        ACTIONS / "transitions" / "core008-t06" / "scripts" / "preflight.py"
     )
-    complete = read(
+    t06_complete = read(
         ACTIONS / "transitions" / "core008-t06"
         / "scripts" / "complete_and_evidence.py"
     )
+    t07_script = read(
+        ACTIONS / "transitions" / "core008-t07" / "scripts" / "guarded_transition.py"
+    )
     assert "require_core008_criteria_baseline" in shared
-    assert "from transition_contract import" in preflight
-    assert "from transition_contract import" in complete
+    assert "from transition_contract import" in t06_preflight
+    assert "from transition_contract import" in t06_complete
+    assert "require_core008_criteria_baseline" in t07_script
 
 
 def test_t06_completion_uses_controller_not_manual_state_edit():
@@ -129,3 +150,15 @@ def test_t06_publish_has_allowlist_and_no_force_push():
     assert "git push origin HEAD:refs/heads/reos-development" in publish
     assert "--force" not in publish
     assert "CANONICAL READBACK PASS" in publish
+
+
+def test_t07_completion_uses_controller_and_preserves_pending_criteria():
+    script = read(
+        ACTIONS / "transitions" / "core008-t07" / "scripts" / "guarded_transition.py"
+    )
+    assert '"complete-subtask"' in script
+    assert '"CORE-008-T07"' in script
+    assert "require_core008_criteria_baseline" in script
+    assert "T07 TRANSITION AND CANONICAL READBACK: PASS" in script
+    assert "STATE.write_text" not in script
+    assert "--force" not in script
