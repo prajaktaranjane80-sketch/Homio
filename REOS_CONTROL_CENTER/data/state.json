@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-25T08:48:46+00:00",
+    "updated_at": "2026-10-25T09:19:35+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2339,15 +2339,59 @@
         "id": "CORE-008-T09",
         "note": "CORE-008-T09 completed through the existing Control Center after focused security/approval tests (9 passed), full financial regressions (271 passed), and full ACRL regressions (1444 passed) succeeded in Actions run 40178051790 for verified code commit f033140474a63a3b011144522ef627aa5c7c4ef1. CORE-008-AC01, AC04, AC05, and AC06 remain PENDING; this subtask transition does not verify gate-level acceptance criteria."
       }
+    },
+    {
+      "id": "4c4d0c93-036d-4077-88d2-499f5e162ca9",
+      "time": "2026-10-25T09:19:35+00:00",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "CORE-008-AC01",
+        "evidence": "Financial domain, ledger boundary, and protection-ledger authority review passed. Focused tests: 42 passed; full financial regressions: 271 passed; full ACRL regressions: 1444 passed. Verified code SHA: ef49d0ad2963d05949ba196388d549b85624992d; Actions run: 40180121455."
+      }
+    },
+    {
+      "id": "66953917-1d59-4441-81f6-1f0fbec394a0",
+      "time": "2026-10-25T09:19:35+00:00",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "CORE-008-AC04",
+        "evidence": "Settlement integrity, reconciliation lifecycle/replay, dispute reversal, and financial audit evidence review passed. Focused tests: 59 passed; full financial regressions: 271 passed; full ACRL regressions: 1444 passed. Verified code SHA: ef49d0ad2963d05949ba196388d549b85624992d; Actions run: 40180121455."
+      }
+    },
+    {
+      "id": "db4d1c75-c950-49f2-9df0-872bd84a64e2",
+      "time": "2026-10-25T09:19:35+00:00",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "CORE-008-AC05",
+        "evidence": "Critical financial-action approval boundary review passed through the focused security/approval suite. Focused tests: 9 passed; full financial regressions: 271 passed; full ACRL regressions: 1444 passed. Verified code SHA: ef49d0ad2963d05949ba196388d549b85624992d; Actions run: 40180121455."
+      }
+    },
+    {
+      "id": "5923b8b5-9351-42d8-8e76-4c5c9ecf592c",
+      "time": "2026-10-25T09:19:35+00:00",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "CORE-008-AC06",
+        "evidence": "Financial concurrency, security, and adversarial focused regressions passed. Focused tests: 13 passed; full financial regressions: 271 passed; full ACRL regressions: 1444 passed. Verified code SHA: ef49d0ad2963d05949ba196388d549b85624992d; Actions run: 40180121455."
+      }
+    },
+    {
+      "id": "e51713f3-2fb8-46ab-9099-31bdc440e498",
+      "time": "2026-10-25T09:19:35+00:00",
+      "type": "GATE_VALIDATED",
+      "payload": {
+        "gate": "CORE-008"
+      }
     }
   ],
   "integrity": {
-    "sha256": "7068e84bc31768c2921e0419a6fc27d37eece4b396fa04c62b5a52e6ba050075"
+    "sha256": "ec407cdba674a7519f0ae60c440883e1dd7dbaff483ac2e0b79150e83cba7d4b"
   },
   "execution": {
     "current_gate": "CORE-008",
     "current_task": "CORE-008-T10: Freeze commission and financial core.",
-    "status": "CONTROL_CENTER_DRIVEN",
+    "status": "READY_FOR_APPROVAL",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
       "Commission source of truth is authoritative.",
@@ -4308,7 +4352,7 @@
       "id": "CORE-008",
       "name": "Commission & Financial Core",
       "objective": "Implement protected commission, financial and settlement lifecycle.",
-      "status": "READY_FOR_VALIDATION",
+      "status": "VALIDATED",
       "current_subtask": "CORE-008-T10",
       "subtasks": [
         {
@@ -4387,7 +4431,7 @@
           "id": "CORE-008-T10",
           "title": "Freeze commission and financial core",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "READY_FOR_APPROVAL"
         }
       ],
       "acceptance_criteria": [
@@ -4402,9 +4446,9 @@
         {
           "id": "CORE-008-AC01",
           "criterion": "Commission source of truth is authoritative.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "Financial domain, ledger boundary, and protection-ledger authority review passed. Focused tests: 42 passed; full financial regressions: 271 passed; full ACRL regressions: 1444 passed. Verified code SHA: ef49d0ad2963d05949ba196388d549b85624992d; Actions run: 40180121455.",
+          "verified_at": "2026-10-25T09:19:35+00:00"
         },
         {
           "id": "CORE-008-AC02",
@@ -4423,23 +4467,23 @@
         {
           "id": "CORE-008-AC04",
           "criterion": "Settlement and reversal are auditable.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "Settlement integrity, reconciliation lifecycle/replay, dispute reversal, and financial audit evidence review passed. Focused tests: 59 passed; full financial regressions: 271 passed; full ACRL regressions: 1444 passed. Verified code SHA: ef49d0ad2963d05949ba196388d549b85624992d; Actions run: 40180121455.",
+          "verified_at": "2026-10-25T09:19:35+00:00"
         },
         {
           "id": "CORE-008-AC05",
           "criterion": "Critical financial actions require appropriate approval.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "Critical financial-action approval boundary review passed through the focused security/approval suite. Focused tests: 9 passed; full financial regressions: 271 passed; full ACRL regressions: 1444 passed. Verified code SHA: ef49d0ad2963d05949ba196388d549b85624992d; Actions run: 40180121455.",
+          "verified_at": "2026-10-25T09:19:35+00:00"
         },
         {
           "id": "CORE-008-AC06",
           "criterion": "Security and concurrency tests pass.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "Financial concurrency, security, and adversarial focused regressions passed. Focused tests: 13 passed; full financial regressions: 271 passed; full ACRL regressions: 1444 passed. Verified code SHA: ef49d0ad2963d05949ba196388d549b85624992d; Actions run: 40180121455.",
+          "verified_at": "2026-10-25T09:19:35+00:00"
         }
       ],
       "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
