@@ -15,6 +15,11 @@ jobs:
       contents: write
     env:
       PYTHONDONTWRITEBYTECODE: "1"
+      EXPECTED_SHA: ${{ github.sha }}
+      VERIFIED_CODE_SHA: ${{ github.sha }}
+      ACTIONS_RUN_ID: ${{ github.run_id }}
+      ACTIONS_SERVER_URL: ${{ github.server_url }}
+      ACTIONS_REPOSITORY: ${{ github.repository }}
 
     steps:
       - name: Preserve committed line endings before checkout
