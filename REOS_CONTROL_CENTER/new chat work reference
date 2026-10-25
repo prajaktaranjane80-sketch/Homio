@@ -1,0 +1,25 @@
+HOMIO / REOS project ko previous chat se continue karo.
+
+**Repository:** https://github.com/prajaktaranjane80-sketch/Homio  
+**Canonical branch:** `reos-development`
+
+### Confirmed handoff
+- Latest verified canonical transition commit: `fb9e1d2302d77129802f7ac86540b54ba00ee94e`
+- `CORE-008-T05 = DONE`
+- `CORE-008-T06 = DONE`
+- **Current subtask: `CORE-008-T07 — Implement financial reporting hooks`**
+- T06 evidence: [GitHub Actions Run #250](https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/40168521145)
+- T06 focused tests: 17 passed; full `commission_financial`: 252 passed; full ACRL: 1,444 passed.
+- Modular backend verification is wired through `.github/actions/homio-backend-ci/verification/` with six verification scripts.
+
+### Ab kya karna hai
+1. Sabse pehle GitHub se live `data/state.json`, current branch HEAD, execution-order document aur latest Actions verify karo.
+2. Canonical state aur execution-order document mein purane/stale instructions ko identify karo. Supporting plan ko execution authority mat samajhna.
+3. Current authorized subtask `CORE-008-T07` ka existing source, contracts aur tests inspect karke actual implementation shuru karo. Duplicate modules ya duplicate tests mat banana.
+4. Har required file ka exact GitHub path aur **poora replacement/addition content** isi chat mein dena. Main GitHub web par save karunga; assistant directly GitHub files modify nahi karega.
+5. Save ke baad Actions, job logs, tested commit SHA aur results verify karna.
+6. `REOS_CONTROL_CENTER/data/state.json` ko manually kabhi edit mat karna. State transitions sirf existing authorized Control Center workflow se hon.
+7. T06 ko reopen/repeat mat karna. Acceptance criteria AC01, AC04, AC05, AC06 abhi `PENDING` hain; evidence ke bina unhe `VERIFIED` mat karna.
+8. Phase ya task ko tabhi complete kehna jab implementation, tests, live readback aur required evidence sab verify hon.
+
+Planning mein atakna nahi—live verification ke baad current authorized task par actual kaam karo.
