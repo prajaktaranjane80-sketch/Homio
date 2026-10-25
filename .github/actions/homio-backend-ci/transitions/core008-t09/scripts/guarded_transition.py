@@ -94,6 +94,7 @@ def check_state(
     *,
     expected_t09: str,
     expected_t10: str,
+    expected_gate_status: str = "CURRENT",
 ) -> None:
     execution = state.get("execution", {})
     gate, subtasks, _criteria = state_indexes(state)
@@ -101,8 +102,11 @@ def check_state(
 
     if execution.get("current_gate") != "CORE-008":
         fail("canonical current gate is not CORE-008")
-    if gate.get("status") != "CURRENT":
-        fail("CORE-008 gate is not CURRENT")
+    if gate.get("status") != expected_gate_status:
+        fail(
+            "CORE-008 gate status is "
+            f"{gate.get('status')!r}; expected {expected_gate_status!r}"
+        )
 
     expected_current = (
         "CORE-008-T09"
@@ -284,7 +288,8 @@ def main() -> None:
     check_state(
         state,
         expected_t09="DONE",
-        expected_t10="CURRENT",
+        expected_t10="PENDING",
+        expected_gate_status="READY_FOR_VALIDATION",
     )
 
     if (
@@ -296,7 +301,7 @@ def main() -> None:
     markers = (
         "CURRENT_SUBTASK=CORE-008-T10",
         "CORE-008-T09|DONE|Run financial security and approval review",
-        "CORE-008-T10|CURRENT|Freeze commission and financial core",
+        "CORE-008-T10|PENDING|Freeze commission and financial core",
     )
     for path in (PACKET, HANDOFF):
         content = path.read_text(encoding="utf-8")
@@ -393,8 +398,9 @@ def main() -> None:
 
         - State blob SHA after controller transition: `{state_blob_sha}`
         - T08: `DONE`
+        - Gate status after T09: `READY_FOR_VALIDATION`
         - T09: `DONE`
-        - T10: `CURRENT`
+        - T10: `PENDING` (freeze/approval remains gated until criteria validation)
         - CORE-008-AC01: `PENDING`
         - CORE-008-AC02: `VERIFIED`
         - CORE-008-AC03: `VERIFIED`
@@ -527,7 +533,8 @@ def main() -> None:
     check_state(
         readback,
         expected_t09="DONE",
-        expected_t10="CURRENT",
+        expected_t10="PENDING",
+        expected_gate_status="READY_FOR_VALIDATION",
     )
 
     for relative in (
