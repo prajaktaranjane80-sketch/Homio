@@ -56,18 +56,27 @@ reusable = reusable_path.read_text(encoding="utf-8")
 composite = composite_path.read_text(encoding="utf-8")
 publisher = publish_script.read_text(encoding="utf-8")
 
-authorization_guard = (
+# The changed verification file must match a path that triggers backend CI.
+if ".github/actions/homio-backend-ci/**" not in backend:
+    raise SystemExit(
+        "Backend workflow path filters do not include the T06 action directory."
+    )
+
+# Require the entire authorization guard, not only the commit-message prefix.
+expected_job_guard = (
+    "if: ${{ github.event_name == 'push' && "
+    "github.ref == 'refs/heads/reos-development' && "
     "startsWith(github.event.head_commit.message, "
-    "'[CONTROL-CENTER-COMPLETE-CORE-008-T06]')"
+    "'[CONTROL-CENTER-COMPLETE-CORE-008-T06]') }}"
 )
 
 for name, workflow in (
     ("backend orchestrator", backend),
     ("reusable transition workflow", reusable),
 ):
-    if authorization_guard not in workflow:
+    if expected_job_guard not in workflow:
         raise SystemExit(
-            f"{name} is missing the exact T06 authorization prefix guard."
+            f"{name} is missing the exact T06 push, branch, and authorization guard."
         )
 
 required_bindings = (
@@ -113,8 +122,8 @@ if "publish_and_readback.sh" not in composite:
     )
 
 print(
-    "T06 guard verification PASS: authorization, SHA bindings, "
-    "allowlist, non-force push, and canonical readback."
+    "T06 guard verification PASS: trigger path, exact authorization guard, "
+    "SHA bindings, allowlist, non-force push, and canonical readback."
 )
 PY
 
