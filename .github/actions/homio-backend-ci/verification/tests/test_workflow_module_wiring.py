@@ -384,3 +384,82 @@ def test_acceptance_validation_requires_exact_owner_commit_prefix():
 
     assert expected_guard in main
     assert expected_guard in reusable
+
+
+def test_t10_approval_route_is_wired_and_scoped_to_push_and_pr():
+    main = read(WORKFLOWS / "backend-ci.yml")
+    reusable = read(WORKFLOWS / "reusable-core008-t10-approval.yml")
+
+    assert (
+        "uses: ./.github/workflows/reusable-core008-t10-approval.yml"
+        in main
+    )
+    assert "control_center_approve_core008:" in main
+    assert "[CONTROL-CENTER-APPROVE-CORE-008]" in main
+    assert (
+        '".github/workflows/reusable-core008-t10-approval.yml"'
+        in main
+    )
+    assert (
+        main.count(
+            '".github/workflows/reusable-core008-t10-approval.yml"'
+        )
+        == 2
+    )
+    assert "workflow_call:" in reusable
+    assert "needs: verification" in main
+
+
+def test_t10_approval_reusable_and_composite_actions_are_connected():
+    workflow = read(WORKFLOWS / "reusable-core008-t10-approval.yml")
+    assert (
+        "uses: ./.github/actions/homio-backend-ci/"
+        "transitions/core008-t10-approval"
+    ) in workflow
+
+    action = read(
+        ACTIONS / "transitions/core008-t10-approval/action.yml"
+    )
+    assert "guarded_approval.py" in action
+
+    script = ACTIONS / (
+        "transitions/core008-t10-approval/scripts/guarded_approval.py"
+    )
+    assert script.is_file()
+
+
+def test_t10_approval_uses_controller_and_canonical_readback_guards():
+    script = read(
+        ACTIONS
+        / "transitions/core008-t10-approval/scripts/"
+        "guarded_approval.py"
+    )
+
+    assert '"approve-gate"' in script
+    assert '"CORE-008"' in script
+    assert '"AI-001"' in script
+    assert "READY_FOR_APPROVAL" in script
+    assert "VALIDATED" in script
+    assert "VERIFIED" in script
+    assert "GITHUB_ACTOR" in script
+    assert "EXPECTED_SHA" in script
+    assert "git push origin HEAD:refs/heads/reos-development" in script
+    assert "CORE-008 T10 APPROVAL AND CANONICAL READBACK: PASS" in script
+    assert "STATE.write_text" not in script
+    assert "STATE_PATH.write_text" not in script
+    assert "--force" not in script
+
+
+def test_t10_approval_requires_the_exact_owner_commit_prefix():
+    main = read(WORKFLOWS / "backend-ci.yml")
+    reusable = read(WORKFLOWS / "reusable-core008-t10-approval.yml")
+
+    expected_guard = (
+        "if: ${{ github.event_name == 'push' && "
+        "github.ref == 'refs/heads/reos-development' && "
+        "startsWith(github.event.head_commit.message, "
+        "'[CONTROL-CENTER-APPROVE-CORE-008]') }}"
+    )
+
+    assert expected_guard in main
+    assert expected_guard in reusable
