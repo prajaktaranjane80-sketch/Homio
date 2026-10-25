@@ -1,3 +1,4 @@
+
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -8,122 +9,124 @@ import ast
 from pathlib import Path
 
 root = Path.cwd()
+actions = root / ".github/actions/homio-backend-ci"
+workflows = root / ".github/workflows"
 
-complete_script = (
-    root
-    / ".github/actions/homio-backend-ci/transitions/core008-t06/scripts/complete_and_evidence.py"
-)
-publish_script = (
-    root
-    / ".github/actions/homio-backend-ci/transitions/core008-t06/scripts/publish_and_readback.sh"
-)
-composite_path = (
-    root
-    / ".github/actions/homio-backend-ci/transitions/core008-t06/action.yml"
-)
-backend_path = root / ".github/workflows/backend-ci.yml"
-reusable_path = (
-    root
-    / ".github/workflows/reusable-core008-t06-transition.yml"
-)
+t06_complete = actions / "transitions/core008-t06/scripts/complete_and_evidence.py"
+t06_publish = actions / "transitions/core008-t06/scripts/publish_and_readback.sh"
+t06_action = actions / "transitions/core008-t06/action.yml"
+t06_reusable = workflows / "reusable-core008-t06-transition.yml"
 
+t07_script = actions / "transitions/core008-t07/scripts/guarded_transition.py"
+t07_action = actions / "transitions/core008-t07/action.yml"
+t07_reusable = workflows / "reusable-core008-t07-transition.yml"
+
+backend_path = workflows / "backend-ci.yml"
 required_files = (
-    complete_script,
-    publish_script,
-    composite_path,
+    t06_complete,
+    t06_publish,
+    t06_action,
+    t06_reusable,
+    t07_script,
+    t07_action,
+    t07_reusable,
     backend_path,
-    reusable_path,
 )
 
 for path in required_files:
     if not path.is_file():
         raise SystemExit(
-            f"Required T06 transition file is missing: {path.relative_to(root)}"
+            f"Required transition file is missing: {path.relative_to(root)}"
         )
 
-try:
-    ast.parse(
-        complete_script.read_text(encoding="utf-8"),
-        filename=str(complete_script),
-    )
-except (OSError, UnicodeError, SyntaxError) as exc:
-    raise SystemExit(
-        f"T06 completion script is not valid Python: {exc}"
-    ) from exc
+for path in (t06_complete, t07_script):
+    try:
+        ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    except (OSError, UnicodeError, SyntaxError) as exc:
+        raise SystemExit(f"Invalid Python in {path}: {exc}") from exc
 
 backend = backend_path.read_text(encoding="utf-8")
-reusable = reusable_path.read_text(encoding="utf-8")
-composite = composite_path.read_text(encoding="utf-8")
-publisher = publish_script.read_text(encoding="utf-8")
+t06_workflow = t06_reusable.read_text(encoding="utf-8")
+t07_workflow = t07_reusable.read_text(encoding="utf-8")
+t06_composite = t06_action.read_text(encoding="utf-8")
+t07_composite = t07_action.read_text(encoding="utf-8")
+t06_publisher = t06_publish.read_text(encoding="utf-8")
+t07_source = t07_script.read_text(encoding="utf-8")
 
-# The changed verification file must match a path that triggers backend CI.
 if ".github/actions/homio-backend-ci/**" not in backend:
-    raise SystemExit(
-        "Backend workflow path filters do not include the T06 action directory."
-    )
+    raise SystemExit("Backend CI path filters omit the owned action directory.")
 
-# Require the entire authorization guard, not only the commit-message prefix.
-expected_job_guard = (
-    "if: ${{ github.event_name == 'push' && "
-    "github.ref == 'refs/heads/reos-development' && "
-    "startsWith(github.event.head_commit.message, "
-    "'[CONTROL-CENTER-COMPLETE-CORE-008-T06]') }}"
-)
+guards = {
+    "T06": (
+        "if: ${{ github.event_name == 'push' && "
+        "github.ref == 'refs/heads/reos-development' && "
+        "startsWith(github.event.head_commit.message, "
+        "'[CONTROL-CENTER-COMPLETE-CORE-008-T06]') }}"
+    ),
+    "T07": (
+        "if: ${{ github.event_name == 'push' && "
+        "github.ref == 'refs/heads/reos-development' && "
+        "startsWith(github.event.head_commit.message, "
+        "'[CONTROL-CENTER-COMPLETE-CORE-008-T07]') }}"
+    ),
+}
 
-for name, workflow in (
-    ("backend orchestrator", backend),
-    ("reusable transition workflow", reusable),
+for label, workflow, guard in (
+    ("T06 backend", backend, guards["T06"]),
+    ("T06 reusable", t06_workflow, guards["T06"]),
+    ("T07 backend", backend, guards["T07"]),
+    ("T07 reusable", t07_workflow, guards["T07"]),
 ):
-    if expected_job_guard not in workflow:
+    if guard not in workflow:
+        raise SystemExit(f"{label} workflow lacks its exact authorization guard.")
+
+for label, workflow in (("T06", t06_workflow), ("T07", t07_workflow)):
+    for binding in (
+        "EXPECTED_SHA: ${{ github.sha }}",
+        "VERIFIED_CODE_SHA: ${{ github.sha }}",
+        "ACTIONS_RUN_ID: ${{ github.run_id }}",
+        "ACTIONS_SERVER_URL: ${{ github.server_url }}",
+        "ACTIONS_REPOSITORY: ${{ github.repository }}",
+    ):
+        if binding not in workflow:
+            raise SystemExit(f"{label} reusable workflow lacks: {binding}")
+
+for required in (
+    '"complete-subtask"',
+    '"CORE-008-T07"',
+    "require_core008_criteria_baseline",
+    "git push origin HEAD:refs/heads/reos-development",
+    "CANONICAL BRANCH HEAD",
+    "CORE-008-AC01",
+    "CORE-008-AC04",
+    "CORE-008-AC05",
+    "CORE-008-AC06",
+):
+    if required not in t07_source:
+        raise SystemExit(f"T07 guarded script lacks required safeguard: {required}")
+
+if "STATE_PATH.write_text" in t07_source or "STATE.write_text" in t07_source:
+    raise SystemExit("T07 must use the Control Center, not manually edit state.json.")
+if "--force" in t07_source:
+    raise SystemExit("T07 transition must never force-push.")
+
+if "guarded_transition.py" not in t07_composite:
+    raise SystemExit("T07 composite action does not invoke its guarded script.")
+if "publish_and_readback.sh" not in t06_composite:
+    raise SystemExit("T06 composite action no longer invokes its publisher.")
+
+for path in (
+    '".github/workflows/reusable-core008-t07-transition.yml"',
+):
+    if backend.count(path) != 2:
         raise SystemExit(
-            f"{name} is missing the exact T06 push, branch, and authorization guard."
+            "T07 reusable workflow must be in both push and pull_request path filters."
         )
 
-required_bindings = (
-    "EXPECTED_SHA: ${{ github.sha }}",
-    "VERIFIED_CODE_SHA: ${{ github.sha }}",
-    "ACTIONS_RUN_ID: ${{ github.run_id }}",
-    "ACTIONS_SERVER_URL: ${{ github.server_url }}",
-    "ACTIONS_REPOSITORY: ${{ github.repository }}",
-)
-
-missing_bindings = [
-    value for value in required_bindings if value not in reusable
-]
-if missing_bindings:
-    raise SystemExit(
-        "T06 transition workflow lacks environment bindings: "
-        + ", ".join(missing_bindings)
-    )
-
-required_publish_guards = (
-    "EXPECTED_TRACKED",
-    "git push origin HEAD:refs/heads/reos-development",
-    "CANONICAL READBACK PASS",
-)
-
-missing_publish_guards = [
-    value for value in required_publish_guards if value not in publisher
-]
-if missing_publish_guards:
-    raise SystemExit(
-        "T06 publisher lacks required safeguards: "
-        + ", ".join(missing_publish_guards)
-    )
-
-if "--force" in publisher:
-    raise SystemExit(
-        "T06 publisher must never use a force-push option."
-    )
-
-if "publish_and_readback.sh" not in composite:
-    raise SystemExit(
-        "T06 composite action does not invoke the publisher."
-    )
-
 print(
-    "T06 guard verification PASS: trigger path, exact authorization guard, "
-    "SHA bindings, allowlist, non-force push, and canonical readback."
+    "Transition wiring PASS: T06/T07 owner, branch, commit-prefix, "
+    "SHA bindings, state baseline, no-manual-state-edit guard, "
+    "and workflow trigger filters."
 )
 PY
 
