@@ -280,9 +280,13 @@ def test_complete_subtask_persists_integrity_after_handoff(
     monkeypatch: pytest.MonkeyPatch,
 ):
     state = copy.deepcopy(load_canonical_state())
+
+    # This is an isolated historical-gate fixture. Activate CORE-008 in this
+    # in-memory copy before projecting its execution state. The repository's
+    # live canonical state remains AI-001 and is never written by this test.
+    state["execution"]["current_gate"] = "CORE-008"
     gate = state["gate_plans"]["CORE-008"]
 
-    # Build an isolated T04-current fixture without mutating canonical state.
     for item in gate["subtasks"]:
         if item["id"] == "CORE-008-T04":
             item["status"] = "CURRENT"
@@ -290,10 +294,6 @@ def test_complete_subtask_persists_integrity_after_handoff(
             item["status"] = "PENDING"
 
     gate["current_subtask"] = "CORE-008-T04"
-    state["execution"]["current_subtask"] = "CORE-008-T04"
-    state["execution"]["current_task"] = (
-        "CORE-008-T04: Implement settlement and reconciliation lifecycle."
-    )
 
     control_center.synchronize_execution_projection(state)
     state["integrity"]["sha256"] = calculate_hash(state)
