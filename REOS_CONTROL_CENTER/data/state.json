@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-24T14:05:40+00:00",
+    "updated_at": "2026-10-25T06:17:23+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2303,14 +2303,23 @@
         "id": "CORE-008-T05",
         "note": "CORE-008-T05 completed through the existing Control Center after the T05-specific regression, complete commission_financial suite (235 passed), and complete ACRL suite (1444 passed) succeeded in GitHub Actions run 40100909536 for verified code commit 4671489d1a910922e8b1762e4175f9cffa550ca7. Focused T05 regression count: 21. Acceptance criteria were not bulk-verified; AC01, AC04, AC05 and AC06 remain pending."
       }
+    },
+    {
+      "id": "04c30b08-00ff-4d33-9c15-41faac2ff954",
+      "time": "2026-10-25T06:17:23+00:00",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-008-T06",
+        "note": "CORE-008-T06 completed through the existing Control Center after focused T06, full financial (252 passed), and full ACRL (1444 passed) regressions succeeded in Actions run 40168521145 for verified code commit aaf906b44e8ec264dcf1a5d1138ee1204ed1e3a3. Focused T06 count: 17. AC01, AC04, AC05, and AC06 remain pending."
+      }
     }
   ],
   "integrity": {
-    "sha256": "bc05ac510755ce84fa5fdd6c7a2574e3262dd5ccfde6bdf3012296f5c113e7c3"
+    "sha256": "a945749d0712389e9aba5e2da92141a9dc570eb7b992a05f636557160ea49741"
   },
   "execution": {
     "current_gate": "CORE-008",
-    "current_task": "CORE-008-T06: Implement financial audit and evidence.",
+    "current_task": "CORE-008-T07: Implement financial reporting hooks.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
@@ -2321,7 +2330,7 @@
       "Critical financial actions require appropriate approval.",
       "Security and concurrency tests pass."
     ],
-    "current_subtask": "CORE-008-T06"
+    "current_subtask": "CORE-008-T07"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -4273,7 +4282,7 @@
       "name": "Commission & Financial Core",
       "objective": "Implement protected commission, financial and settlement lifecycle.",
       "status": "CURRENT",
-      "current_subtask": "CORE-008-T06",
+      "current_subtask": "CORE-008-T07",
       "subtasks": [
         {
           "id": "CORE-008-T01",
@@ -4319,13 +4328,15 @@
           "id": "CORE-008-T06",
           "title": "Implement financial audit and evidence",
           "priority": "CRITICAL",
-          "status": "CURRENT"
+          "status": "DONE",
+          "completed_at": "2026-10-25T06:17:23+00:00",
+          "note": "CORE-008-T06 completed through the existing Control Center after focused T06, full financial (252 passed), and full ACRL (1444 passed) regressions succeeded in Actions run 40168521145 for verified code commit aaf906b44e8ec264dcf1a5d1138ee1204ed1e3a3. Focused T06 count: 17. AC01, AC04, AC05, and AC06 remain pending."
         },
         {
           "id": "CORE-008-T07",
           "title": "Implement financial reporting hooks",
           "priority": "HIGH",
-          "status": "PENDING"
+          "status": "CURRENT"
         },
         {
           "id": "CORE-008-T08",
