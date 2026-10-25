@@ -271,6 +271,9 @@ def test_t09_completion_uses_controller_and_preserves_pending_criteria():
 
     assert '"complete-subtask"' in script
     assert '"CORE-008-T09"' in script
+    assert 'os.environ["GITHUB_ACTOR"] != "prajaktaranjane80-sketch"' in script
+    assert 'os.environ["GITHUB_REF"] != "refs/heads/reos-development"' in script
+    assert 'os.environ["EXPECTED_SHA"] != os.environ["VERIFIED_CODE_SHA"]' in script
     assert "require_core008_criteria_baseline" in script
     assert "T09 TRANSITION AND CANONICAL READBACK: PASS" in script
     assert "STATE.write_text" not in script
