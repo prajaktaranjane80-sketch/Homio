@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -16,16 +15,19 @@ transition_scripts = {
     "T06": actions / "transitions/core008-t06/scripts/complete_and_evidence.py",
     "T07": actions / "transitions/core008-t07/scripts/guarded_transition.py",
     "T08": actions / "transitions/core008-t08/scripts/guarded_transition.py",
+    "T09": actions / "transitions/core008-t09/scripts/guarded_transition.py",
 }
 transition_actions = {
     "T06": actions / "transitions/core008-t06/action.yml",
     "T07": actions / "transitions/core008-t07/action.yml",
     "T08": actions / "transitions/core008-t08/action.yml",
+    "T09": actions / "transitions/core008-t09/action.yml",
 }
 transition_workflows = {
     "T06": workflows / "reusable-core008-t06-transition.yml",
     "T07": workflows / "reusable-core008-t07-transition.yml",
     "T08": workflows / "reusable-core008-t08-transition.yml",
+    "T09": workflows / "reusable-core008-t09-transition.yml",
 }
 backend_path = workflows / "backend-ci.yml"
 t06_publish = actions / "transitions/core008-t06/scripts/publish_and_readback.sh"
@@ -46,32 +48,43 @@ for path in required_files:
 
 for path in transition_scripts.values():
     try:
-        ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        ast.parse(
+            path.read_text(encoding="utf-8"),
+            filename=str(path),
+        )
     except (OSError, UnicodeError, SyntaxError) as exc:
         raise SystemExit(f"Invalid Python in {path}: {exc}") from exc
 
 backend = backend_path.read_text(encoding="utf-8")
-shared = (actions / "shared/transition_contract.py").read_text(encoding="utf-8")
-t06_composite = transition_actions["T06"].read_text(encoding="utf-8")
-t07_composite = transition_actions["T07"].read_text(encoding="utf-8")
-t08_composite = transition_actions["T08"].read_text(encoding="utf-8")
+shared = (actions / "shared/transition_contract.py").read_text(
+    encoding="utf-8"
+)
 t06_publish_text = t06_publish.read_text(encoding="utf-8")
 
 if ".github/actions/homio-backend-ci/**" not in backend:
-    raise SystemExit("Backend CI path filters omit the owned action directory.")
+    raise SystemExit(
+        "Backend CI path filters omit the owned action directory."
+    )
 
-for label, task in (("T06", "T06"), ("T07", "T07"), ("T08", "T08")):
+for task in ("T06", "T07", "T08", "T09"):
     prefix = f"[CONTROL-CENTER-COMPLETE-CORE-008-{task}]"
     guard = (
         "if: ${{ github.event_name == 'push' && "
         "github.ref == 'refs/heads/reos-development' && "
         f"startsWith(github.event.head_commit.message, '{prefix}') }}"
     )
-    workflow = transition_workflows[label].read_text(encoding="utf-8")
+    workflow = transition_workflows[task].read_text(
+        encoding="utf-8"
+    )
 
-    for name, text in ((f"{label} backend", backend), (f"{label} reusable", workflow)):
-        if guard not in text:
-            raise SystemExit(f"{name} lacks its exact owner/branch/commit-prefix guard.")
+    for name, content in (
+        (f"{task} backend", backend),
+        (f"{task} reusable", workflow),
+    ):
+        if guard not in content:
+            raise SystemExit(
+                f"{name} lacks its exact owner/branch/commit-prefix guard."
+            )
 
     for binding in (
         "EXPECTED_SHA: ${{ github.sha }}",
@@ -81,12 +94,18 @@ for label, task in (("T06", "T06"), ("T07", "T07"), ("T08", "T08")):
         "ACTIONS_REPOSITORY: ${{ github.repository }}",
     ):
         if binding not in workflow:
-            raise SystemExit(f"{label} reusable workflow lacks: {binding}")
+            raise SystemExit(
+                f"{task} reusable workflow lacks: {binding}"
+            )
 
-    composite = transition_actions[label].read_text(encoding="utf-8")
-    script_name = transition_scripts[label].name
+    composite = transition_actions[task].read_text(
+        encoding="utf-8"
+    )
+    script_name = transition_scripts[task].name
     if script_name not in composite:
-        raise SystemExit(f"{label} composite action does not invoke {script_name}.")
+        raise SystemExit(
+            f"{task} composite action does not invoke {script_name}."
+        )
 
 for path in (
     '".github/workflows/backend-ci.yml"',
@@ -94,14 +113,17 @@ for path in (
     '".github/workflows/reusable-core008-t06-transition.yml"',
     '".github/workflows/reusable-core008-t07-transition.yml"',
     '".github/workflows/reusable-core008-t08-transition.yml"',
+    '".github/workflows/reusable-core008-t09-transition.yml"',
 ):
     if backend.count(path) != 2:
-        raise SystemExit(f"Workflow push/PR path filter count must be 2: {path}")
+        raise SystemExit(
+            f"Workflow push/PR path filter count must be 2: {path}"
+        )
 
-for task, script in (
-    ("T07", transition_scripts["T07"].read_text(encoding="utf-8")),
-    ("T08", transition_scripts["T08"].read_text(encoding="utf-8")),
-):
+for task in ("T07", "T08", "T09"):
+    script = transition_scripts[task].read_text(
+        encoding="utf-8"
+    )
     for safeguard in (
         "require_core008_criteria_baseline",
         '"complete-subtask"',
@@ -115,12 +137,18 @@ for task, script in (
         "CANONICAL_BRANCH_HEAD",
     ):
         if safeguard not in script:
-            raise SystemExit(f"{task} guarded script lacks safeguard: {safeguard}")
+            raise SystemExit(
+                f"{task} guarded script lacks safeguard: {safeguard}"
+            )
 
     if "STATE.write_text" in script or "STATE_PATH.write_text" in script:
-        raise SystemExit(f"{task} must not edit canonical state outside the controller.")
+        raise SystemExit(
+            f"{task} must not edit canonical state outside the controller."
+        )
     if "--force" in script:
-        raise SystemExit(f"{task} transition must never force-push.")
+        raise SystemExit(
+            f"{task} transition must never force-push."
+        )
 
 t08_script = transition_scripts["T08"].read_text(encoding="utf-8")
 for test_name in (
@@ -133,13 +161,36 @@ for test_name in (
     "test_core008_t13_financial_regression.py",
 ):
     if test_name not in t08_script:
-        raise SystemExit(f"T08 does not include expected existing test file: {test_name}")
-    path = root / "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial" / test_name
+        raise SystemExit(
+            f"T08 does not include expected existing test file: {test_name}"
+        )
+    path = (
+        root
+        / "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial"
+        / test_name
+    )
     if not path.is_file():
-        raise SystemExit(f"T08 focused test file is missing: {path.relative_to(root)}")
+        raise SystemExit(
+            f"T08 focused test file is missing: {path.relative_to(root)}"
+        )
+
+t09_script = transition_scripts["T09"].read_text(encoding="utf-8")
+t09_test = (
+    root
+    / "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial"
+    / "test_core008_t09_security_approval_review.py"
+)
+if "test_core008_t09_security_approval_review.py" not in t09_script:
+    raise SystemExit("T09 does not include its focused security test.")
+if not t09_test.is_file():
+    raise SystemExit(
+        f"T09 focused test is missing: {t09_test.relative_to(root)}"
+    )
 
 if "require_core008_criteria_baseline" not in shared:
-    raise SystemExit("Shared transition contract lacks the CORE-008 criteria baseline.")
+    raise SystemExit(
+        "Shared transition contract lacks the CORE-008 criteria baseline."
+    )
 
 for required in (
     "EXPECTED_TRACKED",
@@ -147,13 +198,16 @@ for required in (
     "CANONICAL READBACK PASS",
 ):
     if required not in t06_publish_text:
-        raise SystemExit(f"Existing T06 publisher is missing safeguard: {required}")
+        raise SystemExit(
+            f"Existing T06 publisher is missing safeguard: {required}"
+        )
 if "--force" in t06_publish_text:
     raise SystemExit("T06 publisher must never force-push.")
 
 print(
-    "Transition wiring PASS: T06/T07/T08 authorization guards, SHA bindings, "
-    "focus-test inventory, canonical state safeguards, and readback protections."
+    "Transition wiring PASS: T06/T07/T08/T09 authorization guards, "
+    "SHA bindings, focus-test inventory, canonical-state safeguards, "
+    "and readback protections."
 )
 PY
 
