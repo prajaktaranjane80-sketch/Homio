@@ -1,0 +1,21 @@
+name: Guarded CORE-008-T06 transition
+description: Check exact authority, rerun financial and ACRL tests, use the canonical controller, and verify the resulting remote state.
+
+runs:
+  using: composite
+  steps:
+    - name: Fail closed on stale or unauthorized transition
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/preflight.py"
+
+    - name: Re-run focused, full financial, and full ACRL regressions
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/run_regressions.sh"
+
+    - name: Complete through Control Center and create evidence
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/complete_and_evidence.py"
+
+    - name: Stage, commit, push, and verify canonical readback
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/publish_and_readback.sh"
