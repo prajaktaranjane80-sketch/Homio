@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-25T06:17:23+00:00",
+    "updated_at": "2026-10-25T06:59:39+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2312,14 +2312,23 @@
         "id": "CORE-008-T06",
         "note": "CORE-008-T06 completed through the existing Control Center after focused T06, full financial (252 passed), and full ACRL (1444 passed) regressions succeeded in Actions run 40168521145 for verified code commit aaf906b44e8ec264dcf1a5d1138ee1204ed1e3a3. Focused T06 count: 17. AC01, AC04, AC05, and AC06 remain pending."
       }
+    },
+    {
+      "id": "8376e965-c788-49c1-9c78-a460b29da5c9",
+      "time": "2026-10-25T06:59:39+00:00",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "CORE-008-T07",
+        "note": "CORE-008-T07 completed through the existing Control Center after focused T07 (10 passed), full financial (262 passed), and full ACRL (1444 passed) regressions succeeded in Actions run 40171059690 for verified code commit 5407f595a48a7bbde1abd9065334c228e6f9aece. CORE-008-AC01, AC04, AC05, and AC06 remain PENDING; this subtask transition does not verify gate-level acceptance criteria."
+      }
     }
   ],
   "integrity": {
-    "sha256": "a945749d0712389e9aba5e2da92141a9dc570eb7b992a05f636557160ea49741"
+    "sha256": "cddad8b267880b9a8464eede793260057e53991f22a4dfbba48267a03c3f61a2"
   },
   "execution": {
     "current_gate": "CORE-008",
-    "current_task": "CORE-008-T07: Implement financial reporting hooks.",
+    "current_task": "CORE-008-T08: Run precision and concurrency tests.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
@@ -2330,7 +2339,7 @@
       "Critical financial actions require appropriate approval.",
       "Security and concurrency tests pass."
     ],
-    "current_subtask": "CORE-008-T07"
+    "current_subtask": "CORE-008-T08"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -4282,7 +4291,7 @@
       "name": "Commission & Financial Core",
       "objective": "Implement protected commission, financial and settlement lifecycle.",
       "status": "CURRENT",
-      "current_subtask": "CORE-008-T07",
+      "current_subtask": "CORE-008-T08",
       "subtasks": [
         {
           "id": "CORE-008-T01",
@@ -4336,13 +4345,15 @@
           "id": "CORE-008-T07",
           "title": "Implement financial reporting hooks",
           "priority": "HIGH",
-          "status": "CURRENT"
+          "status": "DONE",
+          "completed_at": "2026-10-25T06:59:39+00:00",
+          "note": "CORE-008-T07 completed through the existing Control Center after focused T07 (10 passed), full financial (262 passed), and full ACRL (1444 passed) regressions succeeded in Actions run 40171059690 for verified code commit 5407f595a48a7bbde1abd9065334c228e6f9aece. CORE-008-AC01, AC04, AC05, and AC06 remain PENDING; this subtask transition does not verify gate-level acceptance criteria."
         },
         {
           "id": "CORE-008-T08",
           "title": "Run precision and concurrency tests",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "CURRENT"
         },
         {
           "id": "CORE-008-T09",
