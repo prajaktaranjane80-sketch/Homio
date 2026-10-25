@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import InitVar, dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Mapping
@@ -30,6 +30,10 @@ _RELEASE_AUTHORIZATION_FIELDS = (
     "release_authorized_at",
     "release_authorization_reference",
 )
+
+# Internal issuance capability: authorization metadata alone is forgeable.
+# Only authorize_release() supplies this in-process token to a RELEASED record.
+_RELEASE_AUTHORIZATION_CAPABILITY = object()
 
 
 class CommissionReleaseError(ValueError):
@@ -142,8 +146,12 @@ class CommissionRelease:
 
     state: CommissionReleaseState
     metadata: Mapping[str, Any] = ()
+    _authorization_capability: InitVar[object | None] = None
 
-    def __post_init__(self) -> None:
+    def __post_init__(
+        self,
+        _authorization_capability: object | None,
+    ) -> None:
         for field in (
             "release_id",
             "tenant_id",
@@ -270,6 +278,20 @@ class CommissionRelease:
             ) from exc
 
         object.__setattr__(self, "state", state)
+
+        # Audit metadata can be fabricated by a caller. A RELEASED record
+        # must also carry the private issuance capability supplied only
+        # after authorize_release() receives approval from the security
+        # boundary. This is an internal API guard, not a replacement for
+        # the external authorization boundary.
+        if (
+            state is CommissionReleaseState.RELEASED
+            and _authorization_capability
+            is not _RELEASE_AUTHORIZATION_CAPABILITY
+        ):
+            raise CommissionReleaseValidationError(
+                "Only authorize_release() can construct a RELEASED record."
+            )
 
         if (
             state is CommissionReleaseState.RELEASED
@@ -781,6 +803,7 @@ class CommissionRelease:
             released_at=authorization_time,
             state=CommissionReleaseState.RELEASED,
             metadata=audit_metadata,
+            _authorization_capability=_RELEASE_AUTHORIZATION_CAPABILITY,
         )
 
     def to_dict(
