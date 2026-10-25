@@ -9,6 +9,8 @@
 **Document path:** `REOS_CONTROL_CENTER/architecture/AI-001_PLATFORM_IMPLEMENTATION_BLUEPRINT.md`  
 **Scope:** AI-001 platform architecture, implementation order, security, project-history references, fast audit, context reconstruction, evidence, testing and release criteria.
 
+**Implementation checkpoint rule:** Section 3.6 records a dated, independently verified repository snapshot. That snapshot is non-authoritative and must be refreshed before every implementation batch. The architecture version remains 2.0; the checkpoint never supersedes canonical state.
+
 ---
 
 ## 1. Mission and Design Goals
@@ -92,13 +94,13 @@ This document defines implementation intent. It does not override the Control Ce
 
 This section records the repository state observed while preparing Version 2.0. It is a dated baseline, not a permanent source of current status.
 
-### 3.1 Canonical state
+### 3.1 Canonical state at the Version 2.0 baseline
 
-At review time:
+At the original review time:
 
 - Repository: `prajaktaranjane80-sketch/Homio`
 - Branch: `reos-development`
-- Observed branch HEAD before saving this replacement: `c7388dbdf8fe3aa5666228691f502eba94a38da6`
+- Observed branch HEAD before saving the original replacement: `c7388dbdf8fe3aa5666228691f502eba94a38da6`
 - Observed canonical state blob SHA: `38521091f3a40c990180ab1f6c59374ac0810745`
 - Previous gate `CORE-008`: `APPROVED`
 - Current gate: `AI-001`
@@ -108,7 +110,7 @@ At review time:
 - AI-001 subtasks: T01 current; T02–T10 pending at the time of review.
 - AI-001 acceptance criteria AC01–AC06: pending at the time of review.
 
-The current branch and state must be read again before every implementation batch. Do not reuse these identifiers as a substitute for live verification.
+The branch and state must be read again before every implementation batch. Do not reuse these identifiers as a substitute for live verification.
 
 ### 3.2 Previous-gate evidence and current-HEAD limitation
 
@@ -134,17 +136,19 @@ states that `AI_LIVE_SERVICE_CONNECTED` is intentionally false and describes the
 
 Preserve that truthful disclosure until the real server-side service path is operational and verified.
 
-### 3.4 Existing AI package
+### 3.4 AI package at the original review baseline
 
-At review time, the current repository tree did not contain the proposed package:
+At the Version 2.0 baseline review, the repository tree did not contain the proposed package:
 
 `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/`
 
-This is an observation about the reviewed HEAD. The proposed package is not assumed to exist. Before each addition, inspect the latest branch tree, potential equivalent modules, imports and tests again.
+This is a historical observation about that reviewed HEAD. It is not a statement that the package is currently absent. Section 3.6 records the later verified implementation checkpoint.
 
-### 3.5 Existing fast-audit manifest
+Before each addition, inspect the latest branch tree, potential equivalent modules, imports and tests again.
 
-The current path:
+### 3.5 Existing fast-audit manifest at the original review baseline
+
+The path:
 
 `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Repository_Intelligence_Context/audit_resume_manifest.json`
 
@@ -157,15 +161,117 @@ was observed with:
 - no audit-base commit SHA
 - no canonical state blob SHA
 - no generated timestamp or valid manifest fingerprint
-- a blocker explaining that no current audit evidence has been recorded.
+- a blocker explaining that no current audit evidence had been recorded.
 
 **Consequences:**
 
-1. Do not claim that a validated current fast-resume cache is already available.
+1. Do not claim that a validated current fast-resume cache is available without fresh evidence.
 2. Do not fabricate a baseline, finding status, test record or manifest fingerprint.
 3. Initialize or seal that manifest only through the authorized audit mechanism with actual verified evidence.
 4. Do not create a second manifest just to avoid the existing `UNINITIALIZED` status.
 5. The absence of a ready manifest does not prevent a focused read-only preflight for AI-001-T01. It does prevent claiming cache-backed `FAST_RESUME` until the required baseline is authoritatively recorded.
+
+### 3.6 Live AI-001-T01 implementation checkpoint — verified 2026-10-25
+
+**Purpose:** Preserve an exact snapshot of what was independently checked during the Version 2.0 implementation. This section is an evidence reference, not execution authority, a permanent status cache or a substitute for future readback.
+
+#### Canonical repository and state
+
+- Repository: `prajaktaranjane80-sketch/Homio`
+- Branch: `reos-development`
+- Verified HEAD at this checkpoint: `17c9d0ed82eaf069809074c27c6229876b4d1c9f`
+- Canonical state path: `REOS_CONTROL_CENTER/data/state.json`
+- Canonical state blob SHA: `38521091f3a40c990180ab1f6c59374ac0810745`
+- Stored state integrity value observed at the checkpoint: `6911f9984f4ca679bb024be534ed431532109d71b94d38cb93c0eef3b0e22842`
+- Current gate at the checkpoint: `AI-001`
+- Current subtask at the checkpoint: `AI-001-T01 — Implement AI Gateway`
+- Execution mode: `CONTROL_CENTER_DRIVEN`
+
+The canonical state still identified T01 as current. No formal T01 completion transition was established by this checkpoint.
+
+#### Verified AI package source
+
+The following package-owned modules were present:
+
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/__init__.py`
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/contracts.py`
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/errors.py`
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/ports.py`
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/settings.py`
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/model_gateway.py`
+
+The following canonical test paths were also present:
+
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/tests/test_contracts.py`
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/tests/test_model_gateway.py`
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/tests/test_public_contract_stability.py`
+
+The test files in `tests/` were read back from GitHub. The contract and gateway test files at those paths had the same blob SHAs as the older root-level copies at the time of this checkpoint.
+
+#### Duplicate test paths still requiring cleanup
+
+These root-level test files remained present at the checkpoint:
+
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/test_contracts.py`
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/test_model_gateway.py`
+
+They duplicated the contents of the canonical files in `ai_platform/tests/`.
+
+This is a structural cleanup finding, **not evidence that the tests failed**. A passing test run does not by itself remove duplicate source paths.
+
+The safe resolution is:
+
+1. Recheck the canonical `tests/` paths on the live branch.
+2. Verify that the existing CI script explicitly runs those canonical paths.
+3. Verify successful test results for the exact tested commit.
+4. Only then remove the obsolete root-level copies, using their live blob SHAs.
+5. Read back the resulting tree and run CI again against the cleanup commit.
+6. Do not delete the canonical test files under `tests/`.
+
+If any path or blob SHA changes before deletion, stop and repeat the readback before proceeding.
+
+#### Verified CI coverage at the checkpoint
+
+Existing backend CI was extended through the owning script:
+
+`.github/actions/homio-backend-ci/verification/scripts/compile_and_contracts.sh`
+
+The script explicitly compiles the AI package and runs:
+
+```bash
+python -m pytest -q -p no:cacheprovider \
+  AUTONOMY_ENGINE/ai_platform/tests/test_contracts.py \
+  AUTONOMY_ENGINE/ai_platform/tests/test_model_gateway.py \
+  AUTONOMY_ENGINE/ai_platform/tests/test_public_contract_stability.py
+```
+
+Latest relevant successful run at the checkpoint:
+
+`https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/40208536109`
+
+Tested commit:
+
+`17c9d0ed82eaf069809074c27c6229876b4d1c9f`
+
+The retrieved Actions logs showed:
+
+- Existing agent-entrypoint contract test command: **15 passed**
+- AI package contract, gateway and public-contract test command: **31 passed**
+- Full ACRL suite: **1,444 passed**
+- Overall backend/ACRL workflow: **SUCCESS**
+
+This is evidence for that specific tested commit. It does not prove a later commit, a future cleanup, production provider integration, all six AI-001 acceptance criteria or formal T01 completion.
+
+The AI tests used deterministic fake dependencies. This checkpoint does not authorize live provider calls, business mutations or changing the frontend's truthful live-AI status.
+
+#### Required interpretation
+
+- The original statement that the package did not exist is historical; the current package now exists.
+- The test-path correction and AI CI wiring passed on the tested commit.
+- Two obsolete root-level test copies were still present at this checkpoint.
+- T01 remained the canonical current subtask.
+- This checkpoint must be refreshed before the next implementation batch.
+- Do not manually change `data/state.json` to reflect a test pass or to advance the task.
 
 ---
 
@@ -303,6 +409,8 @@ ai_platform/
 8. The exact HTTP/API integration path remains undecided until the current backend/server entry points and authentication path have been inspected. Add one narrow integration at the established boundary; do not create another backend.
 9. Tests should remain grouped by behavior and contract. Do not add a new test file when an existing focused test already covers the required invariant and the existing file has a clear owner.
 10. If evidence supports changing this structure, update this blueprint before implementation spreads across dependent modules.
+11. For T01, the canonical locations of package-owned tests are under `ai_platform/tests/`. If identical tests remain at package root, verify the canonical copies, CI paths and successful test evidence before deleting the obsolete root copies. Never delete the canonical `tests/` copies.
+12. After removing duplicate tests, read back the complete package tree and run CI against the exact cleanup commit. A successful pre-cleanup run is not proof that the deletion commit passed.
 
 ---
 
@@ -715,13 +823,14 @@ Reuse T07, T14, T16, T23 and T24 as intended. Chat history, personal memory, dia
 
 ### 9.3 Current known stale-context hazards
 
-The following specific observations were made during the Version 2.0 review and should be treated as review-baseline information, not permanent status:
+The following observations were made during the Version 2.0 review and should be treated as historical evidence, not permanent current status:
 
 - The T14 `audit_resume_manifest.json` was `UNINITIALIZED`. Fast resume must not be claimed until the existing manifest is populated and sealed through the authorized process with actual evidence.
 - `REOS_CONTROL_CENTER/PROJECT_CONTINUITY/continuity_state.json` described `main`, an old baseline commit and `CORE-004` while the canonical state reported `reos-development` and `AI-001-T01`. That snapshot must not be used as the current task selector.
 - `REOS_CONTROL_CENTER/reos_state.json` is a legacy/non-authoritative snapshot. Do not treat it as the canonical state and do not delete it without a separate source-reference audit.
 - `PS Output` and other diagnostic artifacts are evidence only, not project state or execution authority.
-- The AI-001 package root was absent at the reviewed HEAD. Any subsequent implementation should recheck the tree rather than assume the status remains unchanged.
+- The AI-001 package root was absent at the Version 2.0 baseline. At the dated checkpoint in Section 3.6, it exists. Always use the current live tree before making a path-absence or file-deletion decision.
+- Two root-level AI test copies remained present at the Section 3.6 checkpoint, alongside the intended `tests/` paths. Do not claim the duplicate cleanup is complete until the live tree confirms it.
 - The existing F08 documentation stated that live AI integration was not connected. The UI flag must not change merely because provider interfaces or frontend builds exist.
 - The historical CORE-008 approval run succeeded on its tested commit. It does not prove the AI-001 blueprint or later AI code passed CI.
 
@@ -833,6 +942,8 @@ HOMIO SESSION / AUDIT PACKET
    Latest relevant Actions run:
    Exact tested SHA:
    Conclusion and relevant jobs:
+   AI package test paths and result:
+   Duplicate test copies / cleanup status:
    Evidence that is stale or does not apply:
 
 7. FAST-RESUME STATUS
@@ -975,14 +1086,16 @@ Confirm live state, inspect the existing package tree and finalize the smallest 
 
 Potential targets, only after file-owner inspection:
 
-- `contracts.py`
-- `errors.py`
-- `ports.py`
-- `settings.py`
-- `model_gateway.py`
-- `tests/test_contracts.py`
-- `tests/test_model_gateway.py`
-- `tests/test_public_contract_stability.py`
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/contracts.py`
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/errors.py`
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/ports.py`
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/settings.py`
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/model_gateway.py`
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/__init__.py`
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/tests/test_contracts.py`
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/tests/test_model_gateway.py`
+- `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/tests/test_public_contract_stability.py`
+- `.github/actions/homio-backend-ci/verification/scripts/compile_and_contracts.sh`, only for the authorized test/compile wiring and verification scope.
 
 Requirements:
 
@@ -991,7 +1104,25 @@ Requirements:
 - clear dependency-injection points
 - bounded input/output and timeout contracts
 - no live customer-facing provider activation
-- no hidden direct dependency on the Control Center or ACRL runtime.
+- no hidden direct dependency on the Control Center or ACRL runtime
+- canonical package tests stored under `ai_platform/tests/`
+- explicit Python compilation and CI invocation of the three canonical test paths
+- no duplicate test files left after the cleanup is independently verified.
+
+#### T01 verification and cleanup order
+
+1. Read the live branch and state before implementation.
+2. Read the full gateway, contracts, ports, errors, settings, package exports, tests and current CI script.
+3. Read back each canonical test path from GitHub and verify the actual content and blob SHA.
+4. Verify the CI script compiles the package and runs `tests/test_contracts.py`, `tests/test_model_gateway.py` and `tests/test_public_contract_stability.py`.
+5. Run focused AI tests using the existing backend workflow; do not create a competing workflow.
+6. Verify the exact tested SHA, job conclusion, focused AI test count and wider regression result.
+7. If root-level copies still exist, compare them with their canonical `tests/` copies. Delete only the obsolete root copies after the canonical paths and CI invocation have been verified.
+8. Re-read the live tree after deletion. Run Actions again and inspect the cleanup commit's result.
+9. Do not claim cleanup is complete while duplicate paths remain.
+10. Do not transition `AI-001-T01` in `state.json` manually. Use the existing Control Center completion procedure when its requirements and evidence are satisfied.
+
+The checkpoint in Section 3.6 is a verified historical example of the AI tests and backend suite passing. Its counts are not permanent requirements and must never replace a current test run.
 
 ### T02 — Provider and model registry
 
@@ -1330,6 +1461,30 @@ Do not create duplicate frontend or backend workflows.
 - Read the final source and relevant workflow files back from GitHub after a change.
 - If a documentation-only change does not trigger a path-filtered workflow, do not modify CI just to generate an unrelated run.
 
+### T01-specific CI requirements
+
+For the current package-owned gateway tests, the existing compile/contract script is:
+
+`.github/actions/homio-backend-ci/verification/scripts/compile_and_contracts.sh`
+
+It must compile the package and explicitly execute the canonical test paths:
+
+- `AUTONOMY_ENGINE/ai_platform/tests/test_contracts.py`
+- `AUTONOMY_ENGINE/ai_platform/tests/test_model_gateway.py`
+- `AUTONOMY_ENGINE/ai_platform/tests/test_public_contract_stability.py`
+
+Use the existing `.github/workflows/backend-ci.yml` and its reusable verification workflow. Do not create a separate AI workflow.
+
+When verifying a run:
+
+1. Check that the tested commit SHA is the intended commit.
+2. Confirm the script on that SHA actually includes the AI package compile and pytest command.
+3. Inspect the test summary for the focused AI invocation separately from the agent-entrypoint test and the full regression suite.
+4. Check the overall workflow and relevant jobs.
+5. Do not infer AI test success from the full ACRL suite count alone.
+6. If duplicate test paths are removed, verify a new successful run against the post-deletion commit.
+7. Do not treat the Section 3.6 checkpoint as proof for future commits.
+
 ### File-change classification
 
 Every target must receive one classification after live inspection:
@@ -1381,6 +1536,9 @@ Commit SHA and URL:
 Changed-path list:
 Remote content readback:
 Focused tests and actual results:
+AI package test paths:
+AI package test result:
+Duplicate test copies / cleanup status:
 Relevant regression tests:
 GitHub Actions URL:
 Exact tested SHA:
@@ -1552,10 +1710,20 @@ Before every implementation batch:
 9. Verify the saved content, commit, tests and CI.
 10. Report actual evidence and blockers without guessing.
 
+### Editing and saving this blueprint
+
+- The canonical destination is `REOS_CONTROL_CENTER/architecture/AI-001_PLATFORM_IMPLEMENTATION_BLUEPRINT.md`.
+- Update this same file; do not delete it and recreate a separate copy.
+- The owner may use the GitHub web editor to replace the complete content.
+- After saving, read the exact file back from `reos-development` and verify its resulting commit and content.
+- This documentation-only update does not, by itself, require changing backend CI or `data/state.json`.
+- If the document change does not trigger a workflow because of path filters, report that fact instead of inventing a CI result.
+- Future implementation batches must refresh Section 3.6 from live sources before relying on it.
+
 **Blueprint version:** 2.0  
 **Blueprint status:** Implementation reference — not execution authority  
-**Current canonical next task at preparation:** `AI-001-T01 — Implement AI Gateway`  
-**Canonical state at preparation:** `REOS_CONTROL_CENTER/data/state.json`  
+**Original canonical task at the Version 2.0 baseline:** `AI-001-T01 — Implement AI Gateway`  
+**Historical canonical state path:** `REOS_CONTROL_CENTER/data/state.json`  
 **Required context/audit rule:** Reuse existing ACRL continuity and repository-intelligence ownership; no duplicate history or audit system.
 
 **End of blueprint.**
