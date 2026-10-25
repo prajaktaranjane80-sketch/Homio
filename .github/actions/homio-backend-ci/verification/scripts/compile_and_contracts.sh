@@ -7,6 +7,7 @@ python -m compileall -q \
   reos_control_center.py \
   AI_AGENT_ENTRYPOINT.py \
   context \
+  AUTONOMY_ENGINE/ai_platform \
   AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap \
   AUTONOMY_ENGINE/continuity/acrl/T14_Repository_Intelligence_Context \
   AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery \
@@ -24,3 +25,10 @@ python -c "from pathlib import Path; p = Path('tets/test_ai_agent_entrypoint_con
 
 python -m pytest -q -p no:cacheprovider \
   tets/test_ai_agent_entrypoint_contract.py
+
+# AI-001-T01: explicitly compile and test the provider-independent AI package.
+# Run only the canonical package-owned test paths; no live provider is enabled.
+python -m pytest -q -p no:cacheprovider \
+  AUTONOMY_ENGINE/ai_platform/tests/test_contracts.py \
+  AUTONOMY_ENGINE/ai_platform/tests/test_model_gateway.py \
+  AUTONOMY_ENGINE/ai_platform/tests/test_public_contract_stability.py
