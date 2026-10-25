@@ -270,3 +270,24 @@ def test_release_tenant_scope_is_enforced() -> None:
         match="crossed tenant scope",
     ):
         pending.assert_tenant("tenant-b")
+
+
+def test_non_security_object_cannot_authorize_release() -> None:
+    pending = _pending_release()
+    before_fingerprint = pending.immutable_fingerprint
+    before_payload = pending.to_dict()
+
+    with pytest.raises(
+        CommissionReleaseValidationError,
+        match="authorization_boundary must be FinancialSecurityBoundary",
+    ):
+        pending.authorize_release(
+            authorization_boundary=object(),  # type: ignore[arg-type]
+            actor_reference="finance-approver-001",
+            authorization_reference="release-approval-boundary-type",
+            authorized_at=NOW + timedelta(minutes=5),
+        )
+
+    assert pending.state is CommissionReleaseState.AUTHORIZATION_PENDING
+    assert pending.immutable_fingerprint == before_fingerprint
+    assert pending.to_dict() == before_payload
