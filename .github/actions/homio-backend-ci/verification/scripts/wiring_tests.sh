@@ -12,24 +12,29 @@ root = Path.cwd()
 actions = root / ".github/actions/homio-backend-ci"
 workflows = root / ".github/workflows"
 
-t06_complete = actions / "transitions/core008-t06/scripts/complete_and_evidence.py"
-t06_publish = actions / "transitions/core008-t06/scripts/publish_and_readback.sh"
-t06_action = actions / "transitions/core008-t06/action.yml"
-t06_reusable = workflows / "reusable-core008-t06-transition.yml"
-
-t07_script = actions / "transitions/core008-t07/scripts/guarded_transition.py"
-t07_action = actions / "transitions/core008-t07/action.yml"
-t07_reusable = workflows / "reusable-core008-t07-transition.yml"
-
+transition_scripts = {
+    "T06": actions / "transitions/core008-t06/scripts/complete_and_evidence.py",
+    "T07": actions / "transitions/core008-t07/scripts/guarded_transition.py",
+    "T08": actions / "transitions/core008-t08/scripts/guarded_transition.py",
+}
+transition_actions = {
+    "T06": actions / "transitions/core008-t06/action.yml",
+    "T07": actions / "transitions/core008-t07/action.yml",
+    "T08": actions / "transitions/core008-t08/action.yml",
+}
+transition_workflows = {
+    "T06": workflows / "reusable-core008-t06-transition.yml",
+    "T07": workflows / "reusable-core008-t07-transition.yml",
+    "T08": workflows / "reusable-core008-t08-transition.yml",
+}
 backend_path = workflows / "backend-ci.yml"
+t06_publish = actions / "transitions/core008-t06/scripts/publish_and_readback.sh"
+
 required_files = (
-    t06_complete,
+    *transition_scripts.values(),
+    *transition_actions.values(),
+    *transition_workflows.values(),
     t06_publish,
-    t06_action,
-    t06_reusable,
-    t07_script,
-    t07_action,
-    t07_reusable,
     backend_path,
 )
 
@@ -39,50 +44,35 @@ for path in required_files:
             f"Required transition file is missing: {path.relative_to(root)}"
         )
 
-for path in (t06_complete, t07_script):
+for path in transition_scripts.values():
     try:
         ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     except (OSError, UnicodeError, SyntaxError) as exc:
         raise SystemExit(f"Invalid Python in {path}: {exc}") from exc
 
 backend = backend_path.read_text(encoding="utf-8")
-t06_workflow = t06_reusable.read_text(encoding="utf-8")
-t07_workflow = t07_reusable.read_text(encoding="utf-8")
-t06_composite = t06_action.read_text(encoding="utf-8")
-t07_composite = t07_action.read_text(encoding="utf-8")
-t06_publisher = t06_publish.read_text(encoding="utf-8")
-t07_source = t07_script.read_text(encoding="utf-8")
+shared = (actions / "shared/transition_contract.py").read_text(encoding="utf-8")
+t06_composite = transition_actions["T06"].read_text(encoding="utf-8")
+t07_composite = transition_actions["T07"].read_text(encoding="utf-8")
+t08_composite = transition_actions["T08"].read_text(encoding="utf-8")
+t06_publish_text = t06_publish.read_text(encoding="utf-8")
 
 if ".github/actions/homio-backend-ci/**" not in backend:
     raise SystemExit("Backend CI path filters omit the owned action directory.")
 
-guards = {
-    "T06": (
+for label, task in (("T06", "T06"), ("T07", "T07"), ("T08", "T08")):
+    prefix = f"[CONTROL-CENTER-COMPLETE-CORE-008-{task}]"
+    guard = (
         "if: ${{ github.event_name == 'push' && "
         "github.ref == 'refs/heads/reos-development' && "
-        "startsWith(github.event.head_commit.message, "
-        "'[CONTROL-CENTER-COMPLETE-CORE-008-T06]') }}"
-    ),
-    "T07": (
-        "if: ${{ github.event_name == 'push' && "
-        "github.ref == 'refs/heads/reos-development' && "
-        "startsWith(github.event.head_commit.message, "
-        "'[CONTROL-CENTER-COMPLETE-CORE-008-T07]') }}"
-    ),
-}
+        f"startsWith(github.event.head_commit.message, '{prefix}') }}"
+    )
+    workflow = transition_workflows[label].read_text(encoding="utf-8")
 
-for label, workflow, guard in (
-    ("T06 backend", backend, guards["T06"]),
-    ("T06 reusable", t06_workflow, guards["T06"]),
-    ("T07 backend", backend, guards["T07"]),
-    ("T07 reusable", t07_workflow, guards["T07"]),
-):
-    if guard not in workflow:
-        raise SystemExit(
-            f"{label} workflow lacks its exact authorization guard."
-        )
+    for name, text in ((f"{label} backend", backend), (f"{label} reusable", workflow)):
+        if guard not in text:
+            raise SystemExit(f"{name} lacks its exact owner/branch/commit-prefix guard.")
 
-for label, workflow in (("T06", t06_workflow), ("T07", t07_workflow)):
     for binding in (
         "EXPECTED_SHA: ${{ github.sha }}",
         "VERIFIED_CODE_SHA: ${{ github.sha }}",
@@ -93,47 +83,77 @@ for label, workflow in (("T06", t06_workflow), ("T07", t07_workflow)):
         if binding not in workflow:
             raise SystemExit(f"{label} reusable workflow lacks: {binding}")
 
-for required in (
-    '"complete-subtask"',
-    '"CORE-008-T07"',
-    "require_core008_criteria_baseline",
-    '"git", "push", "origin", "HEAD:refs/heads/reos-development"',
-    "CANONICAL_BRANCH_HEAD",
-    "return output.strip()",
-    "CORE-008-AC01",
-    "CORE-008-AC04",
-    "CORE-008-AC05",
-    "CORE-008-AC06",
+    composite = transition_actions[label].read_text(encoding="utf-8")
+    script_name = transition_scripts[label].name
+    if script_name not in composite:
+        raise SystemExit(f"{label} composite action does not invoke {script_name}.")
+
+for path in (
+    '".github/workflows/backend-ci.yml"',
+    '".github/workflows/reusable-backend-verification.yml"',
+    '".github/workflows/reusable-core008-t06-transition.yml"',
+    '".github/workflows/reusable-core008-t07-transition.yml"',
+    '".github/workflows/reusable-core008-t08-transition.yml"',
 ):
-    if required not in t07_source:
-        raise SystemExit(
-            f"T07 guarded script lacks required safeguard: {required}"
-        )
+    if backend.count(path) != 2:
+        raise SystemExit(f"Workflow push/PR path filter count must be 2: {path}")
 
-if "STATE_PATH.write_text" in t07_source or "STATE.write_text" in t07_source:
-    raise SystemExit(
-        "T07 must use the Control Center, not manually edit state.json."
-    )
+for task, script in (
+    ("T07", transition_scripts["T07"].read_text(encoding="utf-8")),
+    ("T08", transition_scripts["T08"].read_text(encoding="utf-8")),
+):
+    for safeguard in (
+        "require_core008_criteria_baseline",
+        '"complete-subtask"',
+        f'"CORE-008-{task}"',
+        "return output.strip()",
+        "git",
+        "CORE-008-AC01",
+        "CORE-008-AC04",
+        "CORE-008-AC05",
+        "CORE-008-AC06",
+        "CANONICAL_BRANCH_HEAD",
+    ):
+        if safeguard not in script:
+            raise SystemExit(f"{task} guarded script lacks safeguard: {safeguard}")
 
-if "--force" in t07_source:
-    raise SystemExit("T07 transition must never force-push.")
+    if "STATE.write_text" in script or "STATE_PATH.write_text" in script:
+        raise SystemExit(f"{task} must not edit canonical state outside the controller.")
+    if "--force" in script:
+        raise SystemExit(f"{task} transition must never force-push.")
 
-if "guarded_transition.py" not in t07_composite:
-    raise SystemExit("T07 composite action does not invoke its guarded script.")
+t08_script = transition_scripts["T08"].read_text(encoding="utf-8")
+for test_name in (
+    "test_core008_t01_financial_domain.py",
+    "test_core008_t01_financial_ledger_boundary.py",
+    "test_core008_t03_allocation_participants.py",
+    "test_core008_t04_optimistic_concurrency.py",
+    "test_core008_t04_reconciliation_replay.py",
+    "test_core008_t13_concurrency_security_reos.py",
+    "test_core008_t13_financial_regression.py",
+):
+    if test_name not in t08_script:
+        raise SystemExit(f"T08 does not include expected existing test file: {test_name}")
+    path = root / "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial" / test_name
+    if not path.is_file():
+        raise SystemExit(f"T08 focused test file is missing: {path.relative_to(root)}")
 
-if "publish_and_readback.sh" not in t06_composite:
-    raise SystemExit("T06 composite action no longer invokes its publisher.")
+if "require_core008_criteria_baseline" not in shared:
+    raise SystemExit("Shared transition contract lacks the CORE-008 criteria baseline.")
 
-t07_path = '".github/workflows/reusable-core008-t07-transition.yml"'
-if backend.count(t07_path) != 2:
-    raise SystemExit(
-        "T07 reusable workflow must be in both push and pull_request path filters."
-    )
+for required in (
+    "EXPECTED_TRACKED",
+    "git push origin HEAD:refs/heads/reos-development",
+    "CANONICAL READBACK PASS",
+):
+    if required not in t06_publish_text:
+        raise SystemExit(f"Existing T06 publisher is missing safeguard: {required}")
+if "--force" in t06_publish_text:
+    raise SystemExit("T06 publisher must never force-push.")
 
 print(
-    "Transition wiring PASS: T06/T07 owner, branch, commit-prefix, "
-    "SHA bindings, state baseline, no-manual-state-edit guard, "
-    "and workflow trigger filters."
+    "Transition wiring PASS: T06/T07/T08 authorization guards, SHA bindings, "
+    "focus-test inventory, canonical state safeguards, and readback protections."
 )
 PY
 
