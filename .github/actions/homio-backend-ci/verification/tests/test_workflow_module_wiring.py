@@ -1,4 +1,3 @@
-
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[5]
@@ -198,5 +197,23 @@ def test_t08_completion_uses_controller_and_preserves_pending_criteria():
     assert "STATE.write_text" not in script
     assert "STATE_PATH.write_text" not in script
     assert "--force" not in script
-    for criterion in ("CORE-008-AC01", "CORE-008-AC04", "CORE-008-AC05", "CORE-008-AC06"):
+    for criterion in (
+        "CORE-008-AC01",
+        "CORE-008-AC04",
+        "CORE-008-AC05",
+        "CORE-008-AC06",
+    ):
         assert criterion in script
+
+
+def test_t08_transition_requires_exact_control_center_commit_prefix():
+    main = read(WORKFLOWS / "backend-ci.yml")
+    reusable = read(WORKFLOWS / "reusable-core008-t08-transition.yml")
+    expected_guard = (
+        "if: ${{ github.event_name == 'push' && "
+        "github.ref == 'refs/heads/reos-development' && "
+        "startsWith(github.event.head_commit.message, "
+        "'[CONTROL-CENTER-COMPLETE-CORE-008-T08]') }}"
+    )
+    assert expected_guard in main
+    assert expected_guard in reusable
