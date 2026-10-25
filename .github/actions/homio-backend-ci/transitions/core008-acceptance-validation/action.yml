@@ -1,0 +1,9 @@
+name: Guarded CORE-008 acceptance criteria validation
+description: Run evidence-backed financial acceptance tests, validate CORE-008 through the Control Center, and preserve explicit approval for the final freeze.
+
+runs:
+  using: composite
+  steps:
+    - name: Run guarded acceptance validation
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_validation.py"
