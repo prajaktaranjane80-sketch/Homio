@@ -1,0 +1,9 @@
+name: Guarded CORE-008-T10 Approval
+description: Approve and freeze CORE-008 through the canonical Control Center after exact-state guards and successful backend/ACRL verification.
+
+runs:
+  using: composite
+  steps:
+    - name: Execute guarded CORE-008 final approval
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_approval.py"
