@@ -1,0 +1,41 @@
+from __future__ import annotations
+
+import AUTONOMY_ENGINE.ai_platform as ai_platform
+
+
+def test_public_exports_are_explicit_and_stable() -> None:
+    assert ai_platform.__all__ == (
+        "AIErrorCode",
+        "AIPlatformError",
+        "AIRequest",
+        "AIResponse",
+        "AuthorizationDecision",
+        "AuthorizationDeniedError",
+        "AuthorizationServiceUnavailableError",
+        "GatewayDisabledError",
+        "GatewaySettings",
+        "InvalidRequestError",
+        "ModelGateway",
+        "ModelResolutionError",
+        "ModelRoute",
+        "ObservabilityEvent",
+        "ObservabilityUnavailableError",
+        "ProviderCallFailedError",
+        "ProviderRequest",
+        "ProviderResponse",
+        "ProviderResponseInvalidError",
+        "ProviderUnavailableError",
+        "ProviderUsage",
+        "RequestContext",
+        "RequestContextMissingError",
+        "UsageControlUnavailableError",
+        "UsageLimitExceededError",
+        "UsageOutcome",
+        "UsageReservation",
+        "UsageReservationRequest",
+    )
+
+
+def test_public_package_starts_with_live_provider_disabled() -> None:
+    assert ai_platform.ModelGateway is not None
+    assert ai_platform.GatewaySettings().enabled is False
