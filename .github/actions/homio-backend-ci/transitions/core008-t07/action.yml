@@ -1,0 +1,10 @@
+
+name: Guarded CORE-008-T07 transition
+description: Verify exact authority, rerun financial reporting regressions, complete T07 through the canonical controller, and verify GitHub readback.
+
+runs:
+  using: composite
+  steps:
+    - name: Run guarded T07 verification and transition
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_transition.py"
