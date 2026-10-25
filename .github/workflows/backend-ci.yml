@@ -23,6 +23,7 @@ on:
       - ".github/workflows/reusable-core008-t08-transition.yml"
       - ".github/workflows/reusable-core008-t09-transition.yml"
       - ".github/workflows/reusable-core008-acceptance-validation.yml"
+      - ".github/workflows/reusable-core008-t10-approval.yml"
       - ".github/actions/homio-backend-ci/**"
 
   pull_request:
@@ -47,6 +48,7 @@ on:
       - ".github/workflows/reusable-core008-t08-transition.yml"
       - ".github/workflows/reusable-core008-t09-transition.yml"
       - ".github/workflows/reusable-core008-acceptance-validation.yml"
+      - ".github/workflows/reusable-core008-t10-approval.yml"
       - ".github/actions/homio-backend-ci/**"
 
   workflow_dispatch:
@@ -58,9 +60,8 @@ concurrency:
   group: homio-backend-acrl-ci-${{ github.ref }}
   cancel-in-progress: false
 
-# T06 through T09 are DONE in canonical state.
-# Acceptance criteria are verified individually only after focused and full
-# regressions pass. Final financial-core approval remains a separate gate.
+# T06-T09 and acceptance validation are already complete.
+# T10 approval is a separate owner-triggered, guarded Control Center transition.
 
 jobs:
   verification:
@@ -108,3 +109,11 @@ jobs:
     permissions:
       contents: write
     uses: ./.github/workflows/reusable-core008-acceptance-validation.yml
+
+  control_center_approve_core008:
+    name: Guarded CORE-008 final approval and freeze
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/reos-development' && startsWith(github.event.head_commit.message, '[CONTROL-CENTER-APPROVE-CORE-008]') }}
+    needs: verification
+    permissions:
+      contents: write
+    uses: ./.github/workflows/reusable-core008-t10-approval.yml
