@@ -16,9 +16,13 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def test_orchestrator_calls_verification_and_t06_t07_t08_t09_transitions():
+def test_orchestrator_calls_verification_and_existing_transitions():
     main = read(WORKFLOWS / "backend-ci.yml")
-    assert "uses: ./.github/workflows/reusable-backend-verification.yml" in main
+
+    assert (
+        "uses: ./.github/workflows/reusable-backend-verification.yml"
+        in main
+    )
 
     for task in ("t06", "t07", "t08", "t09"):
         assert (
@@ -31,11 +35,15 @@ def test_orchestrator_calls_verification_and_t06_t07_t08_t09_transitions():
         )
 
     assert "needs: verification" in main
-    assert "  control_center_transition:" not in main
-    assert "  control_center_transition_t05:" not in main
+    assert (
+        "uses: ./.github/workflows/"
+        "reusable-core008-acceptance-validation.yml"
+    ) in main
+    assert "[CONTROL-CENTER-VALIDATE-CORE-008-ACCEPTANCE]" in main
+    assert "control_center_acceptance_validation:" in main
 
 
-def test_all_reusable_workflows_are_in_push_and_pr_trigger_filters():
+def test_all_reusable_workflows_are_in_push_and_pr_filters():
     main = read(WORKFLOWS / "backend-ci.yml")
 
     for path in (
@@ -45,6 +53,7 @@ def test_all_reusable_workflows_are_in_push_and_pr_trigger_filters():
         '".github/workflows/reusable-core008-t07-transition.yml"',
         '".github/workflows/reusable-core008-t08-transition.yml"',
         '".github/workflows/reusable-core008-t09-transition.yml"',
+        '".github/workflows/reusable-core008-acceptance-validation.yml"',
         '".github/actions/homio-backend-ci/**"',
     ):
         assert main.count(path) == 2, (
@@ -59,6 +68,7 @@ def test_reusable_workflows_are_declared_with_workflow_call():
         "reusable-core008-t07-transition.yml",
         "reusable-core008-t08-transition.yml",
         "reusable-core008-t09-transition.yml",
+        "reusable-core008-acceptance-validation.yml",
     ):
         assert "workflow_call:" in read(WORKFLOWS / filename)
 
@@ -118,7 +128,7 @@ def test_t07_reusable_and_composite_actions_are_connected():
     action = read(ACTIONS / "transitions/core008-t07" / "action.yml")
     assert "guarded_transition.py" in action
     assert (
-        ACTIONS / "transitions/core008-t07" / "scripts" / "guarded_transition.py"
+        ACTIONS / "transitions/core008-t07" / "scripts/guarded_transition.py"
     ).is_file()
 
 
@@ -131,7 +141,7 @@ def test_t08_reusable_and_composite_actions_are_connected():
     action = read(ACTIONS / "transitions/core008-t08" / "action.yml")
     assert "guarded_transition.py" in action
     assert (
-        ACTIONS / "transitions/core008-t08" / "scripts" / "guarded_transition.py"
+        ACTIONS / "transitions/core008-t08" / "scripts/guarded_transition.py"
     ).is_file()
 
 
@@ -144,8 +154,29 @@ def test_t09_reusable_and_composite_actions_are_connected():
     action = read(ACTIONS / "transitions/core008-t09" / "action.yml")
     assert "guarded_transition.py" in action
     assert (
-        ACTIONS / "transitions/core008-t09" / "scripts" / "guarded_transition.py"
+        ACTIONS / "transitions/core008-t09" / "scripts/guarded_transition.py"
     ).is_file()
+
+
+def test_acceptance_validation_reusable_and_composite_actions_are_connected():
+    workflow = read(
+        WORKFLOWS / "reusable-core008-acceptance-validation.yml"
+    )
+    assert (
+        "uses: ./.github/actions/homio-backend-ci/"
+        "transitions/core008-acceptance-validation"
+    ) in workflow
+
+    action = read(
+        ACTIONS / "transitions/core008-acceptance-validation/action.yml"
+    )
+    assert "guarded_validation.py" in action
+
+    script = ACTIONS / (
+        "transitions/core008-acceptance-validation/scripts/"
+        "guarded_validation.py"
+    )
+    assert script.is_file()
 
 
 def test_shared_transition_contract_remains_canonical():
@@ -167,12 +198,20 @@ def test_shared_transition_contract_remains_canonical():
     t09_script = read(
         ACTIONS / "transitions/core008-t09/scripts/guarded_transition.py"
     )
+    acceptance_script = read(
+        ACTIONS
+        / "transitions/core008-acceptance-validation/scripts/"
+        "guarded_validation.py"
+    )
 
     assert "from transition_contract import" in t06_preflight
     assert "from transition_contract import" in t06_complete
 
     for script in (t07_script, t08_script, t09_script):
         assert "require_core008_criteria_baseline" in script
+
+    assert "require_core008_criteria_baseline" in acceptance_script
+    assert "validate-gate" in acceptance_script
 
 
 def test_t06_completion_uses_controller_not_manual_state_edit():
@@ -298,6 +337,49 @@ def test_t09_transition_requires_exact_control_center_commit_prefix():
         "github.ref == 'refs/heads/reos-development' && "
         "startsWith(github.event.head_commit.message, "
         "'[CONTROL-CENTER-COMPLETE-CORE-008-T09]') }}"
+    )
+
+    assert expected_guard in main
+    assert expected_guard in reusable
+
+
+def test_acceptance_validation_uses_individual_evidence_and_never_approves():
+    script = read(
+        ACTIONS
+        / "transitions/core008-acceptance-validation/scripts/"
+        "guarded_validation.py"
+    )
+
+    for criterion in (
+        "CORE-008-AC01",
+        "CORE-008-AC04",
+        "CORE-008-AC05",
+        "CORE-008-AC06",
+    ):
+        assert criterion in script
+
+    assert '"verify-criterion"' in script
+    assert '"validate-gate"' in script
+    assert "require_core008_criteria_baseline" in script
+    assert "CORE-008 ACCEPTANCE VALIDATION AND CANONICAL READBACK: PASS" in script
+    assert "STATE.write_text" not in script
+    assert "STATE_PATH.write_text" not in script
+    assert '"approve-gate"' not in script
+    assert '"verify-all"' not in script
+    assert "--force" not in script
+
+
+def test_acceptance_validation_requires_exact_owner_commit_prefix():
+    main = read(WORKFLOWS / "backend-ci.yml")
+    reusable = read(
+        WORKFLOWS / "reusable-core008-acceptance-validation.yml"
+    )
+
+    expected_guard = (
+        "if: ${{ github.event_name == 'push' && "
+        "github.ref == 'refs/heads/reos-development' && "
+        "startsWith(github.event.head_commit.message, "
+        "'[CONTROL-CENTER-VALIDATE-CORE-008-ACCEPTANCE]') }}"
     )
 
     assert expected_guard in main
