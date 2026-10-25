@@ -1,3 +1,4 @@
+
 """CORE-008 Commission & Financial Core public API."""
 
 from .financial_domain import (
@@ -180,7 +181,23 @@ from .commission_financial_audit import (
     inspect_financial_audit_trail,
 )
 
+# CORE-008 T07: statement reporting and audited export hooks
+from .commission_financial_reporting import (
+    CORE008_FINANCIAL_REPORTING_SCHEMA_VERSION,
+    CommissionFinancialReport,
+    CommissionFinancialReportExport,
+    CommissionFinancialReportFormat,
+    CommissionFinancialReportingError,
+    build_commission_statement_report,
+)
+
 __all__ = [
+    "CORE008_FINANCIAL_REPORTING_SCHEMA_VERSION",
+    "CommissionFinancialReport",
+    "CommissionFinancialReportExport",
+    "CommissionFinancialReportFormat",
+    "CommissionFinancialReportingError",
+    "build_commission_statement_report",
     "CORE008_FINANCIAL_DOMAIN_SCHEMA_VERSION",
     "CORE008_FINANCIAL_DOMAIN_SOURCE",
     "Currency",
