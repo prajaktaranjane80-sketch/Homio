@@ -78,7 +78,9 @@ for label, workflow, guard in (
     ("T07 reusable", t07_workflow, guards["T07"]),
 ):
     if guard not in workflow:
-        raise SystemExit(f"{label} workflow lacks its exact authorization guard.")
+        raise SystemExit(
+            f"{label} workflow lacks its exact authorization guard."
+        )
 
 for label, workflow in (("T06", t06_workflow), ("T07", t07_workflow)):
     for binding in (
@@ -95,33 +97,38 @@ for required in (
     '"complete-subtask"',
     '"CORE-008-T07"',
     "require_core008_criteria_baseline",
-    "git push origin HEAD:refs/heads/reos-development",
-    "CANONICAL BRANCH HEAD",
+    '"git", "push", "origin", "HEAD:refs/heads/reos-development"',
+    "CANONICAL_BRANCH_HEAD",
+    "return output.strip()",
     "CORE-008-AC01",
     "CORE-008-AC04",
     "CORE-008-AC05",
     "CORE-008-AC06",
 ):
     if required not in t07_source:
-        raise SystemExit(f"T07 guarded script lacks required safeguard: {required}")
+        raise SystemExit(
+            f"T07 guarded script lacks required safeguard: {required}"
+        )
 
 if "STATE_PATH.write_text" in t07_source or "STATE.write_text" in t07_source:
-    raise SystemExit("T07 must use the Control Center, not manually edit state.json.")
+    raise SystemExit(
+        "T07 must use the Control Center, not manually edit state.json."
+    )
+
 if "--force" in t07_source:
     raise SystemExit("T07 transition must never force-push.")
 
 if "guarded_transition.py" not in t07_composite:
     raise SystemExit("T07 composite action does not invoke its guarded script.")
+
 if "publish_and_readback.sh" not in t06_composite:
     raise SystemExit("T06 composite action no longer invokes its publisher.")
 
-for path in (
-    '".github/workflows/reusable-core008-t07-transition.yml"',
-):
-    if backend.count(path) != 2:
-        raise SystemExit(
-            "T07 reusable workflow must be in both push and pull_request path filters."
-        )
+t07_path = '".github/workflows/reusable-core008-t07-transition.yml"'
+if backend.count(t07_path) != 2:
+    raise SystemExit(
+        "T07 reusable workflow must be in both push and pull_request path filters."
+    )
 
 print(
     "Transition wiring PASS: T06/T07 owner, branch, commit-prefix, "
