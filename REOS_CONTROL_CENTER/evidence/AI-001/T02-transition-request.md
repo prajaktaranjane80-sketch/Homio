@@ -6,7 +6,7 @@ SCOPE: AI-001-T02 only
 
 ## Verification Reference
 
-- Latest successful pre-transition Actions run: 40281778931
+- Latest successful backend verification run: 40281778931
 - Verified pre-transition commit: db0be88662c149579589b658e51965994fb80f67
 - Previous T02 wiring verification: PASS
 - AI entrypoint contract tests: 15 passed
@@ -16,8 +16,8 @@ SCOPE: AI-001-T02 only
 ## Required Transition Checks
 
 - Re-run verification against the exact triggering commit.
-- Verify canonical branch and repository-owner authorization.
-- Verify current Control Center state before transition.
+- Verify repository owner, canonical branch and commit SHA.
+- Validate the current Control Center state before transition.
 - Complete AI-001-T02 only through the existing Control Center.
 - Verify canonical state, handoff packet, evidence and remote readback.
 
@@ -26,5 +26,5 @@ SCOPE: AI-001-T02 only
 - This approval applies only to AI-001-T02.
 - AI-001-T03 and later subtasks are not approved by this request.
 - AI-001-AC01 through AI-001-AC06 remain PENDING.
-- No direct edits to data/state.json are permitted.
+- Do not edit data/state.json manually.
 - The transition must fail closed if any required check fails.
