@@ -4,24 +4,28 @@ import styles from "./HomeQuickDiscovery.module.css";
 
 const discoveries = [
   {
-    title: "Premium Homes",
-    description: "Explore premium residences in the current preview inventory.",
-    href: "/search?q=premium",
+    title: "Buy a Home",
+    description:
+      "Explore the home-buying search experience across Pune neighbourhoods.",
+    href: "/search?intent=buy&country=India&city=Pune",
+  },
+  {
+    title: "Rent a Home",
+    description:
+      "Start a Pune rental search and refine your property preferences.",
+    href: "/search?intent=rent&country=India&city=Pune",
   },
   {
     title: "New Projects",
-    description: "Explore project-oriented property discovery.",
-    href: "/search?intent=projects",
+    description:
+      "Explore the project-discovery experience for Pune.",
+    href: "/search?intent=projects&country=India&city=Pune",
   },
   {
-    title: "Commercial",
-    description: "Open the commercial property search context.",
-    href: "/search?intent=commercial",
-  },
-  {
-    title: "Ready to Move",
-    description: "Explore preview properties marked ready to move.",
-    href: "/search?status=Ready%20to%20move",
+    title: "Commercial Spaces",
+    description:
+      "Open Pune-focused discovery for offices and commercial property.",
+    href: "/search?intent=commercial&country=India&city=Pune",
   },
 ];
 
@@ -31,13 +35,17 @@ export default function HomeQuickDiscovery() {
       <div className="homio-container">
         <div className={styles.heading}>
           <div>
-            <span className={styles.eyebrow}>DISCOVER HOMIO</span>
-            <h2>Start with what matters to you.</h2>
+            <span className={styles.eyebrow}>
+              EXPLORE PUNE WITH HOMIO
+            </span>
+
+            <h2>Start with what you are looking for.</h2>
           </div>
 
           <p>
-            Move from broad discovery to a focused HOMIO brokerage journey
-            without navigating a broker marketplace.
+            Choose a property journey, then narrow your search by
+            locality and preferences. Search previews and property
+            facts remain subject to their actual source status.
           </p>
         </div>
 
@@ -53,6 +61,7 @@ export default function HomeQuickDiscovery() {
               </span>
 
               <h3>{item.title}</h3>
+
               <p>{item.description}</p>
             </Link>
           ))}
