@@ -10,7 +10,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
 
-from .contracts import ModelRoute, _identifier
+from .contracts import ModelRoute, _identifier, _positive_int
 from .errors import ModelResolutionError
 from .ports import ProviderPort
 
@@ -31,6 +31,7 @@ class ModelDefinition:
     model_version: str
     capabilities: tuple[str, ...] = ("text_generation",)
     aliases: tuple[str, ...] = ()
+    embedding_dimension: int | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.route, ModelRoute):
@@ -89,9 +90,12 @@ class ModelDefinition:
 
         object.__setattr__(self, "aliases", aliases)
 
+        if self.embedding_dimension is not None:
+            _positive_int(self.embedding_dimension, "embedding_dimension")
+
 
 class ModelRegistry:
-    """Resolve only configured models, aliases and supported capabilities."""
+    """Resolve only configured models, aliases, and supported capabilities."""
 
     __slots__ = ("_lookup", "_allowed_provider_ids", "_model_ids")
 
@@ -189,9 +193,8 @@ class ModelRegistry:
         *,
         required_capability: str = "text_generation",
     ) -> ModelDefinition:
-        """Resolve canonical IDs or aliases with explicit capability checks.
+        """Resolve IDs or aliases with explicit capability checks.
 
-        This method returns version metadata for audit and future integration.
         A successful resolution is not an authorization decision.
         """
         if required_capability not in _MODEL_CAPABILITIES:
@@ -226,7 +229,7 @@ class ModelRegistry:
 class ProviderRegistry:
     """Immutable allowlist of already-constructed provider adapters.
 
-    No SDK, credentials, environment variables or network clients are created
+    No SDK, credentials, environment variables, or network clients are created
     by this class. Adapters are injected by their approved runtime owner.
     """
 
