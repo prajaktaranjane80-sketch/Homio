@@ -1,0 +1,9 @@
+name: Guarded AI-001-T04 transition
+description: Verify versioned prompts and RAG tests, complete T04 through the canonical Control Center, and verify remote state readback.
+
+runs:
+  using: composite
+  steps:
+    - name: Run guarded T04 verification and transition
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_transition.py"
