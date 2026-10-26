@@ -45,3 +45,4 @@ The baseline run verifies its own commit only. It does not complete AI-001-T05. 
 - Do not enable sensitive business mutations or production/customer-facing agent execution.
 - Do not force-push or bypass the canonical Control Center.
 - Do not claim completion unless the guarded transition and canonical readback pass.
+- Final activation: owner requests guarded AI-001-T05 completion on the exact verified commit.
