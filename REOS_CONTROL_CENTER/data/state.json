@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-26T06:01:24+00:00",
+    "updated_at": "2026-10-26T06:59:22+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2409,14 +2409,23 @@
         "id": "AI-001-T01",
         "note": "AI-001-T01 completed through the existing Control Center after AI gateway tests (31 passed), entrypoint contract tests (15 passed), and complete ACRL regressions (1444 passed) succeeded in Actions run 40277355298 for verified commit fb97523d707f9d68dcceaac8fd4902d979524a5f. Only T01 is completed. AI-001-AC01 through AI-001-AC06 remain PENDING; this transition does not claim gate-level acceptance."
       }
+    },
+    {
+      "id": "fb4e153b-5cd0-466a-9c46-b1d8dec89ff8",
+      "time": "2026-10-26T06:59:22+00:00",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "AI-001-T02",
+        "note": "AI-001-T02 completed through the existing Control Center after the AI gateway/registry tests (47 passed), entrypoint contract tests (15 passed), and complete ACRL regressions (1444 passed) succeeded in Actions run 40282963984 for verified commit 3a236082b3519c254878462484e5a8a7384f0ad7. Only T02 is completed. AI-001-AC01 through AI-001-AC06 remain PENDING; this transition does not claim gate-level acceptance."
+      }
     }
   ],
   "integrity": {
-    "sha256": "cb8c39cde33ce681a0b1ca59ee3b08f819b202b8a0a13aa40014e31676c06ec7"
+    "sha256": "6071fb0124562732e8c090a54f3be05d49dee0969b85dd02faeb7ce8e2b5710f"
   },
   "execution": {
     "current_gate": "AI-001",
-    "current_task": "AI-001-T02: Implement provider and model registry.",
+    "current_task": "AI-001-T03: Implement embeddings and retrieval integration.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
@@ -2427,7 +2436,7 @@
       "Agent actions use authorized business tools.",
       "Fallback and observability are operational."
     ],
-    "current_subtask": "AI-001-T02"
+    "current_subtask": "AI-001-T03"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -4521,7 +4530,7 @@
       "name": "AI Platform & Agents",
       "objective": "Implement the governed AI gateway, retrieval, agents and tool execution layer.",
       "status": "CURRENT",
-      "current_subtask": "AI-001-T02",
+      "current_subtask": "AI-001-T03",
       "subtasks": [
         {
           "id": "AI-001-T01",
@@ -4535,13 +4544,15 @@
           "id": "AI-001-T02",
           "title": "Implement provider and model registry",
           "priority": "CRITICAL",
-          "status": "CURRENT"
+          "status": "DONE",
+          "completed_at": "2026-10-26T06:59:22+00:00",
+          "note": "AI-001-T02 completed through the existing Control Center after the AI gateway/registry tests (47 passed), entrypoint contract tests (15 passed), and complete ACRL regressions (1444 passed) succeeded in Actions run 40282963984 for verified commit 3a236082b3519c254878462484e5a8a7384f0ad7. Only T02 is completed. AI-001-AC01 through AI-001-AC06 remain PENDING; this transition does not claim gate-level acceptance."
         },
         {
           "id": "AI-001-T03",
           "title": "Implement embeddings and retrieval integration",
           "priority": "HIGH",
-          "status": "PENDING"
+          "status": "CURRENT"
         },
         {
           "id": "AI-001-T04",
