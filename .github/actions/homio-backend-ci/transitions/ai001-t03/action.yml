@@ -1,0 +1,9 @@
+name: Guarded AI-001-T03 transition
+description: Verify embeddings and retrieval tests, complete T03 through the canonical Control Center, and verify remote state readback.
+
+runs:
+  using: composite
+  steps:
+    - name: Run guarded T03 verification and transition
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_transition.py"
