@@ -26,8 +26,14 @@ The transition must stop on any failed check, stale branch head, missing authori
 5. Complete only `AI-001-T01`; advance to `AI-001-T02` only if the existing controller confirms the transition.
 6. Require successful test execution and canonical remote readback before reporting completion.
 
+## Guarded workflow trigger
+
+The owner authorization above is intended to be consumed by the repository's existing guarded workflow. The trigger commit must begin with the exact subject prefix:
+
+`[CONTROL-CENTER-COMPLETE-AI-001-T01]`
+
+This trigger permits an attempt to complete T01 only. It does not authorize acceptance-criteria closure or bypass any validation.
+
 ## Expected result
 
-The request authorizes the guarded workflow to attempt the scoped T01 completion. It does not bypass workflow guards, prove completion by itself, or authorize completion of the AI-001 gate.
-
-Completion is valid only after the guarded workflow succeeds and verifies the resulting canonical state and evidence.
+Completion is valid only after the guarded workflow succeeds, the existing Control Center performs the transition, and the resulting canonical state and evidence are verified by remote readback.
