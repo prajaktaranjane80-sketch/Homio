@@ -1,4 +1,3 @@
-
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
@@ -14,7 +13,7 @@ export const metadata: Metadata = {
     template: "%s | HOMIO",
   },
   description:
-    "Explore homes, rentals, commercial spaces and projects through one HOMIO real-estate experience.",
+    "Explore property discovery, homes, rentals, projects and commercial spaces through HOMIO. Property facts and availability depend on approved source data.",
   applicationName: "HOMIO",
   robots: {
     index: true,
@@ -25,7 +24,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#f7f4ef",
+  themeColor: "#f8f7f4",
   colorScheme: "light",
 };
 
