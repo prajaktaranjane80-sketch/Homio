@@ -1,11 +1,10 @@
-
 """Governed bridge from typed AI tool proposals to the existing HOMIO gateway.
 
 This module does not create tool executors or grant business authority. It only
 uses explicitly configured, read-only actions already registered with the
 existing AUTONOMY_ENGINE execution ToolGateway. The bridge is disabled by
-default and requires server-owned preflight/evidence checks and a timeout
-runner before it can be enabled.
+default and requires server-owned authorization, preflight, evidence and
+timeout controls before it can be enabled.
 """
 from __future__ import annotations
 
@@ -399,9 +398,9 @@ class _RunState:
 class ToolBridge:
     """Fail-closed bridge over an injected existing execution ToolGateway.
 
-    This bridge never registers or replaces gateway adapters. Real execution
-    requires a pre-existing read-only adapter, trusted preflight/evidence
-    callbacks, and a timeout runner that enforces its deadline.
+    Real execution requires an already registered read-only action, a trusted
+    per-tool authorization callback, preflight/evidence callbacks and a timeout
+    runner that enforces its deadline. This class never registers adapters.
 
     The bridge is disabled by default. Its in-memory replay guard is not a
     durable idempotency ledger.
@@ -415,6 +414,9 @@ class ToolBridge:
         enabled: bool = False,
         preflight: Callable[
             [ToolProposal, RequestContext], bool
+        ] | None = None,
+        authorization_check: Callable[
+            [ToolDefinition, ToolProposal, RequestContext], bool
         ] | None = None,
         evidence_check: Callable[
             [ToolProposal, RequestContext], bool
@@ -467,6 +469,7 @@ class ToolBridge:
         self._gateway = gateway
         self._tools = {item.name: item for item in definitions}
         self._preflight = preflight
+        self._authorization_check = authorization_check
         self._evidence_check = evidence_check
         self._timeout_runner = timeout_runner
         self._max_output_chars = max_output_chars
@@ -487,6 +490,7 @@ class ToolBridge:
                 )
                 or not definitions
                 or not callable(preflight)
+                or not callable(authorization_check)
                 or not callable(evidence_check)
                 or not callable(timeout_runner)
             ):
@@ -622,12 +626,17 @@ class ToolBridge:
         state.total_calls += 1
 
         try:
+            # Server-owned authorization runs independently of model output.
+            # The proposal does not supply this decision or the trusted context.
+            authorization_ok = (
+                self._authorization_check(tool, proposal, context) is True
+            )
             preflight_ok = self._preflight(proposal, context) is True
             evidence_ok = self._evidence_check(proposal, context) is True
         except Exception:
             raise ToolExecutionBlockedError() from None
 
-        if not preflight_ok or not evidence_ok:
+        if not authorization_ok or not preflight_ok or not evidence_ok:
             raise ToolExecutionBlockedError()
 
         # The existing gateway accepts an attribute-based ToolRequest shape.
