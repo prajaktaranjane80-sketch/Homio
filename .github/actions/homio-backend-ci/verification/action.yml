@@ -1,5 +1,5 @@
 name: HOMIO backend and ACRL verification modules
-description: Runs focused compile, contracts, subsystem regressions, and the complete ACRL suite in isolated scripts.
+description: Runs focused compile, transition wiring, subsystem regressions, and the complete ACRL suite in isolated scripts.
 
 runs:
   using: composite
@@ -7,6 +7,10 @@ runs:
     - name: Verify workflow and action module wiring
       shell: bash
       run: bash "$GITHUB_ACTION_PATH/scripts/wiring_tests.sh"
+
+    - name: Verify AI-001-T02 guarded transition wiring
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/ai001_t02_transition_wiring.sh"
 
     - name: Compile backend and verify agent contract
       shell: bash
