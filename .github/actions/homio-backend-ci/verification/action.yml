@@ -20,6 +20,10 @@ runs:
       shell: bash
       run: bash "$GITHUB_ACTION_PATH/scripts/ai001_t04_transition_wiring.sh"
 
+    - name: Verify AI-001-T05 guarded transition wiring
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/ai001_t05_transition_wiring.sh"
+
     - name: Compile backend and verify agent contract
       shell: bash
       run: bash "$GITHUB_ACTION_PATH/scripts/compile_and_contracts.sh"
