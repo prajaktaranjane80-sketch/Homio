@@ -30,12 +30,14 @@ python -m pytest -q -p no:cacheprovider \
 # AI-001 T01/T02: canonical gateway and provider/model registry contracts.
 # AI-001 T03: embedding compatibility and tenant/resource-scoped retrieval.
 # AI-001 T04: versioned prompts, evidence-bounded context and RAG output checks.
-# These tests use deterministic fakes and an in-memory retrieval setup.
-# No live provider or production vector service is enabled.
+# AI-001 T05: bounded agent runtime, typed proposals, allowlist and replay controls.
+# These tests use deterministic fakes and in-memory fixtures.
+# No live provider or production tool execution is enabled.
 python -m pytest -q -p no:cacheprovider \
   AUTONOMY_ENGINE/ai_platform/tests/test_contracts.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_model_gateway.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_model_registry.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_public_contract_stability.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_embeddings_retrieval.py \
-  AUTONOMY_ENGINE/ai_platform/tests/test_retrieval_and_rag.py
+  AUTONOMY_ENGINE/ai_platform/tests/test_retrieval_and_rag.py \
+  AUTONOMY_ENGINE/ai_platform/tests/test_agent_tool_boundaries.py
