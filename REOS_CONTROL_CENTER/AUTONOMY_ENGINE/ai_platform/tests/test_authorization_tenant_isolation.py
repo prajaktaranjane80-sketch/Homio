@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import pytest
 
 from AUTONOMY_ENGINE.ai_platform.authorization import (
@@ -350,4 +352,52 @@ def test_invalid_operation_is_denied_without_policy_call() -> None:
 
     assert not result.allowed
     assert result.reason_code == "INVALID_OPERATION"
+    assert policy.calls == []
+
+
+def test_tool_bridge_callback_returns_true_only_for_allowed_policy_decision() -> None:
+    authorization, _, policy = make_authorization()
+
+    allowed = authorization.check_tool_call(
+        SimpleNamespace(name="search_properties"),
+        SimpleNamespace(tool_name="search_properties"),
+        CONTEXT,
+    )
+
+    assert allowed is True
+    assert policy.calls == [
+        (CONTEXT, "agent.tool.search_properties", None)
+    ]
+
+
+def test_tool_bridge_callback_denies_when_domain_policy_denies() -> None:
+    authorization, _, policy = make_authorization(
+        policy=FakeDomainPolicy(
+            denied_operations=("agent.tool.search_properties",)
+        )
+    )
+
+    allowed = authorization.check_tool_call(
+        SimpleNamespace(name="search_properties"),
+        SimpleNamespace(tool_name="search_properties"),
+        CONTEXT,
+    )
+
+    assert allowed is False
+    assert policy.calls == [
+        (CONTEXT, "agent.tool.search_properties", None)
+    ]
+
+
+def test_tool_bridge_callback_rejects_model_tool_name_mismatch_before_policy() -> None:
+    authorization, verifier, policy = make_authorization()
+
+    allowed = authorization.check_tool_call(
+        SimpleNamespace(name="search_properties"),
+        SimpleNamespace(tool_name="run_shell"),
+        CONTEXT,
+    )
+
+    assert allowed is False
+    assert verifier.calls == []
     assert policy.calls == []
