@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -31,6 +30,7 @@ python -m pytest -q -p no:cacheprovider \
 # AI-001 T03: embedding compatibility and tenant/resource-scoped retrieval.
 # AI-001 T04: versioned prompts, evidence-bounded context and RAG output checks.
 # AI-001 T05: bounded agent runtime, typed proposals, allowlist and replay controls.
+# AI-001 T06: fail-closed trusted-context, resource authorization and tenant tests.
 # These tests use deterministic fakes and in-memory fixtures.
 # No live provider or production tool execution is enabled.
 python -m pytest -q -p no:cacheprovider \
@@ -40,4 +40,5 @@ python -m pytest -q -p no:cacheprovider \
   AUTONOMY_ENGINE/ai_platform/tests/test_public_contract_stability.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_embeddings_retrieval.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_retrieval_and_rag.py \
-  AUTONOMY_ENGINE/ai_platform/tests/test_agent_tool_boundaries.py
+  AUTONOMY_ENGINE/ai_platform/tests/test_agent_tool_boundaries.py \
+  AUTONOMY_ENGINE/ai_platform/tests/test_authorization_tenant_isolation.py
