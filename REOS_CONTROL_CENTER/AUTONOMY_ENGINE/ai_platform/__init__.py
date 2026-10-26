@@ -1,4 +1,5 @@
 """HOMIO / REOS provider-independent AI platform foundation."""
+
 from .contracts import (
     AIRequest,
     AIResponse,
@@ -30,6 +31,11 @@ from .errors import (
     UsageLimitExceededError,
 )
 from .model_gateway import ModelGateway
+from .model_registry import (
+    ModelDefinition,
+    ModelRegistry,
+    ProviderRegistry,
+)
 from .settings import GatewaySettings
 
 __all__ = (
@@ -43,12 +49,15 @@ __all__ = (
     "GatewayDisabledError",
     "GatewaySettings",
     "InvalidRequestError",
+    "ModelDefinition",
     "ModelGateway",
+    "ModelRegistry",
     "ModelResolutionError",
     "ModelRoute",
     "ObservabilityEvent",
     "ObservabilityUnavailableError",
     "ProviderCallFailedError",
+    "ProviderRegistry",
     "ProviderRequest",
     "ProviderResponse",
     "ProviderResponseInvalidError",
