@@ -25,6 +25,10 @@ compile_path = (
     / ".github/actions/homio-backend-ci/verification/scripts/"
     "compile_and_contracts.sh"
 )
+registry_path = (
+    root
+    / "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/model_registry.py"
+)
 
 for path in (
     backend_path,
@@ -32,6 +36,7 @@ for path in (
     action_path,
     script_path,
     compile_path,
+    registry_path,
 ):
     if not path.is_file():
         raise SystemExit(f"Required T02 transition file is missing: {path}")
@@ -41,6 +46,7 @@ workflow = workflow_path.read_text(encoding="utf-8")
 action = action_path.read_text(encoding="utf-8")
 script = script_path.read_text(encoding="utf-8")
 compile_script = compile_path.read_text(encoding="utf-8")
+registry_source = registry_path.read_text(encoding="utf-8")
 
 try:
     tree = ast.parse(script, filename=str(script_path))
@@ -60,8 +66,12 @@ if guard not in backend:
 if guard not in workflow:
     raise SystemExit("Reusable T02 workflow lacks the exact commit guard.")
 
-if backend.count('".github/workflows/reusable-ai001-t02-transition.yml"') != 2:
-    raise SystemExit("T02 reusable workflow must be in push and PR path filters.")
+if backend.count(
+    '".github/workflows/reusable-ai001-t02-transition.yml"'
+) != 2:
+    raise SystemExit(
+        "T02 reusable workflow must be in push and PR path filters."
+    )
 
 for binding in (
     "EXPECTED_SHA: ${{ github.sha }}",
@@ -123,11 +133,14 @@ for node in ast.walk(tree):
         raise SystemExit("T02 guarded script must not execute compileall.")
 
 if "STATE.write_text" in script or "STATE_PATH.write_text" in script:
-    raise SystemExit("T02 must not write canonical state outside the controller.")
+    raise SystemExit(
+        "T02 must not write canonical state outside the controller."
+    )
 
 if "--force" in script:
     raise SystemExit("T02 transition must never force-push.")
 
+# Verify test inventory in the canonical transition and backend test runner.
 for test_name in (
     "test_contracts.py",
     "test_model_gateway.py",
@@ -149,17 +162,26 @@ for test_name in (
     if test_name not in compile_script:
         raise SystemExit(f"Backend CI compile/test script omits {test_name}")
 
-for required in (
-    "test_model_registry.py",
-    "ModelRegistry",
-    "ProviderRegistry",
+# Check registry classes against their actual source file.
+# Do not search for class definitions only in the shell test runner.
+for class_declaration in (
+    "class ModelRegistry:",
+    "class ProviderRegistry:",
 ):
-    if required not in compile_script + script:
-        raise SystemExit(f"T02 registry inventory is missing {required}")
+    if class_declaration not in registry_source:
+        raise SystemExit(
+            f"Canonical model_registry.py lacks {class_declaration}"
+        )
+
+if "test_model_registry.py" not in compile_script + script:
+    raise SystemExit(
+        "T02 registry test is absent from the canonical test inventory."
+    )
 
 print(
     "AI-001-T02 transition wiring PASS: owner/branch/prefix guard, "
-    "Python syntax, test inventory, state safeguards, bytecode-safe "
-    "compilation, and canonical readback protections."
+    "Python syntax, canonical registry source and test inventory, "
+    "state safeguards, bytecode-safe transition compilation, "
+    "and canonical readback protections."
 )
 PY
