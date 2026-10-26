@@ -1,3 +1,4 @@
+
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -26,12 +27,15 @@ python -c "from pathlib import Path; p = Path('tets/test_ai_agent_entrypoint_con
 python -m pytest -q -p no:cacheprovider \
   tets/test_ai_agent_entrypoint_contract.py
 
-# AI-001 T01/T02: canonical provider-independent gateway and registry tests.
-# These use deterministic fakes; no live provider is enabled.
+# AI-001 T01/T02: canonical gateway and provider/model registry contracts.
 # AI-001 T03: embedding compatibility and tenant/resource-scoped retrieval.
+# AI-001 T04: versioned prompts, evidence-bounded context and RAG output checks.
+# These tests use deterministic fakes and an in-memory retrieval setup.
+# No live provider or production vector service is enabled.
 python -m pytest -q -p no:cacheprovider \
   AUTONOMY_ENGINE/ai_platform/tests/test_contracts.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_model_gateway.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_model_registry.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_public_contract_stability.py \
-  AUTONOMY_ENGINE/ai_platform/tests/test_embeddings_retrieval.py
+  AUTONOMY_ENGINE/ai_platform/tests/test_embeddings_retrieval.py \
+  AUTONOMY_ENGINE/ai_platform/tests/test_retrieval_and_rag.py
