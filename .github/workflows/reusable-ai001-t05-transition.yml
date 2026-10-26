@@ -1,0 +1,59 @@
+name: Reusable AI-001-T05 Guarded Control Center Transition
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  transition:
+    name: Guarded Control Center transition (AI-001-T05)
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/reos-development' && startsWith(github.event.head_commit.message, '[CONTROL-CENTER-COMPLETE-AI-001-T05]') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+      EXPECTED_SHA: ${{ github.sha }}
+      VERIFIED_CODE_SHA: ${{ github.sha }}
+      ACTIONS_RUN_ID: ${{ github.run_id }}
+      ACTIONS_SERVER_URL: ${{ github.server_url }}
+      ACTIONS_REPOSITORY: ${{ github.repository }}
+
+    steps:
+      - name: Preserve committed line endings before checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global core.autocrlf false
+          git config --global core.eol native
+
+      - name: Checkout exact verified commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install focused test dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check pytest
+          python -m pip install --disable-pip-version-check \
+            -r REOS_CONTROL_CENTER/requirements-auth.txt
+
+      - name: Install Qdrant retrieval dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check \
+            "qdrant-client==1.20.0"
+
+      - name: Execute guarded AI-001-T05 transition
+        uses: ./.github/actions/homio-backend-ci/transitions/ai001-t05
