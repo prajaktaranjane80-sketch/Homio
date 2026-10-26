@@ -39,16 +39,17 @@ def run(
     *,
     capture: bool = True,
     display: bool = True,
+    cwd: Path | None = None,
 ) -> str:
     completed = subprocess.run(
         command,
-        cwd=ROOT,
+        cwd=cwd or ROOT,
         text=True,
         stdout=subprocess.PIPE if capture else None,
         stderr=subprocess.STDOUT if capture else None,
         check=False,
     )
-    output = completed.stdout or "" if capture else ""
+    output = (completed.stdout or "") if capture else ""
 
     if output and display:
         print(output, end="" if output.endswith("\n") else "\n")
@@ -75,6 +76,7 @@ def pytest_count(output: str, label: str) -> int:
 
 
 def run_pytest(label: str, paths: list[str]) -> int:
+    # Match the existing CI's import root: REOS_CONTROL_CENTER.
     output = run(
         [
             sys.executable,
@@ -84,7 +86,8 @@ def run_pytest(label: str, paths: list[str]) -> int:
             "-p",
             "no:cacheprovider",
             *paths,
-        ]
+        ],
+        cwd=CONTROL,
     )
     count = pytest_count(output, label)
     print(f"{label.upper().replace(' ', '_')}_PASSED={count}")
@@ -152,11 +155,14 @@ def validate_state(state: dict, *, transitioned: bool) -> None:
 
     if criteria != expected_criteria:
         fail(
-            "AI-001 acceptance criteria changed. "
-            "T01 completion must not bulk-verify gate-level criteria."
+            "AI-001 acceptance criteria changed; "
+            "T01 must not bulk-verify them"
         )
 
-    if not transitioned and execution.get("status") != "CONTROL_CENTER_DRIVEN":
+    if (
+        not transitioned
+        and execution.get("status") != "CONTROL_CENTER_DRIVEN"
+    ):
         fail("execution mode is no longer CONTROL_CENTER_DRIVEN")
 
 
@@ -192,7 +198,10 @@ def assert_canonical_test_layout() -> None:
 
     for path in required:
         if not path.is_file():
-            fail(f"required source/test file is missing: {path.relative_to(ROOT)}")
+            fail(
+                "required source/test file is missing: "
+                f"{path.relative_to(ROOT)}"
+            )
 
     for duplicate in (
         AI_ROOT / "test_contracts.py",
@@ -237,7 +246,12 @@ def main() -> None:
         "GITHUB_REF",
         "RUNNER_TEMP",
     )
-    missing = [key for key in required_env if not os.environ.get(key)]
+
+    missing = [
+        key
+        for key in required_env
+        if not os.environ.get(key)
+    ]
     if missing:
         fail(f"required environment values are missing: {missing}")
 
@@ -256,11 +270,13 @@ def main() -> None:
     required_prefix = "[CONTROL-CENTER-COMPLETE-AI-001-T01]"
 
     if not subject.startswith(required_prefix):
-        fail("the exact guarded completion commit prefix is missing")
+        fail("the guarded completion commit prefix is missing")
 
     assert_exact_branch(expected_sha)
 
-    if run(["git", "status", "--porcelain=v1", "--untracked-files=all"]):
+    if run(
+        ["git", "status", "--porcelain=v1", "--untracked-files=all"]
+    ):
         fail("checkout is not clean before transition")
 
     run(
@@ -271,6 +287,7 @@ def main() -> None:
         ],
         capture=False,
     )
+
     validate_state(read_state(), transitioned=False)
     assert_canonical_test_layout()
 
@@ -278,14 +295,17 @@ def main() -> None:
         fail("the explicit owner transition request is missing")
 
     request_content = REQUEST.read_text(encoding="utf-8")
+
     if "APPROVAL: AUTHORIZE AI-001-T01 COMPLETION" not in request_content:
         fail("the request does not contain the exact authorization statement")
+
     if "SCOPE: AI-001-T01 only" not in request_content:
         fail("the request must be restricted to AI-001-T01")
 
     if EVIDENCE.exists():
         fail("T01 evidence already exists; refusing duplicate completion")
 
+    # Compile the AI gateway package. Do not enable any live provider.
     run(
         [
             sys.executable,
@@ -299,29 +319,28 @@ def main() -> None:
 
     entrypoint_count = run_pytest(
         "AI entrypoint contract",
-        [str(ENTRYPOINT_TEST.relative_to(ROOT))],
+        [str(ENTRYPOINT_TEST)],
     )
 
     ai_count = run_pytest(
         "AI gateway package",
         [
-            str((AI_TESTS / "test_contracts.py").relative_to(ROOT)),
-            str((AI_TESTS / "test_model_gateway.py").relative_to(ROOT)),
-            str(
-                (AI_TESTS / "test_public_contract_stability.py").relative_to(ROOT)
-            ),
+            str(AI_TESTS / "test_contracts.py"),
+            str(AI_TESTS / "test_model_gateway.py"),
+            str(AI_TESTS / "test_public_contract_stability.py"),
         ],
     )
 
     acrl_count = run_pytest(
         "complete ACRL suite",
-        [str(ACRL_ROOT.relative_to(ROOT))],
+        [str(ACRL_ROOT)],
     )
 
     # Stop if the branch changed while regressions were running.
     assert_exact_branch(expected_sha)
 
-    # Complete through the existing Control Center. Never write state.json here.
+    # The canonical controller owns state changes.
+    # This script must never write state.json directly.
     import REOS_CONTROL_CENTER.reos_control_center as controller
 
     controller.PACKETS = Path("REOS_CONTROL_CENTER/packets")
@@ -331,9 +350,10 @@ def main() -> None:
         f"AI gateway tests ({ai_count} passed), entrypoint contract tests "
         f"({entrypoint_count} passed), and complete ACRL regressions "
         f"({acrl_count} passed) succeeded in Actions run "
-        f"{os.environ['ACTIONS_RUN_ID']} for verified commit {expected_sha}. "
-        "Only T01 is completed. AI-001-AC01 through AI-001-AC06 remain "
-        "PENDING; this transition does not claim gate-level acceptance."
+        f"{os.environ['ACTIONS_RUN_ID']} for verified commit "
+        f"{expected_sha}. Only T01 is completed. "
+        "AI-001-AC01 through AI-001-AC06 remain PENDING; this transition "
+        "does not claim gate-level acceptance."
     )
 
     sys.argv = [
@@ -356,6 +376,7 @@ def main() -> None:
         ],
         capture=False,
     )
+
     transitioned_state = read_state()
     validate_state(transitioned_state, transitioned=True)
 
@@ -377,14 +398,18 @@ def main() -> None:
             if marker not in content:
                 fail(f"{path.name} is missing expected marker {marker!r}")
 
-    # Only the controller-created snapshot may be untracked at this point.
+    # Before evidence creation, only the controller's snapshot may be untracked.
     untracked = sorted(
-        run(["git", "ls-files", "--others", "--exclude-standard"]).splitlines()
+        run(
+            ["git", "ls-files", "--others", "--exclude-standard"]
+        ).splitlines()
     )
+
     if len(untracked) != 1:
         fail(f"expected one controller snapshot; found {untracked}")
 
     snapshot = Path(untracked[0])
+
     if not re.fullmatch(
         r"REOS_CONTROL_CENTER/snapshots/state_\d{8}_\d{6}_\d{6}\.json",
         snapshot.as_posix(),
@@ -394,8 +419,11 @@ def main() -> None:
     from REOS_CONTROL_CENTER.reos_control_center import calculate_hash
 
     snapshot_data = json.loads(snapshot.read_text(encoding="utf-8"))
-    snapshot_hash = snapshot_data.get("integrity", {}).get("sha256")
-    if not isinstance(snapshot_hash, str) or snapshot_hash != calculate_hash(snapshot_data):
+
+    if (
+        snapshot_data.get("integrity", {}).get("sha256")
+        != calculate_hash(snapshot_data)
+    ):
         fail("controller-created snapshot has invalid integrity")
 
     source_paths = (
@@ -420,7 +448,11 @@ def main() -> None:
         )
         source_rows.append(f"| `{relative}` | `{blob_sha}` |")
 
-    state_blob_sha = run(["git", "hash-object", str(STATE)], display=False)
+    state_blob_sha = run(
+        ["git", "hash-object", str(STATE)],
+        display=False,
+    )
+
     run_url = (
         f"{os.environ['ACTIONS_SERVER_URL']}/"
         f"{os.environ['ACTIONS_REPOSITORY']}/actions/runs/"
@@ -464,8 +496,9 @@ def main() -> None:
 - AI-001-AC05: `PENDING`
 - AI-001-AC06: `PENDING`
 
-This record closes the AI Gateway subtask only. It does not claim that the AI-001 gate, its six acceptance criteria, live provider integration, or production readiness are complete.
+This record closes the AI Gateway subtask only. It does not claim the AI-001 gate, its six acceptance criteria, live provider integration, or production readiness are complete.
 """
+
     EVIDENCE.parent.mkdir(parents=True, exist_ok=True)
     EVIDENCE.write_text(evidence, encoding="utf-8", newline="\n")
 
@@ -474,27 +507,40 @@ This record closes the AI Gateway subtask only. It does not claim that the AI-00
         "REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt",
         "REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt",
     }
+
     actual_tracked = set(
         run(["git", "diff", "--name-only"]).splitlines()
     )
+
     if actual_tracked != expected_tracked:
         fail(f"unexpected tracked changes: {sorted(actual_tracked)}")
 
     run(
-        ["git", "-c", "core.whitespace=cr-at-eol", "diff", "--check"]
+        [
+            "git",
+            "-c",
+            "core.whitespace=cr-at-eol",
+            "diff",
+            "--check",
+        ]
     )
 
     expected_untracked = {
         EVIDENCE.relative_to(ROOT).as_posix(),
         snapshot.as_posix(),
     }
+
     actual_untracked = set(
-        run(["git", "ls-files", "--others", "--exclude-standard"]).splitlines()
+        run(
+            ["git", "ls-files", "--others", "--exclude-standard"]
+        ).splitlines()
     )
+
     if actual_untracked != expected_untracked:
         fail(f"unexpected untracked files: {sorted(actual_untracked)}")
 
     staged = sorted(expected_tracked | expected_untracked)
+
     run(["git", "add", "--", *staged])
     run(
         [
@@ -510,8 +556,9 @@ This record closes the AI Gateway subtask only. It does not claim that the AI-00
     actual_staged = set(
         run(["git", "diff", "--cached", "--name-only"]).splitlines()
     )
+
     if actual_staged != set(staged):
-        fail(f"staged path allowlist mismatch: {sorted(actual_staged)}")
+        fail("staged path allowlist mismatch")
 
     run(
         [
@@ -528,14 +575,20 @@ This record closes the AI Gateway subtask only. It does not claim that the AI-00
     )
 
     transition_sha = run(["git", "rev-parse", "HEAD"])
-    parent_sha = run(["git", "rev-parse", "HEAD^"])
-    if parent_sha != expected_sha:
+
+    if run(["git", "rev-parse", "HEAD^"]) != expected_sha:
         fail("transition commit parent is not the tested code commit")
 
     run(
-        ["git", "push", "origin", "HEAD:refs/heads/reos-development"],
+        [
+            "git",
+            "push",
+            "origin",
+            "HEAD:refs/heads/reos-development",
+        ],
         capture=False,
     )
+
     run(
         [
             "git",
@@ -546,12 +599,16 @@ This record closes the AI Gateway subtask only. It does not claim that the AI-00
         ],
         capture=False,
     )
+
     remote_sha = run(["git", "rev-parse", "FETCH_HEAD"])
 
     if remote_sha != transition_sha:
-        fail("canonical branch readback differs from the transition commit")
+        fail("canonical branch readback differs from transition commit")
 
-    readback_path = Path(os.environ["RUNNER_TEMP"]) / "ai001-state-readback.json"
+    readback_path = (
+        Path(os.environ["RUNNER_TEMP"]) / "ai001-state-readback.json"
+    )
+
     readback_path.write_bytes(
         subprocess.check_output(
             [
@@ -562,9 +619,13 @@ This record closes the AI Gateway subtask only. It does not claim that the AI-00
             cwd=ROOT,
         )
     )
+
     readback = json.loads(readback_path.read_text(encoding="utf-8"))
-    stored_hash = readback.get("integrity", {}).get("sha256")
-    if not isinstance(stored_hash, str) or stored_hash != calculate_hash(readback):
+
+    if (
+        readback.get("integrity", {}).get("sha256")
+        != calculate_hash(readback)
+    ):
         fail("remote canonical state integrity is invalid")
 
     validate_state(readback, transitioned=True)
@@ -582,9 +643,14 @@ This record closes the AI Gateway subtask only. It does not claim that the AI-00
                 fail(f"remote {relative} lacks {marker!r}")
 
     remote_evidence = run(
-        ["git", "show", f"{remote_sha}:{EVIDENCE.relative_to(ROOT).as_posix()}"],
+        [
+            "git",
+            "show",
+            f"{remote_sha}:{EVIDENCE.relative_to(ROOT).as_posix()}",
+        ],
         display=False,
     )
+
     if (
         expected_sha not in remote_evidence
         or os.environ["ACTIONS_RUN_ID"] not in remote_evidence
