@@ -42,6 +42,13 @@ def test_orchestrator_calls_verification_and_existing_transitions():
     assert "[CONTROL-CENTER-VALIDATE-CORE-008-ACCEPTANCE]" in main
     assert "control_center_acceptance_validation:" in main
 
+    assert (
+        "uses: ./.github/workflows/reusable-ai001-t01-transition.yml"
+        in main
+    )
+    assert "control_center_transition_ai001_t01:" in main
+    assert "[CONTROL-CENTER-COMPLETE-AI-001-T01]" in main
+
 
 def test_all_reusable_workflows_are_in_push_and_pr_filters():
     main = read(WORKFLOWS / "backend-ci.yml")
@@ -49,6 +56,7 @@ def test_all_reusable_workflows_are_in_push_and_pr_filters():
     for path in (
         '".github/workflows/backend-ci.yml"',
         '".github/workflows/reusable-backend-verification.yml"',
+        '".github/workflows/reusable-ai001-t01-transition.yml"',
         '".github/workflows/reusable-core008-t06-transition.yml"',
         '".github/workflows/reusable-core008-t07-transition.yml"',
         '".github/workflows/reusable-core008-t08-transition.yml"',
@@ -64,6 +72,7 @@ def test_all_reusable_workflows_are_in_push_and_pr_filters():
 def test_reusable_workflows_are_declared_with_workflow_call():
     for filename in (
         "reusable-backend-verification.yml",
+        "reusable-ai001-t01-transition.yml",
         "reusable-core008-t06-transition.yml",
         "reusable-core008-t07-transition.yml",
         "reusable-core008-t08-transition.yml",
@@ -97,6 +106,46 @@ def test_verification_action_references_existing_scripts():
         assert (
             ACTIONS / "verification" / "scripts" / script
         ).is_file()
+
+
+def test_ai001_t01_reusable_and_composite_actions_are_connected():
+    content = read(WORKFLOWS / "reusable-ai001-t01-transition.yml")
+    assert (
+        "uses: ./.github/actions/homio-backend-ci/transitions/ai001-t01"
+    ) in content
+
+    action = read(ACTIONS / "transitions/ai001-t01" / "action.yml")
+    assert "guarded_transition.py" in action
+
+    script = ACTIONS / (
+        "transitions/ai001-t01/scripts/guarded_transition.py"
+    )
+    assert script.is_file()
+
+    body = read(script)
+    assert '"AI-001-T01"' in body
+    assert '"complete-subtask"' in body
+    assert "APPROVAL: AUTHORIZE AI-001-T01 COMPLETION" in body
+    assert "AI-001-AC01" in body
+    assert "AI-001-AC06" in body
+    assert "AI-001-T01 TRANSITION AND CANONICAL READBACK: PASS" in body
+    assert "STATE.write_text" not in body
+    assert "--force" not in body
+
+
+def test_ai001_t01_transition_requires_exact_owner_commit_prefix():
+    main = read(WORKFLOWS / "backend-ci.yml")
+    reusable = read(WORKFLOWS / "reusable-ai001-t01-transition.yml")
+
+    expected_guard = (
+        "if: ${{ github.event_name == 'push' && "
+        "github.ref == 'refs/heads/reos-development' && "
+        "startsWith(github.event.head_commit.message, "
+        "'[CONTROL-CENTER-COMPLETE-AI-001-T01]') }}"
+    )
+
+    assert expected_guard in main
+    assert expected_guard in reusable
 
 
 def test_t06_reusable_and_composite_actions_are_connected():
