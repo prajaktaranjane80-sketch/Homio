@@ -55,12 +55,12 @@ for path in required_files:
         )
 
 # Parse every guarded Python transition script before execution.
-for path in transition_scripts.values():
+parsed_scripts = {}
+
+for task, path in transition_scripts.items():
     try:
-        ast.parse(
-            path.read_text(encoding="utf-8"),
-            filename=str(path),
-        )
+        source = path.read_text(encoding="utf-8")
+        parsed_scripts[task] = ast.parse(source, filename=str(path))
     except (OSError, UnicodeError, SyntaxError) as exc:
         raise SystemExit(f"Invalid Python in {path}: {exc}") from exc
 
@@ -82,6 +82,7 @@ t01_script = transition_scripts["AI-001-T01"].read_text(
 t01_workflow = transition_workflows["AI-001-T01"].read_text(
     encoding="utf-8"
 )
+t01_tree = parsed_scripts["AI-001-T01"]
 
 t01_guard = (
     "if: ${{ github.event_name == 'push' && "
@@ -135,11 +136,29 @@ for safeguard in (
             f"AI-001-T01 guarded script lacks safeguard: {safeguard}"
         )
 
-# The AI gateway syntax check must not create .pyc files via compileall.
-if "compileall" in t01_script:
-    raise SystemExit(
-        "AI-001-T01 must not use compileall because it creates bytecode files."
-    )
+# Detect an actual compileall command structurally rather than matching
+# the word in comments or explanatory strings.
+for node in ast.walk(t01_tree):
+    if not isinstance(node, ast.Call) or not node.args:
+        continue
+
+    command_argument = node.args[0]
+
+    if not isinstance(command_argument, (ast.List, ast.Tuple)):
+        continue
+
+    command_values = {
+        child.value
+        for child in ast.walk(command_argument)
+        if isinstance(child, ast.Constant)
+        and isinstance(child.value, str)
+    }
+
+    if "compileall" in command_values:
+        raise SystemExit(
+            "AI-001-T01 must not execute compileall because it creates "
+            "bytecode files."
+        )
 
 for safeguard in (
     "compile_ai_package_sources",
