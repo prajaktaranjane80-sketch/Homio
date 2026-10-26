@@ -34,6 +34,14 @@ The owner authorization above is intended to be consumed by the repository's exi
 
 This trigger permits an attempt to complete T01 only. It does not authorize acceptance-criteria closure or bypass any validation.
 
+## Retry authorization
+
+The bytecode-safe transition wiring checks passed in GitHub Actions run #326.
+
+I authorize retrying the same guarded AI-001-T01 completion process against the new triggering commit. All existing branch, owner, state, test, file-inventory, and remote-readback safeguards must remain enforced.
+
+This retry does not authorize completion of AI-001-T02 or any AI-001 acceptance criterion.
+
 ## Expected result
 
 Completion is valid only after the guarded workflow succeeds, the existing Control Center performs the transition, and the resulting canonical state and evidence are verified by remote readback.
