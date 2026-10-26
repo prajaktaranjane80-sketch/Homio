@@ -1,5 +1,6 @@
 """Unit tests for shared read-only transition contract helpers."""
 
+import ast
 from pathlib import Path
 import sys
 
@@ -54,9 +55,10 @@ def test_criterion_drift_fails_closed():
         require_core008_criteria_baseline(state)
 
 
-def test_ai001_t06_guarded_route_is_connected():
+def test_ai001_t06_guarded_route_is_connected_and_valid():
     workflows = ROOT / ".github" / "workflows"
     actions = ROOT / ".github" / "actions" / "homio-backend-ci"
+
     main_path = workflows / "backend-ci.yml"
     reusable_path = workflows / "reusable-ai001-t06-transition.yml"
     action_path = actions / "transitions/ai001-t06/action.yml"
@@ -80,6 +82,9 @@ def test_ai001_t06_guarded_route_is_connected():
     script = script_path.read_text(encoding="utf-8")
     request = request_path.read_text(encoding="utf-8")
 
+    # Parse the actual transition script before allowing the guarded job to run.
+    ast.parse(script, filename=str(script_path))
+
     guard = (
         "if: ${{ github.event_name == 'push' && "
         "github.ref == 'refs/heads/reos-development' && "
@@ -89,10 +94,18 @@ def test_ai001_t06_guarded_route_is_connected():
 
     assert guard in main
     assert guard in reusable
-    assert main.count('".github/workflows/reusable-ai001-t06-transition.yml"') == 2
+
+    assert (
+        main.count(
+            '".github/workflows/reusable-ai001-t06-transition.yml"'
+        ) == 2
+    )
     assert "control_center_transition_ai001_t06:" in main
     assert "workflow_call:" in reusable
-    assert "uses: ./.github/actions/homio-backend-ci/transitions/ai001-t06" in reusable
+    assert (
+        "uses: ./.github/actions/homio-backend-ci/transitions/ai001-t06"
+        in reusable
+    )
     assert "guarded_transition.py" in action
 
     for required in (
@@ -103,11 +116,16 @@ def test_ai001_t06_guarded_route_is_connected():
         "CURRENT_SUBTASK=AI-001-T07",
         "CANONICAL_BRANCH_HEAD",
         "AI-001-T06 TRANSITION AND CANONICAL READBACK: PASS",
+        "test_authorization_tenant_isolation.py",
+        "test_agent_tool_boundaries.py",
+        "AI-001-AC01",
+        "AI-001-AC06",
     ):
         assert required in script, f"T06 guarded script lacks: {required}"
 
     assert "STATE.write_text" not in script
     assert "STATE_PATH.write_text" not in script
     assert "--force" not in script
+
     assert "APPROVAL: AUTHORIZE AI-001-T06 COMPLETION" in request
     assert "SCOPE: AI-001-T06 only" in request
