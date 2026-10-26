@@ -1,0 +1,9 @@
+name: Guarded AI-001-T06 transition
+description: Verify AI authorization and tenant-isolation boundaries, complete T06 through the canonical Control Center, and verify remote state readback.
+
+runs:
+  using: composite
+  steps:
+    - name: Run guarded T06 verification and transition
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_transition.py"
