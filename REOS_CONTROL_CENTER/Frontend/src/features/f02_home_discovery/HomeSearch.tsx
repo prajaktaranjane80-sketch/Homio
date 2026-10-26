@@ -19,7 +19,10 @@ export default function HomeSearch({ intent }: HomeSearchProps) {
     event.preventDefault();
 
     const params = new URLSearchParams();
+
     params.set("intent", intent);
+    params.set("country", "India");
+    params.set("city", "Pune");
 
     const normalizedQuery = query.trim();
 
@@ -31,7 +34,10 @@ export default function HomeSearch({ intent }: HomeSearchProps) {
   }
 
   return (
-    <form className={styles.search} onSubmit={handleSubmit}>
+    <form
+      className={styles.search}
+      onSubmit={handleSubmit}
+    >
       <div className={styles.location}>
         <span className={styles.icon} aria-hidden="true">
           ◎
@@ -39,21 +45,26 @@ export default function HomeSearch({ intent }: HomeSearchProps) {
 
         <div className={styles.field}>
           <label htmlFor="homio-search">
-            City, locality, project or landmark
+            Pune locality, project or landmark
           </label>
 
           <input
             id="homio-search"
             name="q"
+            type="text"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Dubai, Singapore, Tokyo..."
+            placeholder="Try Baner, Wakad, Kharadi..."
             autoComplete="off"
+            maxLength={120}
           />
         </div>
       </div>
 
-      <button type="submit" className={styles.searchButton}>
+      <button
+        type="submit"
+        className={styles.searchButton}
+      >
         Search
       </button>
     </form>
