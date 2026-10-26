@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-26T12:45:47+00:00",
+    "updated_at": "2026-10-26T14:10:03+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2436,14 +2436,23 @@
         "id": "AI-001-T04",
         "note": "AI-001-T04 completed through the existing Control Center after AI platform prompt/RAG tests (89 passed), entrypoint contract tests (15 passed), and complete ACRL regressions (1444 passed) succeeded in Actions run 40324880814 for verified commit 9c0e2247032f794848f27ebe578a0ad5a4e7acfa. Only T04 is completed. AI-001-AC01 through AI-001-AC06 remain PENDING; this transition does not claim gate-level acceptance."
       }
+    },
+    {
+      "id": "5fd45fc4-baae-4b14-b0f6-686be0569802",
+      "time": "2026-10-26T14:10:03+00:00",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "AI-001-T05",
+        "note": "AI-001-T05 completed through the existing Control Center after AI platform agent/runtime/tool-boundary tests (114 passed), entrypoint contract tests (15 passed), and complete ACRL regressions (1444 passed) succeeded in Actions run 40336918663 for verified commit d123ddeceb5e7977dbc24f4e8760576e1784b8d0. Only T05 is completed. AI-001-AC01 through AI-001-AC06 remain PENDING; this transition does not claim gate-level acceptance."
+      }
     }
   ],
   "integrity": {
-    "sha256": "c3636bfc1a6a7f01a8ec244df645cdd3bf79295df46f71c0deca8a42027b07ae"
+    "sha256": "404f9ed7e5996da90112076ce44b66add71e8634d8522fad5d8d9b92241eed96"
   },
   "execution": {
     "current_gate": "AI-001",
-    "current_task": "AI-001-T05: Implement agent runtime and tools.",
+    "current_task": "AI-001-T06: Implement AI authorization and tenant isolation.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
@@ -2454,7 +2463,7 @@
       "Agent actions use authorized business tools.",
       "Fallback and observability are operational."
     ],
-    "current_subtask": "AI-001-T05"
+    "current_subtask": "AI-001-T06"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -4548,7 +4557,7 @@
       "name": "AI Platform & Agents",
       "objective": "Implement the governed AI gateway, retrieval, agents and tool execution layer.",
       "status": "CURRENT",
-      "current_subtask": "AI-001-T05",
+      "current_subtask": "AI-001-T06",
       "subtasks": [
         {
           "id": "AI-001-T01",
@@ -4586,13 +4595,15 @@
           "id": "AI-001-T05",
           "title": "Implement agent runtime and tools",
           "priority": "CRITICAL",
-          "status": "CURRENT"
+          "status": "DONE",
+          "completed_at": "2026-10-26T14:10:03+00:00",
+          "note": "AI-001-T05 completed through the existing Control Center after AI platform agent/runtime/tool-boundary tests (114 passed), entrypoint contract tests (15 passed), and complete ACRL regressions (1444 passed) succeeded in Actions run 40336918663 for verified commit d123ddeceb5e7977dbc24f4e8760576e1784b8d0. Only T05 is completed. AI-001-AC01 through AI-001-AC06 remain PENDING; this transition does not claim gate-level acceptance."
         },
         {
           "id": "AI-001-T06",
           "title": "Implement AI authorization and tenant isolation",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "CURRENT"
         },
         {
           "id": "AI-001-T07",
