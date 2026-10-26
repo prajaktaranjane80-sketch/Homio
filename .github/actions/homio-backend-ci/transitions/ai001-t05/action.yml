@@ -1,0 +1,9 @@
+name: Guarded AI-001-T05 transition
+description: Verify agent runtime and tool-boundary tests, complete T05 through the canonical Control Center, and verify remote state readback.
+
+runs:
+  using: composite
+  steps:
+    - name: Run guarded T05 verification and transition
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_transition.py"
