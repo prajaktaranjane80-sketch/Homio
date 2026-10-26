@@ -1,0 +1,9 @@
+name: Guarded AI-001-T01 transition
+description: Verify exact authority and AI gateway tests, complete T01 through the canonical Control Center, and verify remote state readback.
+
+runs:
+  using: composite
+  steps:
+    - name: Run guarded T01 verification and transition
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_transition.py"
