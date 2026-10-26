@@ -17,6 +17,12 @@ class AIErrorCode(StrEnum):
     USAGE_LIMIT_EXCEEDED = "AI_USAGE_LIMIT_EXCEEDED"
     USAGE_CONTROL_UNAVAILABLE = "AI_USAGE_CONTROL_UNAVAILABLE"
     OBSERVABILITY_UNAVAILABLE = "AI_OBSERVABILITY_UNAVAILABLE"
+    EMBEDDING_POLICY_DENIED = "AI_EMBEDDING_POLICY_DENIED"
+    EMBEDDING_POLICY_UNAVAILABLE = "AI_EMBEDDING_POLICY_UNAVAILABLE"
+    EMBEDDING_INCOMPATIBLE = "AI_EMBEDDING_INCOMPATIBLE"
+    RETRIEVAL_UNAVAILABLE = "AI_RETRIEVAL_UNAVAILABLE"
+    RETRIEVAL_RESULT_INVALID = "AI_RETRIEVAL_RESULT_INVALID"
+    RETRIEVAL_SOURCE_STALE = "AI_RETRIEVAL_SOURCE_STALE"
 
 
 class AIPlatformError(RuntimeError):
@@ -87,3 +93,37 @@ class UsageControlUnavailableError(AIPlatformError):
 class ObservabilityUnavailableError(AIPlatformError):
     code = AIErrorCode.OBSERVABILITY_UNAVAILABLE
     public_message = "The AI request could not be safely recorded."
+
+
+class EmbeddingPolicyDeniedError(AIPlatformError):
+    code = AIErrorCode.EMBEDDING_POLICY_DENIED
+    public_message = "The data policy does not permit this text to be embedded."
+
+
+class EmbeddingPolicyUnavailableError(AIPlatformError):
+    code = AIErrorCode.EMBEDDING_POLICY_UNAVAILABLE
+    public_message = "Embedding data policy could not be verified."
+
+
+class EmbeddingCompatibilityError(AIPlatformError):
+    code = AIErrorCode.EMBEDDING_INCOMPATIBLE
+    public_message = (
+        "The embedding model or vector is incompatible with the configured index."
+    )
+
+
+class RetrievalUnavailableError(AIPlatformError):
+    code = AIErrorCode.RETRIEVAL_UNAVAILABLE
+    public_message = "The configured retrieval service is unavailable."
+
+
+class RetrievalResultInvalidError(AIPlatformError):
+    code = AIErrorCode.RETRIEVAL_RESULT_INVALID
+    public_message = (
+        "The retrieval service returned invalid or out-of-scope data."
+    )
+
+
+class RetrievalSourceStaleError(AIPlatformError):
+    code = AIErrorCode.RETRIEVAL_SOURCE_STALE
+    public_message = "A retrieved source is missing or out of date."
