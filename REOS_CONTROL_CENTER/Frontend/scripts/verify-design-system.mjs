@@ -1,4 +1,3 @@
-
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -54,7 +53,7 @@ const requiredFiles = [
   "src/features/f05_project/ProjectPage.module.css",
   "src/features/f12_globalization/MarketActivationWorkspace.module.css",
   "src/features/f12_globalization/MarketFieldSelectors.module.css",
-  "src/features/f12_globalization/MarketStates.module.css"
+  "src/features/f12_globalization/MarketStates.module.css",
 ];
 
 for (const relativePath of requiredFiles) {
@@ -93,15 +92,19 @@ const marketStatesTheme = read(
   "src/features/f12_globalization/MarketStates.module.css"
 );
 
-/* 1. HOMIO colour, typography and motion token contract */
+/* 1. HOMIO premium blush/berry/champagne token contract */
 
 const requiredTokens = [
-  "--homio-brand: #241c1a;",
-  "--homio-brand-soft: #352925;",
-  "--homio-accent: #a98556;",
-  "--homio-bg: #f7f4ef;",
+  "--homio-brand: #111111;",
+  "--homio-brand-soft: #292126;",
+  "--homio-accent: #a84f76;",
+  "--homio-accent-strong: #823c5b;",
+  "--homio-accent-soft: #f5e2ea;",
+  "--homio-champagne: #c59b63;",
+  "--homio-champagne-soft: #f4ebdd;",
+  "--homio-bg: #f8f7f4;",
   "--homio-surface: #ffffff;",
-  "--homio-surface-soft: #eae1d7;",
+  "--homio-surface-soft: #fbf0f4;",
   "--font-sans:",
   "--font-serif:",
   "--homio-success:",
@@ -111,7 +114,7 @@ const requiredTokens = [
   "--motion-normal:",
   "--motion-slow:",
   "--ease-standard: 180ms ease;",
-  "--ease-standard-curve:"
+  "--ease-standard-curve:",
 ];
 
 for (const token of requiredTokens) {
@@ -122,6 +125,11 @@ requireContains(tokens, "--font-serif:", "Editorial heading font");
 requireContains(tokens, "--font-sans:", "UI and body font");
 requireContains(base, "font-family: var(--font-serif)", "Heading typography");
 requireContains(base, "font-family: var(--font-sans)", "Body typography");
+requireContains(
+  base,
+  "rgb(168 79 118 / 72%)",
+  "Berry accent focus visibility"
+);
 
 /* 2. Preserve existing transition contracts */
 
@@ -139,7 +147,7 @@ requireContains(
 
 for (const [fileName, source] of [
   ["base.css", base],
-  ["foundation.css", foundation]
+  ["foundation.css", foundation],
 ]) {
   requireContains(
     source,
@@ -154,7 +162,7 @@ const requiredImports = [
   '@import "./styles/tokens.css";',
   '@import "./styles/base.css";',
   '@import "./styles/foundation.css";',
-  '@import "./styles/motion.css";'
+  '@import "./styles/motion.css";',
 ];
 
 let previousPosition = -1;
@@ -176,7 +184,7 @@ for (const styleImport of requiredImports) {
 for (const requiredClass of [
   ".motion-fade-in",
   ".motion-rise-in",
-  ".motion-scale-in"
+  ".motion-scale-in",
 ]) {
   requireContains(motion, requiredClass, "Motion utility contract");
 }
@@ -219,7 +227,7 @@ const themedModules = [
   ["GlobalMenus.module.css", globalMenus],
   ["MegaMenu.module.css", megaMenu],
   ["SharedSystem.module.css", sharedSystem],
-  ["SystemComponents.module.css", systemComponents]
+  ["SystemComponents.module.css", systemComponents],
 ];
 
 for (const [fileName, source] of themedModules) {
@@ -238,7 +246,7 @@ const featureThemeModules = [
   ["ProjectPage.module.css", projectPageTheme],
   ["MarketActivationWorkspace.module.css", marketWorkspaceTheme],
   ["MarketFieldSelectors.module.css", marketFieldsTheme],
-  ["MarketStates.module.css", marketStatesTheme]
+  ["MarketStates.module.css", marketStatesTheme],
 ];
 
 for (const [fileName, source] of featureThemeModules) {
@@ -271,7 +279,7 @@ const legacyPaletteValues = [
   "#b08a4d",
   "#52657b",
   "#dfbd80",
-  "#f6f8fa"
+  "#f6f8fa",
 ];
 
 const combinedThemeModules = [...themedModules, ...featureThemeModules]
@@ -309,7 +317,7 @@ requireContains(
 
 /* 9. Runtime shell and theme metadata */
 
-requireContains(layout, 'themeColor: "#f7f4ef"', "Browser theme colour");
+requireContains(layout, 'themeColor: "#f8f7f4"', "Browser theme colour");
 requireContains(layout, "<AppShell>{children}</AppShell>", "Existing app shell");
 requireContains(layout, "<ProductionQualityMonitor />", "Production monitor");
 requireContains(layout, "<ErrorBoundary>", "Root error boundary");
@@ -340,7 +348,8 @@ console.log("");
 console.log("==================================================");
 console.log("HOMIO DESIGN SYSTEM CONTRACT        = PASS");
 console.log(`FILES VERIFIED                      = ${requiredFiles.length}`);
-console.log("LUXURY PALETTE TOKENS                = PASS");
+console.log("PREMIUM BLUSH / BERRY PALETTE         = PASS");
+console.log("CHAMPAGNE ACCENT TOKEN                = PASS");
 console.log("EDITORIAL TYPOGRAPHY CONTRACT        = PASS");
 console.log("LEGACY TRANSITION COMPATIBILITY      = PASS");
 console.log("GLOBAL CSS IMPORT ORDER              = PASS");
