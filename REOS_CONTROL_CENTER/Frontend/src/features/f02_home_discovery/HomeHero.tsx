@@ -18,23 +18,26 @@ export default function HomeHero() {
     useState<HomeIntent>("buy");
 
   return (
-    <section className={styles.hero} aria-labelledby="homio-hero-title">
+    <section
+      className={styles.hero}
+      aria-labelledby="homio-hero-title"
+    >
       <div className={`homio-container ${styles.container}`}>
         <div className={styles.content}>
           <span className={styles.eyebrow}>
-            GLOBAL REAL ESTATE, ONE HOMIO
+            PUNE-FIRST PROPERTY DISCOVERY
           </span>
 
           <h1 id="homio-hero-title" className={styles.title}>
-            Find the right
+            Find your next place
             <br />
-            place to live and invest.
+            in Pune.
           </h1>
 
           <p className={styles.description}>
-            Discover homes, projects, commercial spaces and land across
-            leading global markets, with HOMIO brokerage at the center of
-            your journey.
+            Start with a Pune-focused search across homes, rentals,
+            projects and commercial spaces. Review property information
+            and source status before taking the next step.
           </p>
 
           <div className={styles.searchArea}>
