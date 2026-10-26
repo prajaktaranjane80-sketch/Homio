@@ -1,4 +1,3 @@
-
 """Fail-closed authorization adapter for the HOMIO AI platform.
 
 This module does not create an identity, tenant-membership or resource-policy
@@ -140,8 +139,7 @@ class AIPlatformAuthorization:
         except Exception:
             raise AuthorizationServiceUnavailableError() from None
 
-        # Only literal bool results are accepted. Truthy strings/integers
-        # must never be mistaken for a positive identity verification.
+        # A truthy value such as "true" or 1 is not proof of identity.
         if trusted is False:
             return self._decision(
                 allowed=False,
@@ -229,6 +227,37 @@ class AIPlatformAuthorization:
             context,
             operation=f"agent.tool.{tool_name}",
             resource_id=resource_id,
+        )
+
+    def check_tool_call(
+        self,
+        tool: object,
+        proposal: object,
+        context: RequestContext,
+    ) -> bool:
+        """Adapt authorization decisions to ToolBridge's strict bool port.
+
+        ToolBridge accepts only literal True. Returning an AuthorizationDecision
+        object directly would be unsafe because even a denied dataclass is
+        truthy in Python. This adapter also prevents a proposal from changing
+        the server-selected tool name.
+        """
+        tool_name = getattr(tool, "name", None)
+        proposal_tool_name = getattr(proposal, "tool_name", None)
+
+        if (
+            not isinstance(tool_name, str)
+            or proposal_tool_name != tool_name
+        ):
+            return False
+
+        decision = self.authorize_tool_call(
+            context,
+            tool_name=tool_name,
+        )
+        return (
+            isinstance(decision, AuthorizationDecision)
+            and decision.allowed is True
         )
 
 
