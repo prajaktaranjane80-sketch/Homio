@@ -1,44 +1,73 @@
 .tabs {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 5px;
   margin-bottom: var(--space-3);
   padding: 5px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgb(255 255 255 / 20%);
   border-radius: var(--radius-pill);
-  background: rgba(17, 17, 17, 0.48);
-  backdrop-filter: blur(12px);
+  background: rgb(17 17 17 / 58%);
+  box-shadow: 0 8px 24px rgb(17 17 17 / 12%);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
 }
 
 .tab {
-  min-height: 40px;
-  padding-inline: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding-inline: 18px;
+  border: 1px solid transparent;
   border-radius: var(--radius-pill);
   background: transparent;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgb(255 255 255 / 82%);
   cursor: pointer;
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
   transition:
-    background var(--ease-standard),
-    color var(--ease-standard);
+    background-color var(--ease-standard),
+    color var(--ease-standard),
+    border-color var(--ease-standard),
+    transform var(--ease-standard);
 }
 
 .tab:hover {
   color: #ffffff;
+  background: rgb(255 255 255 / 10%);
+}
+
+.tab:active {
+  transform: scale(0.98);
 }
 
 .active {
-  background: #ffffff;
-  color: var(--homio-text);
+  border-color: rgb(255 255 255 / 32%);
+  background: var(--homio-accent-strong);
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgb(17 17 17 / 16%);
+}
+
+.active:hover {
+  background: var(--homio-accent);
+  color: #ffffff;
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--homio-champagne);
+  outline-offset: 3px;
 }
 
 @media (max-width: 640px) {
   .tabs {
     display: flex;
     width: 100%;
+    flex-wrap: nowrap;
     overflow-x: auto;
     scrollbar-width: none;
+    border-radius: 18px;
   }
 
   .tabs::-webkit-scrollbar {
@@ -47,5 +76,13 @@
 
   .tab {
     flex: 0 0 auto;
+    min-height: 40px;
+    padding-inline: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab {
+    transition: none;
   }
 }
