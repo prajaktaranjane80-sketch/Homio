@@ -1,15 +1,18 @@
 .bar {
   position: relative;
   z-index: 20;
-  background: var(--homio-surface);
   border-bottom: 1px solid var(--homio-border);
+  background: rgb(255 255 255 / 96%);
+  box-shadow: 0 4px 16px rgb(17 17 17 / 3%);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
 }
 
 .inner {
   display: flex;
   align-items: center;
-  gap: var(--space-8);
-  min-height: 50px;
+  gap: clamp(1rem, 2.2vw, 2rem);
+  min-height: 54px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -21,34 +24,61 @@
 .link,
 .postLink {
   flex: 0 0 auto;
+  font-family: var(--font-sans);
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   white-space: nowrap;
 }
 
 .link {
+  padding-block: 0.35rem;
   color: var(--homio-text-soft);
   transition: color var(--ease-standard);
 }
 
 .link:hover {
-  color: var(--homio-text);
+  color: var(--homio-accent-strong);
+}
+
+.link:focus-visible,
+.postLink:focus-visible {
+  outline: 2px solid var(--homio-accent);
+  outline-offset: 4px;
 }
 
 .postLink {
   margin-left: auto;
-  padding: 8px 14px;
+  padding: 9px 16px;
   border: 1px solid var(--homio-border-strong);
   border-radius: var(--radius-pill);
-  color: var(--homio-text);
+  background: var(--homio-accent-soft);
+  color: var(--homio-accent-strong);
+  transition:
+    background-color var(--ease-standard),
+    border-color var(--ease-standard),
+    color var(--ease-standard);
+}
+
+.postLink:hover {
+  border-color: var(--homio-accent-strong);
+  background: var(--homio-accent-strong);
+  color: #ffffff;
 }
 
 @media (max-width: 768px) {
   .inner {
     gap: var(--space-5);
+    min-height: 50px;
   }
 
   .postLink {
     margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link,
+  .postLink {
+    transition: none;
   }
 }
