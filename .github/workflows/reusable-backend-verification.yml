@@ -33,5 +33,12 @@ jobs:
           python -m pip install --disable-pip-version-check \
             -r REOS_CONTROL_CENTER/requirements-auth.txt
 
+      - name: Install existing search retrieval dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check \
+            "qdrant-client==1.20.0"
+
       - name: Run modular backend verification suite
         uses: ./.github/actions/homio-backend-ci/verification
