@@ -15,12 +15,15 @@ def test_public_exports_are_explicit_and_stable() -> None:
         "GatewayDisabledError",
         "GatewaySettings",
         "InvalidRequestError",
+        "ModelDefinition",
         "ModelGateway",
+        "ModelRegistry",
         "ModelResolutionError",
         "ModelRoute",
         "ObservabilityEvent",
         "ObservabilityUnavailableError",
         "ProviderCallFailedError",
+        "ProviderRegistry",
         "ProviderRequest",
         "ProviderResponse",
         "ProviderResponseInvalidError",
@@ -38,4 +41,6 @@ def test_public_exports_are_explicit_and_stable() -> None:
 
 def test_public_package_starts_with_live_provider_disabled() -> None:
     assert ai_platform.ModelGateway is not None
+    assert ai_platform.ModelRegistry is not None
+    assert ai_platform.ProviderRegistry is not None
     assert ai_platform.GatewaySettings().enabled is False
