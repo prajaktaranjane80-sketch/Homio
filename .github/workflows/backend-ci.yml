@@ -18,6 +18,7 @@ on:
       - "REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt"
       - ".github/workflows/backend-ci.yml"
       - ".github/workflows/reusable-backend-verification.yml"
+      - ".github/workflows/reusable-ai001-t01-transition.yml"
       - ".github/workflows/reusable-core008-t06-transition.yml"
       - ".github/workflows/reusable-core008-t07-transition.yml"
       - ".github/workflows/reusable-core008-t08-transition.yml"
@@ -43,6 +44,7 @@ on:
       - "REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt"
       - ".github/workflows/backend-ci.yml"
       - ".github/workflows/reusable-backend-verification.yml"
+      - ".github/workflows/reusable-ai001-t01-transition.yml"
       - ".github/workflows/reusable-core008-t06-transition.yml"
       - ".github/workflows/reusable-core008-t07-transition.yml"
       - ".github/workflows/reusable-core008-t08-transition.yml"
@@ -60,8 +62,9 @@ concurrency:
   group: homio-backend-acrl-ci-${{ github.ref }}
   cancel-in-progress: false
 
-# T06-T09 and acceptance validation are already complete.
-# T10 approval is a separate owner-triggered, guarded Control Center transition.
+# AI-001-T01 has a separate guarded completion route.
+# CORE-008 transitions retain their existing guards.
+# No task status is changed by the verification job alone.
 
 jobs:
   verification:
@@ -69,6 +72,14 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/reusable-backend-verification.yml
+
+  control_center_transition_ai001_t01:
+    name: Guarded Control Center transition (AI-001-T01)
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/reos-development' && startsWith(github.event.head_commit.message, '[CONTROL-CENTER-COMPLETE-AI-001-T01]') }}
+    needs: verification
+    permissions:
+      contents: write
+    uses: ./.github/workflows/reusable-ai001-t01-transition.yml
 
   control_center_transition_t06:
     name: Guarded Control Center transition (CORE-008-T06)
