@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import json
@@ -25,6 +24,7 @@ from AUTONOMY_ENGINE.ai_platform.tool_bridge import (
     ToolDefinition,
     ToolProposal,
 )
+
 
 CONTEXT = RequestContext(
     principal_id="user-1",
@@ -136,6 +136,7 @@ class FakeToolGateway:
 def make_tool_bridge(
     *,
     gateway: FakeToolGateway | None = None,
+    authorization_check=lambda tool, proposal, context: True,
     preflight=lambda proposal, context: True,
     evidence_check=lambda proposal, context: True,
     action_name: str = "property_search",
@@ -157,6 +158,7 @@ def make_tool_bridge(
         gateway=target,
         tools=(definition,),
         enabled=True,
+        authorization_check=authorization_check,
         preflight=preflight,
         evidence_check=evidence_check,
         timeout_runner=lambda operation, timeout_seconds: operation(),
@@ -398,6 +400,23 @@ def test_extra_tool_arguments_are_blocked() -> None:
     assert gateway.calls == []
 
 
+def test_model_cannot_override_tenant_through_tool_arguments() -> None:
+    bridge, gateway = make_tool_bridge()
+    proposal = ToolProposal(
+        call_id="call-tenant-override",
+        tool_name="search_properties",
+        arguments={
+            "query": "pune",
+            "tenant_id": "tenant-2",
+        },
+    )
+
+    with pytest.raises(ToolExecutionBlockedError):
+        bridge.execute(proposal, CONTEXT, run_id="run-tenant-override")
+
+    assert gateway.calls == []
+
+
 def test_missing_required_tool_arguments_are_blocked() -> None:
     bridge, gateway = make_tool_bridge()
     proposal = ToolProposal(
@@ -441,6 +460,61 @@ def test_missing_evidence_blocks_execution() -> None:
     with pytest.raises(ToolExecutionBlockedError):
         bridge.execute(proposal, CONTEXT, run_id="run-1")
 
+    assert gateway.calls == []
+
+
+def test_authorization_denial_blocks_execution() -> None:
+    authorization_calls = []
+
+    def deny_authorization(tool, proposal, context):
+        authorization_calls.append(
+            (tool.name, context.tenant_id)
+        )
+        return False
+
+    bridge, gateway = make_tool_bridge(
+        authorization_check=deny_authorization,
+    )
+    proposal = ToolProposal(
+        call_id="call-auth-denied",
+        tool_name="search_properties",
+        arguments={"query": "pune"},
+    )
+
+    with pytest.raises(ToolExecutionBlockedError):
+        bridge.execute(
+            proposal,
+            CONTEXT,
+            run_id="run-auth-denied",
+        )
+
+    assert authorization_calls == [
+        ("search_properties", "tenant-1")
+    ]
+    assert gateway.calls == []
+
+
+def test_authorization_exception_fails_closed() -> None:
+    def authorization_error(tool, proposal, context):
+        raise RuntimeError("private authorization details")
+
+    bridge, gateway = make_tool_bridge(
+        authorization_check=authorization_error,
+    )
+    proposal = ToolProposal(
+        call_id="call-auth-error",
+        tool_name="search_properties",
+        arguments={"query": "pune"},
+    )
+
+    with pytest.raises(ToolExecutionBlockedError) as exc:
+        bridge.execute(
+            proposal,
+            CONTEXT,
+            run_id="run-auth-error",
+        )
+
+    assert "private authorization details" not in str(exc.value)
     assert gateway.calls == []
 
 
@@ -495,6 +569,9 @@ def test_enabled_bridge_requires_an_enforced_timeout_runner() -> None:
             gateway=gateway,
             tools=(definition,),
             enabled=True,
+            authorization_check=(
+                lambda tool, proposal, context: True
+            ),
             preflight=lambda proposal, context: True,
             evidence_check=lambda proposal, context: True,
         )
