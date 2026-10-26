@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import pytest
@@ -292,7 +291,7 @@ def test_invalid_tool_name_is_denied_without_policy_call() -> None:
 
     result = authorization.authorize_tool_call(
         CONTEXT,
-        tool_name="run_shell",
+        tool_name="run-shell",
     )
 
     assert not result.allowed
