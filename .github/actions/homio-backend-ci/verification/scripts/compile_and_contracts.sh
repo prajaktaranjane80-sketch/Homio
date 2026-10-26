@@ -26,10 +26,12 @@ python -c "from pathlib import Path; p = Path('tets/test_ai_agent_entrypoint_con
 python -m pytest -q -p no:cacheprovider \
   tets/test_ai_agent_entrypoint_contract.py
 
-# AI-001 T01/T02: explicitly test the canonical provider-independent AI package.
-# Registry tests use deterministic fakes; no live provider is enabled.
+# AI-001 T01/T02: canonical provider-independent gateway and registry tests.
+# These use deterministic fakes; no live provider is enabled.
+# AI-001 T03: embedding compatibility and tenant/resource-scoped retrieval.
 python -m pytest -q -p no:cacheprovider \
   AUTONOMY_ENGINE/ai_platform/tests/test_contracts.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_model_gateway.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_model_registry.py \
-  AUTONOMY_ENGINE/ai_platform/tests/test_public_contract_stability.py
+  AUTONOMY_ENGINE/ai_platform/tests/test_public_contract_stability.py \
+  AUTONOMY_ENGINE/ai_platform/tests/test_embeddings_retrieval.py
