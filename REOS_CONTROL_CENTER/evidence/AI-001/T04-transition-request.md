@@ -43,3 +43,4 @@ The successful baseline verifies its own commit only. It does not complete AI-00
 - Do not enable live providers or production vector services as part of this transition.
 - Do not force-push or bypass the canonical Control Center.
 - Do not claim completion unless the guarded transition and canonical readback both pass.
+- Guarded completion trigger: owner-authorized AI-001-T04 transition after exact-commit verification.
