@@ -1,7 +1,7 @@
-"""Dependency-inversion ports used by the AI gateway.
+"""Dependency-inversion ports used by the AI gateway and retrieval boundary.
 
-Implementations are supplied by later AI-001 subtasks. A missing or failing
-security, usage or provider dependency must never silently become an allow.
+Implementations are injected by authorized runtime owners. Missing or failing
+security, policy, usage, or provider dependencies must never silently allow.
 """
 from __future__ import annotations
 
@@ -9,8 +9,11 @@ from typing import Protocol
 
 from .contracts import (
     AuthorizationDecision,
+    EmbeddingRequest,
     ModelRoute,
     ObservabilityEvent,
+    ProviderEmbeddingRequest,
+    ProviderEmbeddingResponse,
     ProviderRequest,
     ProviderResponse,
     ProviderUsage,
@@ -43,7 +46,7 @@ class AuthorizationPort(Protocol):
         *,
         operation: str,
     ) -> AuthorizationDecision:
-        """Revalidate trusted identity, tenant and operation access."""
+        """Revalidate trusted identity, tenant, and operation access."""
 
 
 class UsageControlPort(Protocol):
@@ -59,7 +62,7 @@ class UsageControlPort(Protocol):
         provider_id: str,
         model_id: str,
     ) -> None:
-        """Settle the reservation idempotently against the actual outcome."""
+        """Settle a reservation idempotently against the actual outcome."""
 
     def release(
         self,
@@ -77,3 +80,53 @@ class UsageControlPort(Protocol):
 class ObservabilityPort(Protocol):
     def emit(self, event: ObservabilityEvent) -> None:
         """Record a redacted event; never persist raw prompts by default."""
+
+
+class EmbeddingProviderPort(Protocol):
+    def embed(
+        self,
+        request: ProviderEmbeddingRequest,
+    ) -> ProviderEmbeddingResponse:
+        """Embed text using exactly the model requested."""
+
+
+class EmbeddingProviderResolverPort(Protocol):
+    def get(self, provider_id: str) -> EmbeddingProviderPort | None:
+        """Return an explicitly configured embedding-capable adapter."""
+
+
+class EmbeddingDataPolicyPort(Protocol):
+    def allow_embedding(self, request: EmbeddingRequest) -> bool:
+        """Check trusted classification, privacy, tenant, and provider policy.
+
+        Implementations must compare the requested classification with
+        authoritative source/request metadata. A supplied label is not proof.
+        """
+
+
+class RetrievalAccessPort(Protocol):
+    def authorize_search(
+        self,
+        context: RequestContext,
+        *,
+        operation: str,
+    ) -> AuthorizationDecision:
+        """Authorize this tenant-scoped retrieval operation."""
+
+    def authorize_inventory(
+        self,
+        context: RequestContext,
+        *,
+        inventory_id: str,
+    ) -> AuthorizationDecision:
+        """Authorize access to a candidate before releasing its fields."""
+
+
+class InventoryVersionPort(Protocol):
+    def current_inventory_version(
+        self,
+        *,
+        tenant_id: str,
+        inventory_id: str,
+    ) -> int | None:
+        """Return the canonical source version, or None if the source is absent."""
