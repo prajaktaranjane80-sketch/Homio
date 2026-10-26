@@ -6,17 +6,25 @@ SCOPE: AI-001-T02 only
 
 ## Verification Reference
 
-- Backend Actions run: 40280395059
-- Verified commit: 58d843f88e72af999cd4beab94e774385cd05b58
-- T02 wiring guard: PASS
+- Latest successful pre-transition Actions run: 40281778931
+- Verified pre-transition commit: db0be88662c149579589b658e51965994fb80f67
+- Previous T02 wiring verification: PASS
 - AI entrypoint contract tests: 15 passed
 - AI gateway and registry tests: 47 passed
 - Complete ACRL regression suite: 1444 passed
 
+## Required Transition Checks
+
+- Re-run verification against the exact triggering commit.
+- Verify canonical branch and repository-owner authorization.
+- Verify current Control Center state before transition.
+- Complete AI-001-T02 only through the existing Control Center.
+- Verify canonical state, handoff packet, evidence and remote readback.
+
 ## Scope Restrictions
 
-- This request applies only to AI-001-T02.
+- This approval applies only to AI-001-T02.
 - AI-001-T03 and later subtasks are not approved by this request.
 - AI-001-AC01 through AI-001-AC06 remain PENDING.
-- Canonical state changes only through the guarded Control Center transition.
-- All transition checks must run against the exact triggering commit.
+- No direct edits to data/state.json are permitted.
+- The transition must fail closed if any required check fails.
