@@ -1,124 +1,206 @@
-# HOMIO / REOS — AI-001-T01 CONTINUE, DIAGNOSE AND VERIFY
+# HOMIO / REOS — CONTINUATION PROMPT
+## APP-001-T01 | Ultra-Pro UI/UX, Design-System Synchronization & Developer Execution
 
-Continue the existing HOMIO / REOS implementation. Do not restart planning, recreate files, or repeat completed work.
+Tum HOMIO / REOS project ke lead software architect, senior frontend engineer, design-system engineer aur quality auditor ho. Mujhe sirf plan mat do—live GitHub repository ko audit karke, exact existing files ke full replacements do, jise main GitHub web interface par copy-paste karke save karunga.
 
-## Canonical repository and authority
+## 1. Project aur working mode
 
-- Repository: `prajaktaranjane80-sketch/Homio`
-- Branch: `reos-development`
-- Canonical state: `REOS_CONTROL_CENTER/data/state.json`
-- Implementation blueprint: `REOS_CONTROL_CENTER/architecture/AI-001_PLATFORM_IMPLEMENTATION_BLUEPRINT.md`
-- Current task at the last verified read: `AI-001-T01 — Implement AI Gateway`
-- Previous gate: `CORE-008`, approved and frozen.
-- Do not manually edit `state.json`, manufacture task transitions, or claim AI-001 is complete.
+**Canonical repository:** `prajaktaranjane80-sketch/Homio`  
+**Canonical branch:** `reos-development`  
+**Frontend root:** `REOS_CONTROL_CENTER/Frontend`
 
-First reread the live branch HEAD, canonical state, blueprint, existing AI package, relevant tests and workflow scripts. The live repository may have advanced since this prompt was written. Use the latest saved content, not earlier chat snippets.
+Main professional developer nahi hoon. Main GitHub web UI par directly files save karta hoon.
 
-## A. Actions diagnosis — preserve the completed fix
+Mere working rules:
+- Har file ke liye exact repository path aur complete replacement content do.
+- Patch snippets, downloads, local-worktree instructions ya direct GitHub writes mat use karo.
+- Ek hi responsibility ke liye duplicate file, duplicate CSS, duplicate verifier ya duplicate workflow mat banao.
+- Existing files ko delete ya replace karne se pehle unke imports, consumers, route contracts, exports aur acceptance tests audit karo.
+- Sirf generic future plan dekar kaam mat roko. Current authorized task par implementation-level work karo.
+- Agar bahut saari files hain, coherent numbered batches mein do. Har replacement apni file ke liye complete aur internally consistent ho.
+- Kisi test, visual review, commit ya transition ke pass hone ka claim tab tak mat karo jab tak actual evidence na ho.
 
-Inspect these exact records:
+## 2. Sabse pehle live authority verify karo
 
-- Failed Run #304: https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/40206085572
-- Successful Run #305: https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/40206656914
-- Existing regression-test fix commit: https://github.com/prajaktaranjane80-sketch/Homio/commit/d924f26a5944b38da2259f32e949d1c6dca451e2
+Pichhli chat mein mukhya task `APP-001-T01 — Implement application shell and design system` tha. Lekin nayi chat mein ise bina verification ke current mat maan lena.
 
-Confirmed failure:
-`REOS_CONTROL_CENTER/tets/test_l3_canonical_authority.py::test_complete_subtask_persists_integrity_after_handoff`
+Sabse pehle live GitHub se ye files aur status read karo:
 
-Error:
-`SystemExit: Subtask not found: CORE-008-T04`
+1. `REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py`
+2. `REOS_CONTROL_CENTER/data/state.json`
+3. `REOS_CONTROL_CENTER/architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json`
+4. `REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json`
+5. `REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json`
+6. Existing frontend workflow: `.github/workflows/frontend-ci.yml`
+7. Latest relevant GitHub Actions runs aur unka exact tested commit SHA.
 
-The test was simulating a historical CORE-008-T04 transition but had not activated CORE-008 in the in-memory execution projection. The controller therefore looked at the current AI-001 gate.
+Latest branch HEAD, `state.json` integrity, current gate, current subtask aur acceptance-criteria status live verify karo. Purane chats mein diye gaye commit SHAs ya CI run numbers ko current authority mat samjho.
 
-The fix in `d924f26a5944b38da2259f32e949d1c6dca451e2` explicitly sets the test fixture's `state["execution"]["current_gate"] = "CORE-008"` and synchronizes the execution projection.
+**`state.json` ko manually replace, edit ya patch mat karna.** Control Center ka authorized workflow hi execution state aur gate transitions control karega. Frontend runtime ko `state.json`, ACRL ya `AUTONOMY_ENGINE` modules se couple mat karna.
 
-Do not revert this correction. Do not edit canonical `state.json` to satisfy the test. Confirm that the fixture fix remains present and that the current branch's latest Actions result still passes. The earlier failures on successive AI file commits must not be misreported as AI Gateway test failures; they exposed the existing stale regression fixture.
+Agar live state `APP-001-T01` se alag task batata hai, to actual state aur canonical authority follow karo. Pehle current scope establish karo, phir usi scope ke mutabik kaam karo.
 
-## B. Verify AI package paths and eliminate structural mess
+## 3. Dono kaam synchronize karo
 
-Inspect the entire live tree under:
+Mujhe do streams ko ek implementation baseline mein merge karna hai:
 
-`REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/`
+**Stream A — Existing approved project execution:** Current Control Center gate, frontend architecture, route contracts, verification pipeline aur existing code.
 
-The last observed paths included:
-- `__init__.py`
-- `contracts.py`
-- `errors.py`
-- `ports.py`
-- `settings.py`
-- `model_gateway.py`
-- `test_contracts.py`
-- `test_model_gateway.py`
-- `tests/test_public_contract_stability.py`
+**Stream B — Premium UI/UX refinement:** Homepage aur shared components par consistent colour palette, keyboard focus, typography, responsive spacing, animation timing, loading/skeleton behaviour aur polished interactions.
 
-The blueprint specifies package-owned tests beneath `ai_platform/tests/`. Verify every exact current path and read the full contents before deciding whether a move, replacement, or no-change is required.
+Dono ko ek hi source of truth ke saath synchronize karo. Do competing plans ya do separate design systems mat banao.
 
-If the two root-level test files are out of the required structure:
-1. Preserve their actual content and behavior.
-2. Provide the complete content for the intended `tests/` paths.
-3. Verify the new files and imports before removing obsolete root-level copies.
-4. Do not leave duplicate test copies or create speculative replacement tests.
-5. Keep all files aligned with Version 2.0 of the blueprint.
+## 4. Canonical design direction
 
-Do not state that tests passed merely because the files exist.
+Current intended design decision **Rosewood & Almond** hai. Isko existing live tokens se verify karna aur usi ko standard banana.
 
-## C. AI Gateway implementation review
+- Rosewood: `#6F334B` — primary brand, important actions aur selected states.
+- Ballet Blush: `#F3DDE4` — soft feminine surfaces aur subtle highlights.
+- Almond Cream: `#F8F1E7` — warm page background.
+- Espresso Cocoa: `#352A2D` — subtle lines, dots aur restrained decorative details.
+- White neutral card/form surfaces ke liye allowed hai.
+- Success, warning, error aur informational colours semantic roles mein hi rahenge.
 
-Review the full saved contents of `contracts.py`, `errors.py`, `ports.py`, `settings.py`, `model_gateway.py`, `__init__.py` and the two test files.
+Gold/champagne ko alag brand accent ki tarah dobara introduce mat karna. Legacy aliases ko tabhi retain karo jab current consumers un par depend karte hon; unhe safely migrate karne aur compatibility prove karne ke baad hi cleanup karo.
 
-Check:
-- Python 3.12 syntax, imports and package exports.
-- Request and response contract validation.
-- Fail-closed behavior when the gateway is disabled, context is missing, authorization fails, usage control is unavailable, the provider is missing, or a provider response is invalid.
-- Usage reservation, release and settlement behavior, especially ambiguous provider timeouts and accounting failures.
-- Whether telemetry failure prevents an unsafe provider call.
-- That secrets and raw provider exceptions never leak to public errors or telemetry.
-- Whether any code bypasses existing tenant, identity, execution or Control Center boundaries.
-- Whether the tests accurately prove the behavior they claim to cover.
+Colour choices ke saath contrast, readability aur disabled-state semantics bhi inspect karo. Decorative colour ka matlab text colour banana nahi hai.
 
-Fix demonstrated defects only. Preserve working behavior. Do not enable live provider calls, customer-facing live-AI status, or business mutations at T01.
+## 5. UI/UX aur animation standards
 
-Use existing HOMIO owners. Do not create a second identity engine, retrieval system, usage ledger, business-tool executor, context store or state authority.
+World-class result ke liye sirf colour replacement kaafi nahi hai. Existing UI ko audit karo aur following consistency enforce karo:
 
-## D. AI test execution and CI coverage
+- Shared typography, spacing, border, radius, elevation aur button conventions.
+- Consistent, clearly visible keyboard focus rings; menus aur forms par gold focus rings nahi.
+- Shared transition/easing tokens. Shimmer jaise equivalent skeleton animations ke liye ek canonical timing token.
+- `prefers-reduced-motion` respect karo.
+- Property photographs par hover zoom/scale mat lagao. Card lift ya subtle border/shadow feedback acceptable hai, jab reduced-motion mode mein disable ho.
+- Responsive desktop, tablet aur mobile navigation; no unintended horizontal overflow, clipped menus ya inaccessible controls.
+- Accessible labels, keyboard interactions, visible focus aur practical touch targets.
+- Customer-facing text natural aur polished ho. Internal technical terminology customer UI mein mat dikhana.
+- Pune-first experience ke current scope ko preserve karo. Bina contract ke new routes, fake inventory, unverified availability, prices, features ya backend capabilities invent mat karna.
+- Existing hero property image URL ko palette work ke dauran change ya flip mat karna.
+- Search, menu, save, compare aur discovery interactions ka existing behaviour preserve karo; sirf CSS ko dekhkar functionality ka assumption mat banana.
 
-Inspect the current `.github/workflows/backend-ci.yml`, `.github/workflows/reusable-backend-verification.yml`, and the actual verification scripts under `.github/actions/homio-backend-ci/verification/scripts/`.
+## 6. Current audited file areas — live content ko dobara verify karna zaroori hai
 
-Last review showed that the current compile-and-contract script did not explicitly compile or run the new `ai_platform` package tests. Therefore Run #305's success is existing repository/ACRL regression evidence, not proof of AI Gateway tests passing.
+Pichhli chat ke audit mein ye existing paths relevant the. Ye **inspection list** hai, blindly replace karne ka order nahi. Har file ka current SHA aur complete content fetch karke decide karo ki change abhi bhi necessary hai ya file pehle se updated hai.
 
-Use the existing backend CI workflow; do not create a new competing workflow. Determine the smallest in-scope way to execute the T01 tests against the exact package paths. Keep full service/API integration and premature live-provider wiring deferred to the blueprint's later integration stage.
+### Canonical plans and handoff
+- `REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_EXECUTION_PLAN.json`
+- `REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json`
+- `REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py`
+- Existing Control Center-generated handoff mechanism, agar relevant ho.
 
-Before editing CI:
-- Read the full current workflow and script contents.
-- Check the actual test command, working directory and Python import path.
-- Confirm expected test paths exist.
-- Keep all existing ACRL, financial, identity, tenant and controller regression steps enabled.
-- Do not loosen tests or alter historical fixtures just to get a green badge.
+### Shared design foundation
+- `REOS_CONTROL_CENTER/Frontend/src/app/styles/tokens.css`
+- `REOS_CONTROL_CENTER/Frontend/src/app/styles/base.css`
+- `REOS_CONTROL_CENTER/Frontend/src/app/styles/foundation.css`
+- `REOS_CONTROL_CENTER/Frontend/src/app/styles/motion.css`
+- `REOS_CONTROL_CENTER/Frontend/src/app/styles/README.md`
+- `REOS_CONTROL_CENTER/Frontend/src/app/globals.css`
+- `REOS_CONTROL_CENTER/Frontend/src/app/layout.tsx`
+- `REOS_CONTROL_CENTER/Frontend/src/components/shell/AppShell.tsx`
 
-After implementation changes, verify the exact commit and changed-file list, remote-read the saved files, and inspect Actions for that tested SHA. Report precisely which tests ran, their results, and which parts of AI-001 remain unverified.
+### Shared navigation and system components
+- `REOS_CONTROL_CENTER/Frontend/src/components/navigation/GlobalMenus.module.css`
+- `REOS_CONTROL_CENTER/Frontend/src/components/navigation/MegaMenu.module.css`
+- `REOS_CONTROL_CENTER/Frontend/src/components/system/SharedSystem.module.css`
+- `REOS_CONTROL_CENTER/Frontend/src/components/system/SystemComponents.module.css`
 
-## E. Work protocol
+### Homepage/F02 discovery
+- `REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/HomeHero.module.css`
+- `REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/HomeSearch.module.css`
+- `REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/HomeIntentTabs.module.css`
+- `REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/HomeQuickDiscovery.module.css`
+- `REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/HomeFooter.module.css`
+- `REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/FeaturedProjects.module.css`
+- `REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/FreshProperties.module.css`
+- `REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/PopularCities.module.css`
+- `REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/HomeSecondaryNav.module.css`
 
-1. Follow `REOS_CONTROL_CENTER/architecture/AI-001_PLATFORM_IMPLEMENTATION_BLUEPRINT.md` Version 2.0.
-2. Re-read the live branch and canonical state before every implementation batch.
-3. Inspect exact files and imports before changing them.
-4. Use `ADD`, `UPDATE`, `VERIFY`, `NO CHANGE` or `BLOCKED` classifications.
-5. Give the owner the exact GitHub destination path and complete file contents for each required full-file change.
-6. Do not use downloads, fragments requiring manual reconstruction, duplicate files or speculative fixes.
-7. Do not edit `state.json` directly.
-8. Do not claim a test or CI pass without evidence for the relevant SHA.
-9. Do not reopen completed CORE-008 work unless fresh evidence proves a real regression.
-10. Do not mix Imperium AI into HOMIO / REOS.
+### Semantic market status
+- `REOS_CONTROL_CENTER/Frontend/src/features/f12_globalization/MarketStates.module.css`
 
-## F. Required response before proceeding
+### Existing verification
+- `REOS_CONTROL_CENTER/Frontend/scripts/verify-design-system.mjs`
+- `REOS_CONTROL_CENTER/Frontend/scripts/verify-foundation.mjs`
 
-First report:
-- Current live branch HEAD and canonical state SHA.
-- Latest Actions status and whether the CORE-008 test-fixture correction remains valid.
-- Exact AI package files and any duplicate/misplaced tests.
-- Actual test coverage gap in the existing workflow.
-- The smallest required correction batch, with exact paths.
+Existing workflow ko extend/repair karo; parallel frontend workflow mat banao.
 
-Then deliver the complete required file contents and verification commands. Do not stop at a plan or ask the owner to diagnose the logs manually. Continue T01 implementation according to the blueprint and remain honest about any test coverage that has not yet been executed.
+## 7. Important warning about the previous chat's proposed replacements
 
-No completion claim until the saved code, relevant tests, Actions evidence and canonical state are independently verified.
+Pichhli chat mein kuch full-file replacements draft kiye gaye the, lekin unke GitHub par saved hone ki confirmation nahi hai. Unhe automatically saved ya tested mat samajhna.
+
+**Un proposed replacements ko blindly repeat mat karna.** Kuch replacements simplified CSS structure ke saath draft hue the. Unhe use karne se pehle:
+
+1. Current file content aur SHA fetch karo.
+2. Existing selectors, CSS-module class names, JSX imports aur all consumers map karo.
+3. Existing CSS custom properties ko poore frontend mein search karke token usage validate karo.
+4. Verify karo ki koi existing selector, responsive rule, state, animation, accessibility rule ya visual treatment accidentally remove nahi ho raha.
+5. Agar file replace karni hai, original contracts preserve karte hue final complete replacement do.
+6. Agar old proposed version already save ho chuka hai, usko dobara paste nahi karna—live delta ke hisaab se aage badhna.
+
+Kisi file ka content available nahi hai to guess mat karo. GitHub se exact content retrieve karne ka supported route use karo.
+
+## 8. Implementation sequence
+
+Live state confirm hone ke baad current authorized subtask ke andar ye dependency-aware sequence follow karo:
+
+**Stage 1 — Baseline and impact audit:** Current HEAD, state integrity, latest Actions SHA, CSS imports, token definitions, existing selectors, package scripts aur verifier assertions confirm karo.
+
+**Stage 2 — Canonical token/foundation sync:** Tokens, focus rules, global CSS imports, reduced-motion support aur shared foundation ke compatibility contracts align karo. Saare existing token consumers identify karo.
+
+**Stage 3 — Shared navigation/system sync:** Menu focus rings, readable microcopy, skeleton shimmer timing aur reduced-motion rules synchronize karo. Existing links, interactions aur layout contracts preserve karo.
+
+**Stage 4 — Homepage sync:** Hero overlay, search focus, selected intent tabs, discovery cards, footer, featured properties/projects aur city overlays ko approved palette mein migrate karo. Hero image URL unchanged rakho. Property imagery zoom/scale behaviour remove karo without deleting image styling or unrelated classes.
+
+**Stage 5 — Semantic status sync:** Market availability/success styles ko canonical semantic tokens par migrate karo. Success/error/warning colours ko brand palette se replace mat karo.
+
+**Stage 6 — Existing verifier update:** Same batch mein existing `verify-design-system.mjs` ko implementation ke matching assertions ke saath update karo. Duplicate verifier nahi. Structural requirements check karo; fragile whitespace-only assumptions avoid karo.
+
+**Stage 7 — Manifest and handoff sync:** Existing execution manifest mein, agar live content confirm kare ki update needed hai, current scope, file matrix, next action, verification conditions aur new-chat bootstrap instructions record karo. Duplicate master plan ya state authority mat banao.
+
+**Stage 8 — Verification:** User ke save karne ke baad latest Actions run check karo. Exact tested SHA ko branch HEAD se compare karo. CI success, visual proof aur Control Center transition ko separate evidence items samjho.
+
+## 9. Required quality gates
+
+Relevant commands ko existing `REOS_CONTROL_CENTER/Frontend/package.json` se verify karke run karne ke liye identify karo. Assumed script names blindly mat use karna.
+
+At minimum, actual available scripts se cover karo:
+- Design-system verification.
+- Foundation verification.
+- Relevant F02 and affected feature regressions.
+- Type checking, lint and build.
+- Existing complete `npm run verify` pipeline.
+- Existing `.github/workflows/frontend-ci.yml` Actions result.
+
+Regression checks ko actual implementation ke saath synchronized rakho. CI fail hone par exact failing assertion aur related file fix karo; test ko bypass ya weaken karke false green mat banao.
+
+Visual review tabhi pass bolo jab available browser/rendered-page evidence se desktop, tablet aur mobile states inspect hue hon. Agar browser visual review available nahi hai, limitation clear likho.
+
+`APP-001-T01` ya uski acceptance criteria ko chat ke assertion se complete declare mat karna. Authorized Control Center transition aur actual evidence required hain.
+
+## 10. New-chat continuity and handoff
+
+Kaam itna structured hona chahiye ki context/token limit ke baad next chat bina re-audit-from-zero ke continue kar sake—lekin har new chat phir bhi live authority verify kare.
+
+Existing execution manifest ya project-authorized handoff mechanism mein ye record rehna chahiye:
+- Current live branch HEAD aur latest relevant Actions run.
+- Current Control Center gate/task/status—live state se verified.
+- File-by-file current SHA, proposed change aur saved/unsaved status.
+- Kaunse files replace hue aur kaunse untouched hain.
+- Kaunse tests pass/fail/not-run hain.
+- Exact remaining actions, dependencies aur no-go rules.
+- Next chat ko kaunsa file sabse pehle read karna hai aur kaunsa task continue karna hai.
+
+Agar koi status live verify nahi hua hai, use `UNKNOWN`, `PENDING` ya `NOT VERIFIED` likho—guess mat karo.
+
+## 11. Abhi tumhara immediate task
+
+Live repo aur state inspect karo. Pehle current authoritative task aur latest HEAD confirm karo. Phir proposed replacements aur live files compare karke ek **safe, coherent full-file replacement batch** prepare karo—sirf necessary files ke liye.
+
+Mujhe final mein exact ordered file list, har file ka full replacement content, kis sequence mein save karna hai, aur save ke baad ka verification procedure do. Agar context limit ke kareeb ho, to incomplete claims ya repeated content ke bajay exact next file, remaining scope aur handoff status likho.
+
+**Primary target:** HOMIO ka current authorized task complete karne ke saath Rosewood & Almond design system, premium UI/UX, motion consistency aur verification contracts ko ek hi architecture mein synchronize karna—without duplicate files, token drift, regression ya false completion claims.
+
+New chat mein prompt paste karne ke baad usse pehle live repository aur state.json verify karne do. Isse purane proposed CSS replacements galti se repeat nahi honge, aur jo sach mein save hua hai usi se kaam aage badhega.
