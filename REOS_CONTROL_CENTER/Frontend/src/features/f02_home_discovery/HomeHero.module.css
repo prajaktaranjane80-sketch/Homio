@@ -6,9 +6,9 @@
   background:
     linear-gradient(
       108deg,
-      rgb(17 17 17 / 94%) 0%,
-      rgb(35 22 31 / 84%) 48%,
-      rgb(75 34 54 / 54%) 100%
+      color-mix(in srgb, var(--homio-rosewood) 95%, transparent) 0%,
+      color-mix(in srgb, var(--homio-rosewood) 88%, transparent) 48%,
+      color-mix(in srgb, var(--homio-rosewood) 82%, transparent) 100%
     ),
     url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2200&q=85")
       center / cover no-repeat;
@@ -23,7 +23,7 @@
   background: linear-gradient(
     to bottom,
     transparent,
-    rgb(17 17 17 / 24%)
+    color-mix(in srgb, var(--homio-rosewood) 24%, transparent)
   );
   pointer-events: none;
 }
@@ -47,7 +47,7 @@
   align-items: center;
   gap: 0.65rem;
   margin-bottom: var(--space-5);
-  color: var(--homio-champagne);
+  color: var(--homio-blush);
   font-size: var(--text-xs);
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.15em;
@@ -59,13 +59,13 @@
   content: "";
   width: 26px;
   height: 1px;
-  background: var(--homio-champagne);
+  background: var(--homio-blush);
 }
 
 .title {
   max-width: 840px;
   margin: 0;
-  color: #ffffff;
+  color: var(--homio-text-inverse);
   font-size: clamp(2.8rem, 6vw, 5.4rem);
   font-weight: var(--font-weight-medium);
   line-height: 1.02;
@@ -76,7 +76,7 @@
 .description {
   max-width: 660px;
   margin: var(--space-6) 0 0;
-  color: rgb(255 255 255 / 88%);
+  color: color-mix(in srgb, var(--homio-text-inverse) 88%, transparent);
   font-size: clamp(1rem, 1.5vw, 1.2rem);
   line-height: 1.75;
 }
