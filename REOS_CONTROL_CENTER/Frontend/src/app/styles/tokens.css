@@ -41,12 +41,13 @@
   --color-text-muted: var(--homio-text-muted);
   --color-text-inverse: var(--homio-text-inverse);
 
-  /* Subtle Cocoa-tinted borders; Rosewood focus treatment. */
+  /* Shared Rosewood focus, including controls placed on a Rosewood surface. */
   --homio-border: color-mix(in srgb, var(--homio-cocoa) 16%, var(--homio-almond));
   --homio-border-strong: color-mix(in srgb, var(--homio-cocoa) 30%, var(--homio-almond));
   --homio-border-focus: var(--homio-rosewood);
   --homio-focus-ring: rgb(111 51 75 / 72%);
   --homio-focus-ring-soft: rgb(111 51 75 / 48%);
+  --homio-focus-ring-on-brand: var(--homio-blush);
   --homio-focus-shadow: 0 0 0 3px rgb(111 51 75 / 18%);
 
   --color-border: var(--homio-border);
@@ -142,9 +143,9 @@
   --motion-reveal-distance: 12px;
   --motion-skeleton-duration: 1400ms;
 
-  /* Legacy transition compatibility */
-  --ease-standard: 180ms ease;
-  --ease-slow: 320ms ease;
+  /* Legacy aliases now resolve through the shared motion system. */
+  --ease-standard: 220ms var(--ease-standard-curve);
+  --ease-slow: 420ms var(--ease-emphasized);
 
   /* Motion curves */
   --ease-standard-curve: cubic-bezier(0.2, 0, 0, 1);
