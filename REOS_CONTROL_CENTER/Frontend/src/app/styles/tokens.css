@@ -5,18 +5,18 @@
   --homio-almond: #f8f1e7;
   --homio-cocoa: #352a2d;
 
-  /* Brand and accent aliases. Rosewood remains the dominant brand colour. */
+  /* Brand identity and its darker Rosewood interaction shade. */
   --homio-brand: var(--homio-rosewood);
-  --homio-brand-soft: color-mix(in srgb, var(--homio-rosewood) 86%, var(--homio-cocoa));
+  --homio-brand-soft: #673247;
   --homio-accent: var(--homio-rosewood);
   --homio-accent-strong: var(--homio-brand-soft);
   --homio-accent-soft: var(--homio-blush);
 
-  /* Legacy compatibility aliases: do not add a fifth brand colour. */
+  /* Legacy aliases preserve existing component contracts without adding gold. */
   --homio-champagne: var(--homio-rosewood);
   --homio-champagne-soft: var(--homio-blush);
 
-  /* Almond is the default background; Blush is a restrained soft surface. */
+  /* Main surfaces. White remains a neutral content surface. */
   --homio-bg: var(--homio-almond);
   --homio-surface: #ffffff;
   --homio-surface-soft: var(--homio-blush);
@@ -29,7 +29,7 @@
   --color-surface-soft: var(--homio-surface-soft);
   --color-surface-muted: var(--homio-surface-muted);
 
-  /* Rosewood for readable content; Cocoa is reserved for fine details and lines. */
+  /* Rosewood is the normal text colour; Cocoa stays on subtle line details. */
   --homio-text: var(--homio-rosewood);
   --homio-text-soft: color-mix(in srgb, var(--homio-rosewood) 90%, var(--homio-almond));
   --homio-text-muted: color-mix(in srgb, var(--homio-rosewood) 80%, var(--homio-almond));
@@ -41,7 +41,7 @@
   --color-text-muted: var(--homio-text-muted);
   --color-text-inverse: var(--homio-text-inverse);
 
-  /* Shared Rosewood focus, including controls placed on a Rosewood surface. */
+  /* Shared keyboard focus and form-control focus shadows. */
   --homio-border: color-mix(in srgb, var(--homio-cocoa) 16%, var(--homio-almond));
   --homio-border-strong: color-mix(in srgb, var(--homio-cocoa) 30%, var(--homio-almond));
   --homio-border-focus: var(--homio-rosewood);
@@ -54,7 +54,7 @@
   --color-border-strong: var(--homio-border-strong);
   --color-divider: var(--homio-border);
 
-  /* Semantic status colours remain separate from the brand palette. */
+  /* Semantic status colours are not brand accents. */
   --homio-success: #286448;
   --homio-success-soft: #e9f2ec;
   --homio-warning: #80551b;
@@ -69,7 +69,7 @@
   --color-danger: var(--homio-danger);
   --color-info: var(--homio-info);
 
-  /* Editorial headings and clear, practical interface typography. */
+  /* Editorial headings and practical interface typography. */
   --font-sans: "Aptos", "Segoe UI", Arial, sans-serif;
   --font-serif: "Bodoni MT", "Didot", "Palatino Linotype", Georgia, serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
@@ -112,7 +112,7 @@
   --space-20: 5rem;
   --space-24: 6rem;
 
-  /* Restrained corner radii */
+  /* Refined, restrained corner radii. */
   --radius-xs: 0.25rem;
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
@@ -121,7 +121,7 @@
   --radius-2xl: 2rem;
   --radius-pill: 999px;
 
-  /* Soft elevation tinted with the brand, not a separate brand colour. */
+  /* Rosewood-tinted elevation, not another colour family. */
   --shadow-sm: 0 3px 12px rgb(111 51 75 / 5%);
   --shadow-md: 0 10px 28px rgb(111 51 75 / 8%);
   --shadow-lg: 0 22px 54px rgb(111 51 75 / 12%);
@@ -136,18 +136,18 @@
   --layer-overlay: 100;
   --layer-toast: 200;
 
-  /* Unified, calm motion */
+  /* Shared, restrained motion timings. */
   --motion-fast: 140ms;
   --motion-normal: 220ms;
   --motion-slow: 420ms;
   --motion-reveal-distance: 12px;
   --motion-skeleton-duration: 1400ms;
 
-  /* Legacy aliases now resolve through the shared motion system. */
+  /* Legacy aliases resolve through the shared motion system. */
   --ease-standard: 220ms var(--ease-standard-curve);
   --ease-slow: 420ms var(--ease-emphasized);
 
-  /* Motion curves */
+  /* Shared easing curves. */
   --ease-standard-curve: cubic-bezier(0.2, 0, 0, 1);
   --ease-emphasized: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
