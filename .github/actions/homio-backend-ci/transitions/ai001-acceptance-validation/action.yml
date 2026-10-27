@@ -1,0 +1,9 @@
+name: Guarded AI-001 acceptance criteria validation
+description: Validate the AI-001 acceptance criteria using focused and complete regression suites, update canonical state only through the Control Center, and verify remote readback without approving or freezing T10.
+
+runs:
+  using: composite
+  steps:
+    - name: Run guarded acceptance validation
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_validation.py"
