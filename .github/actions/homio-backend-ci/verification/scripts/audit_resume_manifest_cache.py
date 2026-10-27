@@ -361,6 +361,123 @@ def _scope_paths(blobs: Mapping[str, str]) -> tuple[str, ...]:
     return tuple(sorted(paths))
 
 
+def _create_clean_source_snapshot(
+    workspace: Path,
+    runner_temp: Path,
+    expected_head: str,
+    run_id: str,
+) -> Path:
+    """Create an isolated, clean checkout of the exact triggering commit."""
+    parent = Path(
+        tempfile.mkdtemp(
+            prefix=f"homio-acrl-source-{run_id}-",
+            dir=runner_temp,
+        )
+    ).resolve()
+    snapshot_root = parent / "repo"
+
+    if parent.is_relative_to(workspace):
+        raise CacheInitializationError(
+            "Source snapshot must be outside the Git worktree"
+        )
+
+    clone = subprocess.run(
+        [
+            "git",
+            "clone",
+            "--local",
+            "--no-hardlinks",
+            "--no-checkout",
+            str(workspace),
+            str(snapshot_root),
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if clone.returncode:
+        message = clone.stderr.decode(
+            "utf-8", errors="replace"
+        ).strip()
+        raise CacheInitializationError(
+            "Unable to create isolated source snapshot: "
+            f"{message or clone.returncode}"
+        )
+
+    checkout = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(snapshot_root),
+            "checkout",
+            "--detach",
+            expected_head,
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if checkout.returncode:
+        message = checkout.stderr.decode(
+            "utf-8", errors="replace"
+        ).strip()
+        raise CacheInitializationError(
+            "Unable to check out exact source snapshot: "
+            f"{message or checkout.returncode}"
+        )
+
+    if _git_text(snapshot_root, "rev-parse", "HEAD") != expected_head:
+        raise CacheInitializationError(
+            "Isolated source snapshot HEAD mismatch"
+        )
+
+    if _git(
+        snapshot_root,
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all",
+    ):
+        raise CacheInitializationError(
+            "Isolated source snapshot is not clean"
+        )
+
+    return snapshot_root
+
+
+def _assert_paths_match_head(
+    workspace: Path,
+    scope_paths: tuple[str, ...],
+    blobs: Mapping[str, str],
+) -> None:
+    """Ensure each sealed path is the exact committed Git blob."""
+    for relative_path in scope_paths:
+        expected_sha = blobs.get(relative_path)
+        candidate = workspace / relative_path
+
+        if not isinstance(expected_sha, str) or not _SHA.fullmatch(expected_sha):
+            raise CacheInitializationError(
+                f"Committed blob identity is missing: {relative_path}"
+            )
+
+        if candidate.is_symlink() or not candidate.is_file():
+            raise CacheInitializationError(
+                f"Audited path is missing, non-file, or symlinked: {relative_path}"
+            )
+
+        actual_sha = _git_text(
+            workspace,
+            "hash-object",
+            "--",
+            relative_path,
+        )
+
+        if actual_sha != expected_sha:
+            raise CacheInitializationError(
+                "Audited path differs from the exact triggering commit: "
+                f"{relative_path}"
+            )
+
+
 def _assert_inventory_covers_scope(
     scope_paths: tuple[str, ...],
     inventory_paths: set[str],
@@ -471,15 +588,21 @@ def initialize_cache_from_environment() -> dict[str, Any]:
             "Checked-out HEAD does not match GITHUB_SHA"
         )
 
-    if _git(
+    post_ci_status = _git(
         workspace,
         "status",
         "--porcelain=v1",
         "--untracked-files=all",
-    ):
-        raise CacheInitializationError(
-            "Worktree is dirty; refusing to refresh the cache"
+    )
+    if post_ci_status:
+        print(
+            "RESUME_CACHE_POST_CI_WORKTREE_STATUS="
+            + post_ci_status.decode("utf-8", errors="replace")
+            .replace("\n", "; ")
+            .strip()
         )
+    else:
+        print("RESUME_CACHE_POST_CI_WORKTREE_STATUS=CLEAN")
 
     blobs = parse_git_tree(
         _git(
@@ -491,8 +614,29 @@ def initialize_cache_from_environment() -> dict[str, Any]:
             "HEAD",
         )
     )
-    state_sha, position = _read_canonical_identity(workspace, blobs)
-    template_path = workspace / TEMPLATE_PATH
+
+    # CI can leave disposable files in the checkout. Resume assessment and
+    # T16 inventory must use a genuinely clean, detached checkout of exact HEAD.
+    source_root = _create_clean_source_snapshot(
+        workspace,
+        runner_temp,
+        head,
+        run_id,
+    )
+    source_blobs = parse_git_tree(
+        _git(source_root, "ls-tree", "-r", "-z", "--full-tree", "HEAD")
+    )
+    if source_blobs != blobs:
+        raise CacheInitializationError(
+            "Isolated source tree does not match the triggering Git tree"
+        )
+
+    scope_paths = _scope_paths(blobs)
+    _assert_paths_match_head(workspace, scope_paths, blobs)
+    _assert_paths_match_head(source_root, scope_paths, blobs)
+
+    state_sha, position = _read_canonical_identity(source_root, blobs)
+    template_path = source_root / TEMPLATE_PATH
     previous, previous_source = _load_previous(cache_path, template_path)
 
     delta_base, changed_paths, deleted_paths = _manifest_delta(
@@ -546,13 +690,12 @@ def initialize_cache_from_environment() -> dict[str, Any]:
         discover_repository,
     )
 
-    inventory = discover_repository(workspace)
+    inventory = discover_repository(source_root)
     if not inventory.fingerprint:
         raise CacheInitializationError(
             "T16 returned no repository inventory fingerprint"
         )
 
-    scope_paths = _scope_paths(blobs)
     inventory_paths = {item.relative_path for item in inventory.files}
     _assert_inventory_covers_scope(scope_paths, inventory_paths)
 
@@ -582,6 +725,10 @@ def initialize_cache_from_environment() -> dict[str, Any]:
             **position,
             "t16_repository_fingerprint": inventory.fingerprint,
             "source_inventory_file_count": len(inventory.files),
+            "source_inventory_note": (
+                "T16 scanned a separate clean checkout of the exact triggering "
+                "HEAD. CI-generated checkout artifacts are not part of this inventory."
+            ),
             "resume_cache_scope": "T07/T14/T16/T23 plus canonical context paths",
             "cache_location": (
                 "external GitHub Actions cache/artifact; not canonical state"
@@ -635,16 +782,23 @@ def initialize_cache_from_environment() -> dict[str, Any]:
         )
 
     final_head = _git_text(workspace, "rev-parse", "HEAD")
-    final_status = _git(
-        workspace,
+    final_source_head = _git_text(source_root, "rev-parse", "HEAD")
+    final_source_status = _git(
+        source_root,
         "status",
         "--porcelain=v1",
         "--untracked-files=all",
     )
+    _assert_paths_match_head(workspace, scope_paths, blobs)
+    _assert_paths_match_head(source_root, scope_paths, blobs)
 
-    if final_head != head or final_status:
+    if (
+        final_head != head
+        or final_source_head != head
+        or final_source_status
+    ):
         raise CacheInitializationError(
-            "Repository changed during cache sealing"
+            "Canonical HEAD or isolated source snapshot changed during cache sealing"
         )
 
     print("RESUME_CACHE_REFRESH=SEALED_AND_READ_BACK")
