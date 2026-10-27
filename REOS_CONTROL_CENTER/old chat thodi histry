@@ -1,0 +1,354 @@
+Bhai, maine tumhare dono GitHub links par live audit kiya. Latest HOMIO Frontend CI run PASS hai, lekin poori website ki colour aur animation uniformity abhi complete nahi hui hai.
+1. GitHub Actions ka result
+HOMIO Frontend CI
+Run #678 · October 27, 2026
+
+Success
+
+
+Latest tested commit
+
+20ad7c6e…
+
+Frontend verification
+
+Passed
+
+Dependency install
+
+Passed
+
+Verification, TypeScript, lint and build step
+
+Passed
+
+Open verified Frontend CI run #678
+
+Workflow bhi sahi tarah configured hai: Node.js 24, locked dependencies ke liye npm ci, aur existing complete frontend verification ke liye npm run verify. Naya workflow banane ki zaroorat nahi hai.
+2. Rosewood & Almond changes ki live repository verification
+Maine current reos-development branch mein ye changes maujood dekhe:
+File	Verified status
+src/app/styles/tokens.css	Rosewood & Almond tokens saved
+src/app/styles/base.css	Shared focus-ring token used
+src/app/styles/foundation.css	Shared focus shadow and skeleton timing token used
+src/app/styles/motion.css	Duplicate header/wordmark styling removed
+src/app/styles/README.md	New palette documented
+src/components/shell/AppShell.tsx	Customer-facing text updated
+src/app/layout.tsx	Almond Cream browser theme colour
+scripts/verify-design-system.mjs	New palette checks added
+
+Isliye in files ko dobara replace karne ki zaroorat nahi hai.
+3. Abhi bhi kya fix karna hai?
+Latest code mein ye differences abhi bhi maujood hain:
+Gold focus rings abhi bhi hard-coded hain
+
+GlobalMenus.module.css aur MegaMenu.module.css mein purane champagne-gold focus outlines/shadows hain. Inhe shared Rosewood focus tokens par lana hoga.
+
+
+
+Skeleton animation timing alag hai
+
+SystemComponents.module.css abhi 1.35s use karta hai, jabki canonical token 1400ms hai. SharedSystem.module.css aur foundation animation ke saath isko synchronize karna hai.
+
+
+
+Status colour hard-coding aur global CSS overlap
+
+MarketStates.module.css mein active-status ke green colours hard-coded hain. globals.css mein kuch scroll, body aur selection rules base.css ke saath repeat hote hain. Inhe existing verifier contracts preserve karte hue clean karna hai.
+
+
+
+Important: CI pass hone ka matlab current automated tests pass hue; iska matlab yeh nahi ki har hard-coded colour aur animation mismatch automatically pakda gaya. Isi liye main abhi complete visual uniformity ko PASS declare nahi kar raha.
+
+Agla engineering batch in existing files ko synchronize karega—duplicate files nahi banengi, workflow nahi badlega, aur state.json ko manually touch nahi karna hai. Uske baad same Frontend CI se regression check karna hoga.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Final audit results
+जाँच	सत्यापित स्थिति
+AI-001 gate	APPROVED
+AI-001-T01 से T10	सभी DONE
+Acceptance criteria AC01–AC06	सभी VERIFIED
+Authoritative execution plan	AI-001 COMPLETE
+अगला gate	APP-001 CURRENT
+अगला task	APP-001-T01
+Execution status	CONTROL_CENTER_DRIVEN
+State integrity	PASS                                                           aab aage kya or tumane jo css or ui ux diya kya o best hai ya usamai koi kami hai jara audit karake bata kyun ki o fudation hai
+
+
+
+
+
+
+
+
+
+
+
+
+Worked for 5m 27s
+
+
+
+
+
+
+
+Bhai, live repository aur authoritative state.json ko cross-check karne par tumhare diye hue execution status ki pushti hoti hai.
+- AI-001: COMPLETE — task T01–T10 complete aur AC01–AC06 verified hone ka record hai.
+- Agla gate: APP-001 — Buyer / Broker / Builder Applications
+- Abhi ka task: APP-001-T01 — Implement application shell and design system
+- Execution status: CONTROL_CENTER_DRIVEN
+- State integrity: stored record mein PASS status ke mutabik integrity hash present hai; maine state ko modify nahi kiya.
+Authoritative execution state · Frontend implementation blueprint
+
+Mera initial verdict: tumhara CSS foundation achha starting point hai, lekin abhi ise “world-class aur fully uniform” declare karna jaldbazi hogi. Tokens, shared styles, reduced-motion support aur automated verification jaise achhe foundations maujood hain. Abhi kuch colour aur motion mismatches bhi hain, aur foundation ko sirf CI pass hone se complete nahi maana ja sakta.
+1. Detailed UI/UX foundation audit
+Good foundation already exists
+
+Central tokens, reusable CSS, keyboard focus, responsive navigation and reduced-motion support.
+
+
+
+Visual consistency is incomplete
+
+Some homepage styles still have older colours, menu focus rings use gold, and skeleton animations have different timings.
+
+
+
+Responsive experience needs closer review
+
+The homepage search, header search and fixed quick-action dock overlap in purpose. Actual rendered desktop/tablet/mobile behaviour still needs visual review.
+
+
+
+The important gaps, in priority order
+Priority	Finding	What should improve
+P1	Old homepage colours	Move remaining old berry and surface literals to the Rosewood & Almond tokens.
+P1	Gold focus rings	Use the same Rosewood focus treatment across menus, fields and buttons.
+P1	Duplicate search/navigation	Give the homepage one clear primary search and simplify redundant quick actions.
+P1	Incomplete verifier coverage	Extend the existing design-system checks to detect these mismatches rather than allowing them to pass unnoticed.
+P2	Animation timing	Use the shared 1400 ms skeleton token in all skeleton modules; reconcile the legacy 180 ms transition with the 140/220/420 ms motion system.
+P2	Small menu typography	Increase the 8–10 px menu labels and descriptions to more comfortable reading sizes.
+P2	Repeated global styles	Consolidate overlapping scroll, body and selection declarations while preserving existing accessibility contracts.
+
+2. Specific files where the problems exist
+A. Homepage palette is not fully synchronized
+
+The updated palette tokens are saved, but several homepage styles still contain hard-coded earlier colours:
+- HomeSearch.module.css — previous berry shades and old blush surface values.
+- HomeQuickDiscovery.module.css — old hard-coded surface and accent colours.
+- HomeHero.module.css — dark charcoal overlays remain. Overlays are useful for property-photo readability, but the colour treatment should better match the Rosewood brand without changing the existing image.
+- HomeFooter.module.css — #0D0D0D is used as the large footer background. This is the clearest mismatch with your chosen palette; a Rosewood-led footer would be more cohesive.
+Recommended rule: Rosewood is the dominant brand colour, while Almond Cream remains the main page background. Ballet Blush should be a deliberate soft accent, and Espresso Cocoa should be reserved for small lines and dots. Making every background Rosewood would make the site too heavy.
+
+B. Focus rings are still inconsistent
+- GlobalMenus.module.css contains three hard-coded champagne/gold outlines.
+- MegaMenu.module.css contains hard-coded gold focus shadows/outlines.
+- SystemComponents.module.css uses a separate accent-mix focus style.
+These should all use the shared --homio-focus-ring and --homio-focus-shadow tokens where appropriate.
+
+C. The current motion rules need a single owner
+- foundation.css now uses --motion-skeleton-duration: 1400ms.
+- SharedSystem.module.css uses 1.4s.
+- SystemComponents.module.css still uses 1.35s.
+The first two agree, the third does not. The spinner's 850 ms animation can remain separate because it serves a different purpose. The fix is to unify equivalent animations, not force every animation to have the same duration.
+
+D. Navigation and search need a UX decision
+
+The current Header.tsx always shows the global search, while HomeHero.tsx includes its own Pune-first search. The fixed GlobalActionLayer.tsx also repeats Home, Search and Projects actions.
+
+That can make the page feel crowded, especially on mobile. My recommendation is to give the homepage hero the primary search role, use a more compact header search treatment where needed, and make the fixed quick-action dock intentional rather than redundant. The existing route and interaction behaviour must be preserved when this is implemented.
+3. Is the chosen palette readable?
+Yes—the four colours themselves are a good choice. I calculated these approximate contrast ratios from the current token values:
+Combination	Contrast
+Rosewood on Almond Cream	8.32:1
+Rosewood on Ballet Blush	7.23:1
+Muted Rosewood text on Almond Cream	5.04:1
+
+These combinations clear the WCAG 2.2 AA minimum of 4.5:1 for normal text. 
+W3C
+
+
+One exception to handle deliberately is the disabled-text token: its contrast is about 2.12:1 against Almond. That is acceptable only for genuinely disabled controls—not for ordinary descriptions, labels or important information. 
+W3C
+
+4. Why did CI pass if there are still gaps?
+The latest Frontend CI run #678 is successful. It ran the existing verification pipeline, TypeScript, lint and production build.
+
+The problem is that passing tests does not necessarily mean every visual detail is consistent. For example, the current verify-design-system.mjs checks canonical tokens and some shared contracts, but does not reject all old hard-coded accents or enforce one skeleton timing across every module.
+
+The verifier should be strengthened; creating a second verifier or another frontend workflow would be the wrong approach.
+5. What should happen next?
+Continue with APP-001-T01 only. Do not advance to APP-001-T02 yet.
+
+The next implementation batch should synchronize these existing files—without creating duplicates:
+
+tokens.css, base.css, globals.css, foundation.css, motion.css, GlobalMenus.module.css, MegaMenu.module.css, SharedSystem.module.css, SystemComponents.module.css, HomeSearch.module.css, HomeQuickDiscovery.module.css, HomeHero.module.css, HomeFooter.module.css, verify-design-system.mjs and verify-foundation.mjs.
+
+The key design decision is to preserve the four-colour palette, migrate legacy hard-coded brand shades, remove the redundant UI elements where appropriate, and strengthen the existing regression checks. The two verifier files must be updated in the same batch as the implementation so their contracts remain accurate.
+
+After those changes are saved, rerun the existing Frontend CI and inspect the rendered experience at desktop, tablet and mobile widths. A successful build is necessary, but it is not a substitute for that visual review.
+
+Final verdict: the foundation has the right building blocks, but it is not yet fully synchronized or ready to call world-class. Finishing these corrections as part of APP-001-T01 is the right next step. I have not changed any files during this audit, and I have not manually edited state.json.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+pahala kam chalu hai or naya update to in dono ko best sync karake kam chalu karo chahi to file struckture bana or ultra pro content chahiye esa structure bana jab tumara limt khatam hoga to next new chat ko kam karana aasan ho..... abhi tum hi best kam karo tum socho devloper mind se ki aage kam kaise karana hai
+
+
+
+
+
+
+
+
+
+
+
+
+Thinking
+Synchronized project context and audited continuation structure
+
+Main dono streams ko ek shared implementation baseline se jod raha hoon: (1) Control Center ka authoritative APP-001-T01, aur (2) tumhara approved Rosewood & Almond UI/UX update. Main pehle existing plan/structure references aur saved files ko reconcile karunga, phir sirf wahi missing work define/implement karunga jo existing contracts se compatible ho—state.json ko manually edit kiye bina. Handoff ko bhi canonical references aur exact remaining work ke saath taiyar karunga, taaki agla chat guesswork na kare.
+
+Aligned the work structure and planned implementation
+
+
+
+
+Planned and structured the next palette alignment pass
+
+
+
+
+Clarified implementation scope
+
+
+
+
+Finalized synchronization
+
+
+
+
+Audited and implemented Homio frontend architecture, design system, styling, and verification structure
+
+
+
+
+Audit mein ek aur important mismatch mila hai: sirf shared menus hi nahi, homepage ke hero aur location-intent tabs ke dark overlays bhi purane charcoal/black tones use kar rahe hain, aur footer pure black hai. Main update ko sirf tokens tak limited nahi rakhunga—homepage ke prominent visible sections ko bhi Rosewood-led bana raha hoon, lekin property photo same rahegi aur text contrast ko deliberately preserve karunga.
+
+Finalized synchronization
+
+
+
+
+Refined the implementation
+
+
+
+
+Updated and standardized Homio design system, branding, navigation, and discovery styling
+
+
+
+
+Pehla implementation batch ab clear hai: manifest, shared focus, readable menus aur synchronized skeleton motion. Agla batch homepage ki actual visible palette ko unify karega—hero image same, Rosewood overlay, Rosewood footer, blush selected intent, token-based search aur discovery cards. In sabko save karne se pehle verifier ka matching full replacement bhi dunga, taaki naye checks aur styles alag-alag revision mein drift na karein.
+
+Reviewed and updated home discovery CSS modules, features, and market styling
+
+
+
+
+Audited brand theming, accessibility styles, and MarketStates verifier updates
+
+
+
+
+Audited palette updates
+
+Refined the palette, design pass, and frontend
+
+
+
+
+Reviewed the interface
+
+
+
+
+Reviewed implementation structure
+
+
+
+
+Reviewed the frontend plan
+
+
+
+
+Prepared final refinements
+
+
+
+
+Finalized the implementation
+
+
+
+
+Finalized and consolidated implementation handoff
+
+
+
+
+Prepared handoff
+
+
+
+
+
+
+
+
+
+
+
+
+Bhai, developer ke nazariye se maine kaam ko do alag plans banane ke bajay ek coordinated APP-001-T01 workstream mein organize kiya hai. Isse palette update, shared CSS foundation, animation rules aur regression verification ek doosre se mismatch nahi honge.
+
+Mera decision:
+- Control Center ka current task APP-001-T01 hi rahega. APP-001-T02 start nahi karna.
+- Naya duplicate structure file nahi banana. Existing HOMIO_FRONTEND_EXECUTION_PLAN.json ko version 3.2 coordination manifest ke roop mein update karna.
+- Canonical palette Rosewood #6F334B + Ballet Blush #F3DDE4 + Almond Cream #F8F1E7 + Espresso Cocoa #352A2D hi rahegi.
+- Shared menus, skeleton animations, homepage sections aur market-status styles ko isi contract ke saath synchronize karna.
+- Existing verifier ko stronger banana; naya verifier ya doosra frontend workflow nahi banana.
+- Handoff mein exact paths, current task, verification commands aur next chat ka bootstrap procedure rakhna.
+Latest verified baseline ka commit 20ad7c6e… hai aur Frontend CI run #678 us commit par pass tha. Naye replacements ko abhi pass nahi maana ja sakta—unhe GitHub par save karne ke baad dobara run karna hoga.
