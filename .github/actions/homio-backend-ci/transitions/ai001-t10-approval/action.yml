@@ -1,0 +1,9 @@
+name: Guarded AI-001-T10 Approval
+description: Approves and freezes AI-001 through the existing Control Center after exact-state guards, acceptance evidence, and successful backend/ACRL verification.
+
+runs:
+  using: composite
+  steps:
+    - name: Run guarded AI-001 final approval
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_approval.py"
