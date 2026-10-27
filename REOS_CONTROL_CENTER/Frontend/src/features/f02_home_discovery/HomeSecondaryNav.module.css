@@ -2,8 +2,8 @@
   position: relative;
   z-index: 20;
   border-bottom: 1px solid var(--homio-border);
-  background: rgb(255 255 255 / 96%);
-  box-shadow: 0 4px 16px rgb(17 17 17 / 3%);
+  background: var(--homio-surface);
+  box-shadow: var(--shadow-sm);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
 }
@@ -42,7 +42,7 @@
 
 .link:focus-visible,
 .postLink:focus-visible {
-  outline: 2px solid var(--homio-accent);
+  outline: 3px solid var(--homio-focus-ring);
   outline-offset: 4px;
 }
 
@@ -62,7 +62,7 @@
 .postLink:hover {
   border-color: var(--homio-accent-strong);
   background: var(--homio-accent-strong);
-  color: #ffffff;
+  color: var(--homio-text-inverse);
 }
 
 @media (max-width: 768px) {
