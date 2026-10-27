@@ -1,0 +1,9 @@
+name: Guarded AI-001-T08 transition
+description: Verify AI observability and fallback, complete T08 through the canonical Control Center, and verify remote state readback.
+
+runs:
+  using: composite
+  steps:
+    - name: Run guarded T08 verification and transition
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_transition.py"
