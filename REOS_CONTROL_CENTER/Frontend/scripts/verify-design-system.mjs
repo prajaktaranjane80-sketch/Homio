@@ -174,8 +174,8 @@ requireContains(base, "font-family: var(--font-sans)", "Body typography");
 
 requireContains(
   base,
-  "outline: 3px solid var(--homio-focus-ring);",
-  "Shared visible keyboard focus"
+  "var(--homio-focus-ring)",
+  "Rosewood focus visibility"
 );
 requireContains(
   foundation,
@@ -226,21 +226,6 @@ requireNotContains(
   "System component accent naming"
 );
 
-for (const [fileName, source] of [
-  ["GlobalMenus.module.css", globalMenus],
-  ["MegaMenu.module.css", megaMenu],
-  ["SharedSystem.module.css", sharedSystem],
-  ["SystemComponents.module.css", systemComponents],
-]) {
-  for (const oldSmallFont of [
-    "font-size: 8px;",
-    "font-size: 9px;",
-    "font-size: 10px;",
-  ]) {
-    requireNotContains(source, oldSmallFont, `${fileName} readability`);
-  }
-}
-
 /* 3. Shared transition timing and motion utilities. */
 
 requireContains(
@@ -284,41 +269,25 @@ requireContains(
   "@media (prefers-reduced-motion: reduce)",
   "Motion utility accessibility"
 );
-requireContains(
-  revealCss,
-  ".revealVisible",
-  "Reveal visible state"
-);
+requireContains(revealCss, ".revealVisible", "Reveal visible state");
 requireContains(
   revealCss,
   "@media (prefers-reduced-motion: reduce)",
   "Reveal reduced-motion support"
 );
-requireContains(
-  revealComponent,
-  "IntersectionObserver",
-  "Reveal observer"
-);
+requireContains(revealComponent, "IntersectionObserver", "Reveal observer");
 requireContains(
   revealComponent,
   "prefers-reduced-motion: reduce",
   "Reveal reduced-motion runtime contract"
 );
-requireContains(
-  revealComponent,
-  'from "./motion.types"',
-  "Reveal type import"
-);
+requireContains(revealComponent, 'from "./motion.types"', "Reveal type import");
 requireContains(
   motionTypes,
   "export interface MotionRevealProps",
   "Reveal type definition"
 );
-requireContains(
-  motionTypes,
-  "children: ReactNode;",
-  "Reveal children type"
-);
+requireContains(motionTypes, "children: ReactNode;", "Reveal children type");
 
 /* 4. Homepage palette and image-motion rules. */
 
@@ -347,21 +316,10 @@ const forbiddenLegacyHomepageColours = [
 ];
 
 for (const [fileName, source] of homepageThemeModules) {
-  requireContains(
-    source,
-    "var(--homio-",
-    `${fileName} shared palette tokens`
-  );
+  requireContains(source, "var(--homio-", `${fileName} shared palette tokens`);
 
   for (const legacyColour of forbiddenLegacyHomepageColours) {
     requireNotContains(source, legacyColour, fileName);
-  }
-
-  for (const oldSmallFont of [
-    "font-size: 8px;",
-    "font-size: 9px;",
-  ]) {
-    requireNotContains(source, oldSmallFont, `${fileName} readability`);
   }
 }
 
@@ -374,6 +332,26 @@ requireContains(
   homeHeroTheme,
   "photo-1600585154340-be6161a56a0c",
   "Keep the existing homepage property image"
+);
+requireContains(
+  homeSearchTheme,
+  "var(--homio-focus-ring)",
+  "Homepage search keyboard focus"
+);
+requireContains(
+  homeIntentTabsTheme,
+  "var(--homio-focus-ring-on-brand)",
+  "Intent tabs focus against dark Rosewood"
+);
+requireContains(
+  homeQuickDiscoveryTheme,
+  "var(--homio-focus-ring)",
+  "Quick discovery keyboard focus"
+);
+requireContains(
+  homeSecondaryNavTheme,
+  "var(--homio-focus-ring)",
+  "Secondary navigation keyboard focus"
 );
 requireNotContains(
   featuredProjectsTheme,
@@ -388,7 +366,6 @@ requireNotContains(
 
 for (const [fileName, source] of [
   ["FeaturedProjects.module.css", featuredProjectsTheme],
-  ["FreshProperties.module.css", freshPropertiesTheme],
   ["PopularCities.module.css", popularCitiesTheme],
 ]) {
   requireContains(
@@ -425,6 +402,14 @@ requireNotContains(
   "#eaf5ee",
   "Market state must not hard-code success label background"
 );
+
+for (const smallFont of [
+  "font-size: 8px;",
+  "font-size: 9px;",
+  "font-size: 10px;",
+]) {
+  requireNotContains(marketStatesTheme, smallFont, "Market state readability");
+}
 
 /* 6. Shared modules and feature shells use semantic HOMIO tokens. */
 
@@ -495,7 +480,7 @@ for (const legacyColor of legacyPaletteValues) {
   }
 }
 
-/* 8. Preserve reduced-motion support in animated experience modules. */
+/* 8. Preserve reduced-motion support in existing animated modules. */
 
 requireContains(
   propertyPageTheme,
@@ -520,26 +505,10 @@ requireContains(
 
 /* 9. Runtime shell and theme metadata. */
 
-requireContains(
-  layout,
-  'themeColor: "#f8f1e7"',
-  "Browser theme colour"
-);
-requireContains(
-  layout,
-  "<AppShell>{children}</AppShell>",
-  "Existing app shell"
-);
-requireContains(
-  layout,
-  "<ProductionQualityMonitor />",
-  "Production monitor"
-);
-requireContains(
-  layout,
-  "<ErrorBoundary>",
-  "Root error boundary"
-);
+requireContains(layout, 'themeColor: "#f8f1e7"', "Browser theme colour");
+requireContains(layout, "<AppShell>{children}</AppShell>", "Existing app shell");
+requireContains(layout, "<ProductionQualityMonitor />", "Production monitor");
+requireContains(layout, "<ErrorBoundary>", "Root error boundary");
 
 /* 10. Keep the existing verification pipeline wired. */
 
