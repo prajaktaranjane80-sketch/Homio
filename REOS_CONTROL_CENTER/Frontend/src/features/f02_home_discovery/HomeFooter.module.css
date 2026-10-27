@@ -1,7 +1,7 @@
 .footer {
   padding-top: var(--space-20);
-  background: #0d0d0d;
-  color: #ffffff;
+  background: var(--homio-brand);
+  color: var(--homio-text-inverse);
 }
 
 .top {
@@ -28,7 +28,7 @@
   height: 36px;
   place-items: center;
   border-radius: 11px;
-  background: #ffffff;
+  background: var(--homio-text-inverse);
   color: var(--homio-text);
   font-size: var(--text-sm);
   font-weight: 800;
@@ -42,7 +42,7 @@
 
 .brandColumn > p {
   margin: var(--space-5) 0 0;
-  color: rgba(255, 255, 255, 0.56);
+  color: color-mix(in srgb, var(--homio-text-inverse) 80%, var(--homio-brand));
   line-height: 1.7;
 }
 
@@ -54,7 +54,7 @@
   min-height: 44px;
   padding-inline: var(--space-5);
   border-radius: var(--radius-pill);
-  background: #ffffff;
+  background: var(--homio-text-inverse);
   color: var(--homio-text);
   font-size: var(--text-sm);
   font-weight: 700;
@@ -74,19 +74,19 @@
 
 .column h3 {
   margin: 0 0 var(--space-4);
-  color: #ffffff;
+  color: var(--homio-text-inverse);
   font-size: var(--text-sm);
 }
 
 .column a {
   margin-top: 10px;
-  color: rgba(255, 255, 255, 0.52);
+  color: color-mix(in srgb, var(--homio-text-inverse) 78%, var(--homio-brand));
   font-size: var(--text-sm);
-  transition: color var(--ease-standard);
+  transition: color var(--motion-fast) var(--ease-standard-curve);
 }
 
 .column a:hover {
-  color: #ffffff;
+  color: var(--homio-text-inverse);
 }
 
 .middle {
@@ -95,13 +95,13 @@
   justify-content: space-between;
   gap: var(--space-6);
   padding-block: var(--space-6);
-  border-top: 1px solid rgba(255, 255, 255, 0.09);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  border-top: 1px solid color-mix(in srgb, var(--homio-text-inverse) 16%, var(--homio-brand));
+  border-bottom: 1px solid color-mix(in srgb, var(--homio-text-inverse) 16%, var(--homio-brand));
 }
 
 .middleLabel {
   display: block;
-  color: var(--homio-accent);
+  color: var(--homio-blush);
   font-size: var(--text-xs);
   font-weight: 800;
   letter-spacing: 0.15em;
@@ -111,7 +111,7 @@
   display: block;
   max-width: 700px;
   margin-top: 6px;
-  color: rgba(255, 255, 255, 0.82);
+  color: color-mix(in srgb, var(--homio-text-inverse) 90%, var(--homio-brand));
   font-size: var(--text-sm);
   font-weight: 500;
 }
@@ -125,9 +125,9 @@
 
 .regions span {
   padding: 7px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid color-mix(in srgb, var(--homio-text-inverse) 20%, var(--homio-brand));
   border-radius: var(--radius-pill);
-  color: rgba(255, 255, 255, 0.5);
+  color: color-mix(in srgb, var(--homio-text-inverse) 74%, var(--homio-brand));
   font-size: var(--text-xs);
 }
 
@@ -137,7 +137,7 @@
   align-items: center;
   gap: var(--space-6);
   min-height: 76px;
-  color: rgba(255, 255, 255, 0.38);
+  color: color-mix(in srgb, var(--homio-text-inverse) 68%, var(--homio-brand));
   font-size: var(--text-xs);
 }
 
@@ -155,7 +155,7 @@
 
 .legal a:hover,
 .social a:hover {
-  color: #ffffff;
+  color: var(--homio-text-inverse);
 }
 
 @media (max-width: 1000px) {
