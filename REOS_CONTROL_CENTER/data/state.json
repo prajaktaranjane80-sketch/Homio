@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-27T06:25:57+00:00",
+    "updated_at": "2026-10-27T07:01:48+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2481,15 +2481,77 @@
         "id": "AI-001-T09",
         "note": "AI-001-T09 completed through the existing Control Center after AI safety, security, and reliability regression tests (157 passed), entrypoint contract tests (15 passed), and complete ACRL regressions (1444 passed) succeeded in Actions run 40460955996 for verified commit 842165ea4d5935ed6d3c08c830a42f4cb1dfef39. Only T09 is completed. AI-001-AC01 through AI-001-AC06 remain PENDING; this transition does not claim gate-level acceptance."
       }
+    },
+    {
+      "id": "004f30af-cba5-4cda-bd3f-e42117e94312",
+      "time": "2026-10-27T07:01:47+00:00",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "AI-001-AC01",
+        "evidence": "Provider abstraction validated through the existing ModelGateway, explicit provider/model registries, stable public exports and disabled-by-default provider behavior. Focused tests: 34 passed. Full AI suite: 157; entrypoint: 15; ACRL: 1444. In-memory compilation: 32 files. Source SHA: d01ed67cfcc924c2812e6ccffd972976e2cc3a1a; Actions run: 40464507242."
+      }
+    },
+    {
+      "id": "03cd0f42-d3c7-4c41-abd4-ace1d0c01e1a",
+      "time": "2026-10-27T07:01:47+00:00",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "AI-001-AC02",
+        "evidence": "Authorization boundary validated through trusted-context requirements, domain-policy delegation, cross-tenant resource denial, fail-closed dependency errors and tool-call authorization. Focused tests: 59 passed. Full AI suite: 157; entrypoint: 15; ACRL: 1444. Source SHA: d01ed67cfcc924c2812e6ccffd972976e2cc3a1a; Actions run: 40464507242."
+      }
+    },
+    {
+      "id": "24a17d74-1d76-4660-873c-91f1cc77fba1",
+      "time": "2026-10-27T07:01:47+00:00",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "AI-001-AC03",
+        "evidence": "Tenant-scoped retrieval and rebuildable indexing primitives validated through source/request provenance, cross-tenant candidate rejection, stale-version rejection, deterministic Qdrant point IDs, idempotent upsert, version-aware replacement, tenant-boundary search and adversarial indexing regressions. Focused tests: 102 passed. Full AI suite: 157; entrypoint: 15; ACRL: 1444. Source SHA: d01ed67cfcc924c2812e6ccffd972976e2cc3a1a; Actions run: 40464507242."
+      }
+    },
+    {
+      "id": "ad97f55b-ea9e-4569-92b9-0bbca1191488",
+      "time": "2026-10-27T07:01:47+00:00",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "AI-001-AC04",
+        "evidence": "Model-selection and cost-control behavior validated through explicit model allowlists, deterministic aliases, provider/model capability checks, durable tenant budgets, idempotent usage settlement, concurrent reservation limits, UTC quota windows and fail-closed missing pricing. Focused tests: 48 passed. Full AI suite: 157; entrypoint: 15; ACRL: 1444. Source SHA: d01ed67cfcc924c2812e6ccffd972976e2cc3a1a; Actions run: 40464507242."
+      }
+    },
+    {
+      "id": "90db90ed-e2d6-4ca7-a322-60c34dea0104",
+      "time": "2026-10-27T07:01:48+00:00",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "AI-001-AC05",
+        "evidence": "Agent/tool execution boundary validated through registered-tool allowlists, server-side argument checks, trusted domain-policy decisions, replay protection, sensitive-mutation denial, shell/database/repository action rejection, bounded execution and disabled-by-default tool bridge. Focused tests: 46 passed. Full AI suite: 157; entrypoint: 15; ACRL: 1444. Source SHA: d01ed67cfcc924c2812e6ccffd972976e2cc3a1a; Actions run: 40464507242."
+      }
+    },
+    {
+      "id": "135b8da0-5227-469c-868a-e1b354b3fe47",
+      "time": "2026-10-27T07:01:48+00:00",
+      "type": "CRITERION_VERIFIED",
+      "payload": {
+        "id": "AI-001-AC06",
+        "evidence": "Fallback and observability behavior validated through configured fallback selection, explicit model-choice preservation, ambiguous primary-failure no-retry behavior, required telemetry failure handling, typed structured events and allowlisted/redacted logging. Focused tests: 22 passed. Full AI suite: 157; entrypoint: 15; ACRL: 1444. Source SHA: d01ed67cfcc924c2812e6ccffd972976e2cc3a1a; Actions run: 40464507242."
+      }
+    },
+    {
+      "id": "d1494f58-1f47-408e-83f8-3b0b2fb043be",
+      "time": "2026-10-27T07:01:48+00:00",
+      "type": "GATE_VALIDATED",
+      "payload": {
+        "gate": "AI-001"
+      }
     }
   ],
   "integrity": {
-    "sha256": "95b76067ce6b8b5adef98fa17cd3070d1281dd62c71efd60ee40408b2bcf4c3c"
+    "sha256": "d065ad493f1b2414e2c3dad24a60488b5a081a44ecf2dce8424ea6d68feaf763"
   },
   "execution": {
     "current_gate": "AI-001",
     "current_task": "AI-001-T10: Freeze AI platform and agents.",
-    "status": "CONTROL_CENTER_DRIVEN",
+    "status": "READY_FOR_APPROVAL",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
       "AI providers are abstracted behind the gateway.",
@@ -4592,7 +4654,7 @@
       "id": "AI-001",
       "name": "AI Platform & Agents",
       "objective": "Implement the governed AI gateway, retrieval, agents and tool execution layer.",
-      "status": "READY_FOR_VALIDATION",
+      "status": "VALIDATED",
       "current_subtask": "AI-001-T10",
       "subtasks": [
         {
@@ -4671,7 +4733,7 @@
           "id": "AI-001-T10",
           "title": "Freeze AI platform and agents",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "READY_FOR_APPROVAL"
         }
       ],
       "acceptance_criteria": [
@@ -4686,44 +4748,44 @@
         {
           "id": "AI-001-AC01",
           "criterion": "AI providers are abstracted behind the gateway.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "Provider abstraction validated through the existing ModelGateway, explicit provider/model registries, stable public exports and disabled-by-default provider behavior. Focused tests: 34 passed. Full AI suite: 157; entrypoint: 15; ACRL: 1444. In-memory compilation: 32 files. Source SHA: d01ed67cfcc924c2812e6ccffd972976e2cc3a1a; Actions run: 40464507242.",
+          "verified_at": "2026-10-27T07:01:47+00:00"
         },
         {
           "id": "AI-001-AC02",
           "criterion": "AI cannot bypass domain authorization.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "Authorization boundary validated through trusted-context requirements, domain-policy delegation, cross-tenant resource denial, fail-closed dependency errors and tool-call authorization. Focused tests: 59 passed. Full AI suite: 157; entrypoint: 15; ACRL: 1444. Source SHA: d01ed67cfcc924c2812e6ccffd972976e2cc3a1a; Actions run: 40464507242.",
+          "verified_at": "2026-10-27T07:01:47+00:00"
         },
         {
           "id": "AI-001-AC03",
           "criterion": "Retrieval is tenant-scoped and rebuildable.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "Tenant-scoped retrieval and rebuildable indexing primitives validated through source/request provenance, cross-tenant candidate rejection, stale-version rejection, deterministic Qdrant point IDs, idempotent upsert, version-aware replacement, tenant-boundary search and adversarial indexing regressions. Focused tests: 102 passed. Full AI suite: 157; entrypoint: 15; ACRL: 1444. Source SHA: d01ed67cfcc924c2812e6ccffd972976e2cc3a1a; Actions run: 40464507242.",
+          "verified_at": "2026-10-27T07:01:47+00:00"
         },
         {
           "id": "AI-001-AC04",
           "criterion": "Model selection and cost controls are configurable.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "Model-selection and cost-control behavior validated through explicit model allowlists, deterministic aliases, provider/model capability checks, durable tenant budgets, idempotent usage settlement, concurrent reservation limits, UTC quota windows and fail-closed missing pricing. Focused tests: 48 passed. Full AI suite: 157; entrypoint: 15; ACRL: 1444. Source SHA: d01ed67cfcc924c2812e6ccffd972976e2cc3a1a; Actions run: 40464507242.",
+          "verified_at": "2026-10-27T07:01:47+00:00"
         },
         {
           "id": "AI-001-AC05",
           "criterion": "Agent actions use authorized business tools.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "Agent/tool execution boundary validated through registered-tool allowlists, server-side argument checks, trusted domain-policy decisions, replay protection, sensitive-mutation denial, shell/database/repository action rejection, bounded execution and disabled-by-default tool bridge. Focused tests: 46 passed. Full AI suite: 157; entrypoint: 15; ACRL: 1444. Source SHA: d01ed67cfcc924c2812e6ccffd972976e2cc3a1a; Actions run: 40464507242.",
+          "verified_at": "2026-10-27T07:01:48+00:00"
         },
         {
           "id": "AI-001-AC06",
           "criterion": "Fallback and observability are operational.",
-          "status": "PENDING",
-          "evidence": null,
-          "verified_at": null
+          "status": "VERIFIED",
+          "evidence": "Fallback and observability behavior validated through configured fallback selection, explicit model-choice preservation, ambiguous primary-failure no-retry behavior, required telemetry failure handling, typed structured events and allowlisted/redacted logging. Focused tests: 22 passed. Full AI suite: 157; entrypoint: 15; ACRL: 1444. Source SHA: d01ed67cfcc924c2812e6ccffd972976e2cc3a1a; Actions run: 40464507242.",
+          "verified_at": "2026-10-27T07:01:48+00:00"
         }
       ],
       "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
