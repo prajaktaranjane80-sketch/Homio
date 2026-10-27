@@ -1,0 +1,10 @@
+
+name: Guarded AI-001-T09 transition
+description: Run AI safety, security, and reliability regressions, complete T09 through the canonical Control Center, and verify remote state readback.
+
+runs:
+  using: composite
+  steps:
+    - name: Run guarded T09 verification and transition
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_transition.py"
