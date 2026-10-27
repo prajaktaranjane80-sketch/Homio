@@ -165,18 +165,24 @@ for (const styleImport of requiredStyleImports) {
   previousImportPosition = position;
 }
 
-if (globalStyles.indexOf(requiredStyleImports[0]) !==
-    globalStyles.lastIndexOf(requiredStyleImports[0])) {
+if (
+  globalStyles.indexOf(requiredStyleImports[0]) !==
+  globalStyles.lastIndexOf(requiredStyleImports[0])
+) {
   fail("Token stylesheet must be imported exactly once.");
 }
 
-if (globalStyles.indexOf(requiredStyleImports[1]) !==
-    globalStyles.lastIndexOf(requiredStyleImports[1])) {
+if (
+  globalStyles.indexOf(requiredStyleImports[1]) !==
+  globalStyles.lastIndexOf(requiredStyleImports[1])
+) {
   fail("Base stylesheet must be imported exactly once.");
 }
 
-if (globalStyles.indexOf(requiredStyleImports[2]) !==
-    globalStyles.lastIndexOf(requiredStyleImports[2])) {
+if (
+  globalStyles.indexOf(requiredStyleImports[2]) !==
+  globalStyles.lastIndexOf(requiredStyleImports[2])
+) {
   fail("Foundation stylesheet must be imported exactly once.");
 }
 
@@ -490,8 +496,9 @@ if (
   fail("Responsive navigation desktop/mobile breakpoint contract is missing.");
 }
 
-if (!/min-width:\s*320px/.test(globalStyles)) {
-  fail("Global styles must retain the 320px minimum layout width.");
+// The 320px minimum width is owned by base.css, not globals.css.
+if (!/min-width:\s*320px/.test(baseStyles)) {
+  fail("Base styles must retain the 320px minimum layout width.");
 }
 
 //
