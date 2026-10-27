@@ -1,27 +1,27 @@
 HOMIO / REOS — COMPACT CONTROL PACKET v7.0
 ========================================================================
-CURRENT_GATE=AI-001
-CURRENT_TASK=AI-001: Approval required.
-STATUS=READY_FOR_APPROVAL
-CURRENT_SUBTASK=AI-001-T10
+CURRENT_GATE=APP-001
+CURRENT_TASK=APP-001-T01: Implement application shell and design system.
+STATUS=CONTROL_CENTER_DRIVEN
+CURRENT_SUBTASK=APP-001-T01
 RULE=CONTROL_CENTER_IS_ROADMAP_AUTHORITY
 
 SUBTASKS:
-AI-001-T01|DONE|Implement AI Gateway
-AI-001-T02|DONE|Implement provider and model registry
-AI-001-T03|DONE|Implement embeddings and retrieval integration
-AI-001-T04|DONE|Implement RAG pipeline
-AI-001-T05|DONE|Implement agent runtime and tools
-AI-001-T06|DONE|Implement AI authorization and tenant isolation
-AI-001-T07|DONE|Implement cost controls and usage tracking
-AI-001-T08|DONE|Implement AI observability and fallback
-AI-001-T09|DONE|Run AI safety security and reliability tests
-AI-001-T10|READY_FOR_APPROVAL|Freeze AI platform and agents
+APP-001-T01|CURRENT|Implement application shell and design system
+APP-001-T02|PENDING|Implement authentication and tenant UX
+APP-001-T03|PENDING|Implement buyer workflows
+APP-001-T04|PENDING|Implement broker workflows
+APP-001-T05|PENDING|Implement builder workflows
+APP-001-T06|PENDING|Implement admin and governance workflows
+APP-001-T07|PENDING|Integrate search, lead, inventory and deal APIs
+APP-001-T08|PENDING|Integrate AI capabilities with policy controls
+APP-001-T09|PENDING|Run accessibility, security and E2E tests
+APP-001-T10|PENDING|Freeze application release candidate
 
 ACCEPTANCE CRITERIA:
-AI-001-AC01|VERIFIED|AI providers are abstracted behind the gateway.
-AI-001-AC02|VERIFIED|AI cannot bypass domain authorization.
-AI-001-AC03|VERIFIED|Retrieval is tenant-scoped and rebuildable.
-AI-001-AC04|VERIFIED|Model selection and cost controls are configurable.
-AI-001-AC05|VERIFIED|Agent actions use authorized business tools.
-AI-001-AC06|VERIFIED|Fallback and observability are operational.
+APP-001-AC01|PENDING|Applications derive from frozen contracts.
+APP-001-AC02|PENDING|Buyer, broker and builder access is correctly isolated.
+APP-001-AC03|PENDING|Critical workflows are end-to-end functional.
+APP-001-AC04|PENDING|AI actions respect authorization.
+APP-001-AC05|PENDING|Accessibility, security and E2E tests pass.
+APP-001-AC06|PENDING|No business logic is duplicated in the frontend.

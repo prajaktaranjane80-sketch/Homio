@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-27T07:01:48+00:00",
+    "updated_at": "2026-10-27T09:12:50+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2543,25 +2543,42 @@
       "payload": {
         "gate": "AI-001"
       }
+    },
+    {
+      "id": "49b8e70e-846b-4f77-aa8c-f3a7a0c1d780",
+      "time": "2026-10-27T09:12:50+00:00",
+      "type": "GATE_AUTO_MATERIALIZED",
+      "payload": {
+        "gate": "APP-001"
+      }
+    },
+    {
+      "id": "570743b0-7601-4408-af55-77b99b394cee",
+      "time": "2026-10-27T09:12:50+00:00",
+      "type": "GATE_APPROVED_AND_FROZEN",
+      "payload": {
+        "gate": "AI-001",
+        "next_gate": "APP-001"
+      }
     }
   ],
   "integrity": {
-    "sha256": "d065ad493f1b2414e2c3dad24a60488b5a081a44ecf2dce8424ea6d68feaf763"
+    "sha256": "095aa1051f70427850825444990b2038173fabbecbd3b83cb3aaa7e08cb50f7f"
   },
   "execution": {
-    "current_gate": "AI-001",
-    "current_task": "AI-001-T10: Freeze AI platform and agents.",
-    "status": "READY_FOR_APPROVAL",
+    "current_gate": "APP-001",
+    "current_task": "APP-001-T01: Implement application shell and design system.",
+    "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
-      "AI providers are abstracted behind the gateway.",
-      "AI cannot bypass domain authorization.",
-      "Retrieval is tenant-scoped and rebuildable.",
-      "Model selection and cost controls are configurable.",
-      "Agent actions use authorized business tools.",
-      "Fallback and observability are operational."
+      "Applications derive from frozen contracts.",
+      "Buyer, broker and builder access is correctly isolated.",
+      "Critical workflows are end-to-end functional.",
+      "AI actions respect authorization.",
+      "Accessibility, security and E2E tests pass.",
+      "No business logic is duplicated in the frontend."
     ],
-    "current_subtask": "AI-001-T10"
+    "current_subtask": "APP-001-T01"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -2657,13 +2674,13 @@
         "id": "PLAN-015",
         "gate": "AI-001",
         "name": "AI Platform & Agents",
-        "status": "CURRENT"
+        "status": "COMPLETE"
       },
       {
         "id": "PLAN-016",
         "gate": "APP-001",
         "name": "Buyer / Broker / Builder Applications",
-        "status": "FUTURE"
+        "status": "CURRENT"
       },
       {
         "id": "PLAN-017",
@@ -4654,7 +4671,7 @@
       "id": "AI-001",
       "name": "AI Platform & Agents",
       "objective": "Implement the governed AI gateway, retrieval, agents and tool execution layer.",
-      "status": "VALIDATED",
+      "status": "APPROVED",
       "current_subtask": "AI-001-T10",
       "subtasks": [
         {
@@ -4733,7 +4750,8 @@
           "id": "AI-001-T10",
           "title": "Freeze AI platform and agents",
           "priority": "CRITICAL",
-          "status": "READY_FOR_APPROVAL"
+          "status": "DONE",
+          "completed_at": "2026-10-27T09:12:50+00:00"
         }
       ],
       "acceptance_criteria": [
@@ -4790,6 +4808,129 @@
       ],
       "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
       "created_at": "2026-10-25T11:58:27+00:00"
+    },
+    "APP-001": {
+      "id": "APP-001",
+      "name": "Buyer / Broker / Builder Applications",
+      "objective": "Build user-facing applications from frozen domain and platform contracts.",
+      "status": "CURRENT",
+      "current_subtask": "APP-001-T01",
+      "subtasks": [
+        {
+          "id": "APP-001-T01",
+          "title": "Implement application shell and design system",
+          "priority": "CRITICAL",
+          "status": "CURRENT"
+        },
+        {
+          "id": "APP-001-T02",
+          "title": "Implement authentication and tenant UX",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "APP-001-T03",
+          "title": "Implement buyer workflows",
+          "priority": "HIGH",
+          "status": "PENDING"
+        },
+        {
+          "id": "APP-001-T04",
+          "title": "Implement broker workflows",
+          "priority": "HIGH",
+          "status": "PENDING"
+        },
+        {
+          "id": "APP-001-T05",
+          "title": "Implement builder workflows",
+          "priority": "HIGH",
+          "status": "PENDING"
+        },
+        {
+          "id": "APP-001-T06",
+          "title": "Implement admin and governance workflows",
+          "priority": "HIGH",
+          "status": "PENDING"
+        },
+        {
+          "id": "APP-001-T07",
+          "title": "Integrate search, lead, inventory and deal APIs",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "APP-001-T08",
+          "title": "Integrate AI capabilities with policy controls",
+          "priority": "HIGH",
+          "status": "PENDING"
+        },
+        {
+          "id": "APP-001-T09",
+          "title": "Run accessibility, security and E2E tests",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "APP-001-T10",
+          "title": "Freeze application release candidate",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        }
+      ],
+      "acceptance_criteria": [
+        "Applications derive from frozen contracts.",
+        "Buyer, broker and builder access is correctly isolated.",
+        "Critical workflows are end-to-end functional.",
+        "AI actions respect authorization.",
+        "Accessibility, security and E2E tests pass.",
+        "No business logic is duplicated in the frontend."
+      ],
+      "criteria_state": [
+        {
+          "id": "APP-001-AC01",
+          "criterion": "Applications derive from frozen contracts.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "APP-001-AC02",
+          "criterion": "Buyer, broker and builder access is correctly isolated.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "APP-001-AC03",
+          "criterion": "Critical workflows are end-to-end functional.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "APP-001-AC04",
+          "criterion": "AI actions respect authorization.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "APP-001-AC05",
+          "criterion": "Accessibility, security and E2E tests pass.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "APP-001-AC06",
+          "criterion": "No business logic is duplicated in the frontend.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        }
+      ],
+      "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
+      "created_at": "2026-10-27T09:12:50+00:00"
     }
   },
   "autonomous_engine": {
