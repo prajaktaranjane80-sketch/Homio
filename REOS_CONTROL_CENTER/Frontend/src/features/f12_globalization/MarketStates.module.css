@@ -2,7 +2,6 @@
   --state-ink: var(--homio-text);
   --state-muted: var(--homio-text-muted);
   --state-border: var(--homio-border);
-  --state-gold: var(--homio-accent);
 
   position: relative;
   display: flex;
@@ -89,7 +88,7 @@
   align-items: center;
   gap: 8px;
   color: var(--homio-accent-strong);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 850;
   letter-spacing: 0.14em;
   line-height: 1.5;
@@ -142,7 +141,7 @@
   padding-top: 15px;
   border-top: 1px solid color-mix(in srgb, var(--homio-brand) 8%, transparent);
   color: var(--homio-text-muted);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.7;
 }
 
@@ -156,13 +155,13 @@
   border-radius: 50%;
   background: var(--homio-surface);
   color: var(--homio-text-muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
 }
 
 .comingCard {
   --coming-ink: var(--homio-text-inverse);
-  --coming-gold: var(--homio-accent);
+  --coming-accent: var(--homio-blush);
 
   position: relative;
   display: grid;
@@ -204,7 +203,7 @@
   height: 150px;
   place-items: center;
   justify-self: center;
-  color: var(--coming-gold);
+  color: var(--coming-accent);
 }
 
 .comingOrbit,
@@ -241,7 +240,7 @@
   box-shadow:
     0 0 0 9px color-mix(in srgb, var(--homio-accent) 5%, transparent),
     0 16px 35px rgb(0 0 0 / 15%);
-  color: var(--coming-gold);
+  color: var(--coming-accent);
   font-size: 32px;
   font-weight: 650;
   letter-spacing: -0.08em;
@@ -261,8 +260,8 @@
 }
 
 .comingEyebrow {
-  color: var(--coming-gold);
-  font-size: 9px;
+  color: var(--coming-accent);
+  font-size: 11px;
   font-weight: 850;
   letter-spacing: 0.16em;
 }
@@ -277,7 +276,7 @@
   border-radius: 999px;
   background: rgb(255 255 255 / 4%);
   color: var(--homio-accent-soft);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 820;
   letter-spacing: 0.065em;
 }
@@ -329,7 +328,7 @@
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--homio-accent) 31%, transparent);
   border-radius: 10px;
-  color: var(--coming-gold);
+  color: var(--coming-accent);
   font-size: 15px;
 }
 
@@ -347,7 +346,7 @@
 .comingFooter small {
   margin-top: 5px;
   color: rgb(255 255 255 / 56%);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.6;
 }
 
@@ -371,8 +370,12 @@
 }
 
 .noticeActive {
-  border-color: #d9e6dc;
-  background: linear-gradient(120deg, #f4faf6, var(--homio-surface));
+  border-color: color-mix(in srgb, var(--homio-success) 24%, var(--homio-surface));
+  background: linear-gradient(
+    120deg,
+    var(--homio-success-soft),
+    var(--homio-surface)
+  );
 }
 
 .noticeBuilt {
@@ -410,8 +413,8 @@
 }
 
 .noticeActive .noticeIcon {
-  border-color: #cfe3d5;
-  color: #36775c;
+  border-color: color-mix(in srgb, var(--homio-success) 22%, var(--homio-surface));
+  color: var(--homio-success);
 }
 
 .noticeBuilt .noticeIcon {
@@ -450,16 +453,16 @@
   border-radius: 999px;
   background: var(--homio-surface);
   color: var(--homio-text-muted);
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 850;
   letter-spacing: 0.045em;
   line-height: 1.4;
 }
 
 .noticeLabelActive {
-  border-color: #cde1d3;
-  background: #eaf5ee;
-  color: #36775c;
+  border-color: color-mix(in srgb, var(--homio-success) 28%, var(--homio-surface));
+  background: var(--homio-success-soft);
+  color: var(--homio-success);
 }
 
 .noticeLabelBuilt {
@@ -475,7 +478,7 @@
 .noticeDescription {
   margin: 8px 0 0;
   color: var(--notice-muted);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.75;
 }
 
