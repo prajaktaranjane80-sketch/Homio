@@ -48,6 +48,9 @@ def test_orchestrator_calls_verification_and_existing_transitions():
     )
     assert "control_center_transition_ai001_t01:" in main
     assert "[CONTROL-CENTER-COMPLETE-AI-001-T01]" in main
+    assert "control_center_approve_ai001:" in main
+    assert "[CONTROL-CENTER-APPROVE-AI-001]" in main
+    assert "uses: ./.github/workflows/reusable-ai001-t10-approval.yml" in main
 
 
 def test_all_reusable_workflows_are_in_push_and_pr_filters():
@@ -57,6 +60,7 @@ def test_all_reusable_workflows_are_in_push_and_pr_filters():
         '".github/workflows/backend-ci.yml"',
         '".github/workflows/reusable-backend-verification.yml"',
         '".github/workflows/reusable-ai001-t01-transition.yml"',
+        '".github/workflows/reusable-ai001-t10-approval.yml"',
         '".github/workflows/reusable-core008-t06-transition.yml"',
         '".github/workflows/reusable-core008-t07-transition.yml"',
         '".github/workflows/reusable-core008-t08-transition.yml"',
@@ -73,6 +77,7 @@ def test_reusable_workflows_are_declared_with_workflow_call():
     for filename in (
         "reusable-backend-verification.yml",
         "reusable-ai001-t01-transition.yml",
+        "reusable-ai001-t10-approval.yml",
         "reusable-core008-t06-transition.yml",
         "reusable-core008-t07-transition.yml",
         "reusable-core008-t08-transition.yml",
@@ -512,3 +517,74 @@ def test_t10_approval_requires_the_exact_owner_commit_prefix():
 
     assert expected_guard in main
     assert expected_guard in reusable
+
+
+def test_ai001_t10_guarded_approval_and_freeze_wiring():
+    import ast
+
+    main = read(WORKFLOWS / "backend-ci.yml")
+    reusable_path = WORKFLOWS / "reusable-ai001-t10-approval.yml"
+    action_path = ACTIONS / "transitions/ai001-t10-approval/action.yml"
+    script_path = ACTIONS / "transitions/ai001-t10-approval/scripts/guarded_approval.py"
+    request_path = ROOT / "REOS_CONTROL_CENTER/evidence/AI-001/T10-freeze-approval-request.md"
+
+    reusable = read(reusable_path)
+    action = read(action_path)
+    script = read(script_path)
+    request = read(request_path)
+
+    try:
+        ast.parse(script, filename=str(script_path))
+    except SyntaxError as exc:
+        raise AssertionError(
+            f"AI-001 T10 guarded approval Python is invalid: {exc}"
+        ) from exc
+
+    guard = (
+        "if: $" + "{{ github.event_name == 'push' && "
+        "github.ref == 'refs/heads/reos-development' && "
+        "startsWith(github.event.head_commit.message, "
+        "'[CONTROL-CENTER-APPROVE-AI-001]') }}"
+    )
+    assert guard in main
+    assert guard in reusable
+    assert "control_center_approve_ai001:" in main
+    assert "needs: verification" in main
+    assert "workflow_call:" in reusable
+    assert (
+        "uses: ./.github/actions/homio-backend-ci/"
+        "transitions/ai001-t10-approval"
+    ) in reusable
+    assert "guarded_approval.py" in action
+
+    for binding in (
+        "EXPECTED_SHA: " + "$" + "{{ github.sha }}",
+        "VERIFIED_CODE_SHA: " + "$" + "{{ github.sha }}",
+        "ACTIONS_RUN_ID: " + "$" + "{{ github.run_id }}",
+        "ACTIONS_SERVER_URL: " + "$" + "{{ github.server_url }}",
+        "ACTIONS_REPOSITORY: " + "$" + "{{ github.repository }}",
+    ):
+        assert binding in reusable
+
+    for safeguard in (
+        "AI-001-T10",
+        "READY_FOR_APPROVAL",
+        "VALIDATED",
+        "verify-state",
+        "approve-gate",
+        "AI-001-AC01",
+        "AI-001-AC06",
+        "APP-001-T01",
+        "CANONICAL_BRANCH_HEAD",
+        "AI-001-T10 APPROVAL AND CANONICAL READBACK: PASS",
+    ):
+        assert safeguard in script
+
+    assert "STATE.write_text" not in script
+    assert "STATE_PATH.write_text" not in script
+    assert "--force" not in script
+    assert (
+        "APPROVAL: AUTHORIZE AI-001-T10 FINAL APPROVAL AND FREEZE"
+        in request
+    )
+    assert "SCOPE: AI-001-T10 only" in request
