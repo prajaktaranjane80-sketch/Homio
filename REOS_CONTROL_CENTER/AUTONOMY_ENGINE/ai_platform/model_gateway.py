@@ -1,8 +1,10 @@
 """Provider-independent, fail-closed HOMIO AI request gateway.
 
-This is the T01 orchestration foundation. It deliberately has no provider SDK,
-HTTP framework, database or ACRL runtime dependency. T02/T06/T07/T08 supply the
-approved adapters and durable controls through the ports defined in ports.py.
+The gateway delegates model selection, authorization, usage accounting,
+provider calls and observability to injected ports. Fallback is permitted
+only from trusted server configuration and only before a provider request
+has been attempted. An ambiguous provider failure is never automatically
+retried because the first attempt may already have incurred cost or effects.
 """
 from __future__ import annotations
 
@@ -72,9 +74,7 @@ class ModelGateway:
             if value is None
         ]
         if missing:
-            raise ValueError(
-                "Required AI gateway dependencies are missing"
-            )
+            raise ValueError("Required AI gateway dependencies are missing")
         if not isinstance(settings, GatewaySettings):
             raise TypeError("settings must be GatewaySettings")
 
@@ -106,23 +106,11 @@ class ModelGateway:
             raise ModelResolutionError()
 
         route = self._resolve_route(selected_model)
-        if not route.enabled:
-            raise ModelResolutionError()
-
-        input_limit = min(
-            self._settings.max_input_chars,
-            route.max_input_chars,
+        output_tokens = self._validate_route_limits(
+            request,
+            route,
+            requested_output_tokens=request.max_output_tokens,
         )
-        if len(request.input_text) > input_limit:
-            raise InvalidRequestError()
-
-        output_limit = min(
-            self._settings.max_output_tokens,
-            route.max_output_tokens,
-        )
-        output_tokens = request.max_output_tokens or output_limit
-        if output_tokens > output_limit:
-            raise InvalidRequestError()
 
         decision = self._authorize(context, request.operation)
         if not decision.allowed:
@@ -137,6 +125,40 @@ class ModelGateway:
                 )
             )
             raise AuthorizationDeniedError()
+
+        provider = None
+        provider_preselected = False
+
+        # Fallback candidates are a trusted server setting. An explicit
+        # per-request model choice is honored as-is and is not silently changed.
+        # The resolver is only queried here; no provider generation is attempted.
+        if (
+            self._settings.fallback_model_ids
+            and request.model_id is None
+        ):
+            route, output_tokens, provider, used_fallback = (
+                self._select_available_route(
+                    request=request,
+                    primary_route=route,
+                    primary_output_tokens=output_tokens,
+                    started=started,
+                )
+            )
+            provider_preselected = True
+
+            if used_fallback:
+                # Required telemetry must succeed before quota reservation and
+                # before any provider request is attempted.
+                self._emit_required(
+                    self._event(
+                        request,
+                        "MODEL_FALLBACK_SELECTED",
+                        "FALLBACK_SELECTED",
+                        route=route,
+                        error_code="AI_PRIMARY_PROVIDER_UNAVAILABLE",
+                        started=started,
+                    )
+                )
 
         reservation = self._reserve(
             request,
@@ -162,24 +184,25 @@ class ModelGateway:
             )
             raise
 
-        try:
-            provider = self._provider_resolver.get(route.provider_id)
-        except Exception:
-            self._release_best_effort(
-                reservation,
-                "AI_PROVIDER_UNAVAILABLE",
-            )
-            self._emit_best_effort(
-                self._event(
-                    request,
-                    "REQUEST_FAILED",
-                    "FAILED",
-                    route=route,
-                    error_code="AI_PROVIDER_UNAVAILABLE",
-                    started=started,
+        if not provider_preselected:
+            try:
+                provider = self._provider_resolver.get(route.provider_id)
+            except Exception:
+                self._release_best_effort(
+                    reservation,
+                    "AI_PROVIDER_UNAVAILABLE",
                 )
-            )
-            raise ProviderUnavailableError() from None
+                self._emit_best_effort(
+                    self._event(
+                        request,
+                        "REQUEST_FAILED",
+                        "FAILED",
+                        route=route,
+                        error_code="AI_PROVIDER_UNAVAILABLE",
+                        started=started,
+                    )
+                )
+                raise ProviderUnavailableError() from None
 
         if provider is None or not callable(
             getattr(provider, "generate", None)
@@ -215,7 +238,7 @@ class ModelGateway:
         except Exception:
             # The request may have reached the provider before a timeout or
             # transport failure. Account as FAILED with unknown usage instead
-            # of releasing the reservation as though no cost arose.
+            # of releasing the reservation or retrying an ambiguous call.
             self._settle_failed(
                 reservation,
                 route,
@@ -305,6 +328,103 @@ class ModelGateway:
             finish_reason=provider_response.finish_reason,
             usage=provider_response.usage,
         )
+
+    def _select_available_route(
+        self,
+        *,
+        request: AIRequest,
+        primary_route: ModelRoute,
+        primary_output_tokens: int,
+        started: float,
+    ) -> tuple[ModelRoute, int, object | None, bool]:
+        """Preflight configured routes without attempting a provider request."""
+        primary_provider = self._get_provider_if_available(primary_route)
+        if primary_provider is not None:
+            return (
+                primary_route,
+                primary_output_tokens,
+                primary_provider,
+                False,
+            )
+
+        for fallback_model_id in self._settings.fallback_model_ids:
+            try:
+                candidate = self._resolve_route(fallback_model_id)
+            except ModelResolutionError:
+                # A stale or disabled candidate is not allowed to block
+                # other explicitly configured candidates.
+                continue
+
+            if candidate.model_id == primary_route.model_id:
+                continue
+
+            try:
+                candidate_output_tokens = self._validate_route_limits(
+                    request,
+                    candidate,
+                    requested_output_tokens=request.max_output_tokens,
+                )
+            except InvalidRequestError:
+                # Do not silently lower a caller-specified output limit.
+                continue
+
+            candidate_provider = self._get_provider_if_available(candidate)
+            if candidate_provider is None:
+                continue
+
+            return (
+                candidate,
+                candidate_output_tokens,
+                candidate_provider,
+                True,
+            )
+
+        self._emit_best_effort(
+            self._event(
+                request,
+                "REQUEST_FAILED",
+                "FAILED",
+                route=primary_route,
+                error_code="AI_PROVIDER_UNAVAILABLE",
+                started=started,
+            )
+        )
+        raise ProviderUnavailableError()
+
+    def _get_provider_if_available(self, route: ModelRoute) -> object | None:
+        """Resolve an injected provider without generating a request."""
+        try:
+            provider = self._provider_resolver.get(route.provider_id)
+        except Exception:
+            return None
+
+        if provider is None or not callable(
+            getattr(provider, "generate", None)
+        ):
+            return None
+        return provider
+
+    def _validate_route_limits(
+        self,
+        request: AIRequest,
+        route: ModelRoute,
+        *,
+        requested_output_tokens: int | None,
+    ) -> int:
+        if len(request.input_text) > min(
+            self._settings.max_input_chars,
+            route.max_input_chars,
+        ):
+            raise InvalidRequestError()
+
+        output_limit = min(
+            self._settings.max_output_tokens,
+            route.max_output_tokens,
+        )
+        output_tokens = requested_output_tokens or output_limit
+        if output_tokens > output_limit:
+            raise InvalidRequestError()
+        return output_tokens
 
     def _resolve_route(self, model_id: str) -> ModelRoute:
         try:
@@ -432,8 +552,8 @@ class ModelGateway:
                 reason_code=reason_code,
             )
         except Exception:
-            # The original safe failure remains primary; T07 must reconcile
-            # unresolved reservations using the durable accounting contract.
+            # Keep the original safe error primary. Unresolved usage must be
+            # reconciled through the existing durable accounting contract.
             pass
 
     def _event(
@@ -478,6 +598,5 @@ class ModelGateway:
         try:
             self._observability.emit(event)
         except Exception:
-            # T08 will harden operational telemetry/error-path guarantees. Never
-            # expose sink exceptions or raw sensitive event payloads to callers.
+            # Never expose sink exceptions or sensitive internal details.
             pass
