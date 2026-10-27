@@ -40,3 +40,4 @@ Run the full existing AI platform safety, security, and reliability regression i
 Completion is permitted only after every required verification succeeds on the exact commit containing this request. On success, record the actual test counts, verified code SHA, Actions run URL, source blob SHAs, controller transition, and canonical readback in `T09-safety-security-reliability-evidence.md`.
 
 This request is not evidence that the tests have passed. It authorizes the workflow to run and verify them.
+Trigger note: Run guarded AI-001-T09 verification against this exact commit.
