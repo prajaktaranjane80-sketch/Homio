@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -168,6 +169,84 @@ def test_baseline_scope_passes_when_t16_inspected_every_path():
         ("REOS_CONTROL_CENTER/data/state.json", "source.py"),
         {"REOS_CONTROL_CENTER/data/state.json", "source.py"},
     )
+
+
+def test_clean_source_snapshot_ignores_post_ci_artifacts_and_pins_head(
+    tmp_path: Path,
+):
+    workspace = tmp_path / "workspace"
+    runner_temp = tmp_path / "runner-temp"
+    workspace.mkdir()
+    runner_temp.mkdir()
+
+    def git(*args: str) -> str:
+        result = subprocess.run(
+            ["git", "-C", str(workspace), *args],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        if result.returncode:
+            raise AssertionError(
+                result.stderr.decode("utf-8", errors="replace")
+            )
+        return result.stdout.decode("utf-8").strip()
+
+    subprocess.run(
+        ["git", "init", str(workspace)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=True,
+    )
+    git("config", "user.name", "HOMIO CI Test")
+    git("config", "user.email", "homio-ci-test@example.invalid")
+
+    tracked = workspace / "tracked.py"
+    tracked.write_text("VALUE = 1\n", encoding="utf-8")
+    git("add", "--", "tracked.py")
+    git("commit", "-m", "test fixture")
+    head = git("rev-parse", "HEAD")
+    blob_sha = git("rev-parse", "HEAD:tracked.py")
+
+    # Simulate disposable output left by a successful test suite.
+    (workspace / "generated-by-test.log").write_text(
+        "temporary CI output\n",
+        encoding="utf-8",
+    )
+
+    snapshot = cache_adapter._create_clean_source_snapshot(
+        workspace,
+        runner_temp,
+        head,
+        "12345",
+    )
+
+    assert snapshot.is_relative_to(runner_temp.resolve())
+    assert cache_adapter._git_text(snapshot, "rev-parse", "HEAD") == head
+    assert not (snapshot / "generated-by-test.log").exists()
+    assert cache_adapter._git(
+        snapshot,
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all",
+    ) == b""
+
+    cache_adapter._assert_paths_match_head(
+        snapshot,
+        ("tracked.py",),
+        {"tracked.py": blob_sha},
+    )
+
+    (snapshot / "tracked.py").write_text(
+        "VALUE = 2\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(cache_adapter.CacheInitializationError):
+        cache_adapter._assert_paths_match_head(
+            snapshot,
+            ("tracked.py",),
+            {"tracked.py": blob_sha},
+        )
 
 
 def test_composite_initializes_and_publishes_cache_only_after_ci_passes():
