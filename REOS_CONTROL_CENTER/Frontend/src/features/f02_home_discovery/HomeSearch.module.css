@@ -4,12 +4,10 @@
   align-items: stretch;
   gap: var(--space-2);
   padding: 8px;
-  border: 1px solid rgb(255 255 255 / 62%);
+  border: 1px solid var(--homio-border);
   border-radius: 24px;
-  background: rgb(255 255 255 / 98%);
-  box-shadow:
-    0 18px 50px rgb(17 17 17 / 18%),
-    0 2px 8px rgb(17 17 17 / 5%);
+  background: var(--homio-surface);
+  box-shadow: var(--shadow-lg);
   transition:
     border-color var(--ease-standard),
     box-shadow var(--ease-standard);
@@ -17,9 +15,7 @@
 
 .search:focus-within {
   border-color: var(--homio-accent);
-  box-shadow:
-    0 18px 50px rgb(17 17 17 / 18%),
-    0 0 0 3px rgb(168 79 118 / 14%);
+  box-shadow: var(--shadow-lg), var(--homio-focus-shadow);
 }
 
 .location {
@@ -36,7 +32,7 @@
 
 .location:focus-within {
   background: var(--homio-surface-soft);
-  border-color: rgb(168 79 118 / 24%);
+  border-color: var(--homio-border-focus);
 }
 
 .icon {
@@ -90,8 +86,8 @@
 }
 
 .field input:focus-visible {
-  outline: 2px solid var(--homio-accent);
-  outline-offset: 4px;
+  outline: 3px solid var(--homio-focus-ring);
+  outline-offset: 3px;
 }
 
 .searchButton {
@@ -102,15 +98,15 @@
   min-width: 128px;
   min-height: 62px;
   padding-inline: 1.6rem;
-  border: 1px solid var(--homio-accent-strong);
+  border: 1px solid var(--homio-brand);
   border-radius: 17px;
-  background: var(--homio-accent-strong);
-  color: #ffffff;
+  background: var(--homio-brand);
+  color: var(--homio-text-inverse);
   cursor: pointer;
   font-size: 0.95rem;
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.01em;
-  box-shadow: 0 5px 14px rgb(130 60 91 / 18%);
+  box-shadow: var(--shadow-md);
   transition:
     transform var(--ease-standard),
     background-color var(--ease-standard),
@@ -120,9 +116,9 @@
 
 .searchButton:hover {
   transform: translateY(-1px);
-  border-color: var(--homio-brand);
-  background: var(--homio-brand);
-  box-shadow: 0 8px 20px rgb(17 17 17 / 18%);
+  border-color: var(--homio-brand-soft);
+  background: var(--homio-brand-soft);
+  box-shadow: var(--shadow-lg);
 }
 
 .searchButton:active {
@@ -130,7 +126,7 @@
 }
 
 .searchButton:focus-visible {
-  outline: 3px solid var(--homio-champagne);
+  outline: 3px solid var(--homio-focus-ring);
   outline-offset: 3px;
 }
 
