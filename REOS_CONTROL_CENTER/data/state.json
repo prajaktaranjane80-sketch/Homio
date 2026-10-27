@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-26T16:07:47+00:00",
+    "updated_at": "2026-10-27T05:12:09+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2454,14 +2454,23 @@
         "id": "AI-001-T06",
         "note": "AI-001-T06 completed through the existing Control Center after AI authorization, tenant-isolation and tool-boundary tests (135 passed), entrypoint contract tests (15 passed), and complete ACRL regressions (1444 passed) succeeded in Actions run 40355928677 for verified commit 0de0475c91b6d7a30357f1aacfd6870b65aafc41. Only T06 is completed. AI-001-AC01 through AI-001-AC06 remain PENDING; this transition does not claim gate-level acceptance."
       }
+    },
+    {
+      "id": "dd6942c0-6642-4f45-b555-9605dfc289c2",
+      "time": "2026-10-27T05:12:09+00:00",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "AI-001-T07",
+        "note": "AI-001-T07 completed through the existing Control Center after AI platform cost-control and usage-accounting tests (151 passed), entrypoint contract tests (15 passed), and complete ACRL regressions (1444 passed) succeeded in Actions run 40453851901 for verified commit 56412641d2f7b7ecfc8bbba20728dbb6bf19d51c. Only T07 is completed. AI-001-AC01 through AI-001-AC06 remain PENDING; this transition does not claim gate-level acceptance."
+      }
     }
   ],
   "integrity": {
-    "sha256": "807925bbb158acfa52aebcb418bb341ea1a95e02197bdbf6d5dfaf635a6f39fa"
+    "sha256": "4def00d1b5796a61c0057dc85d249a449cdd3089987aa4f2d874fd96d72492a0"
   },
   "execution": {
     "current_gate": "AI-001",
-    "current_task": "AI-001-T07: Implement cost controls and usage tracking.",
+    "current_task": "AI-001-T08: Implement AI observability and fallback.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
@@ -2472,7 +2481,7 @@
       "Agent actions use authorized business tools.",
       "Fallback and observability are operational."
     ],
-    "current_subtask": "AI-001-T07"
+    "current_subtask": "AI-001-T08"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -4566,7 +4575,7 @@
       "name": "AI Platform & Agents",
       "objective": "Implement the governed AI gateway, retrieval, agents and tool execution layer.",
       "status": "CURRENT",
-      "current_subtask": "AI-001-T07",
+      "current_subtask": "AI-001-T08",
       "subtasks": [
         {
           "id": "AI-001-T01",
@@ -4620,13 +4629,15 @@
           "id": "AI-001-T07",
           "title": "Implement cost controls and usage tracking",
           "priority": "HIGH",
-          "status": "CURRENT"
+          "status": "DONE",
+          "completed_at": "2026-10-27T05:12:09+00:00",
+          "note": "AI-001-T07 completed through the existing Control Center after AI platform cost-control and usage-accounting tests (151 passed), entrypoint contract tests (15 passed), and complete ACRL regressions (1444 passed) succeeded in Actions run 40453851901 for verified commit 56412641d2f7b7ecfc8bbba20728dbb6bf19d51c. Only T07 is completed. AI-001-AC01 through AI-001-AC06 remain PENDING; this transition does not claim gate-level acceptance."
         },
         {
           "id": "AI-001-T08",
           "title": "Implement AI observability and fallback",
           "priority": "HIGH",
-          "status": "PENDING"
+          "status": "CURRENT"
         },
         {
           "id": "AI-001-T09",
