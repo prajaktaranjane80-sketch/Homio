@@ -17,6 +17,7 @@ class GatewaySettings:
     max_output_tokens: int = 512
     max_output_chars: int = 24_000
     request_timeout_seconds: float = 30.0
+    fallback_model_ids: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if not isinstance(self.enabled, bool):
@@ -56,3 +57,32 @@ class GatewaySettings:
             "request_timeout_seconds",
             float(timeout),
         )
+
+        raw_fallbacks = self.fallback_model_ids
+        if isinstance(raw_fallbacks, (str, bytes)):
+            raise TypeError(
+                "fallback_model_ids must be a sequence of model identifiers"
+            )
+
+        try:
+            fallbacks = tuple(
+                _identifier(value, "fallback_model_id")
+                for value in raw_fallbacks
+            )
+        except TypeError as exc:
+            raise TypeError(
+                "fallback_model_ids must be an iterable of model identifiers"
+            ) from exc
+
+        if len(set(fallbacks)) != len(fallbacks):
+            raise ValueError(
+                "duplicate fallback model identifiers are not allowed"
+            )
+
+        if self.default_model_id is not None:
+            if self.default_model_id in fallbacks:
+                raise ValueError(
+                    "the default model cannot also be a fallback model"
+                )
+
+        object.__setattr__(self, "fallback_model_ids", fallbacks)
