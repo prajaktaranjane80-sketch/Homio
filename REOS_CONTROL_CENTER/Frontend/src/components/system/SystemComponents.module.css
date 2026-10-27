@@ -2,7 +2,7 @@
   --sys-ink: var(--homio-text);
   --sys-muted: var(--homio-text-muted);
   --sys-line: var(--homio-border);
-  --sys-gold: var(--homio-accent);
+  --sys-accent: var(--homio-accent);
 
   min-width: 0;
   padding: clamp(16px, 2.5vw, 24px);
@@ -28,7 +28,7 @@
   align-items: center;
   gap: 8px;
   color: var(--homio-accent-strong);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 850;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -45,7 +45,7 @@
 .systemDescription {
   margin: 0;
   color: var(--sys-muted);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.75;
 }
 
@@ -54,7 +54,7 @@
   padding-top: 12px;
   border-top: 1px solid var(--sys-line);
   color: var(--sys-muted);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.7;
 }
 
@@ -67,7 +67,7 @@
   border: 1px solid var(--homio-border);
   border-radius: var(--radius-md);
   background: var(--homio-accent-soft);
-  color: var(--sys-gold);
+  color: var(--sys-accent);
   font-weight: 800;
 }
 
@@ -96,7 +96,7 @@
   border-radius: var(--radius-pill);
   background: var(--homio-surface-soft);
   color: var(--homio-text-soft);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   line-height: 1.35;
 }
@@ -161,7 +161,7 @@
     var(--homio-surface-muted) 70%
   );
   background-size: 220% 100%;
-  animation: sys-shimmer 1.35s ease-in-out infinite;
+  animation: sys-shimmer var(--motion-skeleton-duration) var(--ease-standard-curve) infinite;
 }
 
 .systemSkeletonShort {
@@ -189,7 +189,7 @@
   background: var(--homio-surface);
   color: var(--homio-text);
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 750;
   cursor: pointer;
   transition:
@@ -203,7 +203,7 @@
 }
 
 .systemActionButton:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--homio-accent) 48%, transparent);
+  outline: 3px solid var(--homio-focus-ring-soft);
   outline-offset: 2px;
 }
 
@@ -218,7 +218,7 @@
   }
 
   to {
-    background-position: -120% 0;
+    background-position: -220% 0;
   }
 }
 
