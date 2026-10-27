@@ -32,6 +32,7 @@ python -m pytest -q -p no:cacheprovider \
 # AI-001 T05: bounded agent runtime, typed proposals, allowlist and replay controls.
 # AI-001 T06: fail-closed trusted-context, resource authorization and tenant tests.
 # AI-001 T07: durable cost reservations, quota concurrency and usage accounting.
+# AI-001 T08: structured observability, safe fallback selection and failure handling.
 # These tests use deterministic fakes and isolated temporary database files.
 # No live provider or production tool execution is enabled.
 python -m pytest -q -p no:cacheprovider \
@@ -43,4 +44,5 @@ python -m pytest -q -p no:cacheprovider \
   AUTONOMY_ENGINE/ai_platform/tests/test_retrieval_and_rag.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_agent_tool_boundaries.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_authorization_tenant_isolation.py \
-  AUTONOMY_ENGINE/ai_platform/tests/test_cost_control.py
+  AUTONOMY_ENGINE/ai_platform/tests/test_cost_control.py \
+  AUTONOMY_ENGINE/ai_platform/tests/test_observability_fallback.py
