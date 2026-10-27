@@ -51,8 +51,8 @@
   isolation: isolate;
   box-shadow: var(--shadow-sm);
   transition:
-    transform var(--ease-slow),
-    box-shadow var(--ease-slow);
+    transform var(--motion-normal) var(--ease-standard-curve),
+    box-shadow var(--motion-normal) var(--ease-standard-curve);
 }
 
 .card:first-child {
@@ -72,9 +72,9 @@
   background:
     linear-gradient(
       to top,
-      rgba(0, 0, 0, 0.78) 0%,
-      rgba(0, 0, 0, 0.28) 48%,
-      rgba(0, 0, 0, 0.04) 100%
+      color-mix(in srgb, var(--homio-rosewood) 78%, transparent) 0%,
+      color-mix(in srgb, var(--homio-rosewood) 28%, transparent) 48%,
+      color-mix(in srgb, var(--homio-rosewood) 4%, transparent) 100%
     );
 }
 
@@ -82,13 +82,13 @@
   align-self: end;
   width: 100%;
   padding: var(--space-6);
-  color: #ffffff;
+  color: var(--homio-text-inverse);
 }
 
 .country {
   display: block;
   margin-bottom: var(--space-2);
-  color: rgba(255, 255, 255, 0.76);
+  color: color-mix(in srgb, var(--homio-text-inverse) 76%, transparent);
   font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -103,7 +103,7 @@
 
 .content p {
   margin: var(--space-3) 0 0;
-  color: rgba(255, 255, 255, 0.82);
+  color: color-mix(in srgb, var(--homio-text-inverse) 82%, transparent);
   font-size: var(--text-sm);
 }
 
