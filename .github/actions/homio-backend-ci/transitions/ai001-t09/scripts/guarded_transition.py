@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import json
@@ -111,14 +110,25 @@ def validate_state(state: dict, *, transitioned: bool) -> None:
         fail("canonical AI-001 gate is missing")
     if execution.get("current_gate") != "AI-001":
         fail("canonical current gate is no longer AI-001")
-    if gate.get("status") != "CURRENT":
-        fail("AI-001 gate is not CURRENT")
+
+    # Before completion, T09 is the active task.
+    # After the existing Controller completes T09, the gate enters
+    # READY_FOR_VALIDATION and its current-subtask pointer targets T10.
+    expected_gate_status = (
+        "READY_FOR_VALIDATION" if transitioned else "CURRENT"
+    )
+    if gate.get("status") != expected_gate_status:
+        fail(
+            f"AI-001 gate must be {expected_gate_status}; "
+            f"found {gate.get('status')!r}"
+        )
 
     subtasks = {
         item.get("id"): item
         for item in gate.get("subtasks", [])
         if isinstance(item, dict)
     }
+
     expected = {
         "AI-001-T01": "DONE",
         "AI-001-T02": "DONE",
@@ -129,7 +139,11 @@ def validate_state(state: dict, *, transitioned: bool) -> None:
         "AI-001-T07": "DONE",
         "AI-001-T08": "DONE",
         "AI-001-T09": "DONE" if transitioned else "CURRENT",
-        "AI-001-T10": "CURRENT" if transitioned else "PENDING",
+
+        # T10 is the approval/freeze subtask. The existing Control Center
+        # intentionally leaves it PENDING while moving the current-subtask
+        # pointer to it and the gate to READY_FOR_VALIDATION.
+        "AI-001-T10": "PENDING",
     }
     current = "AI-001-T10" if transitioned else "AI-001-T09"
 
@@ -404,7 +418,10 @@ def main() -> None:
         "CURRENT_SUBTASK=AI-001-T10",
         "AI-001-T08|DONE|Implement AI observability and fallback",
         "AI-001-T09|DONE|Run AI safety security and reliability tests",
-        "AI-001-T10|CURRENT|Freeze AI platform and agents",
+
+        # T10 remains PENDING until canonical gate validation; the
+        # current-subtask pointer can still point to T10.
+        "AI-001-T10|PENDING|Freeze AI platform and agents",
     )
     for path in (PACKET, HANDOFF):
         content = path.read_text(encoding="utf-8")
@@ -505,7 +522,7 @@ This task does not introduce new gateways, providers, authorizers, or test copie
 
 - State blob SHA after the controller transition and before evidence publication: `{state_blob_sha}`
 - AI-001-T01 through AI-001-T09: `DONE`
-- AI-001-T10: `CURRENT`
+- AI-001-T10: `PENDING` (current-subtask pointer targets T10; gate status is `READY_FOR_VALIDATION`)
 - AI-001-AC01 through AI-001-AC06: `PENDING`
 
 This record closes AI-001-T09 only. It does not claim the AI-001 gate or its acceptance criteria are complete, and it does not authorize production/customer-facing AI execution.
