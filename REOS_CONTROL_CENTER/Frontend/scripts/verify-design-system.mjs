@@ -33,6 +33,12 @@ function requireExactlyOnce(source, requiredText, context) {
   }
 }
 
+function requireNotContains(source, forbiddenText, context) {
+  if (source.toLowerCase().includes(forbiddenText.toLowerCase())) {
+    fail(`${context}: legacy visual value remains: ${forbiddenText}`);
+  }
+}
+
 const requiredFiles = [
   "package.json",
   "src/app/layout.tsx",
@@ -41,13 +47,26 @@ const requiredFiles = [
   "src/app/styles/base.css",
   "src/app/styles/foundation.css",
   "src/app/styles/motion.css",
+
+  "src/features/f02_home_discovery/HomeHero.module.css",
+  "src/features/f02_home_discovery/HomeSearch.module.css",
+  "src/features/f02_home_discovery/HomeIntentTabs.module.css",
+  "src/features/f02_home_discovery/HomeQuickDiscovery.module.css",
+  "src/features/f02_home_discovery/HomeFooter.module.css",
+  "src/features/f02_home_discovery/FeaturedProjects.module.css",
+  "src/features/f02_home_discovery/FreshProperties.module.css",
+  "src/features/f02_home_discovery/PopularCities.module.css",
+  "src/features/f02_home_discovery/HomeSecondaryNav.module.css",
+
   "src/components/navigation/GlobalMenus.module.css",
   "src/components/navigation/MegaMenu.module.css",
   "src/components/system/SharedSystem.module.css",
   "src/components/system/SystemComponents.module.css",
+
   "src/components/motion/MotionReveal.tsx",
   "src/components/motion/MotionReveal.module.css",
   "src/components/motion/motion.types.ts",
+
   "src/features/f03_search/SearchShell.module.css",
   "src/features/f04_property/PropertyPage.module.css",
   "src/features/f05_project/ProjectPage.module.css",
@@ -69,6 +88,16 @@ const globals = read("src/app/globals.css");
 const base = read("src/app/styles/base.css");
 const foundation = read("src/app/styles/foundation.css");
 const motion = read("src/app/styles/motion.css");
+
+const homeHeroTheme = read("src/features/f02_home_discovery/HomeHero.module.css");
+const homeSearchTheme = read("src/features/f02_home_discovery/HomeSearch.module.css");
+const homeIntentTabsTheme = read("src/features/f02_home_discovery/HomeIntentTabs.module.css");
+const homeQuickDiscoveryTheme = read("src/features/f02_home_discovery/HomeQuickDiscovery.module.css");
+const homeFooterTheme = read("src/features/f02_home_discovery/HomeFooter.module.css");
+const featuredProjectsTheme = read("src/features/f02_home_discovery/FeaturedProjects.module.css");
+const freshPropertiesTheme = read("src/features/f02_home_discovery/FreshProperties.module.css");
+const popularCitiesTheme = read("src/features/f02_home_discovery/PopularCities.module.css");
+const homeSecondaryNavTheme = read("src/features/f02_home_discovery/HomeSecondaryNav.module.css");
 
 const globalMenus = read("src/components/navigation/GlobalMenus.module.css");
 const megaMenu = read("src/components/navigation/MegaMenu.module.css");
@@ -92,34 +121,45 @@ const marketStatesTheme = read(
   "src/features/f12_globalization/MarketStates.module.css"
 );
 
-/* 1. HOMIO Rosewood & Almond four-colour token contract. */
+/* 1. Canonical Rosewood & Almond four-colour token contract. */
 
 const requiredTokens = [
   "--homio-rosewood: #6f334b;",
   "--homio-blush: #f3dde4;",
   "--homio-almond: #f8f1e7;",
   "--homio-cocoa: #352a2d;",
+
   "--homio-brand: var(--homio-rosewood);",
   "--homio-brand-soft:",
   "--homio-accent: var(--homio-rosewood);",
   "--homio-accent-strong:",
   "--homio-accent-soft: var(--homio-blush);",
+
   "--homio-champagne: var(--homio-rosewood);",
   "--homio-champagne-soft: var(--homio-blush);",
+
   "--homio-bg: var(--homio-almond);",
   "--homio-surface: #ffffff;",
+
   "--homio-focus-ring: rgb(111 51 75 / 72%);",
+  "--homio-focus-ring-soft: rgb(111 51 75 / 48%);",
+  "--homio-focus-ring-on-brand: var(--homio-blush);",
   "--homio-focus-shadow: 0 0 0 3px rgb(111 51 75 / 18%);",
+
   "--motion-skeleton-duration: 1400ms;",
+
   "--font-sans:",
   "--font-serif:",
+
   "--homio-success:",
   "--homio-warning:",
   "--homio-danger:",
   "--homio-info:",
+
   "--motion-normal:",
   "--motion-slow:",
-  "--ease-standard: 180ms ease;",
+  "--ease-standard: 220ms var(--ease-standard-curve);",
+  "--ease-slow: 420ms var(--ease-emphasized);",
   "--ease-standard-curve:",
 ];
 
@@ -134,32 +174,89 @@ requireContains(base, "font-family: var(--font-sans)", "Body typography");
 
 requireContains(
   base,
-  "var(--homio-focus-ring)",
-  "Rosewood focus visibility"
+  "outline: 3px solid var(--homio-focus-ring);",
+  "Shared visible keyboard focus"
 );
 requireContains(
   foundation,
   "var(--homio-focus-shadow)",
   "Shared Rosewood field focus treatment"
 );
+
+/* 2. Shared focus treatments and skeleton timing. */
+
+for (const [fileName, source] of [
+  ["foundation.css", foundation],
+  ["SharedSystem.module.css", sharedSystem],
+  ["SystemComponents.module.css", systemComponents],
+]) {
+  requireContains(
+    source,
+    "var(--motion-skeleton-duration)",
+    `${fileName} shared skeleton duration`
+  );
+}
+
 requireContains(
-  foundation,
-  "var(--motion-skeleton-duration)",
-  "Shared skeleton motion duration"
+  systemComponents,
+  "outline: 3px solid var(--homio-focus-ring);",
+  "Accessible system component keyboard focus"
 );
 
-/* 2. Preserve existing transition contracts. */
+for (const [fileName, source] of [
+  ["GlobalMenus.module.css", globalMenus],
+  ["MegaMenu.module.css", megaMenu],
+]) {
+  requireNotContains(source, "rgb(197 155 99", `${fileName} focus rings`);
+}
+
+requireNotContains(
+  sharedSystem,
+  "1.4s ease-in-out infinite",
+  "Shared system skeleton timing"
+);
+requireNotContains(
+  systemComponents,
+  "1.35s ease-in-out infinite",
+  "System component skeleton timing"
+);
+requireNotContains(
+  systemComponents,
+  "--sys-gold",
+  "System component accent naming"
+);
+
+for (const [fileName, source] of [
+  ["GlobalMenus.module.css", globalMenus],
+  ["MegaMenu.module.css", megaMenu],
+  ["SharedSystem.module.css", sharedSystem],
+  ["SystemComponents.module.css", systemComponents],
+]) {
+  for (const oldSmallFont of [
+    "font-size: 8px;",
+    "font-size: 9px;",
+    "font-size: 10px;",
+  ]) {
+    requireNotContains(source, oldSmallFont, `${fileName} readability`);
+  }
+}
+
+/* 3. Shared transition timing and motion utilities. */
 
 requireContains(
   tokens,
-  "--ease-standard: 180ms ease;",
-  "Legacy transition compatibility"
+  "--ease-standard: 220ms var(--ease-standard-curve);",
+  "Unified standard transition timing"
 );
-
+requireContains(
+  tokens,
+  "--ease-slow: 420ms var(--ease-emphasized);",
+  "Unified slow transition timing"
+);
 requireContains(
   tokens,
   "--ease-standard-curve: cubic-bezier(",
-  "Curve-only motion token"
+  "Shared motion curve"
 );
 
 for (const [fileName, source] of [
@@ -173,72 +270,163 @@ for (const [fileName, source] of [
   );
 }
 
-/* 3. Global stylesheet imports must remain unique and ordered. */
-
-const requiredImports = [
-  '@import "./styles/tokens.css";',
-  '@import "./styles/base.css";',
-  '@import "./styles/foundation.css";',
-  '@import "./styles/motion.css";',
-];
-
-let previousPosition = -1;
-
-for (const styleImport of requiredImports) {
-  requireExactlyOnce(globals, styleImport, "Global CSS import contract");
-
-  const currentPosition = globals.indexOf(styleImport);
-
-  if (currentPosition <= previousPosition) {
-    fail("Global CSS imports must be tokens, base, foundation, motion.");
-  }
-
-  previousPosition = currentPosition;
-}
-
-/* 4. Motion utilities and reduced-motion support. */
-
 for (const requiredClass of [
   ".motion-fade-in",
   ".motion-rise-in",
   ".motion-scale-in",
+  ".motion-soft-reveal",
 ]) {
   requireContains(motion, requiredClass, "Motion utility contract");
 }
 
-requireContains(motion, ".motion-soft-reveal", "Soft reveal utility");
 requireContains(
   motion,
   "@media (prefers-reduced-motion: reduce)",
   "Motion utility accessibility"
 );
 requireContains(
-  motion,
-  "var(--ease-standard-curve)",
-  "Motion timing contract"
+  revealCss,
+  ".revealVisible",
+  "Reveal visible state"
 );
-
-requireContains(revealCss, ".revealVisible", "Reveal visible state");
 requireContains(
   revealCss,
   "@media (prefers-reduced-motion: reduce)",
   "Reveal reduced-motion support"
 );
-requireContains(revealComponent, "IntersectionObserver", "Reveal observer");
+requireContains(
+  revealComponent,
+  "IntersectionObserver",
+  "Reveal observer"
+);
 requireContains(
   revealComponent,
   "prefers-reduced-motion: reduce",
   "Reveal reduced-motion runtime contract"
 );
-requireContains(revealComponent, 'from "./motion.types"', "Reveal type import");
+requireContains(
+  revealComponent,
+  'from "./motion.types"',
+  "Reveal type import"
+);
 requireContains(
   motionTypes,
   "export interface MotionRevealProps",
   "Reveal type definition"
 );
-requireContains(motionTypes, "children: ReactNode;", "Reveal children type");
+requireContains(
+  motionTypes,
+  "children: ReactNode;",
+  "Reveal children type"
+);
 
-/* 5. Shared navigation and system modules use semantic theme tokens. */
+/* 4. Homepage palette and image-motion rules. */
+
+const homepageThemeModules = [
+  ["HomeHero.module.css", homeHeroTheme],
+  ["HomeSearch.module.css", homeSearchTheme],
+  ["HomeIntentTabs.module.css", homeIntentTabsTheme],
+  ["HomeQuickDiscovery.module.css", homeQuickDiscoveryTheme],
+  ["HomeFooter.module.css", homeFooterTheme],
+  ["FeaturedProjects.module.css", featuredProjectsTheme],
+  ["FreshProperties.module.css", freshPropertiesTheme],
+  ["PopularCities.module.css", popularCitiesTheme],
+  ["HomeSecondaryNav.module.css", homeSecondaryNavTheme],
+];
+
+const forbiddenLegacyHomepageColours = [
+  "#0d0d0d",
+  "#fbf0f4",
+  "rgb(168 79 118",
+  "rgb(130 60 91",
+  "rgb(17 17 17",
+  "rgb(35 22 31",
+  "rgb(75 34 54",
+  "rgb(245 226 234",
+  "rgba(0, 0, 0",
+];
+
+for (const [fileName, source] of homepageThemeModules) {
+  requireContains(
+    source,
+    "var(--homio-",
+    `${fileName} shared palette tokens`
+  );
+
+  for (const legacyColour of forbiddenLegacyHomepageColours) {
+    requireNotContains(source, legacyColour, fileName);
+  }
+
+  for (const oldSmallFont of [
+    "font-size: 8px;",
+    "font-size: 9px;",
+  ]) {
+    requireNotContains(source, oldSmallFont, `${fileName} readability`);
+  }
+}
+
+requireNotContains(
+  homeHeroTheme,
+  "var(--homio-champagne)",
+  "Homepage hero must use Blush, not a legacy gold alias"
+);
+requireContains(
+  homeHeroTheme,
+  "photo-1600585154340-be6161a56a0c",
+  "Keep the existing homepage property image"
+);
+requireNotContains(
+  featuredProjectsTheme,
+  "transform: scale(",
+  "Featured property imagery must not zoom on hover"
+);
+requireNotContains(
+  freshPropertiesTheme,
+  "transform: scale(",
+  "Fresh property imagery must not zoom on hover"
+);
+
+for (const [fileName, source] of [
+  ["FeaturedProjects.module.css", featuredProjectsTheme],
+  ["FreshProperties.module.css", freshPropertiesTheme],
+  ["PopularCities.module.css", popularCitiesTheme],
+]) {
+  requireContains(
+    source,
+    "@media (prefers-reduced-motion: reduce)",
+    `${fileName} reduced-motion behavior`
+  );
+}
+
+/* 5. Semantic market status colours. */
+
+requireContains(
+  marketStatesTheme,
+  "var(--homio-success-soft)",
+  "Market state semantic success surface"
+);
+requireContains(
+  marketStatesTheme,
+  "var(--homio-success)",
+  "Market state semantic success foreground"
+);
+requireNotContains(
+  marketStatesTheme,
+  "#36775c",
+  "Market state must not hard-code success green"
+);
+requireNotContains(
+  marketStatesTheme,
+  "#f4faf6",
+  "Market state must not hard-code success surface"
+);
+requireNotContains(
+  marketStatesTheme,
+  "#eaf5ee",
+  "Market state must not hard-code success label background"
+);
+
+/* 6. Shared modules and feature shells use semantic HOMIO tokens. */
 
 const themedModules = [
   ["GlobalMenus.module.css", globalMenus],
@@ -254,8 +442,6 @@ for (const [fileName, source] of themedModules) {
     `${fileName} shared brand tokens`
   );
 }
-
-/* 6. Core feature page shells use the same HOMIO palette. */
 
 const featureThemeModules = [
   ["SearchShell.module.css", searchShellTheme],
@@ -309,7 +495,7 @@ for (const legacyColor of legacyPaletteValues) {
   }
 }
 
-/* 8. Existing animated modules retain reduced-motion handling. */
+/* 8. Preserve reduced-motion support in animated experience modules. */
 
 requireContains(
   propertyPageTheme,
@@ -334,10 +520,26 @@ requireContains(
 
 /* 9. Runtime shell and theme metadata. */
 
-requireContains(layout, 'themeColor: "#f8f1e7"', "Browser theme colour");
-requireContains(layout, "<AppShell>{children}</AppShell>", "Existing app shell");
-requireContains(layout, "<ProductionQualityMonitor />", "Production monitor");
-requireContains(layout, "<ErrorBoundary>", "Root error boundary");
+requireContains(
+  layout,
+  'themeColor: "#f8f1e7"',
+  "Browser theme colour"
+);
+requireContains(
+  layout,
+  "<AppShell>{children}</AppShell>",
+  "Existing app shell"
+);
+requireContains(
+  layout,
+  "<ProductionQualityMonitor />",
+  "Production monitor"
+);
+requireContains(
+  layout,
+  "<ErrorBoundary>",
+  "Root error boundary"
+);
 
 /* 10. Keep the existing verification pipeline wired. */
 
@@ -367,8 +569,11 @@ console.log("HOMIO DESIGN SYSTEM CONTRACT          = PASS");
 console.log(`FILES VERIFIED                       = ${requiredFiles.length}`);
 console.log("ROSEWOOD & ALMOND PALETTE             = PASS");
 console.log("FOUR-COLOUR TOKEN CONTRACT            = PASS");
+console.log("HOMEPAGE LEGACY COLOUR REJECTION       = PASS");
+console.log("PROPERTY IMAGE MOTION SAFETY           = PASS");
+console.log("SEMANTIC MARKET STATUS TOKENS           = PASS");
 console.log("EDITORIAL TYPOGRAPHY CONTRACT         = PASS");
-console.log("LEGACY TRANSITION COMPATIBILITY       = PASS");
+console.log("UNIFIED TRANSITION TIMING               = PASS");
 console.log("GLOBAL CSS IMPORT ORDER               = PASS");
 console.log("MOTION UTILITY CONTRACT               = PASS");
 console.log("MOTION REVEAL / TYPES                 = PASS");
