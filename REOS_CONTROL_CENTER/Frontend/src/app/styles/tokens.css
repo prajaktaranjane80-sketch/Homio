@@ -1,56 +1,59 @@
 :root {
-  /* HOMIO — premium feminine luxury palette */
-  --homio-brand: #111111;
-  --homio-brand-soft: #292126;
+  /* HOMIO — Rosewood & Almond: one four-colour brand palette. */
+  --homio-rosewood: #6f334b;
+  --homio-blush: #f3dde4;
+  --homio-almond: #f8f1e7;
+  --homio-cocoa: #352a2d;
 
-  /* Rose/berry is the primary accent; champagne stays secondary. */
-  --homio-accent: #a84f76;
-  --homio-accent-strong: #823c5b;
-  --homio-accent-soft: #f5e2ea;
-  --homio-champagne: #c59b63;
-  --homio-champagne-soft: #f4ebdd;
+  /* Brand and accent aliases. Rosewood remains the dominant brand colour. */
+  --homio-brand: var(--homio-rosewood);
+  --homio-brand-soft: color-mix(in srgb, var(--homio-rosewood) 86%, var(--homio-cocoa));
+  --homio-accent: var(--homio-rosewood);
+  --homio-accent-strong: var(--homio-brand-soft);
+  --homio-accent-soft: var(--homio-blush);
 
-  /* Semantic brand aliases */
-  --color-brand: var(--homio-brand);
-  --color-brand-hover: var(--homio-brand-soft);
-  --color-accent: var(--homio-accent);
-  --color-accent-hover: var(--homio-accent-strong);
+  /* Legacy compatibility aliases: do not add a fifth brand colour. */
+  --homio-champagne: var(--homio-rosewood);
+  --homio-champagne-soft: var(--homio-blush);
 
-  /* Surfaces */
-  --homio-bg: #f8f7f4;
+  /* Almond is the default background; Blush is a restrained soft surface. */
+  --homio-bg: var(--homio-almond);
   --homio-surface: #ffffff;
-  --homio-surface-soft: #fbf0f4;
-  --homio-surface-muted: #f1e0e7;
+  --homio-surface-soft: var(--homio-blush);
+  --homio-surface-muted: color-mix(in srgb, var(--homio-blush) 58%, var(--homio-almond));
   --homio-surface-raised: #ffffff;
-  --homio-surface-inverse: #111111;
+  --homio-surface-inverse: var(--homio-rosewood);
 
   --color-background: var(--homio-bg);
   --color-surface: var(--homio-surface);
   --color-surface-soft: var(--homio-surface-soft);
   --color-surface-muted: var(--homio-surface-muted);
 
-  /* Text */
-  --homio-text: #171316;
-  --homio-text-soft: #594d55;
-  --homio-text-muted: #786b73;
-  --homio-text-inverse: #ffffff;
-  --homio-text-disabled: #9b9097;
+  /* Rosewood for readable content; Cocoa is reserved for fine details and lines. */
+  --homio-text: var(--homio-rosewood);
+  --homio-text-soft: color-mix(in srgb, var(--homio-rosewood) 90%, var(--homio-almond));
+  --homio-text-muted: color-mix(in srgb, var(--homio-rosewood) 80%, var(--homio-almond));
+  --homio-text-inverse: var(--homio-almond);
+  --homio-text-disabled: color-mix(in srgb, var(--homio-rosewood) 42%, var(--homio-almond));
 
   --color-text: var(--homio-text);
   --color-text-secondary: var(--homio-text-soft);
   --color-text-muted: var(--homio-text-muted);
   --color-text-inverse: var(--homio-text-inverse);
 
-  /* Borders and focus */
-  --homio-border: #e7dce1;
-  --homio-border-strong: #d5bdc8;
-  --homio-border-focus: #a84f76;
+  /* Subtle Cocoa-tinted borders; Rosewood focus treatment. */
+  --homio-border: color-mix(in srgb, var(--homio-cocoa) 16%, var(--homio-almond));
+  --homio-border-strong: color-mix(in srgb, var(--homio-cocoa) 30%, var(--homio-almond));
+  --homio-border-focus: var(--homio-rosewood);
+  --homio-focus-ring: rgb(111 51 75 / 72%);
+  --homio-focus-ring-soft: rgb(111 51 75 / 48%);
+  --homio-focus-shadow: 0 0 0 3px rgb(111 51 75 / 18%);
 
   --color-border: var(--homio-border);
   --color-border-strong: var(--homio-border-strong);
   --color-divider: var(--homio-border);
 
-  /* Accessible semantic status colours */
+  /* Semantic status colours remain separate from the brand palette. */
   --homio-success: #286448;
   --homio-success-soft: #e9f2ec;
   --homio-warning: #80551b;
@@ -65,7 +68,7 @@
   --color-danger: var(--homio-danger);
   --color-info: var(--homio-info);
 
-  /* Typography: editorial luxury + clear interface typography */
+  /* Editorial headings and clear, practical interface typography. */
   --font-sans: "Aptos", "Segoe UI", Arial, sans-serif;
   --font-serif: "Bodoni MT", "Didot", "Palatino Linotype", Georgia, serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
@@ -108,7 +111,7 @@
   --space-20: 5rem;
   --space-24: 6rem;
 
-  /* Refined, restrained corner radii */
+  /* Restrained corner radii */
   --radius-xs: 0.25rem;
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
@@ -117,11 +120,11 @@
   --radius-2xl: 2rem;
   --radius-pill: 999px;
 
-  /* Soft neutral elevation; avoid heavy pink shadows */
-  --shadow-sm: 0 3px 12px rgb(17 17 17 / 5%);
-  --shadow-md: 0 10px 28px rgb(17 17 17 / 8%);
-  --shadow-lg: 0 22px 54px rgb(17 17 17 / 12%);
-  --shadow-overlay: 0 28px 72px rgb(17 17 17 / 20%);
+  /* Soft elevation tinted with the brand, not a separate brand colour. */
+  --shadow-sm: 0 3px 12px rgb(111 51 75 / 5%);
+  --shadow-md: 0 10px 28px rgb(111 51 75 / 8%);
+  --shadow-lg: 0 22px 54px rgb(111 51 75 / 12%);
+  --shadow-overlay: 0 28px 72px rgb(111 51 75 / 20%);
 
   /* Layout */
   --container-width: 1280px;
@@ -132,11 +135,12 @@
   --layer-overlay: 100;
   --layer-toast: 200;
 
-  /* Calm, responsive motion */
+  /* Unified, calm motion */
   --motion-fast: 140ms;
   --motion-normal: 220ms;
   --motion-slow: 420ms;
   --motion-reveal-distance: 12px;
+  --motion-skeleton-duration: 1400ms;
 
   /* Legacy transition compatibility */
   --ease-standard: 180ms ease;
