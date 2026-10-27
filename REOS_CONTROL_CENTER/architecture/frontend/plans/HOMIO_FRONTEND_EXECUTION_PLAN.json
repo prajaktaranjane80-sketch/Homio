@@ -1,24 +1,47 @@
-
 {
   "document": {
     "name": "HOMIO Frontend Execution Plan",
-    "version": "3.1",
-    "status": "F01_F05_RECONCILIATION_MANIFEST",
-    "scope": "F01-F05 frontend implementation and verification only",
+    "version": "3.2",
+    "status": "F01_F05_RECONCILIATION_MANIFEST_WITH_APP001_T01_COORDINATION",
+    "scope": "Coordinates F01-F05 frontend reconciliation with the currently authorized Control Center task APP-001-T01. This document is implementation coordination only and is not an execution-state authority.",
     "canonical_blueprint": "REOS_CONTROL_CENTER/architecture/frontend/plans/HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json",
     "blueprint_version": "3.2",
-    "rule": "The canonical frontend blueprint takes precedence over this coordination manifest."
+    "rule": "The canonical frontend blueprint, Master Architecture and REOS Control Center state take precedence. Do not use this manifest to invent or advance the roadmap."
   },
   "repository": {
     "canonical_branch": "reos-development",
     "frontend_root": "REOS_CONTROL_CENTER/Frontend",
-    "code_source_of_truth": "GitHub branch reos-development"
+    "code_source_of_truth": "GitHub branch reos-development",
+    "last_verified_baseline_commit": "20ad7c6e6786e294d53515a72882e25d2048d630",
+    "last_verified_frontend_ci": {
+      "run_number": 678,
+      "run_id": 40485687483,
+      "result": "SUCCESS",
+      "tested_commit": "20ad7c6e6786e294d53515a72882e25d2048d630",
+      "url": "https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/40485687483",
+      "limitation": "This success applies only to the commit above. It does not verify later replacements or prove that rendered desktop, tablet and mobile pages were visually reviewed."
+    }
   },
   "authority": {
     "business_architecture": "REOS_CONTROL_CENTER/architecture/master/HOMIO_REOS_MASTER_ARCHITECTURE.json",
     "execution_state": "REOS_CONTROL_CENTER/data/state.json",
-    "acrl_boundary": "ACRL is an engineering-time continuity and repository-intelligence boundary, not a frontend runtime or business authority.",
-    "runtime_rule": "Frontend runtime must not read state.json or import ACRL/AUTONOMY_ENGINE modules."
+    "agent_entrypoint": "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py",
+    "generated_handoff_packet": "REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt",
+    "acrl_boundary": "ACRL is an engineering-time continuity, repository-intelligence, impact-analysis and verification boundary, not frontend runtime or business authority.",
+    "runtime_rule": "Frontend runtime must not read state.json or import ACRL/AUTONOMY_ENGINE modules.",
+    "state_rule": "Never manually replace or patch state.json. Gate selection, task completion, acceptance criteria and transitions are owned by the existing Control Center.",
+    "chat_rule": "Chat history is context only. Every new chat must re-fetch state, current branch HEAD, current target-file contents and latest Frontend CI before continuing."
+  },
+  "current_control_center_task": {
+    "gate": "APP-001",
+    "task_id": "APP-001-T01",
+    "title": "Implement application shell and design system",
+    "status": "CURRENT",
+    "execution_status": "CONTROL_CENTER_DRIVEN",
+    "source_of_truth": "REOS_CONTROL_CENTER/data/state.json -> gate_plans.APP-001",
+    "scope_boundary": "Execute APP-001-T01 only. Do not begin APP-001-T02 or any later subtask until selected by the Control Center.",
+    "acceptance_criteria_reference": "state.json -> gate_plans.APP-001.criteria_state",
+    "completion_rule": "Do not mark T01 or any acceptance criterion complete from chat assertions. Require the saved implementation, passing CI on the exact tested commit, visual evidence and the authorized Control Center transition."
   },
   "implementation_map": {
     "F01": {
@@ -30,7 +53,8 @@
     "F02": {
       "current_root": "src/components/home",
       "target_root": "src/features/f02_home_discovery",
-      "status": "MIGRATION_AND_DUPLICATE_CLEANUP_REQUIRED"
+      "status": "MIGRATION_AND_DUPLICATE_CLEANUP_REQUIRED",
+      "rule": "Audit imports, route ownership and references before deleting or moving any legacy file."
     },
     "F03": {
       "feature_root": "src/features/f03_search",
@@ -54,22 +78,182 @@
     "/property/[propertyId]",
     "/project/[projectId]"
   ],
+  "canonical_design_system": {
+    "decision": "ROSEWOOD_AND_ALMOND",
+    "palette": {
+      "rosewood": {
+        "hex": "#6F334B",
+        "role": "Dominant brand identity, primary actions, active navigation and key emphasis."
+      },
+      "ballet_blush": {
+        "hex": "#F3DDE4",
+        "role": "Soft feminine surfaces, selected states and restrained highlights."
+      },
+      "almond_cream": {
+        "hex": "#F8F1E7",
+        "role": "Primary page background and warm neutral context."
+      },
+      "espresso_cocoa": {
+        "hex": "#352A2D",
+        "role": "Very limited use for fine lines, dots and restrained decorative detail; not dominant backgrounds or normal text."
+      }
+    },
+    "neutral_surface_rule": "White remains an allowed neutral card/form surface and is not a fifth brand accent.",
+    "semantic_colour_rule": "Success, warning, error and informational colours retain separate semantic roles and are not replaced with brand accents.",
+    "contrast_rule": "Use Rosewood or another measured dark foreground on Almond/Blush. Use Almond/Blush on Rosewood. Disabled-text colours are only for genuinely disabled controls.",
+    "motion": {
+      "micro_interaction": "140ms",
+      "standard_transition": "220ms",
+      "reveal": "420ms",
+      "skeleton_shimmer": "1400ms",
+      "spinner": "May retain a distinct purposeful duration.",
+      "required": "Use the shared easing tokens; honour prefers-reduced-motion; do not zoom, scale or decorate-animate property imagery."
+    },
+    "source_of_truth": "REOS_CONTROL_CENTER/Frontend/src/app/styles/tokens.css",
+    "reuse_rule": "Use existing tokens, modules and verifiers. Do not add another theme provider, token file, duplicate verifier, UI library, network font dependency or frontend workflow."
+  },
+  "app001_t01_workstream": {
+    "status": "IN_PROGRESS_NOT_GATE_CLOSED",
+    "objective": "Synchronize the shared shell and canonical design system with Rosewood & Almond, remove old visual literals and focus treatments from active shared/homepage modules, unify equivalent motion rules, and make the existing regression verifier enforce the same contract.",
+    "work_packages": [
+      {
+        "id": "T01-WP01",
+        "name": "Canonical palette, base and shell",
+        "paths": [
+          "REOS_CONTROL_CENTER/Frontend/src/app/styles/tokens.css",
+          "REOS_CONTROL_CENTER/Frontend/src/app/styles/base.css",
+          "REOS_CONTROL_CENTER/Frontend/src/app/styles/foundation.css",
+          "REOS_CONTROL_CENTER/Frontend/src/app/styles/motion.css",
+          "REOS_CONTROL_CENTER/Frontend/src/app/globals.css",
+          "REOS_CONTROL_CENTER/Frontend/src/app/layout.tsx",
+          "REOS_CONTROL_CENTER/Frontend/src/components/shell/AppShell.tsx",
+          "REOS_CONTROL_CENTER/Frontend/src/app/styles/README.md"
+        ],
+        "baseline": "The Rosewood & Almond tokens, Almond browser theme, customer-facing shell text and shared focus token are already saved on the last verified baseline. Simplify duplicate global declarations only if existing shell/verifier contracts remain intact.",
+        "guard": "Preserve required global import order, skip-link target, sticky-header offset and the current #main-content padding contract."
+      },
+      {
+        "id": "T01-WP02",
+        "name": "Shared navigation focus and type readability",
+        "paths": [
+          "REOS_CONTROL_CENTER/Frontend/src/components/navigation/GlobalMenus.module.css",
+          "REOS_CONTROL_CENTER/Frontend/src/components/navigation/MegaMenu.module.css"
+        ],
+        "required_change": "Replace hard-coded champagne/gold focus rings/shadows with --homio-focus-ring and --homio-focus-shadow. Raise very small menu captions/status text to readable sizes while preserving layout, links and interactions."
+      },
+      {
+        "id": "T01-WP03",
+        "name": "Unified system motion and focus",
+        "paths": [
+          "REOS_CONTROL_CENTER/Frontend/src/components/system/SharedSystem.module.css",
+          "REOS_CONTROL_CENTER/Frontend/src/components/system/SystemComponents.module.css",
+          "REOS_CONTROL_CENTER/Frontend/src/app/styles/foundation.css",
+          "REOS_CONTROL_CENTER/Frontend/src/app/styles/tokens.css"
+        ],
+        "required_change": "Every equivalent skeleton shimmer uses --motion-skeleton-duration and shared easing. System component focus uses the Rosewood focus tokens. The spinner may remain distinct. Preserve reduced-motion support and avoid inconsistent shimmer travel distances."
+      },
+      {
+        "id": "T01-WP04",
+        "name": "Homepage palette and image-motion reconciliation",
+        "paths": [
+          "REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/HomeHero.module.css",
+          "REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/HomeSearch.module.css",
+          "REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/HomeIntentTabs.module.css",
+          "REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/HomeQuickDiscovery.module.css",
+          "REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/HomeFooter.module.css",
+          "REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/FeaturedProjects.module.css",
+          "REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/FreshProperties.module.css",
+          "REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/PopularCities.module.css",
+          "REOS_CONTROL_CENTER/Frontend/src/features/f02_home_discovery/HomeSecondaryNav.module.css"
+        ],
+        "required_change": "Migrate old hard-coded black/berry values and focus colours to the existing four-colour token contract. Keep the hero property image URL unchanged. Preserve contrast overlays but tint them Rosewood. Remove image zoom/scale-on-hover from property imagery. Use Rosewood for the footer, not pure black.",
+        "guard": "Presentation-only scope: no new route, fake inventory, availability, pricing, business data or backend behavior."
+      },
+      {
+        "id": "T01-WP05",
+        "name": "Semantic market status colours",
+        "paths": [
+          "REOS_CONTROL_CENTER/Frontend/src/features/f12_globalization/MarketStates.module.css"
+        ],
+        "required_change": "Use existing --homio-success and --homio-success-soft tokens for active/available state treatment instead of duplicating literal greens. Do not recolour semantic success as Rosewood."
+      },
+      {
+        "id": "T01-WP06",
+        "name": "Single verifier hardening",
+        "paths": [
+          "REOS_CONTROL_CENTER/Frontend/scripts/verify-design-system.mjs",
+          "REOS_CONTROL_CENTER/Frontend/scripts/verify-foundation.mjs"
+        ],
+        "required_change": "Extend the existing design-system verifier to check old palette literals in audited homepage modules, focus-ring tokens, equivalent shimmer timing, no image scale animations, semantic success token use and existing responsive/reduced-motion rules. Update verifier assertions in the same batch as the styles they enforce. Do not create a second verifier.",
+        "guard": "Keep required foundation assertions accurate; avoid assertions tied only to CSS whitespace/formatting when the contract is structural."
+      }
+    ],
+    "no_go": {
+      "do_not_create": [
+        "A second frontend master blueprint",
+        "A second frontend execution workflow",
+        "A duplicate design-system token file",
+        "A duplicate verifier for the same contract"
+      ],
+      "forbidden_runtime_dependencies": [
+        "REOS_CONTROL_CENTER/data/state.json",
+        "ACRL modules",
+        "AUTONOMY_ENGINE modules",
+        "PowerShell or repository inspection commands"
+      ],
+      "forbidden_shortcuts": [
+        "Do not claim visual review without actual browser evidence.",
+        "Do not claim CI success for new code until the exact saved commit passes.",
+        "Do not change route ownership, backend contracts, tenancy or authorization in a CSS task.",
+        "Do not delete old F02 files before auditing import/dependency/route usage.",
+        "Do not change source property imagery while doing palette-only work."
+      ]
+    }
+  },
   "rules": [
     "src/app owns route definitions and route composition only.",
     "src/components owns shared primitives and cross-experience composites.",
     "src/features owns experience-specific modules.",
     "Do not duplicate canonical REOS business, inventory, search, trust, lead, deal or commission authority in frontend code.",
     "Do not invent verified inventory, price, availability, ownership or backend capabilities.",
-    "Until their route/capability exists, saved items, compare, AI, pro/inventory, market, advice, help and services actions must not point to fictional app routes.",
+    "Until the relevant route/capability exists, buttons must not point to fictional app routes.",
     "Complete F01-F05 reconciliation and verification before starting a later experience layer."
   ],
-  "verification": [
-    "verify:foundation",
-    "verify:f03",
-    "verify:f04",
-    "verify:f05",
-    "typecheck",
-    "lint",
-    "build"
-  ]
+  "verification": {
+    "focused": [
+      "npm run verify:lockfile",
+      "npm run verify:design-system",
+      "npm run verify:foundation",
+      "npm run verify:f02",
+      "npm run verify:f03",
+      "npm run verify:f04",
+      "npm run verify:f05"
+    ],
+    "full": [
+      "npm run verify",
+      "npm run typecheck",
+      "npm run lint",
+      "npm run build"
+    ],
+    "ci": "Use the existing .github/workflows/frontend-ci.yml only. It runs npm ci and npm run verify from REOS_CONTROL_CENTER/Frontend.",
+    "visual_review": [
+      "Desktop: header, navigation, search hierarchy, hero/footer contrast, menu focus, image presentation and no clipping.",
+      "Tablet: menu layout, search fields, content grid density and horizontal overflow.",
+      "Mobile: touch targets, focus visibility, safe areas, bottom action clearance, horizontal scrolling and reduced-motion behavior."
+    ],
+    "pass_rule": "APP-001-T01 remains incomplete until implementation is saved on reos-development, the existing full Frontend CI succeeds on the exact commit, desktop/tablet/mobile visual review is recorded and the Control Center records the authorized transition."
+  },
+  "next_chat_handoff": {
+    "purpose": "Resume APP-001-T01 without relying on chat history or guessing which file version is canonical.",
+    "bootstrap": [
+      "Read REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py.",
+      "Fetch and parse REOS_CONTROL_CENTER/data/state.json; verify integrity and current_gate/current_subtask/criteria_state.",
+      "Fetch the latest reos-development HEAD and exact current content/SHAs for every target file.",
+      "Read HOMIO_FRONTEND_IMPLEMENTATION_BLUEPRINT.json and this existing HOMIO_FRONTEND_EXECUTION_PLAN.json.",
+      "Open latest Frontend CI and confirm its head SHA matches the inspected branch.",
+      "Compare current target SHAs to the expected baseline before repeating a replacement; ask which replacements were saved only if GitHub evidence cannot resolve it."
+    ],
+    "current_next_action": "Continue APP-001-T01 by applying the shared navigation focus and shimmer timing corrections, then the homepage palette/image-motion corrections, semantic MarketStates update and verifier hardening. Run CI after the user saves the batch. Do not advance to APP-001-T02.",
+    "handoff_condition": "The next chat must produce a delta against the live current branch, not replay prior replacements. This manifest is coordination guidance only; state.json remains the task authority."
+  }
 }
