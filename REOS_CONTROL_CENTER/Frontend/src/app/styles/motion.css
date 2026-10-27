@@ -1,8 +1,7 @@
-
 /*
  * HOMIO motion foundation.
  * Purposeful, restrained movement only.
- * Never animate property images with zoom or scale effects.
+ * Never animate property images with zoom or scale.
  */
 
 :root {
@@ -81,24 +80,7 @@
     both;
 }
 
-/* Matte global header, aligned with the new ivory palette */
-.site-header {
-  background: var(--homio-bg);
-  border-bottom-color: var(--homio-border);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-
-/* Editorial HOMIO wordmark */
-.brand__name {
-  color: var(--homio-text);
-  font-family: var(--font-serif);
-  font-size: 1.6rem;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: -0.045em;
-}
-
-/* Restrained interactive feedback */
+/* Restrained interaction feedback with the shared Rosewood focus token. */
 a,
 button,
 [role="button"] {
@@ -108,7 +90,7 @@ button,
 a:focus-visible,
 button:focus-visible,
 [role="button"]:focus-visible {
-  outline-color: var(--homio-accent);
+  outline-color: var(--homio-focus-ring);
 }
 
 @media (prefers-reduced-motion: reduce) {
