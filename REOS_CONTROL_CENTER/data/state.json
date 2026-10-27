@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-27T05:12:09+00:00",
+    "updated_at": "2026-10-27T05:40:40+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2463,14 +2463,23 @@
         "id": "AI-001-T07",
         "note": "AI-001-T07 completed through the existing Control Center after AI platform cost-control and usage-accounting tests (151 passed), entrypoint contract tests (15 passed), and complete ACRL regressions (1444 passed) succeeded in Actions run 40453851901 for verified commit 56412641d2f7b7ecfc8bbba20728dbb6bf19d51c. Only T07 is completed. AI-001-AC01 through AI-001-AC06 remain PENDING; this transition does not claim gate-level acceptance."
       }
+    },
+    {
+      "id": "da40700b-a3f7-4efa-a09b-69e028e32bbd",
+      "time": "2026-10-27T05:40:40+00:00",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "AI-001-T08",
+        "note": "AI-001-T08 completed through the existing Control Center after AI platform observability/fallback and regression tests (157 passed), entrypoint contract tests (15 passed), and complete ACRL regressions (1444 passed) succeeded in Actions run 40456551387 for verified commit 2f825e418fdfe1489b5c7f30abd34b15bb3f76f3. Only T08 is completed. AI-001-AC01 through AI-001-AC06 remain PENDING; this transition does not claim gate-level acceptance."
+      }
     }
   ],
   "integrity": {
-    "sha256": "4def00d1b5796a61c0057dc85d249a449cdd3089987aa4f2d874fd96d72492a0"
+    "sha256": "cda23f0733a53c385069d95c24a7a173d2f25ea431604756aa94e0837197657a"
   },
   "execution": {
     "current_gate": "AI-001",
-    "current_task": "AI-001-T08: Implement AI observability and fallback.",
+    "current_task": "AI-001-T09: Run AI safety security and reliability tests.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
@@ -2481,7 +2490,7 @@
       "Agent actions use authorized business tools.",
       "Fallback and observability are operational."
     ],
-    "current_subtask": "AI-001-T08"
+    "current_subtask": "AI-001-T09"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -4575,7 +4584,7 @@
       "name": "AI Platform & Agents",
       "objective": "Implement the governed AI gateway, retrieval, agents and tool execution layer.",
       "status": "CURRENT",
-      "current_subtask": "AI-001-T08",
+      "current_subtask": "AI-001-T09",
       "subtasks": [
         {
           "id": "AI-001-T01",
@@ -4637,13 +4646,15 @@
           "id": "AI-001-T08",
           "title": "Implement AI observability and fallback",
           "priority": "HIGH",
-          "status": "CURRENT"
+          "status": "DONE",
+          "completed_at": "2026-10-27T05:40:40+00:00",
+          "note": "AI-001-T08 completed through the existing Control Center after AI platform observability/fallback and regression tests (157 passed), entrypoint contract tests (15 passed), and complete ACRL regressions (1444 passed) succeeded in Actions run 40456551387 for verified commit 2f825e418fdfe1489b5c7f30abd34b15bb3f76f3. Only T08 is completed. AI-001-AC01 through AI-001-AC06 remain PENDING; this transition does not claim gate-level acceptance."
         },
         {
           "id": "AI-001-T09",
           "title": "Run AI safety security and reliability tests",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "CURRENT"
         },
         {
           "id": "AI-001-T10",
