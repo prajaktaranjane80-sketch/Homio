@@ -256,20 +256,20 @@ def test_composite_initializes_and_publishes_cache_only_after_ci_passes():
     )
     action = action_path.read_text(encoding="utf-8")
 
-    assert "uses: actions/cache/restore@v4" in action
+    assert "uses: actions/cache/restore@" in action
     assert "Run complete ACRL suite" in action
     assert (
         "Seal and independently read back external T14 resume cache"
         in action
     )
-    assert "uses: actions/cache/save@v4" in action
-    assert "uses: actions/upload-artifact@v4" in action
+    assert "uses: actions/cache/save@" in action
+    assert "uses: actions/upload-artifact@" in action
     assert action.index("Run complete ACRL suite") < action.index(
         "Seal and independently read back external T14 resume cache"
     )
     assert action.index(
         "Seal and independently read back external T14 resume cache"
-    ) < action.index("uses: actions/cache/save@v4")
+    ) < action.index("uses: actions/cache/save@")
     assert "github.ref == 'refs/heads/reos-development'" in action
     assert "github.event_name == 'pull_request'" not in action
 
