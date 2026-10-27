@@ -15,13 +15,15 @@ SCOPE: AI-001-T10 only
 
 ## Authorized transition
 
-Use the existing Control Center approve-gate command only after all guarded preconditions pass.
+Use the existing Control Center approve-gate command.
+
+This command may run only after all guarded preconditions pass.
 
 ## Scope restrictions
 
 - Approve and freeze AI-001 only.
-- Do not manually edit REOS_CONTROL_CENTER/data/state.json.
-- Do not enable live provider credentials, production tool execution, or customer-facing AI.
+- Do not edit REOS_CONTROL_CENTER/data/state.json manually.
+- Do not enable live provider credentials or production tool execution.
 - Do not approve any gate other than AI-001.
 - Do not mark APP-001 complete.
 - Do not force-push.
