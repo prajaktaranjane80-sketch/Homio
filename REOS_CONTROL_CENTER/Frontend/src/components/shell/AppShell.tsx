@@ -18,8 +18,8 @@ export function AppShell({
       <Header />
 
       <ContextBar
-        primary="HOMIO · Global property discovery"
-        secondary="REOS remains the canonical business authority"
+        primary="HOMIO · Property discovery, made personal"
+        secondary="Find your next place, with HOMIO by your side."
       />
 
       <div id="main-content" tabIndex={-1}>
