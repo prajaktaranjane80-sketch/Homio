@@ -536,19 +536,59 @@ def verify_criterion(
 
 
 def assert_snapshot(path: Path) -> None:
-    if not re.fullmatch(
-        r"REOS_CONTROL_CENTER/snapshots/state_\d{8}_\d{6}_\d{6}\.json",
-        path.as_posix(),
-    ):
-        fail(f"unexpected controller snapshot path: {path.as_posix()}")
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-        fail(f"cannot read controller snapshot {path}: {exc}")
-    from REOS_CONTROL_CENTER.reos_control_center import calculate_hash
+        relative = (
+            path.relative_to(ROOT)
+            if path.is_absolute()
+            else path
+        )
+    except ValueError:
+        fail(
+            "controller snapshot is outside the repository: "
+            f"{path}"
+        )
 
-    if data.get("integrity", {}).get("sha256") != calculate_hash(data):
-        fail(f"controller snapshot integrity failed: {path.relative_to(ROOT)}")
+    relative_text = relative.as_posix()
+    pattern = (
+        r"REOS_CONTROL_CENTER/snapshots/"
+        r"state_\d{8}_\d{6}_\d{6}\.json"
+    )
+
+    if not re.fullmatch(pattern, relative_text):
+        fail(
+            "unexpected controller snapshot path: "
+            f"{relative_text}"
+        )
+
+    snapshot_path = ROOT / relative
+
+    try:
+        data = json.loads(
+            snapshot_path.read_text(encoding="utf-8")
+        )
+    except (
+        OSError,
+        UnicodeError,
+        json.JSONDecodeError,
+    ) as exc:
+        fail(
+            "cannot read controller snapshot "
+            f"{relative_text}: {exc}"
+        )
+
+    from REOS_CONTROL_CENTER.reos_control_center import (
+        calculate_hash,
+    )
+
+    stored_hash = data.get(
+        "integrity", {},
+    ).get("sha256")
+
+    if stored_hash != calculate_hash(data):
+        fail(
+            "controller snapshot integrity failed: "
+            f"{relative_text}"
+        )
 
 
 def main() -> None:
