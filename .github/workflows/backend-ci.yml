@@ -25,6 +25,7 @@ on:
       - ".github/workflows/reusable-ai001-t05-transition.yml"
       - ".github/workflows/reusable-ai001-t06-transition.yml"
       - ".github/workflows/reusable-ai001-t07-transition.yml"
+      - ".github/workflows/reusable-ai001-t08-transition.yml"
       - ".github/workflows/reusable-core008-t06-transition.yml"
       - ".github/workflows/reusable-core008-t07-transition.yml"
       - ".github/workflows/reusable-core008-t08-transition.yml"
@@ -57,6 +58,7 @@ on:
       - ".github/workflows/reusable-ai001-t05-transition.yml"
       - ".github/workflows/reusable-ai001-t06-transition.yml"
       - ".github/workflows/reusable-ai001-t07-transition.yml"
+      - ".github/workflows/reusable-ai001-t08-transition.yml"
       - ".github/workflows/reusable-core008-t06-transition.yml"
       - ".github/workflows/reusable-core008-t07-transition.yml"
       - ".github/workflows/reusable-core008-t08-transition.yml"
@@ -140,6 +142,14 @@ jobs:
     permissions:
       contents: write
     uses: ./.github/workflows/reusable-ai001-t07-transition.yml
+
+  control_center_transition_ai001_t08:
+    name: Guarded Control Center transition (AI-001-T08)
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/reos-development' && startsWith(github.event.head_commit.message, '[CONTROL-CENTER-COMPLETE-AI-001-T08]') }}
+    needs: verification
+    permissions:
+      contents: write
+    uses: ./.github/workflows/reusable-ai001-t08-transition.yml
 
   control_center_transition_t06:
     name: Guarded Control Center transition (CORE-008-T06)
