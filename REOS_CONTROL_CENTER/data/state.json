@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-27T05:40:40+00:00",
+    "updated_at": "2026-10-27T06:25:57+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2472,14 +2472,23 @@
         "id": "AI-001-T08",
         "note": "AI-001-T08 completed through the existing Control Center after AI platform observability/fallback and regression tests (157 passed), entrypoint contract tests (15 passed), and complete ACRL regressions (1444 passed) succeeded in Actions run 40456551387 for verified commit 2f825e418fdfe1489b5c7f30abd34b15bb3f76f3. Only T08 is completed. AI-001-AC01 through AI-001-AC06 remain PENDING; this transition does not claim gate-level acceptance."
       }
+    },
+    {
+      "id": "12ca7eac-80c0-4ce5-b874-85b7093aa723",
+      "time": "2026-10-27T06:25:57+00:00",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "AI-001-T09",
+        "note": "AI-001-T09 completed through the existing Control Center after AI safety, security, and reliability regression tests (157 passed), entrypoint contract tests (15 passed), and complete ACRL regressions (1444 passed) succeeded in Actions run 40460955996 for verified commit 842165ea4d5935ed6d3c08c830a42f4cb1dfef39. Only T09 is completed. AI-001-AC01 through AI-001-AC06 remain PENDING; this transition does not claim gate-level acceptance."
+      }
     }
   ],
   "integrity": {
-    "sha256": "cda23f0733a53c385069d95c24a7a173d2f25ea431604756aa94e0837197657a"
+    "sha256": "95b76067ce6b8b5adef98fa17cd3070d1281dd62c71efd60ee40408b2bcf4c3c"
   },
   "execution": {
     "current_gate": "AI-001",
-    "current_task": "AI-001-T09: Run AI safety security and reliability tests.",
+    "current_task": "AI-001-T10: Freeze AI platform and agents.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
@@ -2490,7 +2499,7 @@
       "Agent actions use authorized business tools.",
       "Fallback and observability are operational."
     ],
-    "current_subtask": "AI-001-T09"
+    "current_subtask": "AI-001-T10"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -4583,8 +4592,8 @@
       "id": "AI-001",
       "name": "AI Platform & Agents",
       "objective": "Implement the governed AI gateway, retrieval, agents and tool execution layer.",
-      "status": "CURRENT",
-      "current_subtask": "AI-001-T09",
+      "status": "READY_FOR_VALIDATION",
+      "current_subtask": "AI-001-T10",
       "subtasks": [
         {
           "id": "AI-001-T01",
@@ -4654,7 +4663,9 @@
           "id": "AI-001-T09",
           "title": "Run AI safety security and reliability tests",
           "priority": "CRITICAL",
-          "status": "CURRENT"
+          "status": "DONE",
+          "completed_at": "2026-10-27T06:25:57+00:00",
+          "note": "AI-001-T09 completed through the existing Control Center after AI safety, security, and reliability regression tests (157 passed), entrypoint contract tests (15 passed), and complete ACRL regressions (1444 passed) succeeded in Actions run 40460955996 for verified commit 842165ea4d5935ed6d3c08c830a42f4cb1dfef39. Only T09 is completed. AI-001-AC01 through AI-001-AC06 remain PENDING; this transition does not claim gate-level acceptance."
         },
         {
           "id": "AI-001-T10",
