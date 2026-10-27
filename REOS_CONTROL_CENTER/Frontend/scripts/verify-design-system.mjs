@@ -92,19 +92,25 @@ const marketStatesTheme = read(
   "src/features/f12_globalization/MarketStates.module.css"
 );
 
-/* 1. HOMIO premium blush/berry/champagne token contract */
+/* 1. HOMIO Rosewood & Almond four-colour token contract. */
 
 const requiredTokens = [
-  "--homio-brand: #111111;",
-  "--homio-brand-soft: #292126;",
-  "--homio-accent: #a84f76;",
-  "--homio-accent-strong: #823c5b;",
-  "--homio-accent-soft: #f5e2ea;",
-  "--homio-champagne: #c59b63;",
-  "--homio-champagne-soft: #f4ebdd;",
-  "--homio-bg: #f8f7f4;",
+  "--homio-rosewood: #6f334b;",
+  "--homio-blush: #f3dde4;",
+  "--homio-almond: #f8f1e7;",
+  "--homio-cocoa: #352a2d;",
+  "--homio-brand: var(--homio-rosewood);",
+  "--homio-brand-soft:",
+  "--homio-accent: var(--homio-rosewood);",
+  "--homio-accent-strong:",
+  "--homio-accent-soft: var(--homio-blush);",
+  "--homio-champagne: var(--homio-rosewood);",
+  "--homio-champagne-soft: var(--homio-blush);",
+  "--homio-bg: var(--homio-almond);",
   "--homio-surface: #ffffff;",
-  "--homio-surface-soft: #fbf0f4;",
+  "--homio-focus-ring: rgb(111 51 75 / 72%);",
+  "--homio-focus-shadow: 0 0 0 3px rgb(111 51 75 / 18%);",
+  "--motion-skeleton-duration: 1400ms;",
   "--font-sans:",
   "--font-serif:",
   "--homio-success:",
@@ -125,13 +131,24 @@ requireContains(tokens, "--font-serif:", "Editorial heading font");
 requireContains(tokens, "--font-sans:", "UI and body font");
 requireContains(base, "font-family: var(--font-serif)", "Heading typography");
 requireContains(base, "font-family: var(--font-sans)", "Body typography");
+
 requireContains(
   base,
-  "rgb(168 79 118 / 72%)",
-  "Berry accent focus visibility"
+  "var(--homio-focus-ring)",
+  "Rosewood focus visibility"
+);
+requireContains(
+  foundation,
+  "var(--homio-focus-shadow)",
+  "Shared Rosewood field focus treatment"
+);
+requireContains(
+  foundation,
+  "var(--motion-skeleton-duration)",
+  "Shared skeleton motion duration"
 );
 
-/* 2. Preserve existing transition contracts */
+/* 2. Preserve existing transition contracts. */
 
 requireContains(
   tokens,
@@ -156,7 +173,7 @@ for (const [fileName, source] of [
   );
 }
 
-/* 3. Global stylesheet imports must remain unique and ordered */
+/* 3. Global stylesheet imports must remain unique and ordered. */
 
 const requiredImports = [
   '@import "./styles/tokens.css";',
@@ -179,7 +196,7 @@ for (const styleImport of requiredImports) {
   previousPosition = currentPosition;
 }
 
-/* 4. Motion utilities and reduced-motion support */
+/* 4. Motion utilities and reduced-motion support. */
 
 for (const requiredClass of [
   ".motion-fade-in",
@@ -221,7 +238,7 @@ requireContains(
 );
 requireContains(motionTypes, "children: ReactNode;", "Reveal children type");
 
-/* 5. Shared navigation and system modules use semantic theme tokens */
+/* 5. Shared navigation and system modules use semantic theme tokens. */
 
 const themedModules = [
   ["GlobalMenus.module.css", globalMenus],
@@ -238,7 +255,7 @@ for (const [fileName, source] of themedModules) {
   );
 }
 
-/* 6. Core feature page shells use the same HOMIO palette */
+/* 6. Core feature page shells use the same HOMIO palette. */
 
 const featureThemeModules = [
   ["SearchShell.module.css", searchShellTheme],
@@ -257,7 +274,7 @@ for (const [fileName, source] of featureThemeModules) {
   );
 }
 
-/* 7. Reject the competing navy/blue-grey palette */
+/* 7. Reject the competing navy/blue-grey palette. */
 
 const legacyPaletteValues = [
   "#15283c",
@@ -292,7 +309,7 @@ for (const legacyColor of legacyPaletteValues) {
   }
 }
 
-/* 8. Existing animated modules retain reduced-motion handling */
+/* 8. Existing animated modules retain reduced-motion handling. */
 
 requireContains(
   propertyPageTheme,
@@ -315,14 +332,14 @@ requireContains(
   "System component motion accessibility"
 );
 
-/* 9. Runtime shell and theme metadata */
+/* 9. Runtime shell and theme metadata. */
 
-requireContains(layout, 'themeColor: "#f8f7f4"', "Browser theme colour");
+requireContains(layout, 'themeColor: "#f8f1e7"', "Browser theme colour");
 requireContains(layout, "<AppShell>{children}</AppShell>", "Existing app shell");
 requireContains(layout, "<ProductionQualityMonitor />", "Production monitor");
 requireContains(layout, "<ErrorBoundary>", "Root error boundary");
 
-/* 10. Keep the existing verification pipeline wired */
+/* 10. Keep the existing verification pipeline wired. */
 
 if (!packageJson.scripts?.["verify:design-system"]) {
   fail("npm script verify:design-system is missing.");
@@ -346,19 +363,19 @@ if (
 
 console.log("");
 console.log("==================================================");
-console.log("HOMIO DESIGN SYSTEM CONTRACT        = PASS");
-console.log(`FILES VERIFIED                      = ${requiredFiles.length}`);
-console.log("PREMIUM BLUSH / BERRY PALETTE         = PASS");
-console.log("CHAMPAGNE ACCENT TOKEN                = PASS");
-console.log("EDITORIAL TYPOGRAPHY CONTRACT        = PASS");
-console.log("LEGACY TRANSITION COMPATIBILITY      = PASS");
-console.log("GLOBAL CSS IMPORT ORDER              = PASS");
-console.log("MOTION UTILITY CONTRACT              = PASS");
-console.log("MOTION REVEAL / TYPES                = PASS");
-console.log("REDUCED-MOTION ACCESSIBILITY          = PASS");
-console.log("SHARED NAVIGATION / SYSTEM THEME     = PASS");
+console.log("HOMIO DESIGN SYSTEM CONTRACT          = PASS");
+console.log(`FILES VERIFIED                       = ${requiredFiles.length}`);
+console.log("ROSEWOOD & ALMOND PALETTE             = PASS");
+console.log("FOUR-COLOUR TOKEN CONTRACT            = PASS");
+console.log("EDITORIAL TYPOGRAPHY CONTRACT         = PASS");
+console.log("LEGACY TRANSITION COMPATIBILITY       = PASS");
+console.log("GLOBAL CSS IMPORT ORDER               = PASS");
+console.log("MOTION UTILITY CONTRACT               = PASS");
+console.log("MOTION REVEAL / TYPES                 = PASS");
+console.log("REDUCED-MOTION ACCESSIBILITY           = PASS");
+console.log("SHARED NAVIGATION / SYSTEM THEME      = PASS");
 console.log("FEATURE PALETTE CONTRACT              = PASS");
 console.log("LEGACY THEME COLOUR CHECK             = PASS");
 console.log("ROOT SHELL / METADATA CONTRACT        = PASS");
-console.log("VERIFY PIPELINE INTEGRATION           = PASS");
+console.log("VERIFY PIPELINE INTEGRATION            = PASS");
 console.log("==================================================");
