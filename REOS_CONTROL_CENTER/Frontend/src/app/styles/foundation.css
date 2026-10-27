@@ -1,4 +1,3 @@
-
 /* F01 — shared shell, navigation and accessible UI primitives. */
 .skip-link {
   position: absolute;
@@ -12,6 +11,7 @@
   color: var(--homio-text-inverse);
   font-weight: var(--font-weight-bold);
 }
+
 .skip-link:focus {
   position: fixed;
   transform: translateY(0);
@@ -223,8 +223,8 @@
 .search-field:focus-visible,
 .input-field:focus-visible,
 .select-field:focus-visible {
-  border-color: var(--homio-accent);
-  box-shadow: 0 0 0 3px rgb(169 133 86 / 18%);
+  border-color: var(--homio-border-focus);
+  box-shadow: var(--homio-focus-shadow);
 }
 
 .global-search__form .button {
@@ -286,7 +286,7 @@
   padding-block: var(--space-12);
 }
 
-/* Reserve room so the fixed quick-action bar does not cover final-page content. */
+/* Keep this reservation: verify-foundation checks the existing shell contract. */
 #main-content { padding-bottom: 5.25rem; }
 
 .page-container {
@@ -505,7 +505,7 @@
     var(--homio-surface-muted) 56%
   );
   background-size: 220% 100%;
-  animation: homio-skeleton-shimmer 1.4s ease-in-out infinite;
+  animation: homio-skeleton-shimmer var(--motion-skeleton-duration) ease-in-out infinite;
 }
 
 @keyframes homio-skeleton-shimmer {
