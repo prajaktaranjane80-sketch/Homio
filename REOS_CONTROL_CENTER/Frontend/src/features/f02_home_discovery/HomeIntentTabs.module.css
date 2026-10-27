@@ -5,10 +5,10 @@
   gap: 5px;
   margin-bottom: var(--space-3);
   padding: 5px;
-  border: 1px solid rgb(255 255 255 / 20%);
+  border: 1px solid color-mix(in srgb, var(--homio-text-inverse) 24%, transparent);
   border-radius: var(--radius-pill);
-  background: rgb(17 17 17 / 58%);
-  box-shadow: 0 8px 24px rgb(17 17 17 / 12%);
+  background: color-mix(in srgb, var(--homio-rosewood) 86%, transparent);
+  box-shadow: var(--shadow-lg);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
 }
@@ -22,7 +22,7 @@
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
   background: transparent;
-  color: rgb(255 255 255 / 82%);
+  color: color-mix(in srgb, var(--homio-text-inverse) 88%, transparent);
   cursor: pointer;
   font-size: var(--text-sm);
   font-weight: var(--font-weight-semibold);
@@ -35,28 +35,28 @@
 }
 
 .tab:hover {
-  color: #ffffff;
-  background: rgb(255 255 255 / 10%);
+  color: var(--homio-text-inverse);
+  background: color-mix(in srgb, var(--homio-text-inverse) 12%, transparent);
 }
 
 .tab:active {
-  transform: scale(0.98);
+  transform: translateY(1px);
 }
 
 .active {
-  border-color: rgb(255 255 255 / 32%);
-  background: var(--homio-accent-strong);
-  color: #ffffff;
-  box-shadow: 0 3px 10px rgb(17 17 17 / 16%);
+  border-color: color-mix(in srgb, var(--homio-text-inverse) 46%, transparent);
+  background: var(--homio-blush);
+  color: var(--homio-rosewood);
+  box-shadow: var(--shadow-sm);
 }
 
 .active:hover {
-  background: var(--homio-accent);
-  color: #ffffff;
+  background: var(--homio-blush);
+  color: var(--homio-rosewood);
 }
 
 .tab:focus-visible {
-  outline: 2px solid var(--homio-champagne);
+  outline: 3px solid var(--homio-focus-ring-on-brand);
   outline-offset: 3px;
 }
 
