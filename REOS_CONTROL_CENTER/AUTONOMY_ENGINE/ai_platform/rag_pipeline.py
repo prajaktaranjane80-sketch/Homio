@@ -1,4 +1,3 @@
-
 """Evidence-bounded RAG orchestration for HOMIO / REOS.
 
 The pipeline reuses the existing search owner and provider-independent AI
@@ -294,6 +293,53 @@ class RAGPipeline:
         self._settings = selected_settings
         self._prompt_template = selected_template
 
+    @staticmethod
+    def _conflicting_evidence_labels(
+        sources: tuple[SourceCitation, ...],
+    ) -> tuple[str, ...]:
+        """Find conflicting critical facts for the same scoped listing.
+
+        A repeated inventory code is compared only within the same project.
+        Name differences alone do not establish a conflict because listing
+        names can contain aliases. Availability, lifecycle and inventory type
+        are treated as critical fields: disagreement means the answer must be
+        qualified regardless of model-generated confidence.
+        """
+        groups: dict[tuple[str, str], list[SourceCitation]] = {}
+
+        for source in sources:
+            key = (
+                source.project_id.casefold(),
+                source.inventory_code.casefold(),
+            )
+            groups.setdefault(key, []).append(source)
+
+        conflicting_ids: set[str] = set()
+        critical_fields = ("availability", "lifecycle", "inventory_type")
+
+        for records in groups.values():
+            if len(records) < 2:
+                continue
+
+            has_conflict = any(
+                len({
+                    getattr(record, field_name).strip().casefold()
+                    for record in records
+                }) > 1
+                for field_name in critical_fields
+            )
+
+            if has_conflict:
+                conflicting_ids.update(
+                    record.citation_id for record in records
+                )
+
+        return tuple(
+            source.citation_id
+            for source in sources
+            if source.citation_id in conflicting_ids
+        )
+
     def answer(self, request: RAGRequest) -> RAGResponse:
         """Answer a read-only property question using authorized evidence only."""
         if not self._settings.enabled:
@@ -420,6 +466,21 @@ class RAGPipeline:
                 source.citation_id for source in rendered.sources
             },
         )
+
+        conflicting_labels = self._conflicting_evidence_labels(
+            rendered.sources
+        )
+        if conflicting_labels:
+            # Do not trust model confidence when structured records disagree
+            # about critical facts for the same project-scoped listing.
+            # Preserve provenance by citing every conflicting source.
+            answer = (
+                "The retrieved records disagree about current listing details, "
+                "so I cannot safely confirm the property's current status. "
+                "Please verify it with the responsible listing source."
+            )
+            citation_labels = conflicting_labels
+            insufficient = True
 
         source_by_label = {
             source.citation_id: source
