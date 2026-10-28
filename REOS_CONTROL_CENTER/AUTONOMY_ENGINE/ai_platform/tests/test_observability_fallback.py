@@ -362,3 +362,40 @@ def test_structured_logging_adapter_rejects_untyped_events() -> None:
 
     with pytest.raises(TypeError):
         adapter.emit("not-an-event")  # type: ignore[arg-type]
+
+
+def test_incompatible_fallback_route_is_skipped_before_reservation() -> None:
+    secondary = fallback_provider()
+    gateway, _, _, usage, observer = make_gateway(
+        providers={FALLBACK.provider_id: secondary}
+    )
+    request = AIRequest(
+        request_id="request-incompatible-fallback",
+        operation="property.search",
+        input_text="Find a two bedroom apartment.",
+        context=RequestContext(
+            "user-1",
+            "tenant-1",
+            "auth-context-1",
+            "correlation-1",
+        ),
+        max_output_tokens=48,
+    )
+
+    # The configured fallback supports at most 32 output tokens. The gateway
+    # must not silently lower the caller's requested 48-token budget.
+    with pytest.raises(ProviderUnavailableError):
+        gateway.complete(request)
+
+    assert secondary.requests == []
+    assert usage.reservations == []
+    assert usage.settlements == []
+    assert usage.releases == []
+    assert not any(
+        event.event_name == "MODEL_FALLBACK_SELECTED"
+        for event in observer.events
+    )
+    assert any(
+        event.event_name == "REQUEST_FAILED"
+        for event in observer.events
+    )
