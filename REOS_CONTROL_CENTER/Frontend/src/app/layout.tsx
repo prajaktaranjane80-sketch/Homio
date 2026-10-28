@@ -7,17 +7,40 @@ import ProductionQualityMonitor from "@/features/f13_production/ProductionQualit
 
 import "./globals.css";
 
+const siteTitle = "HOMIO | Pune Homes, Flats & Property Discovery";
+
+const siteDescription =
+  "Explore homes, flats, rentals and residential projects across Pune. Compare localities, shortlist property options and enquire through HOMIO. Listing details and availability depend on information supplied by the responsible source.";
+
 export const metadata: Metadata = {
   title: {
-    default: "HOMIO | Global Property Discovery",
+    default: siteTitle,
     template: "%s | HOMIO",
   },
-  description:
-    "Explore property discovery, homes, rentals, projects and commercial spaces through HOMIO. Property facts and availability depend on approved source data.",
+
+  description: siteDescription,
+
   applicationName: "HOMIO",
+
+  category: "real estate",
+
   robots: {
     index: true,
     follow: true,
+  },
+
+  openGraph: {
+    type: "website",
+    locale: "en_IN",
+    siteName: "HOMIO",
+    title: siteTitle,
+    description: siteDescription,
+  },
+
+  twitter: {
+    card: "summary",
+    title: siteTitle,
+    description: siteDescription,
   },
 };
 
