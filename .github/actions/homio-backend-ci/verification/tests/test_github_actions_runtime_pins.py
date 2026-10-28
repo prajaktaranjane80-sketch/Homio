@@ -8,21 +8,11 @@ ROOT = Path(__file__).resolve().parents[5]
 WORKFLOWS = ROOT / ".github" / "workflows"
 ACTIONS = ROOT / ".github" / "actions"
 
-CHECKOUT_PIN = (
-    "3d3c42e5aac5ba805825da76410c181273ba90b1"
-)
-SETUP_PYTHON_PIN = (
-    "6d4fd22b20465ccc0f7354476588e8df7c9ca0e0"
-)
-SETUP_NODE_PIN = (
-    "949feb2413d6458794dcd2491c4babbbce0c15c1"
-)
-CACHE_PIN = (
-    "55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
-)
-UPLOAD_ARTIFACT_PIN = (
-    "cf430e030ddbb5b0abf93d22962f4752f3646cd9"
-)
+CHECKOUT_PIN = "3d3c42e5aac5ba805825da76410c181273ba90b1"
+SETUP_PYTHON_PIN = "6d4fd22b20465ccc0f7354476588e8df7c9ca0e0"
+SETUP_NODE_PIN = "949feb2413d6458794dcd2491c4babbbce0c15c1"
+CACHE_PIN = "55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
+UPLOAD_ARTIFACT_PIN = "cf430e030ddbb5b0abf93d22962f4752f3646cd9"
 
 EXPECTED_ACTION_PINS = {
     "actions/checkout": CHECKOUT_PIN,
@@ -165,8 +155,19 @@ def test_compile_check_is_in_memory_and_does_not_regenerate_bytecode():
     assert "tokenize.open(source_path)" in compile_script, (
         "The compile check must respect Python source encoding declarations."
     )
-    assert 'compile(source, str(source_path), "exec", dont_inherit=True)' in (
-        compile_script
-    ), (
+
+    # Match the compile call structurally across line breaks and indentation.
+    compile_call = re.search(
+        r'compile\s*\(\s*'
+        r"source\s*,\s*"
+        r"str\(source_path\)\s*,\s*"
+        r'"exec"\s*,\s*'
+        r"dont_inherit=True\s*,?\s*"
+        r"\)",
+        compile_script,
+        re.DOTALL,
+    )
+
+    assert compile_call is not None, (
         "The compile check must compile source in memory without writing .pyc files."
     )
