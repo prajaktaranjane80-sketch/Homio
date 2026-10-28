@@ -1,72 +1,77 @@
-Bhai, maine tumhare dono GitHub links par live audit kiya. Latest HOMIO Frontend CI run PASS hai, lekin poori website ki colour aur animation uniformity abhi complete nahi hui hai.
-1. GitHub Actions ka result
-HOMIO Frontend CI
-Run #678 · October 27, 2026
+Bhai, maine live state.json, AI-001 blueprint, GitHub Actions aur current AI platform file structure ko compare kiya hai. AI-001 ka formal gate complete hai, lekin iska matlab yeh nahi ki poora customer-facing AI product production-ready ho gaya hai. Dono ko alag rakhna zaroori hai.
+1. AI-001 blueprint ke hisaab se progress
+Canonical AI-001 subtasks
+10 / 10
 
-Success
+Acceptance criteria
+6 / 6
 
 
-Latest tested commit
 
-20ad7c6e…
 
-Frontend verification
+state.json mein AI-001 APPROVED hai, T01–T10 DONE hain aur AC01–AC06 VERIFIED hain.
 
-Passed
+Isliye canonical AI-001 gate mein ab koi subtask pending nahi hai.
 
-Dependency install
+AI-001 implementation blueprint khud bhi kehta hai ki woh implementation reference hai, execution authority nahi. Current task aur next step state.json se hi decide honge.
+2. Phir blueprint ke hisaab se kitna kaam baaki hai?
+Blueprint aur live code ka comparison karne par yeh follow-up areas saamne aaye. Inhe AI-001 ke pending tasks nahi, balki agle relevant implementation/release task ke liye verification backlog samjho.
+Area	Abhi ki sthiti	Agla kaam
+Gateway, model registry, retrieval, RAG, agents, authorization, cost controls aur observability	CI aur canonical task records se verified	Existing implementation ko preserve karna
+provider_adapters/base.py aur resilience.py	Blueprint mein standalone modules ke roop mein listed; live package tree mein yeh paths nahi mile	Check karna ki responsibility existing modules mein properly covered hai ya koi actual gap hai
+AI test coverage	10 canonical AI test files live package mein; blueprint mein aur test categories listed hain	Har required invariant ko existing tests se map karna; genuinely missing coverage ko hi add karna
+AI quality evaluation aur production readiness	CI pass hona production readiness ka proof nahi hai	Quality thresholds, real-provider configuration, secret handling, kill switch aur rollback ko verify karna
+Blueprint checkpoint	Section 3.6 mein 25 October ka historical checkpoint hai	Agle AI implementation batch se pehle current repository evidence refresh karna
 
-Passed
+Important: Is table ka matlab yeh nahi ki sabhi missing filenames alag se banane hain. Blueprint khud duplicate responsibilities aur unnecessary test files se mana karta hai. Pehle existing implementations aur coverage ka audit hoga, phir decide hoga ki ADD, UPDATE, VERIFY ya NO CHANGE kya hona chahiye.
+3. Latest Actions ka verified result
+Run #510 — GitHub Actions successful hai.
+Verification	Result
+AI-001 regression suite	157 passed
+Full ACRL regression suite	1,444 passed
+Python in-memory compilation	258 source files
+Runtime pin regression checks	3 passed
+Resume cache	Sealed and read back
+Audited repository paths	79
 
-Verification, TypeScript, lint and build step
+Yeh current tested commit fd210b942e0a864a8d55ebff0e118f77fb5e96b0 ka evidence hai. Isse live provider integration ya customer-facing AI ki readiness automatically prove nahi hoti.
+4. Live AI product mein kya baaki hai?
+Current F08 AI README ke mutabik AI_LIVE_SERVICE_CONNECTED abhi false hai. Customer-facing preview static hai; live AI model, market-data feed aur brokerage handoff connected nahi hain.
 
-Passed
+Yeh discrepancy apne aap mein bug nahi hai—live service enable karne se pehle actual server-side API, authorization, tenant isolation aur execution controls verify karne hain.
 
-Open verified Frontend CI run #678
+Canonical state.json mein APP-001-T08 — “Integrate AI capabilities with policy controls” abhi PENDING hai. Wahi later task is integration ko relevant scope mein handle karega.
+5. Ab actual next work kya hai?
+Live state.json ke mutabik current project task hai:
+APP-001-T01
+Implement application shell and design system
 
-Workflow bhi sahi tarah configured hai: Node.js 24, locked dependencies ke liye npm ci, aur existing complete frontend verification ke liye npm run verify. Naya workflow banane ki zaroorat nahi hai.
-2. Rosewood & Almond changes ki live repository verification
-Maine current reos-development branch mein ye changes maujood dekhe:
-File	Verified status
-src/app/styles/tokens.css	Rosewood & Almond tokens saved
-src/app/styles/base.css	Shared focus-ring token used
-src/app/styles/foundation.css	Shared focus shadow and skeleton timing token used
-src/app/styles/motion.css	Duplicate header/wordmark styling removed
-src/app/styles/README.md	New palette documented
-src/components/shell/AppShell.tsx	Customer-facing text updated
-src/app/layout.tsx	Almond Cream browser theme colour
-scripts/verify-design-system.mjs	New palette checks added
+Gate: APP-001 — Buyer / Broker / Builder Applications
 
-Isliye in files ko dobara replace karne ki zaroorat nahi hai.
-3. Abhi bhi kya fix karna hai?
-Latest code mein ye differences abhi bhi maujood hain:
-Gold focus rings abhi bhi hard-coded hain
+CURRENT
 
-GlobalMenus.module.css aur MegaMenu.module.css mein purane champagne-gold focus outlines/shadows hain. Inhe shared Rosewood focus tokens par lana hoga.
 
+Is gate mein 10 subtasks hain: T01 current hai aur T02–T10 pending hain. Chhe acceptance criteria bhi abhi pending hain.
+Tumne pehle bataya tha ki frontend ka kaam doosre chat mein chal raha hai, isliye wahan wahi current task continue hona chahiye—yahan usi file ko parallel mein edit nahi karna chahiye.
 
+Meri recommendation: AI-001 ko dobara open ya unfreeze mat karo. Abhi formal execution mein APP-001-T01 ko follow karo. Jab current frontend task apne evidence aur Actions verification ke saath complete ho, tab canonical state ke next step ke mutabik aage badho. AI blueprint ke structural aur production-readiness follow-ups ko bina authorization ek naya gate ya duplicate AI implementation banaye bina handle karna hai.
 
-Skeleton animation timing alag hai
 
-SystemComponents.module.css abhi 1.35s use karta hai, jabki canonical token 1400ms hai. SharedSystem.module.css aur foundation animation ke saath isko synchronize karna hai.
 
 
 
-Status colour hard-coding aur global CSS overlap
 
-MarketStates.module.css mein active-status ke green colours hard-coded hain. globals.css mein kuch scroll, body aur selection rules base.css ke saath repeat hote hain. Inhe existing verifier contracts preserve karte hue clean karna hai.
 
 
 
-Important: CI pass hone ka matlab current automated tests pass hue; iska matlab yeh nahi ki har hard-coded colour aur animation mismatch automatically pakda gaya. Isi liye main abhi complete visual uniformity ko PASS declare nahi kar raha.
 
-Agla engineering batch in existing files ko synchronize karega—duplicate files nahi banengi, workflow nahi badlega, aur state.json ko manually touch nahi karna hai. Uske baad same Frontend CI se regression check karna hoga.
 
 
 
 
 
 
+bhai pro auto ai systym banana hai or bar bar ispar kam nahi karana agar tume lagata hai ki abi  Meri recommendation: AI-001 ko dobara open ya unfreeze mat karo. Abhi formal execution mein APP-001-T01 ko follow karo. Jab current frontend task apne evidence aur Actions verification ke saath complete ho, tab canonical state ke next step ke mutabik aage badho. AI blueprint ke structural aur production-readiness follow-ups ko bina authorization ek naya gate ya duplicate AI implementation banaye bina handle karna hai.    abhi ye karana jaruri hai to karenge lekin pro banayenge bar bar time nahi dena ek bar hi pro banana hai to tum content pro doge to kam banega    baki tum devoloper ho tum deside karo kya karana hai jara enggeenir ki tarah socho khud ki site hoti to kaise karata
 
 
 
@@ -77,18 +82,9 @@ Agla engineering batch in existing files ko synchronize karega—duplicate files
 
 
 
-Final audit results
-जाँच	सत्यापित स्थिति
-AI-001 gate	APPROVED
-AI-001-T01 से T10	सभी DONE
-Acceptance criteria AC01–AC06	सभी VERIFIED
-Authoritative execution plan	AI-001 COMPLETE
-अगला gate	APP-001 CURRENT
-अगला task	APP-001-T01
-Execution status	CONTROL_CENTER_DRIVEN
-State integrity	PASS                                                           aab aage kya or tumane jo css or ui ux diya kya o best hai ya usamai koi kami hai jara audit karake bata kyun ki o fudation hai
 
 
+Worked for 2m 51s
 
 
 
@@ -96,114 +92,94 @@ State integrity	PASS                                                           a
 
 
 
+Bhai, agar HOMIO meri khud ki company hoti, toh main AI ko sirf chatbot bana kar release nahi karta. Main ek professional, automated, secure aur production-ready AI system banata—jisme core engineering ek baar properly hoti, aur future mein naye features add karne ke liye baar-baar foundation repair nahi karna padta.
 
+Maine live GitHub code, AI-001 blueprint, state.json aur latest Actions run ko dekhkar apna engineering decision liya hai.
+Mera final decision
+AI-001 ko dobara open nahi karna hai. Lekin customer-facing AI ko abhi production-ready bhi nahi maanna hai.
 
+Dono baatein alag hain. AI-001 ka formal gate approved hai, uske 10 subtasks complete hain aur 6 acceptance criteria verified hain. Latest Actions run #510 bhi successful hai.
 
-Worked for 5m 27s
+Lekin live code audit mein mujhe teen important integration gaps mile hain.
+1. Live AI server connection abhi nahi hai
 
+F08 frontend ka AI preview abhi static hai. Repository mein AI ke liye live API route nahi mila; current Next.js API routes authentication ke liye hain. Python AI platform package ko application ke authenticated server path se connect karna abhi baaki hai.
 
+Evidence: F08 AI status · AI route registry
 
 
 
+2. Actual provider wiring aur runtime composition missing hai
 
+model_gateway.py, model registry, RAG, authorization aur cost-control modules already hain. Lekin live provider adapter aur production service composition abhi repository mein wired nahi dikhte. Gateway aur authorization safe-by-default disabled bhi hain—yeh achhi safety property hai, bug nahi.
 
-Bhai, live repository aur authoritative state.json ko cross-check karne par tumhare diye hue execution status ki pushti hoti hai.
-- AI-001: COMPLETE — task T01–T10 complete aur AC01–AC06 verified hone ka record hai.
-- Agla gate: APP-001 — Buyer / Broker / Builder Applications
-- Abhi ka task: APP-001-T01 — Implement application shell and design system
-- Execution status: CONTROL_CENTER_DRIVEN
-- State integrity: stored record mein PASS status ke mutabik integrity hash present hai; maine state ko modify nahi kiya.
-Authoritative execution state · Frontend implementation blueprint
+Evidence: AI platform package · Gateway settings
 
-Mera initial verdict: tumhara CSS foundation achha starting point hai, lekin abhi ise “world-class aur fully uniform” declare karna jaldbazi hogi. Tokens, shared styles, reduced-motion support aur automated verification jaise achhe foundations maujood hain. Abhi kuch colour aur motion mismatches bhi hain, aur foundation ko sirf CI pass hone se complete nahi maana ja sakta.
-1. Detailed UI/UX foundation audit
-Good foundation already exists
 
-Central tokens, reusable CSS, keyboard focus, responsive navigation and reduced-motion support.
 
+3. Production deployment ke usage controls final nahi hain
 
+Existing cost_control.py durable SQLite accounting deta hai, lekin uske source comments ke mutabik multi-replica deployment ke liye approved shared transactional datastore chahiye. Production mein concurrent usage, quota enforcement aur accounting ko deployment architecture ke saath final karna hoga.
 
-Visual consistency is incomplete
+Evidence: Cost controls
 
-Some homepage styles still have older colours, menu focus rings use gold, and skeleton animations have different timings.
 
 
+Ek aur important baat: blueprint mein listed provider_adapters/base.py ya resilience.py ke missing hone ka matlab yeh nahi ki dono files bana deni chahiye. Pehle existing interfaces aur equivalent behavior verify karna hai. File count se zyada important ek responsibility ka ek hi owner hona hai.
+Main professional auto-AI system kaise banata?
+HOMIO F08 — AI Property Workspace
 
-Responsive experience needs closer review
+User brief, preferences, location, budget
 
-The homepage search, header search and fixed quick-action dock overlap in purpose. Actual rendered desktop/tablet/mobile behaviour still needs visual review.
+Authenticated server boundary
 
+Verified session, tenant identity, request limits, authorization
 
+Existing Python AI platform
 
-The important gaps, in priority order
-Priority	Finding	What should improve
-P1	Old homepage colours	Move remaining old berry and surface literals to the Rosewood & Almond tokens.
-P1	Gold focus rings	Use the same Rosewood focus treatment across menus, fields and buttons.
-P1	Duplicate search/navigation	Give the homepage one clear primary search and simplify redundant quick actions.
-P1	Incomplete verifier coverage	Extend the existing design-system checks to detect these mismatches rather than allowing them to pass unnoticed.
-P2	Animation timing	Use the shared 1400 ms skeleton token in all skeleton modules; reconcile the legacy 180 ms transition with the 140/220/420 ms motion system.
-P2	Small menu typography	Increase the 8–10 px menu labels and descriptions to more comfortable reading sizes.
-P2	Repeated global styles	Consolidate overlapping scroll, body and selection declarations while preserving existing accessibility contracts.
+Model gateway, approved provider, RAG, source evidence, cost controls
 
-2. Specific files where the problems exist
-A. Homepage palette is not fully synchronized
+Existing HOMIO domain services
 
-The updated palette tokens are saved, but several homepage styles still contain hard-coded earlier colours:
-- HomeSearch.module.css — previous berry shades and old blush surface values.
-- HomeQuickDiscovery.module.css — old hard-coded surface and accent colours.
-- HomeHero.module.css — dark charcoal overlays remain. Overlays are useful for property-photo readability, but the colour treatment should better match the Rosewood brand without changing the existing image.
-- HomeFooter.module.css — #0D0D0D is used as the large footer background. This is the clearest mismatch with your chosen palette; a Rosewood-led footer would be more cohesive.
-Recommended rule: Rosewood is the dominant brand colour, while Almond Cream remains the main page background. Ballet Blush should be a deliberate soft accent, and Espresso Cocoa should be reserved for small lines and dots. Making every background Rosewood would make the site too heavy.
+Canonical inventory, CORE-005 search, leads and deals—no duplicate business engines
 
-B. Focus rings are still inconsistent
-- GlobalMenus.module.css contains three hard-coded champagne/gold outlines.
-- MegaMenu.module.css contains hard-coded gold focus shadows/outlines.
-- SystemComponents.module.css uses a separate accent-mix focus style.
-These should all use the shared --homio-focus-ring and --homio-focus-shadow tokens where appropriate.
+Verified result + operational evidence
 
-C. The current motion rules need a single owner
-- foundation.css now uses --motion-skeleton-duration: 1400ms.
-- SharedSystem.module.css uses 1.4s.
-- SystemComponents.module.css still uses 1.35s.
-The first two agree, the third does not. The spinner's 850 ms animation can remain separate because it serves a different purpose. The fix is to unify equivalent animations, not force every animation to have the same duration.
+Source references, usage accounting, redacted telemetry, truthful success/failure
 
-D. Navigation and search need a UX decision
 
-The current Header.tsx always shows the global search, while HomeHero.tsx includes its own Pune-first search. The fixed GlobalActionLayer.tsx also repeats Home, Search and Projects actions.
+Yeh mera target architecture hoga. Python AI platform ko TypeScript mein dobara rewrite nahi karunga aur na hi ek second AI gateway banaunga. Pehle existing server deployment path verify hoga; agar usable Python service boundary nahi hai, toh ek minimal server-side integration boundary banegi—poora duplicate backend nahi.
+Autonomy bhi professional honi chahiye
+AI ko kaafi kaam automatic karne dena hai, lekin har action ka risk same nahi hota.
+AI autonomy level	Expected behavior
+Read and understand	Property brief samajhna, available listing search karna, options compare karna aur sources cite karna
+Recommend and prepare	Search filters, enquiry drafts, follow-up messages aur comparison reports automatically banana
+Execute controlled actions	Approved APIs ke through, user authorization aur applicable confirmation ke baad action karna
+High-impact actions	Listing publish/withdraw, contractual commitment, financial mutation ya commission changes par existing policy aur explicit approval apply karna
 
-That can make the page feel crowded, especially on mobile. My recommendation is to give the homepage hero the primary search role, use a more compact header search treatment where needed, and make the fixed quick-action dock intentional rather than redundant. The existing route and interaction behaviour must be preserved when this is implemented.
-3. Is the chosen palette readable?
-Yes—the four colours themselves are a good choice. I calculated these approximate contrast ratios from the current token values:
-Combination	Contrast
-Rosewood on Almond Cream	8.32:1
-Rosewood on Ballet Blush	7.23:1
-Muted Rosewood text on Almond Cream	5.04:1
+AI apne output ko authorization nahi maanega. Har relevant action ka verified receipt hona chahiye. Prompt injection, excess agency, sensitive-information disclosure aur unbounded consumption ke liye release tests bhi honge; yeh current OWASP GenAI LLM Top 10 (2026) ke major risk areas ke saath align karta hai. 
+GitHub
 
-These combinations clear the WCAG 2.2 AA minimum of 4.5:1 for normal text. 
-W3C
+Kaam ka sahi order kya hai?
+Canonical state.json mein abhi APP-001-T01 — application shell and design system current hai. Tumne bataya tha ki is par doosre chat mein kaam chal raha hai, isliye main parallel mein frontend files edit nahi karunga.
 
+Mera decision yeh hai:
+1. Abhi: AI-001 ko reopen ya unfreeze nahi karna. Upar ke integration gaps ko verified engineering requirements maana jayega; duplicate plan ya extra AI framework nahi banega. F08 ka live-service flag false hi rahega.
+2. APP-001 ke normal task order mein: current application foundation aur uske dependencies complete honge. AI integration ke liye APP-001-T08 already canonical task hai: “Integrate AI capabilities with policy controls.”
+3. AI integration task par: provider adapter, authenticated server connection, trusted tenant context, retrieval integration, shared usage-accounting decision, observability aur security/E2E checks ko ek coherent implementation batch mein address karna hai—random file-by-file redesign nahi.
+4. Release se pehle: exact tested commit par focused AI tests, cross-tenant isolation, prompt-injection tests, quota/concurrency tests, provider-failure tests aur F08-to-server end-to-end verification pass hone chahiye. Tabhi live service enable karna hai.
+Isse baar-baar kaam karna kaise kam hoga?
+Main teen cheezein freeze karunga: public contracts, service ownership aur release acceptance tests. Future changes انہीं boundaries ke through honge. Isse unnecessary rewrites aur regressions kam honge, halanki koi engineering process future defects bilkul zero hone ki guarantee nahi de sakta.
 
-One exception to handle deliberately is the disabled-text token: its contrast is about 2.12:1 against Almond. That is acceptable only for genuinely disabled controls—not for ordinary descriptions, labels or important information. 
-W3C
+Maine abhi koi source file ya state.json modify nahi kiya hai; yeh latest code aur project authority par based read-only engineering audit hai. Meri nazar mein yahi sabse sahi decision hai: AI foundation ko dobara mat banao; jo production connection abhi missing hai, use ek baar proper engineering ke saath complete karo, phir tested release gates ke through hi live karo.
 
-4. Why did CI pass if there are still gaps?
-The latest Frontend CI run #678 is successful. It ran the existing verification pipeline, TypeScript, lint and production build.
 
-The problem is that passing tests does not necessarily mean every visual detail is consistent. For example, the current verify-design-system.mjs checks canonical tokens and some shared contracts, but does not reject all old hard-coded accents or enforce one skeleton timing across every module.
 
-The verifier should be strengthened; creating a second verifier or another frontend workflow would be the wrong approach.
-5. What should happen next?
-Continue with APP-001-T01 only. Do not advance to APP-001-T02 yet.
 
-The next implementation batch should synchronize these existing files—without creating duplicates:
 
-tokens.css, base.css, globals.css, foundation.css, motion.css, GlobalMenus.module.css, MegaMenu.module.css, SharedSystem.module.css, SystemComponents.module.css, HomeSearch.module.css, HomeQuickDiscovery.module.css, HomeHero.module.css, HomeFooter.module.css, verify-design-system.mjs and verify-foundation.mjs.
 
-The key design decision is to preserve the four-colour palette, migrate legacy hard-coded brand shades, remove the redundant UI elements where appropriate, and strengthen the existing regression checks. The two verifier files must be updated in the same batch as the implementation so their contracts remain accurate.
 
-After those changes are saved, rerun the existing Frontend CI and inspect the rendered experience at desktop, tablet and mobile widths. A successful build is necessary, but it is not a substitute for that visual review.
 
-Final verdict: the foundation has the right building blocks, but it is not yet fully synchronized or ready to call world-class. Finishing these corrections as part of APP-001-T01 is the right next step. I have not changed any files during this audit, and I have not manually edited state.json.
 
 
 
@@ -212,6 +188,7 @@ Final verdict: the foundation has the right building blocks, but it is not yet f
 
 
 
+aare bhai ye sabhi gpt chat kahate hai  lekin jab mai banane jata hu to o generic hi banate hai abhi bhi tumane bola plan diya isamai bhi kamiya hai isse upadate karana hai lekin asali problem coding ya sync wirirng ya pura backend banane mai aati hai tab jo bhi plan ultra pro banata hai to koi bhi gpt chat uss ultra pro plan ko generic content banakar fail karata hai sab generic banata hai koi resarch nahi koi ultra pro tarika nahi to isaka solution kya hai tumare pass
 
 
 
@@ -220,11 +197,11 @@ Final verdict: the foundation has the right building blocks, but it is not yet f
 
 
 
-pahala kam chalu hai or naya update to in dono ko best sync karake kam chalu karo chahi to file struckture bana or ultra pro content chahiye esa structure bana jab tumara limt khatam hoga to next new chat ko kam karana aasan ho..... abhi tum hi best kam karo tum socho devloper mind se ki aage kam kaise karana hai
 
 
 
 
+Worked for 3m 2s
 
 
 
@@ -232,123 +209,329 @@ pahala kam chalu hai or naya update to in dono ko best sync karake kam chalu kar
 
 
 
+Bhai, ab main samajh gaya hoon ki tumhara asli sawaal kya hai. Tumhe ek aur ultra-pro plan nahi chahiye. Tumhe aisa engineering system chahiye jismein koi bhi GPT chat tumhare approved architecture ko generic code mein badal kar “kaam complete” na keh sake.
 
-Thinking
-Synchronized project context and audited continuation structure
+Aur haan, meri pichhli response mein bhi kami thi: maine architecture samjhaya, lekin yeh nahi dikhaya ki galat implementation ko practically rokna kaise hai.
 
-Main dono streams ko ek shared implementation baseline se jod raha hoon: (1) Control Center ka authoritative APP-001-T01, aur (2) tumhara approved Rosewood & Almond UI/UX update. Main pehle existing plan/structure references aur saved files ko reconcile karunga, phir sirf wahi missing work define/implement karunga jo existing contracts se compatible ho—state.json ko manually edit kiye bina. Handoff ko bhi canonical references aur exact remaining work ke saath taiyar karunga, taaki agla chat guesswork na kare.
+Mera solution hai: GPT ki promises par nahi, repository ke actual contracts, implementation aur automated verification par bharosa karna.
+1. Maine HOMIO mein asli problem kahan dekhi?
+Maine live repository ke current commit par AI_AGENT_ENTRYPOINT.py, AI blueprint, state.json, AI modules aur frontend ko check kiya.
+Problem A — Instructions hain, lekin sirf instructions kaafi nahi
 
-Aligned the work structure and planned implementation
+HOMIO mein AI_AGENT_ENTRYPOINT.py aur new-chat work reference jaise documents pehle se hain. Lekin current repository tree mein root AGENTS.md ya .github/copilot-instructions.md nahi mila. Isse bhi zyada important baat: instructions hone se implementation automatically correct nahi ho jaati.
 
 
 
+Problem B — Architecture aur runtime ke beech connection clear karna zaroori hai
 
-Planned and structured the next palette alignment pass
+Approved ARCH-038 backend/service stack ko TypeScript, Node.js 24 aur Fastify 5.x ke saath lock karta hai. AI implementation Python package mein hai. Current F08 frontend ka AI experience static preview hai; uska live AI API connection abhi nahi hai.
 
+Is boundary ka real solution decide kiye bina GPT kabhi dummy endpoint bana sakta hai, kabhi duplicate backend, aur kabhi aisa adapter jo actual runtime se connect hi nahi hota.
 
 
 
-Clarified implementation scope
+Problem C — Green CI ka matlab complete product nahi hota
 
+Latest Actions mein 157 AI tests pass hue hain. Yeh important evidence hai, lekin static F08 preview se live server, provider, tenant authorization aur actual data retrieval tak end-to-end connection hone ka proof nahi hai.
 
+Test suite jo check karti hai woh pass ho sakti hai, jabki required integration bani hi na ho.
 
 
-Finalized synchronization
 
+Yahi woh gap hai jo sirf bade blueprint ya achhe prompt se solve nahi hota.
+2. Mere hisaab se iska permanent solution kya hai?
+Main existing HOMIO Control Center, ACRL aur CI ko use karunga. Koi doosra AI engine, duplicate Control Center ya naya master plan nahi banaunga.
 
+Layer 1 — Repository truth gate
 
+Code likhne se pehle exact live HEAD, current task, file content, blob SHA, imports, consumers aur existing tests read kiye jayenge. Har target ka clear decision hoga: ADD, UPDATE, VERIFY, NO CHANGE ya BLOCKED.
 
-Audited and implemented Homio frontend architecture, design system, styling, and verification structure
+Rule: Kisi GPT ko guessed filename, imaginary API ya unseen function ke basis par implementation dene ki permission nahi.
 
 
 
+Layer 2 — Contract-first implementation
 
-Audit mein ek aur important mismatch mila hai: sirf shared menus hi nahi, homepage ke hero aur location-intent tabs ke dark overlays bhi purane charcoal/black tones use kar rahe hain, aur footer pure black hai. Main update ko sirf tokens tak limited nahi rakhunga—homepage ke prominent visible sections ko bhi Rosewood-led bana raha hoon, lekin property photo same rahegi aur text contrast ko deliberately preserve karunga.
+Har task ke required behavior ko exact interfaces aur test cases se bind kiya jayega. Tests sirf yeh nahi poochhenge ki file compile hoti hai; woh check karenge ki real modules ek doosre ko sahi tarah call karte hain.
 
-Finalized synchronization
+Example: authenticated request → tenant authorization → approved provider → usage reservation/accounting → validated response. Har important failure path bhi test hoga.
 
 
 
+Layer 3 — Implementation conformance gate
 
-Refined the implementation
+Existing GitHub Actions mein task ke required behavioral aur integration tests compulsory honge. Missing wiring, fake-only completion, authorization bypass aur broken contracts CI ko fail karenge. Tests ko green dikhane ke liye disable ya weaken nahi karna hai.
 
 
 
+Layer 4 — Exact commit verification
 
-Updated and standardized Homio design system, branding, navigation, and discovery styling
+Save ke baad source readback, changed-file diff, targeted test results aur exact tested SHA verify honge. Agar failure hai, toh uski actual root cause fix hogi. Sirf report ya agla plan nahi diya jayega.
 
 
 
+Yeh ek naya parallel system nahi hai. Yeh existing task authority, source contracts, ACRL impact/test/patch-verification mechanisms aur current CI ke andar implementation quality ko enforce karne ka tareeka hai.
 
-Pehla implementation batch ab clear hai: manifest, shared focus, readable menus aur synchronized skeleton motion. Agla batch homepage ki actual visible palette ko unify karega—hero image same, Rosewood overlay, Rosewood footer, blush selected intent, token-based search aur discovery cards. In sabko save karne se pehle verifier ka matching full replacement bhi dunga, taaki naye checks aur styles alag-alag revision mein drift na karein.
+Is approach ka base modern engineering practice se bhi align karta hai: GitHub Spec Kit requirements ko tasks, implementation aur convergence se jodta hai; OpenAI ki coding-agent guidance reusable instructions ke saath tests aur review par zor deti hai. Lekin GitHub bhi explicitly batata hai ki AI custom instructions har baar exactly follow hon, iski guarantee nahi hai. Isliye instructions ke saath automated proof zaroori hai. 
+Spec Kit Documentation+3
 
-Reviewed and updated home discovery CSS modules, features, and market styling
+3. HOMIO ke AI system par iska practical matlab
+Main AI-001 ko dobara open nahi karunga. Uska formal gate approved hai. Lekin customer-facing AI ko tab tak live bhi nahi karunga jab tak poora integration proof na ho.
 
+Agla AI integration jab canonical workflow mein aaye, tab engineering order yeh hoga:
+Pehle kya prove karna hai	Kis tarah
+Backend/runtime ownership	Fastify/Node aur existing Python AI modules ke beech approved boundary decide karna; duplicate backend nahi
+API contract	Request, response, errors, timeout, authentication aur tenant context ke executable tests
+Actual wiring	Frontend ke request se server tak, aur wahan se existing AI platform tak successful integration test
+Real capability	Provider configuration, retrieval provenance, cost accounting aur redacted observability ke tests
+Release safety	Security, failure/fallback, concurrency aur end-to-end tests exact commit par pass hon
 
+Sabse pehle runtime boundary resolve karna zaroori hai. Ye ek real architecture decision hai; main isko prompt ke andar chhupa kar apni taraf se code choose nahi karunga. Approved stack ko silently change karna bhi galat hoga.
+4. GPT chats ko generic hone se kaise rokna hai?
+Har nayi chat ko 100-page prompt dena solution nahi hai. Aur main yeh vaada bhi nahi karunga ki har model kabhi galti nahi karega.
 
+HOMIO ke liye meri coding policy yeh hogi:
+- Plan-only response acceptable nahi jab current task implementation authorize karta ho. Output mein actual file replacements, exact paths, test changes aur verification conditions hone chahiye.
+- Unverified code ko complete nahi kehna. File save, test pass, integration pass aur formal task completion alag statuses hain.
+- Mocks ko product integration ka proof nahi maanna. Mocks unit tests ke liye valid hain; actual server composition ke liye additional integration proof chahiye.
+- Har criterion ka test hona chahiye. Jis requirement ka executable proof nahi hai, use UNVERIFIED likha jayega.
+- Existing module ko reuse karna mandatory hai jab woh responsibility already own karta hai. New files tabhi jab absence aur architectural need prove ho.
+Tumhare working mode ke liye code ek coherent batch mein aayega, har file ka complete replacement hoga, aur save karne ke baad main latest Actions run aur actual failures inspect karunga. Is process mein correction lag sakti hai, lekin baar-baar architecture badalna ya wahi foundation dobara banana target nahi hoga.
+5. Ab mera engineering decision
+Main abhi koi aur generic AI blueprint ya duplicate instruction file banane ki salah nahi de raha. Repository mein pehle se kaafi rules aur architecture documentation hai. Missing cheez implementation ko required runtime aur tests se mechanically bind karna hai.
 
-Audited brand theming, accessibility styles, and MarketStates verifier updates
+Current state.json mein APP-001-T01 hi active hai aur tumne bataya hai ki frontend par doosri chat kaam kar rahi hai. Isliye usi file set par parallel edits karna sahi nahi. Existing current task ko uski authorized sequence mein complete rehne dena chahiye.
 
+Jab actual AI integration task active ho, pehla deliverable ek aur lamba plan nahi hoga. Pehle approved runtime boundary aur exact code/test gap establish honge; phir usi boundary ko implement karne wala complete code batch aur compulsory verification diya jayega.
 
+Meri guarantee kisi GPT ke kabhi galti na karne ki nahi hogi. Mera standard yeh hoga ki galat, generic ya disconnected implementation ko HOMIO mein production-ready declare karne se pehle pakda ja sake. यही tumhare “ek baar pro banao, baar-baar repair mat karo” goal ke sabse kareeb practical engineering solution hai.
 
 
-Audited palette updates
 
-Refined the palette, design pass, and frontend
 
 
 
 
-Reviewed the interface
 
 
 
 
-Reviewed implementation structure
 
 
 
 
-Reviewed the frontend plan
 
+ab ye jo plan hai use mai 10 mai se 8 number dunga tuze iss plan ko improve karana hai or according plan file structure banana hai tum as devoloper /owner kya karate bolo
 
 
 
-Prepared final refinements
 
 
 
 
-Finalized the implementation
 
 
 
 
-Finalized and consolidated implementation handoff
 
+Worked for 8m 19s
 
 
 
-Prepared handoff
 
 
 
 
+Bhai, 8/10 fair rating hai. Ab live repository audit ke baad mujhe clear hai ki plan ko 10/10 ke kareeb le jaane ke liye aur bada document nahi chahiye. Humein aisa engineering system chahiye jo generic implementation ko detect kare, uske actual integration tests maange aur bina required proof ke code ko release ke liye accept na kare.
 
+Agar HOMIO meri khud ki company hoti, toh main neeche wala structure choose karta.
+1. Sabse pehle asli weakness fix karta
+Mere live GitHub check mein reos-development branch ka protected status false mila. Live branch status
 
+Iska matlab hai ki current workflow mein code canonical branch par save ho sakta hai aur CI uske baad fail ho sakta hai. CI failure detect karta hai; bina branch protection ke woh khud se galat change ko canonical branch mein aane se nahi rokta.
 
+Isliye mera pehla decision hoga:
+P0 — Protect the delivery process
+1. GitHub Settings mein reos-development ke liye pull request required karna.
+2. Backend/ACRL aur frontend ke actual CI checks ko merge conditions banana.
+3. PRs par required checks hamesha generate hon, isliye existing workflow path filters ko carefully adjust karna. Sirf kisi job ko required mark karna enough nahi hai agar woh kuch changes par trigger hi na ho.
+4. Branch ko latest base se updated rakhna aur force-push/delete ko block karna.
 
+GitHub protected branches aur rulesets required reviews aur successful CI checks ke bina merging ko rok sakte hain. GitHub protected branches · Required status checks
 
+Tum phir bhi GitHub Web UI se hi code save karoge—bas direct canonical branch par commit karne ke bajay nayi branch aur PR ka use hoga. Local development zaroori nahi hai.
+2. Permanent implementation structure
+Main ek naya bada AI_CODING_MASTER_PLAN.md nahi banata. Repository mein already AI Agent EntryPoint, AI-001 blueprint aur task-specific references hain. Ek aur long plan bina enforcement ke agla dead document ban sakta hai.
 
+Iske badle main ek short shared instruction entry point, ek machine-readable implementation contract aur existing CI ke andar ek conformance gate banaunga.
+Proposed file structure
+Ye proposed structure hai, abhi saved implementation nahi.
+ADD
+AGENTS.md
 
+Repository root
 
-Bhai, developer ke nazariye se maine kaam ko do alag plans banane ke bajay ek coordinated APP-001-T01 workstream mein organize kiya hai. Isse palette update, shared CSS foundation, animation rules aur regression verification ek doosre se mismatch nahi honge.
+Chhota shared entry point—canonical state, architecture, code rules aur required verification ke liye existing files ko refer karega. Policy ki duplicate copy nahi banega.
 
-Mera decision:
-- Control Center ka current task APP-001-T01 hi rahega. APP-001-T02 start nahi karna.
-- Naya duplicate structure file nahi banana. Existing HOMIO_FRONTEND_EXECUTION_PLAN.json ko version 3.2 coordination manifest ke roop mein update karna.
-- Canonical palette Rosewood #6F334B + Ballet Blush #F3DDE4 + Almond Cream #F8F1E7 + Espresso Cocoa #352A2D hi rahegi.
-- Shared menus, skeleton animations, homepage sections aur market-status styles ko isi contract ke saath synchronize karna.
-- Existing verifier ko stronger banana; naya verifier ya doosra frontend workflow nahi banana.
-- Handoff mein exact paths, current task, verification commands aur next chat ka bootstrap procedure rakhna.
-Latest verified baseline ka commit 20ad7c6e… hai aur Frontend CI run #678 us commit par pass tha. Naye replacements ko abhi pass nahi maana ja sakta—unhe GitHub par save karne ke baad dobara run karna hoga.
+
+UPDATE
+REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
+
+Existing agent operating contract
+
+Generic replacements, guessed APIs, missing integrations aur unsupported completion claims ke liye explicit engineering rules add honge.
+
+
+ADD
+REOS_CONTROL_CENTER/architecture/governance/implementation_contract.schema.json
+
+Machine-readable contract format
+
+Define karega ki ek authorized coding task ki scope, requirements, file ownership, dependencies aur verification mapping kaise record honi chahiye.
+
+
+ADD
+.github/actions/homio-backend-ci/verification/scripts/verify_implementation_contract.py
+
+Ye actual validator hoga. Required contract missing ya stale ho, source scope mismatch kare ya required test mapping absent ho, toh verification fail hogi.
+
+
+ADD
+.github/actions/homio-backend-ci/verification/tests/test_implementation_contract_gate.py
+
+Validator ke positive, negative aur tampering cases test honge—jaise unknown task ID, missing test, unlisted changed file aur mismatched baseline.
+
+
+UPDATE
+Existing CI wiring
+
+wiring_tests.sh, verification/action.yml, backend-ci.yml aur frontend-ci.yml ko sirf jahan zaroori ho update karunga, taaki new gate existing verification pipeline mein run ho.
+
+
+Existing REOS_CONTROL_CENTER/tets/test_ai_agent_entrypoint_contract.py ko bhi update karna hoga, taaki shared agent rules ke important parts regression-tested hon.
+3. Har task ke liye ek implementation contract
+Sabse important naya concept file count nahi, balki har authorized task ke liye implementation se pehle code-to-test traceability hai.
+
+Per-task contract existing evidence folder mein hoga:
+REOS_CONTROL_CENTER/evidence/
+└── <GATE-ID>/
+    └── <TASK-ID>-implementation-contract.json
+
+
+Example ke liye future APP-001-T08 ka contract REOS_CONTROL_CENTER/evidence/APP-001/APP-001-T08-implementation-contract.json ho sakta hai. Ye example path hai; abhi file create nahi hui hai.
+
+Contract mein ye required fields honge:
+Field	Kya prove karna hoga
+Authority binding	Live state.json blob SHA, authorized gate/task ID aur baseline commit SHA
+File ownership	Har path ka ADD / UPDATE / VERIFY / NO CHANGE / BLOCKED, actual owner aur consumers
+Requirements map	Canonical acceptance-criterion IDs se observable behavior tak trace
+Interface map	Actual caller, callee, request/response shape, error behavior aur authorization boundary
+Test map	Har relevant requirement ke focused, negative/failure aur integration tests
+CI execution	Kaunse existing workflow/script tests run karta hai
+Release evidence	Actual tested SHA, relevant Actions run, changed-file readback aur unresolved gaps
+
+Ye JSON state.json ka replacement nahi hoga. Task selection aur status canonical state mein hi rahenge; implementation contract us task ka derived work-and-proof record hoga.
+4. Generic code ko pakadne wala real gate
+Sirf validator banana kaafi nahi. Validator ko existing test pipeline se wire karna aur behavioral proof maangna bhi zaroori hai.
+Gate	Pass hone ke liye
+Task/scope check	Contract live canonical task aur inspected baseline se match kare
+Change-impact check	Changed files aur affected callers/dependencies identify hon
+Contract check	Public interfaces, authorization aur failure behavior defined ho
+Test-coverage check	Requirements mapped hon; nonexistent ya CI mein invoke na hone wale tests reject hon
+Integration check	Cross-boundary code ke liye actual runtime composition test ho
+Security check	Unauthorized tenant, invalid input, replay, timeout, quota aur relevant negative cases cover hon
+Evidence check	Relevant test result aur source/tree identity independently verifiable ho
+
+Ek important limitation: koi generic JSON validator apne aap prove nahi kar sakta ki test semantically strong hai. Isliye real integration test aur independent diff review mandatory honge. Generic code ko rokne ka actual mechanism yeh combination hai, na ki sirf TODO ya placeholder strings ko scan karna.
+5. Existing HOMIO architecture ko kaise use karunga
+Main ACRL mein koi naya duplicate implementation engine nahi banaunga. Existing responsibilities ko reuse karke unka actual integration strengthen karunga.
+Existing owner	Is process mein role
+T16 / T17	Source discovery, dependency analysis aur change-impact
+T19	Relevant test selection aur failure diagnosis
+T20	Bounded patch verification aur external verification evidence
+T21 / T22	Authorized GitHub changes, commit identity aur checkpoint
+T23 / T24	Evidence provenance aur cross-chat continuity
+T26–T30	Existing loop, dependency scheduling, human decision aur completion/handoff boundaries
+
+In owners ka hona yeh proof nahi ki har end-to-end behavior already wired hai. Jahan integration missing hai, wahan existing contracts aur tests ke through gap close hoga—not by making a second Control Center.
+6. AI product par iska application
+AI-001 ko dobara open nahi karunga. Lekin live AI integration ke liye ek architecture issue solve karna hoga: approved ARCH-038 Node.js/Fastify backend stack define karta hai, jabki current AI package Python mein hai. Current F08 frontend static preview hai aur live AI API connection nahi hai.
+
+Isliye current runtime boundary ko formal architecture process se resolve kiye bina main guessed API route, second backend ya speculative provider adapter nahi banaunga.
+
+Jab canonical execution workflow AI integration task tak pahunchta hai, tab current existing modules ko ek tested vertical slice mein connect karna hoga:
+
+F08 request → authenticated server boundary → authorized AI platform → existing retrieval → controlled provider call → validated response → usage/observability evidence
+
+Integration tests actual route aur service composition run karenge; sirf end-to-end path ke upar fake handler rakhkar pass nahi karenge. Provider calls test boundary par deterministic ho sakte hain, lekin production wiring verify honi chahiye.
+7. Implementation ka order
+Main kaam ko is tarah execute karunga:
+1. Governance setup: reos-development protection aur reliable PR CI status checks.
+2. Contract foundation: schema, validator aur validator ke adversarial tests.
+3. Agent consistency: AGENTS.md, targeted EntryPoint rules aur contract regression tests.
+4. CI enforcement: existing verification action mein conformance gate integrate karna aur exact failed/pass run verify karna.
+5. Product implementation: canonical task ke authorised scope mein real integration, security tests aur release proof.
+Tumhare current APP-001-T01 par doosri chat kaam kar rahi hai, isliye main uske live frontend files ko parallel edit nahi karunga. state.json bhi manually change nahi karunga.
+
+Ye structure GitHub Spec Kit ke spec → plan → task → implementation → convergence model aur OpenAI ki coding-agent guidance mein instructions ke saath tests/review rakhne ke approach se align karta hai; main un tools ka poora scaffolding install karke duplicate workflow nahi banaunga. GitHub Spec Kit · OpenAI coding-agent best practices
+
+Mera owner-level decision: pehle branch protection aur implementation-conformance gate ko design karke enforce karna hai. Uske baad har meaningful task actual code, runtime wiring aur required tests ke through prove hoga. Isse generic implementation ko accept karne ka risk kam hoga aur same foundation ko baar-baar redesign karne ki zaroorat bhi kam padegi.
+
+Filhaal ye improved engineering structure aur proposed file matrix hai—maine abhi koi file save ya state.json modify nahi kiya hai.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok kya bluprint ke jaise file banaye lekin usase pahale gpt generic content na de or ultra pro site bane best reaserch karake content or websit bane ispar kam karana hoga tu bol kaise kare sirf plan nahi actul work hona chahiye ye jo plan diya hai ye bas chat mai rah jayega
+
+
+
+
+
+
+
+
+
+
+
+
+Worked for 34m 54s
+
+
+
+
+
+
+
+हाँ, भाई। हमें HOMIO के लिए एक Research-First, Evidence-Gated Development System बनाना चाहिए। लेकिन मैं एक और बड़ा blueprint बनाकर उसे अंतिम समाधान नहीं मानूँगा। HOMIO में पहले से AI-001 blueprint, frontend implementation blueprint, execution plan और AI_AGENT_ENTRYPOINT.py मौजूद हैं। समस्या सिर्फ निर्देशों की कमी नहीं है; सही research, existing code से मेल, वास्तविक functionality और परीक्षण को अनिवार्य बनाना भी ज़रूरी है।
+
+मैंने live repository में जाँच की है। state.json का blob SHA 6242f63371a725ea99447c218bbbeb46a0c5eddd है और उसमें APP-001-T01 — Implement application shell and design system अभी CURRENT है। दूसरी chat इसी frontend task पर काम कर रही है, इसलिए मैं उसकी UI files parallel में नहीं बदलूँगा और न ही state.json को manually बदलूँगा।
+पहले वास्तविक research से एक बात साफ़ हुई
+सिर्फ गुलाबी रंग, सुंदर property cards और search filters बनाना HOMIO को बाकी portals से बेहतर नहीं बनाएगा।
+- Magicbricks पहले से Buy/Rent, location, property type, budget और locality, BHK, area, amenities तथा RERA-संबंधित filters देता है। 
+  magicbricks.com+1
+- NoBroker की Pune listings में rent, deposit, maintenance, area, furnishing, availability और आसपास की जगहों जैसी व्यावहारिक जानकारी दिखाई जाती है। 
+  NoBroker
+- Knight Frank की 2025 Pune market report में housing launches 56,118 थीं, जो साल-दर-साल 6% कम थीं; sales 50,881 थीं, 3% कम; वहीं औसत कीमत ₹5,016 प्रति sq ft तक पहुँची, 5% अधिक। यानी बिना अवधि और स्रोत के “Pune property market तेजी से बढ़ रहा है” जैसी generic copy को तथ्य मानकर वेबसाइट पर नहीं डालना चाहिए। 
+  content.knightfrank.com
+- MahaRERA के आदेश में लागू project advertisements के साथ registration number और QR code प्रदर्शित करने की आवश्यकता बताई गई है। इसलिए HOMIO किसी listing को “RERA verified” तभी कहे जब उसके पीछे वास्तविक verification और evidence हो—सिर्फ एक badge लगा देने से नहीं। 
+  maharera.maharashtra.gov.in+1
+इस research से HOMIO के लिए अभी की product hypothesis: सामान्य filters के आगे बढ़कर सही property चुनने में मदद करना, total cost को स्पष्ट दिखाना, listing की जानकारी कहाँ से आई और कब जाँची गई यह बताना, property comparisons को समान मानकों पर करना, और customer की अनुमति के बिना enquiry/contact जानकारी साझा न करना। इन अवसरों को आगे की task-specific research और वास्तविक user journeys से validate करना होगा; अभी इन्हें प्रमाणित market advantage नहीं मानेंगे।
+
+भाई, अब इसे chat में पड़ा रहने वाला plan नहीं रहने देंगे। पहला वास्तविक engineering batch तैयार है और local validation में इसके 20 tests pass हुए हैं; JSON Schema और दोनों YAML files भी validate की हैं। मैंने GitHub पर कोई बदलाव नहीं किया है—इसलिए अभी इसे repository में saved या GitHub Actions में passed नहीं कह रहा।
+
+इस batch में छह files हैं। ये नया frontend blueprint या दूसरी AI engine नहीं बनातीं; ये existing architecture के ऊपर एक enforcement layer जोड़ती हैं। इसका काम है कि आगे website के लिए code लिखने से पहले research, exact task scope, published copy के sources, test mapping और वास्तविक CI wiring जाँची जाए।
+Save the implementation files in this order
+Use the exact paths below in GitHub’s reos-development branch. Do not save File 6 until Files 1–5 are present. The last file activates the new CI gate.
