@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import pytest
@@ -236,6 +237,6 @@ def test_invalid_token_limit_fails_closed() -> None:
 
     with pytest.raises(
         AICompositionConfigurationError,
-        match="positive integer",
+        match="outside its permitted range",
     ):
         build(environ)
