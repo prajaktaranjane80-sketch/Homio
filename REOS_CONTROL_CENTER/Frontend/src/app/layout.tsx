@@ -21,12 +21,13 @@ export const metadata: Metadata = {
   description: siteDescription,
 
   applicationName: "HOMIO",
-
   category: "real estate",
 
+  // Fail closed: a route must explicitly opt in before it is indexed.
+  // Preview inventory, account pages and unfinished experiences stay hidden.
   robots: {
-    index: true,
-    follow: true,
+    index: false,
+    follow: false,
   },
 
   openGraph: {
