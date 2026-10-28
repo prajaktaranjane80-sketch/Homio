@@ -7,9 +7,13 @@ export function Header() {
   return (
     <header className="site-header">
       <div className="site-header__inner">
-        <Link className="brand" href="/" aria-label="HOMIO home">
+        <Link
+          className="brand"
+          href="/"
+          aria-label="HOMIO home"
+        >
           <span className="brand__name">HOMIO</span>
-          <span className="brand__descriptor">GLOBAL REAL ESTATE</span>
+          <span className="brand__descriptor">PUNE PROPERTY</span>
         </Link>
 
         <div className="site-header__search">
