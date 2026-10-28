@@ -141,8 +141,12 @@ def make_tool_bridge(
     evidence_check=lambda proposal, context: True,
     action_name: str = "property_search",
     max_calls_per_run: int = 1,
+    timeout_runner=None,
 ) -> tuple[ToolBridge, FakeToolGateway]:
     target = gateway or FakeToolGateway()
+    selected_timeout_runner = timeout_runner or (
+        lambda operation, timeout_seconds: operation()
+    )
 
     definition = ToolDefinition(
         name="search_properties",
@@ -161,7 +165,7 @@ def make_tool_bridge(
         authorization_check=authorization_check,
         preflight=preflight,
         evidence_check=evidence_check,
-        timeout_runner=lambda operation, timeout_seconds: operation(),
+        timeout_runner=selected_timeout_runner,
     )
     return bridge, target
 
@@ -657,3 +661,42 @@ def test_model_cannot_use_unlisted_tool_even_if_prompt_is_ignored() -> None:
         runtime.run(make_request())
 
     assert gateway.calls == []
+
+
+def test_ambiguous_tool_timeout_cannot_be_replayed() -> None:
+    timeout_attempts: list[float] = []
+
+    def execute_then_lose_receipt(operation, timeout_seconds):
+        timeout_attempts.append(timeout_seconds)
+        operation()
+        raise TimeoutError("simulated ambiguous tool receipt")
+
+    bridge, gateway = make_tool_bridge(
+        timeout_runner=execute_then_lose_receipt,
+    )
+    proposal = ToolProposal(
+        call_id="call-timeout-ambiguous",
+        tool_name="search_properties",
+        arguments={"query": "pune apartment"},
+    )
+
+    with pytest.raises(ToolExecutionBlockedError):
+        bridge.execute(
+            proposal,
+            CONTEXT,
+            run_id="run-timeout-ambiguous",
+        )
+
+    # The first attempt may have executed even though its receipt was lost.
+    # The bridge must remember that attempt and must not execute it again.
+    with pytest.raises(ToolExecutionBlockedError):
+        bridge.execute(
+            proposal,
+            CONTEXT,
+            run_id="run-timeout-ambiguous",
+        )
+
+    assert timeout_attempts == [2.0]
+    assert gateway.calls == [
+        ("property_search", {"query": "pune apartment"})
+    ]
