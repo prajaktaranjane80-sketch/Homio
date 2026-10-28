@@ -401,3 +401,32 @@ def test_tool_bridge_callback_rejects_model_tool_name_mismatch_before_policy() -
     assert allowed is False
     assert verifier.calls == []
     assert policy.calls == []
+
+def test_policy_change_after_prior_allow_is_rechecked() -> None:
+    authorization, verifier, policy = make_authorization()
+
+    first_decision = authorization.authorize_request(
+        CONTEXT,
+        operation="property.search",
+    )
+
+    assert first_decision.allowed is True
+
+    # Simulate the domain owner's policy changing after an earlier allow.
+    # The same trusted context must not preserve a stale authorization result.
+    policy.denied_operations.add("property.search")
+
+    second_decision = authorization.authorize_request(
+        CONTEXT,
+        operation="property.search",
+    )
+
+    assert second_decision.allowed is False
+    assert second_decision.reason_code == "OPERATION_DENIED"
+
+    # Both the trusted identity and the domain policy are consulted again.
+    assert verifier.calls == [CONTEXT, CONTEXT]
+    assert policy.calls == [
+        (CONTEXT, "property.search", None),
+        (CONTEXT, "property.search", None),
+    ]
