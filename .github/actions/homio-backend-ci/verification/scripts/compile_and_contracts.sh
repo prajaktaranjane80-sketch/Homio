@@ -89,8 +89,8 @@ python -m pytest -q -p no:cacheprovider \
 # AI-001 T06: trusted-context, resource authorization and tenant tests.
 # AI-001 T07: cost reservations, quota concurrency and usage accounting.
 # AI-001 T08: observability, safe fallback and failure handling.
-# Deterministic fakes and isolated temporary databases are used.
-# No live provider or production tool execution is enabled.
+# Provider adapter tests use a mocked HTTP transport; no live provider call.
+# No production tool execution is enabled.
 python -m pytest -q -p no:cacheprovider \
   AUTONOMY_ENGINE/ai_platform/tests/test_contracts.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_model_gateway.py \
@@ -101,4 +101,5 @@ python -m pytest -q -p no:cacheprovider \
   AUTONOMY_ENGINE/ai_platform/tests/test_agent_tool_boundaries.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_authorization_tenant_isolation.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_cost_control.py \
-  AUTONOMY_ENGINE/ai_platform/tests/test_observability_fallback.py
+  AUTONOMY_ENGINE/ai_platform/tests/test_observability_fallback.py \
+  AUTONOMY_ENGINE/ai_platform/tests/test_provider_adapters.py
