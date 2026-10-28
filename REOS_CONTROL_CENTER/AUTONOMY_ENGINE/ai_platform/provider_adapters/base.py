@@ -107,7 +107,7 @@ def _usage_from_payload(payload: dict[str, Any]) -> ProviderUsage | None:
         raise ProviderResponseInvalidError()
 
     try:
-        return ProviderUsage(
+        usage = ProviderUsage(
             input_tokens=_optional_token_count(raw_usage, "prompt_tokens"),
             output_tokens=_optional_token_count(
                 raw_usage,
@@ -117,6 +117,19 @@ def _usage_from_payload(payload: dict[str, Any]) -> ProviderUsage | None:
         )
     except (TypeError, ValueError):
         raise ProviderResponseInvalidError() from None
+
+    # When all three counters are present, the provider's total must match
+    # the input/output sum. An inflated total corrupts usage reconciliation;
+    # a smaller total could undercount consumption.
+    if (
+        usage.input_tokens is not None
+        and usage.output_tokens is not None
+        and usage.total_tokens is not None
+        and usage.total_tokens != usage.input_tokens + usage.output_tokens
+    ):
+        raise ProviderResponseInvalidError()
+
+    return usage
 
 
 class OpenAICompatibleProvider:
