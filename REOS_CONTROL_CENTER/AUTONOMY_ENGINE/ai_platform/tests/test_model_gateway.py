@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import pytest
@@ -497,15 +498,27 @@ def test_required_start_event_failure_prevents_provider_and_releases_quota() -> 
     assert usage.releases[0][1] == "AI_OBSERVABILITY_UNAVAILABLE"
 
 
-def test_ambiguous_settlement_failure_is_not_followed_by_release() -> None:
+@pytest.mark.parametrize(
+    ("settle_error", "private_detail"),
+    (
+        (RuntimeError("db secret"), "db secret"),
+        (TimeoutError("settlement timeout secret"), "settlement timeout secret"),
+    ),
+)
+def test_ambiguous_settlement_failure_is_not_followed_by_release(
+    settle_error: Exception,
+    private_detail: str,
+) -> None:
     gateway, _, provider, _, _, usage, _ = make_gateway(
-        settle_error=RuntimeError("db secret")
+        settle_error=settle_error
     )
 
     with pytest.raises(UsageControlUnavailableError) as exc:
         gateway.complete(make_request())
 
-    assert "db secret" not in str(exc.value)
+    # A possibly committed settlement must never be followed by a release.
+    # A timeout is as ambiguous as any other settlement failure.
+    assert private_detail not in str(exc.value)
     assert len(provider.requests) == 1
     assert usage.releases == []
     assert usage.settlements == []
