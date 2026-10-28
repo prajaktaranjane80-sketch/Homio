@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 from email.message import Message
@@ -273,6 +274,26 @@ def test_empty_chat_content_is_rejected(
 
     with pytest.raises(ProviderResponseInvalidError):
         provider.generate(make_request())
+
+
+def test_nested_secret_in_malformed_provider_content_is_not_leaked(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = chat_payload()
+    payload["choices"][0]["message"]["content"] = {
+        "error": {
+            "api_key": "nested-private-secret",
+            "customer_record": {"token": "nested-customer-token"},
+        }
+    }
+    patch_response(monkeypatch, payload)
+    provider = OpenAIChatProvider(api_key="test-key")
+
+    with pytest.raises(ProviderResponseInvalidError) as caught:
+        provider.generate(make_request())
+
+    assert "nested-private-secret" not in str(caught.value)
+    assert "nested-customer-token" not in str(caught.value)
 
 
 def test_multiple_chat_choices_are_rejected(
