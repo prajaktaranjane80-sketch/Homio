@@ -398,8 +398,13 @@ def test_embedding_response_preserves_configured_model_and_version(
     assert captured["body"]["input"] == request.text
 
 
+@pytest.mark.parametrize(
+    "invalid_value",
+    (float("nan"), float("inf"), float("-inf")),
+)
 def test_invalid_embedding_vector_is_rejected(
     monkeypatch: pytest.MonkeyPatch,
+    invalid_value: float,
 ) -> None:
     patch_response(
         monkeypatch,
@@ -407,7 +412,7 @@ def test_invalid_embedding_vector_is_rejected(
             "data": [
                 {
                     "index": 0,
-                    "embedding": [0.1, float("nan")],
+                    "embedding": [0.1, invalid_value],
                 }
             ],
             "model": "text-embedding-3-small",
@@ -448,3 +453,63 @@ def test_invalid_embedding_response_index_is_rejected(
 
     with pytest.raises(ProviderResponseInvalidError):
         provider.embed(request)
+
+
+def test_missing_usage_metadata_remains_explicitly_unknown(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = chat_payload()
+    payload.pop("usage", None)
+    patch_response(monkeypatch, payload)
+    provider = OpenAIChatProvider(api_key="test-key")
+
+    response = provider.generate(make_request())
+
+    assert response.text == "Two bedroom properties are available for review."
+    assert response.usage is None
+
+
+@pytest.mark.parametrize(
+    "usage",
+    (
+        [],
+        {"prompt_tokens": True, "completion_tokens": 1},
+        {"prompt_tokens": -1, "completion_tokens": 1},
+        {
+            "prompt_tokens": 12,
+            "completion_tokens": 8,
+            "total_tokens": 99,
+        },
+    ),
+)
+def test_malformed_or_conflicting_usage_metadata_is_rejected(
+    monkeypatch: pytest.MonkeyPatch,
+    usage: object,
+) -> None:
+    payload = chat_payload()
+    payload["usage"] = usage
+    patch_response(monkeypatch, payload)
+    provider = OpenAIChatProvider(api_key="test-key")
+
+    with pytest.raises(ProviderResponseInvalidError):
+        provider.generate(make_request())
+
+
+def test_provider_timeout_is_sanitized_and_never_retried(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = 0
+
+    def fake_open(request, *, timeout):
+        nonlocal calls
+        calls += 1
+        raise TimeoutError("api_key=private-timeout-detail")
+
+    monkeypatch.setattr(adapter_base, "_open_url", fake_open)
+    provider = OpenAIChatProvider(api_key="test-key")
+
+    with pytest.raises(ProviderUnavailableError) as caught:
+        provider.generate(make_request())
+
+    assert calls == 1
+    assert "private-timeout-detail" not in str(caught.value)
