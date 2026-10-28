@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "${GITHUB_WORKSPACE:?GITHUB_WORKSPACE is required}/REOS_CONTROL_CENTER"
+ROOT="${GITHUB_WORKSPACE:?GITHUB_WORKSPACE is required}"
+
+cd "$ROOT/REOS_CONTROL_CENTER"
 
 python -m pytest -q -p no:cacheprovider \
   AUTONOMY_ENGINE/continuity/acrl/runtime_integration
@@ -13,3 +15,6 @@ python -m pytest -q -p no:cacheprovider \
   AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/test_new_chat_bootstrap.py \
   AUTONOMY_ENGINE/continuity/acrl/T07_New_Chat_Bootstrap/test_checkpoint_state_coherence.py \
   tets/test_audit_resume_manifest_cache.py
+
+python -m pytest -q -p no:cacheprovider \
+  "$ROOT/.github/actions/homio-backend-ci/verification/tests/test_github_actions_runtime_pins.py"
