@@ -1,0 +1,133 @@
+1. Sabse pehle asli weakness fix karta
+Mere live GitHub check mein reos-development branch ka protected status false mila. Live branch status
+
+Iska matlab hai ki current workflow mein code canonical branch par save ho sakta hai aur CI uske baad fail ho sakta hai. CI failure detect karta hai; bina branch protection ke woh khud se galat change ko canonical branch mein aane se nahi rokta.
+
+Isliye mera pehla decision hoga:
+P0 — Protect the delivery process
+1. GitHub Settings mein reos-development ke liye pull request required karna.
+2. Backend/ACRL aur frontend ke actual CI checks ko merge conditions banana.
+3. PRs par required checks hamesha generate hon, isliye existing workflow path filters ko carefully adjust karna. Sirf kisi job ko required mark karna enough nahi hai agar woh kuch changes par trigger hi na ho.
+4. Branch ko latest base se updated rakhna aur force-push/delete ko block karna.
+
+GitHub protected branches aur rulesets required reviews aur successful CI checks ke bina merging ko rok sakte hain. GitHub protected branches · Required status checks
+
+Tum phir bhi GitHub Web UI se hi code save karoge—bas direct canonical branch par commit karne ke bajay nayi branch aur PR ka use hoga. Local development zaroori nahi hai.
+2. Permanent implementation structure
+Main ek naya bada AI_CODING_MASTER_PLAN.md nahi banata. Repository mein already AI Agent EntryPoint, AI-001 blueprint aur task-specific references hain. Ek aur long plan bina enforcement ke agla dead document ban sakta hai.
+
+Iske badle main ek short shared instruction entry point, ek machine-readable implementation contract aur existing CI ke andar ek conformance gate banaunga.
+Proposed file structure
+Ye proposed structure hai, abhi saved implementation nahi.
+ADD
+AGENTS.md
+
+Repository root
+
+Chhota shared entry point—canonical state, architecture, code rules aur required verification ke liye existing files ko refer karega. Policy ki duplicate copy nahi banega.
+
+
+UPDATE
+REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
+
+Existing agent operating contract
+
+Generic replacements, guessed APIs, missing integrations aur unsupported completion claims ke liye explicit engineering rules add honge.
+
+
+ADD
+REOS_CONTROL_CENTER/architecture/governance/implementation_contract.schema.json
+
+Machine-readable contract format
+
+Define karega ki ek authorized coding task ki scope, requirements, file ownership, dependencies aur verification mapping kaise record honi chahiye.
+
+
+ADD
+.github/actions/homio-backend-ci/verification/scripts/verify_implementation_contract.py
+
+Ye actual validator hoga. Required contract missing ya stale ho, source scope mismatch kare ya required test mapping absent ho, toh verification fail hogi.
+
+
+ADD
+.github/actions/homio-backend-ci/verification/tests/test_implementation_contract_gate.py
+
+Validator ke positive, negative aur tampering cases test honge—jaise unknown task ID, missing test, unlisted changed file aur mismatched baseline.
+
+
+UPDATE
+Existing CI wiring
+
+wiring_tests.sh, verification/action.yml, backend-ci.yml aur frontend-ci.yml ko sirf jahan zaroori ho update karunga, taaki new gate existing verification pipeline mein run ho.
+
+
+Existing REOS_CONTROL_CENTER/tets/test_ai_agent_entrypoint_contract.py ko bhi update karna hoga, taaki shared agent rules ke important parts regression-tested hon.
+3. Har task ke liye ek implementation contract
+Sabse important naya concept file count nahi, balki har authorized task ke liye implementation se pehle code-to-test traceability hai.
+
+Per-task contract existing evidence folder mein hoga:
+REOS_CONTROL_CENTER/evidence/
+└── <GATE-ID>/
+    └── <TASK-ID>-implementation-contract.json
+
+
+Example ke liye future APP-001-T08 ka contract REOS_CONTROL_CENTER/evidence/APP-001/APP-001-T08-implementation-contract.json ho sakta hai. Ye example path hai; abhi file create nahi hui hai.
+
+Contract mein ye required fields honge:
+Field	Kya prove karna hoga
+Authority binding	Live state.json blob SHA, authorized gate/task ID aur baseline commit SHA
+File ownership	Har path ka ADD / UPDATE / VERIFY / NO CHANGE / BLOCKED, actual owner aur consumers
+Requirements map	Canonical acceptance-criterion IDs se observable behavior tak trace
+Interface map	Actual caller, callee, request/response shape, error behavior aur authorization boundary
+Test map	Har relevant requirement ke focused, negative/failure aur integration tests
+CI execution	Kaunse existing workflow/script tests run karta hai
+Release evidence	Actual tested SHA, relevant Actions run, changed-file readback aur unresolved gaps
+
+Ye JSON state.json ka replacement nahi hoga. Task selection aur status canonical state mein hi rahenge; implementation contract us task ka derived work-and-proof record hoga.
+4. Generic code ko pakadne wala real gate
+Sirf validator banana kaafi nahi. Validator ko existing test pipeline se wire karna aur behavioral proof maangna bhi zaroori hai.
+Gate	Pass hone ke liye
+Task/scope check	Contract live canonical task aur inspected baseline se match kare
+Change-impact check	Changed files aur affected callers/dependencies identify hon
+Contract check	Public interfaces, authorization aur failure behavior defined ho
+Test-coverage check	Requirements mapped hon; nonexistent ya CI mein invoke na hone wale tests reject hon
+Integration check	Cross-boundary code ke liye actual runtime composition test ho
+Security check	Unauthorized tenant, invalid input, replay, timeout, quota aur relevant negative cases cover hon
+Evidence check	Relevant test result aur source/tree identity independently verifiable ho
+
+Ek important limitation: koi generic JSON validator apne aap prove nahi kar sakta ki test semantically strong hai. Isliye real integration test aur independent diff review mandatory honge. Generic code ko rokne ka actual mechanism yeh combination hai, na ki sirf TODO ya placeholder strings ko scan karna.
+5. Existing HOMIO architecture ko kaise use karunga
+Main ACRL mein koi naya duplicate implementation engine nahi banaunga. Existing responsibilities ko reuse karke unka actual integration strengthen karunga.
+Existing owner	Is process mein role
+T16 / T17	Source discovery, dependency analysis aur change-impact
+T19	Relevant test selection aur failure diagnosis
+T20	Bounded patch verification aur external verification evidence
+T21 / T22	Authorized GitHub changes, commit identity aur checkpoint
+T23 / T24	Evidence provenance aur cross-chat continuity
+T26–T30	Existing loop, dependency scheduling, human decision aur completion/handoff boundaries
+
+In owners ka hona yeh proof nahi ki har end-to-end behavior already wired hai. Jahan integration missing hai, wahan existing contracts aur tests ke through gap close hoga—not by making a second Control Center.
+6. AI product par iska application
+AI-001 ko dobara open nahi karunga. Lekin live AI integration ke liye ek architecture issue solve karna hoga: approved ARCH-038 Node.js/Fastify backend stack define karta hai, jabki current AI package Python mein hai. Current F08 frontend static preview hai aur live AI API connection nahi hai.
+
+Isliye current runtime boundary ko formal architecture process se resolve kiye bina main guessed API route, second backend ya speculative provider adapter nahi banaunga.
+
+Jab canonical execution workflow AI integration task tak pahunchta hai, tab current existing modules ko ek tested vertical slice mein connect karna hoga:
+
+F08 request → authenticated server boundary → authorized AI platform → existing retrieval → controlled provider call → validated response → usage/observability evidence
+
+Integration tests actual route aur service composition run karenge; sirf end-to-end path ke upar fake handler rakhkar pass nahi karenge. Provider calls test boundary par deterministic ho sakte hain, lekin production wiring verify honi chahiye.
+7. Implementation ka order
+Main kaam ko is tarah execute karunga:
+1. Governance setup: reos-development protection aur reliable PR CI status checks.
+2. Contract foundation: schema, validator aur validator ke adversarial tests.
+3. Agent consistency: AGENTS.md, targeted EntryPoint rules aur contract regression tests.
+4. CI enforcement: existing verification action mein conformance gate integrate karna aur exact failed/pass run verify karna.
+5. Product implementation: canonical task ke authorised scope mein real integration, security tests aur release proof.
+Tumhare current APP-001-T01 par doosri chat kaam kar rahi hai, isliye main uske live frontend files ko parallel edit nahi karunga. state.json bhi manually change nahi karunga.
+
+Ye structure GitHub Spec Kit ke spec → plan → task → implementation → convergence model aur OpenAI ki coding-agent guidance mein instructions ke saath tests/review rakhne ke approach se align karta hai; main un tools ka poora scaffolding install karke duplicate workflow nahi banaunga. GitHub Spec Kit · OpenAI coding-agent best practices
+
+Mera owner-level decision: pehle branch protection aur implementation-conformance gate ko design karke enforce karna hai. Uske baad har meaningful task actual code, runtime wiring aur required tests ke through prove hoga. Isse generic implementation ko accept karne ka risk kam hoga aur same foundation ko baar-baar redesign karne ki zaroorat bhi kam padegi.
+
+Filhaal ye improved engineering structure aur proposed file matrix hai—maine abhi koi file save ya state.json modify nahi kiya hai.
