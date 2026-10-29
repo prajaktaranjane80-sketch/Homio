@@ -5,16 +5,16 @@
    ============================================================ */
 
 .workspace {
-  --f09-ink: var(--homio-text, #201e1a);
-  --f09-muted: var(--homio-text-soft, #70695f);
-  --f09-border: var(--homio-border, #e5dfd5);
-  --f09-gold: var(--homio-accent, #c49a61);
-  --f09-surface: var(--homio-surface, #ffffff);
-  --f09-background: var(--homio-bg, #f8f6f2);
-  --f09-danger: #a7352b;
-  --f09-danger-bg: #fff6f4;
-  --f09-success: #286345;
-  --f09-success-bg: #f1f8f3;
+  --f09-ink: var(--homio-text);
+  --f09-muted: var(--homio-text-soft);
+  --f09-border: var(--homio-border);
+  --f09-accent: var(--homio-accent);
+  --f09-surface: var(--homio-surface);
+  --f09-background: var(--homio-bg);
+  --f09-danger: var(--homio-danger);
+  --f09-danger-bg: var(--homio-danger-soft);
+  --f09-success: var(--homio-success);
+  --f09-success-bg: var(--homio-success-soft);
   --f09-radius: 18px;
 
   min-width: 0;
@@ -22,7 +22,7 @@
   background:
     radial-gradient(
       ellipse at 94% 0%,
-      rgb(196 154 97 / 9%),
+      color-mix(in srgb, var(--homio-rosewood) 9%, transparent),
       transparent 31%
     ),
     var(--f09-background);
@@ -54,12 +54,12 @@
   background:
     radial-gradient(
       ellipse at 91% 9%,
-      rgb(196 154 97 / 22%),
+      color-mix(in srgb, var(--homio-rosewood) 22%, transparent),
       transparent 35%
     ),
-    linear-gradient(125deg, #151411 0%, #24211b 65%, #383024 100%);
-  color: #fff;
-  box-shadow: 0 24px 64px rgb(29 25 19 / 10%);
+    linear-gradient(125deg, var(--homio-rosewood) 0%, var(--homio-cocoa) 65%, var(--homio-rosewood) 100%);
+  color: var(--homio-text-inverse);
+  box-shadow: 0 24px 64px color-mix(in srgb, var(--homio-cocoa) 10%, transparent);
 }
 
 .hero::after {
@@ -69,18 +69,18 @@
   bottom: -175px;
   width: 330px;
   height: 330px;
-  border: 1px solid rgb(224 194 150 / 23%);
+  border: 1px solid color-mix(in srgb, var(--homio-blush) 23%, transparent);
   border-radius: 50%;
   box-shadow:
-    0 0 0 26px rgb(224 194 150 / 5%),
-    0 0 0 58px rgb(224 194 150 / 4%);
+    0 0 0 26px color-mix(in srgb, var(--homio-blush) 5%, transparent),
+    0 0 0 58px color-mix(in srgb, var(--homio-blush) 4%, transparent);
   content: "";
   pointer-events: none;
 }
 
 .eyebrow {
   margin: 0 0 12px;
-  color: #dec08f;
+  color: var(--homio-blush);
   font-size: 0.67rem;
   font-weight: 850;
   letter-spacing: 0.17em;
@@ -100,7 +100,7 @@
 }
 
 .heroTitle em {
-  color: #e6c99d;
+  color: var(--homio-blush);
   font-family: var(--font-serif, Georgia, serif);
   font-weight: 500;
   font-style: italic;
@@ -161,16 +161,16 @@
 .sidePanel {
   min-width: 0;
   padding: clamp(19px, 3vw, 29px);
-  border: 1px solid var(--f09-border, #e5dfd5);
+  border: 1px solid var(--f09-border);
   border-radius: var(--f09-radius, 18px);
-  background: var(--f09-surface, #fff);
-  box-shadow: 0 12px 34px rgb(27 24 19 / 4%);
+  background: var(--f09-surface);
+  box-shadow: 0 12px 34px color-mix(in srgb, var(--homio-cocoa) 4%, transparent);
 }
 
 .sidePanel {
   padding: 22px;
   background:
-    linear-gradient(145deg, #fff, #fcfaf6);
+    linear-gradient(145deg, var(--homio-surface), var(--homio-almond));
 }
 
 .panelHeader {
@@ -187,7 +187,7 @@
 
 .kicker {
   margin: 0 0 8px;
-  color: #987749;
+  color: var(--homio-rosewood);
   font-size: 0.65rem;
   font-weight: 850;
   letter-spacing: 0.135em;
@@ -197,7 +197,7 @@
 
 .panelTitle {
   margin: 0;
-  color: var(--f09-ink, #201e1a);
+  color: var(--f09-ink);
   font-size: clamp(1.18rem, 2.3vw, 1.78rem);
   font-weight: 790;
   letter-spacing: -0.045em;
@@ -208,7 +208,7 @@
 .panelLead {
   max-width: 690px;
   margin: 10px 0 0;
-  color: var(--f09-muted, #70695f);
+  color: var(--f09-muted);
   font-size: 0.81rem;
   line-height: 1.8;
 }
@@ -223,9 +223,9 @@
   gap: 7px;
   margin: 0 0 14px;
   padding: 6px;
-  border: 1px solid var(--f09-border, #e5dfd5);
+  border: 1px solid var(--f09-border);
   border-radius: 13px;
-  background: var(--f09-background, #f8f6f2);
+  background: var(--f09-background);
 }
 
 .modeButton {
@@ -239,7 +239,7 @@
   border: 1px solid transparent;
   border-radius: 9px;
   background: transparent;
-  color: var(--f09-ink, #201e1a);
+  color: var(--f09-ink);
   cursor: pointer;
   font: inherit;
   font-size: 0.78rem;
@@ -256,10 +256,10 @@
 }
 
 .modeButton[aria-pressed="true"] {
-  border-color: #29251e;
-  background: #29251e;
-  color: #fff;
-  box-shadow: 0 4px 13px rgb(25 23 19 / 13%);
+  border-color: var(--homio-rosewood);
+  background: var(--homio-rosewood);
+  color: var(--homio-text-inverse);
+  box-shadow: 0 4px 13px color-mix(in srgb, var(--homio-cocoa) 13%, transparent);
 }
 
 .modeButton:hover:not(:disabled) {
@@ -272,7 +272,7 @@
 }
 
 .modeButton:focus-visible {
-  outline: 3px solid rgb(196 154 97 / 45%);
+  outline: 3px solid var(--homio-focus-ring);
   outline-offset: 3px;
 }
 
@@ -314,7 +314,7 @@
 }
 
 .label {
-  color: #484238;
+  color: var(--homio-text);
   font-size: 0.75rem;
   font-weight: 800;
   line-height: 1.55;
@@ -323,7 +323,7 @@
 .optional {
   display: inline-block;
   margin-left: 5px;
-  color: #82796c;
+  color: var(--homio-text-muted);
   font-size: 0.67rem;
   font-weight: 550;
 }
@@ -353,11 +353,11 @@ fieldset.field > legend.label {
   min-width: 0;
   min-height: 46px;
   padding: 11px 13px;
-  border: 1px solid #ded7cb;
+  border: 1px solid var(--homio-border);
   border-radius: 10px;
   outline: none;
-  background: #fff;
-  color: var(--f09-ink, #201e1a);
+  background: var(--homio-surface);
+  color: var(--f09-ink);
   font: inherit;
   font-size: 0.82rem;
   line-height: 1.55;
@@ -379,36 +379,36 @@ fieldset.field > legend.label {
 
 .input::placeholder,
 .textarea::placeholder {
-  color: #988f82;
+  color: var(--homio-text-muted);
   opacity: 1;
 }
 
 .input:focus-visible,
 .select:focus-visible,
 .textarea:focus-visible {
-  border-color: #b58a50;
-  outline: 3px solid rgb(196 154 97 / 23%);
+  border-color: var(--homio-rosewood);
+  outline: 3px solid var(--homio-focus-ring);
   outline-offset: 2px;
-  box-shadow: 0 0 0 1px rgb(196 154 97 / 7%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--homio-rosewood) 7%, transparent);
 }
 
 .input[aria-invalid="true"],
 .select[aria-invalid="true"],
 .textarea[aria-invalid="true"] {
-  border-color: #bb5147;
-  background: #fffaf9;
+  border-color: var(--homio-danger);
+  background: var(--homio-danger-soft);
 }
 
 .fieldHelp {
   margin: 0;
-  color: var(--f09-muted, #70695f);
+  color: var(--f09-muted);
   font-size: 0.69rem;
   line-height: 1.7;
 }
 
 .fieldError {
   margin: 0;
-  color: var(--f09-danger, #a7352b);
+  color: var(--f09-danger);
   font-size: 0.7rem;
   font-weight: 650;
   line-height: 1.65;
@@ -429,9 +429,9 @@ fieldset.field > legend.label {
   gap: 11px;
   min-width: 0;
   padding: 13px;
-  border: 1px solid #e7e1d7;
+  border: 1px solid var(--homio-border);
   border-radius: 12px;
-  background: #fff;
+  background: var(--homio-surface);
   cursor: pointer;
   transition:
     border-color 150ms ease,
@@ -440,13 +440,13 @@ fieldset.field > legend.label {
 }
 
 .choice:hover {
-  border-color: #d5c2a4;
+  border-color: var(--homio-border-strong);
 }
 
 .choice:has(input:checked) {
-  border-color: #c9aa7a;
-  background: #fbf6ed;
-  box-shadow: inset 0 0 0 1px rgb(196 154 97 / 12%);
+  border-color: var(--homio-rosewood);
+  background: var(--homio-blush);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--homio-rosewood) 12%, transparent);
 }
 
 .choice input {
@@ -454,7 +454,7 @@ fieldset.field > legend.label {
   width: 17px;
   height: 17px;
   margin: 2px 0 0;
-  accent-color: #87683d;
+  accent-color: var(--homio-rosewood);
 }
 
 .choiceCopy {
@@ -464,14 +464,14 @@ fieldset.field > legend.label {
 }
 
 .choiceTitle {
-  color: var(--f09-ink, #201e1a);
+  color: var(--f09-ink);
   font-size: 0.77rem;
   font-weight: 820;
   line-height: 1.45;
 }
 
 .choiceDescription {
-  color: var(--f09-muted, #70695f);
+  color: var(--f09-muted);
   font-size: 0.69rem;
   line-height: 1.65;
 }
@@ -484,16 +484,16 @@ fieldset.field > legend.label {
   display: grid;
   gap: 13px;
   padding: 16px;
-  border: 1px solid #e8e0d3;
+  border: 1px solid var(--homio-border);
   border-radius: 13px;
-  background: #fcfaf6;
+  background: var(--homio-almond);
 }
 
 .consentLine {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  color: #5c5347;
+  color: var(--homio-text-soft);
   font-size: 0.73rem;
   line-height: 1.75;
 }
@@ -503,12 +503,12 @@ fieldset.field > legend.label {
   width: 17px;
   height: 17px;
   margin: 3px 0 0;
-  accent-color: #87683d;
+  accent-color: var(--homio-rosewood);
 }
 
 .consentLine input:focus-visible,
 .choice input:focus-visible {
-  outline: 3px solid rgb(196 154 97 / 40%);
+  outline: 3px solid var(--homio-focus-ring);
   outline-offset: 3px;
 }
 
@@ -552,39 +552,39 @@ fieldset.field > legend.label {
 }
 
 .primaryButton {
-  border-color: #cfad78;
-  background: linear-gradient(135deg, #e4c99e, #d0ac74);
-  color: #211b12;
-  box-shadow: 0 4px 12px rgb(123 88 40 / 9%);
+  border-color: var(--homio-rosewood);
+  background: linear-gradient(135deg, var(--homio-rosewood), var(--homio-brand-soft));
+  color: var(--homio-text-inverse);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--homio-rosewood) 9%, transparent);
 }
 
 .primaryButton:hover:not(:disabled) {
-  border-color: #b58d53;
-  background: linear-gradient(135deg, #edd7b4, #ddbc89);
-  box-shadow: 0 7px 18px rgb(123 88 40 / 13%);
+  border-color: var(--homio-brand-soft);
+  background: linear-gradient(135deg, var(--homio-brand-soft), var(--homio-rosewood));
+  box-shadow: 0 7px 18px color-mix(in srgb, var(--homio-rosewood) 13%, transparent);
   transform: translateY(-1px);
 }
 
 .secondaryButton {
-  border-color: #d9d0c2;
-  background: #fff;
-  color: #302a21;
+  border-color: var(--homio-border);
+  background: var(--homio-surface);
+  color: var(--homio-text);
 }
 
 .secondaryButton:hover:not(:disabled) {
-  border-color: #c4a579;
-  background: #fcf8f1;
+  border-color: var(--homio-rosewood);
+  background: var(--homio-almond);
   transform: translateY(-1px);
 }
 
 .darkButton {
-  border-color: #302b22;
-  background: #25221c;
-  color: #fff;
+  border-color: var(--homio-cocoa);
+  background: var(--homio-cocoa);
+  color: var(--homio-text-inverse);
 }
 
 .darkButton:hover:not(:disabled) {
-  background: #3a3328;
+  background: var(--homio-rosewood);
   transform: translateY(-1px);
 }
 
@@ -592,7 +592,7 @@ fieldset.field > legend.label {
 .secondaryButton:focus-visible,
 .darkButton:focus-visible,
 .textButton:focus-visible {
-  outline: 3px solid rgb(196 154 97 / 42%);
+  outline: 3px solid var(--homio-focus-ring);
   outline-offset: 3px;
 }
 
@@ -612,7 +612,7 @@ fieldset.field > legend.label {
   padding: 0;
   border: 0;
   background: transparent;
-  color: #75562c;
+  color: var(--homio-rosewood);
   cursor: pointer;
   font: inherit;
   font-size: 0.75rem;
@@ -644,21 +644,21 @@ fieldset.field > legend.label {
 
 .notice,
 .privacyNote {
-  border-color: #e7dece;
-  background: #fbf7f0;
-  color: #6a5941;
+  border-color: var(--homio-border);
+  background: var(--homio-blush);
+  color: var(--homio-text-soft);
 }
 
 .errorBanner {
-  border-color: #edc5bf;
-  background: var(--f09-danger-bg, #fff6f4);
-  color: #8d3027;
+  border-color: var(--homio-danger-soft);
+  background: var(--f09-danger-bg);
+  color: var(--homio-danger);
 }
 
 .successBanner {
-  border-color: #c3ddcc;
-  background: var(--f09-success-bg, #f1f8f3);
-  color: var(--f09-success, #286345);
+  border-color: var(--homio-success-soft);
+  background: var(--f09-success-bg);
+  color: var(--f09-success);
 }
 
 .notice strong,
@@ -694,10 +694,10 @@ fieldset.field > legend.label {
   gap: 7px;
   max-width: 100%;
   padding: 6px 10px;
-  border: 1px solid #e5dbc8;
+  border: 1px solid var(--homio-border);
   border-radius: 999px;
-  background: #faf6ed;
-  color: #73582e;
+  background: var(--homio-blush);
+  color: var(--homio-rosewood);
   font-size: 0.65rem;
   font-weight: 850;
   line-height: 1.45;
@@ -709,7 +709,7 @@ fieldset.field > legend.label {
   height: 5px;
   flex: 0 0 5px;
   border-radius: 50%;
-  background: #c49a61;
+  background: var(--homio-rosewood);
   content: "";
 }
 
@@ -724,7 +724,7 @@ fieldset.field > legend.label {
   grid-template-columns: minmax(100px, 0.55fr) minmax(0, 1fr);
   gap: 14px;
   padding: 12px 0;
-  border-bottom: 1px solid #eee8de;
+  border-bottom: 1px solid var(--homio-border);
 }
 
 .summaryRow:last-child {
@@ -732,14 +732,14 @@ fieldset.field > legend.label {
 }
 
 .summaryLabel {
-  color: #81786b;
+  color: var(--homio-text-muted);
   font-size: 0.7rem;
   line-height: 1.65;
 }
 
 .summaryValue {
   min-width: 0;
-  color: #302a21;
+  color: var(--homio-text);
   font-size: 0.75rem;
   font-weight: 760;
   line-height: 1.7;
@@ -765,7 +765,7 @@ fieldset.field > legend.label {
 
 .statusTitle {
   margin: 0;
-  color: var(--f09-ink, #201e1a);
+  color: var(--f09-ink);
   font-size: 0.94rem;
   font-weight: 830;
   letter-spacing: -0.025em;
@@ -775,7 +775,7 @@ fieldset.field > legend.label {
 
 .statusText {
   margin: 7px 0 0;
-  color: var(--f09-muted, #70695f);
+  color: var(--f09-muted);
   font-size: 0.75rem;
   line-height: 1.75;
 }
@@ -815,7 +815,7 @@ fieldset.field > legend.label {
   top: 14px;
   bottom: -2px;
   width: 1px;
-  background: #e4dccf;
+  background: var(--homio-border);
   content: "";
 }
 
@@ -829,14 +829,14 @@ fieldset.field > legend.label {
   width: 10px;
   height: 10px;
   margin-top: 4px;
-  border: 2px solid #c6a16d;
+  border: 2px solid var(--homio-rosewood);
   border-radius: 50%;
-  background: #fff;
+  background: var(--homio-surface);
 }
 
 .timelineTitle {
   margin: 0;
-  color: #302a21;
+  color: var(--homio-text);
   font-size: 0.76rem;
   font-weight: 830;
   line-height: 1.5;
@@ -855,13 +855,13 @@ fieldset.field > legend.label {
 
 .timelineTitle a:focus-visible {
   border-radius: 3px;
-  outline: 2px solid #b99460;
+  outline: 2px solid var(--homio-focus-ring);
   outline-offset: 3px;
 }
 
 .timelineDescription {
   margin: 4px 0 0;
-  color: var(--f09-muted, #70695f);
+  color: var(--f09-muted);
   font-size: 0.7rem;
   line-height: 1.65;
 }
@@ -873,15 +873,15 @@ fieldset.field > legend.label {
 .emptyState {
   min-width: 0;
   padding: clamp(19px, 3vw, 25px);
-  border: 1px dashed #d9d0c1;
+  border: 1px dashed var(--homio-border-strong);
   border-radius: 15px;
   background:
     radial-gradient(
       ellipse at 100% 0%,
-      rgb(196 154 97 / 8%),
+      color-mix(in srgb, var(--homio-rosewood) 8%, transparent),
       transparent 45%
     ),
-    #fcfbf8;
+    var(--homio-almond);
 }
 
 .emptyIcon {
@@ -889,15 +889,15 @@ fieldset.field > legend.label {
   width: 38px;
   height: 38px;
   place-items: center;
-  border: 1px solid #e6d6bc;
+  border: 1px solid var(--homio-border);
   border-radius: 12px;
-  background: #f7efe2;
-  color: #7c5d32;
+  background: var(--homio-blush);
+  color: var(--homio-rosewood);
 }
 
 .emptyTitle {
   margin: 13px 0 0;
-  color: #302a21;
+  color: var(--homio-text);
   font-size: 0.89rem;
   font-weight: 830;
   line-height: 1.5;
@@ -905,7 +905,7 @@ fieldset.field > legend.label {
 
 .emptyText {
   margin: 8px 0 0;
-  color: var(--f09-muted, #70695f);
+  color: var(--f09-muted);
   font-size: 0.75rem;
   line-height: 1.75;
 }
@@ -916,7 +916,7 @@ fieldset.field > legend.label {
 
 .disclosure {
   margin: 12px 0 0;
-  color: #81776a;
+  color: var(--homio-text-muted);
   font-size: 0.68rem;
   line-height: 1.75;
 }
@@ -925,7 +925,7 @@ fieldset.field > legend.label {
   height: 1px;
   margin: 3px 0;
   border: 0;
-  background: #eee8de;
+  background: var(--homio-border);
 }
 
 .srOnly {
