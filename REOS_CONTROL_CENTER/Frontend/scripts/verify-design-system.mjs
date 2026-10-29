@@ -39,6 +39,14 @@ function requireNotContains(source, forbiddenText, context) {
   }
 }
 
+function requireNoMatch(source, pattern, context) {
+  const match = source.match(pattern);
+
+  if (match) {
+    fail(`${context}: forbidden pattern remains: ${match[0]}`);
+  }
+}
+
 const requiredFiles = [
   "package.json",
   "src/app/layout.tsx",
@@ -425,6 +433,29 @@ for (const [fileName, source] of themedModules) {
     source,
     "var(--homio-",
     `${fileName} shared brand tokens`
+  );
+}
+
+/* 6a. Shared navigation readability and keyboard focus contract. */
+
+for (const [fileName, source] of [
+  ["GlobalMenus.module.css", globalMenus],
+  ["MegaMenu.module.css", megaMenu],
+]) {
+  requireContains(
+    source,
+    "var(--homio-focus-ring)",
+    `${fileName} visible keyboard focus`
+  );
+  requireContains(
+    source,
+    "@media (prefers-reduced-motion: reduce)",
+    `${fileName} reduced-motion support`
+  );
+  requireNoMatch(
+    source,
+    /font-size:\s*(?:8|9|10|11)px\b/i,
+    `${fileName} minimum navigation text size`
   );
 }
 
