@@ -1,3 +1,4 @@
+
 name: HOMIO backend and ACRL verification modules
 description: Runs focused compile, transition wiring, subsystem regressions, and the complete ACRL suite in isolated scripts.
 
@@ -34,7 +35,7 @@ runs:
       shell: bash
       run: bash "$GITHUB_ACTION_PATH/scripts/ai001_t05_transition_wiring.sh"
 
-    - name: Compile backend and verify agent contract
+    - name: Compile backend and verify contracts, including Section 14
       shell: bash
       run: bash "$GITHUB_ACTION_PATH/scripts/compile_and_contracts.sh"
 
@@ -78,4 +79,13 @@ runs:
         name: homio-acrl-audit-resume-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
         path: ${{ runner.temp }}/homio-acrl/audit_resume_manifest.json
         if-no-files-found: error
+        retention-days: 90
+
+    - name: Publish Section 14 AI quality evaluation evidence
+      if: ${{ always() }}
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: homio-ai-section14-quality-evaluation-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+        path: ${{ runner.temp }}/homio-ai-section14-quality-evaluation.json
+        if-no-files-found: warn
         retention-days: 90
