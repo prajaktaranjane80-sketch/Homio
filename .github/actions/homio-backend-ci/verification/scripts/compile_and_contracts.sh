@@ -77,6 +77,13 @@ for source_path in sorted(source_files, key=lambda item: item.as_posix()):
 print(f"PYTHON_SOURCE_COMPILE_PASS={len(source_files)}")
 PY
 
+# Section 14 writes a sanitized synthetic-evaluation report before returning.
+# It returns nonzero only when an executable regression invariant fails.
+# Release readiness remains false while thresholds or integration blockers remain.
+quality_report="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/homio-ai-section14-quality-evaluation.json"
+python AUTONOMY_ENGINE/ai_platform/tests/test_section14_quality_evaluation.py \
+  --output "$quality_report"
+
 python -c "from pathlib import Path; p = Path('tets/test_ai_agent_entrypoint_contract.py'); assert p.is_file(), f'Required contract test is missing: {p}'"
 
 python -m pytest -q -p no:cacheprovider \
@@ -89,6 +96,7 @@ python -m pytest -q -p no:cacheprovider \
 # AI-001 T06: trusted-context, resource authorization and tenant tests.
 # AI-001 T07: cost reservations, quota concurrency and usage accounting.
 # AI-001 T08: observability, safe fallback and failure handling.
+# Section 14: deterministic evaluation, sanitized observability and refusal checks.
 # Provider adapter and composition tests use no live provider calls.
 # Provider composition requires injected server-owned policy and usage ports.
 # No production tool execution is enabled.
@@ -104,4 +112,5 @@ python -m pytest -q -p no:cacheprovider \
   AUTONOMY_ENGINE/ai_platform/tests/test_cost_control.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_observability_fallback.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_provider_adapters.py \
-  AUTONOMY_ENGINE/ai_platform/tests/test_ai_platform_integration.py
+  AUTONOMY_ENGINE/ai_platform/tests/test_ai_platform_integration.py \
+  AUTONOMY_ENGINE/ai_platform/tests/test_section14_quality_evaluation.py
