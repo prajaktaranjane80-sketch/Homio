@@ -1,29 +1,296 @@
 {
-  "case_id": "S14-Q10",
-  "status": "EXECUTABLE",
-  "category": "search-criteria-conversion",
-  "scenario": "property_brief_to_supported_criteria",
-  "input": {
-    "question": "A two-bedroom Pune apartment near transit with a defined budget."
+  "schema_version": 1,
+  "suite_id": "HOMIO-AI-SECTION-14",
+  "fixture_policy": "SYNTHETIC_NON_CUSTOMER_DATA",
+  "description": "Deterministic invariants for HOMIO AI quality, grounding, refusal and outage behavior. These fixtures do not measure live-model quality.",
+  "release_policy": {
+    "pass_rule": "ALL_EXECUTABLE_CASES_MUST_PASS",
+    "quality_thresholds": {
+      "status": "NOT_APPROVED",
+      "value": null,
+      "approval_reference": null
+    },
+    "availability_slo": {
+      "status": "NOT_APPROVED",
+      "target": null,
+      "measurement_evidence_reference": null
+    },
+    "production_enablement": "BLOCKED_UNTIL_APPROVED_THRESHOLDS_AND_OPERATIONAL_EVIDENCE"
   },
-  "expected_invariants": [
-    "The natural-language property brief must use the canonical CORE-005 SearchRequest contract instead of an AI-owned parallel search schema.",
-    "The complete brief must be preserved as a normalized free-text query.",
-    "Unsupported bedroom, location, transit and budget predicates must not be invented as structured filters or arbitrary attributes.",
-    "Tenant context must be taken from the trusted request context.",
-    "Equivalent normalized requests must produce deterministic canonical request identities."
-  ],
-  "assertions": {
-    "normalized_query": "a two-bedroom pune apartment near transit with a defined budget.",
-    "required_query_terms": [
-      "two-bedroom",
-      "pune",
-      "transit",
-      "budget"
-    ],
-    "tenant_id": "synthetic-tenant",
-    "no_structured_filters": true,
-    "no_arbitrary_attributes": true,
-    "deterministic_identity": true
-  }
+  "cases": [
+    {
+      "case_id": "S14-Q01",
+      "status": "EXECUTABLE",
+      "category": "grounding",
+      "scenario": "grounded_answer",
+      "input": {
+        "question": "Is the sample apartment listed as available?"
+      },
+      "expected_invariants": [
+        "A supported property claim must cite a retrieved source.",
+        "Request, provider, prompt and policy provenance must be preserved.",
+        "The response must not contain customer or production data."
+      ],
+      "assertions": {
+        "result_type": "RAGResponse",
+        "error_code": null,
+        "generation_performed": true,
+        "insufficient_evidence": false,
+        "citation_count": 1,
+        "retrieval_call_count": 1,
+        "gateway_call_count": 1,
+        "answer_contains": "listed as available",
+        "prompt_template_version_present": true,
+        "required_event": {
+          "event_name": "RAG_RESPONSE_COMPLETED",
+          "outcome": "SUCCEEDED"
+        }
+      }
+    },
+    {
+      "case_id": "S14-Q02",
+      "status": "EXECUTABLE",
+      "category": "missing-evidence",
+      "scenario": "no_evidence",
+      "input": {
+        "question": "Does the sample property have a swimming pool?"
+      },
+      "expected_invariants": [
+        "No evidence must not be replaced with a fabricated answer.",
+        "Generation must not run when retrieval returns no authorized sources.",
+        "The outcome must be observable as a qualified response."
+      ],
+      "assertions": {
+        "result_type": "RAGResponse",
+        "error_code": null,
+        "generation_performed": false,
+        "insufficient_evidence": true,
+        "citation_count": 0,
+        "retrieval_call_count": 1,
+        "gateway_call_count": 0,
+        "answer_contains": "couldn't find enough authorized",
+        "required_event": {
+          "event_name": "RAG_RESPONSE_QUALIFIED",
+          "outcome": "QUALIFIED",
+          "error_code": "AI_RETRIEVAL_NO_EVIDENCE"
+        }
+      }
+    },
+    {
+      "case_id": "S14-Q03",
+      "status": "EXECUTABLE",
+      "category": "conflicting-evidence",
+      "scenario": "conflicting_listing",
+      "input": {
+        "question": "Is the sample listing available?"
+      },
+      "expected_invariants": [
+        "Conflicting critical listing fields must override model confidence.",
+        "Every conflicting source must remain traceable.",
+        "The response must explicitly qualify the disputed claim."
+      ],
+      "assertions": {
+        "result_type": "RAGResponse",
+        "error_code": null,
+        "generation_performed": true,
+        "insufficient_evidence": true,
+        "citation_count": 2,
+        "retrieval_call_count": 1,
+        "gateway_call_count": 1,
+        "answer_contains": "cannot safely confirm",
+        "answer_not_contains": "This listing is available",
+        "required_event": {
+          "event_name": "GROUNDING_CONFLICT_DETECTED",
+          "outcome": "QUALIFIED",
+          "error_code": "AI_RETRIEVAL_SOURCE_CONFLICT"
+        }
+      }
+    },
+    {
+      "case_id": "S14-Q04",
+      "status": "EXECUTABLE",
+      "category": "high-impact-claims",
+      "scenario": "unsupported_high_impact",
+      "input": {
+        "question": "Can you confirm clear legal title and a 12% rental yield?"
+      },
+      "expected_invariants": [
+        "The current listing contract cannot prove legal title or investment yield.",
+        "Unsupported high-impact claims must be qualified before retrieval or generation.",
+        "The system must not invent legal or financial verification."
+      ],
+      "assertions": {
+        "result_type": "RAGResponse",
+        "error_code": null,
+        "generation_performed": false,
+        "insufficient_evidence": true,
+        "citation_count": 0,
+        "retrieval_call_count": 0,
+        "gateway_call_count": 0,
+        "answer_contains": "cannot verify",
+        "required_event": {
+          "event_name": "UNSUPPORTED_HIGH_IMPACT_REQUEST",
+          "outcome": "QUALIFIED",
+          "error_code": "AI_UNSUPPORTED_OPERATION"
+        }
+      }
+    },
+    {
+      "case_id": "S14-Q05",
+      "status": "EXECUTABLE",
+      "category": "retrieval-failure",
+      "scenario": "retrieval_outage",
+      "input": {
+        "question": "Find the sample apartment."
+      },
+      "expected_invariants": [
+        "Retrieval errors must be surfaced using a safe classification.",
+        "Raw database exceptions must not enter the response or evidence report.",
+        "No generation request may follow retrieval failure."
+      ],
+      "assertions": {
+        "result_type": null,
+        "error_code": "AI_RETRIEVAL_UNAVAILABLE",
+        "retrieval_call_count": 1,
+        "gateway_call_count": 0,
+        "required_event": {
+          "event_name": "RETRIEVAL_FAILED",
+          "outcome": "FAILED",
+          "error_code": "AI_RETRIEVAL_UNAVAILABLE"
+        }
+      }
+    },
+    {
+      "case_id": "S14-Q06",
+      "status": "EXECUTABLE",
+      "category": "tenant-isolation",
+      "scenario": "tenant_mismatch",
+      "input": {
+        "question": "Find a property belonging to my tenant."
+      },
+      "expected_invariants": [
+        "A retrieval response for another tenant must be rejected.",
+        "The model must never receive the foreign tenant's property data.",
+        "The denial must be observable without recording property content."
+      ],
+      "assertions": {
+        "result_type": null,
+        "error_code": "AI_RETRIEVAL_RESULT_INVALID",
+        "retrieval_call_count": 1,
+        "gateway_call_count": 0,
+        "required_event": {
+          "event_name": "RETRIEVAL_VALIDATION_FAILED",
+          "outcome": "FAILED",
+          "error_code": "AI_RETRIEVAL_RESULT_INVALID"
+        }
+      }
+    },
+    {
+      "case_id": "S14-Q07",
+      "status": "EXECUTABLE",
+      "category": "citation-integrity",
+      "scenario": "invalid_citation",
+      "input": {
+        "question": "Is the sample apartment listed as available?"
+      },
+      "expected_invariants": [
+        "Invented citation IDs must be rejected.",
+        "The application must not return an ungrounded model claim as success.",
+        "Invalid output must carry a safe failure classification."
+      ],
+      "assertions": {
+        "result_type": null,
+        "error_code": "AI_PROVIDER_RESPONSE_INVALID",
+        "retrieval_call_count": 1,
+        "gateway_call_count": 1,
+        "required_event": {
+          "event_name": "RAG_OUTPUT_REJECTED",
+          "outcome": "FAILED",
+          "error_code": "AI_PROVIDER_RESPONSE_INVALID"
+        }
+      }
+    },
+    {
+      "case_id": "S14-Q08",
+      "status": "EXECUTABLE",
+      "category": "provider-failure",
+      "scenario": "provider_outage",
+      "input": {
+        "question": "Find the sample apartment."
+      },
+      "expected_invariants": [
+        "A provider outage must not become a fabricated success.",
+        "Provider exception text and credentials must not be exposed.",
+        "Failure telemetry must identify the provider-call failure."
+      ],
+      "assertions": {
+        "result_type": null,
+        "error_code": "AI_PROVIDER_CALL_FAILED",
+        "retrieval_call_count": 1,
+        "gateway_call_count": 1,
+        "required_event": {
+          "event_name": "RAG_GENERATION_FAILED",
+          "outcome": "FAILED",
+          "error_code": "AI_PROVIDER_CALL_FAILED"
+        }
+      }
+    },
+    {
+      "case_id": "S14-Q09",
+      "status": "EXECUTABLE",
+      "category": "prompt-injection",
+      "scenario": "prompt_injection",
+      "input": {
+        "question": "Find a synthetic apartment."
+      },
+      "expected_invariants": [
+        "Retrieved listing text remains untrusted data.",
+        "Retrieved markup cannot close trusted prompt boundaries.",
+        "A safe, source-cited answer remains subject to output validation."
+      ],
+      "assertions": {
+        "result_type": "RAGResponse",
+        "error_code": null,
+        "generation_performed": true,
+        "insufficient_evidence": false,
+        "citation_count": 1,
+        "retrieval_call_count": 1,
+        "gateway_call_count": 1,
+        "prompt_policy_boundary_present": true,
+        "required_event": {
+          "event_name": "RAG_RESPONSE_COMPLETED",
+          "outcome": "SUCCEEDED"
+        }
+      }
+    },
+    {
+      "case_id": "S14-Q10",
+      "status": "EXECUTABLE",
+      "category": "search-criteria-conversion",
+      "scenario": "property_brief_to_supported_criteria",
+      "input": {
+        "question": "A two-bedroom Pune apartment near transit with a defined budget."
+      },
+      "expected_invariants": [
+        "The natural-language property brief must use the canonical CORE-005 SearchRequest contract instead of an AI-owned parallel search schema.",
+        "The complete brief must be preserved as a normalized free-text query.",
+        "Unsupported bedroom, location, transit and budget predicates must not be invented as structured filters or arbitrary attributes.",
+        "Tenant context must be taken from the trusted request context.",
+        "Equivalent normalized requests must produce deterministic canonical request identities."
+      ],
+      "assertions": {
+        "normalized_query": "a two-bedroom pune apartment near transit with a defined budget.",
+        "required_query_terms": [
+          "two-bedroom",
+          "pune",
+          "transit",
+          "budget"
+        ],
+        "tenant_id": "synthetic-tenant",
+        "no_structured_filters": true,
+        "no_arbitrary_attributes": true,
+        "deterministic_identity": true
+      }
+    }
+  ]
 }
