@@ -55,6 +55,72 @@ for (const moduleName of requiredModules) {
 
 const css = read(`${f09Root}/EnquiryWorkspace.module.css`);
 
+/* F09 must consume the canonical Rosewood / Blush / Almond design system. */
+const requiredDesignTokens = [
+  [/--f09-ink:\s*var\(--homio-text\)/, "shared text token"],
+  [/--f09-muted:\s*var\(--homio-text-soft\)/, "shared muted-text token"],
+  [/--f09-border:\s*var\(--homio-border\)/, "shared border token"],
+  [/--f09-accent:\s*var\(--homio-accent\)/, "shared accent token"],
+  [/--f09-surface:\s*var\(--homio-surface\)/, "shared surface token"],
+  [/--f09-background:\s*var\(--homio-bg\)/, "shared background token"],
+  [/--f09-danger:\s*var\(--homio-danger\)/, "shared danger token"],
+  [/--f09-danger-bg:\s*var\(--homio-danger-soft\)/, "shared danger surface token"],
+  [/--f09-success:\s*var\(--homio-success\)/, "shared success token"],
+  [/--f09-success-bg:\s*var\(--homio-success-soft\)/, "shared success surface token"],
+];
+
+for (const [pattern, contractName] of requiredDesignTokens) {
+  assert.match(
+    css,
+    pattern,
+    "F09 must use the canonical " + contractName + ".",
+  );
+}
+
+const hardCodedHexColors = css.match(/#[0-9a-fA-F]{3,8}\b/g) ?? [];
+
+assert.deepEqual(
+  hardCodedHexColors,
+  [],
+  "F09 must use central design tokens instead of hard-coded hex colours.",
+);
+
+const retiredPalettePatterns = [
+  /rgb\(\s*196\s+154\s+97\b/i,
+  /rgb\(\s*224\s+194\s+150\b/i,
+  /rgb\(\s*123\s+88\s+40\b/i,
+  /rgb\(\s*29\s+25\s+19\b/i,
+  /#c49a61\b/i,
+  /#dec08f\b/i,
+  /#e6c99d\b/i,
+  /#151411\b/i,
+  /#24211b\b/i,
+  /#383024\b/i,
+  /#987749\b/i,
+  /#87683d\b/i,
+  /#302a21\b/i,
+  /#201e1a\b/i,
+  /#70695f\b/i,
+  /#c4a579\b/i,
+  /#e4c99e\b/i,
+  /#d0ac74\b/i,
+  /#b58a50\b/i,
+  /#b58d53\b/i,
+  /#cfad78\b/i,
+  /#edd7b4\b/i,
+  /#ddbc89\b/i,
+  /#29251e\b/i,
+  /--f09-gold\b/i,
+];
+
+for (const pattern of retiredPalettePatterns) {
+  assert.doesNotMatch(
+    css,
+    pattern,
+    "F09 contains a retired hard-coded palette value: " + pattern,
+  );
+}
+
 const cssOpenBraces = (css.match(/{/g) ?? []).length;
 const cssCloseBraces = (css.match(/}/g) ?? []).length;
 
@@ -133,6 +199,8 @@ assert.match(packageJson.scripts.verify, /npm run verify:f09/);
 
 console.log(
   `F09 verification passed: ${requiredModules.length} required modules, ` +
+    "Rosewood / Blush / Almond token contract, no hard-coded hex palette, " +
+    "retired-palette rejection, " +
     `${styleNames.size} CSS-module selectors, target-aware enquiry/visit ` +
     "entry points, and draft-only service flags.",
 );
