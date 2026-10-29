@@ -1,3 +1,4 @@
+
 """Governed bridge from typed AI tool proposals to the existing HOMIO gateway.
 
 This module does not create tool executors or grant business authority. It only
@@ -14,11 +15,14 @@ from dataclasses import dataclass, field
 from math import isfinite
 import json
 import re
+from time import monotonic
 from types import MappingProxyType, SimpleNamespace
 from typing import Any, Protocol
 
-from .contracts import RequestContext, _identifier, _text
-from .errors import RequestContextMissingError
+from .contracts import ObservabilityEvent, RequestContext, _identifier, _text
+from .errors import ObservabilityUnavailableError, RequestContextMissingError
+from .observability import StructuredLoggingObservability
+from .ports import ObservabilityPort
 
 _ACTION_NAME = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 _ARGUMENT_NAME = re.compile(r"^[A-Za-z][A-Za-z0-9_]{0,63}$")
@@ -230,13 +234,9 @@ class ToolDefinition:
 
     def __post_init__(self) -> None:
         if not _ACTION_NAME.fullmatch(self.name):
-            raise ValueError(
-                "tool name must be a lowercase identifier"
-            )
+            raise ValueError("tool name must be a lowercase identifier")
         if not _ACTION_NAME.fullmatch(self.action_name):
-            raise ValueError(
-                "tool action must be a lowercase identifier"
-            )
+            raise ValueError("tool action must be a lowercase identifier")
 
         object.__setattr__(
             self,
@@ -248,37 +248,27 @@ class ToolDefinition:
             isinstance(self.allowed_arguments, (str, bytes))
             or not isinstance(self.allowed_arguments, (tuple, list))
         ):
-            raise ValueError(
-                "allowed_arguments must be a sequence of names"
-            )
+            raise ValueError("allowed_arguments must be a sequence of names")
         if (
             isinstance(self.required_arguments, (str, bytes))
             or not isinstance(self.required_arguments, (tuple, list))
         ):
-            raise ValueError(
-                "required_arguments must be a sequence of names"
-            )
+            raise ValueError("required_arguments must be a sequence of names")
 
         allowed = tuple(self.allowed_arguments)
         required = tuple(self.required_arguments)
 
         if len(set(allowed)) != len(allowed):
-            raise ValueError(
-                "allowed argument names must not contain duplicates"
-            )
+            raise ValueError("allowed argument names must not contain duplicates")
         if len(set(required)) != len(required):
-            raise ValueError(
-                "required argument names must not contain duplicates"
-            )
+            raise ValueError("required argument names must not contain duplicates")
 
         if any(
             not isinstance(key, str)
             or not _ARGUMENT_NAME.fullmatch(key)
             for key in allowed + required
         ):
-            raise ValueError(
-                "tool argument names must be identifiers"
-            )
+            raise ValueError("tool argument names must be identifiers")
         if not set(required).issubset(set(allowed)):
             raise ValueError(
                 "required arguments must be in the allowed argument list"
@@ -288,18 +278,14 @@ class ToolDefinition:
         object.__setattr__(self, "required_arguments", required)
 
         if not isinstance(self.read_only, bool) or not self.read_only:
-            raise ValueError(
-                "T05 only permits explicitly read-only tools"
-            )
+            raise ValueError("only explicitly read-only tools are permitted")
 
         if (
             isinstance(self.max_calls_per_run, bool)
             or not isinstance(self.max_calls_per_run, int)
             or not 1 <= self.max_calls_per_run <= 8
         ):
-            raise ValueError(
-                "max_calls_per_run must be between 1 and 8"
-            )
+            raise ValueError("max_calls_per_run must be between 1 and 8")
 
         timeout = self.timeout_seconds
         if (
@@ -311,12 +297,7 @@ class ToolDefinition:
             raise ValueError(
                 "timeout_seconds must be greater than 0 and at most 30"
             )
-
-        object.__setattr__(
-            self,
-            "timeout_seconds",
-            float(timeout),
-        )
+        object.__setattr__(self, "timeout_seconds", float(timeout))
 
 
 @dataclass(frozen=True, slots=True)
@@ -330,25 +311,16 @@ class ToolProposal:
 
     def __post_init__(self) -> None:
         object.__setattr__(
-            self,
-            "call_id",
-            _identifier(self.call_id, "call_id"),
+            self, "call_id", _identifier(self.call_id, "call_id")
         )
 
         if not _ACTION_NAME.fullmatch(self.tool_name):
-            raise ValueError(
-                "tool_name must be a lowercase identifier"
-            )
-
+            raise ValueError("tool_name must be a lowercase identifier")
         if not isinstance(self.arguments, Mapping):
             raise TypeError("tool arguments must be a mapping")
 
         copied = _normalise_json(self.arguments)
-        object.__setattr__(
-            self,
-            "arguments",
-            _freeze_json(copied),
-        )
+        object.__setattr__(self, "arguments", _freeze_json(copied))
         object.__setattr__(
             self,
             "reason",
@@ -412,56 +384,41 @@ class ToolBridge:
         gateway: object | None = None,
         tools: Sequence[ToolDefinition] = (),
         enabled: bool = False,
-        preflight: Callable[
-            [ToolProposal, RequestContext], bool
-        ] | None = None,
+        preflight: Callable[[ToolProposal, RequestContext], bool] | None = None,
         authorization_check: Callable[
             [ToolDefinition, ToolProposal, RequestContext], bool
         ] | None = None,
-        evidence_check: Callable[
-            [ToolProposal, RequestContext], bool
-        ] | None = None,
+        evidence_check: Callable[[ToolProposal, RequestContext], bool] | None = None,
         timeout_runner: TimeoutRunner | None = None,
         max_output_chars: int = 3000,
         max_total_calls: int = 8,
         max_sessions: int = 128,
+        observability: ObservabilityPort | None = None,
     ) -> None:
         if not isinstance(enabled, bool):
             raise TypeError("enabled must be a boolean")
-
         if (
             isinstance(max_output_chars, bool)
             or not isinstance(max_output_chars, int)
             or not 128 <= max_output_chars <= 12000
         ):
-            raise ValueError(
-                "max_output_chars must be between 128 and 12000"
-            )
+            raise ValueError("max_output_chars must be between 128 and 12000")
         if (
             isinstance(max_total_calls, bool)
             or not isinstance(max_total_calls, int)
             or not 1 <= max_total_calls <= 16
         ):
-            raise ValueError(
-                "max_total_calls must be between 1 and 16"
-            )
+            raise ValueError("max_total_calls must be between 1 and 16")
         if (
             isinstance(max_sessions, bool)
             or not isinstance(max_sessions, int)
             or not 1 <= max_sessions <= 1024
         ):
-            raise ValueError(
-                "max_sessions must be between 1 and 1024"
-            )
+            raise ValueError("max_sessions must be between 1 and 1024")
 
         definitions = tuple(tools)
-        if any(
-            not isinstance(item, ToolDefinition)
-            for item in definitions
-        ):
-            raise TypeError(
-                "tools must contain ToolDefinition values"
-            )
+        if any(not isinstance(item, ToolDefinition) for item in definitions):
+            raise TypeError("tools must contain ToolDefinition values")
         if len({item.name for item in definitions}) != len(definitions):
             raise ValueError("tool names must be unique")
 
@@ -478,16 +435,20 @@ class ToolBridge:
         self._runs: OrderedDict[str, _RunState] = OrderedDict()
         self._mutating_actions: frozenset[str] = frozenset()
         self._sensitive_actions: frozenset[str] = frozenset()
+        self._observability = (
+            observability
+            if observability is not None
+            else StructuredLoggingObservability()
+        )
+        if not callable(getattr(self._observability, "emit", None)):
+            raise TypeError("observability must expose a callable emit method")
 
         if enabled:
             if (
                 gateway is None
                 or not callable(getattr(gateway, "authorize", None))
                 or not callable(getattr(gateway, "execute", None))
-                or not isinstance(
-                    getattr(gateway, "adapters", None),
-                    Mapping,
-                )
+                or not isinstance(getattr(gateway, "adapters", None), Mapping)
                 or not definitions
                 or not callable(preflight)
                 or not callable(authorization_check)
@@ -504,10 +465,7 @@ class ToolBridge:
             adapters = getattr(gateway, "adapters")
             for tool in definitions:
                 combined = f"{tool.name} {tool.action_name}".lower()
-                if any(
-                    fragment in combined
-                    for fragment in _FORBIDDEN_ACTION_FRAGMENTS
-                ):
+                if any(fragment in combined for fragment in _FORBIDDEN_ACTION_FRAGMENTS):
                     raise ToolBridgeConfigurationError()
 
                 if (
@@ -552,7 +510,98 @@ class ToolBridge:
             self._runs.popitem(last=False)
         return state
 
+    @staticmethod
+    def _tool_event_error_code(error: BaseException) -> str:
+        code = getattr(error, "code", None)
+        value = getattr(code, "value", None)
+        if isinstance(value, str) and value:
+            return value
+        if isinstance(error, RequestContextMissingError):
+            return "AI_REQUEST_CONTEXT_MISSING"
+        if isinstance(error, ToolBridgeConfigurationError):
+            return "AI_TOOL_BRIDGE_CONFIGURATION_FAILED"
+        if isinstance(error, ToolExecutionBlockedError):
+            return "AI_TOOL_EXECUTION_BLOCKED"
+        return "AI_TOOL_EXECUTION_FAILED"
+
+    def _emit_tool_event(
+        self,
+        *,
+        run_id: str,
+        context: RequestContext | None,
+        event_name: str,
+        outcome: str,
+        duration_ms: int | None = None,
+        error_code: str | None = None,
+    ) -> None:
+        """Emit allowlisted lifecycle telemetry without arguments or results."""
+        try:
+            request_id = _identifier(run_id, "run_id")
+        except (TypeError, ValueError):
+            request_id = "tool-request-unavailable"
+
+        correlation_id = (
+            context.correlation_id
+            if isinstance(context, RequestContext)
+            else request_id
+        )
+        event = ObservabilityEvent(
+            event_name=event_name,
+            request_id=request_id,
+            correlation_id=correlation_id,
+            outcome=outcome,
+            duration_ms=duration_ms,
+            error_code=error_code,
+        )
+        try:
+            self._observability.emit(event)
+        except Exception:
+            raise ObservabilityUnavailableError() from None
+
     def execute(
+        self,
+        proposal: ToolProposal,
+        context: RequestContext | None,
+        *,
+        run_id: str,
+    ) -> ToolExecutionResult:
+        """Observe and execute one proposal through the guarded internal path."""
+        started = monotonic()
+        self._emit_tool_event(
+            run_id=run_id,
+            context=context,
+            event_name="TOOL_PROPOSAL_RECEIVED",
+            outcome="STARTED",
+        )
+        try:
+            result = self._execute_impl(
+                proposal,
+                context,
+                run_id=run_id,
+            )
+        except ObservabilityUnavailableError:
+            raise
+        except Exception as exc:
+            self._emit_tool_event(
+                run_id=run_id,
+                context=context,
+                event_name="TOOL_EXECUTION_FAILED",
+                outcome="FAILED",
+                error_code=self._tool_event_error_code(exc),
+                duration_ms=max(0, int((monotonic() - started) * 1000)),
+            )
+            raise
+
+        self._emit_tool_event(
+            run_id=run_id,
+            context=context,
+            event_name="TOOL_EXECUTION_COMPLETED",
+            outcome="SUCCEEDED",
+            duration_ms=max(0, int((monotonic() - started) * 1000)),
+        )
+        return result
+
+    def _execute_impl(
         self,
         proposal: ToolProposal,
         context: RequestContext | None,
@@ -580,19 +629,14 @@ class ToolBridge:
         argument_names = set(arguments)
         if (
             not set(tool.required_arguments).issubset(argument_names)
-            or not argument_names.issubset(
-                set(tool.allowed_arguments)
-            )
+            or not argument_names.issubset(set(tool.allowed_arguments))
         ):
             raise ToolExecutionBlockedError()
 
         combined = f"{tool.name} {tool.action_name}".lower()
         if (
             not tool.read_only
-            or any(
-                fragment in combined
-                for fragment in _FORBIDDEN_ACTION_FRAGMENTS
-            )
+            or any(fragment in combined for fragment in _FORBIDDEN_ACTION_FRAGMENTS)
             or tool.action_name in self._mutating_actions
             or tool.action_name in self._sensitive_actions
         ):
@@ -610,24 +654,19 @@ class ToolBridge:
         if (
             proposal.call_id in state.call_ids
             or fingerprint in state.fingerprints
-            or state.call_counts.get(tool.name, 0)
-            >= tool.max_calls_per_run
+            or state.call_counts.get(tool.name, 0) >= tool.max_calls_per_run
             or state.total_calls >= self._max_total_calls
         ):
             raise ToolExecutionBlockedError()
 
-        # Claim an attempt before policy/downstream calls. A repeated proposal
-        # must not retry after an ambiguous result.
+        # Claim the attempt before downstream calls. An ambiguous result cannot
+        # be silently retried through the same in-memory run guard.
         state.call_ids.add(proposal.call_id)
         state.fingerprints.add(fingerprint)
-        state.call_counts[tool.name] = (
-            state.call_counts.get(tool.name, 0) + 1
-        )
+        state.call_counts[tool.name] = state.call_counts.get(tool.name, 0) + 1
         state.total_calls += 1
 
         try:
-            # Server-owned authorization runs independently of model output.
-            # The proposal does not supply this decision or the trusted context.
             authorization_ok = (
                 self._authorization_check(tool, proposal, context) is True
             )
@@ -639,8 +678,6 @@ class ToolBridge:
         if not authorization_ok or not preflight_ok or not evidence_ok:
             raise ToolExecutionBlockedError()
 
-        # The existing gateway accepts an attribute-based ToolRequest shape.
-        # The bridge does not register or invent a downstream executor.
         gateway_request = SimpleNamespace(
             action=tool.action_name,
             arguments=arguments,
