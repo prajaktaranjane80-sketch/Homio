@@ -219,6 +219,34 @@ requireContains(
   "Mobile navigation landmark",
 );
 
+const requiredMobileNavigationKeyboardContract = [
+  "function closeMobileMenuOnEscape(",
+  "KeyboardEvent<HTMLDetailsElement>",
+  'if (event.key !== "Escape" || !event.currentTarget.open)',
+  "event.preventDefault();",
+  "event.currentTarget.open = false;",
+  'event.currentTarget.querySelector("summary")?.focus();',
+  "<details onKeyDown={closeMobileMenuOnEscape}>",
+];
+
+for (const contract of requiredMobileNavigationKeyboardContract) {
+  requireContains(
+    navigationSource,
+    contract,
+    "Mobile navigation keyboard dismissal",
+  );
+}
+
+if (
+  /className="responsive-nav__mobile-menu"[\s\S]{0,180}onKeyDown/.test(
+    navigationSource,
+  )
+) {
+  fail(
+    "Escape dismissal must be handled by the disclosure so it works from both the trigger and menu links.",
+  );
+}
+
 const requiredNavigationDestinations = [
   'href: "/search?intent=buy"',
   'href: "/search?intent=rent"',
@@ -673,6 +701,7 @@ console.log(`FILES VERIFIED                  = ${requiredFiles.length}`);
 console.log("ROOT DOCUMENT AND SHELL         = PASS");
 console.log("SKIP LINK AND STICKY OFFSET     = PASS");
 console.log("RESPONSIVE NAVIGATION           = PASS");
+console.log("MOBILE NAV ESCAPE DISMISSAL     = PASS");
 console.log("GLOBAL SEARCH AND F03 CONTRACT  = PASS");
 console.log("UNIQUE INPUT IDS / ARIA         = PASS");
 console.log("UNIQUE SELECT IDS / ARIA        = PASS");
