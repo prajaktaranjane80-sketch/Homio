@@ -313,3 +313,46 @@ def test_pull_request_cannot_restore_or_publish_trusted_t14_resume_cache() -> No
         assert cache_key in block, (
             f"{step_name} must use an exact-run cache key."
         )
+
+def test_repository_write_permissions_are_limited_to_guarded_control_center_jobs() -> None:
+    workflow = read(WORKFLOWS / "backend-ci.yml")
+
+    job_ids = re.findall(
+        r"^  ([A-Za-z0-9_-]+):$",
+        workflow,
+        flags=re.MULTILINE,
+    )
+    control_center_jobs = {
+        job_id
+        for job_id in job_ids
+        if job_id.startswith("control_center_")
+    }
+
+    assert control_center_jobs, "Expected guarded Control Center jobs."
+
+    write_permission_jobs: set[str] = set()
+
+    for job_id in job_ids:
+        block = job_block(workflow, job_id)
+
+        if not re.search(
+            r"^      contents: write$",
+            block,
+            flags=re.MULTILINE,
+        ):
+            continue
+
+        write_permission_jobs.add(job_id)
+
+        assert job_id.startswith("control_center_"), (
+            f"Unexpected job has repository write permission: {job_id}"
+        )
+        assert "needs: verification" in block, job_id
+        assert "github.event_name == 'push'" in block, job_id
+        assert "github.ref == 'refs/heads/reos-development'" in block, job_id
+        assert "startsWith(github.event.head_commit.message" in block, job_id
+
+    assert write_permission_jobs == control_center_jobs, (
+        "Repository write permission must remain limited to the guarded "
+        "Control Center transition jobs."
+    )
