@@ -532,6 +532,29 @@ if (
   fail("Responsive navigation desktop/mobile breakpoint contract is missing.");
 }
 
+const requiredMobileTouchTargetDeclarations = [
+  [
+    ".responsive-nav__mobile summary {\n  display: inline-flex;\n  align-items: center;\n  min-height: 44px;",
+    "Mobile navigation trigger",
+  ],
+  [
+    ".site-header__search .global-search__form .button {\n    min-height: 44px;",
+    "Mobile header search button",
+  ],
+  [
+    ".global-actions__link {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  min-height: 44px;",
+    "Global quick-action links",
+  ],
+];
+
+for (const [declaration, context] of requiredMobileTouchTargetDeclarations) {
+  requireContains(
+    foundationStyles,
+    declaration,
+    `${context} must retain a minimum 44px touch target`,
+  );
+}
+
 // The 320px minimum width is owned by base.css, not globals.css.
 
 if (!/min-width:\s*320px/.test(baseStyles)) {
