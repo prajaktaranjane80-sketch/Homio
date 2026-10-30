@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import type { KeyboardEvent, MouseEvent } from "react";
 
 type NavigationItem = {
   label: string;
@@ -12,6 +15,33 @@ const primaryItems: NavigationItem[] = [
   { label: "Projects", href: "/search?intent=projects" },
   { label: "HOMIO AI", href: "/ai" },
 ];
+
+function closeMobileMenu(event: MouseEvent<HTMLAnchorElement>): void {
+  const disclosure = event.currentTarget
+    .closest(".responsive-nav__mobile")
+    ?.querySelector("details");
+
+  if (disclosure) {
+    disclosure.open = false;
+  }
+}
+
+function closeMobileMenuOnEscape(
+  event: KeyboardEvent<HTMLElement>,
+): void {
+  if (event.key !== "Escape") {
+    return;
+  }
+
+  const disclosure = event.currentTarget.closest("details");
+
+  if (!disclosure?.open) {
+    return;
+  }
+
+  disclosure.open = false;
+  disclosure.querySelector("summary")?.focus();
+}
 
 export function ResponsiveNavigation({
   items = primaryItems,
@@ -42,9 +72,14 @@ export function ResponsiveNavigation({
           <nav
             className="responsive-nav__mobile-menu"
             aria-label="Mobile primary navigation"
+            onKeyDown={closeMobileMenuOnEscape}
           >
             {items.map((item) => (
-              <Link href={item.href} key={item.href}>
+              <Link
+                href={item.href}
+                key={item.href}
+                onClick={closeMobileMenu}
+              >
                 {item.label}
               </Link>
             ))}
