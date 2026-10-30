@@ -40,7 +40,9 @@ for target in targets:
 
     if target.is_file():
         if target.suffix != ".py":
-            raise SystemExit(f"Expected a Python source file: {target}")
+            raise SystemExit(
+                f"Expected a Python source file: {target}"
+            )
         source_files.add(target)
         continue
 
@@ -77,10 +79,9 @@ for source_path in sorted(source_files, key=lambda item: item.as_posix()):
 print(f"PYTHON_SOURCE_COMPILE_PASS={len(source_files)}")
 PY
 
-# Section 14 writes a sanitized synthetic-evaluation report before returning.
-# It returns nonzero only when an executable regression invariant fails.
-# Release readiness remains false while thresholds or integration blockers remain.
+# Section 14 writes sanitized deterministic AI-quality evidence.
 quality_report="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/homio-ai-section14-quality-evaluation.json"
+
 python AUTONOMY_ENGINE/ai_platform/tests/test_section14_quality_evaluation.py \
   --output "$quality_report"
 
@@ -96,10 +97,7 @@ python -m pytest -q -p no:cacheprovider \
 # AI-001 T06: trusted-context, resource authorization and tenant tests.
 # AI-001 T07: cost reservations, quota concurrency and usage accounting.
 # AI-001 T08: observability, safe fallback and failure handling.
-# Section 14: deterministic evaluation, sanitized observability and refusal checks.
-# Provider adapter and composition tests use no live provider calls.
-# Provider composition requires injected server-owned policy and usage ports.
-# No production tool execution is enabled.
+# Release-gate tests use synthetic evidence only; they do not approve production.
 python -m pytest -q -p no:cacheprovider \
   AUTONOMY_ENGINE/ai_platform/tests/test_contracts.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_model_gateway.py \
@@ -113,4 +111,16 @@ python -m pytest -q -p no:cacheprovider \
   AUTONOMY_ENGINE/ai_platform/tests/test_observability_fallback.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_provider_adapters.py \
   AUTONOMY_ENGINE/ai_platform/tests/test_ai_platform_integration.py \
-  AUTONOMY_ENGINE/ai_platform/tests/test_section14_quality_evaluation.py
+  AUTONOMY_ENGINE/ai_platform/tests/test_section14_quality_evaluation.py \
+  tets/test_ai_production_readiness_gate.py
+
+# Re-evaluate production readiness independently of the synthetic pass count.
+# This updates the same report consumed by the existing CI artifact upload.
+# Development CI remains green while release_ready stays false.
+# A production deployment job must invoke this script with --enforce.
+python "$GITHUB_WORKSPACE/.github/actions/homio-backend-ci/verification/scripts/production_readiness_gate.py" \
+  --quality-report "$quality_report" \
+  --operational-evidence "$GITHUB_WORKSPACE/REOS_CONTROL_CENTER/evidence/AI-001/production-readiness-attestation.json" \
+  --repository-root "$GITHUB_WORKSPACE" \
+  --output "$quality_report" \
+  --expected-commit "${GITHUB_SHA:?GITHUB_SHA is required}"
