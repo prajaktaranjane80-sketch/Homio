@@ -506,12 +506,16 @@
     var(--homio-surface-muted) 56%
   );
   background-size: 220% 100%;
-  animation: homio-skeleton-shimmer var(--motion-skeleton-duration) ease-in-out infinite;
+  animation: homio-skeleton-shimmer var(--motion-skeleton-duration) var(--ease-standard-curve) infinite;
 }
 
 @keyframes homio-skeleton-shimmer {
+  from {
+    background-position: 0% 0%;
+  }
+
   to {
-    background-position-x: -220%;
+    background-position: -220% 0%;
   }
 }
 
