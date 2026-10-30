@@ -27,20 +27,16 @@ function closeMobileMenu(event: MouseEvent<HTMLAnchorElement>): void {
 }
 
 function closeMobileMenuOnEscape(
-  event: KeyboardEvent<HTMLElement>,
+  event: KeyboardEvent<HTMLDetailsElement>,
 ): void {
-  if (event.key !== "Escape") {
+  if (event.key !== "Escape" || !event.currentTarget.open) {
     return;
   }
 
-  const disclosure = event.currentTarget.closest("details");
+  event.preventDefault();
 
-  if (!disclosure?.open) {
-    return;
-  }
-
-  disclosure.open = false;
-  disclosure.querySelector("summary")?.focus();
+  event.currentTarget.open = false;
+  event.currentTarget.querySelector("summary")?.focus();
 }
 
 export function ResponsiveNavigation({
@@ -66,13 +62,12 @@ export function ResponsiveNavigation({
       </nav>
 
       <div className="responsive-nav__mobile">
-        <details>
+        <details onKeyDown={closeMobileMenuOnEscape}>
           <summary>Menu</summary>
 
           <nav
             className="responsive-nav__mobile-menu"
             aria-label="Mobile primary navigation"
-            onKeyDown={closeMobileMenuOnEscape}
           >
             {items.map((item) => (
               <Link
