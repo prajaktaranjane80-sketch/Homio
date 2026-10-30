@@ -1,3 +1,4 @@
+
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -205,10 +206,67 @@ for (const [fileName, source] of [
   );
 }
 
+const requiredSkeletonMotionContracts = [
+  [
+    "foundation.css",
+    foundation,
+    "animation: homio-skeleton-shimmer var(--motion-skeleton-duration) var(--ease-standard-curve) infinite;",
+    "@keyframes homio-skeleton-shimmer {\n  from {\n    background-position: 0% 0%;\n  }\n\n  to {\n    background-position: -220% 0%;\n  }\n}",
+  ],
+  [
+    "SharedSystem.module.css",
+    sharedSystem,
+    "animation: systemShimmer var(--motion-skeleton-duration) var(--ease-standard-curve) infinite;",
+    "@keyframes systemShimmer {\n  from {\n    background-position: 0% 0%;\n  }\n\n  to {\n    background-position: -220% 0%;\n  }\n}",
+  ],
+  [
+    "SystemComponents.module.css",
+    systemComponents,
+    "animation: sys-shimmer var(--motion-skeleton-duration) var(--ease-standard-curve) infinite;",
+    "@keyframes sys-shimmer {\n  from {\n    background-position: 0% 0%;\n  }\n\n  to {\n    background-position: -220% 0%;\n  }\n}",
+  ],
+];
+
+const sharedSkeletonGradient = `background: linear-gradient(
+    100deg,
+    var(--homio-surface-muted) 20%,
+    var(--homio-surface-soft) 38%,
+    var(--homio-surface-muted) 56%
+  );`;
+
+for (const [fileName, source, animation, keyframes] of requiredSkeletonMotionContracts) {
+  requireContains(
+    source,
+    "background-size: 220% 100%;",
+    `${fileName} skeleton background geometry`,
+  );
+  requireContains(
+    source,
+    sharedSkeletonGradient,
+    `${fileName} shared skeleton gradient`,
+  );
+  requireContains(
+    source,
+    animation,
+    `${fileName} shared skeleton duration and easing`,
+  );
+  requireContains(
+    source,
+    keyframes,
+    `${fileName} aligned skeleton travel distance`,
+  );
+}
+
 requireContains(
   systemComponents,
   "outline: 3px solid var(--homio-focus-ring);",
   "Accessible system component keyboard focus"
+);
+
+requireContains(
+  sharedSystem,
+  ".systemAction:focus-visible {\n  outline: 3px solid var(--homio-focus-ring);\n  outline-offset: 2px;\n}",
+  "Accessible shared-system action keyboard focus"
 );
 
 for (const [fileName, source] of [
@@ -227,6 +285,12 @@ requireNotContains(
   systemComponents,
   "1.35s ease-in-out infinite",
   "System component skeleton timing"
+);
+
+requireContains(
+  sharedSystem,
+  "animation: systemSpin 850ms linear infinite;",
+  "Keep the dedicated spinner timing separate from skeleton shimmer",
 );
 requireNotContains(
   systemComponents,
@@ -574,6 +638,7 @@ console.log("PROPERTY IMAGE MOTION SAFETY           = PASS");
 console.log("SEMANTIC MARKET STATUS TOKENS           = PASS");
 console.log("EDITORIAL TYPOGRAPHY CONTRACT         = PASS");
 console.log("UNIFIED TRANSITION TIMING               = PASS");
+console.log("SKELETON MOTION CONSISTENCY             = PASS");
 console.log("GLOBAL CSS IMPORT ORDER               = PASS");
 console.log("MOTION UTILITY CONTRACT               = PASS");
 console.log("MOTION REVEAL / TYPES                 = PASS");
