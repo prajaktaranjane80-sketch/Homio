@@ -1,3 +1,4 @@
+
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -106,9 +107,7 @@ const baseStyles = read("src/app/styles/base.css");
 const tokenStyles = read("src/app/styles/tokens.css");
 const foundationStyles = read("src/app/styles/foundation.css");
 
-//
 // 1. Root application and document contract
-//
 
 if (
   !layoutSource.includes('import "./globals.css";') ||
@@ -139,9 +138,7 @@ if (
   fail("Skip-link target must have an offset for the sticky header.");
 }
 
-//
 // 2. Global styles must load in their required order
-//
 
 const requiredStyleImports = [
   '@import "./styles/tokens.css";',
@@ -186,9 +183,7 @@ if (
   fail("Foundation stylesheet must be imported exactly once.");
 }
 
-//
 // 3. Shared header, search and navigation must remain connected
-//
 
 if (
   !headerSource.includes("<GlobalSearch />") ||
@@ -202,17 +197,23 @@ requireContains(
   'className="responsive-nav"',
   "Responsive navigation",
 );
-requireContains(navigationSource, "<details>", "Keyboard-operable mobile menu");
+
+if (!/<details(?:\s|>)/.test(navigationSource)) {
+  fail("Keyboard-operable mobile menu disclosure is missing.");
+}
+
 requireContains(
   navigationSource,
   "<summary>Menu</summary>",
   "Keyboard-operable mobile menu trigger",
 );
+
 requireContains(
   navigationSource,
   'aria-label="Primary navigation"',
   "Desktop navigation landmark",
 );
+
 requireContains(
   navigationSource,
   'aria-label="Mobile primary navigation"',
@@ -282,9 +283,7 @@ requireContains(
   "Global quick-action landmark",
 );
 
-//
 // 4. Global search must keep the F03 query contract and accessible feedback
-//
 
 const requiredSearchContract = [
   "useRouter",
@@ -319,97 +318,106 @@ requireContains(
   'type="search"',
   "Shared search field",
 );
+
 requireContains(
   searchFieldSource,
   'className={`search-field ${className}`.trim()}',
   "Shared search field styling hook",
 );
 
-//
 // 5. Shared Input must have unique IDs and accessible error/hint association
-//
 
 requireContains(inputSource, "useId", "Shared Input identity");
+
 requireContains(
   inputSource,
   "const inputId = id ?? generatedId;",
   "Shared Input identity",
 );
+
 requireContains(
   inputSource,
   '"aria-describedby": ariaDescribedBy',
   "Shared Input description merge",
 );
+
 requireContains(
   inputSource,
   "aria-describedby={describedBy}",
   "Shared Input description association",
 );
+
 requireContains(
   inputSource,
   'id={`${inputId}-hint`}',
   "Shared Input hint association",
 );
+
 requireContains(
   inputSource,
   'id={`${inputId}-error`}',
   "Shared Input error association",
 );
+
 requireContains(
   inputSource,
   'role="alert"',
   "Shared Input error announcement",
 );
 
-//
 // 6. Shared Select must have unique IDs and accessible error/hint association
-//
 
 requireContains(selectSource, "useId", "Shared Select identity");
+
 requireContains(
   selectSource,
   "const selectId = id ?? generatedId;",
   "Shared Select identity",
 );
+
 requireContains(
   selectSource,
   '"aria-describedby": ariaDescribedBy',
   "Shared Select description merge",
 );
+
 requireContains(
   selectSource,
   "aria-describedby={describedBy}",
   "Shared Select description association",
 );
+
 requireContains(
   selectSource,
   "const hintId = `${selectId}-hint`;",
   "Shared Select hint identity",
 );
+
 requireContains(
   selectSource,
   "const errorId = `${selectId}-error`;",
   "Shared Select error identity",
 );
+
 requireContains(
   selectSource,
-  'id={hintId}',
+  "id={hintId}",
   "Shared Select hint association",
 );
+
 requireContains(
   selectSource,
-  'id={errorId}',
+  "id={errorId}",
   "Shared Select error association",
 );
+
 requireContains(
   selectSource,
   'role="alert"',
   "Shared Select error announcement",
 );
 
-//
 // 7. Modal, drawer and bottom sheet must use the same focus contract
-//
 
 const dialogComponents = [
   ["Modal", modalSource],
@@ -454,9 +462,7 @@ for (const contract of requiredFocusHookContract) {
   );
 }
 
-//
 // 8. Required shared foundation selectors must exist
-//
 
 const requiredFoundationSelectors = [
   ".skip-link",
@@ -502,11 +508,13 @@ requireContains(
   ":focus-visible",
   "Visible keyboard focus",
 );
+
 requireContains(
   foundationStyles,
   "env(safe-area-inset-bottom)",
   "Mobile safe-area spacing",
 );
+
 requireContains(
   foundationStyles,
   "#main-content { padding-bottom: 5.25rem; }",
@@ -525,13 +533,12 @@ if (
 }
 
 // The 320px minimum width is owned by base.css, not globals.css.
+
 if (!/min-width:\s*320px/.test(baseStyles)) {
   fail("Base styles must retain the 320px minimum layout width.");
 }
 
-//
 // 9. Every used shared CSS token must be declared
-//
 
 const definedTokens = new Set(
   [...tokenStyles.matchAll(/--([a-z0-9-]+)\s*:/gi)].map(
@@ -557,9 +564,7 @@ if (missingTokens.length > 0) {
   );
 }
 
-//
 // 10. Runtime and architecture boundaries
-//
 
 const requiredScripts = [
   "dev",
