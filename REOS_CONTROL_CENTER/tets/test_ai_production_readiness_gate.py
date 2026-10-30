@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 import hashlib
 from pathlib import Path
@@ -20,6 +21,7 @@ from production_readiness_gate import (
     REQUIRED_OPERATIONAL_CONTROLS,
     REQUIRED_QUALITY_METRICS,
     evaluate_production_readiness,
+    update_quality_report,
 )
 
 NOW = datetime(2026, 10, 30, 7, 0, tzinfo=timezone.utc)
@@ -73,6 +75,7 @@ def _quality_report(*, q10_complete: bool = True) -> dict:
             "failed_cases": 0,
             "blocked_cases": 0,
             "quality_thresholds_approved": True,
+            "release_ready": True,
         },
         "cases": [
             *[
@@ -184,6 +187,69 @@ def test_complete_exact_commit_evidence_can_pass_gate(
     )
 
 
+def test_external_quality_attestation_is_authoritative(
+    tmp_path: Path,
+) -> None:
+    report = _quality_report()
+    report["summary"]["quality_thresholds_approved"] = False
+    evidence = _valid_operational_evidence(tmp_path)
+
+    gate = evaluate_production_readiness(
+        report,
+        evidence,
+        repository_root=tmp_path,
+        now_utc=NOW,
+        expected_commit=COMMIT,
+    )
+
+    assert gate["release_ready"] is True, gate
+    assert gate["checks"]["approved_quality_thresholds"] is True
+    assert "QUALITY_THRESHOLDS_NOT_APPROVED" not in {
+        item["code"] for item in gate["blockers"]
+    }
+
+
+def test_report_update_preserves_section14_status_fields(
+    tmp_path: Path,
+) -> None:
+    report = _quality_report()
+    evidence = _valid_operational_evidence(tmp_path)
+    evidence["controls"].pop()
+
+    quality_report_path = tmp_path / "quality-report.json"
+    operational_evidence_path = tmp_path / "operational-evidence.json"
+    output_path = tmp_path / "updated-report.json"
+
+    quality_report_path.write_text(
+        json.dumps(report),
+        encoding="utf-8",
+    )
+    operational_evidence_path.write_text(
+        json.dumps(evidence),
+        encoding="utf-8",
+    )
+
+    gate = update_quality_report(
+        quality_report_path=quality_report_path,
+        operational_evidence_path=operational_evidence_path,
+        repository_root=tmp_path,
+        output_path=output_path,
+        expected_commit=COMMIT,
+        now_utc=NOW,
+    )
+
+    updated = json.loads(output_path.read_text(encoding="utf-8"))
+    summary = updated["summary"]
+
+    assert gate["release_ready"] is False
+    assert gate["checks"]["approved_quality_thresholds"] is True
+    assert summary["release_ready"] is True
+    assert summary["quality_thresholds_approved"] is True
+    assert summary["production_release_ready"] is False
+    assert summary["production_readiness_blocker_count"] == gate["blocker_count"]
+    assert summary["production_readiness_blockers"] == gate["blockers"]
+
+
 def test_missing_operational_evidence_fails_closed(
     tmp_path: Path,
 ) -> None:
@@ -199,6 +265,7 @@ def test_missing_operational_evidence_fails_closed(
     codes = {item["code"] for item in gate["blockers"]}
     assert "OPERATIONAL_ATTESTATION_MISSING" in codes
     assert "OPERATIONAL_CONTROL_NOT_VERIFIED" in codes
+    assert gate["checks"]["approved_quality_thresholds"] is False
 
 
 def test_section14_q10_cannot_pass_without_structured_criteria(
@@ -239,6 +306,7 @@ def test_evidence_from_another_commit_is_rejected(
         item["code"] == "ATTESTATION_COMMIT_MISMATCH"
         for item in gate["blockers"]
     )
+    assert gate["checks"]["approved_quality_thresholds"] is False
 
 
 def test_tampered_evidence_hash_is_rejected(
@@ -323,6 +391,7 @@ def test_quality_measurements_must_meet_approved_thresholds(
         item["code"] == "QUALITY_THRESHOLD_NOT_MET"
         for item in gate["blockers"]
     )
+    assert gate["checks"]["approved_quality_thresholds"] is False
 
 
 def test_symlink_evidence_is_never_accepted(
