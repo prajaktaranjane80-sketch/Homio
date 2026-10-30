@@ -1,4 +1,3 @@
-
 name: HOMIO backend and ACRL verification modules
 description: Runs focused compile, transition wiring, subsystem regressions, and the complete ACRL suite in isolated scripts.
 
@@ -18,6 +17,13 @@ runs:
     - name: Verify workflow and action module wiring
       shell: bash
       run: bash "$GITHUB_ACTION_PATH/scripts/wiring_tests.sh"
+
+    - name: Verify pull-request merge governance contract
+      shell: bash
+      run: |
+        set -euo pipefail
+        python -m pytest -q -p no:cacheprovider \
+          .github/actions/homio-backend-ci/verification/tests/test_pull_request_governance.py
 
     - name: Verify AI-001-T02 guarded transition wiring
       shell: bash
