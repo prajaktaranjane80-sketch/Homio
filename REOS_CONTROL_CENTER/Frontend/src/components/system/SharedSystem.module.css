@@ -1,3 +1,4 @@
+
 .systemBadge {
   display: inline-flex;
   align-items: center;
@@ -184,9 +185,9 @@
   border-radius: var(--radius-sm);
   background: linear-gradient(
     100deg,
-    var(--homio-surface-muted) 25%,
-    var(--homio-surface-soft) 42%,
-    var(--homio-surface-muted) 60%
+    var(--homio-surface-muted) 20%,
+    var(--homio-surface-soft) 38%,
+    var(--homio-surface-muted) 56%
   );
   background-size: 220% 100%;
   animation: systemShimmer var(--motion-skeleton-duration) var(--ease-standard-curve) infinite;
@@ -257,6 +258,11 @@
   min-width: 110px;
 }
 
+.systemAction:focus-visible {
+  outline: 3px solid var(--homio-focus-ring);
+  outline-offset: 2px;
+}
+
 @keyframes systemSpin {
   to {
     transform: rotate(360deg);
@@ -264,8 +270,12 @@
 }
 
 @keyframes systemShimmer {
+  from {
+    background-position: 0% 0%;
+  }
+
   to {
-    background-position: -220% 0;
+    background-position: -220% 0%;
   }
 }
 
