@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -228,3 +229,87 @@ def test_governance_test_is_wired_and_runbook_matches_the_live_check() -> None:
     assert "Verify pull-request merge governance contract" in action
     assert REQUIRED_CHECK_CONTEXT in runbook
     assert "HOMIO-reos-development-protection" in runbook
+
+
+def action_step_block(source: str, step_name: str) -> str:
+    lines = source.splitlines()
+    marker = f"    - name: {step_name}"
+
+    positions = [
+        index
+        for index, line in enumerate(lines)
+        if line == marker
+    ]
+    assert len(positions) == 1, (
+        f"Expected exactly one composite-action step named {step_name!r}."
+    )
+
+    start = positions[0]
+    end = len(lines)
+    for index in range(start + 1, len(lines)):
+        if re.fullmatch(r"    - name: .+", lines[index]):
+            end = index
+            break
+
+    return "\n".join(lines[start:end]) + "\n"
+
+
+def test_pull_request_cannot_restore_or_publish_trusted_t14_resume_cache() -> None:
+    action = read(VERIFICATION_ACTION)
+
+    protected_steps = {
+        "Restore previous derived T14 audit resume cache": (
+            "actions/cache/restore@",
+        ),
+        "Save refreshed external T14 resume cache": (
+            "actions/cache/save@",
+            "steps.restore_resume_cache.outputs.cache-hit != 'true'",
+        ),
+        "Seal and independently read back external T14 resume cache": (
+            "audit_resume_manifest_cache.py",
+            "--refresh-after-ci",
+        ),
+        "Publish sealed external T14 resume cache as run evidence": (
+            "actions/upload-artifact@",
+            "if-no-files-found: error",
+        ),
+    }
+
+    required_guards = (
+        "github.repository == 'prajaktaranjane80-sketch/Homio'",
+        "github.ref == 'refs/heads/reos-development'",
+        "github.event_name == 'push'",
+        "github.event_name == 'workflow_dispatch'",
+    )
+
+    for step_name, required_contents in protected_steps.items():
+        block = action_step_block(action, step_name)
+
+        assert "      if: ${{" in block, (
+            f"{step_name} must have an explicit execution guard."
+        )
+
+        for guard in required_guards:
+            assert guard in block, (
+                f"{step_name} is missing required trust-boundary guard: {guard}"
+            )
+
+        for required_content in required_contents:
+            assert required_content in block, (
+                f"{step_name} is missing expected operation contract: "
+                f"{required_content}"
+            )
+
+    # Restore/save keys are scoped to the exact branch, commit, run, and attempt.
+    cache_key = (
+        "homio-acrl-resume-${{ github.ref_name }}-${{ github.sha }}-"
+        "${{ github.run_id }}-${{ github.run_attempt }}"
+    )
+    for step_name in (
+        "Restore previous derived T14 audit resume cache",
+        "Save refreshed external T14 resume cache",
+    ):
+        block = action_step_block(action, step_name)
+        assert cache_key in block, (
+            f"{step_name} must use an exact-run cache key."
+        )
