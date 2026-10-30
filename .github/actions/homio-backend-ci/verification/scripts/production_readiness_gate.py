@@ -45,6 +45,26 @@ OPERATIONAL_CONTROLS = (
 )
 REQUIRED_OPERATIONAL_CONTROLS = OPERATIONAL_CONTROLS
 REQUIRED_QUALITY_METRICS = QUALITY_METRICS
+QUALITY_APPROVAL_BLOCKER_CODES = frozenset(
+    {
+        "QUALITY_REPORT_INVALID",
+        "QUALITY_COMMIT_INVALID",
+        "QUALITY_COMMIT_MISMATCH",
+        "REPOSITORY_NOT_CANONICAL",
+        "BRANCH_NOT_CANONICAL",
+        "ATTESTATION_SCHEMA_INVALID",
+        "ATTESTATION_ENVIRONMENT_INVALID",
+        "ATTESTATION_COMMIT_MISMATCH",
+        "ATTESTATION_VERIFIER_OR_TIMESTAMP_INVALID",
+        "QUALITY_APPROVAL_MISSING",
+        "QUALITY_APPROVAL_INVALID",
+        "QUALITY_METRICS_MISSING",
+        "QUALITY_THRESHOLD_INVALID",
+        "QUALITY_MEASUREMENT_INVALID",
+        "QUALITY_THRESHOLD_NOT_MET",
+        "QUALITY_EVIDENCE_FILE_INVALID",
+    }
+)
 
 
 def _text(value: Any) -> bool:
@@ -379,12 +399,6 @@ def evaluate_production_readiness(
             "Every executable Section 14 case must pass.",
         )
 
-    if summary.get("quality_thresholds_approved") is not True:
-        block(
-            "QUALITY_THRESHOLDS_NOT_APPROVED",
-            "Approved thresholds are not recorded in the manifest.",
-        )
-
     for reason in _check_q10(report):
         block("S14_Q10_STRUCTURED_SEARCH_NOT_VERIFIED", reason)
 
@@ -601,6 +615,11 @@ def evaluate_production_readiness(
             else:
                 verified_controls.append(control)
 
+    approved_quality_thresholds = not any(
+        item["code"] in QUALITY_APPROVAL_BLOCKER_CODES
+        for item in blockers
+    )
+
     blockers.sort(key=lambda item: (item["code"], item["detail"]))
     ready = not blockers
 
@@ -629,12 +648,7 @@ def evaluate_production_readiness(
                 and summary.get("passed_cases")
                 == summary.get("executable_cases")
             ),
-            "approved_quality_thresholds": (
-                summary.get("quality_thresholds_approved") is True
-                and isinstance(attestation, Mapping)
-                and isinstance(attestation.get("quality_thresholds"), Mapping)
-                and attestation["quality_thresholds"].get("status") == "APPROVED"
-            ),
+            "approved_quality_thresholds": approved_quality_thresholds,
             "structured_property_search": not any(
                 item["code"] == "S14_Q10_STRUCTURED_SEARCH_NOT_VERIFIED"
                 for item in blockers
@@ -668,6 +682,7 @@ def update_quality_report(
     repository_root: str | Path,
     output_path: str | Path,
     expected_commit: str | None = None,
+    now_utc: datetime | None = None,
 ) -> dict[str, Any]:
     quality_path = Path(quality_report_path)
     evidence_path = Path(operational_evidence_path)
@@ -692,6 +707,7 @@ def update_quality_report(
         evidence,
         repository_root=repository_root,
         expected_commit=expected_commit,
+        now_utc=now_utc,
     )
 
     report["production_readiness"] = gate
@@ -699,7 +715,10 @@ def update_quality_report(
     if not isinstance(summary, dict):
         raise ValueError("Section 14 summary root must be a JSON object.")
 
-    summary["release_ready"] = gate["release_ready"]
+    # Section 14 suite status and production readiness are separate decisions.
+    # Preserve the suite's authored fields and publish the production result
+    # under an explicit, non-overlapping key.
+    summary["production_release_ready"] = gate["release_ready"]
     summary["production_readiness_blocker_count"] = gate["blocker_count"]
     summary["production_readiness_blockers"] = gate["blockers"]
 
