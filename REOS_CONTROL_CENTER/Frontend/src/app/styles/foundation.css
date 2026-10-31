@@ -763,6 +763,12 @@
 }
 
 @media (max-width: 900px) {
+  /* The persistent dock duplicates header/search navigation on touch layouts
+     and can cover the homepage search CTA; keep it desktop-only. */
+  .global-actions {
+    display: none;
+  }
+
   .site-header__inner {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
@@ -799,21 +805,6 @@
 
   .context-bar__inner {
     min-height: 34px;
-  }
-
-  .global-actions {
-    right: 50%;
-    bottom: max(0.65rem, env(safe-area-inset-bottom));
-    transform: translateX(50%);
-  }
-
-  .global-actions__panel {
-    max-width: calc(100vw - 1.5rem);
-  }
-
-  .global-actions__link {
-    min-height: 44px;
-    padding-inline: clamp(0.65rem, 3vw, 1rem);
   }
 
   .loading-grid {
@@ -880,10 +871,6 @@
   .overlay__header,
   .overlay__body {
     padding-inline: 1rem;
-  }
-
-  .global-actions__link {
-    font-size: 0.76rem;
   }
 }
 
