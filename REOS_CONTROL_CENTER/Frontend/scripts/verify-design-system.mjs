@@ -1,4 +1,3 @@
-
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -96,6 +95,132 @@ function requireCssDeclaration(source, selector, declaration, context) {
   fail(`${context}: ${selector} must declare ${declaration}`);
 }
 
+/**
+ * Resolve design tokens and calculate WCAG contrast from their actual values.
+ * Unsupported or circular token values fail closed instead of bypassing checks.
+ */
+function resolveHexColor(tokenName, visited = new Set()) {
+  if (visited.has(tokenName)) {
+    fail("Design colour token contains a circular alias: " + tokenName);
+  }
+
+  visited.add(tokenName);
+
+  const value = tokenDeclarations.get(tokenName);
+
+  if (!value) {
+    fail("Required design colour token is missing: " + tokenName);
+  }
+
+  const alias = value.match(/^var\(\s*(--[a-z0-9-]+)\s*\)$/i);
+
+  if (alias) {
+    return resolveHexColor(alias[1], visited);
+  }
+
+  const hex = value.match(/^#([0-9a-f]{6})$/i);
+
+  if (!hex) {
+    fail(
+      "Design colour token " + tokenName +
+      " must resolve to a six-digit hex colour; received " + value,
+    );
+  }
+
+  return [0, 2, 4].map((offset) =>
+    Number.parseInt(hex[1].slice(offset, offset + 2), 16) / 255,
+  );
+}
+
+function linearizeSrgb(channel) {
+  return channel <= 0.04045
+    ? channel / 12.92
+    : ((channel + 0.055) / 1.055) ** 2.4;
+}
+
+function relativeLuminance(rgb) {
+  const [red, green, blue] = rgb.map(linearizeSrgb);
+
+  return (
+    0.2126 * red +
+    0.7152 * green +
+    0.0722 * blue
+  );
+}
+
+function contrastRatio(first, second) {
+  const firstLuminance = relativeLuminance(first);
+  const secondLuminance = relativeLuminance(second);
+  const lighter = Math.max(firstLuminance, secondLuminance);
+  const darker = Math.min(firstLuminance, secondLuminance);
+
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function compositeColor(foreground, background, opacity) {
+  return foreground.map(
+    (channel, index) =>
+      channel * opacity + background[index] * (1 - opacity),
+  );
+}
+
+function requireContrast(
+  foregroundToken,
+  backgroundToken,
+  minimumRatio,
+  context,
+) {
+  const foreground = resolveHexColor(foregroundToken);
+  const background = resolveHexColor(backgroundToken);
+  const actualRatio = contrastRatio(foreground, background);
+
+  if (actualRatio < minimumRatio) {
+    fail(
+      context + ": " + foregroundToken + " on " + backgroundToken +
+      " is " + actualRatio.toFixed(2) + ":1; minimum is " +
+      minimumRatio.toFixed(1) + ":1",
+    );
+  }
+}
+
+function requireFocusRingContrast() {
+  const focusDeclaration = tokenDeclarations.get("--homio-focus-ring");
+  const match = focusDeclaration?.match(
+    /^rgb\(\s*(\d+)\s+(\d+)\s+(\d+)\s*\/\s*(\d+(?:\.\d+)?)%\s*\)$/i,
+  );
+
+  if (!match) {
+    fail(
+      "Focus ring must remain an explicit RGB colour with percentage opacity for contrast verification.",
+    );
+  }
+
+  const foreground = [
+    Number(match[1]) / 255,
+    Number(match[2]) / 255,
+    Number(match[3]) / 255,
+  ];
+  const opacity = Number(match[4]) / 100;
+
+  for (const backgroundToken of [
+    "--homio-almond",
+    "--homio-blush",
+    "--homio-surface",
+  ]) {
+    const background = resolveHexColor(backgroundToken);
+    const renderedRing = compositeColor(foreground, background, opacity);
+    const actualRatio = contrastRatio(renderedRing, background);
+
+    if (actualRatio < 3) {
+      fail(
+        "Keyboard focus ring contrast on " + backgroundToken +
+        " is " + actualRatio.toFixed(2) +
+        ":1; minimum is 3.0:1",
+      );
+    }
+  }
+}
+
 const requiredFiles = [
   "package.json",
   "src/app/layout.tsx",
@@ -141,6 +266,12 @@ for (const relativePath of requiredFiles) {
 const packageJson = JSON.parse(read("package.json"));
 const layout = read("src/app/layout.tsx");
 const tokens = read("src/app/styles/tokens.css");
+
+const tokenDeclarations = new Map(
+  [...tokens.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/gi)].map(
+    (match) => [match[1], match[2].trim()],
+  ),
+);
 const globals = read("src/app/globals.css");
 const base = read("src/app/styles/base.css");
 const foundation = read("src/app/styles/foundation.css");
@@ -223,6 +354,62 @@ const requiredTokens = [
 for (const token of requiredTokens) {
   requireContains(tokens, token, "Design token contract");
 }
+
+/* 1a. WCAG contrast checks for brand, inverse and semantic text colours. */
+
+const requiredTextContrastContracts = [
+  [
+    "--homio-rosewood",
+    "--homio-almond",
+    "Rosewood text on Almond page background",
+  ],
+  [
+    "--homio-rosewood",
+    "--homio-blush",
+    "Rosewood text on Blush surfaces",
+  ],
+  [
+    "--homio-almond",
+    "--homio-brand",
+    "Inverse text on primary Rosewood actions",
+  ],
+  [
+    "--homio-almond",
+    "--homio-brand-soft",
+    "Inverse text on Rosewood hover actions",
+  ],
+  [
+    "--homio-success",
+    "--homio-success-soft",
+    "Success status text and surface",
+  ],
+  [
+    "--homio-warning",
+    "--homio-warning-soft",
+    "Warning status text and surface",
+  ],
+  [
+    "--homio-danger",
+    "--homio-danger-soft",
+    "Danger status text and surface",
+  ],
+  [
+    "--homio-info",
+    "--homio-info-soft",
+    "Information status text and surface",
+  ],
+];
+
+for (const [foregroundToken, backgroundToken, context] of requiredTextContrastContracts) {
+  requireContrast(
+    foregroundToken,
+    backgroundToken,
+    4.5,
+    context,
+  );
+}
+
+requireFocusRingContrast();
 
 requireContains(tokens, "--font-serif:", "Editorial heading font");
 requireContains(tokens, "--font-sans:", "UI and body font");
@@ -755,6 +942,8 @@ console.log("HOMIO DESIGN SYSTEM CONTRACT          = PASS");
 console.log(`FILES VERIFIED                       = ${requiredFiles.length}`);
 console.log("ROSEWOOD & ALMOND PALETTE             = PASS");
 console.log("FOUR-COLOUR TOKEN CONTRACT            = PASS");
+console.log("WCAG TEXT CONTRAST CONTRACT            = PASS");
+console.log("KEYBOARD FOCUS RING CONTRAST           = PASS");
 console.log("HOMEPAGE LEGACY COLOUR REJECTION       = PASS");
 console.log("PROPERTY IMAGE MOTION SAFETY           = PASS");
 console.log("SEMANTIC MARKET STATUS TOKENS           = PASS");
