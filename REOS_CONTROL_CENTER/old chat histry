@@ -1,68 +1,61 @@
-ठीक है भाई। अब तुम्हारे दिए हुए GitHub link को live पढ़कर पहले पुष्टि करूँगा कि नया 360° structure सच में update हुआ है। उसके बाद state.json और Control Center से current authorized task निकालकर उसी task पर implementation शुरू करूँगा—पुराने chat के अनुमान से नहीं।
+Ab pehle GitHub par dono saved files ka exact content, commit/branch SHA aur unke against chalne wale Actions verify karunga. Uske baad EntryPoint se nikle actual gaps ko priority order mein close karne ka next implementation task shuru karunga—bina kisi doosre chat ke active workstream ko overwrite kiye.
 
-Audited active task and reconciled document identity
-
-
+Fetched latest branch data, files, state, and workflow runs
 
 
 
 
+Saved files live branch par mil gaye hain. Ek important finding bhi mila: naye EntryPoint commit par Backend/ACRL CI FAIL hua hai, isliye main use PASS nahi maanunga. Ab failure ka exact job/step aur test assertion nikal raha hoon; uske baad pehla real fix identify karunga.
+
+Aligned and corrected test expectations
+
+
+
+
+Inspected files, state, contract tests, and workflow logs for failures
+
+
+
+
+Failure ka root cause pinpoint ho gaya: regression test ki ek wording assertion overly strict hai. Source ka existing warning sahi hai—stale continuity snapshot ko old main/`CORE-004` context batata hai. Isliye source ko unnecessary change karne ke bajay test ko source ke actual, stronger meaning ke saath align karunga; baaki 29 passing checks ko untouched rakhunga.
+
+Preparing the correction
 
 
 
 
 
 
-भाई, तुम्हारा दिया हुआ GitHub link मैंने live पढ़ लिया है। अब उस path पर Version 3.0 मौजूद है, SHA dce6733f437337756ac2d2885848b01896afeb3b। इसमें 18 workstreams, Section 14 के 18 blockers और ACRL T25–T30 का coverage शामिल है।
-
-एक महत्वपूर्ण बात: live state.json में अभी भी APP-001-T01 current task है और उसके implementation की ownership दूसरे frontend chat के पास है। इसलिए मैं उसी का code parallel में बदलकर तुम्हारे दोनों chats का काम conflict नहीं करूँगा।
-
-भाई, Stage 0 का live audit शुरू करके पूरा कर लिया है। अब GitHub की वास्तविक स्थिति के आधार पर आगे बढ़ेंगे।
-1. Live repository status
-HOMIO / REOS
-GitHub verified
-
-Branch: reos-development
-
-7e07cd8f99a57c2c917ab51f2e890d1551525d4a
-
-Item	Live status
-360° document	Version 3.0 saved
-360° blob SHA	dce6733f...
-State blob SHA	6242f633...
-Current gate	APP-001
-Current task	APP-001-T01
-Change requests	Empty
-Branch protection	Disabled
 
 
-तुम्हारा नया commit verified है। उसमें केवल 360° document बदला है; बाकी source code नहीं।
-2. APP-001-T01 का वास्तविक source audit
-मैंने application shell, design tokens, frontend package scripts और CI workflow पढ़े हैं।
-Area	Audit observation
-Application shell	Header, ContextBar, GlobalActionLayer मौजूद
-Accessibility	Skip link और focus styles मौजूद
-Brand design	Rosewood, Blush, Almond, Cocoa tokens मौजूद
-Responsive foundation	Shared responsive navigation styles मौजूद
-Motion	Reduced-motion support मौजूद
-Frontend verification	Design-system, F02–F13, typecheck, lint और build scripts मौजूद
-AI integration	Live service अभी enabled होने का प्रमाण नहीं
 
-यह source-level निरीक्षण है, visual/E2E approval नहीं। APP-001 के सभी छह gate acceptance criteria अभी canonical state में PENDING हैं।
 
-Frontend CI workflow: frontend-ci.yml
 
-Latest successful backend/ACRL Run #575 ने 8f89245c... को test किया था। नया 7e07cd8... commit documentation-only है; उसके लिए नया Actions run अभी सूची में नहीं है। Run #575
-3. अब implementation का सही क्रम
-V3.0 के अनुसार Stage 1 पहले APP-001 है। यह वही काम है जिसका ownership दूसरे frontend chat के पास है। इसलिए मैं उसके source files में parallel edits नहीं करूँगा।
 
-उसके बाद ही canonical Control Center की अनुमति के अनुसार:
-1. CORE-005 structured property search सुधारना।
-2. Customer-facing AI API और search integration।
-3. Agent execution, authorization और recovery।
-4. ACRL T25–T30 contract correction।
-5. Production cost, provider और operational controls।
-6. Quality, security और production release verification।
-एक और V3 audit correction दर्ज करनी है: document अभी पुराने canonical path पर है, लेकिन उसके header में _MASTER_V3.md दूसरा proposed path लिखा है। दोनों को अलग active plans नहीं बनने देना है।
+GitHub verification — save confirmed
+Dono files reos-development par save ho chuki hain. Current HEAD:
 
-मेरा अगला काम APP-001 के current owner की verified completion और canonical task transition के बाद शुरू होगा। state.json में कोई बदलाव या झूठा completion दर्ज नहीं किया है।
+35e6aa22c96cf87a0f03dc95bbf6cd3814df1366
+File	Live blob SHA	Result
+AI_AGENT_ENTRYPOINT.py	6dba9e00bc0d1653407c2e51b6c15685ee705311	Saved and readable
+tets/test_ai_agent_entrypoint_contract.py	9c31b6fa3cca9ce37e59142b5d56c77a0a0037b6	Saved and readable
+data/state.json	6242f63371a725ea99447c218bbbeb46a0c5eddd	Unchanged
+
+CI result: Backend/ACRL run 41176728945 failed because the new regression test expected the literal words not current, while EntryPoint already describes that continuity snapshot as an old main-branch and CORE-004 snapshot. The run reports 29 passed, 1 failed. This is a test/source wording mismatch—not evidence that all the other backend checks passed. Open failed Actions run
+
+state.json still names APP-001 / APP-001-T01 as the active execution task. I will preserve that authority; I won't silently switch the project's active task to backend or AI work.### 360° reference audit
+
+Maine EntryPoint ke registry mein listed existing references ko current repository tree ke against check kiya. Sabhi listed files/directories branch par present hain—koi missing path nahi mila. Ismein state.json, Control Center, T07–T24 ACRL references, Backend/Frontend master plans, AI-001, H360, CI workflows aur regression test shamil hain.
+
+Ab pehla fix sirf regression test mein hai. AI_AGENT_ENTRYPOINT.py ko change karne ki zaroorat nahi: uska stale-continuity warning already meaningful hai. Test assertion ko uske actual wording se match karna hai.
+File replacement
+Exact path: REOS_CONTROL_CENTER/tets/test_ai_agent_entrypoint_contract.py
+
+Neeche current saved file ka complete replacement hai. Ismein sirf failing assertion ko old main-branch wording se align kiya hai; baaki regression tests preserve kiye hain.
+
+Next verification gate
+Is file ko GitHub web editor se same branch par save karna hai. Phir main naye commit SHA par:
+1. Backend/ACRL Actions ka exact tested SHA verify karunga.
+2. Regression suite aur ACRL runtime verification dono ke results check karunga.
+3. Koi failure aaye to uska actual cause fix karunga—sirf green badge dekh kar completion declare nahi karunga.
+Important: state.json abhi bhi APP-001-T01 ko current task batata hai. EntryPoint audit ke dauran us state ko change nahi kiya gaya hai.
