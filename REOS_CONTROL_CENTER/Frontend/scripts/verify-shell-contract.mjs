@@ -1,4 +1,3 @@
-
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -30,7 +29,8 @@ function pass(message) {
   console.log(`PASS | ${message}`);
 }
 
-// 1. Browser icon must exist and remain a safe, self-contained SVG.
+// 1. Original HOMIO browser emblem must be a safe,
+//    self-contained 64x64 SVG.
 
 const icon = read("src/app/icon.svg").trim();
 const rootLayout = read("src/app/layout.tsx");
@@ -41,16 +41,15 @@ if (
     icon,
   )
 ) {
-  fail("HOMIO browser icon must be a valid 64x64 SVG document.");
+  fail("HOMIO browser emblem must be a valid 64x64 SVG document.");
 }
 
-for (const colour of [
-  "#6F334B",
-  "#F8F1E7",
-  "#F3DDE4",
-]) {
+// The original user-supplied emblem is a two-tone mark.
+// Do not force unrelated palette colors into the logo.
+
+for (const colour of ["#6F334B", "#352A2D"]) {
   if (!icon.includes(colour)) {
-    fail(`HOMIO browser icon is missing canonical brand colour ${colour}.`);
+    fail(`Original HOMIO emblem is missing brand color ${colour}.`);
   }
 }
 
@@ -62,7 +61,7 @@ if (
   fail("Browser icon must not load external resources or executable content.");
 }
 
-requireContains(rootLayout, 'export const metadata', "Root metadata");
+requireContains(rootLayout, "export const metadata", "Root metadata");
 requireContains(rootLayout, '<html lang="en">', "Document language");
 requireContains(
   rootLayout,
@@ -70,7 +69,7 @@ requireContains(
   "Root application shell",
 );
 
-pass("HOMIO SVG browser identity and root metadata");
+pass("Original HOMIO SVG browser identity and root metadata");
 
 // 2. Primary navigation must resolve to real App Router pages.
 
@@ -212,7 +211,7 @@ console.log("==================================================");
 console.log("HOMIO SHELL CONTRACT VERIFICATION = PASS");
 console.log(`PRIMARY ROUTES VERIFIED           = ${checkedRoutes.size}`);
 console.log(`HOMEPAGE ANCHORS VERIFIED         = ${expectedAnchors.length}`);
-console.log("BROWSER ICON CONTRACT             = PASS");
+console.log("ORIGINAL BROWSER ICON CONTRACT     = PASS");
 console.log("ROOT DOCUMENT CONTRACT            = PASS");
 console.log("SHARED SHELL MOUNTING              = PASS");
 console.log("==================================================");
