@@ -538,6 +538,10 @@ const requiredMobileTouchTargetDeclarations = [
     "Mobile navigation trigger",
   ],
   [
+    ".responsive-nav__mobile-menu a {\n  display: flex;\n  align-items: center;\n  min-height: 44px;",
+    "Mobile navigation menu links",
+  ],
+  [
     ".site-header__search .global-search__form .button {\n    min-height: 44px;",
     "Mobile header search button",
   ],
@@ -730,6 +734,7 @@ console.log("ROOT DOCUMENT AND SHELL         = PASS");
 console.log("SKIP LINK AND STICKY OFFSET     = PASS");
 console.log("RESPONSIVE NAVIGATION           = PASS");
 console.log("MOBILE NAV ESCAPE DISMISSAL     = PASS");
+console.log("MOBILE NAV TOUCH TARGETS        = PASS");
 console.log("GLOBAL SEARCH AND F03 CONTRACT  = PASS");
 console.log("UNIQUE INPUT IDS / ARIA         = PASS");
 console.log("UNIQUE SELECT IDS / ARIA        = PASS");
