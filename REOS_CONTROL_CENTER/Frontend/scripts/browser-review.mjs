@@ -17,6 +17,8 @@ const VIEWPORTS = [
   { name: "desktop", width: 1440, height: 1000, mobile: false, screenshot: true },
   { name: "breakpoint-desktop-901", width: 901, height: 900, mobile: false, screenshot: false },
   { name: "breakpoint-mobile-900", width: 900, height: 900, mobile: true, screenshot: false },
+  { name: "navigation-boundary-641", width: 641, height: 900, mobile: true, screenshot: false },
+  { name: "navigation-grid-640", width: 640, height: 900, mobile: true, screenshot: false },
   { name: "tablet", width: 834, height: 1112, mobile: true, screenshot: true },
   { name: "mobile", width: 390, height: 844, mobile: true, screenshot: true },
   { name: "compact-mobile", width: 320, height: 740, mobile: true, screenshot: true },
@@ -671,6 +673,41 @@ async function inspectViewport(sessionId, viewport) {
       globalActionHeights: [
         ...document.querySelectorAll(".global-actions__link"),
       ].map((element) => box(element)?.height ?? 0),
+      globalActionsVisible: visible(document.querySelector(".global-actions")),
+      discoveryNav: (() => {
+        const nav = document.querySelector(
+          'nav[aria-label="HOMIO discovery navigation"]'
+        );
+        const container = nav?.firstElementChild;
+        const containerRect = container?.getBoundingClientRect();
+        const links = [...(nav?.querySelectorAll("a") ?? [])];
+        const clippedLabels = links
+          .filter((link) => {
+            const rect = link.getBoundingClientRect();
+
+            return (
+              !containerRect ||
+              rect.left < containerRect.left - 1 ||
+              rect.right > containerRect.right + 1
+            );
+          })
+          .map((link) => link.textContent.trim());
+
+        return {
+          linkCount: links.length,
+          labels: links.map((link) => link.textContent.trim()),
+          clippedLabels,
+          scrollWidth: container?.scrollWidth ?? 0,
+          clientWidth: container?.clientWidth ?? 0,
+          postLinkVisible: Boolean(
+            nav &&
+            [...nav.querySelectorAll("a")].some(
+              (link) => link.textContent.trim() === "List a Property" &&
+                visible(link)
+            )
+          ),
+        };
+      })(),
       footerVisible: visible(document.querySelector("footer")),
       pageHeight: document.documentElement.scrollHeight,
       imagesMissingAlt: [...document.images]
@@ -715,6 +752,32 @@ async function inspectViewport(sessionId, viewport) {
       viewportWidth: viewport.width,
       documentWidth: metrics.documentWidth,
       bodyWidth: metrics.bodyWidth,
+    },
+  );
+
+  check(
+    scope,
+    "Discovery navigation shows all six links and the property CTA without clipping",
+    metrics.discoveryNav.linkCount === 7 &&
+      metrics.discoveryNav.clippedLabels.length === 0 &&
+      metrics.discoveryNav.scrollWidth <= metrics.discoveryNav.clientWidth + 1 &&
+      metrics.discoveryNav.postLinkVisible,
+    metrics.discoveryNav,
+  );
+
+  const quickActionsExpectedVisible = viewport.width > 900;
+
+  check(
+    scope,
+    "Global quick actions do not cover content on touch-first layouts",
+    metrics.globalActionsVisible === quickActionsExpectedVisible &&
+      (!quickActionsExpectedVisible ||
+        (metrics.globalActionHeights.length === 3 &&
+          metrics.globalActionHeights.every((height) => height >= 44))),
+    {
+      expectedVisible: quickActionsExpectedVisible,
+      visible: metrics.globalActionsVisible,
+      linkHeights: metrics.globalActionHeights,
     },
   );
 
@@ -859,16 +922,6 @@ async function inspectViewport(sessionId, viewport) {
       menuResult,
     );
 
-    check(
-      scope,
-      "Global quick actions meet 44px touch target height",
-      metrics.globalActionHeights.length === 3 &&
-        metrics.globalActionHeights.every((height) => height >= 44),
-      {
-        heights: metrics.globalActionHeights,
-      },
-    );
-
     await evaluate(`(() => {
       const details = document.querySelector(
         ".responsive-nav__mobile details"
@@ -959,10 +1012,25 @@ async function inspectViewport(sessionId, viewport) {
     reducedMotion,
   );
 
+  if (viewport.mobile) {
+    // Disable touch emulation only during the keyboard-only focus assertion.
+    // Viewport metrics remain mobile; this prevents the emulated touch device
+    // from suppressing desktop-class physical keyboard focus navigation.
+    await cdp.send(
+      "Emulation.setTouchEmulationEnabled",
+      { enabled: false, maxTouchPoints: 1 },
+      sessionId,
+    );
+  }
+
   await evaluate(
     `(() => {
       window.scrollTo(0, 0);
       document.activeElement?.blur?.();
+      document.body.setAttribute("tabindex", "-1");
+      document.body.focus();
+
+      return document.activeElement === document.body;
     })()`,
     sessionId,
   );
@@ -1001,6 +1069,19 @@ async function inspectViewport(sessionId, viewport) {
       skipLinkResult.visible,
     skipLinkResult,
   );
+
+  await evaluate(
+    `document.body.removeAttribute("tabindex")`,
+    sessionId,
+  );
+
+  if (viewport.mobile) {
+    await cdp.send(
+      "Emulation.setTouchEmulationEnabled",
+      { enabled: true, maxTouchPoints: 5 },
+      sessionId,
+    );
+  }
 
   const axTree = await cdp.send(
     "Accessibility.getFullAXTree",
