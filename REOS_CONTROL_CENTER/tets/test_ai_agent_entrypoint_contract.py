@@ -432,7 +432,7 @@ def test_audit_snapshot_is_explicitly_historical():
 
     assert snapshot["current_task_at_review"] == "APP-001-T01"
 
-    assert "not current" in snapshot["continuity_state_warning"].lower()
+    assert "old main-branch" in snapshot["continuity_state_warning"].lower()
 
     assert "historical evidence" in snapshot["latest_actions_warning"].lower()
 
