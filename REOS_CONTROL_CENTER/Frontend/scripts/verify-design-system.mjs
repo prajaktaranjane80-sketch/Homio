@@ -1,3 +1,4 @@
+
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -47,19 +48,52 @@ function requireNoMatch(source, pattern, context) {
   }
 }
 
+/**
+ * Require a declaration in at least one complete CSS rule for a selector.
+ *
+ * A selector can legitimately occur in multiple CSS rules. Checking only
+ * the first occurrence causes false failures when the required declaration
+ * is in a later, more specific rule (for example, :focus-visible).
+ *
+ * This helper checks every matching rule and passes when any complete rule
+ * contains the required declaration. It fails closed when no matching rule
+ * contains the declaration or when a matching rule is not closed.
+ */
 function requireCssDeclaration(source, selector, declaration, context) {
-  const ruleStart = source.indexOf(`${selector} {`);
+  const ruleHeader = `${selector} {`;
+  let searchFrom = 0;
+  let matchingSelectorFound = false;
 
-  if (ruleStart < 0) {
+  while (searchFrom < source.length) {
+    const ruleStart = source.indexOf(ruleHeader, searchFrom);
+
+    if (ruleStart < 0) {
+      break;
+    }
+
+    matchingSelectorFound = true;
+
+    const declarationStart = ruleStart + ruleHeader.length;
+    const ruleEnd = source.indexOf("}", declarationStart);
+
+    if (ruleEnd < 0) {
+      fail(`${context}: CSS rule is not closed: ${selector}`);
+    }
+
+    const rule = source.slice(declarationStart, ruleEnd);
+
+    if (rule.includes(declaration)) {
+      return;
+    }
+
+    searchFrom = ruleEnd + 1;
+  }
+
+  if (!matchingSelectorFound) {
     fail(`${context}: selector is missing: ${selector}`);
   }
 
-  const ruleEnd = source.indexOf("}", ruleStart);
-  const rule = ruleEnd < 0 ? "" : source.slice(ruleStart, ruleEnd);
-
-  if (!rule.includes(declaration)) {
-    fail(`${context}: ${selector} must declare ${declaration}`);
-  }
+  fail(`${context}: ${selector} must declare ${declaration}`);
 }
 
 const requiredFiles = [
