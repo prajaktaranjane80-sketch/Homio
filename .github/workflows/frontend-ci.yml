@@ -1,3 +1,4 @@
+
 name: HOMIO Frontend CI
 
 on:
@@ -25,8 +26,8 @@ concurrency:
 jobs:
   frontend-verify:
     name: Frontend verification
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
 
     defaults:
       run:
@@ -47,5 +48,14 @@ jobs:
       - name: Install locked frontend dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Run frontend verification, TypeScript, lint and production build
+      - name: Run frontend contracts, TypeScript, lint, production build and browser review
         run: npm run verify
+
+      - name: Upload desktop, tablet and mobile browser evidence
+        if: always() && hashFiles('REOS_CONTROL_CENTER/Frontend/artifacts/visual-review/**') != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: homio-frontend-visual-review-${{ github.sha }}
+          path: REOS_CONTROL_CENTER/Frontend/artifacts/visual-review/
+          if-no-files-found: warn
+          retention-days: 14
