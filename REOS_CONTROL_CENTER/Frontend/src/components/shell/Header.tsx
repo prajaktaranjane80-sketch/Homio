@@ -19,13 +19,8 @@ export function Header() {
             alt=""
             width={222}
             height={47}
+            sizes="(max-width: 560px) 9rem, (max-width: 1100px) 12rem, 13.875rem"
             priority
-            style={{
-              display: "block",
-              width: "clamp(9rem, 20vw, 13.875rem)",
-              maxWidth: "100%",
-              height: "auto",
-            }}
           />
         </Link>
 
