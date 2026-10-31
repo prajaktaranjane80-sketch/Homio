@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { GlobalSearch } from "@/components/navigation/GlobalSearch";
@@ -12,8 +13,20 @@ export function Header() {
           href="/"
           aria-label="HOMIO home"
         >
-          <span className="brand__name">HOMIO</span>
-          <span className="brand__descriptor">PUNE PROPERTY</span>
+          <Image
+            className="brand__logo"
+            src="/brand/homio-advisor-letter.svg"
+            alt=""
+            width={222}
+            height={47}
+            priority
+            style={{
+              display: "block",
+              width: "clamp(9rem, 20vw, 13.875rem)",
+              maxWidth: "100%",
+              height: "auto",
+            }}
+          />
         </Link>
 
         <div className="site-header__search">
