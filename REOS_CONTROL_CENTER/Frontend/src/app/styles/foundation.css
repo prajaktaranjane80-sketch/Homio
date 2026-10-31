@@ -1,4 +1,3 @@
-
 /* F01 — shared shell, navigation and accessible UI primitives. */
 .skip-link {
   position: absolute;
@@ -40,26 +39,20 @@
 
 .brand {
   display: inline-flex;
-  align-items: baseline;
-  gap: 0.5rem;
+  align-items: center;
+  flex: 0 1 auto;
   width: max-content;
-  max-width: 100%;
+  max-width: min(100%, 14rem);
+  min-width: 0;
   white-space: nowrap;
 }
 
-.brand__name {
-  color: var(--homio-text);
-  font-family: var(--font-serif);
-  font-size: 1.6rem;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: -0.045em;
-}
-
-.brand__descriptor {
-  color: var(--homio-text-muted);
-  font-size: 0.58rem;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.12em;
+.brand__logo {
+  display: block;
+  width: clamp(9rem, 20vw, 13.875rem);
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
 }
 
 .site-header__search {
@@ -745,12 +738,7 @@
   }
 
   .brand {
-    display: grid;
-    gap: 0.1rem;
-  }
-
-  .brand__descriptor {
-    font-size: 0.52rem;
+    max-width: min(100%, 12rem);
   }
 
   .responsive-nav__desktop {
@@ -813,20 +801,10 @@
 }
 
 @media (max-width: 560px) {
-  .brand__name {
-    font-size: 1.3rem;
-  }
-
-  .brand__descriptor {
+  /* The mobile wordmark and page content already provide the brand context.
+     Hide this non-interactive strip to bring useful discovery content higher. */
+  .context-bar {
     display: none;
-  }
-
-  .context-bar__secondary {
-    display: none;
-  }
-
-  .context-bar__inner {
-    justify-content: flex-start;
   }
 
   .global-search__form {
