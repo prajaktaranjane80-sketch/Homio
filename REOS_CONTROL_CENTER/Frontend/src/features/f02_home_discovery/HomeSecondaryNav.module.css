@@ -1,3 +1,4 @@
+
 .bar {
   position: relative;
   z-index: 20;
@@ -47,6 +48,10 @@
 }
 
 .postLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   margin-left: auto;
   padding: 9px 16px;
   border: 1px solid var(--homio-border-strong);
@@ -65,6 +70,7 @@
   color: var(--homio-text-inverse);
 }
 
+/* Tablet navigation remains a single, fully visible row. */
 @media (max-width: 768px) {
   .inner {
     gap: var(--space-5);
@@ -73,6 +79,53 @@
 
   .postLink {
     margin-left: 0;
+  }
+}
+
+/* Compact touch layouts use a consistent three-column grid instead of
+   hiding the final discovery links inside a scrollbar-only strip. */
+@media (max-width: 640px) {
+  .inner {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+    min-height: 0;
+    padding-block: 0.65rem;
+    overflow: visible;
+  }
+
+  .link,
+  .postLink {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0.5rem 0.25rem;
+    border: 1px solid var(--homio-border);
+    border-radius: var(--radius-pill);
+    background: var(--homio-surface-soft);
+    font-size: 0.8rem;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .postLink {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: min(100%, 14rem);
+    margin-left: 0;
+    padding-inline: 1rem;
+    border-color: var(--homio-border-strong);
+    background: var(--homio-accent-soft);
+    color: var(--homio-accent-strong);
+    white-space: nowrap;
+  }
+
+  .link:focus-visible,
+  .postLink:focus-visible {
+    outline-offset: 2px;
   }
 }
 
