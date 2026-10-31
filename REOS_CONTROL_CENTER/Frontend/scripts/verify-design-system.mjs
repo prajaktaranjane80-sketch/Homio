@@ -1,4 +1,3 @@
-
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -45,6 +44,21 @@ function requireNoMatch(source, pattern, context) {
 
   if (match) {
     fail(`${context}: forbidden pattern remains: ${match[0]}`);
+  }
+}
+
+function requireCssDeclaration(source, selector, declaration, context) {
+  const ruleStart = source.indexOf(`${selector} {`);
+
+  if (ruleStart < 0) {
+    fail(`${context}: selector is missing: ${selector}`);
+  }
+
+  const ruleEnd = source.indexOf("}", ruleStart);
+  const rule = ruleEnd < 0 ? "" : source.slice(ruleStart, ruleEnd);
+
+  if (!rule.includes(declaration)) {
+    fail(`${context}: ${selector} must declare ${declaration}`);
   }
 }
 
@@ -190,6 +204,12 @@ requireContains(
   foundation,
   "var(--homio-focus-shadow)",
   "Shared Rosewood field focus treatment"
+);
+
+requireContains(
+  tokens,
+  "--text-sm: 0.875rem;",
+  "Readable navigation text token"
 );
 
 /* 2. Shared focus treatments and skeleton timing. */
@@ -518,9 +538,77 @@ for (const [fileName, source] of [
   );
   requireNoMatch(
     source,
-    /font-size:\s*(?:8|9|10|11)px\b/i,
+    /font-size:\s*(?:8|9|10|11|12|13)px\b/i,
     `${fileName} minimum navigation text size`
   );
+}
+
+const readableNavigationTextContracts = [
+  [
+    "GlobalMenus.module.css",
+    globalMenus,
+    [
+      [".menuEyebrow", "font-size: var(--text-sm);"],
+      [".menuDescription", "font-size: var(--text-sm);"],
+      [".menuLinkTitle", "font-size: var(--text-sm);"],
+      [".menuLinkDescription", "font-size: var(--text-sm);"],
+      [".menuLinkStatus", "font-size: var(--text-sm);"],
+    ],
+  ],
+  [
+    "MegaMenu.module.css",
+    megaMenu,
+    [
+      [".menuEyebrow", "font-size: var(--text-sm);"],
+      [".menuDescription", "font-size: var(--text-sm);"],
+      [".menuItemTitle", "font-size: var(--text-sm);"],
+      [".menuItemDescription", "font-size: var(--text-sm);"],
+      [".menuItemBadge", "font-size: var(--text-sm);"],
+      [".mobileBrand span", "font-size: var(--text-sm);"],
+    ],
+  ],
+];
+
+for (const [fileName, source, contracts] of readableNavigationTextContracts) {
+  for (const [selector, declaration] of contracts) {
+    requireCssDeclaration(
+      source,
+      selector,
+      declaration,
+      `${fileName} readable navigation typography`
+    );
+  }
+}
+
+const navigationFocusContracts = [
+  [
+    "GlobalMenus.module.css",
+    globalMenus,
+    [
+      [".menuLink:focus-visible", "outline: 3px solid var(--homio-focus-ring);"],
+      [".mobileMenuToggle:focus-visible", "outline: 3px solid var(--homio-focus-ring);"],
+      [".mobileMenuLink:focus-visible", "outline: 3px solid var(--homio-focus-ring);"],
+    ],
+  ],
+  [
+    "MegaMenu.module.css",
+    megaMenu,
+    [
+      [".menuItem:focus-visible", "box-shadow: var(--homio-focus-shadow);"],
+      [".closeButton:focus-visible", "outline: 3px solid var(--homio-focus-ring);"],
+    ],
+  ],
+];
+
+for (const [fileName, source, contracts] of navigationFocusContracts) {
+  for (const [selector, declaration] of contracts) {
+    requireCssDeclaration(
+      source,
+      selector,
+      declaration,
+      `${fileName} accessible navigation focus`
+    );
+  }
 }
 
 const featureThemeModules = [
@@ -644,6 +732,7 @@ console.log("MOTION UTILITY CONTRACT               = PASS");
 console.log("MOTION REVEAL / TYPES                 = PASS");
 console.log("REDUCED-MOTION ACCESSIBILITY           = PASS");
 console.log("SHARED NAVIGATION / SYSTEM THEME      = PASS");
+console.log("NAVIGATION TYPE / FOCUS CONTRACT       = PASS");
 console.log("FEATURE PALETTE CONTRACT              = PASS");
 console.log("LEGACY THEME COLOUR CHECK             = PASS");
 console.log("ROOT SHELL / METADATA CONTRACT        = PASS");
