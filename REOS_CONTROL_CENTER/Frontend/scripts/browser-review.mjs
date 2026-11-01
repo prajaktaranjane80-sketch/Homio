@@ -1,4 +1,3 @@
-
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
@@ -12,6 +11,12 @@ const ROOT = process.cwd();
 const OUTPUT_DIR = path.join(ROOT, "artifacts", "visual-review");
 const PORT = await findAvailablePort();
 const BASE_URL = `http://127.0.0.1:${PORT}`;
+
+const BRAND_WORDMARK = {
+  publicPath: "/brand/homio-advisor-letter.svg",
+  expectedAspectRatio: 3311.12 / 701.25,
+  ratioTolerance: 0.02,
+};
 
 const VIEWPORTS = [
   { name: "desktop", width: 1440, height: 1000, mobile: false, screenshot: true },
@@ -27,7 +32,7 @@ const VIEWPORTS = [
 const report = {
   schemaVersion: 1,
   project: "HOMIO / REOS",
-  purpose: "Production-build browser, responsive, keyboard and accessibility review",
+  purpose: "Production-build browser, responsive, brand-asset, keyboard and accessibility review",
   commit: process.env.GITHUB_SHA ?? null,
   generatedAt: new Date().toISOString(),
   browser: null,
@@ -546,6 +551,27 @@ async function loadViewport(sessionId, viewport) {
     30000,
   );
 
+  // Wait for the wordmark request to finish before recording its dimensions.
+  // A failed image request also completes; the actual load check below will fail.
+
+  await waitFor(
+    async () =>
+      evaluate(
+        `(() => {
+          const logo = document.querySelector(".brand__logo");
+
+          return (
+            !logo ||
+            (logo instanceof HTMLImageElement && logo.complete)
+          );
+        })()`,
+        sessionId,
+      ),
+    `${viewport.name} Advisor wordmark resource completion`,
+    15000,
+    100,
+  );
+
   await delay(500);
 }
 
@@ -609,6 +635,10 @@ async function inspectViewport(sessionId, viewport) {
   const scope = `${viewport.name} ${viewport.width}x${viewport.height}`;
 
   const metrics = await evaluate(`(() => {
+    const expectedWordmarkPath = ${JSON.stringify(BRAND_WORDMARK.publicPath)};
+    const expectedWordmarkRatio = ${BRAND_WORDMARK.expectedAspectRatio};
+    const wordmarkRatioTolerance = ${BRAND_WORDMARK.ratioTolerance};
+
     const box = (element) => {
       if (!element) return null;
 
@@ -648,16 +678,103 @@ async function inspectViewport(sessionId, viewport) {
       ".responsive-nav__mobile summary"
     );
 
+    const brandLogoElement = document.querySelector(".brand__logo");
+
+    const brandLogo = (() => {
+      if (!(brandLogoElement instanceof HTMLImageElement)) {
+        return {
+          exists: false,
+          visible: false,
+          loaded: false,
+          source: null,
+          sourcePath: null,
+          sourceMatches: false,
+          naturalWidth: 0,
+          naturalHeight: 0,
+          naturalRatio: null,
+          naturalRatioMatches: false,
+          renderedWidth: 0,
+          renderedHeight: 0,
+          renderedRatio: null,
+          renderedRatioMatches: false,
+          alt: null,
+          parentLabel: null,
+          box: null,
+        };
+      }
+
+      const source = brandLogoElement.currentSrc || brandLogoElement.src;
+      const rect = brandLogoElement.getBoundingClientRect();
+
+      let sourcePath = null;
+      let sourceMatches = false;
+
+      try {
+        const resolvedSource = new URL(source, window.location.href);
+        const optimizedSource = resolvedSource.searchParams.get("url");
+
+        sourcePath = resolvedSource.pathname;
+
+        sourceMatches =
+          resolvedSource.pathname.endsWith(expectedWordmarkPath) ||
+          optimizedSource === expectedWordmarkPath ||
+          Boolean(optimizedSource?.endsWith(expectedWordmarkPath));
+      } catch {
+        sourceMatches = false;
+      }
+
+      const naturalRatio =
+        brandLogoElement.naturalHeight > 0
+          ? brandLogoElement.naturalWidth / brandLogoElement.naturalHeight
+          : null;
+
+      const renderedRatio =
+        rect.height > 0
+          ? rect.width / rect.height
+          : null;
+
+      const ratioMatches = (actual) =>
+        Number.isFinite(actual) &&
+        Math.abs(actual - expectedWordmarkRatio) <=
+          expectedWordmarkRatio * wordmarkRatioTolerance;
+
+      const parentLink = brandLogoElement.closest("a");
+
+      return {
+        exists: true,
+        visible: visible(brandLogoElement),
+        loaded:
+          brandLogoElement.complete &&
+          brandLogoElement.naturalWidth > 0 &&
+          brandLogoElement.naturalHeight > 0,
+        source,
+        sourcePath,
+        sourceMatches,
+        naturalWidth: brandLogoElement.naturalWidth,
+        naturalHeight: brandLogoElement.naturalHeight,
+        naturalRatio,
+        naturalRatioMatches: ratioMatches(naturalRatio),
+        renderedWidth: Math.round(rect.width * 100) / 100,
+        renderedHeight: Math.round(rect.height * 100) / 100,
+        renderedRatio,
+        renderedRatioMatches: ratioMatches(renderedRatio),
+        alt: brandLogoElement.getAttribute("alt"),
+        parentLabel: parentLink?.getAttribute("aria-label") ?? null,
+        box: box(brandLogoElement),
+      };
+    })();
+
     return {
       innerWidth: window.innerWidth,
       innerHeight: window.innerHeight,
       documentWidth: document.documentElement.scrollWidth,
       bodyWidth: document.body.scrollWidth,
       h1Count: document.querySelectorAll("h1").length,
-      heroText: hero?.innerText?.replace(/\\s+/g, " ").trim() ?? null,
+      heroText: hero?.innerText?.replace(/\\\\s+/g, " ").trim() ?? null,
       heroVisible: visible(hero),
       headerVisible: visible(document.querySelector(".site-header")),
       brandVisible: visible(document.querySelector(".brand")),
+      brandLogo,
       searchVisible: visible(search),
       searchHeight: box(search)?.height ?? null,
       desktopNavVisible: visible(desktopNav),
@@ -783,14 +900,64 @@ async function inspectViewport(sessionId, viewport) {
 
   check(
     scope,
+    "Original HOMIO Advisor wordmark loads from the canonical SVG asset",
+    metrics.brandLogo.exists &&
+      metrics.brandLogo.visible &&
+      metrics.brandLogo.loaded &&
+      metrics.brandLogo.sourceMatches &&
+      metrics.brandLogo.naturalWidth > 0 &&
+      metrics.brandLogo.naturalHeight > 0,
+    {
+      exists: metrics.brandLogo.exists,
+      visible: metrics.brandLogo.visible,
+      loaded: metrics.brandLogo.loaded,
+      source: metrics.brandLogo.source,
+      sourcePath: metrics.brandLogo.sourcePath,
+      sourceMatches: metrics.brandLogo.sourceMatches,
+      naturalWidth: metrics.brandLogo.naturalWidth,
+      naturalHeight: metrics.brandLogo.naturalHeight,
+    },
+  );
+
+  check(
+    scope,
+    "Original HOMIO Advisor wordmark preserves its intrinsic and rendered aspect ratio",
+    metrics.brandLogo.naturalRatioMatches &&
+      metrics.brandLogo.renderedRatioMatches,
+    {
+      expectedAspectRatio: BRAND_WORDMARK.expectedAspectRatio,
+      naturalRatio: metrics.brandLogo.naturalRatio,
+      naturalRatioMatches: metrics.brandLogo.naturalRatioMatches,
+      renderedRatio: metrics.brandLogo.renderedRatio,
+      renderedRatioMatches: metrics.brandLogo.renderedRatioMatches,
+      renderedWidth: metrics.brandLogo.renderedWidth,
+      renderedHeight: metrics.brandLogo.renderedHeight,
+    },
+  );
+
+  check(
+    scope,
+    "Advisor wordmark has decorative alt text and an accessible HOMIO home link",
+    metrics.brandLogo.alt === "" &&
+      metrics.brandLogo.parentLabel === "HOMIO home",
+    {
+      imageAlt: metrics.brandLogo.alt,
+      parentLinkLabel: metrics.brandLogo.parentLabel,
+    },
+  );
+
+  check(
+    scope,
     "HOMIO shell, brand and homepage hero render",
     metrics.headerVisible &&
       metrics.brandVisible &&
+      metrics.brandLogo.loaded &&
       metrics.heroVisible &&
       metrics.h1Count === 1,
     {
       headerVisible: metrics.headerVisible,
       brandVisible: metrics.brandVisible,
+      brandLogoLoaded: metrics.brandLogo.loaded,
       heroVisible: metrics.heroVisible,
       h1Count: metrics.h1Count,
       heroText: metrics.heroText,
