@@ -26,8 +26,8 @@ export default function HomeIntentTabs({
   return (
     <div
       className={styles.tabs}
-      role="tablist"
-      aria-label="Property intent"
+      role="group"
+      aria-label="Property search intent"
     >
       {intents.map((intent) => {
         const active = activeIntent === intent.value;
@@ -36,8 +36,7 @@ export default function HomeIntentTabs({
           <button
             key={intent.value}
             type="button"
-            role="tab"
-            aria-selected={active}
+            aria-pressed={active}
             className={`${styles.tab} ${active ? styles.active : ""}`}
             onClick={() => onIntentChange(intent.value)}
           >
