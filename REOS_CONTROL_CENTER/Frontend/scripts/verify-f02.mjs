@@ -496,6 +496,24 @@ const verifiedProperties = read(
 const homeSearch = read(
   "src/features/f02_home_discovery/HomeSearch.tsx",
 );
+const homeIntentTabs = read(
+  "src/features/f02_home_discovery/HomeIntentTabs.tsx",
+);
+const homeIntentTabsStyles = read(
+  "src/features/f02_home_discovery/HomeIntentTabs.module.css",
+);
+const homeSecondaryNavStyles = read(
+  "src/features/f02_home_discovery/HomeSecondaryNav.module.css",
+);
+const homeFooterStyles = read(
+  "src/features/f02_home_discovery/HomeFooter.module.css",
+);
+const footerLinkGroupStyles = read(
+  "src/features/f02_home_discovery/FooterLinkGroup.module.css",
+);
+const footerLegalStyles = read(
+  "src/features/f02_home_discovery/FooterLegal.module.css",
+);
 const homioAI = read(
   "src/features/f02_home_discovery/HomioAISection.tsx",
 );
@@ -533,6 +551,97 @@ requireContains(
 
 if (/AI available|aria-label="AI available"|>Ready</i.test(homioAI)) {
   fail("HOMIO AI preview must not claim that an active AI service is available.");
+}
+
+/* The hero intent selector is a mutually-exclusive button group, not tabs. */
+
+const requiredIntentGroupContract = [
+  ['role="group"', "Intent selector semantics"],
+  ['aria-label="Property search intent"', "Intent selector accessible name"],
+  ["aria-pressed={active}", "Intent selector selected state"],
+  ['type="button"', "Intent selector button behavior"],
+  ["onIntentChange(intent.value)", "Intent selector state wiring"],
+];
+
+for (const [contract, context] of requiredIntentGroupContract) {
+  requireContains(homeIntentTabs, contract, context);
+}
+
+if (homeIntentTabs.includes('role="tablist"') || homeIntentTabs.includes('role="tab"')) {
+  fail("Intent selector must use native toggle-button semantics, not an incomplete tabs pattern.");
+}
+
+const intentValues = [
+  ...homeIntentTabs.matchAll(
+    /\{\s*label:\s*"([^"]+)",\s*value:\s*"([^"]+)"\s*\}/g,
+  ),
+].map((match) => match[2]);
+
+const expectedIntentValues = [
+  "buy",
+  "rent",
+  "commercial",
+  "projects",
+  "land",
+];
+
+if (JSON.stringify(intentValues) !== JSON.stringify(expectedIntentValues)) {
+  fail(
+    "Homepage intent choices must remain Buy, Rent, Commercial, Projects and Land in the canonical order.",
+  );
+}
+
+const requiredIntentLayoutContracts = [
+  "flex-wrap: wrap;",
+  "min-height: 44px;",
+  "grid-template-columns: repeat(6, minmax(0, 1fr));",
+  "grid-template-columns: repeat(4, minmax(0, 1fr));",
+  "grid-column: 3 / span 2;",
+  "grid-column: 2 / span 2;",
+  "@media (prefers-reduced-motion: reduce)",
+];
+
+for (const contract of requiredIntentLayoutContracts) {
+  requireContains(homeIntentTabsStyles, contract, "Responsive intent selector");
+}
+
+if (
+  homeIntentTabsStyles.includes("overflow-x: auto") ||
+  homeIntentTabsStyles.includes("scrollbar-width: none")
+) {
+  fail(
+    "Homepage intent choices must remain fully visible without a hidden horizontal-scroll strip.",
+  );
+}
+
+if (
+  !/@media \(min-width: 375px\) and \(max-width: 640px\) \{[\s\S]*?\.link \{[\s\S]*?font-size: var\(--text-sm\);/.test(
+    homeSecondaryNavStyles,
+  )
+) {
+  fail("Compact secondary-navigation labels must use the shared readable text token.");
+}
+
+requireContains(
+  homeFooterStyles,
+  ".footer a:focus-visible",
+  "Visible keyboard focus on the dark footer",
+);
+requireContains(
+  homeFooterStyles,
+  "var(--homio-focus-ring-on-brand)",
+  "High-contrast on-brand footer focus ring",
+);
+
+for (const [fileName, source] of [
+  ["FooterLinkGroup.module.css", footerLinkGroupStyles],
+  ["FooterLegal.module.css", footerLegalStyles],
+]) {
+  requireContains(
+    source,
+    "var(--homio-text-inverse) 82%",
+    `${fileName} readable footer text contrast`,
+  );
 }
 
 const buttonTags = featureFiles
@@ -574,6 +683,8 @@ console.log("PROPERTY DETAIL IDS REGISTERED         = PASS");
 console.log("PROJECT DETAIL IDS REGISTERED          = PASS");
 console.log("SEARCH QUERY KEYS SUPPORTED            = PASS");
 console.log("PREVIEW / INVENTORY DISCLOSURES         = PASS");
+console.log("INTENT GROUP / RESPONSIVE ACCESSIBILITY = PASS");
+console.log("FOOTER CONTRAST / KEYBOARD FOCUS         = PASS");
 console.log("NO UNWIRED ENABLED TYPE=BUTTON CONTROLS = PASS");
 console.log("RELATIVE IMPORTS                        = PASS");
 console.log("LEGACY DIRECTORY CLEANUP                = PASS");
