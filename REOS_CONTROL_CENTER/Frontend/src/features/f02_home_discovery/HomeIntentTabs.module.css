@@ -3,11 +3,12 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 5px;
+  max-width: 100%;
   margin-bottom: var(--space-3);
   padding: 5px;
   border: 1px solid color-mix(in srgb, var(--homio-text-inverse) 24%, transparent);
   border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--homio-rosewood) 86%, transparent);
+  background: color-mix(in srgb, var(--homio-rosewood) 88%, transparent);
   box-shadow: var(--shadow-lg);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
@@ -17,15 +18,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 42px;
-  padding-inline: 18px;
+  min-width: 0;
+  min-height: 44px;
+  padding-inline: clamp(0.85rem, 2vw, 1.15rem);
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
   background: transparent;
   color: color-mix(in srgb, var(--homio-text-inverse) 88%, transparent);
   cursor: pointer;
+  font-family: var(--font-sans);
   font-size: var(--text-sm);
   font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
   white-space: nowrap;
   transition:
     background-color var(--ease-standard),
@@ -34,7 +38,7 @@
     transform var(--ease-standard);
 }
 
-.tab:hover {
+.tab:hover:not([aria-pressed="true"]) {
   color: var(--homio-text-inverse);
   background: color-mix(in srgb, var(--homio-text-inverse) 12%, transparent);
 }
@@ -62,22 +66,32 @@
 
 @media (max-width: 640px) {
   .tabs {
-    display: flex;
+    display: grid;
     width: 100%;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.4rem;
+    padding: 0.5rem;
     border-radius: 18px;
   }
 
-  .tabs::-webkit-scrollbar {
-    display: none;
+  .tab {
+    grid-column: span 2;
+    min-height: 44px;
+    padding-inline: 0.5rem;
   }
 
-  .tab {
-    flex: 0 0 auto;
-    min-height: 40px;
-    padding-inline: 15px;
+  .tab:last-child {
+    grid-column: 3 / span 2;
+  }
+}
+
+@media (max-width: 374px) {
+  .tabs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .tab:last-child {
+    grid-column: 2 / span 2;
   }
 }
 
