@@ -69,7 +69,16 @@ EXPECTED_ACTIVATION_PATHS = {
     "wiring_tests.sh",
     "REOS_CONTROL_CENTER/context/test_backend_activation_import_bootstrap.py",
 }
-sys.path.insert(0, str(ROOT))
+
+# ACRL's package root is REOS_CONTROL_CENTER. Activation runs from repository
+# root, so both roots must be on sys.path before importing any ACRL module.
+# Place CONTROL first so every ACRL import resolves as AUTONOMY_ENGINE.*.
+for import_root in (ROOT, CONTROL):
+    import_path = str(import_root)
+    if import_path in sys.path:
+        sys.path.remove(import_path)
+    sys.path.insert(0, import_path)
+
 os.chdir(ROOT)
 os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
 sys.dont_write_bytecode = True
@@ -83,40 +92,40 @@ from REOS_CONTROL_CENTER.context.phase_projection import (  # noqa: E402
     is_phase_coherent,
 )
 
-from REOS_CONTROL_CENTER.AUTONOMY_ENGINE.continuity.acrl.T15_AI_Operator_Autonomy.operator_autonomy import (  # noqa: E402
+from AUTONOMY_ENGINE.continuity.acrl.T15_AI_Operator_Autonomy.operator_autonomy import (  # noqa: E402
     OperatorAutonomyEngine,
     OperatorRequest,
 )
-from REOS_CONTROL_CENTER.AUTONOMY_ENGINE.continuity.acrl.T15_AI_Operator_Autonomy.operator_policy import (  # noqa: E402
+from AUTONOMY_ENGINE.continuity.acrl.T15_AI_Operator_Autonomy.operator_policy import (  # noqa: E402
     OperatorActionType,
     OperatorRisk,
 )
-from REOS_CONTROL_CENTER.AUTONOMY_ENGINE.continuity.acrl.T15_AI_Operator_Autonomy.operator_validation import (  # noqa: E402
+from AUTONOMY_ENGINE.continuity.acrl.T15_AI_Operator_Autonomy.operator_validation import (  # noqa: E402
     OperatorContext,
 )
 
-from REOS_CONTROL_CENTER.AUTONOMY_ENGINE.continuity.acrl.T17_Change_Impact_Dependency_Analysis.change_impact_analysis import (  # noqa: E402
+from AUTONOMY_ENGINE.continuity.acrl.T17_Change_Impact_Dependency_Analysis.change_impact_analysis import (  # noqa: E402
     ChangeImpactAnalyzer,
 )
 
-from REOS_CONTROL_CENTER.AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.authorization_identity import (  # noqa: E402
+from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.authorization_identity import (  # noqa: E402
     approval_scope_fingerprint,
 )
-from REOS_CONTROL_CENTER.AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.authorization_models import (  # noqa: E402
+from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.authorization_models import (  # noqa: E402
     AuthorizationRequest,
     HumanApproval,
 )
-from REOS_CONTROL_CENTER.AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.authorization_policy import (  # noqa: E402
+from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.authorization_policy import (  # noqa: E402
     SafeAuthorizationPolicy,
 )
-from REOS_CONTROL_CENTER.AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.execution_authorization import (  # noqa: E402
+from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.execution_authorization import (  # noqa: E402
     ExecutionAuthorizationGuard,
 )
 
-from REOS_CONTROL_CENTER.AUTONOMY_ENGINE.security.authentication.oidc_config import (  # noqa: E402
+from AUTONOMY_ENGINE.security.authentication.oidc_config import (  # noqa: E402
     OIDCSettings,
 )
-from REOS_CONTROL_CENTER.AUTONOMY_ENGINE.security.authentication.oidc_verifier import (  # noqa: E402
+from AUTONOMY_ENGINE.security.authentication.oidc_verifier import (  # noqa: E402
     AuthenticatedPrincipal,
     OIDCVerifier,
 )
@@ -816,6 +825,8 @@ def verify_transition_state(state: dict) -> None:
         fail("B1 backend foundation is not CURRENT")
 
     app_gate = state.get("gate_plans", {}).get("APP-001", {})
+    if app_gate.get("status") != "FUTURE":
+        fail("APP-001 gate plan is not FUTURE after backend activation")
     if app_gate.get("current_subtask") != "APP-001-T01":
         fail("APP-001-T01 was not preserved")
 
@@ -850,6 +861,53 @@ def verify_transition_state(state: dict) -> None:
                 f"authoritative sequence mismatch for {gate_id}: "
                 f"{sequence.get(gate_id)!r}"
             )
+
+    sequence_items = state.get("execution_plan", {}).get(
+        "authoritative_sequence", []
+    )
+    if not isinstance(sequence_items, list):
+        fail("authoritative sequence is not a list")
+    if not all(
+        isinstance(item, dict)
+        and isinstance(item.get("gate"), str)
+        and item.get("gate")
+        for item in sequence_items
+    ):
+        fail("authoritative sequence contains an invalid gate entry")
+    ordered_gates = [item["gate"] for item in sequence_items]
+    if len(ordered_gates) != len(set(ordered_gates)):
+        fail("authoritative sequence contains duplicate gate entries")
+
+    dependencies = state.get("dependencies")
+    if not isinstance(dependencies, dict):
+        fail("canonical dependency graph is missing")
+    dependency_nodes = dependencies.get("nodes")
+    dependency_edges = dependencies.get("edges")
+    if not isinstance(dependency_nodes, list):
+        fail("dependency nodes are not a list")
+    if not isinstance(dependency_edges, list):
+        fail("dependency edges are not a list")
+    if not all(
+        isinstance(node, dict)
+        and isinstance(node.get("id"), str)
+        for node in dependency_nodes
+    ):
+        fail("dependency graph contains an invalid node")
+    node_ids = [node["id"] for node in dependency_nodes]
+    if len(node_ids) != len(set(node_ids)) or node_ids != ordered_gates:
+        fail("dependency node inventory/order differs from authoritative sequence")
+
+    for node in dependency_nodes:
+        gate_id = node["id"]
+        if node.get("status") != sequence.get(gate_id):
+            fail(f"dependency node status mismatch for {gate_id}")
+
+    expected_edges = [
+        [left, right]
+        for left, right in zip(ordered_gates, ordered_gates[1:])
+    ]
+    if dependency_edges != expected_edges:
+        fail("dependency edges do not match the authoritative gate sequence")
 
     architecture = state.get("architecture", {})
     if architecture.get("locked") is not True:
