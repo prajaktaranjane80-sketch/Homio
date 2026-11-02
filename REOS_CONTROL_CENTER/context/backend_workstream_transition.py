@@ -216,6 +216,10 @@ def activate_backend_workstream_state(
     app_gate = gate_plans.get("APP-001")
     _require(isinstance(app_gate, dict), "APP-001 gate plan missing.")
     _require(
+        app_gate.get("status") == "CURRENT",
+        "APP-001 gate must be CURRENT before backend activation.",
+    )
+    _require(
         app_gate.get("current_subtask") == "APP-001-T01",
         "APP-001-T01 cannot be reconstructed safely.",
     )
@@ -273,11 +277,20 @@ def activate_backend_workstream_state(
     sequence = execution_plan.get("authoritative_sequence")
     _require(isinstance(sequence, list), "Authoritative sequence missing.")
 
-    gates = [
-        item.get("gate")
-        for item in sequence
-        if isinstance(item, dict)
-    ]
+    _require(
+        all(
+            isinstance(item, dict)
+            and isinstance(item.get("gate"), str)
+            and bool(item.get("gate"))
+            for item in sequence
+        ),
+        "Authoritative sequence contains an invalid gate entry.",
+    )
+    gates = [item["gate"] for item in sequence]
+    _require(
+        len(gates) == len(set(gates)),
+        "Authoritative sequence contains duplicate gate identifiers.",
+    )
     _require(
         "AI-001" in gates and "APP-001" in gates,
         "AI-001 or APP-001 is missing from the authoritative sequence.",
@@ -292,6 +305,61 @@ def activate_backend_workstream_state(
     _require(
         app_index == ai_index + 1,
         "AI-001 and APP-001 order changed; impact must be reassessed.",
+    )
+
+    dependencies = state.get("dependencies")
+    _require(
+        isinstance(dependencies, dict),
+        "Canonical dependencies graph missing.",
+    )
+    dependency_nodes = dependencies.get("nodes")
+    dependency_edges = dependencies.get("edges")
+    _require(
+        isinstance(dependency_nodes, list),
+        "Canonical dependency nodes must be a list.",
+    )
+    _require(
+        isinstance(dependency_edges, list),
+        "Canonical dependency edges must be a list.",
+    )
+
+    node_ids: list[str] = []
+    for node in dependency_nodes:
+        _require(
+            isinstance(node, dict)
+            and isinstance(node.get("id"), str)
+            and bool(node.get("id")),
+            "Dependency graph contains an invalid node.",
+        )
+        node_ids.append(node["id"])
+
+    _require(
+        len(node_ids) == len(set(node_ids)),
+        "Dependency graph contains duplicate nodes.",
+    )
+    _require(
+        set(node_ids) == set(gates),
+        "Dependency graph node inventory differs from the authoritative sequence.",
+    )
+
+    normalized_edges: list[tuple[str, str]] = []
+    for edge in dependency_edges:
+        _require(
+            isinstance(edge, list)
+            and len(edge) == 2
+            and all(isinstance(part, str) and part for part in edge),
+            "Dependency graph contains an invalid edge.",
+        )
+        normalized_edges.append((edge[0], edge[1]))
+
+    expected_edges = list(zip(gates, gates[1:]))
+    _require(
+        len(normalized_edges) == len(set(normalized_edges)),
+        "Dependency graph contains duplicate edges.",
+    )
+    _require(
+        normalized_edges == expected_edges,
+        "Dependency graph edges do not match the authoritative sequence.",
     )
 
     ai_item = sequence[ai_index]
@@ -354,7 +422,7 @@ def activate_backend_workstream_state(
         "T18 did not authorize the external Control Center transition.",
     )
 
-    existing_requests = state.setdefault("change_requests", [])
+    existing_requests = state.get("change_requests", [])
     _require(
         isinstance(existing_requests, list),
         "Canonical change_requests must be a list.",
@@ -369,6 +437,7 @@ def activate_backend_workstream_state(
     )
 
     candidate = copy.deepcopy(state)
+    candidate.setdefault("change_requests", [])
 
     # Reconcile the previously validated ARCH-039 snapshot using the
     # owner approval and guarded T15/T17/T18 evidence from this transition.
@@ -422,6 +491,30 @@ def activate_backend_workstream_state(
             item["status"] = "FUTURE"
 
     candidate["execution_plan"]["authoritative_sequence"] = new_sequence
+
+    # Synchronize gate-plan and dependency-graph projections from the
+    # authoritative sequence. APP-001-T01 remains CURRENT for later resume.
+    candidate["gate_plans"]["APP-001"]["status"] = "FUTURE"
+
+    dependency_nodes_by_id = {
+        item["id"]: dict(item)
+        for item in candidate["dependencies"]["nodes"]
+    }
+    dependency_nodes_by_id[BACKEND_GATE_ID] = {
+        "id": BACKEND_GATE_ID,
+        "status": "CURRENT",
+    }
+    candidate["dependencies"]["nodes"] = [
+        {
+            **dependency_nodes_by_id[item["gate"]],
+            "status": item["status"],
+        }
+        for item in new_sequence
+    ]
+    candidate["dependencies"]["edges"] = [
+        [left["gate"], right["gate"]]
+        for left, right in zip(new_sequence, new_sequence[1:])
+    ]
 
     candidate["gate_plans"][BACKEND_GATE_ID] = _build_backend_gate_plan(
         timestamp=timestamp,
