@@ -1,3 +1,4 @@
+
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -90,14 +91,22 @@ if '"REOS_CONTROL_CENTER/Frontend/**"' in push_trigger:
     )
 
 # Preserve the mandatory backend required check on every pull request.
-if "\n  pull_request:" not in backend or "\n  jobs:" not in backend:
+# "jobs:" is a top-level YAML key, not an indented child of "on:".
+if "\njobs:" not in backend:
+    raise SystemExit(
+        "Backend CI jobs section is missing."
+    )
+
+workflow_triggers = backend.split("\njobs:", 1)[0]
+
+if "\n  pull_request:" not in workflow_triggers:
     raise SystemExit(
         "Backend CI required pull-request trigger is missing."
     )
 
-pull_request_trigger = backend.split(
+pull_request_trigger = workflow_triggers.split(
     "\n  pull_request:", 1
-)[1].split("\n  jobs:", 1)[0]
+)[1]
 
 if '"**"' not in pull_request_trigger:
     raise SystemExit(
