@@ -16,7 +16,9 @@ from .phase_projection import (
 
 
 PHASE_ONE = "Core Business & Protection Engines"
-PHASE_TWO = "Data, Search, Services, Analytics, Security, DevOps & AI Infrastructure"
+PHASE_TWO = (
+    "Data, Search, Services, Analytics, Security, DevOps & AI Infrastructure"
+)
 
 REGISTERED_GATES = (
     "ARCH-036",
@@ -24,6 +26,7 @@ REGISTERED_GATES = (
     "ENG-001",
     "CORE-008",
     "AI-001",
+    "BACKEND-001",
     "APP-001",
     "REL-001",
     "SCALE-001",
@@ -60,6 +63,7 @@ def make_state(gate: str, current_phase: str) -> dict:
         ("ENG-001", PRE_CODING_PHASE),
         ("CORE-008", PHASE_ONE),
         ("AI-001", PHASE_TWO),
+        ("BACKEND-001", PHASE_TWO),
         ("APP-001", PHASE_TWO),
         ("REL-001", PHASE_TWO),
         ("SCALE-001", PHASE_TWO),
