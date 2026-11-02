@@ -1,4 +1,3 @@
-
 name: HOMIO Backend and ACRL Runtime CI
 
 on:
@@ -19,6 +18,7 @@ on:
       - "REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt"
       - ".github/workflows/backend-ci.yml"
       - ".github/workflows/reusable-backend-verification.yml"
+      - ".github/workflows/reusable-backend-workstream-activation.yml"
       - ".github/workflows/reusable-ai001-t01-transition.yml"
       - ".github/workflows/reusable-ai001-t02-transition.yml"
       - ".github/workflows/reusable-ai001-t03-transition.yml"
@@ -43,7 +43,6 @@ on:
       - reos-development
     paths:
       # Required-check safety: every PR must run backend verification.
-      # Explicit owned paths below remain for modular wiring contracts.
       - "**"
       - "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**"
       - "REOS_CONTROL_CENTER/Frontend/**"
@@ -58,6 +57,7 @@ on:
       - "REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt"
       - ".github/workflows/backend-ci.yml"
       - ".github/workflows/reusable-backend-verification.yml"
+      - ".github/workflows/reusable-backend-workstream-activation.yml"
       - ".github/workflows/reusable-ai001-t01-transition.yml"
       - ".github/workflows/reusable-ai001-t02-transition.yml"
       - ".github/workflows/reusable-ai001-t03-transition.yml"
@@ -87,8 +87,8 @@ concurrency:
   cancel-in-progress: false
 
 # Verification never changes canonical task state by itself.
-# AI-001 transitions require separate owner/branch/commit-prefix guards.
-# CORE-008 transitions retain their existing guards.
+# AI-001 and CORE-008 transitions retain their existing guards.
+# BACKEND-001 activation is separately owner-, OIDC- and T18-guarded.
 
 jobs:
   verification:
@@ -96,6 +96,15 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/reusable-backend-verification.yml
+
+  control_center_activate_backend:
+    name: Guarded Control Center activation (BACKEND-001)
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/reos-development' && startsWith(github.event.head_commit.message, '[CONTROL-CENTER-ACTIVATE-BACKEND-001]') }}
+    needs: verification
+    permissions:
+      contents: write
+      id-token: write
+    uses: ./.github/workflows/reusable-backend-workstream-activation.yml
 
   control_center_transition_ai001_t01:
     name: Guarded Control Center transition (AI-001-T01)
