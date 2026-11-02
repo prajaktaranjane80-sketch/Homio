@@ -63,8 +63,12 @@ EXPECTED_ACTIVATION_PATHS = {
     "REOS_CONTROL_CENTER/context/backend_workstream_transition.py",
     "REOS_CONTROL_CENTER/context/test_backend_workstream_transition.py",
     B0_EVIDENCE_PATH,
+    ".github/actions/homio-backend-ci/verification/scripts/"
+    "financial_context_tenant.sh",
+    ".github/actions/homio-backend-ci/verification/scripts/"
+    "wiring_tests.sh",
+    "REOS_CONTROL_CENTER/context/test_backend_activation_import_bootstrap.py",
 }
-
 sys.path.insert(0, str(ROOT))
 os.chdir(ROOT)
 os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
