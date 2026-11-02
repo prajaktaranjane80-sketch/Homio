@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -111,6 +110,76 @@ pull_request_trigger = workflow_triggers.split(
 if '"**"' not in pull_request_trigger:
     raise SystemExit(
         "Backend CI must retain the all-PR required-check safety path."
+    )
+
+# BACKEND-001 must be reachable only through the exact owner-approved push.
+backend_activation_guard = (
+    "if: ${{ github.event_name == 'push' && "
+    "github.ref == 'refs/heads/reos-development' && "
+    "startsWith(github.event.head_commit.message, "
+    "'[CONTROL-CENTER-ACTIVATE-BACKEND-001]') }}"
+)
+
+if backend_activation_guard not in backend:
+    raise SystemExit(
+        "BACKEND-001 owner/branch/commit-prefix activation guard is missing."
+    )
+
+activation_workflow_path = (
+    workflows / "reusable-backend-workstream-activation.yml"
+)
+activation_action_path = (
+    actions / "transitions/backend-workstream-activation/action.yml"
+)
+activation_script_path = (
+    actions / "transitions/backend-workstream-activation/scripts/"
+    "activate_backend_workstream.py"
+)
+
+for path in (
+    activation_workflow_path,
+    activation_action_path,
+    activation_script_path,
+):
+    if not path.is_file():
+        raise SystemExit(
+            "BACKEND-001 activation component is missing: "
+            f"{path.relative_to(root)}"
+        )
+
+if backend.count(
+    '".github/workflows/reusable-backend-workstream-activation.yml"'
+) != 2:
+    raise SystemExit(
+        "BACKEND-001 reusable workflow must remain in push and PR path filters."
+    )
+
+activation_workflow = activation_workflow_path.read_text(
+    encoding="utf-8"
+)
+activation_action = activation_action_path.read_text(
+    encoding="utf-8"
+)
+
+for safeguard in (
+    "workflow_call:",
+    "Owner-authorized BACKEND-001 activation",
+    "contents: write",
+    "id-token: write",
+    "EXPECTED_SHA: ${{ github.sha }}",
+    "ACTIONS_RUN_ID: ${{ github.run_id }}",
+    "ACTIONS_REPOSITORY: ${{ github.repository }}",
+    "uses: ./.github/actions/homio-backend-ci/transitions/backend-workstream-activation",
+):
+    if safeguard not in activation_workflow:
+        raise SystemExit(
+            "BACKEND-001 reusable workflow is missing safeguard: "
+            f"{safeguard}"
+        )
+
+if "activate_backend_workstream.py" not in activation_action:
+    raise SystemExit(
+        "BACKEND-001 composite action does not invoke its activation script."
     )
 
 # AI-001-T01 has its own task and completion guard.
@@ -435,6 +504,7 @@ if "--force" in t06_publish_text:
 print(
     "Transition wiring PASS: AI-001-T01 bytecode-safe compilation and "
     "cleanup, AI-001-T01 and CORE-008 T06/T07/T08/T09 authorization guards, "
+    "BACKEND-001 owner authorization and reusable workflow wiring, "
     "Python syntax, SHA bindings, focused-test inventory, canonical-state "
     "safeguards, and readback protections."
 )
