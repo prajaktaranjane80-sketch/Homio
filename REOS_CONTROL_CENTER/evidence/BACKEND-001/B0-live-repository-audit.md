@@ -1,3 +1,4 @@
+
 # BACKEND-001 — B0 Live Repository Audit Evidence
 
 **Project:** HOMIO / REOS  
@@ -66,3 +67,19 @@ B0 source inspection, owner mapping, duplicate review, candidate classification 
 **NO BACKEND SOURCE FILES MODIFIED DURING B0**
 
 **PRODUCTION READINESS: NOT CLAIMED**
+
+## Machine-verifiable activation markers
+
+The following exact markers are a machine-readable projection of the verified
+facts above. They do not change the read-only nature of B0, authorize backend
+implementation by themselves, or claim production readiness.
+
+B0 AUDIT RESULT: COMPLETE (READ-ONLY)
+BASELINE HEAD: `a82dc7af949e1eaed4468b4c6ff6ca4f220a0f30`
+STATE BLOB SHA: `6242f63371a725ea99447c218bbbeb46a0c5eddd`
+BACKEND MASTER BLOB SHA: `27b43931d1b6db48065ec41fd3574bd2dbc5ae3c`
+WORK PLAN BLOB SHA: `e69b5107d21e54ed4920178bd6ec62c95e773bb5`
+PUBLIC FASTIFY APPLICATION: ABSENT
+NO BACKEND SOURCE FILES MODIFIED DURING B0
+B0 EXIT CONDITION: SATISFIED
+PRODUCTION READINESS: NOT CLAIMED
