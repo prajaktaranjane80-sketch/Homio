@@ -9,4 +9,6 @@ python -m pytest -q -p no:cacheprovider \
   AUTONOMY_ENGINE/core/commission_financial \
   tets/test_l3_canonical_authority.py \
   context/test_phase_projection.py \
+  context/test_backend_workstream_transition.py \
+  context/test_backend_activation_import_bootstrap.py \
   AUTONOMY_ENGINE/core/identity_tenant
