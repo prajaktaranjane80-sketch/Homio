@@ -1,327 +1,384 @@
-# HOMIO / REOS — Complete Backend Architecture, Gap Closure & Execution Master
+# HOMIO / REOS — Unified Backend Architecture, 360° Gap Closure & Autonomous Execution Master
 
 **Project:** HOMIO / REOS  
 **Repository:** `prajaktaranjane80-sketch/Homio`  
 **Canonical branch:** `reos-development`  
-**Document version:** 3.0  
-**Document date:** 31 October 2026  
-**Document type:** Backend architecture, gap-closure, implementation sequence, production acceptance and cross-chat execution master  
-**Status:** Master engineering specification — implementation, CI and production evidence remain mandatory  
-**Canonical path:** `REOS_CONTROL_CENTER/architecture/backend/plans/HOMIO_Backend_Structure`
+**Document version:** 3.1  
+**Document date:** 2 November 2026  
+**Document type:** Backend architecture, domain ownership, gap closure, autonomous execution, engineering and production acceptance master  
+**Canonical path:** `REOS_CONTROL_CENTER/architecture/backend/plans/HOMIO_Backend_Structure`  
+**Scope:** BACKEND ONLY  
+**Status:** Architecture and engineering contract; implementation, verification and production evidence remain mandatory.
 
 ---
 
-# 1. Mission and scope
+# 1. Mission, product scope and engineering objective
 
-This document defines the complete backend target for HOMIO / REOS.
+HOMIO / REOS is intended to become a unified, global, AI-enabled real-estate operating system supporting international brokerage, broker SaaS, builder SaaS, enterprise operations and partner integrations.
 
-The objective is to make the backend a secure, scalable, AI-enabled and automation-first real-estate operating platform—not simply a collection of APIs or Python modules.
+The backend must provide one coherent, secure and recoverable business platform—not a collection of disconnected APIs, agents, databases and microservices.
 
-The backend must support the complete business lifecycle:
+Its core business lifecycle is:
 
-**Identity → Tenant → Builder/Inventory Acquisition → Property Verification → Search → Enquiry → Lead Qualification → Ownership Attribution → Communication → Site Visit → Deal → Trust/Fraud Governance → Commission → Settlement → Reconciliation → Reporting.**
+**Identity → Tenant → Builder/Project → Inventory Acquisition → Verification → Publication → Search → Customer Enquiry → Lead Qualification → Ownership → Communication → Site Visit → Offer → Deal → Trust/Fraud Governance → Commission → Settlement → Reconciliation → Reporting.**
 
-It must also support broker SaaS, builder SaaS, enterprise/white-label, platform/API partners, AI-driven customer assistance, analytics, international expansion, operational automation and recoverable workflows.
+The platform must support AI-assisted and policy-governed automation across this lifecycle without creating parallel business engines.
 
-## 1.1 Scope exclusion
+## 1.1 Backend-only scope
 
-Only frontend visual UI/UX delivery is excluded from this backend scope:
+This master controls:
 
-- Page layouts and visual components.
-- CSS and design tokens.
-- Animations and visual effects.
-- Responsive styling and presentation.
-- Frontend visual refinements.
+- Public backend API and private runtime integration.
+- API contracts, authentication, authorization and tenant enforcement.
+- Domain adapters and business workflow orchestration.
+- Persistence, transaction integrity and data ownership.
+- Search, retrieval, AI integration and safe autonomous execution.
+- Events, durable workflows, background processing and recovery.
+- Security, privacy, compliance and external integrations.
+- Backend testing, CI, deployment and production operations.
 
-The following are **not excluded**:
+Explicitly excluded:
 
-- Backend API architecture and implementation.
-- API request/response schemas.
-- Authentication, session, authorization and tenant boundaries.
-- Database and persistence.
-- Search and AI integration.
-- Backend business workflows.
-- Security and privacy.
-- Frontend-to-backend API contracts.
-- Backend integration and end-to-end tests.
-- Deployment, monitoring, recovery and production readiness.
+- Frontend pages and layouts.
+- UI components and visual interactions.
+- CSS, themes, design tokens and animations.
+- Responsive presentation and visual UX.
+- Frontend-only implementation and styling.
 
-The separate frontend owner may build the UI. Backend APIs and integration contracts must still be complete and production-safe.
+Backend-to-frontend API contracts remain in scope. The frontend consumes backend-owned contracts and must not become a second business or authorization engine.
 
-## 1.2 Business modes
+## 1.2 Supported business modes
 
-The backend must support the approved HOMIO operating modes without creating separate duplicate domain engines:
+The unified backend must support these operating modes through configuration, tenant policy and entitlement boundaries:
 
-1. Owned International Brokerage.
+1. Owned international brokerage.
 2. Broker SaaS.
 3. Builder SaaS.
-4. Enterprise / White-label.
-5. Platform / API Partner.
+4. Enterprise and white-label.
+5. Platform and API partners.
 
-Pune is the initial market focus, but the global domain model must remain configurable for other Indian cities and international jurisdictions.
+These modes must not become five independent backend systems.
 
-Pune-specific terminology, locality aliases and evaluation data may be supported as regional configuration. They must not become hardcoded global domain rules.
+Pune is the initial market focus. The domain model must support other Indian cities and international jurisdictions through configurable geography, currency, units, language, legal requirements, privacy rules and provider settings.
+
+## 1.3 Product quality objective
+
+The target is a backend that is:
+
+- Domain-owner driven.
+- Secure by default.
+- Tenant-isolated.
+- AI-enabled but not AI-authorized.
+- Durable across restarts and infrastructure failures.
+- Observable and independently verifiable.
+- Recoverable without corrupting financial or business truth.
+- Globally configurable.
+- Cost-controlled.
+- Evidence-driven.
+- Capable of governed autonomous business execution.
+
+“World-class”, “autonomous” and “production-ready” are target qualities, not implementation statuses. They may be claimed only when their acceptance evidence exists.
 
 ---
 
-# 2. Canonical authority, audit baseline and source control
+# 2. Authority, live repository baseline and evidence rules
 
 ## 2.1 Authority hierarchy
 
-The following order is mandatory:
+The following hierarchy is mandatory:
 
-1. `REOS_CONTROL_CENTER/data/state.json` — canonical execution state, active gate, task, subtask and acceptance criteria.
+1. `REOS_CONTROL_CENTER/data/state.json` — sole canonical execution state, gate, task, subtask, dependencies and acceptance criteria.
 2. `reos-development` — canonical source code and repository history.
-3. `REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py` — first-read agent policy, navigation, ownership and cross-chat rules.
-4. `REOS_CONTROL_CENTER/architecture/HOMIO_360_DEGREE_GAP_CLOSURE_EXECUTION_STRUCTURE.md` — existing H360 gap-closure reference.
-5. `REOS_CONTROL_CENTER/architecture/backend/plans/CORE-001 to CORE-008 Closure, Hardening & Architecture Integrity Active Plan` — existing CORE closure and hardening reference.
-6. `REOS_CONTROL_CENTER/architecture/AI-001_PLATFORM_IMPLEMENTATION_BLUEPRINT.md` — approved AI platform design.
-7. Approved ARCH-037 schema and ARCH-038 technology decisions.
-8. This document — backend architecture, gap closure and implementation reference.
+3. `REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py` — agent startup, routing, repository policy and working-method restrictions.
+4. Existing approved architecture and technology decisions, including ARCH-037 and ARCH-038.
+5. `REOS_CONTROL_CENTER/architecture/HOMIO_360_DEGREE_GAP_CLOSURE_EXECUTION_STRUCTURE.md` — existing H360 gap-closure reference.
+6. Existing CORE-001 through CORE-008 closure and hardening plan.
+7. `REOS_CONTROL_CENTER/architecture/AI-001_PLATFORM_IMPLEMENTATION_BLUEPRINT.md` — approved AI platform design.
+8. This document — backend architecture, technical dependency order and backend acceptance contract.
 
-This document does not replace the Control Center, H360, CORE plans, AI-001 blueprint or ACRL.
+This document cannot authorize a task, modify a gate, approve a technology change, change state or release production.
 
-A document can define required work. It cannot independently authorize a task, change a gate, approve a technology decision or declare execution complete.
+## 2.2 Live readback snapshot — 2 November 2026
 
-## 2.2 Current integration readback
+The following identities were read from the live GitHub branch during the Version 3.1 refinement:
 
-The following identities were read from GitHub during preparation of Version 3.0:
-
-| Item | Verified result |
+| Item | Observed value |
 |---|---|
 | Repository | `prajaktaranjane80-sketch/Homio` |
 | Branch | `reos-development` |
-| Live branch HEAD | `f894a4be4117be2ae0de1954e894db5f9de81f00` |
-| Live `state.json` blob | `6242f63371a725ea99447c218bbbeb46a0c5eddd` |
-| Existing live backend master blob | `c98287234a12dae2766f115d58306cc39d037df3` |
-| Historical Sections 1–14 source commit | `ef823a14b96182730c9a50bc970063ca01f699ff` |
-| Historical Sections 1–14 blob | `b4f45c14e19987deba48d73dcab702ee96ebb68e` |
-| Existing live Sections 15–20 source | `reos-development` |
-| Live Sections 15–20 blob | `c98287234a12dae2766f115d58306cc39d037df3` |
-| Live `AI_AGENT_ENTRYPOINT.py` blob | `6dba9e00bc0d1653407c2e51b6c15685ee705311` |
+| Live HEAD | `c8b856bbd21644489fc72c75cab857edb54baa04` |
+| `state.json` blob | `6242f63371a725ea99447c218bbbeb46a0c5eddd` |
+| Existing backend master blob | `c05bc2bb0de6cd84cbc68a69854754134e1d14a0` |
+| `AI_AGENT_ENTRYPOINT.py` blob | `6dba9e00bc0d1653407c2e51b6c15685ee705311` |
+| Backend master version observed | 3.0 |
+| Backend master size observed | 104,583 bytes |
+| Backend master line count observed | 2,529 |
 
-These identities are a document-integration snapshot, not permanent authority. Every new implementation session must refresh them from GitHub.
+These are a dated source snapshot, not permanent identifiers. Refresh them before any implementation or verification batch.
 
-### Historical audit evidence — not current CI proof
+## 2.3 Current execution authority
 
-The previous Version 2.0 audit recorded:
+The live `state.json` readback reports:
 
-| Historical item | Recorded result |
+| Field | Live value |
 |---|---|
-| Historical audit HEAD | `00629507a57de742c4419439945ca658a4bb1d43` |
-| Historical backend Actions run | `41070089623` |
-| SHA tested by that run | `00629507a57de742c4419439945ca658a4bb1d43` |
-| Historical Actions conclusion | SUCCESS |
-| Historical production-readiness result | NOT READY — 18 blockers reported |
+| Current gate | `APP-001` |
+| Current task | `APP-001-T01` |
+| Task | Implement application shell and design system |
+| Execution status | `CONTROL_CENTER_DRIVEN` |
+| Execution mode | Control Center driven |
+| Current next-step source | `execution_plan.authoritative_sequence` |
 
-The historical Actions run tested the historical SHA above. It must never be represented as proof that the current branch HEAD or a later implementation is passing.
+The current task is not a backend implementation authorization.
 
-The previous audit also reported that a dedicated Fastify application, package manifest, dedicated backend migration set and customer-facing business API routes had not been found at the proposed locations. Those findings must be refreshed before implementation. They are not permission to assume that the files are still missing.
+Backend API contract consultation and read-only architecture work may support the authorized application task. Backend implementation must wait until the canonical Control Center authorizes the relevant backend work.
 
-## 2.3 Current execution authority — live state snapshot
+## 2.4 Known state inconsistency
 
-At the Version 3.0 integration readback:
+The live state readback contains this discrepancy:
 
-- Current gate: `APP-001`
-- Current task: `APP-001-T01: Implement application shell and design system.`
-- Current subtask: `APP-001-T01`
-- CORE-001 through CORE-008: COMPLETE in the authoritative sequence.
-- AI-001: COMPLETE in the authoritative sequence.
-- APP-001: CURRENT.
-- REL-001: FUTURE.
-- SCALE-001: FUTURE.
-
-Current application acceptance criteria include:
-
-- Applications derive from frozen contracts.
-- Buyer, broker and builder access is correctly isolated.
-- Critical workflows are end-to-end functional.
-- AI actions respect authorization.
-- Accessibility, security and E2E tests pass.
-- No business logic is duplicated in the frontend.
-
-The live authoritative sequence is:
-
-| Order | Gate | Snapshot status |
-|---:|---|---|
-| 1 | ARCH-036 | COMPLETE |
-| 2 | ARCH-037 | COMPLETE |
-| 3 | ARCH-038 | COMPLETE |
-| 4 | ARCH-039 | COMPLETE |
-| 5 | REPO-001 | COMPLETE |
-| 6 | ENG-001 | COMPLETE |
-| 7 | CORE-001 | COMPLETE |
-| 8 | CORE-002 | COMPLETE |
-| 9 | CORE-003 | COMPLETE |
-| 10 | CORE-004 | COMPLETE |
-| 11 | CORE-005 | COMPLETE |
-| 12 | CORE-006 | COMPLETE |
-| 13 | CORE-007 | COMPLETE |
-| 14 | CORE-008 | COMPLETE |
-| 15 | AI-001 | COMPLETE |
-| 16 | APP-001 | CURRENT |
-| 17 | REL-001 | FUTURE |
-| 18 | SCALE-001 | FUTURE |
-
-### Known state discrepancy
-
-The live state snapshot has an inconsistency:
-
-- `execution_plan.authoritative_sequence` lists ARCH-039 as COMPLETE.
+- `execution_plan.authoritative_sequence` records PLAN-004 / ARCH-039 as COMPLETE.
 - `architecture.pending` still lists ARCH-039 as PENDING.
 
-This discrepancy must be reconciled through the existing authorized Control Center/governance process.
+This must be reconciled using the existing governance process. Do not edit `state.json` or choose one status merely to make the records consistent.
 
-**Do not silently edit `state.json`, infer a task transition, or change the status in this document to make the discrepancy disappear.**
+## 2.5 Branch protection observation
 
-## 2.4 What this document controls
+The live branch endpoint reported `protected=false`.
 
-This document controls backend engineering requirements, architecture coverage, dependency planning, file-level guidance, backend acceptance and cross-chat continuity.
+This is an actual governance gap that must be resolved by the repository owner or authorized administrator before production release. A CI workflow passing does not compensate for missing branch protection or release controls.
 
-It does not control:
+## 2.6 Audit classification vocabulary
 
-- Current execution gate or subtask.
-- State transitions.
-- Task approval.
-- Repository write authorization.
-- ACRL authorization.
-- Technology approval.
-- Production release approval.
+Every backend capability and candidate file must use one of these classifications:
+
+| Classification | Meaning |
+|---|---|
+| `VERIFIED_EXISTING` | Exact source and responsibility were inspected. |
+| `IMPLEMENTED_UNVERIFIED` | Source exists, but required verification evidence is missing. |
+| `PARTIAL` | Some behavior exists; required behavior or integration remains incomplete. |
+| `MISSING_VERIFIED` | Live source inspection confirms the capability is absent at the inspected scope. |
+| `NEEDS_OWNER_DECISION` | A canonical business or infrastructure owner has not been approved. |
+| `NEEDS_PROOF` | The implementation may exist but required runtime, CI or production proof is unavailable. |
+| `CONDITIONAL` | A candidate component may be created only after dependency and ownership validation. |
+| `NOT_APPLICABLE` | The capability is explicitly outside the approved scope, with rationale. |
+
+Never classify an item as missing from an old screenshot, old chat, old audit or incomplete directory listing.
+
+Never classify a target file path as an existing implementation.
+
+## 2.7 Existing implementation baseline
+
+The repository contains substantial existing systems that must be preserved:
+
+| Existing owner | Observed responsibility |
+|---|---|
+| CORE-001 | Identity and tenancy |
+| CORE-002 | Event domain and delivery contracts |
+| CORE-003 | Lead ownership and attribution |
+| CORE-004 | Inventory and property domain |
+| CORE-005 | Search, matching and retrieval |
+| CORE-006 | Deal and transaction domain |
+| CORE-007 | Trust, fraud and governance |
+| CORE-008 | Commission and financial domain |
+| AI-001 | AI gateway, providers, retrieval, RAG, agent runtime, tool boundary, cost controls and observability |
+| ACRL | Developer continuity, authorization boundaries, repair verification and repository recovery |
+
+The eight CORE domains contain substantial existing source and tests. AI-001 is an existing approved platform. They must be extended only through authorized changes to their existing owners.
+
+### Important observed boundaries
+
+- The existing identity domain contains rich domain models and registries; its existence does not prove production PostgreSQL persistence.
+- The existing OIDC verifier proves a token-verification capability; it does not constitute a complete public HTTP API.
+- The existing event domain has event and delivery contracts; its transport protocol is not proof of an operational Kafka deployment.
+- The existing event transaction contract describes an outbox boundary; it is not proof of a database-backed transactional outbox implementation.
+- The financial ledger boundary describes immutable double-entry entries; it is not proof of production financial persistence or payment execution.
+- The AI server composition composes existing AI capabilities; it is not, by itself, a public customer-facing API server.
+- Existing AI ToolBridge capabilities are bounded and do not grant agents authority to mutate all business domains.
+- Existing local JSON context/evidence helpers are not the canonical customer conversation database or business evidence store.
+- Existing CORE-005 code contains Qdrant-related retrieval/indexing capabilities. Do not implement a second Qdrant domain engine in TypeScript.
+
+## 2.8 Previous production-readiness evidence — historical baseline only
+
+A previous audit observed:
+
+- Actions run `41299086808`.
+- Tested SHA `1bca7e8740ea91be302dd27ab48d210230f55835`.
+- Synthetic Section 14 evaluation: 10 passed, 0 failed, 0 blocked.
+- `release_ready=false`.
+- `PRODUCTION_RELEASE_READY=false`.
+- 18 production blockers reported.
+
+That run tested the recorded SHA, not the live HEAD in this document. It is not current release evidence.
+
+Re-run the current readiness gate against the exact target source and environment before deciding which blockers remain open.
 
 ---
 
-# 3. Non-negotiable architecture principles
+# 3. Non-negotiable architecture and ownership rules
 
-## 3.1 One source of truth per business domain
+## 3.1 One business domain — one canonical owner
 
-Existing CORE domain ownership remains canonical:
+The following ownership remains mandatory:
 
-| Domain | Canonical owner |
+| Domain | Canonical owner | Backend rule |
+|---|---|---|
+| Identity and tenancy | CORE-001 | Reuse identity, tenant and membership authority. |
+| Events | CORE-002 | Reuse event contracts and delivery authority. |
+| Lead ownership | CORE-003 | Reuse lead state and attribution. |
+| Inventory | CORE-004 | Reuse project, property and unit ownership. |
+| Search and matching | CORE-005 | Reuse criteria, matching and retrieval. |
+| Deals and transactions | CORE-006 | Reuse deal lifecycle and transaction decisions. |
+| Trust and fraud | CORE-007 | Reuse risk, governance and approval policies. |
+| Commission and financial truth | CORE-008 | Reuse ledger and commission ownership. |
+| AI capabilities | AI-001 | Reuse provider, model, RAG and bounded-agent owners. |
+| Development continuity | ACRL | Never treat ACRL as a customer business domain. |
+
+A TypeScript route, controller or application orchestrator must not reimplement a CORE business rule.
+
+## 3.2 One public backend ingress
+
+The target public API is one versioned TypeScript/Fastify backend, subject to approved technology decisions.
+
+Rules:
+
+- One public API ingress.
+- One public API contract authority.
+- One authentication boundary.
+- One trusted tenant-context boundary.
+- One consistent error and response convention.
+- No second public Python API.
+- No parallel API framework.
+- No competing API route registry.
+
+A private Python runtime may be introduced only where required to expose existing Python CORE and AI capabilities to the Fastify API.
+
+That private runtime is an internal execution boundary, not a second public backend and not a new business domain.
+
+## 3.3 Python runtime ownership
+
+Existing Python CORE and AI owners remain canonical.
+
+The Node.js public API cannot import Python modules directly. A private authenticated runtime boundary is therefore a valid integration option.
+
+Before creating it:
+
+1. Inspect existing runtime composition.
+2. Inspect existing HTTP, worker and hosting dependencies.
+3. Determine whether an existing runtime can safely host the contract.
+4. Define the minimum private service boundary.
+5. Obtain required architecture approval.
+6. Reuse existing CORE and AI entry points.
+7. Add contract tests across the language boundary.
+
+Do not create separate Python domain API and Python AI API services by default. Prefer one internal runtime contract with separately versioned capability groups unless a measured scaling, isolation or security reason requires splitting them.
+
+The private runtime must not expose unauthenticated public business routes.
+
+## 3.4 One persistence owner per aggregate
+
+PostgreSQL is the intended authoritative persistent business store, subject to the approved schema and implementation evidence.
+
+The following rule is mandatory:
+
+**Every aggregate, table family and authoritative record has exactly one approved write owner.**
+
+For existing CORE-owned business records:
+
+- The owning CORE domain controls its invariants and write behavior.
+- Its repository/persistence adapter must be introduced through that owner's approved contract.
+- The public API must not directly mutate its tables.
+- Another domain cannot bypass its owner by issuing direct SQL.
+- Read models and search projections must be explicitly derived and rebuildable.
+
+TypeScript may persist backend-owned operational records only where an approved ownership boundary exists. It must not create a second copy of identity, inventory, leads, deals or financial truth.
+
+## 3.5 Database is not a domain owner
+
+PostgreSQL provides durable storage, transactions, constraints and supported query capabilities. It does not decide business ownership.
+
+A migration directory or ORM model is not permission to define a second domain schema.
+
+Every migration must identify:
+
+- Owning domain.
+- Owning aggregate/table.
+- Canonical schema decision.
+- Migration ordering.
+- Backward compatibility.
+- Tenant-security impact.
+- Rollback or forward-recovery strategy.
+- Data transformation and integrity checks.
+
+## 3.6 Infrastructure responsibilities must not overlap
+
+| Capability | Canonical responsibility |
 |---|---|
-| Identity and tenancy | CORE-001 |
-| Events and event delivery | CORE-002 |
-| Lead ownership and attribution | CORE-003 |
-| Project/property/unit inventory | CORE-004 |
-| Search and matching | CORE-005 |
-| Deals and transactions | CORE-006 |
-| Trust, fraud and governance | CORE-007 |
-| Commission and financial truth | CORE-008 |
+| PostgreSQL | Authoritative transactional storage |
+| Redis | Cache, short-lived coordination and rate-limit primitives |
+| Kafka | Durable event transport |
+| Temporal | Durable long-running workflow orchestration |
+| Qdrant | Derived vector retrieval/indexing, owned by CORE-005 |
+| S3-compatible storage | Binary object storage, not business evidence ownership |
+| AI Gateway | Existing AI-001 provider and model abstraction |
+| ACRL | Developer continuity and recovery |
+| OpenTelemetry-compatible telemetry contract | Shared observability data model and trace context |
 
-The TypeScript API must not reimplement these business engines.
+Never treat Redis as permanent business storage. Never treat Kafka as an authoritative aggregate database. Never treat Temporal workflow state as business truth. Never treat Qdrant as authoritative listing truth.
 
-The API layer owns request validation, authentication, trusted context, response contracts and orchestration. Existing CORE modules remain responsible for domain decisions and invariants.
+## 3.7 Single observability contract
 
-## 3.2 Approved technology target
+Existing AI and developer-runtime observability must be reused and aligned.
 
-Follow ARCH-037 and ARCH-038. Do not silently substitute a technology or add an alternative framework.
+The platform may have language-specific instrumentation adapters, but must use a shared telemetry contract:
 
-| Layer | Approved target |
-|---|---|
-| Public API | TypeScript, Node.js 24, Fastify 5.x |
-| API protocol | Versioned REST and typed JSON contracts |
-| Persistent system of record | PostgreSQL 18.4+ |
-| Geospatial capability | PostgreSQL/PostGIS |
-| Cache and ephemeral coordination | Redis 8 |
-| Durable event streams | Kafka |
-| Long-running workflows | Temporal |
-| Object/document storage | S3-compatible storage |
-| Vector retrieval | Qdrant |
-| AI runtime | Existing Python AI platform and approved AI Gateway |
-| Model providers | Approved OpenAI and vLLM fallback configuration |
-| Background processing | Approved Node workers and durable Temporal workflows |
+- Trace ID.
+- Span ID.
+- Correlation ID.
+- Causation ID where applicable.
+- Request ID.
+- Tenant reference where safe and permitted.
+- Actor/service identity.
+- Operation and capability.
+- Outcome and error classification.
+- Duration and resource usage.
 
-Any proposed version or provider change must be checked against the current approved architecture and recorded through the authorized decision process.
+There must not be competing, independently owned audit or telemetry sinks.
 
-## 3.3 Preserve existing Python systems
+Customer business audit records and operational telemetry are different data products. Their storage and access policies must be explicit.
 
-Preserve and reuse:
+## 3.8 No duplicate system rule
 
-- `AUTONOMY_ENGINE/core/`
-- `AUTONOMY_ENGINE/ai_platform/`
-- `AUTONOMY_ENGINE/security/authentication/`
-- `AUTONOMY_ENGINE/runtime/`
-- `AUTONOMY_ENGINE/continuity/acrl/`
-- Existing execution and evidence modules.
+Do not create another:
 
-The Node.js application cannot directly import Python modules. A private, versioned, authenticated Python domain-runtime integration boundary is required.
-
-Use private REST/JSON contracts consistent with the approved API architecture. Select the concrete Python HTTP hosting dependency only after inspecting the existing dependency set and recording the decision through the authorized architecture process.
-
-The Python runtime must never be exposed as an unauthenticated public business API.
-
-## 3.4 Data and event ownership
-
-- PostgreSQL is authoritative business truth.
-- Redis is not permanent business storage.
-- Kafka is the durable event-stream transport.
-- Temporal is the durable long-running workflow engine.
-- Qdrant and other indexes are derived projections.
-- Analytics and AI summaries are not canonical business records.
-- ACRL is development continuity and recovery infrastructure, not a customer business-domain owner.
-
-## 3.5 Automation authority
-
-AI may interpret, propose and assist. It may not grant itself permissions.
-
-Every mutation must pass server-side identity, tenant, authorization, policy and idempotency checks.
-
-Payment, settlement, commission release, legally binding commitments, ownership changes and other irreversible/high-impact operations must require the applicable human approval.
-
-## 3.6 Backend/frontend ownership boundary
-
-Backend owns:
-
-- API request and response contracts.
-- OpenAPI semantics.
-- Authentication and authorization enforcement.
-- Tenant and resource isolation.
-- Business rules and state transitions.
-- Persistence and data integrity.
-- Server-side AI tool permissions.
-
-Frontend owns:
-
-- Visual presentation and interaction.
-- Client-side form state and UX validation.
-- Rendering backend-owned data.
-- Calling documented APIs.
-- Displaying backend authorization and workflow outcomes.
-
-Frontend must not become a second business engine or authorization authority.
-
-## 3.7 No duplicate platform rule
-
-Do not introduce another:
-
-- Identity or tenant system.
-- CORE business engine.
-- Financial ledger.
+- Identity or tenant registry.
+- Lead and ownership engine.
+- Inventory/property engine.
+- Search and Qdrant indexing engine.
+- Deal engine.
+- Trust/fraud engine.
+- Commission or general financial ledger.
+- AI gateway or provider registry.
+- Agent authorization engine.
 - Event bus.
 - Workflow engine.
-- AI gateway.
-- Usage ledger.
-- Customer history store.
+- Customer memory store.
 - Evidence engine.
-- State store.
-- ACRL continuity layer.
+- Development continuity system.
+- State/control authority.
+- Observability platform.
 
-A new component is allowed only when source inspection proves that no suitable existing owner exists and the architecture decision is authorized.
+A new component requires evidence that no suitable existing owner exists, a defined responsibility not already owned, an approved dependency decision and a duplication review.
 
 ---
 
-# 4. Target backend file structure
+# 4. Target backend structure — minimal, explicit and non-duplicative
 
-The following is the target structure. It does not claim the listed files already exist.
+The following is an architecture target, not a claim that the files exist.
 
-Before creating any file:
+It deliberately avoids duplicate domain modules, duplicate AI clients, duplicate search engines and duplicate contract trees.
 
-1. Check the live repository for an equivalent.
-2. Inspect its imports, callers, tests and domain owner.
-3. Reuse or update a suitable existing file.
-4. Add a new file only when the responsibility genuinely has no suitable owner.
-5. Do not create empty placeholder folders or duplicated frameworks.
-
-## 4.1 Public backend application
+## 4.1 One public Fastify backend
 
 Target root:
 
@@ -343,118 +400,73 @@ REOS_CONTROL_CENTER/
     │   ├── main.ts
     │   ├── app.ts
     │   │
-    │   ├── bootstrap/
-    │   │   ├── build_app.ts
-    │   │   ├── register_plugins.ts
-    │   │   ├── register_routes.ts
-    │   │   ├── error_handler.ts
-    │   │   ├── health_checks.ts
-    │   │   └── graceful_shutdown.ts
-    │   │
     │   ├── config/
-    │   │   ├── env_schema.ts
+    │   │   ├── environment.ts
     │   │   ├── settings.ts
-    │   │   ├── feature_flags.ts
-    │   │   └── provider_registry.ts
+    │   │   └── feature_flags.ts
     │   │
-    │   ├── api/v1/
-    │   │   ├── index.ts
-    │   │   ├── routes/
-    │   │   ├── schemas/
-    │   │   ├── serializers/
-    │   │   └── openapi/
+    │   ├── api/
+    │   │   └── v1/
+    │   │       ├── routes/
+    │   │       ├── schemas/
+    │   │       ├── serializers/
+    │   │       └── openapi/
+    │   │
+    │   ├── application/
+    │   │   ├── orchestration/
+    │   │   ├── commands/
+    │   │   ├── queries/
+    │   │   └── workflow_clients/
     │   │
     │   ├── security/
     │   │   ├── authentication/
+    │   │   ├── trusted_context/
     │   │   ├── authorization/
-    │   │   ├── tenant_context/
     │   │   ├── session_revocation/
     │   │   ├── csrf/
     │   │   ├── rate_limits/
     │   │   ├── input_validation/
-    │   │   ├── secrets/
-    │   │   ├── pii_redaction/
-    │   │   └── audit/
+    │   │   └── pii_redaction/
     │   │
-    │   ├── modules/
-    │   │   ├── identity/
-    │   │   ├── tenants/
-    │   │   ├── inventory/
-    │   │   ├── search/
-    │   │   ├── leads/
-    │   │   ├── visits/
-    │   │   ├── conversations/
-    │   │   ├── ai/
-    │   │   ├── deals/
-    │   │   ├── trust/
-    │   │   ├── documents/
-    │   │   ├── commission/
-    │   │   ├── billing_entitlements/
-    │   │   ├── notifications/
-    │   │   ├── analytics/
-    │   │   └── administration/
+    │   ├── integrations/
+    │   │   ├── python_runtime/
+    │   │   ├── identity_provider/
+    │   │   ├── payment_provider/
+    │   │   ├── communication_provider/
+    │   │   ├── maps_geocoding/
+    │   │   └── approved_market_data/
     │   │
     │   ├── platform/
     │   │   ├── errors/
-    │   │   ├── result/
-    │   │   ├── ids/
-    │   │   ├── clock/
-    │   │   ├── pagination/
     │   │   ├── correlation/
-    │   │   ├── postgres/
-    │   │   ├── redis/
-    │   │   ├── kafka/
-    │   │   │   ├── producers/
-    │   │   │   ├── consumers/
-    │   │   │   ├── outbox/
-    │   │   │   └── inbox/
-    │   │   ├── temporal/
+    │   │   ├── pagination/
+    │   │   ├── resilience/
+    │   │   ├── cache/
+    │   │   ├── workflows/
     │   │   ├── object_storage/
-    │   │   ├── qdrant/
-    │   │   ├── observability/
-    │   │   │   ├── logging/
-    │   │   │   ├── metrics/
-    │   │   │   ├── tracing/
-    │   │   │   └── alert_context/
-    │   │   └── resilience/
-    │   │       ├── timeout/
-    │   │       ├── retry/
-    │   │       ├── circuit_breaker/
-    │   │       └── concurrency/
-    │   │
-    │   ├── integrations/
-    │   │   ├── python_domain_runtime/
-    │   │   ├── python_ai_runtime/
-    │   │   ├── ai_gateway/
-    │   │   ├── identity_provider/
-    │   │   ├── payment_provider/
-    │   │   ├── communication_providers/
-    │   │   ├── maps_geocoding/
-    │   │   └── market_data/
+    │   │   └── observability/
     │   │
     │   ├── workers/
-    │   │   ├── event_consumer.ts
-    │   │   ├── search_projection.ts
-    │   │   ├── notification_delivery.ts
-    │   │   ├── usage_reconciliation.ts
-    │   │   └── integration_sync.ts
+    │   │   ├── workflow_dispatch.ts
+    │   │   ├── projection_reconciliation.ts
+    │   │   └── approved_integration_jobs.ts
     │   │
-    │   └── shared/
-    │       ├── contracts/
-    │       ├── schemas/
-    │       └── types/
+    │   └── bootstrap/
+    │       ├── register_plugins.ts
+    │       ├── register_routes.ts
+    │       ├── error_handler.ts
+    │       ├── health_checks.ts
+    │       └── graceful_shutdown.ts
     │
     ├── contracts/
-    │   ├── api/
-    │   ├── domain_runtime/
-    │   ├── ai_runtime/
+    │   ├── public_api/
+    │   ├── private_runtime/
     │   ├── events/
     │   └── openapi/
     │
     ├── database/
     │   ├── migrations/
-    │   ├── policies/
-    │   ├── seeds/
+    │   ├── ownership_manifest/
     │   └── test_fixtures/
     │
     ├── tests/
@@ -471,2058 +483,1330 @@ REOS_CONTROL_CENTER/
     │
     ├── evaluations/
     │   ├── ai_quality/
-    │   ├── retrieval_grounding/
     │   ├── search_relevance/
+    │   ├── retrieval_grounding/
     │   ├── multilingual/
     │   └── safety/
     │
-    ├── ops/
-    │   ├── deployment/
-    │   ├── rollback/
-    │   ├── backups/
-    │   ├── slo/
-    │   ├── alerts/
-    │   └── runbooks/
-    │
-    └── docs/
-        ├── architecture/
-        ├── adr/
-        ├── api/
-        ├── security/
-        └── operations/
-
-AUTONOMY_ENGINE/
-├── core/                         EXISTING — preserve CORE owners
-├── ai_platform/                  EXISTING — preserve AI-001 platform
-├── runtime/
-│   └── domain_runtime/           NEW — private Python runtime boundary
-│       ├── contracts/
-│       ├── service/
-│       ├── authorization/
-│       ├── serialization/
-│       ├── health/
-│       └── tests/
-├── security/authentication/      EXISTING — reuse
-└── continuity/acrl/              EXISTING — developer continuity only
+    └── ops/
+        ├── deployment/
+        ├── rollback/
+        ├── backups/
+        ├── slo/
+        ├── alerts/
+        └── runbooks/
 ```
 
-This is an architectural target, not an instruction to create every folder at once.
+## 4.2 Existing systems retained
 
-## 4.2 Existing domains to reuse
+```text
+REOS_CONTROL_CENTER/
+└── AUTONOMY_ENGINE/
+    ├── core/                 EXISTING — CORE-001 through CORE-008
+    ├── ai_platform/          EXISTING — AI-001
+    ├── security/
+    │   └── authentication/   EXISTING — reuse approved verification
+    ├── runtime/              EXISTING — inspect ownership before reuse
+    ├── orchestration/        EXISTING — developer orchestration boundary
+    ├── execution/            EXISTING — developer execution boundary
+    └── continuity/
+        └── acrl/             EXISTING — continuity/recovery only
+```
 
-| CORE | Existing canonical path |
+A private customer-domain runtime host under `AUTONOMY_ENGINE/runtime/` is `CONDITIONAL`. It is permitted only after inspecting the existing runtime and obtaining the necessary approval. It must be an adapter/composition host for existing CORE and AI owners, never a duplicate domain engine or a reuse of ACRL as customer runtime.
+
+## 4.3 Explicitly removed from the default target
+
+The following must not be added as competing systems:
+
+| Candidate | Decision |
 |---|---|
-| CORE-001 | `AUTONOMY_ENGINE/core/identity_tenant/` |
-| CORE-002 | `AUTONOMY_ENGINE/core/event_platform/` |
-| CORE-003 | `AUTONOMY_ENGINE/core/lead_ownership/` |
-| CORE-004 | `AUTONOMY_ENGINE/core/inventory/` |
-| CORE-005 | `AUTONOMY_ENGINE/core/search_matching/` |
-| CORE-006 | `AUTONOMY_ENGINE/core/deal_transaction/` |
-| CORE-007 | `AUTONOMY_ENGINE/core/trust_fraud_governance/` |
-| CORE-008 | `AUTONOMY_ENGINE/core/commission_financial/` |
+| `modules/identity` containing a new identity engine | Prohibited; CORE-001 owns identity. |
+| `modules/tenants` containing a second tenant registry | Prohibited; CORE-001 owns tenancy. |
+| `modules/inventory` containing business rules | Prohibited; CORE-004 owns inventory. |
+| `modules/search` containing matching/indexing | Prohibited; CORE-005 owns search. |
+| `platform/qdrant` containing new indexing logic | Prohibited; reuse CORE-005. |
+| Separate `python_ai_runtime` plus `python_domain_runtime` by default | Consolidate behind one approved private runtime boundary unless an ADR justifies separation. |
+| A second AI Gateway | Prohibited; AI-001 owns it. |
+| A second Kafka event platform | Prohibited; extend CORE-002. |
+| A second observability stack | Prohibited; align adapters to the shared telemetry contract. |
+| Separate duplicate contract/schema folders | Prohibited; maintain one canonical contract location per boundary. |
+| Customer, Builder, Communication or Evidence engines without approved ownership | Blocked pending owner decision. |
 
-Do not create another identity engine, tenant registry, lead engine, property inventory, search engine, deal engine, trust/fraud engine or financial ledger.
+## 4.4 Route and adapter naming
 
-## 4.3 Existing AI platform to reuse
+Routes may be grouped by API resource, but their names must not imply duplicate ownership.
 
-| Existing file | Responsibility |
-|---|---|
-| `ai_platform/server_composition.py` | Trusted AI server-side composition |
-| `ai_platform/model_gateway.py` | Model invocation boundary |
-| `ai_platform/model_registry.py` | Provider/model registry |
-| `ai_platform/agent_runtime.py` | Bounded AI planning and proposal |
-| `ai_platform/authorization.py` | Trusted authorization integration |
-| `ai_platform/retrieval_adapter.py` | CORE-005 retrieval integration |
-| `ai_platform/rag_pipeline.py` | Grounded RAG and refusal policy |
-| `ai_platform/tool_bridge.py` | Governed tool bridge |
-| `ai_platform/cost_control.py` | Current usage-control implementation |
-| `ai_platform/observability.py` | Safe structured AI observability |
+A route handler may:
 
-The current SQLite usage-control implementation is not the shared production multi-replica ledger. Production usage accounting must use the approved shared transactional store.
+1. Validate the request.
+2. Resolve trusted server identity.
+3. Resolve tenant context.
+4. Check public API policy.
+5. Call the canonical owner through an approved adapter.
+6. Map the result to the public response contract.
+
+It may not:
+
+- Recalculate a CORE domain decision.
+- Directly mutate a CORE-owned table.
+- Create an alternate domain state machine.
+- Treat an AI response as an authorization decision.
+- Bypass a required approval.
 
 ---
 
-# 5. Complete backend gap-closure matrix
+# 5. Complete 360° backend gap-closure matrix
 
-The following covers H360-00 through H360-17. These IDs are H360 workstream labels, not new canonical Control Center tasks.
+The existing H360 reference remains the gap-closure source. This section maps its backend needs to the existing owners and B0–B10 technical sequence. It does not create another H360 plan.
 
-| H360 | Backend requirement | Existing owner / target | Required completion evidence |
-|---|---|---|---|
-| H360-00 | Live baseline and authority | state.json, AI_AGENT_ENTRYPOINT.py, ACRL T07/T14/T16/T23 | Exact HEAD/state/file SHAs; active owner/task; no duplicate or stale source reference |
-| H360-01 | Structured property search | CORE-004 and CORE-005 | Versioned typed criteria, complete filters, Q10 E2E and unsupported-criteria reporting |
-| H360-02 | Authenticated customer AI API | Fastify API + existing AI platform | Authenticated API, real runtime connection, safe responses and E2E tests |
-| H360-03 | Grounded retrieval and citations | AI retrieval/RAG + CORE-004/005 | Current authorized sources, source-bound citations, stale-data and injection tests |
-| H360-04 | Conversation privacy and lifecycle | CORE-001, approved PostgreSQL design and approved conversation owner | Tenant-safe context, retention, deletion, consent, access and privacy evidence |
-| H360-05 | Pune-first multilingual quality | CORE-005 + AI evaluation | English/Hindi/Marathi corpus, Pune locality vocabulary and human-reviewed quality |
-| H360-06 | Governed agent planning | agent_runtime, authorization, tool_bridge | Typed proposal, policy checks, approval, execution and verification |
-| H360-07 | Durable actions and recovery | CORE-002, idempotency, Temporal, execution modules | Durable action IDs, crash recovery, safe retry, replay and authoritative receipts |
-| H360-08 | Identity and tenant isolation | CORE-001, OIDC and Fastify security | Durable accounts, membership, session revocation, role/resource access and isolation tests |
-| H360-09 | Provider reliability | Existing gateway and provider adapters | Production config, timeout, retry, fallback, secret and region evidence |
-| H360-10 | Usage, budget and quotas | AI cost control + shared PostgreSQL ledger | Multi-replica budget, quota, reservation and reconciliation tests |
-| H360-11 | Quality evaluation | AI-001 evaluation owners | Synthetic and representative quality metrics, approved thresholds and human sign-off |
-| H360-12 | Observability and incident handling | Backend platform and operations | Live metrics, tracing, alerts, on-call, incident drills and kill switch |
-| H360-13 | Production release readiness | Existing production readiness gate | All blockers closed, fresh evidence and enforced release gate |
-| H360-14 | Real-estate workflow integration | CORE-003 through CORE-008 | Inventory-to-lead-to-visit-to-deal-to-commission E2E |
-| H360-15 | ACRL continuity integrity | Existing ACRL T01–T30 | Complete contract/test coverage and handoff/recovery evidence; deferred T25 change remains unauthorized |
-| H360-16 | GitHub governance and supply chain | Existing modular backend CI and repository settings | Active ruleset, required checks, least privilege, pinned workflows and protected release |
-| H360-17 | Backend API contracts | Fastify API, OpenAPI and published APP-001 contracts | Versioned consumer/provider contracts, API integration and E2E; visual UI/UX remains excluded |
+## 5.1 Typed search and Q10 criteria integrity
 
-## 5.1 H360-01 — Search criteria
+**Canonical owners:** CORE-004 and CORE-005.
 
-The current search filter source may be narrower than the full intended customer search contract.
-
-The canonical typed search contract must be extended through CORE-004/CORE-005 ownership to support, where approved source data exists:
+The search contract must represent, where canonical source data supports it:
 
 - Property type.
 - Bedroom/BHK count.
 - Budget minimum and maximum.
-- Currency.
-- Area range and measurement unit.
-- City and locality.
-- Transaction type.
+- Currency and price semantics.
+- Carpet, built-up and other approved area types with explicit units.
+- City, locality and canonical location references.
+- Geospatial radius where coordinates exist.
+- Buy/rent/other approved transaction type.
 - Project and inventory identity.
-- Lifecycle and availability.
-- Geospatial coordinates and radius where supported by canonical location data.
-- Versioned criteria and normalization semantics.
+- Possession or lifecycle status.
+- Verified availability.
+- Required amenities and approved structured filters.
+- Criteria contract version.
+- Normalization and alias semantics.
 
-Unsupported, ambiguous, malformed or contradictory criteria must be reported, clarified or rejected. They must never be silently discarded.
+The system must preserve the difference between:
 
-## 5.2 H360-02 — Customer AI API
+- Original user text.
+- Extracted criteria.
+- Normalized criteria.
+- Filters actually applied.
+- Unsupported criteria.
+- Ambiguous criteria.
+- Rejected criteria.
 
-Implement one versioned, authenticated public AI request boundary.
+No field may be silently discarded.
 
-Every request must include a trusted server-side identity and tenant context, validated locale, bounded prompt, approved conversation reference, request ID and idempotency policy.
+Minimum structured search result metadata:
 
-The API must:
+- Criteria contract version.
+- Parsed criteria.
+- Normalized criteria.
+- Applied filters.
+- Unsupported criteria.
+- Ambiguous fields.
+- Source and confidence metadata where applicable.
+- Search/index version.
 
-- Validate input and output schemas.
-- Apply rate limits and cost quotas before expensive provider calls.
-- Call the existing AI platform using a private runtime adapter.
-- Return source-bound citations.
-- Redact secrets and internal exceptions.
-- Enforce tenant context and authorization.
-- Handle timeout and provider failure safely.
+**Acceptance:** adversarial and E2E tests prove that user criteria are translated into canonical structured filters and actually enforced by CORE-005.
 
-No customer-facing AI feature may be claimed live until an actual API integration and E2E route test succeeds.
+## 5.2 Inventory truth and listing provenance
 
-## 5.3 H360-03 — Listing truth and grounded retrieval
+**Canonical owners:** CORE-004, CORE-005 and approved Evidence ownership after resolution.
 
-Every material listing claim must be traceable to an authorized, current source record.
+Every material property claim must be tied to a real, authorized source record.
 
-The system must detect:
+Required controls:
 
-- Stale listings.
-- Conflicting sources.
-- Revoked or inaccessible evidence.
-- Missing inventory fields.
-- Search index lag.
-- Unsupported legal or financial claims.
-- Prompt injection in listing text or uploaded documents.
+- Canonical project, property and unit identity.
+- Listing source provenance.
+- Builder/developer source identity.
+- Verification status and timestamp.
+- Price and availability freshness.
+- Listing lifecycle and revocation.
+- Conflicting-source handling.
+- Duplicate listing detection.
+- Stale-index detection.
+- Permission-aware retrieval.
+- Document and evidence reference validation.
 
-AI-generated citations are not accepted unless they resolve to real retrieved source records.
+A vector index is a derived projection. It cannot override current inventory truth.
 
-## 5.4 H360-04 — Customer context and privacy
+AI must not invent availability, prices, possession dates, amenities, approvals or legal statements.
 
-Define:
+## 5.3 Customer, conversation and memory ownership
 
-- Conversation ownership and tenant scope.
+**Status:** `NEEDS_OWNER_DECISION` until the canonical owner is confirmed.
+
+Before implementing persistent customer context, resolve:
+
+- Customer identity and record ownership.
+- Relationship to CORE-001 identity.
+- Customer lifecycle and profile authority.
+- Conversation ownership.
+- Tenant access and delegation.
+- Consent and permitted processing.
 - Persistent versus ephemeral context.
-- Retention period and deletion policy.
-- Consent and permitted use.
-- User access and export.
-- Legal-hold handling where applicable.
-- Summarization and context minimization.
-- PII/secret redaction.
-- Audit access records.
+- Retention and deletion.
+- Data export and correction.
+- Legal hold.
+- PII redaction and access audit.
 
-The existing local JSON context cache and evidence ledger are not the authoritative customer conversation or business database.
+The existing local JSON context cache is not an authoritative customer database.
 
-## 5.5 H360-05 — Multilingual and Pune quality
+No second customer database, conversation engine or memory service may be introduced without an approved owner decision.
 
-Build a versioned evaluation corpus for:
+## 5.4 Builder and developer ownership
+
+**Status:** `NEEDS_OWNER_DECISION` until the existing CORE/architecture owner is confirmed.
+
+Builder/project operations must not be inferred entirely from inventory models.
+
+Resolve ownership for:
+
+- Builder organization.
+- Project/developer relationship.
+- Builder verification and authority.
+- Project onboarding.
+- Inventory submission rights.
+- Publication permission.
+- Builder acknowledgements.
+- Commercial terms.
+- Builder-to-broker interactions.
+
+CORE-004 remains the inventory owner. A builder organization or commercial relationship may require a separate owner decision, but must not be created as a duplicate of identity, tenant or inventory.
+
+## 5.5 Communication and site-visit ownership
+
+**Status:** `NEEDS_OWNER_DECISION` for canonical communication and visit-domain ownership.
+
+Identify existing owners and contracts before building:
+
+- Customer communication history.
+- Consent and communication preferences.
+- Provider delivery status.
+- Templates and localization.
+- Retry and failure handling.
+- Site-visit scheduling.
+- Visit attendance.
+- Builder acknowledgement.
+- Rescheduling and cancellation.
+- Evidence attached to a visit.
+
+Provider adapters do not automatically become a Communication Engine.
+
+A notification delivery worker must not become a second conversation/history database.
+
+## 5.6 Evidence ownership
+
+**Status:** `NEEDS_OWNER_DECISION`.
+
+Evidence is referenced across multiple CORE domains. Establish one canonical evidence storage/authorization owner or an approved shared evidence boundary.
+
+The decision must define:
+
+- Evidence identity.
+- Source record.
+- Tenant and resource scope.
+- Immutable version and provenance.
+- Upload and malware scanning.
+- Access policy.
+- Retention and legal hold.
+- Revocation and deletion behavior.
+- Audit trail.
+- Object-storage reference integrity.
+
+S3-compatible object storage stores binary content. It does not decide business evidence validity or authorization.
+
+## 5.7 Governed autonomous execution
+
+**Canonical owners:** AI-001 for AI capabilities; CORE-001 and CORE-007 for identity and policy decisions; relevant CORE domain for business mutations.
+
+The complete action lifecycle is:
+
+`REQUEST → AUTHENTICATE → RESOLVE_TENANT → AUTHORIZE → VALIDATE_INPUT → APPLY_POLICY → CHECK_IDEMPOTENCY → PLAN → APPROVAL_CHECK → EXECUTE → VERIFY → RECORD_EVIDENCE → CLOSE_OR_RECOVER`
+
+AI output is an untrusted proposal. It cannot authorize itself.
+
+All business mutations must use explicit, typed and server-authorized domain capabilities.
+
+## 5.8 Tenant isolation and security
+
+Every public API, private runtime command, worker, retrieval query and AI tool must use server-derived trusted context.
+
+Mandatory controls:
+
+- OIDC authentication.
+- REOS identity and membership resolution.
+- Role and capability enforcement.
+- Resource-level authorization.
+- Session revocation.
+- Cross-tenant IDOR protection.
+- Database enforcement where supported.
+- Background-worker authorization.
+- Tenant-safe cache and search keys.
+- Fail-closed behavior on policy errors.
+
+Client-provided tenant IDs and AI-generated actor/role claims are untrusted.
+
+## 5.9 Durable events and workflows
+
+**Canonical owner:** CORE-002 for the event domain and delivery contract.
+
+Required platform behavior:
+
+- Durable event publication.
+- Transactional outbox.
+- Consumer inbox/deduplication.
+- Event schema versions.
+- Correlation and causation identity.
+- Safe retries.
+- Dead-letter inspection.
+- Controlled replay.
+- Ordering policy.
+- Reconciliation of ambiguous outcomes.
+
+Temporal owns durable workflow orchestration, not CORE business truth.
+
+Do not claim exactly-once messaging. Aim for effectively-once business outcomes through durable idempotency, deduplication and reconciliation.
+
+## 5.10 AI quality, multilingual and Pune relevance
+
+**Canonical owner:** AI-001 for AI platform; CORE-005 for search semantics.
+
+Required evaluation sets:
 
 - English.
 - Hindi.
 - Marathi.
-- Transliteration and mixed-language queries.
-- Pune locality and neighbourhood names.
-- Landmark and locality aliases.
-- Local real-estate terminology.
-- Property-type and BHK expressions.
-- Ambiguous locations.
-- Price, area and currency interpretation.
+- Transliteration.
+- Mixed Hindi/English and Marathi/English.
+- Pune locality and neighborhood aliases.
+- Landmark references.
+- BHK and property terminology.
+- Currency and area-unit interpretation.
+- Ambiguous location handling.
+- Structured and natural-language search.
+- Prompt-injection examples.
+- Unsupported-claim and citation correctness.
 
-Use human-reviewed examples and record language-specific search and AI-quality metrics.
+Evaluation datasets must be versioned, human-reviewed and reproducible.
 
-## 5.6 H360-06 and H360-07 — Governed autonomous execution
+## 5.11 SaaS billing, commission and entitlement separation
 
-The action lifecycle must be:
+CORE-008 owns commission and financial truth. It must not automatically become the owner of every SaaS billing feature.
 
-`REQUEST → AUTHENTICATE → RESOLVE TENANT → AUTHORIZE → VALIDATE POLICY → CHECK IDEMPOTENCY → PLAN → APPROVAL CHECK → EXECUTE → VERIFY → RECORD EVIDENCE → CLOSE OR RECOVER`
+Keep distinct concepts separate:
 
-AI may produce a plan or action proposal, but it cannot authorize itself.
+- Commission and brokerage settlement.
+- Platform subscription.
+- Tenant plan and entitlement.
+- Usage and AI cost budgets.
+- Payment provider transaction.
+- Refund and adjustment.
+- Revenue reporting.
 
-Use Temporal for durable long-running workflows and Kafka for durable event delivery. Use transactional outbox/inbox and stable idempotency keys.
+A shared payment provider does not mean these business ledgers have the same owner.
 
-Do not claim exactly-once messaging. Achieve effectively-once business outcomes through durable deduplication and reconciliation.
+Billing/entitlement ownership must be confirmed before introducing a new persistent subsystem.
 
-## 5.7 H360-08 — Identity and tenant security
+## 5.12 Global real-estate requirements
 
-All public APIs, workers, search retrieval and tools must use trusted server-derived identity and tenant context.
+The backend must support:
 
-Required controls:
+- Jurisdiction-specific legal and privacy controls.
+- Currency with explicit decimal and FX semantics.
+- Measurement units and conversions.
+- Local date, time and timezone semantics.
+- Geographic hierarchy and locality aliases.
+- Language and locale.
+- Provider data residency.
+- Region-aware feature availability.
+- Market-specific property lifecycle rules.
+- Auditable configuration versioning.
 
-- OIDC token verification.
-- Durable REOS account resolution.
-- Membership and role/capability checks.
-- Session expiry and revocation.
-- Resource-level authorization.
-- Tenant-scoped queries.
-- Database enforcement where supported.
-- Cross-tenant IDOR protection.
-- Privilege escalation protection.
-- Background-worker tenant-context validation.
+Do not hardcode Pune rules as universal global rules.
 
-Client-supplied tenant IDs and AI-generated identity/role claims are untrusted.
+---
 
-## 5.8 H360-09 and H360-10 — Provider reliability and cost
+# 6. Production-release blocker baseline
 
-Use the existing provider registry, adapters and model gateway.
+The following 18 blockers were observed in the earlier production-readiness evidence. Their current status must be rechecked against the latest gate and exact target environment.
 
-Define versioned:
+| No. | Blocker | Required closure evidence |
+|---:|---|---|
+| 1 | `AVAILABILITY_SLO_MISSING` | Approved SLO and measured production evidence. |
+| 2 | `OPERATIONAL_ATTESTATION_MISSING` | Named operational owner and fresh attestation. |
+| 3 | `data_retention_and_deletion` | Approved policy and tested deletion/expiry. |
+| 4 | `operational_kill_switch` | Named owner, restricted access, execution test and recovery. |
+| 5 | `production_monitoring_alerts_and_on_call` | Live dashboards, alert delivery, on-call and incident exercise. |
+| 6 | `production_rate_limits` | Deployed limits and abuse/load testing. |
+| 7 | `production_release_workflow_and_protected_environment` | Protected deployment workflow and approved environment. |
+| 8 | `provider_data_residency` | Approved region and provider-processing evidence. |
+| 9 | `provider_model_configuration` | Versioned approved production configuration. |
+| 10 | `runtime_timeout_retry_policy` | Tested timeouts, retry budgets and circuit breakers. |
+| 11 | `secret_storage_and_rotation` | Protected secret storage and successful rotation test. |
+| 12 | `tenant_usage_budgets_and_quotas` | Shared durable tenant budgets and multi-replica enforcement. |
+| 13 | `tested_rollback` | Tested rollback or forward-recovery exercise. |
+| 14 | `QUALITY_APPROVAL_MISSING` | Numeric quality thresholds, benchmark and accountable sign-off. |
+| 15 | `criteria_contract_version_missing` | Versioned canonical search criteria contract. |
+| 16 | `structured_criteria_missing` | Natural-language criteria mapped to canonical structured criteria. |
+| 17 | `structured_filters_missing` | Filters transmitted and enforced by CORE-005. |
+| 18 | `unsupported_criteria_present_or_unreported` | Unsupported or ambiguous criteria reported or rejected. |
 
-- Model and provider identifiers.
-- Configuration and endpoint.
-- Pricing and usage rules.
-- Context limits and supported capabilities.
-- Data residency and processing approvals.
-- Credential source and rotation.
-- Timeout and retry budget.
-- Fallback and circuit-breaker policy.
+These 18 entries are a historical closure baseline, not an assertion that every blocker is still open today.
 
-Track tenant, user, operation, provider/model, pricing version and usage source. Distinguish provider-reported usage from estimates.
+The production gate must remain fail-closed. Never weaken a readiness check, lower a required threshold or relabel missing evidence to make a release appear ready.
 
-Enforce budgets and quotas before provider invocation and reconcile interrupted/ambiguous requests.
+A blocker may close only with fresh, independently verifiable evidence bound to the actual deployment/environment.
 
-## 5.9 H360-11 and H360-12 — Quality and operations
+---
+
+# 7. Business capability and ownership map
+
+| Business capability | Canonical owner | API/backend responsibility |
+|---|---|---|
+| Identity | CORE-001 | Expose approved identity operations. |
+| Tenant/membership | CORE-001 | Resolve and enforce trusted context. |
+| Events | CORE-002 | Integrate event contracts and durable delivery. |
+| Leads | CORE-003 | Expose lead capture and attribution operations. |
+| Inventory | CORE-004 | Expose authorized inventory operations. |
+| Search | CORE-005 | Expose structured search and matching. |
+| Deals | CORE-006 | Expose authorized deal lifecycle operations. |
+| Trust/fraud | CORE-007 | Enforce policy and governance outcomes. |
+| Commission | CORE-008 | Expose approved commission/financial operations. |
+| AI | AI-001 | Integrate approved AI capabilities. |
+| Customer profile | Pending owner decision | No parallel customer engine. |
+| Builder organization | Pending owner decision | Preserve CORE identity/inventory boundaries. |
+| Communication history | Pending owner decision | Provider adapters only until owner resolved. |
+| Site visits | Pending owner decision | Integrate only after owner is identified. |
+| Evidence | Pending owner decision | Do not create a second evidence store. |
+| SaaS billing/entitlements | Pending owner decision | Keep distinct from commission accounting. |
+| Analytics | Derived/reporting owner to be approved | Never replace transactional truth. |
+
+A capability may appear in an API route only when its domain owner and command/query interface are defined.
+
+---
+
+# 8. Data, persistence and transaction integrity
+
+## 8.1 System-of-record rules
+
+- PostgreSQL is the intended authoritative business store.
+- Every aggregate has one approved persistence owner.
+- Redis is ephemeral/cache/coordination infrastructure.
+- Kafka is event transport.
+- Temporal is durable workflow orchestration.
+- Qdrant is a rebuildable derived index.
+- Object storage holds binary objects.
+- Analytics stores derived data.
+- AI summaries and embeddings do not replace original source records.
+
+## 8.2 Persistence implementation
+
+Before coding:
+
+1. Re-read ARCH-037 and the approved schema.
+2. Inspect the actual source and migrations.
+3. Identify the aggregate owner.
+4. Identify the transaction boundary.
+5. Confirm tenant enforcement.
+6. Define constraints and index requirements.
+7. Define migration compatibility and recovery.
+8. Add repository-level tests.
+9. Add real database integration tests.
+10. Verify backup and restore for release-critical data.
+
+Do not create a second ORM model set that silently becomes a competing schema.
+
+## 8.3 Tenant database enforcement
+
+Where the approved PostgreSQL design uses Row-Level Security:
+
+- RLS must be enabled and tested for applicable tables.
+- Application connections must use non-owner, non-bypass roles.
+- Tenant context must be established server-side.
+- Transaction-local context must not leak across pooled connections.
+- Missing context must fail closed.
+- Cross-tenant negative tests must run against the actual database.
+- Administrative bypass must be explicit, restricted and audited.
+
+Application-level filters alone are insufficient proof of tenant isolation.
+
+## 8.4 Financial integrity
+
+Financial and commission operations must preserve:
+
+- Fixed-precision decimal semantics.
+- Explicit currency.
+- Approved rounding policy.
+- Balanced double-entry invariants where applicable.
+- Immutable posted entries.
+- Reversal/adjustment rather than destructive mutation.
+- Idempotent settlement.
+- Reconciliation against provider/bank evidence.
+- Separation of estimate, authorization and settlement.
+- Auditability across commission, payment and dispute lifecycles.
+
+Never use floating-point arithmetic as the canonical financial representation.
+
+## 8.5 Migration and recovery
+
+A migration must define:
+
+- Version and checksum.
+- Preconditions.
+- Expected data transformation.
+- Locking and availability impact.
+- Backward compatibility.
+- Failure behavior.
+- Rollback or forward-fix.
+- Tenant and financial validation.
+- Post-migration verification.
+
+A successful schema deployment without data integrity verification is not complete.
+
+---
+
+# 9. API, security and privacy contract
+
+## 9.1 Public API requirements
+
+The public API must provide:
+
+- Versioned routes.
+- Strict request schemas.
+- Strict response schemas.
+- Stable error codes.
+- Consistent pagination and filtering.
+- Request and correlation IDs.
+- Rate and payload limits.
+- Safe serialization.
+- OpenAPI generation and validation.
+- Compatibility and deprecation policy.
+
+Breaking changes require a versioning/compatibility decision.
+
+## 9.2 Authentication and authorization
+
+Authentication and business authorization are separate concerns.
+
+Authentication establishes a verified actor. The canonical identity/tenant owner and approved authorization policy determine what that actor may do.
+
+Required behavior:
+
+- Verify tokens and issuer/audience claims.
+- Resolve the REOS identity.
+- Resolve tenant membership.
+- Check role/capability.
+- Check resource ownership/access.
+- Check action-specific policy.
+- Check consent and approval where required.
+- Re-check authorization before sensitive mutation.
+
+No public route may rely on client-supplied role, tenant or ownership claims.
+
+## 9.3 Session and abuse controls
+
+Provide:
+
+- Revocation and expiry.
+- Session rotation where required.
+- CSRF protection where applicable.
+- Per-identity and per-tenant limits.
+- Provider-level quotas.
+- Burst and concurrency protection.
+- Abuse detection.
+- Account lockout/risk policy where approved.
+- Safe authentication error behavior.
+
+## 9.4 Privacy and data governance
+
+Required capabilities:
+
+- Data classification.
+- Purpose limitation.
+- Data minimization.
+- Encryption in transit and at rest.
+- Sensitive-field protection.
+- Consent record and version.
+- Retention schedule.
+- Deletion/expiry execution.
+- Export and correction.
+- Legal hold.
+- Data residency.
+- Access audit.
+- PII redaction.
+- Provider processing controls.
+
+Do not send unnecessary personal data to AI or external providers.
+
+## 9.5 Integration security
+
+External integrations must use:
+
+- Server-side credentials.
+- Least privilege.
+- Credential rotation.
+- Network and endpoint allowlists where appropriate.
+- Input and output validation.
+- Bounded timeouts.
+- Retry budgets.
+- Circuit breakers.
+- Signed webhook verification.
+- Replay protection.
+- Provider reconciliation.
+
+Never expose provider credentials or internal error details to clients.
+
+---
+
+# 10. AI and autonomous real-estate execution contract
+
+This is a critical platform differentiator. It must be safe, bounded and auditable.
+
+## 10.1 Existing AI platform ownership
+
+Reuse AI-001:
+
+- Model gateway.
+- Provider/model registry.
+- OpenAI and vLLM adapters already present.
+- Embeddings and retrieval.
+- CORE-005 retrieval integration.
+- RAG pipeline.
+- Agent runtime.
+- Authorization boundary.
+- ToolBridge.
+- Cost controls.
+- Observability and fallback.
+
+Do not create another provider registry, AI gateway, model router, agent runtime or RAG platform.
+
+## 10.2 AI authority rule
+
+**AI may interpret, recommend, draft and request actions. AI may not grant itself permission.**
+
+Every customer/business mutation must be authorized by server-side policy and executed through the canonical domain owner.
+
+Model output is untrusted, even when the model is configured as a trusted provider.
+
+## 10.3 Autonomy levels
+
+| Level | Permitted behavior | Control |
+|---|---|---|
+| A0 — Observe | Read permitted, scoped data | Server authorization and audit. |
+| A1 — Recommend | Suggest matches, actions or next steps | No business mutation. |
+| A2 — Draft | Prepare proposed changes or communications | User/domain owner confirmation before sending or changing business truth. |
+| A3 — Bounded execution | Execute explicitly approved low-risk capabilities | Permission, policy, budget, idempotency and verification. |
+| A4 — High-impact execution | Financial, legal, ownership or irreversible actions | Mandatory applicable human approval; no autonomous approval. |
+
+No agent may move itself to a higher autonomy level.
+
+## 10.4 Capability-based tool boundary
+
+Every tool must be:
+
+- Explicitly registered.
+- Typed and schema-validated.
+- Tenant-scoped.
+- Resource-scoped.
+- Permission-checked.
+- Rate-limited.
+- Budget-limited.
+- Time-bounded.
+- Audited.
+- Idempotent for mutations where applicable.
+
+Prohibited generic tool access:
+
+- Arbitrary shell.
+- Arbitrary SQL.
+- Unrestricted filesystem.
+- Unrestricted network requests.
+- Secret retrieval.
+- Direct database writes.
+- Direct payment/settlement execution outside the approved domain command.
+- Self-modification of authorization or policy.
+- Self-approval of a protected operation.
+
+## 10.5 Standard action envelope
+
+Every business mutation proposal must be converted into a server-generated action envelope containing, as applicable:
+
+- Action ID.
+- Capability and contract version.
+- Authenticated actor.
+- Agent identity and run ID.
+- Trusted tenant context.
+- Resource references.
+- Requested operation.
+- Validated parameters.
+- Idempotency key.
+- Input/payload hash.
+- Policy decision reference.
+- Approval requirement and approval proof.
+- Expiry.
+- Correlation and causation IDs.
+- Execution result and verification evidence.
+
+Client or model-generated tenant and permission claims must never be trusted.
+
+## 10.6 Approval binding
+
+An approval must be bound to:
+
+- Exact actor/approver.
+- Exact tenant.
+- Exact resource.
+- Exact operation.
+- Exact immutable payload hash.
+- Expiry and one-time use.
+- Approval policy version.
+
+Changing the action payload after approval invalidates that approval.
+
+High-impact categories include payment, settlement, commission release, legal commitment, property ownership, irreversible data deletion and privileged security/tenant changes.
+
+## 10.7 Agent run lifecycle
+
+Use explicit durable states where persistent agent runs are approved:
+
+`CREATED → PLANNED → WAITING_APPROVAL → AUTHORIZED → EXECUTING → VERIFYING → COMPLETED`
+
+Terminal or recovery states:
+
+- `FAILED`
+- `CANCELLED`
+- `EXPIRED`
+- `COMPENSATION_REQUIRED`
+- `COMPENSATED`
+- `RECONCILIATION_REQUIRED`
+
+A model timeout or lost connection must not automatically mean that a business mutation failed. The action result must be resolved through idempotency and reconciliation.
+
+## 10.8 Required safeguards
+
+- Re-authorize immediately before mutation.
+- Enforce idempotency.
+- Use bounded concurrency.
+- Apply tenant and user budgets before expensive calls.
+- Stop execution when kill switch is active.
+- Validate tool result against the canonical owner.
+- Record source references for factual answers.
+- Distinguish estimates from verified facts.
+- Treat uploaded files and listing descriptions as untrusted input.
+- Defend against prompt injection and indirect instructions.
+- Prevent one tenant's retrieved data from entering another tenant's context.
+- Ensure failure recovery cannot duplicate payments, leads or ownership transitions.
+
+## 10.9 Customer context and memory
+
+Customer memory is not ACRL.
+
+Do not use developer context caches, repository memory or evidence ledgers as a customer data store.
+
+Persistent customer memory requires approved ownership, consent, retention, deletion, tenant scope and access controls. Until its owner is resolved, keep any context feature explicitly bounded and non-authoritative.
+
+## 10.10 Autonomous recovery
+
+Autonomous recovery may:
+
+- Retry idempotent operations within budget.
+- Resume durable workflows.
+- Reconcile ambiguous responses.
+- Rebuild derived projections.
+- Escalate unresolvable failures.
+- Request human approval.
+- Execute approved compensation steps.
+
+It may not:
+
+- Invent a successful transaction.
+- Bypass a failed authorization.
+- silently drop an event.
+- Alter financial records to hide a mismatch.
+- Approve its own compensation.
+- Delete audit evidence.
+- Weaken release gates.
+
+---
+
+# 11. Events, workflow and integration reliability
+
+## 11.1 Event ownership
+
+CORE-002 remains the event-domain owner.
+
+The approved event boundary must define:
+
+- Event identity.
+- Schema and version.
+- Aggregate reference.
+- Tenant scope.
+- Occurrence time.
+- Correlation and causation identity.
+- Producer identity.
+- Payload classification.
+- Compatibility rules.
+
+## 11.2 Transactional outbox/inbox
+
+For a business mutation and its event:
+
+- The owning domain commits the aggregate change and outbox record within the required transaction boundary.
+- The event delivery owner publishes the outbox record.
+- Consumers record durable deduplication/inbox state.
+- Failed deliveries remain inspectable and recoverable.
+- Replays preserve original event identity.
+- Duplicate delivery cannot duplicate business outcomes.
+
+Do not claim exactly-once delivery.
+
+## 11.3 Temporal
+
+Temporal is intended for durable long-running orchestration.
+
+Use it for multi-step operations that must survive process restarts, wait for external responses, require approvals or support controlled compensation.
+
+Temporal must not become:
+
+- A second business database.
+- A second event bus.
+- A replacement for CORE state transitions.
+- An unbounded autonomous agent.
+- An authority for financial/legal approval.
+
+Workflow code must be deterministic where required by the selected Temporal execution model. External side effects must be bounded and idempotent.
+
+## 11.4 Retry and timeout rules
+
+Every external operation must define:
+
+- Connection timeout.
+- Overall deadline.
+- Retryable error classes.
+- Maximum attempts.
+- Exponential backoff and jitter where appropriate.
+- Circuit-breaker behavior.
+- Idempotency.
+- Cancellation.
+- Ambiguous-outcome reconciliation.
+- Operator escalation.
+
+Never blindly retry a non-idempotent payment or ownership mutation.
+
+## 11.5 Integration contract
+
+Every third-party provider adapter must have:
+
+- Versioned configuration.
+- Credential boundary.
+- Request/response validation.
+- Data residency approval where applicable.
+- Rate limits.
+- Timeout and retry policy.
+- Health checks.
+- Failure classification.
+- Redacted logs.
+- Contract tests.
+- Provider reconciliation.
+
+Provider outage must not corrupt canonical business truth.
+
+---
+
+# 12. Search, AI quality and real-estate data quality
+
+## 12.1 Search quality
+
+CORE-005 remains the only canonical search/matching owner.
+
+Required quality coverage:
+
+- Typed criteria correctness.
+- Filter enforcement.
+- Locality normalization.
+- Currency and unit correctness.
+- Geo-radius correctness.
+- Availability freshness.
+- Ranking relevance.
+- Tenant-scoped results.
+- Source provenance.
+- Unsupported criteria reporting.
+- Deterministic behavior for known criteria.
+
+## 12.2 Retrieval quality
+
+Every AI-generated factual claim about an inventory item must be grounded in a retrievable, authorized source.
+
+Required checks:
+
+- Source record exists.
+- Source is accessible to the requesting tenant/actor.
+- Source is current enough for the claim.
+- Source version is traceable.
+- Citation resolves to the original record/evidence.
+- Conflicting or missing sources are disclosed.
+- Unsupported facts are refused or qualified.
+
+A model-generated citation string is not evidence unless it resolves to a real source record.
+
+## 12.3 AI evaluation
 
 Separate:
 
-- Synthetic deterministic tests.
-- Representative evaluation datasets.
-- Human-rated benchmarks.
-- Approved quality thresholds.
-- Live provider evidence.
-- Production service metrics.
+- Deterministic unit tests.
+- Retrieval-grounding tests.
+- Representative benchmark datasets.
+- Human-rated answer quality.
+- Safety and adversarial tests.
+- Provider live tests.
+- Production quality/latency/cost metrics.
 
-Operational observability must cover:
+Evaluation thresholds must be numeric, versioned and approved.
 
-- API latency and error rate.
-- Database health.
-- Search freshness.
-- AI retrieval and citation quality.
-- Provider success, failure, latency and cost.
-- Workflow and queue lag.
-- Tenant rate-limit events.
-- Security anomalies.
-- Incident delivery and response.
+A synthetic 10/10 test result cannot alone establish production readiness.
 
-A kill switch requires a named owner, controlled access, actual execution evidence and a tested recovery route.
+## 12.4 Financial and listing truth
 
-## 5.10 H360-14 — Complete real-estate workflows
+Search and AI must preserve:
 
-The backend must connect the existing CORE owners across the complete business journey:
+- Asking price versus final negotiated price.
+- Currency and FX timestamp.
+- Estimate versus verified figure.
+- Carpet versus built-up versus other area type.
+- Listing status versus verified inventory availability.
+- Builder claim versus independently verified claim.
+- Commission estimate versus approved commission.
+- Deal stage versus completed settlement.
 
-1. Builder/developer onboarding.
-2. Project and property/unit ingestion.
-3. Inventory verification and provenance.
-4. Listing moderation and publication.
-5. Search and property discovery.
-6. Customer enquiry and consent.
-7. Lead qualification and fraud checks.
-8. Lead source attribution and ownership.
-9. Communication and follow-up.
-10. Site-visit scheduling and evidence.
-11. Builder acknowledgement.
-12. Offer and negotiation.
-13. Deal milestone and document lifecycle.
-14. Trust and governance approval.
-15. Commission eligibility and calculation.
-16. Settlement and reconciliation.
-17. Dispute and adjustment.
-18. Reporting and closeout.
-
-Every transition must have an owner, permission, state contract, evidence and recovery behaviour.
-
-## 5.11 H360-15 — ACRL
-
-Verify the complete active ACRL T01–T30 contract, runtime, test and handoff coverage.
-
-Keep ACRL separate from customer business runtime.
-
-The T25 mapping correction identified as deferred/not authorized must remain untouched until canonical state explicitly authorizes it.
-
-## 5.12 H360-16 — Repository governance
-
-Verify active branch rules, required check names, protected deployment environments, least-privilege workflows, dependency integrity and supply-chain checks.
-
-A successful push Actions run does not prove branch protection.
-
-Read back repository settings and required-check enforcement before declaring governance complete.
-
-## 5.13 H360-17 — Backend portion only
-
-Complete public API contracts, request/response validation, OpenAPI, auth/tenant integration, stable errors, idempotency, pagination, deprecation policy and integration tests.
-
-Frontend visual UI/UX is excluded. API and integration work is not.
+Ambiguity must be returned to the caller, not silently normalized into a false fact.
 
 ---
 
-# 6. All 18 mandatory production-release blockers
+# 13. Testing and verification architecture
 
-The previous production-readiness audit reported 18 blockers. These are inherited closure requirements and must be rechecked against the live release gate before use.
+## 13.1 Mandatory test layers
 
-| No. | Blocker | Required closure |
-|---:|---|---|
-| 1 | AVAILABILITY_SLO_MISSING | Approved availability SLO and at least 30 days of measured production evidence |
-| 2 | OPERATIONAL_ATTESTATION_MISSING | Fresh operational owner attestation covering deployed controls, runbooks and exact commit |
-| 3 | Retention/deletion unverified | Approved retention policy and environment-level deletion/expiry test |
-| 4 | Operational kill switch unverified | Named owner, restricted access, execution test, audit record and recovery |
-| 5 | Monitoring/alerts/on-call unverified | Live dashboards, alert delivery, assigned on-call and incident exercise |
-| 6 | Production rate limits unverified | Deployed per-user/tenant/provider limits and abuse/load test |
-| 7 | Production release workflow/protected environment unverified | Protected workflow, environment reviewers, approvals and verified settings |
-| 8 | Provider data residency unverified | Approved provider processing/residency terms and configured region evidence |
-| 9 | Provider/model configuration unverified | Versioned approved production configuration, health check and rollback |
-| 10 | Runtime timeout/retry policy unverified | Bounded timeout/retry, idempotency rules, circuit breakers and failure injection |
-| 11 | Secret storage/rotation unverified | Protected secret storage, rotation test, access audit and redaction |
-| 12 | Tenant budgets/quotas unverified | Shared production ledger and deployed multi-replica quota enforcement |
-| 13 | Tested rollback unverified | Successful rollback or forward-recovery exercise with data/schema compatibility |
-| 14 | QUALITY_APPROVAL_MISSING | Approved numeric thresholds, benchmark report and accountable sign-off |
-| 15 | Q10 criteria contract version missing | Approved versioned CORE-005 criteria contract in request and evidence |
-| 16 | Q10 structured criteria missing | Natural-language brief converted to canonical typed criteria |
-| 17 | Q10 structured filters missing | Structured filters sent to and enforced by CORE-005 execution |
-| 18 | Q10 unsupported criteria not reported | Unsupported/ambiguous criteria explicitly reported or rejected; no silent dropping |
-
-The existing production readiness gate must remain fail-closed. Do not weaken it to make a development CI run appear release-ready.
-
-The desired end state is zero mandatory blockers with fresh, exact-environment evidence.
-
-A blocker may be marked closed only when its required evidence is current, independently verifiable and bound to the actual target environment and deployment.
-
----
-
-# 7. Full business capability requirements
-
-The backend target includes all of the following capabilities.
-
-## 7.1 Identity and organization
-
-- Buyer/customer accounts.
-- Broker/agent accounts.
-- Builder/developer accounts.
-- Enterprise and white-label tenant accounts.
-- Platform/API partner access.
-- Membership, invitation, role and capability.
-- Session and token lifecycle.
-- Revocation and account deactivation.
-- Tenant configuration and audit.
-
-## 7.2 Inventory and property acquisition
-
-- Builder/project onboarding.
-- Project/property/unit hierarchy.
-- Bulk import and controlled APIs.
-- Inventory verification and provenance.
-- Duplicate listing detection.
-- Property lifecycle and availability.
-- Media/document metadata.
-- Moderation and publication.
-- Listing freshness and reconciliation.
-- Inventory change history.
-
-## 7.3 Media and documents
-
-- Private object storage.
-- Signed, short-lived upload/download URLs.
-- File-type and size allowlists.
-- Malware and unsafe-file scanning.
-- Tenant and resource authorization.
-- Retention and deletion.
-- Document version and access audit.
-- No arbitrary client-supplied object paths.
-
-## 7.4 Search and discovery
-
-- Structured typed search.
-- Locality and geospatial search.
-- Map-ready property results.
-- Hybrid and vector retrieval.
-- Relevance and ranking.
-- Saved searches.
-- Search alerts.
-- Freshness and index rebuild.
-- Visibility and tenant isolation.
-- Q10 unsupported criteria reporting.
-
-## 7.5 Lead and customer operations
-
-- Enquiry capture.
-- Consent management.
-- Genuine lead qualification.
-- Duplicate detection.
-- Lead scoring and routing.
-- Attribution and ownership.
-- Transfer and dispute handling.
-- Communication and follow-up.
-- Site visits and attendance evidence.
-- Builder acknowledgement.
-- Customer journey history.
-
-## 7.6 Deal and financial operations
-
-- Offers and negotiation.
-- Deal parties and milestones.
-- Document evidence.
-- Ownership protection.
-- Trust and fraud review.
-- Commission eligibility.
-- Allocation and participant split.
-- Invoice, tax and statement.
-- Settlement and reconciliation.
-- Disputes, adjustments and reversals.
-- Release approval and closeout.
-
-All financial values must use safe fixed-precision semantics and explicit currency rules.
-
-## 7.7 Monetization and SaaS
-
-Support the approved business modes:
-
-- Owned international brokerage.
-- Broker SaaS.
-- Builder SaaS.
-- Enterprise/white-label.
-- Platform/API partner.
-
-Provide backend entitlements, subscription/contract state, usage metering, billing and approved payment integrations where required.
-
-Do not impose upfront buyer/builder listing charges by default. Business pricing and commercial policy must be governed by approved decisions.
-
-Brokerage commissions and SaaS billing must remain separate financial workflows.
-
-## 7.8 Market intelligence and analytics
-
-- Licensed/permitted market-data ingestion.
-- Locality and neighbourhood statistics.
-- Sale and rental trends.
-- Comparable properties.
-- Rental-yield scenarios.
-- Valuation ranges with uncertainty.
-- Data provenance and freshness.
-- Sample-size and coverage disclosures.
-- Versioned calculation methodology.
-- Lead funnel, conversion, visit and deal analytics.
-- Tenant-safe reporting and data lineage.
-
-Analytics must never become the authoritative property or financial source.
-
-## 7.9 AI recommendations
-
-- Explainable property matching.
-- Property comparisons.
-- Affordability scenarios.
-- Customer journey assistance.
-- Source-grounded locality insights.
-- Multilingual understanding.
-- Safe refusal for unsupported high-impact claims.
-
-Distinguish authoritative facts, deterministic calculations and generated summaries.
-
-## 7.10 Notifications and integrations
-
-- Consent-aware email, SMS and WhatsApp delivery through approved providers.
-- Delivery receipts.
-- Unsubscribe/opt-out.
-- Signed inbound webhooks.
-- Replay protection.
-- Calendar and visit scheduling.
-- Partner and payment APIs.
-- Bounded retries and safe failure.
-- Integration reconciliation.
-
-## 7.11 Global support
-
-- Multi-currency.
-- Area and measurement units.
-- Locale and timezone.
-- Country-specific property fields.
-- Jurisdiction configuration.
-- Provider data residency.
-- Configurable retention and privacy.
-- International-safe schemas.
-
-Pune-first rollout must not hardcode Pune assumptions into the global domain model.
-
----
-
-# 8. Security and reliability requirements
-
-Every public route, internal adapter, worker and AI tool must enforce:
-
-1. Authenticated server identity.
-2. Tenant resolution.
-3. Resource-level authorization.
-4. Input and output schema validation.
-5. Idempotency for mutations.
-6. Audit evidence.
-7. Bounded execution.
-8. Safe error serialization.
-9. Secret and personal-data redaction.
-10. Recovery behaviour.
-
-External calls require timeouts, bounded retries, error classification and observability.
-
-Background work must be restart-safe.
-
-Use transactional outbox/inbox patterns where database changes publish events. Consumers must tolerate duplicate delivery.
-
-Build effectively-once business outcomes through durable idempotency and reconciliation rather than promising exactly-once messaging.
-
-Use Temporal for durable long-running workflows. Do not add a competing scheduler/workflow framework.
-
-## 8.1 Authentication and authorization
-
-- Use the approved identity provider and CORE-001 integration.
-- Verify issuer, audience, signature, expiry and applicable token claims.
-- Resolve the internal REOS actor and tenant from trusted server-side data.
-- Enforce resource and action permissions.
-- Support session revocation and account/tenant deactivation.
-- Fail closed when protected authorization dependencies are unavailable.
-- Never accept a client-provided tenant ID as sole authorization evidence.
-- Never accept AI-generated roles or permissions.
-
-## 8.2 Tenant isolation
-
-- Apply tenant scope to repositories and domain operations.
-- Enforce database-level isolation where the approved schema supports it.
-- Test cross-tenant access attempts for reads, writes, search, files, conversations and background work.
-- Ensure caches and search projections cannot leak another tenant's data.
-- Record actor, tenant, resource and action context in audit evidence.
-- Treat tenant isolation failures as release-blocking defects.
-
-## 8.3 Data integrity
-
-- Use fixed-precision numeric representation for financial amounts.
-- Define currency explicitly.
-- Use timezone-aware timestamps and approved UTC persistence rules.
-- Enforce uniqueness and referential integrity.
-- Use optimistic or pessimistic concurrency controls where appropriate.
-- Keep immutable audit evidence separate from mutable projections.
-- Test backup restoration and migration recovery.
-
-## 8.4 AI security
-
-- Treat prompts, uploaded files, retrieved documents and tool output as untrusted input.
-- Defend against prompt injection and data exfiltration.
-- Scope retrieval by tenant and resource permissions.
-- Prevent tool calls from bypassing ordinary backend authorization.
-- Apply cost and execution budgets before provider invocation.
-- Require explicit approval for high-impact operations.
-- Log safe operation evidence without retaining unnecessary personal or secret data.
-
----
-
-# 9. Complete backend CI and test coverage
-
-Extend the existing modular workflow:
-
-`.github/workflows/backend-ci.yml`
-
-and existing modular action:
-
-`.github/actions/homio-backend-ci/`
-
-Do not create a second monolithic backend workflow.
-
-## 9.1 Mandatory CORE coverage
-
-| Suite | Required tests |
+| Layer | Required proof |
 |---|---|
-| CORE-001 | Identity, membership, authorization, tenant isolation and revocation |
-| CORE-002 | Event contracts, ordering, delivery, retries, outbox/inbox, replay and idempotency |
-| CORE-003 | Lead lifecycle, attribution, ownership, transfer, duplicates and communication evidence |
-| CORE-004 | Inventory schema, hierarchy, lifecycle, availability, ingestion, provenance and security |
-| CORE-005 | Search filters, criteria, ranking, index, Qdrant, projections, freshness, tenancy and Q10 |
-| CORE-006 | Deal lifecycle, negotiation, parties, milestones, events, concurrency and authorization |
-| CORE-007 | Trust, fraud, governance, approvals, disputes and adversarial cases |
-| CORE-008 | Full financial regression, fixed precision, attribution, settlement, reconciliation, reversal and approvals |
+| Static/type | Strict compilation, lint and schema consistency |
+| Unit | Deterministic behavior of changed code |
+| Existing-owner regression | No regression in affected CORE/AI owner |
+| API | Route, schema, auth and response behavior |
+| Contract | TypeScript/Python/event compatibility |
+| Database | Real persistence, transaction and migration behavior |
+| Tenancy | Cross-tenant access denial |
+| Security | Adversarial authorization and injection tests |
+| Event/workflow | Duplicate, replay, timeout and recovery |
+| AI | Grounding, retrieval, prompt injection, budget and action safety |
+| E2E | Complete real-estate business journeys |
+| Performance | Latency, concurrency and load thresholds |
+| Operations | Backup, restore, rollback, alert and kill-switch exercises |
 
-## 9.2 Additional test layers
+No empty test directory counts as test coverage.
 
-- TypeScript compilation and static checks.
-- Python compilation and import integrity for changed Python code.
-- Complete CORE domain suites.
-- API and OpenAPI contract tests.
-- Python domain-runtime contract tests.
-- PostgreSQL migration and tenant-policy tests.
-- Redis, Kafka, Temporal and object storage integration tests.
-- AI provider and retrieval integration tests.
-- Cross-tenant adversarial security tests.
-- Prompt injection and unsupported-claim evaluations.
-- English/Hindi/Marathi evaluation corpus.
-- End-to-end business journeys.
-- Load and concurrency tests.
-- Backup/restore and rollback tests.
-- Dependency and supply-chain security checks.
+## 13.2 Mandatory adversarial tests
 
-## 9.3 CI pass rules
+Include at minimum:
 
-The verification manifest must declare every required test suite and command.
+- Cross-tenant resource ID substitution.
+- Forged client tenant ID.
+- Privilege escalation.
+- Revoked session.
+- Expired approval.
+- Reused approval proof.
+- Modified action payload after approval.
+- Duplicate request.
+- Duplicate event delivery.
+- Out-of-order event.
+- Replay after restart.
+- Timeout after successful external mutation.
+- Provider partial failure.
+- Prompt injection inside listing text.
+- Prompt injection inside uploaded documents.
+- Cross-tenant retrieval contamination.
+- Stale inventory response.
+- Invalid criteria silently dropped.
+- Concurrent financial settlement.
+- RLS connection-pool tenant leakage.
+- Unauthorized object/document access.
+- Kill-switch activation while a workflow is executing.
+
+## 13.3 Financial regression
+
+Financial tests must validate:
+
+- Balanced entries.
+- Immutable posting.
+- Reversal and adjustment.
+- Decimal precision.
+- Currency consistency.
+- Idempotent commission calculation.
+- Concurrent settlement.
+- Duplicate payment callback.
+- Provider/bank reconciliation.
+- Tenant separation.
+- Unauthorized posting denial.
+
+## 13.4 AI regression
+
+Tests must prove:
+
+- The AI cannot bypass domain authorization.
+- The AI cannot self-approve.
+- Retrieval is tenant-scoped.
+- Unsupported facts are not invented.
+- Tool parameters are validated.
+- Tool execution is bounded.
+- Cost controls operate before provider invocation.
+- Provider fallback preserves policy and authorization.
+- Sensitive data is redacted.
+- Action evidence is tied to the actual canonical result.
+
+## 13.5 Exact-SHA evidence
+
+Every required CI result must identify:
+
+- Repository.
+- Branch.
+- Exact tested commit SHA.
+- Workflow name.
+- Workflow run ID and URL.
+- Commands executed.
+- Tests discovered.
+- Passed, failed, skipped and blocked counts.
+- Artifact references.
+- Environment classification.
+- Remaining blockers.
+
+A successful run on an older SHA is not proof for current HEAD.
+
+Overlapping suites must not be added together and represented as unique test counts.
+
+## 13.6 CI fail-closed conditions
 
 CI must fail when:
 
-- A required scope is missing.
-- A required test suite silently skips.
-- Compile/type checks fail.
-- API contract compatibility fails.
-- A migration fails.
-- A security requirement fails.
-- A tenant isolation test fails.
-- An unauthorized mutation is possible.
-- A release-critical quality check fails.
-
-Every run must preserve exact commit SHA, test command, scope, passed/failed/skipped/blocked counts and artifacts.
-
-Do not add overlapping test counts and call them a unique total.
-
-A passing development CI job does not imply production readiness.
-
-## 9.4 Exact-SHA verification
-
-Every reported Actions result must identify:
-
-- Workflow run ID.
-- Workflow name.
-- Branch.
-- Commit SHA tested.
-- Job names and conclusions.
-- Test command and scope.
-- Passed/failed/skipped/blocked counts.
-- Artifact and evidence references.
-
-A successful run on a previous commit cannot validate a later commit.
-
-A green status badge alone is insufficient.
+- Required checks are missing.
+- Required suites unexpectedly discover zero tests.
+- Tests are silently skipped.
+- Build/type/schema consistency fails.
+- Cross-tenant isolation fails.
+- Authorization can be bypassed.
+- Migrations are unsafe.
+- Outbox/inbox or idempotency invariants fail.
+- AI quality falls below approved thresholds.
+- Critical dependencies or secrets are misconfigured.
+- The evidence SHA does not match the tested source.
 
 ---
 
-# 10. Deployment and operational readiness
+# 14. Deployment, operations and production readiness
 
-Production deployment must include:
+## 14.1 Deployment stages
 
-- Reproducible API and worker builds.
-- Exact source and artifact SHA association.
-- Environment-specific configuration.
-- Protected secret storage.
-- Controlled schema migration.
-- Health and readiness probes.
+Use the approved deployment architecture and distinguish:
+
+1. Development.
+2. Integration.
+3. Staging.
+4. Production.
+
+Each environment must have explicit configuration and access boundaries.
+
+Production credentials must never be copied into development evidence or logs.
+
+## 14.2 Operational requirements
+
+Required:
+
+- Liveness and readiness checks.
 - Graceful shutdown.
-- Deployment smoke tests.
-- Monitoring and alerts.
-- Incident runbooks.
-- Backup and restore.
-- Tested rollback or forward recovery.
-- Protected production environment approvals.
-- Operational attestation and release evidence.
+- Bounded connection pools.
+- Resource limits.
+- Health checks for dependencies.
+- Logs, metrics and traces.
+- Alerting and on-call.
+- Secret rotation.
+- Rate limits.
+- Database backup and restore.
+- Migration recovery.
+- Tested rollback/forward recovery.
+- Incident and escalation runbooks.
+- Kill switch.
+- Provider failover.
+- Data-residency evidence.
+- Operational attestation.
 
-API and worker processes must have explicit startup roles. Workers must not accidentally expose public HTTP routes or duplicate schedulers.
+## 14.3 SLO/SLI
 
-## 10.1 Deployment stages
+Define numeric targets and measurement windows for:
 
-1. Validate source and dependency lockfiles.
-2. Build immutable artifacts.
-3. Bind artifacts to the exact source SHA.
-4. Validate environment configuration and secret availability.
-5. Run approved database migration checks.
-6. Deploy to the controlled target environment.
-7. Run health and smoke tests.
-8. Verify critical API and workflow paths.
-9. Confirm monitoring and alert delivery.
-10. Record deployment and operational evidence.
-11. Keep rollback or forward-recovery capability available.
+- API availability.
+- API latency by critical route.
+- API error rate.
+- Search latency and freshness.
+- AI response latency and quality.
+- Workflow completion and queue lag.
+- Event delivery delay.
+- Database availability.
+- Provider success/failure.
+- Tenant quota behavior.
+- Critical journey success.
 
-No production release may bypass environment protection, approval or release-gate policy.
+A target without measurement evidence is not an SLO achievement.
+
+## 14.4 Kill switches
+
+Provide controlled kill-switch capability at approved scopes, such as:
+
+- Entire autonomous execution.
+- A specific agent/capability.
+- A tenant.
+- A provider/model.
+- A high-risk workflow.
+- A release feature.
+
+Every kill switch must have a named owner, restricted access, audit record, activation evidence and recovery procedure.
+
+## 14.5 Release governance
+
+Production release requires:
+
+- Required CI success.
+- Exact-SHA verification.
+- Protected branch/environment controls.
+- Required human approvals.
+- Security and privacy acceptance.
+- Quality approval.
+- Database and recovery evidence.
+- Operational attestation.
+- Zero mandatory blockers or formally approved release exceptions.
+
+The live branch protection result must be corrected before release. A PR or successful workflow does not itself protect a branch.
 
 ---
 
-# 11. Automation policy
+# 15. Production engineering rules
 
-| Action class | Examples | Default policy |
+## 15.1 API contract rules
+
+- Use stable identifiers.
+- Validate every external boundary.
+- Use typed request/response schemas.
+- Use consistent error mapping.
+- Use explicit API versioning.
+- Avoid leaking internal exceptions.
+- Preserve idempotency for mutation endpoints.
+- Document deprecation and compatibility.
+
+## 15.2 Domain adapter rules
+
+A domain adapter may call a canonical owner and translate contracts. It may not reimplement domain invariants.
+
+Every adapter must have:
+
+- Owner.
+- Contract version.
+- Authentication context.
+- Tenant scope.
+- Supported operations.
+- Error mapping.
+- Timeout behavior.
+- Idempotency behavior.
+- Contract tests.
+
+## 15.3 Python integration rules
+
+- Private authenticated transport.
+- Versioned contract.
+- Strict serialization.
+- Server-derived actor and tenant context.
+- Correlation propagation.
+- Bounded request and response size.
+- Timeout and cancellation semantics.
+- Error classification.
+- No public unauthenticated domain API.
+- No duplicate CORE logic.
+- Contract tests on both sides.
+
+## 15.4 Data and transaction rules
+
+- One write owner per aggregate.
+- Explicit transaction boundary.
+- Approved migration.
+- Tenant enforcement.
+- Immutable financial posting.
+- Idempotency.
+- Audit evidence.
+- Recovery and reconciliation.
+
+## 15.5 Reliability rules
+
+- Bounded retries.
+- Deadlines.
+- Circuit breakers.
+- Backpressure.
+- Concurrency limits.
+- Queue lag alarms.
+- Duplicate suppression.
+- Durable checkpoints where applicable.
+- Reconciliation after ambiguous outcomes.
+- Operator escalation.
+
+## 15.6 Security rules
+
+- Least privilege.
+- Fail closed.
+- Default deny.
+- Server-derived identity.
+- Tenant isolation.
+- Resource-level checks.
+- Secret redaction.
+- No uncontrolled tool execution.
+- No unreviewed security bypass.
+- Adversarial regression tests.
+
+---
+
+# 16. File-level implementation map
+
+This section guides file ownership. It is not an instruction to create every candidate path.
+
+| Area | Target location | Ownership rule |
 |---|---|---|
-| Read-only | Search, retrieve authorized listing data, summarize | Automatic after access checks |
-| Reversible | Save a draft, prepare a lead summary, update an allowed preference | Automatic within granted permissions |
-| External side effect | Send notification, publish an authorized listing, submit partner request | Consent, authorization, idempotency and policy checks |
-| High impact | Payment, settlement, commission release, binding deal or legal commitment | Authorized approval and evidence required |
+| Public Fastify app | `REOS_CONTROL_CENTER/backend/src/` | One public API application |
+| API routes/schemas | `backend/src/api/v1/` | Public contract only |
+| Orchestration | `backend/src/application/` | Cross-owner coordination, not domain logic |
+| Security | `backend/src/security/` | Server-side boundary and trusted context |
+| Python integration | `backend/src/integrations/python_runtime/` | One approved private runtime client |
+| Public/private contracts | `backend/contracts/` | One canonical boundary contract root |
+| DB migrations | `backend/database/migrations/` | Only approved schema changes, owner manifest required |
+| Core domains | `AUTONOMY_ENGINE/core/` | Preserve CORE-001–CORE-008 |
+| AI platform | `AUTONOMY_ENGINE/ai_platform/` | Preserve AI-001 |
+| Authentication | `AUTONOMY_ENGINE/security/authentication/` | Reuse existing verifier where appropriate |
+| ACRL | `AUTONOMY_ENGINE/continuity/acrl/` | Developer continuity only |
+| Tests | `backend/tests/` and existing owner test paths | Extend the owning test suite, avoid duplicate suites |
+| CI | Existing modular backend workflow/action | Extend existing workflow, no competing backend CI |
+| Evidence | Existing approved evidence location | Do not create a duplicate evidence engine |
 
-Automation must be observable, bounded and recoverable.
+## 16.1 File-change classifications
 
-A model response, tool proposal or execution receipt cannot independently grant authority.
+Before any change, mark each candidate:
 
-## 11.1 Mandatory autonomous action lifecycle
+- `REUSE`
+- `UPDATE`
+- `ADD`
+- `REMOVE`
+- `NO_CHANGE`
+- `CONDITIONAL`
+- `NEEDS_OWNER_DECISION`
 
-`Observe → Validate Context → Plan → Authorize → Approve if Required → Execute → Verify → Persist Receipt → Reconcile`
+`ADD` is forbidden until source search and ownership review prove that no suitable owner exists.
 
-## 11.2 Prohibited agent behaviour
+## 16.2 Conditional private runtime
 
-An agent must not:
+The proposed private runtime host is not yet a declared existing file set.
 
-- Grant itself permissions.
-- Change its own authorization policy.
-- Bypass server-side identity or tenant checks.
-- Perform high-impact mutations without required approval.
-- Retry an ambiguous mutation blindly.
-- Treat provider success as business completion.
-- Treat a model answer as source-of-truth data.
-- Execute arbitrary shell, filesystem, database or repository actions outside explicitly authorized scope.
-- Edit canonical execution state to manufacture progress.
-- Expand the authorized task scope without approval.
+If it is approved, it must:
 
----
+- Compose existing CORE/AI owners.
+- Expose only private versioned contracts.
+- Enforce service identity.
+- Preserve trusted actor/tenant context.
+- Never own duplicated domain rules.
+- Have integration and authorization tests.
+- Remain separate from ACRL development orchestration.
 
-# 12. Required acceptance and completion standard
+## 16.3 No duplicate directory rule
 
-Backend must not be declared complete merely because:
+Do not create a second directory merely because a target tree names a capability.
 
-- The folder structure exists.
-- Files compile.
-- A single domain suite passes.
-- AI-001 is approved.
-- A frontend preview works.
-- A selected CI run is green.
-- An architecture document describes the intended feature.
+Before adding a directory:
 
-The backend is complete only when:
-
-1. The authenticated Fastify API is implemented and deployed.
-2. The private Python domain and AI runtime bridges are working and contract-tested.
-3. PostgreSQL is the authoritative persistent store with migrations and tenant enforcement.
-4. CORE-001 through CORE-008 have complete required CI coverage.
-5. Customer workflows operate end-to-end.
-6. Search/Q10 criteria and filters pass the canonical production gate.
-7. AI retrieval and citations use current authorized records.
-8. Conversation privacy and lifecycle controls are implemented.
-9. Provider configuration, budgets, rate limits and secret rotation work in the target environment.
-10. Durable workflows, events, idempotency and recovery are verified.
-11. Monitoring, alerts, on-call, SLO and incident handling are operational.
-12. All mandatory production blockers have fresh closure evidence.
-13. Release deployment, rollback, backup/restore and governance controls are verified.
-14. No unresolved critical/high security, tenant-isolation, data-integrity or financial correctness defect remains without an approved disposition.
-15. The exact tested commit, Actions run, evidence artifacts and accountable approver are recorded.
-16. Frontend UI/UX remains separately owned; backend APIs and integration contracts are complete regardless of UI delivery status.
-
-“Error-free” is pursued through typed contracts, deterministic tests, adversarial regression, operational observability and recovery. A zero-defect guarantee cannot honestly be made by a file structure or an audit document alone.
+1. Search for the existing owner.
+2. Search for matching functions and classes.
+3. Inspect imports and callers.
+4. Inspect tests.
+5. Inspect current contract.
+6. Check whether the candidate is only an adapter.
+7. Record the exact ownership decision.
 
 ---
 
-# 13. Implementation governance
+# 17. Existing CI extension contract
 
-Before every implementation change:
+## 17.1 Single workflow strategy
 
-1. Read live branch HEAD.
-2. Read the canonical state file and active gate/subtask.
-3. Verify the current target file blob SHA.
-4. Inspect the existing source owner and all callers.
-5. Check for duplicates.
-6. Define implementation and test acceptance.
-7. Update only the authorized files.
-8. Run targeted tests and required regressions.
-9. Read back saved source.
-10. Verify GitHub Actions on the exact tested SHA.
-11. Record evidence and residual risk.
-
-Do not manually edit `state.json` to manufacture progress.
-
-Do not change ACRL T25 while its correction remains unauthorized.
-
-Do not reopen AI-001 to absorb production blockers.
-
-Do not modify frontend UI/UX source within this backend scope.
-
-Do not create duplicate domain engines, event systems, workflows, APIs, state stores, evidence ledgers or usage ledgers.
-
-## 13.1 File-change classification
-
-Every proposed file change must be classified:
-
-| Classification | Meaning | Required action |
-|---|---|---|
-| EXISTING / REUSE | Existing owner already provides the capability | Integrate through its public contract |
-| EXISTING / UPDATE | Existing file owns the responsibility but needs a change | Inspect callers/tests, then update in place |
-| NEW / CONDITIONAL | No existing suitable owner is found | Require evidence, ownership and task authorization before creation |
-| DELETE / CONDITIONAL | File is proven obsolete or duplicate | Prove no active imports/callers/workflow references; obtain authorization |
-| TEST / UPDATE | Existing tests need coverage changes | Extend current test ownership; do not create duplicate suites |
-| NO CHANGE | Existing implementation already satisfies the requirement | Record evidence and preserve it |
-
-A file cannot be classified NEW based only on a stale audit, old chat or target-tree example.
-
-## 13.2 No duplicate-file policy
-
-Before adding a file:
-
-- Search the whole repository for the capability and equivalent names.
-- Inspect imports, references, workflow path filters and tests.
-- Inspect active and historical ownership where relevant.
-- Confirm there is no existing module with the same responsibility.
-- Prefer updating the canonical owner.
-- Record why a new file is necessary.
-- Avoid redundant wrappers that only rename the same operation.
-
-Deletion must be treated as a separate authorized change, not an automatic part of a cleanup suggestion.
-
----
-
-# 14. Final target
-
-HOMIO / REOS must become a modular, strongly typed, tenant-isolated real-estate backend with:
-
-- A Fastify public API.
-- Existing Python CORE and AI domain ownership.
-- PostgreSQL-backed business truth.
-- Redis for ephemeral coordination.
-- Kafka for durable events.
-- Temporal for long-running workflows.
-- S3-compatible document/media storage.
-- Qdrant and PostGIS-backed search capabilities.
-- Governed AI execution and grounded retrieval.
-- Durable usage and cost controls.
-- Complete real-estate customer/business workflows.
-- Automated CI, security, release and operational verification.
-- Safe recovery and controlled autonomous execution.
-
-**Only frontend visual UI/UX delivery is excluded. No backend, data, API, security, integration, business workflow, automation, governance or production-readiness gap is intentionally excluded from this target.**
-
-This document defines required closure. It does not claim that implementation or production deployment is already complete.
-
----
-
-# 15. Production Engineering Execution Contract
-
-**Purpose:** Convert the backend architecture into an implementation-safe, testable and recoverable engineering standard.
-
-**Authority:** This section is subordinate to `REOS_CONTROL_CENTER/data/state.json`, approved architecture decisions, existing CORE ownership and the applicable Control Center task.
-
-**Important:** This document defines backend requirements. It does not independently authorize a new task, change the current gate, approve a technology change or mark implementation complete.
-
-## 15.1 Mandatory pre-implementation identity check
-
-Before any implementation batch, record:
-
-| Required identity | Mandatory value |
-|---|---|
-| Repository | `prajaktaranjane80-sketch/Homio` |
-| Branch | `reos-development` |
-| Current HEAD | Exact live commit SHA |
-| Canonical state | Current `state.json` blob SHA |
-| Active gate/subtask | Exact ID from live state |
-| Backend master | Current blob SHA of this document |
-| Architecture references | Applicable approved ARCH/CORE/AI references |
-| Target files | Exact paths and current blob SHAs |
-| Test scope | Exact existing and newly required test commands |
-| Completion evidence | Exact commit, Actions run and artifacts |
-
-A prior chat, old audit, handoff packet or copied SHA is not proof of current repository state.
-
-If the branch, state, architecture or target-file identity changes during a batch, stop and refresh the affected baseline.
-
-## 15.2 Ownership and dependency rules
-
-1. CORE-001 through CORE-008 remain the canonical owners of their existing business domains.
-2. AI-001 remains the canonical owner of the existing AI platform.
-3. The Fastify application is an API and orchestration boundary; it must not become a second business-domain engine.
-4. The Python runtime is a private integration boundary for existing Python domain capabilities.
-5. PostgreSQL is the authoritative persistent business store according to the approved schema.
-6. Redis is ephemeral coordination/cache, not a replacement business ledger.
-7. Kafka transports durable events; it does not become another source of business truth.
-8. Temporal owns durable long-running workflow orchestration; do not introduce a competing workflow engine.
-9. Qdrant and search projections are derived and rebuildable.
-10. ACRL remains continuity, reconstruction and recovery infrastructure, not a customer-facing business runtime.
-11. Frontend code consumes backend-owned contracts; it must not own backend authorization or business rules.
-12. No new CORE domain, parallel identity system, event system, financial ledger, AI gateway, history store or evidence engine may be introduced without an approved ownership decision.
-
-## 15.3 Required implementation sequence
-
-This is a technical dependency sequence, not a replacement for the Control Center's authoritative task sequence.
-
-| Stage | Scope | Exit condition |
-|---|---|---|
-| B0 | Live source and ownership verification | No unresolved duplicate owner or stale source reference |
-| B1 | Backend application foundation | Reproducible build, strict configuration validation, health/readiness and graceful shutdown |
-| B2 | API security and trusted context | Authentication, tenant resolution, resource authorization and request limits verified |
-| B3 | Python domain-runtime bridge | Authenticated private contract, schema compatibility, bounded calls and failure handling |
-| B4 | PostgreSQL integration | Approved schema, migration checksums, tenant policies, repositories and transaction boundaries |
-| B5 | Domain API adapters | Existing CORE owners invoked through typed, versioned contracts |
-| B6 | Event and workflow integration | Outbox/inbox, idempotent consumers, durable workflow and replay/recovery tests |
-| B7 | Search, AI and provider integration | CORE-005 and AI-001 reused with tenant scope, provenance, budget and safety enforcement |
-| B8 | Customer/business journey integration | Verified end-to-end workflows across buyer, broker, builder and administration roles |
-| B9 | Production operations | Deployment, SLO, alerts, secrets, backup/restore, rollback and operational attestation |
-| B10 | Release verification | All mandatory blockers closed with exact-environment evidence and authorized approval |
-
-A stage cannot be marked complete merely because its directory or source files exist.
-
-The B0–B10 sequence does not authorize execution. The current Control Center task must first permit the relevant implementation work.
-
-## 15.4 Backend module contract
-
-Every new or materially changed module must declare:
-
-- **Owner:** One authoritative domain or platform owner.
-- **Purpose:** One bounded responsibility.
-- **Inputs:** Typed and validated request or event contract.
-- **Outputs:** Typed success and failure contract.
-- **Authorization:** Trusted server-side identity, tenant and resource scope.
-- **Persistence:** Explicit source-of-truth ownership and transaction boundary.
-- **Events:** Versioned event contract and delivery semantics, if applicable.
-- **Idempotency:** Defined duplicate-request and replay behavior for mutations.
-- **Concurrency:** Defined optimistic/pessimistic locking or conflict policy.
-- **Audit:** Actor, tenant, resource, action, correlation and causation evidence.
-- **Resilience:** Timeout, retry classification, circuit-breaker and recovery behavior.
-- **Observability:** Safe logs, metrics, traces and actionable failure signals.
-- **Tests:** Unit, integration, contract, security and regression coverage.
-- **Dependencies:** Exact upstream and downstream module references.
-
-No module may silently access another domain's private database tables or mutate another domain's state.
-
-Cross-domain behavior must use an approved contract, domain API or versioned event.
-
-## 15.5 API engineering rules
-
-- Use versioned API contracts and explicit request/response schemas.
-- Validate every external request at the server boundary.
-- Reject unknown or unsupported critical fields where silent acceptance could change business meaning.
-- Derive tenant and actor context from trusted authentication, never from an untrusted request field alone.
-- Apply resource-level authorization after tenant resolution.
-- Use stable error codes and safe error responses; never expose stack traces, secrets or internal provider payloads.
-- Use cursor pagination for large collections with deterministic ordering.
-- Define maximum page size, payload size, request duration and concurrency.
-- Define API compatibility and deprecation policy.
-- Publish OpenAPI from the actual registered routes and schemas.
-- Contract tests must detect drift between OpenAPI, runtime validation and implementation.
-- Mutating APIs must support idempotency and concurrency protection.
-- Sensitive responses must apply field-level access control and data minimization.
-
-## 15.6 Python runtime integration rules
-
-The TypeScript API must not import Python source or duplicate Python business logic.
-
-The private runtime bridge must enforce:
-
-1. Service-to-service authentication.
-2. Versioned request and response schemas.
-3. Trusted actor and tenant context propagation.
-4. Server-side authorization at the authoritative domain boundary.
-5. Strict input validation and safe serialization.
-6. Explicit timeout and cancellation behavior.
-7. Bounded retry only for retry-safe operations.
-8. Correlation and causation identifiers.
-9. Safe error translation without hiding domain conflicts.
-10. Contract compatibility tests in both runtimes.
-11. Health/readiness and dependency failure reporting.
-12. No public unauthenticated access to the Python runtime.
-
-A transport failure must not be interpreted as a successful domain mutation.
-
-If the caller cannot establish whether a mutation committed, it must reconcile using the durable operation/idempotency identity before retrying.
-
-## 15.7 Database and transaction integrity
-
-- Follow ARCH-037 and the approved database schema.
-- Do not invent parallel tables when a canonical entity already exists.
-- Use immutable, versioned migrations with checksum verification.
-- Use expand-migrate-contract for breaking schema evolution.
-- Enforce tenant isolation at the database layer wherever the approved schema requires it.
-- Use parameterized queries and explicit transaction boundaries.
-- Define unique constraints for business idempotency and ownership invariants.
-- Define foreign keys and referential integrity for canonical relationships.
-- Use safe fixed-precision financial representations and explicit currency semantics.
-- Never use floating-point arithmetic for financial amounts.
-- Define timezone-aware timestamps and explicit UTC persistence policy.
-- Keep audit history separate from mutable operational projections.
-- Treat search indexes, analytics and AI context as derived data.
-- Test migration from the previous supported schema, not only from an empty database.
-- Test rollback or forward recovery for failed migration scenarios.
-- Verify backup restoration and point-in-time recovery in the target environment.
-
-## 15.8 Event and durable workflow integrity
-
-For state-changing event publication:
-
-- Use a transactional outbox when a database transaction must publish an event.
-- Use an inbox or durable deduplication boundary for consumers.
-- Version every externally consumed event contract.
-- Preserve event ID, tenant ID, aggregate ID, aggregate version, actor, correlation and causation.
-- Define ordering requirements per aggregate, not as an unsupported global guarantee.
-- Make consumers safe for duplicate and out-of-order delivery.
-- Use dead-letter handling with controlled replay and operator visibility.
-- Reconcile failed deliveries against authoritative domain state.
-- Do not promise exactly-once messaging; establish effectively-once business outcomes through durable idempotency and reconciliation.
-- Use Temporal for long-running critical workflows and recovery.
-- Persist workflow inputs, execution identity, timeout policy and terminal outcome.
-- Do not allow an AI agent to bypass workflow approval or state-transition guards.
-
-## 15.9 Autonomous execution safety contract
-
-Every autonomous operation must be classified before execution:
-
-| Class | Examples | Required control |
-|---|---|---|
-| Read-only | Authorized property search, listing summary | Authentication, tenant and resource checks |
-| Reversible | Save a draft, prepare a follow-up summary | Scoped permission, validation and audit |
-| External side effect | Send a message, publish an approved listing | Consent, policy, idempotency and delivery evidence |
-| High impact | Change ownership, release commission, settle payment, binding commitment | Explicit authorized approval and durable evidence |
-
-The agent must follow this lifecycle:
-
-`Observe → Validate Context → Plan → Authorize → Approve if Required → Execute → Verify → Persist Receipt → Reconcile`
-
-Mandatory restrictions:
-
-- A model response cannot grant permission.
-- A tool proposal is not an execution result.
-- A timeout is not proof that an action failed.
-- A retry must not create duplicate business outcomes.
-- A successful transport response is not proof of domain completion.
-- High-impact actions require the applicable human approval.
-- Kill-switch state must be checked at the execution boundary.
-- Every mutation must produce a traceable operation identity and final receipt.
-- Uncertain outcomes must enter reconciliation, not blind retry.
-- No arbitrary shell, filesystem, database or repository access may be granted to customer-facing agents.
-
-## 15.10 AI and retrieval quality contract
-
-AI outputs must distinguish:
-
-1. Authoritative records.
-2. Deterministic calculations.
-3. Derived search/retrieval results.
-4. Model-generated summaries or recommendations.
-
-Required controls:
-
-- Tenant- and resource-scoped retrieval.
-- Source provenance and freshness.
-- Source-bound citations where factual claims require them.
-- Prompt-injection and untrusted-document defenses.
-- Explicit unsupported-criteria reporting.
-- No fabricated inventory, availability, price, legal or financial facts.
-- No unsupported valuation, credit or investment claims.
-- Versioned evaluation datasets and benchmark methodology.
-- Numeric quality thresholds approved by an accountable owner.
-- Regression tests for English, Hindi and Marathi, including Pune locality terminology.
-- Cost and token limits enforced before provider invocation.
-- Provider fallback must preserve authorization, model policy and request semantics.
-- AI failures must not bypass ordinary domain workflows.
-
-## 15.11 Security and privacy contract
-
-Every public API, private adapter, worker and tool must be assessed for:
-
-- Authentication and session revocation.
-- Tenant isolation and cross-tenant IDOR.
-- Resource/action-level authorization.
-- CSRF where cookie-based browser authentication applies.
-- Rate limiting and abuse controls.
-- SSRF and unsafe URL handling.
-- Injection and unsafe deserialization.
-- File upload validation and malware scanning.
-- Signed webhook verification and replay protection.
-- Secret storage, access restriction and rotation.
-- PII classification, minimization and redaction.
-- Retention, deletion and legal-hold behavior.
-- Audit integrity and privileged-access monitoring.
-- Dependency, container and supply-chain security.
-- Prompt injection, excessive agency and sensitive-information disclosure.
-- Backup access and restoration security.
-
-A failed authorization dependency must fail closed for protected operations.
-
-## 15.12 Reliability and operational engineering
-
-Every production service must define:
-
-- Startup, liveness and readiness behavior.
-- Graceful shutdown and in-flight request policy.
-- Connection pool and resource limits.
-- Timeout budgets across service boundaries.
-- Retry classification and backoff limits.
-- Circuit-breaker and bulkhead behavior where required.
-- Queue lag and consumer health.
-- Database connection and migration health.
-- Provider failure and fallback visibility.
-- Structured logs with secret/PII redaction.
-- Distributed trace correlation.
-- Service-level indicators and objectives.
-- Alert ownership, escalation and on-call response.
-- Incident and recovery runbooks.
-- Backup, restore and disaster-recovery evidence.
-- Rollback or forward-recovery rehearsal.
-
-No production-readiness claim may be based only on source compilation or a development CI run.
-
----
-
-# 16. File-Level Implementation Map
-
-This map refines the target structure in Section 4. It does not claim these files currently exist.
-
-**File classification:**
-
-- `EXISTING / REUSE` — preserve the current owner and inspect its interface.
-- `EXISTING / UPDATE` — change only after reading the current implementation and callers.
-- `NEW / CONDITIONAL` — create only when repository search proves no equivalent exists and the active task authorizes it.
-- `TEST REQUIRED` — no implementation is complete without the relevant verification.
-
-## 16.1 Fastify application foundation
-
-Target root: `REOS_CONTROL_CENTER/backend/`
-
-| Candidate file | Responsibility | Classification |
-|---|---|---|
-| `package.json` | Locked scripts and runtime dependencies | NEW / CONDITIONAL |
-| `package-lock.json` | Reproducible dependency graph | Generated with approved package manager |
-| `tsconfig.json` | Strict TypeScript project rules | NEW / CONDITIONAL |
-| `tsconfig.build.json` | Production build boundary | NEW / CONDITIONAL |
-| `src/main.ts` | Process entrypoint and signal handling | NEW / CONDITIONAL |
-| `src/app.ts` | Fastify instance composition | NEW / CONDITIONAL |
-| `src/bootstrap/build_app.ts` | Deterministic application construction | NEW / CONDITIONAL |
-| `src/bootstrap/register_plugins.ts` | Explicit plugin registration order | NEW / CONDITIONAL |
-| `src/bootstrap/register_routes.ts` | Versioned route registration | NEW / CONDITIONAL |
-| `src/bootstrap/error_handler.ts` | Safe canonical error mapping | NEW / CONDITIONAL |
-| `src/bootstrap/health_checks.ts` | Liveness/readiness contracts | NEW / CONDITIONAL |
-| `src/bootstrap/graceful_shutdown.ts` | Bounded process shutdown | NEW / CONDITIONAL |
-| `src/config/env_schema.ts` | Fail-fast environment validation | NEW / CONDITIONAL |
-| `src/config/settings.ts` | Typed immutable configuration | NEW / CONDITIONAL |
-
-## 16.2 API security boundary
-
-Target root: `REOS_CONTROL_CENTER/backend/src/security/`
-
-| Candidate module | Responsibility |
-|---|---|
-| `authentication/` | Trusted principal extraction and token verification |
-| `authorization/` | Resource/action permission enforcement |
-| `tenant_context/` | Server-derived tenant and operating-mode scope |
-| `session_revocation/` | Revoked/expired session enforcement |
-| `rate_limits/` | Per-actor, tenant and provider limits |
-| `input_validation/` | Boundary schemas and canonical parsing |
-| `pii_redaction/` | Safe logging and telemetry |
-| `audit/` | Correlated access and mutation evidence |
-| `secrets/` | Secret access interfaces, never hardcoded credentials |
-
-Reuse CORE-001 and existing authentication/security owners. The API security layer must not create a second identity or tenant registry.
-
-## 16.3 Domain API adapters
-
-Target root: `REOS_CONTROL_CENTER/backend/src/modules/`
-
-| API module | Canonical domain owner | Rule |
-|---|---|---|
-| `identity/` and `tenants/` | CORE-001 | Adapter only; no parallel identity store |
-| `inventory/` | CORE-004 | Canonical inventory operations |
-| `search/` | CORE-005 | Typed criteria, structured filters and unsupported criteria |
-| `leads/` | CORE-003 | Attribution and ownership remain canonical |
-| `visits/` | Existing approved owner to be verified | Do not create duplicate visit authority |
-| `conversations/` | Existing approved owner to be verified | Persistence and retention require approved data ownership |
-| `ai/` | AI-001 | Existing gateway, retrieval and governed tools |
-| `deals/` | CORE-006 | Deal lifecycle and state transitions remain canonical |
-| `trust/` | CORE-007 | Fraud, trust and governance decisions remain canonical |
-| `commission/` | CORE-008 | Financial truth and approval remain canonical |
-| `billing_entitlements/` | Existing approved owner to be verified | Brokerage commission and SaaS billing remain separate |
-| `documents/` | Existing approved owner to be verified | Private storage, access and retention |
-| `notifications/` | Existing approved owner to be verified | Consent, provider delivery and receipts |
-| `analytics/` | Existing approved owner to be verified | Derived, tenant-safe reporting only |
-| `administration/` | Existing approved owner to be verified | Privileged access and audit |
-
-A module marked “owner to be verified” is an architecture investigation item, not permission to create a new domain engine.
-
-## 16.4 Platform adapters
-
-Target root: `REOS_CONTROL_CENTER/backend/src/platform/`
-
-| Candidate module | Responsibility |
-|---|---|
-| `postgres/` | Approved PostgreSQL connection, transaction and repository primitives |
-| `redis/` | Ephemeral cache and coordination |
-| `kafka/` | Producers, consumers, outbox and inbox |
-| `temporal/` | Durable workflow client and worker integration |
-| `object_storage/` | Private object storage and signed access |
-| `qdrant/` | Derived vector-search adapter |
-| `observability/` | Logs, metrics, traces and safe telemetry |
-| `resilience/` | Timeout, retry, circuit-breaker and concurrency primitives |
-| `errors/` | Typed application and integration errors |
-| `correlation/` | Request, event and workflow correlation |
-| `clock/` | Testable time abstraction |
-| `ids/` | Approved ID generation and validation |
-
-These modules must remain infrastructure primitives. They must not contain lead, inventory, deal or financial business decisions.
-
-## 16.5 Python integration boundary
-
-Target root: `REOS_CONTROL_CENTER/AUTONOMY_ENGINE/runtime/domain_runtime/`
-
-| Candidate module | Responsibility |
-|---|---|
-| `contracts/` | Versioned private request/response schemas |
-| `service/` | Private runtime composition |
-| `authorization/` | Trusted context and domain-policy enforcement |
-| `serialization/` | Strict safe serialization |
-| `health/` | Runtime readiness and dependency health |
-| `tests/` | Contract, authorization, tenant and failure tests |
-
-This boundary must invoke existing CORE and AI owners. It must not copy their business logic.
-
-## 16.6 Contracts
-
-Target root: `REOS_CONTROL_CENTER/backend/contracts/`
-
-- `api/` — public versioned API contracts.
-- `domain_runtime/` — private Python runtime contracts.
-- `ai_runtime/` — AI request, tool and result contracts.
-- `events/` — versioned domain event schemas.
-- `openapi/` — generated and validated API specification.
-
-Contracts must have compatibility tests and an explicit versioning/deprecation policy.
-
-## 16.7 Database and tests
-
-Target roots:
-
-- `REOS_CONTROL_CENTER/backend/database/`
-- `REOS_CONTROL_CENTER/backend/tests/`
-
-Required test ownership:
-
-| Test area | Minimum responsibility |
-|---|---|
-| `unit/` | Deterministic isolated behavior |
-| `integration/` | Real dependency and repository behavior |
-| `api/` | Route validation, auth and response contracts |
-| `contract/` | TypeScript/Python/event compatibility |
-| `tenancy/` | Cross-tenant denial and isolation |
-| `security/` | Adversarial authorization and input cases |
-| `e2e/` | Real business journeys |
-| `reliability/` | Timeouts, retries, duplicate delivery and recovery |
-| `performance/` | Load, latency and concurrency thresholds |
-| `migration/` | Upgrade, integrity and recovery behavior |
-
-No empty placeholder test directories are acceptable as evidence.
-
----
-
-# 17. Existing CI Extension Contract
-
-Extend the existing:
+Preserve the existing:
 
 - `.github/workflows/backend-ci.yml`
 - `.github/workflows/reusable-backend-verification.yml`
 - `.github/actions/homio-backend-ci/`
 
-Do not create a second monolithic backend workflow.
+Do not add a second competing backend CI workflow.
 
-## 17.1 Required CI stages
+The current backend CI path filters must be rechecked before implementation. The inspected workflow did not yet include `REOS_CONTROL_CENTER/backend/**` in its push path list.
 
-1. Repository/path and scope validation.
-2. Dependency lockfile integrity.
-3. TypeScript strict compilation and lint.
-4. Python compile/import checks for affected source.
-5. Unit tests.
-6. API and OpenAPI contract validation.
-7. Python runtime contract tests.
-8. Complete required CORE-001–CORE-008 regression coverage.
-9. Database migration and tenant-policy tests.
-10. Event, workflow and idempotency tests.
-11. AI safety, retrieval and quality evaluations.
-12. Cross-tenant and adversarial security tests.
-13. E2E business journey tests.
-14. Performance/reliability checks where required.
-15. Artifact and evidence generation.
+Once the backend root is authorized and created, extend the existing workflow path filters and modular verification action to include it.
 
-## 17.2 CI must fail closed when
+Keep existing ACRL, CORE, AI and governance tests intact.
 
-- A required suite is absent or silently skipped.
-- A test command reports zero tests unexpectedly.
-- A required test is marked skipped without an approved reason.
-- The tested SHA differs from the source commit being reported.
-- Contract generation and runtime schemas disagree.
-- A migration checksum or compatibility check fails.
-- Tenant isolation or authorization fails.
-- A high-impact mutation bypasses approval.
-- An idempotency or recovery invariant fails.
-- An AI evaluation falls below its approved threshold.
-- A critical security or dependency check fails.
+## 17.2 Required verification stages
 
-Every verification artifact must record:
+1. Repository/path and ownership validation.
+2. Dependency and lockfile integrity.
+3. TypeScript strict build and lint when backend source exists.
+4. Python compile/import checks for affected owners.
+5. Focused unit tests.
+6. Existing CORE/AI regression.
+7. Public API and OpenAPI validation.
+8. TypeScript/Python contract validation.
+9. Database migration and RLS tests.
+10. Event and workflow/idempotency tests.
+11. AI safety and retrieval evaluation.
+12. Cross-tenant adversarial security tests.
+13. Real-estate E2E journeys.
+14. Reliability and performance checks.
+15. Artifact/evidence generation.
 
-- Repository and branch.
-- Exact commit SHA.
-- Workflow run ID and URL.
-- Test command and declared scope.
-- Passed, failed, skipped and blocked counts.
-- Artifact references.
-- Environment classification.
-- Residual blockers.
+## 17.3 CI governance
 
-Do not combine overlapping test counts and report them as unique tests.
+- Use least-privilege permissions.
+- Pin third-party actions according to approved policy.
+- Avoid secret exposure.
+- Preserve workflow concurrency safety.
+- Keep Control Center transitions behind their existing explicit guards.
+- Verification must not silently mutate canonical state.
+- Branch/environment protection must be independently verified.
+- Workflow result must be bound to the exact commit SHA.
 
 ---
 
-# 18. Implementation Batch Acceptance Template
-
-Every implementation batch must close with this evidence record:
-
-| Field | Required evidence |
-|---|---|
-| Authorized task | Exact live gate/subtask |
-| Baseline | HEAD and state blob SHA |
-| Files changed | Exact paths and before/after blob SHAs |
-| Ownership | Existing owner and duplicate review |
-| Contracts | Updated/generated schema references |
-| Tests | Exact commands and result counts |
-| Security | Relevant adversarial and tenant tests |
-| Recovery | Retry/idempotency/reconciliation result |
-| Actions | Exact workflow run and tested SHA |
-| Readback | Remote file content verified |
-| Residual risks | Explicit unresolved items |
-| State transition | Only through existing authorized Control Center process |
-
-A batch is not complete if any required evidence is missing.
-
-## 18.1 No false completion
-
-The following are not valid completion claims:
-
-- “Folder structure created, therefore backend complete.”
-- “TypeScript compiles, therefore API production-ready.”
-- “Python tests pass, therefore customer workflows work.”
-- “AI responds, therefore autonomous execution is safe.”
-- “CI green, therefore deployment is production-ready.”
-- “A file mentions a feature, therefore the feature is implemented.”
-- “A previous commit passed, therefore the current commit passed.”
-
-Report implemented, tested, deployed and production-attested as separate states.
-
-## 18.2 Required final batch report
-
-Every implementation batch must report:
-
-1. What changed.
-2. Why each change was required.
-3. Existing owner reused.
-4. Exact changed file paths.
-5. Exact tests run.
-6. Exact Actions run and tested SHA.
-7. What passed.
-8. What failed or was blocked.
-9. What remains.
-10. Whether the task is complete under its acceptance criteria.
-
----
-
-# 19. Repository-Specific Open Decisions and Known Reconciliation Items
-
-These items must be resolved from live repository evidence before the related implementation.
-
-1. **Backend application presence:** Verify whether the dedicated Fastify application and its package manifest now exist. The previous audit did not find them at the proposed paths.
-2. **Database deployment:** Verify actual PostgreSQL provisioning, migration execution, tenant policies, backup and restore; an approved schema document is not deployment evidence.
-3. **Python runtime hosting:** Inspect current dependencies and existing runtime servers before choosing a hosting framework or adding a dependency.
-4. **Customer and conversation authority:** Identify existing owners for conversation persistence, consent, retention and deletion before creating any module.
-5. **Visit and communication authority:** Identify existing visit, notification and evidence owners before creating adapters.
-6. **SaaS billing authority:** Confirm the existing source of truth for subscriptions, entitlements and usage before adding billing persistence.
-7. **Search Q10:** Close all four documented criteria gaps with canonical CORE-005 contract and E2E evidence.
-8. **Shared AI usage ledger:** Verify that production multi-replica usage budgets are backed by the approved shared transactional store; local SQLite evidence alone is insufficient.
-9. **Production blockers:** Re-check all 18 inherited blockers against the current release gate and exact target environment.
-10. **CI path coverage:** Ensure changes under the actual backend application path trigger the existing backend verification workflow.
-11. **Production release controls:** Verify protected environment, reviewers, secrets, migration strategy, rollback and deployment attestation.
-12. **Canonical state reconciliation:** The reviewed state shows `PLAN-004 / ARCH-039` as COMPLETE in the authoritative execution sequence while `architecture.pending` still lists ARCH-039 as PENDING. This inconsistency must be reconciled through the existing authorized governance process; this document must not choose or silently rewrite either value.
-
-No item above authorizes creating a duplicate system or bypassing the current task sequence.
-
----
-
-# 20. Final Engineering Standard
-
-HOMIO backend engineering must optimize for:
-
-- Correct business outcomes, not file count.
-- Explicit ownership, not duplicated modules.
-- Strong contracts, not loosely coupled guesses.
-- Server-side authorization, not UI trust.
-- Durable state and idempotency, not blind retries.
-- Grounded AI, not fabricated certainty.
-- Measured reliability, not optimistic claims.
-- Recoverable autonomous operations, not uncontrolled agency.
-- Verified production evidence, not documentation-only completion.
-
-**Zero defects cannot be guaranteed by architecture or code review alone.** The engineering target is to detect, prevent, contain and recover from defects through strict contracts, deterministic tests, adversarial testing, observability, reconciliation and controlled release gates.
-
----
-
-# 21. Master Working Contract — Execution Order, Cross-Chat Continuity and Change Control
-
-This section is the mandatory operating contract for every new AI/GPT chat working on backend scope.
-
-It is written so that a new chat can continue the work without requiring the owner to understand software engineering, repeat project history or manually decide the correct technical order.
-
-## 21.1 Purpose
-
-This section ensures that:
-
-- Every chat starts from the same live repository facts.
-- The correct task is selected from canonical state, not from memory.
-- The backend master remains the single human-readable backend reference.
-- Existing CORE and AI implementations are reused.
-- No duplicate file, module, API, database, workflow, ledger or test system is introduced.
-- Backend and frontend ownership remain separate.
-- Implementation follows dependency order.
-- Every batch has test and evidence requirements.
-- No chat claims completion without exact GitHub Actions and repository evidence.
-- Work can be continued safely after the previous chat ends.
-
-## 21.2 Absolute authority rules
-
-Every agent must follow this order:
-
-1. Live `REOS_CONTROL_CENTER/data/state.json` determines the current task, gate and subtask.
-2. Live `reos-development` determines repository code and history.
-3. `AI_AGENT_ENTRYPOINT.py` determines agent startup, workstream routing and operating policy.
-4. Approved architecture and domain references determine technical ownership and contracts.
-5. This `HOMIO_Backend_Structure` file determines backend architecture, gap coverage and technical dependency sequence.
-6. Chat history, saved memory and handover notes provide context only.
-
-A lower authority must never override a higher authority.
-
-A plan document does not grant permission to execute a task.
-
-A previous chat does not establish current repository state.
-
-## 21.3 Mandatory startup sequence for every new chat
-
-Before proposing or changing code, the new chat must:
-
-1. Read `REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py`.
-2. Refresh the live `reos-development` branch and exact HEAD SHA.
-3. Read `REOS_CONTROL_CENTER/data/state.json`.
-4. Record the live state blob SHA.
-5. Verify the current gate, task, subtask, acceptance criteria and next-step source.
-6. Declare the workstream: `BACKEND`, `FRONTEND` or `SHARED_INTEGRATION`.
-7. Read the relevant approved architecture and this backend master.
-8. Read the relevant CORE, AI-001, H360 or frontend contract only when required by the selected task.
-9. Inspect the exact source files, imports, callers, tests, workflow filters and evidence.
-10. Review relevant recent commits and GitHub Actions runs.
-11. Identify existing owners and duplicates before proposing any file change.
-12. Apply the applicable ACRL authorization, repair, Git coordination, evidence and checkpoint boundaries.
-
-If live state cannot be fetched or validated, implementation must stop.
-
-If the exact target file cannot be inspected, it cannot be classified as missing or NEW.
-
-If branch HEAD changes during an implementation batch, refresh the baseline before continuing.
-
-## 21.4 Current project execution order — never restart completed work
-
-The live authoritative sequence read during Version 3.0 preparation is:
-
-| Sequence | Gate | Status in the readback | Rule |
-|---:|---|---|---|
-| 1–6 | ARCH-036 through ENG-001 | COMPLETE | Do not restart without repository evidence and authorization |
-| 7–14 | CORE-001 through CORE-008 | COMPLETE | Reuse existing domain owners; do not recreate |
-| 15 | AI-001 | COMPLETE | Reuse existing AI platform; do not reopen without authorization |
-| 16 | APP-001 | CURRENT | Follow the exact active application task and subtask |
-| 17 | REL-001 | FUTURE | Start only after the canonical transition |
-| 18 | SCALE-001 | FUTURE | Start only after the canonical transition |
-
-The active task in the state readback is:
-
-**APP-001-T01 — Implement application shell and design system.**
-
-The backend technical plan below must not override that current application task.
-
-During APP-001:
-
-- Backend API contracts may be consulted where APP-001 requires them.
-- Backend/frontend integration must follow the approved ownership boundary.
-- Backend implementation work may proceed only when the live task scope or explicit approved shared-integration authorization permits it.
-- Do not restart CORE-001 through CORE-008.
-- Do not reopen AI-001 merely because the application needs to consume its capabilities.
-- Do not treat this backend master as a task transition.
-- Do not change `state.json` to make the backend sequence appear active.
-
-The next task must always be read from live state after every authorized task transition.
-
-## 21.5 Backend technical dependency order — B0 through B10
-
-The following is the required technical order for backend implementation once the Control Center authorizes the relevant backend scope.
-
-It is not a second execution-state system.
-
-### B0 — Live repository audit and ownership verification
-
-**Goal:** Establish exactly what already exists before writing anything.
-
-Required work:
-
-- Read live branch HEAD and state.
-- Inspect current backend application presence.
-- Inspect all CORE-001 through CORE-008 ownership.
-- Inspect AI-001 platform ownership.
-- Inspect existing authentication, tenant, event, database and runtime integrations.
-- Inspect existing modular CI and test structure.
-- Inspect API routes and frontend integration contracts.
-- Inspect imports, callers and workflow path filters.
-- Reconcile prior audit findings with live source.
-- Identify duplicates, stale files and genuine missing capabilities.
-- Create an evidence-based change classification for each candidate file.
-
-**Exit condition:**
-
-- Current source baseline is recorded.
-- Every relevant domain has an identified owner.
-- Every candidate file is classified.
-- Duplicate ownership is resolved or formally recorded.
-- No implementation is proposed from stale assumptions.
-
-B0 may be performed as a read-only audit when useful to a currently authorized task. It does not authorize implementation.
-
-### B1 — Backend application foundation
-
-**Goal:** Establish one reproducible public API application.
-
-Required scope:
-
-- Inspect the existing application before deciding whether to create or update it.
-- Establish the approved Fastify composition boundary.
-- Validate runtime configuration at startup.
-- Define plugin and route registration order.
-- Implement safe error mapping.
-- Provide liveness and readiness endpoints.
-- Implement graceful shutdown.
-- Establish reproducible build and lockfile checks.
-- Separate public API process responsibilities from background workers.
-
-**Exit condition:**
-
-- Build is reproducible.
-- Configuration fails safely when invalid.
-- Health and readiness semantics are tested.
-- Graceful shutdown is tested.
-- No duplicate API application exists.
-
-### B2 — API security and trusted context
-
-**Goal:** Make every protected API enforce identity and tenant security before domain operations.
-
-Required scope:
-
-- Integrate CORE-001 and the approved identity provider.
-- Verify authentication and session validity.
-- Resolve trusted actor and tenant context.
-- Enforce resource and action permissions.
-- Enforce session revocation.
-- Add CSRF controls where applicable.
-- Add rate and abuse limits.
-- Add input validation.
-- Add PII-safe logging and audit.
-- Fail closed on authorization dependency failure.
-
-**Exit condition:**
-
-- Authenticated access works.
-- Buyer, broker, builder and privileged roles are isolated.
-- Cross-tenant negative tests pass.
-- Revocation and unauthorized-action tests pass.
-- No second identity or tenant registry is introduced.
-
-### B3 — Python domain-runtime bridge
-
-**Goal:** Let the TypeScript API invoke existing Python domain owners safely.
-
-Required scope:
-
-- Inspect existing runtime hosting and dependency decisions.
-- Define versioned private request/response contracts.
-- Enforce service-to-service authentication.
-- Propagate trusted actor, tenant and correlation context.
-- Validate serialized data.
-- Define timeout, cancellation and failure classification.
-- Prevent public unauthenticated access.
-- Add TypeScript/Python contract tests.
-- Reconcile ambiguous mutation outcomes with durable idempotency identity.
-
-**Exit condition:**
-
-- Private runtime bridge is authenticated.
-- Contract versions are compatible.
-- Authorization context is preserved.
-- Timeout and failure behaviour is tested.
-- No Python business logic is copied into TypeScript.
-
-### B4 — PostgreSQL integration
-
-**Goal:** Establish approved persistent business data integration without creating a parallel data model.
-
-Required scope:
-
-- Re-read ARCH-037 and approved schema.
-- Inspect existing database source and migrations.
-- Reuse canonical schema and ownership.
-- Implement only authorized migration changes.
-- Validate migration checksums and ordering.
-- Implement approved repository and transaction patterns.
-- Apply tenant policies.
-- Enforce uniqueness and referential integrity.
-- Define fixed-precision financial semantics.
-- Test supported upgrade and recovery paths.
-- Verify backup and restore in the target environment.
-
-**Exit condition:**
-
-- Approved schema is implemented and migratable.
-- Tenant protections are tested.
-- Transaction boundaries are explicit.
-- Financial types are safe.
-- Backup/restore evidence exists for release-critical paths.
-
-### B5 — Domain API adapters
-
-**Goal:** Expose customer/business operations through typed APIs while preserving canonical CORE ownership.
-
-Required integration order:
-
-| Adapter | Reuse owner | Main responsibility |
-|---|---|---|
-| Identity/tenants | CORE-001 | Trusted actor and membership context |
-| Events | CORE-002 | Event publication and consumption contracts |
-| Leads | CORE-003 | Lead capture, ownership and attribution |
-| Inventory | CORE-004 | Project/property/unit operations |
-| Search | CORE-005 | Typed filters, matching and Q10 criteria |
-| Deals | CORE-006 | Deal lifecycle and state transitions |
-| Trust | CORE-007 | Fraud, governance and approvals |
-| Commission | CORE-008 | Financial truth and settlement |
-
-Required rules:
-
-- Implement adapters, not duplicate domain engines.
-- Use typed/versioned requests and responses.
-- Validate server-side authorization.
-- Keep database ownership canonical.
-- Test errors, retries, concurrency and idempotency.
-- Preserve source provenance and audit context.
-
-**Exit condition:**
-
-- Every adapter calls its canonical owner.
-- API contract tests pass.
-- No cross-domain private-table mutation is introduced.
-- No duplicate business rule is created.
-
-### B6 — Event and durable workflow integration
-
-**Goal:** Ensure cross-domain operations survive duplication, retries, process restarts and partial failures.
-
-Required scope:
-
-- Versioned events.
-- Transactional outbox.
-- Inbox/deduplication boundary.
-- Correlation and causation identity.
-- Aggregate ordering rules.
-- Dead-letter and controlled replay.
-- Durable Temporal workflows.
-- Idempotent state transitions.
-- Reconciliation for ambiguous outcomes.
-- Operator-visible failure states.
-
-**Exit condition:**
-
-- Duplicate and out-of-order delivery tests pass.
-- Recovery and replay tests pass.
-- No unsupported exactly-once claim is made.
-- High-impact workflows preserve approval and audit.
-
-### B7 — Search, AI and provider integration
-
-**Goal:** Connect the existing search and AI platforms to customer APIs without weakening authorization or data quality.
-
-Required scope:
-
-- Reuse CORE-005 for canonical search and matching.
-- Implement versioned structured search criteria.
-- Report unsupported or ambiguous criteria.
-- Reuse AI-001 model gateway and agent runtime.
-- Enforce tenant/resource-scoped retrieval.
-- Verify source-bound citations.
-- Defend against prompt injection.
-- Enforce provider timeouts and fallback policy.
-- Enforce cost limits before invocation.
-- Reconcile provider-reported versus estimated usage.
-- Provide English/Hindi/Marathi and Pune-specific evaluation coverage.
-
-**Exit condition:**
-
-- Q10 criteria contract and filters are verified.
-- AI output is grounded in authorized source records.
-- Usage and budget controls are enforced.
-- Unsupported facts are not fabricated.
-- Provider fallback preserves the same policy and authorization rules.
-
-### B8 — Complete customer and business journeys
-
-**Goal:** Verify that backend domains operate together through real user journeys.
-
-Required journeys:
-
-1. Buyer registration and account access.
-2. Broker/agent onboarding and membership.
-3. Builder/developer onboarding.
-4. Project and inventory ingestion.
-5. Inventory verification and listing publication.
-6. Property discovery and structured search.
-7. Customer enquiry and consent.
-8. Lead qualification and attribution.
-9. Broker/tenant ownership and follow-up.
-10. Communication and delivery receipts.
-11. Site-visit scheduling and attendance evidence.
-12. Builder acknowledgement.
-13. Offer and negotiation.
-14. Deal lifecycle and documents.
-15. Trust/fraud review.
-16. Commission eligibility and calculation.
-17. Settlement and reconciliation.
-18. Dispute and adjustment.
-19. Reporting and closeout.
-
-**Exit condition:**
-
-- Critical journeys pass end-to-end.
-- Access is isolated by role and tenant.
-- Every important state transition has authorization and evidence.
-- Failure/recovery paths are tested.
-- No frontend business logic is required to enforce backend security.
-
-### B9 — Production operations
-
-**Goal:** Demonstrate that the backend can be safely operated.
-
-Required scope:
-
-- Deployment configuration.
-- Secret handling and rotation.
-- Rate limits and abuse controls.
-- SLO/SLI definition and evidence.
-- Metrics, logs and tracing.
-- Monitoring and alert delivery.
-- On-call ownership.
-- Incident and recovery runbooks.
-- Kill switch.
-- Backup and restore.
-- Migration recovery.
-- Rollback or forward recovery.
-- Data residency and provider configuration.
-- Operational attestation.
-
-**Exit condition:**
-
-- Operational controls work in the actual target environment.
-- Evidence is current and bound to the deployed SHA.
-- Failure and recovery exercises pass.
-- Named owners and escalation paths exist.
-
-### B10 — Release verification
-
-**Goal:** Close the canonical production gate without weakening any control.
-
-Required scope:
-
-- Re-read current production readiness gate.
-- Re-evaluate all inherited 18 blockers.
-- Run the complete required backend verification scope.
-- Verify exact commit SHA and Actions results.
-- Verify release environment protection and approvals.
-- Verify migration and backup recovery evidence.
-- Verify operational attestation.
-- Verify all residual risks and approved exceptions.
-- Obtain the required accountable approval.
-
-**Exit condition:**
-
-- Every mandatory blocker is closed with fresh evidence or explicitly rejected from release.
-- Exact tested and deployed identities are recorded.
-- Required approvals are present.
-- Production release is authorized through the canonical process.
-
-A green development workflow alone is not a B10 pass.
-
-## 21.6 Stage dependencies and sequencing rules
-
-The stages are dependency ordered:
-
-`B0 → B1 → B2 → B3 → B4 → B5 → B6 → B7 → B8 → B9 → B10`
-
-Some investigation may overlap when it is read-only and authorized. Implementation must not skip a prerequisite merely to work faster.
-
-Examples:
-
-- Do not expose customer routes before trusted security context is established.
-- Do not persist new business entities before checking the approved schema and canonical domain owner.
-- Do not call Python domain logic without a versioned, authenticated private contract.
-- Do not publish state-changing events without transaction and idempotency design.
-- Do not expose AI tools before server-side authorization and budget enforcement.
-- Do not claim customer readiness before full business journeys pass.
-- Do not claim production readiness before operational evidence and release approval.
-
-If a dependency is unavailable, record the blocker and continue only with disjoint work that remains authorized.
-
-## 21.7 Per-stage deliverables
-
-Every B-stage must produce:
-
-1. Exact live baseline.
-2. Scope and ownership record.
-3. Files reused, updated, added or left unchanged.
-4. Contract/interface changes.
-5. Test plan.
-6. Test results.
-7. CI/Actions evidence.
-8. Readback verification.
-9. Residual risks and blockers.
-10. Clear recommendation for the next authorized step.
-
-Do not create a second planning file for each B-stage. Record its execution evidence in the existing approved evidence location and report it in the current chat.
-
-## 21.8 Mandatory test order
-
-For each implementation batch, run the applicable tests in this order:
-
-1. Static checks and syntax/compile validation.
-2. Focused unit tests.
-3. Existing owner/domain regression tests.
-4. API and schema contract tests.
-5. Database and migration tests.
-6. Tenant isolation and security tests.
-7. Integration tests.
-8. Event/workflow/idempotency/recovery tests.
-9. End-to-end customer journey tests.
-10. Reliability/performance tests where required.
-11. Complete required CI workflow.
-12. Exact-SHA readback and evidence verification.
-
-A test must not be described as passed unless it was actually run and its result was observed.
-
-A test that was not run must be labelled NOT RUN, BLOCKED or NOT APPLICABLE with a reason.
-
-A skipped test must not silently count as a pass.
-
-## 21.9 Change-control and approval rules
-
-Before any material change:
-
-- Identify the current authorized task.
-- Identify the exact files and owners affected.
-- Inspect the live source baseline.
-- Inspect direct and indirect dependencies.
-- Identify frontend/backend integration impact.
-- Identify security, data and migration impact.
-- Identify rollback/recovery implications.
-- Obtain the required architecture and execution approvals.
-
-Do not create a new technology decision by editing this backend master.
-
-Do not modify `state.json` to move a task forward.
-
-Do not use ACRL as a substitute for domain ownership.
-
-Do not bypass T18, T20, T21, T22, T23 or T24 responsibilities.
-
-For repository writes, follow the current EntryPoint and applicable ACRL contracts. A user request does not remove required authorization artifacts or technical verification requirements.
-
-## 21.10 Cross-chat continuity contract
-
-Every new chat must receive or discover:
-
-- This exact backend master path.
-- `AI_AGENT_ENTRYPOINT.py`.
-- Live `state.json`.
-- Live branch HEAD.
-- Current backend task/subtask if authorized by state.
-- Relevant CORE/AI/H360 references.
-- Exact current target-file paths and blob SHAs.
-- Latest relevant Actions run and tested SHA.
-- Remaining blockers and residual risks.
-- Last verified completion boundary.
-
-A handover must distinguish:
-
-- Verified completed work.
-- Implemented but not tested.
-- Tested but not deployed.
-- Deployed but not production-attested.
-- Not started.
-- Blocked.
-- Unknown or requiring live re-verification.
-
-Never report an item as complete merely because it appears in the previous chat's summary.
-
-## 21.11 Required new-chat prompt
-
-The following instruction is the standard handover prompt for a new backend chat:
-
-> You are continuing HOMIO / REOS backend engineering.
->
-> Repository: `prajaktaranjane80-sketch/Homio`.
->
-> Canonical branch: `reos-development`.
->
-> First read `REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py`.
->
-> Refresh the live branch HEAD and read `REOS_CONTROL_CENTER/data/state.json`. Do not rely on old chat history or copied SHAs for current state.
->
-> Read `REOS_CONTROL_CENTER/architecture/backend/plans/HOMIO_Backend_Structure` in full. This is the single human-readable backend architecture and execution reference.
->
-> Read the relevant approved CORE, AI-001, H360 and architecture references only where the current task requires them.
->
-> Declare BACKEND, FRONTEND or SHARED_INTEGRATION.
->
-> Follow the current task and subtask from live state. Do not invent or activate backend work merely because this backend master exists.
->
-> CORE-001 through CORE-008 and AI-001 are marked COMPLETE in the last recorded authoritative sequence. Reuse their canonical implementations. Never recreate them or reopen them without live repository evidence and authorization.
->
-> Follow technical dependency stages B0–B10 in Section 21. B0 is read-only audit. Implementation requires the current authorized task.
->
-> Before changing any file, inspect the exact live file, callers, tests, contracts and workflow path filters. Avoid duplicate files, duplicated business logic and duplicate test suites.
->
-> Keep ACRL as continuity/recovery infrastructure, not customer business runtime.
->
-> Backend owns API contracts, business rules, persistence and server-side authorization. Frontend consumes those contracts and must not duplicate backend logic.
->
-> Follow the current EntryPoint and applicable ACRL authorization, repair, Git coordination, evidence and checkpoint contracts.
->
-> Do not modify `state.json` or claim task completion without the canonical transition process.
->
-> After implementation, provide exact changed file paths, tests, Actions run, tested SHA, remote readback, residual risks and the next authorized task.
->
-> Do not give a plan-only response. When implementation is authorized, carry out the actual bounded implementation work, verify it and provide complete file content in the owner's approved GitHub editing workflow.
->
-> If anything is uncertain, inspect the live repository and its evidence before deciding.
-
-## 21.12 Required response format for every engineering chat
-
-Every chat must report progress in this format:
-
-### A. Current authority
-
-- Repository:
-- Branch:
-- Live HEAD:
-- State blob SHA:
-- Current gate:
-- Current task:
-- Current subtask:
-- Workstream:
-- Backend master blob SHA:
-
-### B. Task decision
-
-- Is the task authorized?
-- Why is it the next task?
-- What acceptance criteria apply?
-- What must not be reopened?
-
-### C. Audit result
-
-- Existing files reused:
-- Existing files needing update:
-- Truly new files justified:
-- Duplicates rejected:
-- Dependencies:
-- Risks and blockers:
-
-### D. Actual work performed
-
-- Exact file paths:
-- Implementation completed:
-- Contracts changed:
-- Tests added or updated:
-- Evidence generated:
-
-### E. Verification
-
-- Exact test commands:
-- Passed:
-- Failed:
-- Skipped:
-- Blocked:
-- Actions run ID:
-- Tested SHA:
-- Remote readback:
-
-### F. Remaining work
-
-- Completed:
-- In progress:
-- Not started:
-- Blocked:
-- Next authorized action:
-
-Do not use vague claims such as “everything is done”, “world-class complete” or “all tests pass” without evidence.
-
-## 21.13 Owner working agreement — non-developer workflow
-
-The project owner is not expected to write, debug or integrate implementation code manually.
-
-The engineering agent must:
-
-1. Inspect the repository and determine the correct action.
-2. Explain the action in plain language.
-3. Provide the exact GitHub file path.
-4. Provide complete replacement content when a file replacement is needed.
-5. Clearly state whether the action is REPLACE, APPEND or CREATE.
-6. Never give a patch fragment when a complete file replacement is required.
-7. Avoid asking the owner to decide technical architecture that belongs to the developer/architect.
-8. Avoid giving local terminal, local worktree or manual Git instructions under the current owner workflow.
-9. Never claim a remote save occurred when it did not.
-10. Verify the live GitHub file after the owner saves it.
-
-The default working interface remains the owner-controlled GitHub web editor unless the owner changes the operating agreement through the applicable authorized process.
-
-## 21.14 Documentation maintenance rules
-
-This file is the single human-readable backend master.
-
-When backend architecture or execution guidance changes:
-
-- Update this same file when the change belongs here.
-- Preserve relevant existing sections.
-- Do not create a second backend master.
-- Do not copy the whole backend plan into another workstream document.
-- Link to canonical domain references rather than duplicating their entire content.
-- Keep live execution authority in `state.json`.
-- Keep agent startup and navigation policy in `AI_AGENT_ENTRYPOINT.py`.
-- Keep detailed domain implementation in its canonical CORE/AI code and references.
-- Keep evidence in the approved evidence location.
-
-A change to this document must not be represented as an implementation change.
-
-## 21.15 Final operating rule
-
-**One project. One canonical repository branch. One execution authority. One backend master. One owner per business domain. No duplicate engines. No invented task transitions. No false completion.**
-
-The backend master defines what must exist and the correct technical dependency order. The Control Center decides what is authorized now. GitHub source and exact-SHA Actions evidence determine what has actually been implemented and verified.
-
----
-
-**Document version:** 3.0  
-**Document role:** Single human-readable backend architecture, gap-closure, execution-order and cross-chat working reference  
-**Canonical path:** `REOS_CONTROL_CENTER/architecture/backend/plans/HOMIO_Backend_Structure`  
-**Execution authority:** Live `REOS_CONTROL_CENTER/data/state.json` and authorized Control Center transitions  
-**Code authority:** GitHub branch `reos-development`  
-**Agent policy:** `REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py`  
-**End of Version 3.0.**
+# 18. Implementation batch and acceptance contract
+
+Every authorized batch must record:
+
+1. Current branch HEAD.
+2. Current state blob SHA.
+3. Current gate, task and subtask.
+4. Exact acceptance criteria.
+5. Existing domain owner.
+6. H360 workstream reference.
+7. Files and symbols inspected.
+8. Files reused/updated/added/removed.
+9. Duplicate review.
+10. Security, tenant, privacy and data impact.
+11. Dependencies and approvals.
+12. Tests required.
+13. Tests run and results.
+14. Actions workflow and run ID.
+15. Exact tested SHA.
+16. GitHub readback and blob SHA.
+17. Operational evidence where required.
+18. Residual risks and blockers.
+
+## 18.1 Evidence record template
+
+```text
+WORKSTREAM:
+CANONICAL TASK:
+CURRENT GATE
