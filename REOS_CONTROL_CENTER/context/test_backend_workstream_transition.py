@@ -61,6 +61,19 @@ def make_state() -> dict:
                 },
             ],
         },
+        "dependencies": {
+            "nodes": [
+                {"id": "AI-001", "status": "FUTURE"},
+                {"id": "APP-001", "status": "FUTURE"},
+                {"id": "REL-001", "status": "FUTURE"},
+                {"id": "SCALE-001", "status": "FUTURE"},
+            ],
+            "edges": [
+                ["AI-001", "APP-001"],
+                ["APP-001", "REL-001"],
+                ["REL-001", "SCALE-001"],
+            ],
+        },
         "gate_plans": {
             "APP-001": {
                 "id": "APP-001",
@@ -179,6 +192,7 @@ def test_activation_selects_backend_b1_and_preserves_app_t01():
     assert statuses["BACKEND-001-B10"] == "PENDING"
 
     app = result["gate_plans"]["APP-001"]
+    assert app["status"] == "FUTURE"
     assert app["current_subtask"] == "APP-001-T01"
     assert app["subtasks"][0]["status"] == "CURRENT"
 
@@ -192,6 +206,25 @@ def test_activation_selects_backend_b1_and_preserves_app_t01():
     assert sequence["APP-001"] == "FUTURE"
     assert sequence["REL-001"] == "FUTURE"
     assert sequence["SCALE-001"] == "FUTURE"
+
+    dependencies = result["dependencies"]
+    dependency_statuses = {
+        item["id"]: item["status"]
+        for item in dependencies["nodes"]
+    }
+    assert dependency_statuses == {
+        "AI-001": "COMPLETE",
+        "BACKEND-001": "CURRENT",
+        "APP-001": "FUTURE",
+        "REL-001": "FUTURE",
+        "SCALE-001": "FUTURE",
+    }
+    assert dependencies["edges"] == [
+        ["AI-001", "BACKEND-001"],
+        ["BACKEND-001", "APP-001"],
+        ["APP-001", "REL-001"],
+        ["REL-001", "SCALE-001"],
+    ]
 
 
 def test_activation_reconciles_arch039_from_pending_to_approved():
@@ -278,3 +311,51 @@ def test_activation_rejects_duplicate_backend_gate():
 
     with pytest.raises(BackendWorkstreamTransitionError):
         activate(state)
+
+
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda state: state["dependencies"]["nodes"].pop(),
+        lambda state: state["dependencies"]["nodes"].append(
+            {"id": "APP-001", "status": "CURRENT"}
+        ),
+        lambda state: state["dependencies"]["edges"].append(
+            ["AI-001", "UNKNOWN-GATE"]
+        ),
+        lambda state: state["dependencies"]["edges"].__setitem__(
+            0, ["AI-001", "REL-001"]
+        ),
+    ],
+    ids=[
+        "missing-node",
+        "duplicate-node",
+        "unknown-edge-target",
+        "sequence-mismatch",
+    ],
+)
+def test_activation_rejects_invalid_dependency_graph(mutate):
+    state = make_state()
+    mutate(state)
+
+    with pytest.raises(BackendWorkstreamTransitionError):
+        activate(state)
+
+
+def test_activation_rejects_missing_dependency_graph():
+    state = make_state()
+    state.pop("dependencies")
+
+    with pytest.raises(BackendWorkstreamTransitionError):
+        activate(state)
+
+
+def test_activation_does_not_mutate_input_when_change_requests_are_absent():
+    state = make_state()
+    state.pop("change_requests")
+    original = copy.deepcopy(state)
+
+    activate(state)
+
+    assert state == original
+    assert "change_requests" not in state
