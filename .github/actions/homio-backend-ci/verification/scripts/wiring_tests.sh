@@ -75,6 +75,35 @@ if ".github/actions/homio-backend-ci/**" not in backend:
         "Backend CI path filters omit the owned action directory."
     )
 
+# Backend push verification must follow the canonical Fastify backend root.
+push_trigger = backend.split("\n  pull_request:", 1)[0]
+
+if '"REOS_CONTROL_CENTER/backend/**"' not in push_trigger:
+    raise SystemExit(
+        "Backend CI push paths omit the canonical Fastify backend root."
+    )
+
+# Frontend-only pushes must not invoke backend verification.
+if '"REOS_CONTROL_CENTER/Frontend/**"' in push_trigger:
+    raise SystemExit(
+        "Backend CI push paths must not couple frontend-only changes to backend CI."
+    )
+
+# Preserve the mandatory backend required check on every pull request.
+if "\n  pull_request:" not in backend or "\n  jobs:" not in backend:
+    raise SystemExit(
+        "Backend CI required pull-request trigger is missing."
+    )
+
+pull_request_trigger = backend.split(
+    "\n  pull_request:", 1
+)[1].split("\n  jobs:", 1)[0]
+
+if '"**"' not in pull_request_trigger:
+    raise SystemExit(
+        "Backend CI must retain the all-PR required-check safety path."
+    )
+
 # AI-001-T01 has its own task and completion guard.
 t01_script = transition_scripts["AI-001-T01"].read_text(
     encoding="utf-8"
@@ -343,7 +372,7 @@ for test_name in (
 ):
     if test_name not in t08_script:
         raise SystemExit(
-            f"T08 does not include expected existing test file: {test_name}"
+            f"T08 does not include expected test file: {test_name}"
         )
 
     path = (
