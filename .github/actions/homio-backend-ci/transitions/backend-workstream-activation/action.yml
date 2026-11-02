@@ -1,0 +1,15 @@
+name: Guarded Backend Workstream Activation
+description: >
+  Validates owner approval, T15 proposal, T17 impact analysis and T18
+  authorization before the existing Control Center activates BACKEND-001.
+
+runs:
+  using: composite
+  steps:
+    - name: Execute guarded backend workstream activation
+      shell: bash
+      env:
+        PYTHONDONTWRITEBYTECODE: "1"
+      run: |
+        set -euo pipefail
+        python "$GITHUB_ACTION_PATH/scripts/activate_backend_workstream.py"
