@@ -37,7 +37,9 @@ def expected_phase_for_gate(state: dict[str, Any]) -> str | None:
 
     if gate_id.startswith("CORE-"):
         phase_key = "phase_1"
-    elif gate_id.startswith(("AI-", "APP-", "REL-", "SCALE-")):
+    elif gate_id.startswith(
+        ("AI-", "APP-", "BACKEND-", "REL-", "SCALE-")
+    ):
         phase_key = "phase_2"
     else:
         return None
