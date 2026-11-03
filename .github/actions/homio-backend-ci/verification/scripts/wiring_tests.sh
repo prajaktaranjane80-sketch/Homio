@@ -1,3 +1,4 @@
+
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -282,7 +283,7 @@ require_contains(
         '"ref"',
         '"ref_type"',
         '"event_name"',
-        '"sha'",
+        '"sha"',
     ),
 )
 
