@@ -1,42 +1,38 @@
-PS C:\Users\Sandip RanjanePatil>
-PS C:\Users\Sandip RanjanePatil> $portActive = Test-NetConnection 127.0.0.1 -Port 3000 -InformationLevel Quiet
-WARNING: TCP connect to (127.0.0.1 : 3000) failed
-PS C:\Users\Sandip RanjanePatil>
-PS C:\Users\Sandip RanjanePatil> if ($portActive) {
->>     Write-Host "HOMIO server already active. Opening browser..."
->>     Start-Process "http://localhost:3000"
 >> }
-PS C:\Users\Sandip RanjanePatil> else {
->>     Write-Host "Starting HOMIO development server..."
->>
->>     Start-Process powershell.exe -ArgumentList @(
->>         "-NoExit",
->>         "-Command",
->>         "Set-Location -LiteralPath '$frontend'; npm run dev"
->>     )
->>
->>     $ready = $false
->>
->>     for ($i = 0; $i -lt 30; $i++) {
->>         Start-Sleep -Seconds 2
->>         if (Test-NetConnection 127.0.0.1 -Port 3000 -InformationLevel Quiet) {
->>             $ready = $true
->>             break
->>         }
+HOMIO: cloning canonical branch...
+Cloning into 'C:\Users\SANDIP~1\AppData\Local\Temp\HOMIO-CI-FIX-7a077ffe6999497f9cbcb591031b33c2\Homio'...
+remote: Enumerating objects: 24478, done.
+remote: Counting objects: 100% (169/169), done.
+remote: Compressing objects: 100% (156/156), done.
+remote: Total 24478 (delta 81), reused 2 (delta 2), pack-reused 24309 (from 2)
+Receiving objects: 100% (24478/24478), 9.18 MiB | 4.58 MiB/s, done.
+Resolving deltas: 100% (16288/16288), done.
+error: invalid path 'Project: HOMIO'
+fatal: unable to checkout working tree
+warning: Clone succeeded, but checkout failed.
+You can inspect what was checked out with 'git status'
+and retry with 'git restore --source=HEAD :/'
+
+
+HOMIO FIX STOPPED
+Git clone failed. No remote files were changed.
+No automatic retry will be performed.
+PS D:\Homio\REOS_CONTROL_CENTER> finally {
+>>     if ((Get-Location).Path -eq $RepoPath) {
+>>         Pop-Location
 >>     }
 >>
->>     if ($ready) {
->>         Write-Host "HOMIO LIVE SUCCESSFULLY!"
->>         Start-Process "http://localhost:3000"
+>>     if ($Pushed -and (Test-Path $TempRoot)) {
+>>         Remove-Item $TempRoot -Recurse -Force
 >>     }
->>     else {
->>         Write-Warning "Server abhi ready nahi hua. Naye PowerShell window ka error check karo."
+>>     elseif (Test-Path $TempRoot) {
+>>         Write-Host "Temporary checkout retained for inspection: $RepoPath" -ForegroundColor Yellow
 >>     }
 >> }
-else : The term 'else' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path
-was included, verify that the path is correct and try again.
+finally : The term 'finally' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if
+a path was included, verify that the path is correct and try again.
 At line:1 char:1
-+ else {
-+ ~~~~
-    + CategoryInfo          : ObjectNotFound: (else:String) [], CommandNotFoundException
++ finally {
++ ~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (finally:String) [], ParentContainsErrorRecordException
     + FullyQualifiedErrorId : CommandNotFoundException
