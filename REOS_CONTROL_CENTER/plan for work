@@ -1,3 +1,17 @@
+# HOMIO / REOS — ACRL INTEGRATION WORK PLAN
+
+**Purpose:** Complete integration of existing ACRL continuity, repository intelligence, evidence resolution, recovery and new-chat handoff capabilities.
+
+**Repository:** `prajaktaranjane80-sketch/Homio`  
+**Branch:** `reos-development`  
+**Canonical execution authority:** `REOS_CONTROL_CENTER/data/state.json`  
+**Delivery structure:** Four implementation parts defined below.
+
+---
+
+## 1. Canonical Existing File Structure
+
+```text
 REOS_CONTROL_CENTER/
 │
 ├── AI_AGENT_ENTRYPOINT.py
@@ -8,14 +22,52 @@ REOS_CONTROL_CENTER/
 ├── AUTONOMY_ENGINE/
 │   └── continuity/
 │       └── acrl/
+│           │
 │           ├── T07_New_Chat_Bootstrap/
+│           │   └── new_chat_bootstrap.py
+│           │
 │           ├── T14_Repository_Intelligence_Context/
-│           ├── T16_Repository_Inventory/
-│           ├── T23_Continuity/
-│           └── T24_Cross_Chat_Continuity_Recovery_Engine/
+│           │   ├── repository_context.py
+│           │   ├── audit_resume_manifest.py
+│           │   ├── audit_resume_manifest.json
+│           │   └── contracts/
+│           │
+│           ├── T16_Repository_Intelligence_File_Discovery/
+│           │   ├── repository_intelligence.py
+│           │   ├── contract_graph.py
+│           │   ├── repository_discovery/
+│           │   ├── source_intelligence/
+│           │   └── symbol_intelligence/
+│           │
+│           ├── T23_Reference_Evidence_Resolution_Engine/
+│           │   ├── evidence_resolver.py
+│           │   ├── resolution_coordinator.py
+│           │   ├── evidence_registry.py
+│           │   ├── resolution_store.py
+│           │   └── contracts/
+│           │
+│           ├── T24_Cross_Chat_Continuity_Recovery_Engine/
+│           │   ├── continuity_coordinator.py
+│           │   ├── continuity_recovery.py
+│           │   ├── continuity_store.py
+│           │   ├── continuity_provenance.py
+│           │   └── contracts/
+│           │
+│           └── runtime_integration/
+│               ├── authority_bridge.py
+│               ├── operational_runtime.py
+│               ├── unified_runtime_context.py
+│               ├── runtime_bindings.py
+│               ├── runtime_orchestrator.py
+│               ├── continuity_controller.py
+│               ├── acrl_runtime.py
+│               ├── task_registry.py
+│               ├── integration_models.py
+│               └── existing integration tests
 │
 ├── architecture/
-│   └── [existing approved contracts]
+│   ├── AI-001_PLATFORM_IMPLEMENTATION_BLUEPRINT.md
+│   └── HOMIO_360_DEGREE_GAP_CLOSURE_EXECUTION_STRUCTURE.md
 │
 └── evidence/
     └── ACRL/
@@ -24,46 +76,243 @@ REOS_CONTROL_CENTER/
         ├── handoff/
         ├── fast-resume/
         └── end-to-end/
+```
 
+**Path ownership rules**
 
+- T14 canonical owner: `T14_Repository_Intelligence_Context`.
+- `T14_Full_Regression` remains compatibility/support only; it is not another T14 engine.
+- T16 canonical owner: `T16_Repository_Intelligence_File_Discovery`.
+- T23 canonical owner: `T23_Reference_Evidence_Resolution_Engine`.
+- T24 canonical owner: `T24_Cross_Chat_Continuity_Recovery_Engine`.
+- `runtime_integration` connects existing owners. It must not duplicate their responsibilities.
+- Evidence folders are destinations for verified evidence, not new runtime modules.
 
+The tree above documents the existing owners and their intended integration. It does not require creating duplicate files or empty placeholder packages.
 
+---
 
+## 2. Part 1 — Reference Audit
 
-Kaam karne ka exact process
-Part 1 — Reference audit
-- AI_AGENT_ENTRYPOINT.py
-- ACRL T07, T14, T16, T23, T24
-- state.json
-- AI-001 Blueprint
-- 360-Degree Gap Closure Structure
-Existing code, interfaces, dependencies aur execution authority verify karunga.
+Audit the complete existing implementation before modifications.
 
-Part 2 — Core integration
-- Existing ACRL modules ka integration.
-- Startup orchestration.
-- Incremental context retrieval.
-- Fast-resume aur recovery.
-Part 3 — EntryPoint + handoff
-- Complete EntryPoint integration.
-- Verified context generation.
-- Previous progress aur current task reconstruction.
-- New-chat handoff mechanism.
-Part 4 — Testing + evidence
-- Full integration tests.
-- Stale cache and SHA validation.
-- Recovery tests.
-- Startup performance measurements.
-- GitHub Actions evidence.
-Coding delivery ka format
-- Har part mein complete file contents.
-- Exact repository paths.
-- Existing files ke replacement ya modification ki clear identification.
-- Duplicate files nahi.
-- Half code ya incomplete placeholders nahi.
-- Completion ka claim tabhi jab actual implementation aur verification evidence ho.
-Ek important condition: Main AI-001 ko dobara implement nahi karunga. Approved blueprint aur existing ACRL architecture ko follow karunga.
+### Required references
 
-Meri preference hai ki pehle current GitHub HEAD aur canonical state.json dobara verify karun. Uske baad hi coding dunga, taaki galat task par implementation shuru na ho.
+1. `REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py`
+2. ACRL T07 New Chat Bootstrap
+3. ACRL T14 Repository Intelligence Context
+4. ACRL T16 Repository Intelligence File Discovery
+5. ACRL T23 Reference Evidence Resolution Engine
+6. ACRL T24 Cross-Chat Continuity Recovery Engine
+7. Existing `runtime_integration` modules and tests
+8. `REOS_CONTROL_CENTER/data/state.json`
+9. AI-001 implementation blueprint
+10. HOMIO 360-Degree Gap Closure Structure
 
-Tumhe reference files manually collect karke dene ki zaroorat nahi, agar repository access se woh available hain.
+### Audit requirements
+
+- Verify actual source code, public interfaces and callers.
+- Verify T01-T30 registry and existing runtime bindings.
+- Identify duplicate state readers, hash implementations and context builders.
+- Identify incomplete imports and disconnected runtime components.
+- Verify T07 checkpoint and current-state coherence.
+- Verify T14 manifest integrity and fast-resume conditions.
+- Verify T16 discovery and dependency closure.
+- Verify T23 evidence identity, freshness and provenance.
+- Verify T24 upstream T23 binding and recovery requirements.
+- Record exact file paths, blob SHAs, tests and existing ownership.
+
+**Audit output:** A source-backed integration gap register. Do not create another permanent audit registry if the existing evidence/manifest owners can carry the information.
+
+---
+
+## 3. Part 2 — Core Integration
+
+Integrate existing ACRL modules through the existing `runtime_integration` owner.
+
+### 3.1 Canonical authority and state projection
+
+- `operational_runtime.py` owns canonical state loading, integrity hashing and execution projection.
+- `authority_bridge.py` must act as a thin authority adapter and reuse that projection.
+- `unified_runtime_context.py` must consume a single validated projection.
+- No duplicate state parsing or hashing.
+- Preserve the before/after Git consistency check.
+- Never treat a context projection as execution authorization.
+
+### 3.2 Startup orchestration
+
+Use the following sequence:
+
+1. Read live repository identity, branch and HEAD.
+2. Read canonical state and its verified blob identity.
+3. Verify current gate, task, subtask and acceptance criteria.
+4. Validate the T14 resume manifest before expensive repository discovery.
+5. Choose the applicable T14 decision:
+   - `FAST_RESUME`
+   - `TARGETED_REAUDIT`
+   - `FULL_AUDIT_REQUIRED`
+   - `INVALID_MANIFEST`
+6. Use T16 for the required discovery and dependency analysis.
+7. Reconstruct the required project and execution context.
+8. Resolve current evidence through T23.
+9. Recover continuity through T24 only after the required upstream evidence and provenance checks succeed.
+10. Supply verified inputs to the existing T07 bootstrap.
+11. Validate the resulting restart payload and context fingerprints.
+
+### 3.3 Incremental context retrieval
+
+- Reuse the verified T14 audit baseline.
+- Use verified Git commit deltas.
+- Use T16 dependency closure to identify affected consumers.
+- Re-audit only affected paths when the delta and dependency evidence are complete.
+- Fall back to full audit whenever the source identity or changed-path set is uncertain.
+- Never let the cached manifest provide current execution authority.
+
+### 3.4 Recovery and safety
+
+- Stale checkpoint: reject or reconstruct from current authority.
+- State SHA mismatch: full authority reconciliation.
+- Branch mismatch: fail closed.
+- Missing T23 evidence: block recovery.
+- Conflicting evidence: fail closed.
+- Invalid T24 provenance: reject recovery.
+- Moving Git repository snapshot: reject the reconstructed context.
+
+---
+
+## 4. Part 3 — EntryPoint and New-Chat Handoff
+
+Integrate the existing EntryPoint with the existing ACRL workflow.
+
+### Requirements
+
+- EntryPoint must identify the current canonical authority and exact source owners.
+- EntryPoint must direct the new session to the existing startup integration.
+- Previous progress must be reconstructed from verified source and evidence.
+- Current task must always come from live `state.json`.
+- Completed and pending work must be separated.
+- Stale history, manifests and handoff packets must never override canonical state.
+- T07 must validate restart payload integrity and checkpoint coherence.
+- T30 must be reused for the existing completion/handoff boundary.
+
+### Handoff output
+
+The verified handoff must include:
+
+- Project and repository identity.
+- Current branch and HEAD.
+- Canonical state blob SHA.
+- Current gate, task and subtask.
+- Completed work and acceptance evidence.
+- Pending work and permitted next action.
+- Changed paths and relevant source SHAs.
+- Test and Actions evidence.
+- Stale or unresolved findings.
+- T14 resume decision.
+- T07 restart-payload fingerprint.
+- T30 handoff result where applicable.
+
+The system may generate a copy-ready handoff artifact. It must not claim that a future ChatGPT session automatically consumes the artifact unless an actual supported session-ingress mechanism is independently verified.
+
+---
+
+## 5. Part 4 — Testing and Evidence
+
+Use existing test owners wherever possible.
+
+### Required verification
+
+**Startup**
+- Valid canonical startup.
+- Missing or malformed state.
+- Invalid state integrity.
+- Current task and gate-plan mismatch.
+- Repository identity mismatch.
+- Moving HEAD/worktree snapshot.
+
+**Fast resume**
+- Valid unchanged manifest.
+- State SHA change.
+- HEAD unchanged with verified baseline.
+- Verified changed-path delta.
+- Missing or incomplete delta.
+- Added, deleted and renamed paths.
+- Dependency closure invalidation.
+- Expired or unrelated CI evidence.
+- Tampered manifest fingerprint.
+
+**Core integration**
+- Exactly one canonical state read/projection.
+- T14 fast-resume decision before T16 full discovery.
+- One T16 scan per full discovery operation.
+- T23 current-evidence resolution.
+- T24 verification against the stored T23 resolution.
+- T07 checkpoint/current-state coherence.
+- Existing T01-T30 registry compatibility.
+
+**Handoff**
+- Complete restart payload.
+- Current task reconstructed from state.
+- Stale context rejection.
+- Missing evidence rejection.
+- Fingerprint verification.
+- T30 completion and handoff boundary.
+
+**Performance**
+- Cold-start duration.
+- Fast-resume duration.
+- Targeted re-audit duration.
+- Full-audit duration.
+- Discovery inventory and scan counts.
+- Context payload size.
+
+### Evidence destinations
+
+```text
+REOS_CONTROL_CENTER/evidence/ACRL/
+    startup/
+    context-reconstruction/
+    handoff/
+    fast-resume/
+    end-to-end/
+```
+
+Each evidence record must identify the exact commit, relevant source SHAs, test command, result, timestamp and applicable acceptance criteria.
+
+GitHub Actions results must correspond to the exact tested commit. A previous green run is not proof for a later commit.
+
+The tracked T14 manifest template must retain its existing initialization rules. Never fabricate or manually mark the operational resume cache as sealed.
+
+---
+
+## 6. Coding Delivery Rules
+
+- Complete file contents only.
+- Exact repository path for every replacement.
+- Identify whether a file is modified or newly created.
+- Deliver coherent implementation batches, not scattered isolated files.
+- No duplicate engines, registries, state stores, manifests or tests.
+- Reuse existing T07/T14/T16/T23/T24 and runtime integration owners.
+- Preserve T18, T20, T21 and T22 authorization, verification and repository-coordination boundaries.
+- Do not reimplement AI-001.
+- Do not modify customer-facing frontend code as part of ACRL continuity integration.
+- Do not manually modify canonical `state.json`.
+- Do not claim a task complete without source readback and exact-SHA verification.
+
+## 7. Execution Authority
+
+This plan defines the integration and delivery structure. It is not itself execution authorization.
+
+Before each source modification, verify the current canonical task, acceptance criteria and approved change scope in `REOS_CONTROL_CENTER/data/state.json`.
+
+If the active task does not authorize ACRL source changes, preserve the audit findings and obtain the applicable Control Center authorization before implementation.
+
+The final completion decision requires:
+
+1. Integrated existing source components.
+2. Focused and regression tests.
+3. Exact source readback.
+4. GitHub Actions evidence on the exact tested SHA.
+5. Verified startup, fast-resume, recovery and handoff behavior.
+
+**AI-001 remains a completed reference. This work integrates existing ACRL capabilities; it does not rebuild AI-001 or create another continuity architecture.**
