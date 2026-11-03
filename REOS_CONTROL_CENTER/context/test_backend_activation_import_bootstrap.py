@@ -59,6 +59,10 @@ assert (
     == wrapper.REPAIRED_ACTIVATION_PATHS
 )
 
+assert wrapper.EVIDENCE_ONLY_ACTIVATION_PATHS == frozenset(
+    {"REOS_CONTROL_CENTER/PS Output"}
+)
+
 identity = importlib.import_module(
     "REOS_CONTROL_CENTER.context.github_actions_identity"
 )
@@ -124,7 +128,6 @@ assert wrapper.source_paths_for_t17(
     "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/example.py",
 ]
 
-# Similar-looking paths are not silently excluded.
 assert wrapper.source_paths_for_t17(
     ("other/PS Output",)
 ) == ["other/PS Output"]
