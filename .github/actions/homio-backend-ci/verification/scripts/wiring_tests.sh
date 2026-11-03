@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -12,6 +11,35 @@ root = Path.cwd()
 actions = root / ".github/actions/homio-backend-ci"
 workflows = root / ".github/workflows"
 control = root / "REOS_CONTROL_CENTER"
+
+
+def require_file(path: Path) -> str:
+    if not path.is_file():
+        raise SystemExit(
+            f"Required file is missing: {path.relative_to(root)}"
+        )
+    return path.read_text(encoding="utf-8")
+
+
+def require_contains(label: str, content: str, values: tuple[str, ...]):
+    for value in values:
+        if value not in content:
+            raise SystemExit(
+                f"{label} is missing required contract: {value}"
+            )
+
+
+def parse_python(path: Path) -> ast.Module:
+    try:
+        return ast.parse(
+            require_file(path),
+            filename=str(path),
+        )
+    except (OSError, UnicodeError, SyntaxError) as exc:
+        raise SystemExit(
+            f"Invalid Python in {path.relative_to(root)}: {exc}"
+        ) from exc
+
 
 transition_scripts = {
     "AI-001-T01": actions / "transitions/ai001-t01/scripts/guarded_transition.py",
@@ -38,46 +66,109 @@ transition_workflows = {
 }
 
 backend_path = workflows / "backend-ci.yml"
+activation_workflow_path = (
+    workflows / "reusable-backend-workstream-activation.yml"
+)
+activation_action_path = (
+    actions / "transitions/backend-workstream-activation/action.yml"
+)
+activation_script_path = (
+    actions / "transitions/backend-workstream-activation/scripts/"
+    "activate_backend_workstream.py"
+)
+
+identity_contract_path = control / "context/github_actions_identity.py"
+identity_test_path = control / "context/test_github_actions_identity.py"
+controller_test_path = control / "context/test_backend_control_projection.py"
+bootstrap_test_path = (
+    control / "context/test_backend_activation_import_bootstrap.py"
+)
+backend_transition_test_path = (
+    control / "context/test_backend_workstream_transition.py"
+)
+phase_projection_path = control / "context/phase_projection.py"
+phase_projection_test_path = control / "context/test_phase_projection.py"
+backend_transition_path = control / "context/backend_workstream_transition.py"
+controller_path = control / "reos_control_center.py"
+
 t06_publish = (
     actions / "transitions/core008-t06/scripts/publish_and_readback.sh"
 )
+financial_runner_path = (
+    actions / "verification/scripts/financial_context_tenant.sh"
+)
+shared_contract_path = actions / "shared/transition_contract.py"
 
-required_files = (
+# ---------------------------------------------------------------------------
+# Required-file and Python-syntax inventory.
+# ---------------------------------------------------------------------------
+
+required_paths = (
     *transition_scripts.values(),
     *transition_actions.values(),
     *transition_workflows.values(),
-    t06_publish,
     backend_path,
+    activation_workflow_path,
+    activation_action_path,
+    activation_script_path,
+    identity_contract_path,
+    identity_test_path,
+    controller_test_path,
+    bootstrap_test_path,
+    backend_transition_test_path,
+    phase_projection_path,
+    phase_projection_test_path,
+    backend_transition_path,
+    controller_path,
+    t06_publish,
+    financial_runner_path,
+    shared_contract_path,
 )
 
-for path in required_files:
-    if not path.is_file():
-        raise SystemExit(
-            f"Required transition file is missing: {path.relative_to(root)}"
-        )
+for path in required_paths:
+    require_file(path)
 
-# Parse every guarded Python transition script before execution.
-parsed_scripts = {}
+parsed_scripts = {
+    task: parse_python(path)
+    for task, path in transition_scripts.items()
+}
 
-for task, path in transition_scripts.items():
-    try:
-        source = path.read_text(encoding="utf-8")
-        parsed_scripts[task] = ast.parse(source, filename=str(path))
-    except (OSError, UnicodeError, SyntaxError) as exc:
-        raise SystemExit(f"Invalid Python in {path}: {exc}") from exc
+for path in (
+    identity_contract_path,
+    identity_test_path,
+    controller_test_path,
+    bootstrap_test_path,
+    activation_script_path,
+    backend_transition_path,
+    controller_path,
+    phase_projection_path,
+    phase_projection_test_path,
+    backend_transition_test_path,
+):
+    parse_python(path)
 
-backend = backend_path.read_text(encoding="utf-8")
-shared = (actions / "shared/transition_contract.py").read_text(
-    encoding="utf-8"
-)
-t06_publish_text = t06_publish.read_text(encoding="utf-8")
+backend = require_file(backend_path)
+shared = require_file(shared_contract_path)
+t06_publish_text = require_file(t06_publish)
+activation_workflow = require_file(activation_workflow_path)
+activation_action = require_file(activation_action_path)
+activation_script = require_file(activation_script_path)
+
+identity_contract = require_file(identity_contract_path)
+identity_test = require_file(identity_test_path)
+controller_test = require_file(controller_test_path)
+bootstrap_test = require_file(bootstrap_test_path)
+financial_runner = require_file(financial_runner_path)
+
+# ---------------------------------------------------------------------------
+# Backend CI triggers and required-check behavior.
+# ---------------------------------------------------------------------------
 
 if ".github/actions/homio-backend-ci/**" not in backend:
     raise SystemExit(
         "Backend CI path filters omit the owned action directory."
     )
 
-# Backend push verification must follow the canonical Fastify backend root.
 push_trigger = backend.split("\n  pull_request:", 1)[0]
 
 if '"REOS_CONTROL_CENTER/backend/**"' not in push_trigger:
@@ -85,18 +176,13 @@ if '"REOS_CONTROL_CENTER/backend/**"' not in push_trigger:
         "Backend CI push paths omit the canonical Fastify backend root."
     )
 
-# Frontend-only pushes must not invoke backend verification.
 if '"REOS_CONTROL_CENTER/Frontend/**"' in push_trigger:
     raise SystemExit(
-        "Backend CI push paths must not couple frontend-only changes to backend CI."
+        "Backend CI must not couple frontend-only changes to backend CI."
     )
 
-# Preserve the mandatory backend required check on every pull request.
-# "jobs:" is a top-level YAML key, not an indented child of "on:".
 if "\njobs:" not in backend:
-    raise SystemExit(
-        "Backend CI jobs section is missing."
-    )
+    raise SystemExit("Backend CI jobs section is missing.")
 
 workflow_triggers = backend.split("\njobs:", 1)[0]
 
@@ -114,7 +200,10 @@ if '"**"' not in pull_request_trigger:
         "Backend CI must retain the all-PR required-check safety path."
     )
 
-# BACKEND-001 must be reachable only through the exact owner-approved push.
+# ---------------------------------------------------------------------------
+# BACKEND-001 exact owner-approved trigger.
+# ---------------------------------------------------------------------------
+
 backend_activation_guard = (
     "if: ${{ github.event_name == 'push' && "
     "github.ref == 'refs/heads/reos-development' && "
@@ -122,32 +211,11 @@ backend_activation_guard = (
     "'[CONTROL-CENTER-ACTIVATE-BACKEND-001]') }}"
 )
 
-if backend_activation_guard not in backend:
-    raise SystemExit(
-        "BACKEND-001 owner/branch/commit-prefix activation guard is missing."
-    )
-
-activation_workflow_path = (
-    workflows / "reusable-backend-workstream-activation.yml"
+require_contains(
+    "BACKEND-001 backend workflow",
+    backend,
+    (backend_activation_guard,),
 )
-activation_action_path = (
-    actions / "transitions/backend-workstream-activation/action.yml"
-)
-activation_script_path = (
-    actions / "transitions/backend-workstream-activation/scripts/"
-    "activate_backend_workstream.py"
-)
-
-for path in (
-    activation_workflow_path,
-    activation_action_path,
-    activation_script_path,
-):
-    if not path.is_file():
-        raise SystemExit(
-            "BACKEND-001 activation component is missing: "
-            f"{path.relative_to(root)}"
-        )
 
 if backend.count(
     '".github/workflows/reusable-backend-workstream-activation.yml"'
@@ -156,124 +224,203 @@ if backend.count(
         "BACKEND-001 reusable workflow must remain in push and PR path filters."
     )
 
-activation_workflow = activation_workflow_path.read_text(
-    encoding="utf-8"
-)
-activation_action = activation_action_path.read_text(
-    encoding="utf-8"
-)
-activation_script = activation_script_path.read_text(
-    encoding="utf-8"
+require_contains(
+    "BACKEND-001 reusable workflow",
+    activation_workflow,
+    (
+        "workflow_call:",
+        "Owner-authorized BACKEND-001 activation",
+        "contents: write",
+        "id-token: write",
+        "EXPECTED_SHA: ${{ github.sha }}",
+        "ACTIONS_RUN_ID: ${{ github.run_id }}",
+        "ACTIONS_REPOSITORY: ${{ github.repository }}",
+        (
+            "uses: ./.github/actions/homio-backend-ci/"
+            "transitions/backend-workstream-activation"
+        ),
+    ),
 )
 
-for safeguard in (
-    "workflow_call:",
-    "Owner-authorized BACKEND-001 activation",
-    "contents: write",
-    "id-token: write",
-    "EXPECTED_SHA: ${{ github.sha }}",
-    "ACTIONS_RUN_ID: ${{ github.run_id }}",
-    "ACTIONS_REPOSITORY: ${{ github.repository }}",
-    "uses: ./.github/actions/homio-backend-ci/transitions/backend-workstream-activation",
-):
-    if safeguard not in activation_workflow:
-        raise SystemExit(
-            "BACKEND-001 reusable workflow is missing safeguard: "
-            f"{safeguard}"
-        )
+require_contains(
+    "BACKEND-001 composite action",
+    activation_action,
+    ("activate_backend_workstream.py",),
+)
 
-if "activate_backend_workstream.py" not in activation_action:
+# ---------------------------------------------------------------------------
+# GitHub immutable OIDC identity contract.
+#
+# IMPORTANT:
+# Claim names belong to github_actions_identity.py.
+# The activation script imports and invokes that validator.
+# Do not incorrectly require every claim name to be repeated in the
+# activation script itself.
+# ---------------------------------------------------------------------------
+
+require_contains(
+    "HOMIO GitHub identity contract",
+    identity_contract,
+    (
+        'OWNER: Final = "prajaktaranjane80-sketch"',
+        'REPOSITORY: Final = "prajaktaranjane80-sketch/Homio"',
+        'OWNER_ID: Final = "320960487"',
+        'REPOSITORY_ID: Final = "1346051793"',
+        'BRANCH: Final = "reos-development"',
+        "EXPECTED_OIDC_SUBJECT",
+        "EXPECTED_GITHUB_ACTIONS_CLAIMS",
+        "validate_github_actions_identity_claims",
+        "GitHubActionsIdentityError",
+        '"iss"',
+        '"sub"',
+        '"repository"',
+        '"repository_owner"',
+        '"repository_id"',
+        '"repository_owner_id"',
+        '"actor"',
+        '"actor_id"',
+        '"ref"',
+        '"ref_type"',
+        '"event_name"',
+        '"sha'",
+    ),
+)
+
+require_contains(
+    "BACKEND-001 activation OIDC integration",
+    activation_script,
+    (
+        "EXPECTED_OIDC_SUBJECT",
+        "OIDC_ISSUER",
+        "OWNER_ID",
+        "REPOSITORY_ID",
+        "GitHubActionsIdentityError",
+        "validate_github_actions_identity_claims",
+        "principal = self.verifier.verify_access_token(token)",
+        "trusted_approver_principals",
+        "OIDC IMMUTABLE",
+    ),
+)
+
+require_contains(
+    "HOMIO identity regression tests",
+    identity_test,
+    (
+        "test_expected_subject_uses_immutable_repository_identity",
+        "test_valid_owner_push_identity_is_accepted",
+        "test_wrong_identity_claim_is_rejected",
+        "test_missing_identity_claim_is_rejected",
+        "test_invalid_expected_sha_is_rejected",
+        "test_legacy_subject_is_never_accepted",
+        "repository_owner_id",
+        "repository_id",
+        "actor_id",
+    ),
+)
+
+# ---------------------------------------------------------------------------
+# The activation script must have an exact source-path allowlist.
+#
+# Its baseline diff includes the controller file, which was changed in this
+# workstream. Omitting it would block activation even after CI is green.
+# ---------------------------------------------------------------------------
+
+activation_tree = parse_python(activation_script_path)
+module_constants: dict[str, object] = {}
+allowlist_node: ast.Set | None = None
+
+for node in activation_tree.body:
+    if not isinstance(node, ast.Assign):
+        continue
+
+    if len(node.targets) != 1:
+        continue
+
+    target = node.targets[0]
+    if not isinstance(target, ast.Name):
+        continue
+
+    if target.id == "EXPECTED_ACTIVATION_PATHS":
+        if not isinstance(node.value, ast.Set):
+            raise SystemExit(
+                "EXPECTED_ACTIVATION_PATHS must be a literal set."
+            )
+        allowlist_node = node.value
+        continue
+
+    if isinstance(node.value, ast.Constant):
+        module_constants[target.id] = node.value.value
+
+if allowlist_node is None:
     raise SystemExit(
-        "BACKEND-001 composite action does not invoke its activation script."
+        "Activation script has no EXPECTED_ACTIVATION_PATHS set."
     )
 
-# ---------------------------------------------------------------------------
-# BACKEND-001 identity and regression contract.
-# These files are deliberately checked here instead of creating another
-# workflow or another independent test runner.
-# ---------------------------------------------------------------------------
+actual_allowlist: set[str] = set()
 
-identity_contract_path = (
-    control / "context/github_actions_identity.py"
-)
-identity_test_path = (
-    control / "context/test_github_actions_identity.py"
-)
-controller_test_path = (
-    control / "context/test_backend_control_projection.py"
-)
-bootstrap_test_path = (
-    control / "context/test_backend_activation_import_bootstrap.py"
-)
-
-for path in (
-    identity_contract_path,
-    identity_test_path,
-    controller_test_path,
-    bootstrap_test_path,
-):
-    if not path.is_file():
+for item in allowlist_node.elts:
+    if isinstance(item, ast.Constant) and isinstance(item.value, str):
+        actual_allowlist.add(item.value)
+    elif isinstance(item, ast.Name):
+        value = module_constants.get(item.id)
+        if not isinstance(value, str):
+            raise SystemExit(
+                "Activation path allowlist contains an unknown constant: "
+                f"{item.id}"
+            )
+        actual_allowlist.add(value)
+    else:
         raise SystemExit(
-            "Backend activation identity/regression component is missing: "
-            f"{path.relative_to(root)}"
+            "Activation path allowlist contains an unsupported expression."
         )
 
-for path in (
-    identity_contract_path,
-    identity_test_path,
-    controller_test_path,
-    bootstrap_test_path,
-):
-    try:
-        ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-    except (OSError, UnicodeError, SyntaxError) as exc:
-        raise SystemExit(
-            f"Invalid Python in {path.relative_to(root)}: {exc}"
-        ) from exc
-
-for safeguard in (
-    "EXPECTED_OIDC_SUBJECT",
-    "validate_github_actions_identity_claims",
-    "GitHubActionsIdentityError",
-    "repository_owner_id",
-    "repository_id",
-    "actor_id",
-    "test_github_actions_identity.py",
-    "test_backend_control_projection.py",
-):
-    if safeguard not in activation_script:
-        raise SystemExit(
-            "Backend activation identity safeguard is missing: "
-            f"{safeguard}"
-        )
-
-for required_path in (
+expected_activation_paths = {
+    ".github/actions/homio-backend-ci/transitions/"
+    "backend-workstream-activation/action.yml",
+    ".github/actions/homio-backend-ci/transitions/"
+    "backend-workstream-activation/scripts/"
+    "activate_backend_workstream.py",
+    ".github/workflows/backend-ci.yml",
+    ".github/workflows/reusable-backend-workstream-activation.yml",
+    "REOS_CONTROL_CENTER/context/phase_projection.py",
+    "REOS_CONTROL_CENTER/context/test_phase_projection.py",
+    "REOS_CONTROL_CENTER/context/backend_workstream_transition.py",
+    "REOS_CONTROL_CENTER/context/test_backend_workstream_transition.py",
     "REOS_CONTROL_CENTER/context/github_actions_identity.py",
     "REOS_CONTROL_CENTER/context/test_github_actions_identity.py",
     "REOS_CONTROL_CENTER/context/test_backend_control_projection.py",
-):
-    if required_path not in activation_script:
-        raise SystemExit(
-            "Backend activation source allowlist omits: "
-            f"{required_path}"
-        )
+    "REOS_CONTROL_CENTER/evidence/BACKEND-001/B0-live-repository-audit.md",
+    ".github/actions/homio-backend-ci/verification/scripts/"
+    "financial_context_tenant.sh",
+    ".github/actions/homio-backend-ci/verification/scripts/"
+    "wiring_tests.sh",
+    "REOS_CONTROL_CENTER/context/test_backend_activation_import_bootstrap.py",
+    "REOS_CONTROL_CENTER/reos_control_center.py",
+}
 
-# The existing modular runner must continue to execute the activation
-# import/bootstrap test and the existing transition tests.
-financial_runner_path = (
-    actions / "verification/scripts/financial_context_tenant.sh"
-)
-
-if not financial_runner_path.is_file():
+if actual_allowlist != expected_activation_paths:
+    missing = sorted(expected_activation_paths - actual_allowlist)
+    unexpected = sorted(actual_allowlist - expected_activation_paths)
     raise SystemExit(
-        "Existing financial/context/tenant regression runner is missing."
+        "BACKEND-001 activation path allowlist mismatch; "
+        f"missing={missing}; unexpected={unexpected}"
     )
 
-financial_runner = financial_runner_path.read_text(encoding="utf-8")
+for path in expected_activation_paths:
+    if not (root / path).is_file():
+        raise SystemExit(
+            f"Activation allowlist path is missing from repository: {path}"
+        )
+
+# ---------------------------------------------------------------------------
+# Existing modular regression runner must include every backend regression.
+# ---------------------------------------------------------------------------
 
 for test_path in (
     "context/test_phase_projection.py",
     "context/test_backend_workstream_transition.py",
+    "context/test_backend_control_projection.py",
+    "context/test_github_actions_identity.py",
     "context/test_backend_activation_import_bootstrap.py",
 ):
     if test_path not in financial_runner:
@@ -282,13 +429,31 @@ for test_path in (
             f"{test_path}"
         )
 
-# AI-001-T01 has its own task and completion guard.
-t01_script = transition_scripts["AI-001-T01"].read_text(
-    encoding="utf-8"
+# ---------------------------------------------------------------------------
+# Verify bootstrap test covers the central identity contract and ACRL path.
+# ---------------------------------------------------------------------------
+
+require_contains(
+    "Activation import/bootstrap regression test",
+    bootstrap_test,
+    (
+        "REOS_CONTROL_CENTER.context.github_actions_identity",
+        "EXPECTED_OIDC_SUBJECT",
+        "OWNER_ID",
+        "REPOSITORY_ID",
+        "EXPECTED_ACTIVATION_PATHS",
+        "REOS_CONTROL_CENTER/reos_control_center.py",
+        "AUTONOMY_ENGINE.continuity.acrl.repository_context",
+        "duplicate package namespace",
+    ),
 )
-t01_workflow = transition_workflows["AI-001-T01"].read_text(
-    encoding="utf-8"
-)
+
+# ---------------------------------------------------------------------------
+# AI-001-T01 guarded transition contract.
+# ---------------------------------------------------------------------------
+
+t01_script = require_file(transition_scripts["AI-001-T01"])
+t01_workflow = require_file(transition_workflows["AI-001-T01"])
 t01_tree = parsed_scripts["AI-001-T01"]
 
 t01_guard = (
@@ -300,12 +465,9 @@ t01_guard = (
 
 for name, content in (
     ("AI-001-T01 backend", backend),
-    ("AI-001-T01 reusable", t01_workflow),
+    ("AI-001-T01 reusable workflow", t01_workflow),
 ):
-    if t01_guard not in content:
-        raise SystemExit(
-            f"{name} lacks its exact owner/branch/commit-prefix guard."
-        )
+    require_contains(name, content, (t01_guard,))
 
 for binding in (
     "EXPECTED_SHA: ${{ github.sha }}",
@@ -314,43 +476,48 @@ for binding in (
     "ACTIONS_SERVER_URL: ${{ github.server_url }}",
     "ACTIONS_REPOSITORY: ${{ github.repository }}",
 ):
-    if binding not in t01_workflow:
-        raise SystemExit(
-            f"AI-001-T01 reusable workflow lacks: {binding}"
-        )
+    require_contains(
+        "AI-001-T01 reusable workflow",
+        t01_workflow,
+        (binding,),
+    )
 
-for safeguard in (
-    '"AI-001-T01"',
-    '"complete-subtask"',
-    "APPROVAL: AUTHORIZE AI-001-T01 COMPLETION",
-    "SCOPE: AI-001-T01 only",
-    "AI-001-AC01",
-    "AI-001-AC06",
-    "AI-001-T01 TRANSITION AND CANONICAL READBACK: PASS",
-    "GITHUB_ACTOR",
-    "GITHUB_REF",
-    "EXPECTED_SHA",
-    "VERIFIED_CODE_SHA",
-    "assert_exact_branch",
-    "validate_state",
-    "calculate_hash",
-    '"git",\n            "push"',
-    "CANONICAL_BRANCH_HEAD",
-    "refs/heads/reos-development",
-):
-    if safeguard not in t01_script:
-        raise SystemExit(
-            f"AI-001-T01 guarded script lacks safeguard: {safeguard}"
-        )
+require_contains(
+    "AI-001-T01 guarded script",
+    t01_script,
+    (
+        '"AI-001-T01"',
+        '"complete-subtask"',
+        "APPROVAL: AUTHORIZE AI-001-T01 COMPLETION",
+        "SCOPE: AI-001-T01 only",
+        "AI-001-AC01",
+        "AI-001-AC06",
+        "AI-001-T01 TRANSITION AND CANONICAL READBACK: PASS",
+        "GITHUB_ACTOR",
+        "GITHUB_REF",
+        "EXPECTED_SHA",
+        "VERIFIED_CODE_SHA",
+        "assert_exact_branch",
+        "validate_state",
+        "calculate_hash",
+        '"git",\n            "push"',
+        "CANONICAL_BRANCH_HEAD",
+        "refs/heads/reos-development",
+        "compile_ai_package_sources",
+        "clean_generated_bytecode",
+        'os.environ["PYTHONDONTWRITEBYTECODE"] = "1"',
+        "sys.dont_write_bytecode = True",
+        "AI_PACKAGE_SOURCE_COMPILE_PASS",
+        "AI_PACKAGE_BYTECODE_CLEANUP_REMOVED_DIRS",
+    ),
+)
 
-# Detect an actual compileall command structurally rather than matching
-# the word in comments or explanatory strings.
+# Detect actual compileall commands structurally.
 for node in ast.walk(t01_tree):
     if not isinstance(node, ast.Call) or not node.args:
         continue
 
     command_argument = node.args[0]
-
     if not isinstance(command_argument, (ast.List, ast.Tuple)):
         continue
 
@@ -367,20 +534,6 @@ for node in ast.walk(t01_tree):
             "bytecode files."
         )
 
-for safeguard in (
-    "compile_ai_package_sources",
-    "clean_generated_bytecode",
-    'os.environ["PYTHONDONTWRITEBYTECODE"] = "1"',
-    "sys.dont_write_bytecode = True",
-    "AI_PACKAGE_SOURCE_COMPILE_PASS",
-    "AI_PACKAGE_BYTECODE_CLEANUP_REMOVED_DIRS",
-):
-    if safeguard not in t01_script:
-        raise SystemExit(
-            "AI-001-T01 bytecode-safe compilation safeguard is missing: "
-            f"{safeguard}"
-        )
-
 cleanup_position = t01_script.rfind("clean_generated_bytecode()")
 snapshot_position = t01_script.find(
     '["git", "ls-files", "--others", "--exclude-standard"]'
@@ -395,10 +548,7 @@ if (
         "AI-001-T01 must clean generated bytecode before snapshot inventory."
     )
 
-if (
-    "STATE.write_text" in t01_script
-    or "STATE_PATH.write_text" in t01_script
-):
+if "STATE.write_text" in t01_script or "STATE_PATH.write_text" in t01_script:
     raise SystemExit(
         "AI-001-T01 must not edit canonical state outside the controller."
     )
@@ -406,7 +556,6 @@ if (
 if "--force" in t01_script:
     raise SystemExit("AI-001-T01 transition must never force-push.")
 
-# Check that the transition invokes the exact canonical AI test paths.
 for test_name in (
     "test_contracts.py",
     "test_model_gateway.py",
@@ -417,28 +566,25 @@ for test_name in (
         / "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/ai_platform/tests"
         / test_name
     )
-
     if not test_path.is_file():
         raise SystemExit(
-            "Canonical AI package test is missing: "
-            f"{test_path.relative_to(root)}"
+            f"Canonical AI package test is missing: {test_path.relative_to(root)}"
         )
-
     if test_name not in t01_script:
         raise SystemExit(
             f"AI-001-T01 transition omits canonical test: {test_name}"
         )
 
-t01_composite = transition_actions["AI-001-T01"].read_text(
-    encoding="utf-8"
-)
-
+t01_composite = require_file(transition_actions["AI-001-T01"])
 if transition_scripts["AI-001-T01"].name not in t01_composite:
     raise SystemExit(
         "AI-001-T01 composite action does not invoke guarded_transition.py."
     )
 
-# Preserve existing CORE-008 transition guards and SHA checks.
+# ---------------------------------------------------------------------------
+# CORE-008 T06/T07/T08/T09 existing transition guards and SHA bindings.
+# ---------------------------------------------------------------------------
+
 for task in ("T06", "T07", "T08", "T09"):
     prefix = f"[CONTROL-CENTER-COMPLETE-CORE-008-{task}]"
 
@@ -448,18 +594,13 @@ for task in ("T06", "T07", "T08", "T09"):
         f"startsWith(github.event.head_commit.message, '{prefix}') }}"
     )
 
-    workflow = transition_workflows[task].read_text(
-        encoding="utf-8"
-    )
+    workflow = require_file(transition_workflows[task])
 
     for name, content in (
-        (f"{task} backend", backend),
-        (f"{task} reusable", workflow),
+        (f"{task} backend workflow", backend),
+        (f"{task} reusable workflow", workflow),
     ):
-        if guard not in content:
-            raise SystemExit(
-                f"{name} lacks its exact owner/branch/commit-prefix guard."
-            )
+        require_contains(name, content, (guard,))
 
     for binding in (
         "EXPECTED_SHA: ${{ github.sha }}",
@@ -468,22 +609,20 @@ for task in ("T06", "T07", "T08", "T09"):
         "ACTIONS_SERVER_URL: ${{ github.server_url }}",
         "ACTIONS_REPOSITORY: ${{ github.repository }}",
     ):
-        if binding not in workflow:
-            raise SystemExit(
-                f"{task} reusable workflow lacks: {binding}"
-            )
-
-    composite = transition_actions[task].read_text(
-        encoding="utf-8"
-    )
-    script_name = transition_scripts[task].name
-
-    if script_name not in composite:
-        raise SystemExit(
-            f"{task} composite action does not invoke {script_name}."
+        require_contains(
+            f"{task} reusable workflow",
+            workflow,
+            (binding,),
         )
 
-# Every reusable workflow must be triggered by both push and PR path filters.
+    composite = require_file(transition_actions[task])
+    if transition_scripts[task].name not in composite:
+        raise SystemExit(
+            f"{task} composite action does not invoke "
+            f"{transition_scripts[task].name}."
+        )
+
+# Every reusable workflow must remain in push and PR path filters.
 for path in (
     '".github/workflows/backend-ci.yml"',
     '".github/workflows/reusable-backend-verification.yml"',
@@ -498,33 +637,31 @@ for path in (
             f"Workflow push/PR path filter count must be 2: {path}"
         )
 
-# Keep the existing CORE-008 criteria-preservation guards.
+# ---------------------------------------------------------------------------
+# CORE-008 criteria-preservation and no-force safeguards.
+# ---------------------------------------------------------------------------
+
 for task in ("T07", "T08", "T09"):
-    script = transition_scripts[task].read_text(
-        encoding="utf-8"
+    script = require_file(transition_scripts[task])
+
+    require_contains(
+        f"CORE-008-{task} guarded script",
+        script,
+        (
+            "require_core008_criteria_baseline",
+            '"complete-subtask"',
+            f'"CORE-008-{task}"',
+            "return output.strip()",
+            "git",
+            "CORE-008-AC01",
+            "CORE-008-AC04",
+            "CORE-008-AC05",
+            "CORE-008-AC06",
+            "CANONICAL_BRANCH_HEAD",
+        ),
     )
 
-    for safeguard in (
-        "require_core008_criteria_baseline",
-        '"complete-subtask"',
-        f'"CORE-008-{task}"',
-        "return output.strip()",
-        "git",
-        "CORE-008-AC01",
-        "CORE-008-AC04",
-        "CORE-008-AC05",
-        "CORE-008-AC06",
-        "CANONICAL_BRANCH_HEAD",
-    ):
-        if safeguard not in script:
-            raise SystemExit(
-                f"{task} guarded script lacks safeguard: {safeguard}"
-            )
-
-    if (
-        "STATE.write_text" in script
-        or "STATE_PATH.write_text" in script
-    ):
+    if "STATE.write_text" in script or "STATE_PATH.write_text" in script:
         raise SystemExit(
             f"{task} must not edit canonical state outside the controller."
         )
@@ -535,9 +672,7 @@ for task in ("T07", "T08", "T09"):
         )
 
 # Verify existing T08 financial test inventory.
-t08_script = transition_scripts["T08"].read_text(
-    encoding="utf-8"
-)
+t08_script = require_file(transition_scripts["T08"])
 
 for test_name in (
     "test_core008_t01_financial_domain.py",
@@ -558,17 +693,13 @@ for test_name in (
         / "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial"
         / test_name
     )
-
     if not path.is_file():
         raise SystemExit(
             f"T08 focused test file is missing: {path.relative_to(root)}"
         )
 
 # Verify the existing T09 security test.
-t09_script = transition_scripts["T09"].read_text(
-    encoding="utf-8"
-)
-
+t09_script = require_file(transition_scripts["T09"])
 t09_test = (
     root
     / "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/core/commission_financial"
@@ -583,20 +714,21 @@ if not t09_test.is_file():
         f"T09 focused test is missing: {t09_test.relative_to(root)}"
     )
 
-if "require_core008_criteria_baseline" not in shared:
-    raise SystemExit(
-        "Shared transition contract lacks the CORE-008 criteria baseline."
-    )
+require_contains(
+    "Shared transition contract",
+    shared,
+    ("require_core008_criteria_baseline",),
+)
 
-for required in (
-    "EXPECTED_TRACKED",
-    "git push origin HEAD:refs/heads/reos-development",
-    "CANONICAL READBACK PASS",
-):
-    if required not in t06_publish_text:
-        raise SystemExit(
-            f"Existing T06 publisher is missing safeguard: {required}"
-        )
+require_contains(
+    "CORE-008-T06 publisher",
+    t06_publish_text,
+    (
+        "EXPECTED_TRACKED",
+        "git push origin HEAD:refs/heads/reos-development",
+        "CANONICAL READBACK PASS",
+    ),
+)
 
 if "--force" in t06_publish_text:
     raise SystemExit("T06 publisher must never force-push.")
@@ -604,9 +736,10 @@ if "--force" in t06_publish_text:
 print(
     "Transition wiring PASS: AI-001-T01 bytecode-safe compilation and "
     "cleanup, AI-001-T01 and CORE-008 T06/T07/T08/T09 authorization guards, "
-    "BACKEND-001 owner authorization and immutable OIDC identity wiring, "
-    "Python syntax, SHA bindings, focused-test inventory, canonical-state "
-    "safeguards, and readback protections."
+    "BACKEND-001 owner authorization, immutable OIDC identity contract, "
+    "exact activation source-path allowlist, regression-test wiring, "
+    "Python syntax, SHA bindings, canonical-state safeguards, and "
+    "readback protections."
 )
 PY
 
