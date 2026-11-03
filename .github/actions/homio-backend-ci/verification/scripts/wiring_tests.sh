@@ -1,3 +1,4 @@
+
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -10,6 +11,7 @@ from pathlib import Path
 root = Path.cwd()
 actions = root / ".github/actions/homio-backend-ci"
 workflows = root / ".github/workflows"
+control = root / "REOS_CONTROL_CENTER"
 
 transition_scripts = {
     "AI-001-T01": actions / "transitions/ai001-t01/scripts/guarded_transition.py",
@@ -160,6 +162,9 @@ activation_workflow = activation_workflow_path.read_text(
 activation_action = activation_action_path.read_text(
     encoding="utf-8"
 )
+activation_script = activation_script_path.read_text(
+    encoding="utf-8"
+)
 
 for safeguard in (
     "workflow_call:",
@@ -181,6 +186,101 @@ if "activate_backend_workstream.py" not in activation_action:
     raise SystemExit(
         "BACKEND-001 composite action does not invoke its activation script."
     )
+
+# ---------------------------------------------------------------------------
+# BACKEND-001 identity and regression contract.
+# These files are deliberately checked here instead of creating another
+# workflow or another independent test runner.
+# ---------------------------------------------------------------------------
+
+identity_contract_path = (
+    control / "context/github_actions_identity.py"
+)
+identity_test_path = (
+    control / "context/test_github_actions_identity.py"
+)
+controller_test_path = (
+    control / "context/test_backend_control_projection.py"
+)
+bootstrap_test_path = (
+    control / "context/test_backend_activation_import_bootstrap.py"
+)
+
+for path in (
+    identity_contract_path,
+    identity_test_path,
+    controller_test_path,
+    bootstrap_test_path,
+):
+    if not path.is_file():
+        raise SystemExit(
+            "Backend activation identity/regression component is missing: "
+            f"{path.relative_to(root)}"
+        )
+
+for path in (
+    identity_contract_path,
+    identity_test_path,
+    controller_test_path,
+    bootstrap_test_path,
+):
+    try:
+        ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    except (OSError, UnicodeError, SyntaxError) as exc:
+        raise SystemExit(
+            f"Invalid Python in {path.relative_to(root)}: {exc}"
+        ) from exc
+
+for safeguard in (
+    "EXPECTED_OIDC_SUBJECT",
+    "validate_github_actions_identity_claims",
+    "GitHubActionsIdentityError",
+    "repository_owner_id",
+    "repository_id",
+    "actor_id",
+    "test_github_actions_identity.py",
+    "test_backend_control_projection.py",
+):
+    if safeguard not in activation_script:
+        raise SystemExit(
+            "Backend activation identity safeguard is missing: "
+            f"{safeguard}"
+        )
+
+for required_path in (
+    "REOS_CONTROL_CENTER/context/github_actions_identity.py",
+    "REOS_CONTROL_CENTER/context/test_github_actions_identity.py",
+    "REOS_CONTROL_CENTER/context/test_backend_control_projection.py",
+):
+    if required_path not in activation_script:
+        raise SystemExit(
+            "Backend activation source allowlist omits: "
+            f"{required_path}"
+        )
+
+# The existing modular runner must continue to execute the activation
+# import/bootstrap test and the existing transition tests.
+financial_runner_path = (
+    actions / "verification/scripts/financial_context_tenant.sh"
+)
+
+if not financial_runner_path.is_file():
+    raise SystemExit(
+        "Existing financial/context/tenant regression runner is missing."
+    )
+
+financial_runner = financial_runner_path.read_text(encoding="utf-8")
+
+for test_path in (
+    "context/test_phase_projection.py",
+    "context/test_backend_workstream_transition.py",
+    "context/test_backend_activation_import_bootstrap.py",
+):
+    if test_path not in financial_runner:
+        raise SystemExit(
+            "Existing modular regression runner omits: "
+            f"{test_path}"
+        )
 
 # AI-001-T01 has its own task and completion guard.
 t01_script = transition_scripts["AI-001-T01"].read_text(
@@ -504,7 +604,7 @@ if "--force" in t06_publish_text:
 print(
     "Transition wiring PASS: AI-001-T01 bytecode-safe compilation and "
     "cleanup, AI-001-T01 and CORE-008 T06/T07/T08/T09 authorization guards, "
-    "BACKEND-001 owner authorization and reusable workflow wiring, "
+    "BACKEND-001 owner authorization and immutable OIDC identity wiring, "
     "Python syntax, SHA bindings, focused-test inventory, canonical-state "
     "safeguards, and readback protections."
 )
@@ -515,4 +615,6 @@ bash -n \
 
 python -m pytest -q -p no:cacheprovider \
   .github/actions/homio-backend-ci/verification/tests/test_workflow_module_wiring.py \
-  .github/actions/homio-backend-ci/shared/test_transition_contract.py
+  .github/actions/homio-backend-ci/shared/test_transition_contract.py \
+  REOS_CONTROL_CENTER/context/test_github_actions_identity.py \
+  REOS_CONTROL_CENTER/context/test_backend_control_projection.py
