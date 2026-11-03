@@ -9,6 +9,7 @@ from ..T16_Repository_Intelligence_File_Discovery.repository_intelligence import
     FileRisk,
     RepositoryFile,
     RepositoryScanner,
+    SourceKind,
     normalize_repository_path,
 )
 
@@ -85,6 +86,22 @@ class T17RepositoryIntelligenceAdapter:
         return build_dependency_graph(
             self.repository_root
         )
+
+
+def _has_untrusted_classification(
+    item: RepositoryFile,
+) -> bool:
+    """Return True unless T16 has classified this file safely."""
+
+    return (
+        item.is_symlink
+        or item.source_kind == SourceKind.UNKNOWN
+        or item.authority == FileAuthority.UNKNOWN
+        or item.risk in {
+            FileRisk.UNKNOWN,
+            FileRisk.SENSITIVE,
+        }
+    )
 
 
 class ChangeImpactAnalyzer:
@@ -180,11 +197,14 @@ class ChangeImpactAnalyzer:
         unknown: set[str] = set()
 
         for path in changed:
-            item = file_map.get(
-                path
-            )
+            item = file_map.get(path)
 
-            if item is None:
+            # Missing, unknown, sensitive and symlink files must never
+            # silently become DIRECT source impacts.
+            if (
+                item is None
+                or _has_untrusted_classification(item)
+            ):
                 unknown.add(path)
 
                 impacts.append(
@@ -192,33 +212,34 @@ class ChangeImpactAnalyzer:
                         relative_path=path,
                         impact_level=ImpactLevel.UNKNOWN,
                         reason_code=ImpactReason.UNKNOWN_PATH,
-                        authority=None,
-                        source_kind=None,
-                        dependency_distance=None,
+                        authority=(
+                            item.authority
+                            if item is not None
+                            else None
+                        ),
+                        source_kind=(
+                            item.source_kind.value
+                            if item is not None
+                            else None
+                        ),
+                        dependency_distance=(
+                            0
+                            if item is not None
+                            else None
+                        ),
                     )
                 )
 
                 continue
 
             if item.risk == FileRisk.PROTECTED:
-                level = (
-                    ImpactLevel.PROTECTED
-                )
-
-                reason = (
-                    ImpactReason.PROTECTED_FILE
-                )
-
+                level = ImpactLevel.PROTECTED
+                reason = ImpactReason.PROTECTED_FILE
                 protected.add(path)
 
             else:
-                level = (
-                    ImpactLevel.DIRECT
-                )
-
-                reason = (
-                    ImpactReason.DIRECT_MATCH
-                )
+                level = ImpactLevel.DIRECT
+                reason = ImpactReason.DIRECT_MATCH
 
             impacts.append(
                 ChangeImpact(
@@ -243,37 +264,58 @@ class ChangeImpactAnalyzer:
             )
 
             for dependency in dependency_impacts:
-                dep_file = file_map.get(
+                dependency_path = normalize_repository_path(
                     dependency.impacted_path
                 )
 
-                if dep_file is None:
+                dep_file = file_map.get(
+                    dependency_path
+                )
+
+                # An unresolved dependency is itself an unknown impact.
+                # It cannot disappear from the report just because the
+                # repository scanner did not return a file for it.
+                if (
+                    dep_file is None
+                    or _has_untrusted_classification(dep_file)
+                ):
+                    unknown.add(dependency_path)
+
+                    impacts.append(
+                        ChangeImpact(
+                            relative_path=dependency_path,
+                            impact_level=ImpactLevel.UNKNOWN,
+                            reason_code=ImpactReason.UNKNOWN_PATH,
+                            authority=(
+                                dep_file.authority
+                                if dep_file is not None
+                                else None
+                            ),
+                            source_kind=(
+                                dep_file.source_kind.value
+                                if dep_file is not None
+                                else None
+                            ),
+                            dependency_distance=dependency.distance,
+                        )
+                    )
+
                     continue
 
-                if (
-                    dep_file.risk
-                    == FileRisk.PROTECTED
-                ):
-                    dep_level = (
-                        ImpactLevel.PROTECTED
-                    )
-
-                    dep_reason = (
-                        ImpactReason.PROTECTED_FILE
-                    )
+                if dep_file.risk == FileRisk.PROTECTED:
+                    protected.add(dependency_path)
+                    dep_level = ImpactLevel.PROTECTED
+                    dep_reason = ImpactReason.PROTECTED_FILE
 
                 else:
-                    dep_level = (
-                        ImpactLevel.INDIRECT
-                    )
-
+                    dep_level = ImpactLevel.INDIRECT
                     dep_reason = (
                         ImpactReason.DEPENDENCY_OF_CHANGED_MODULE
                     )
 
                 impacts.append(
                     ChangeImpact(
-                        relative_path=dependency.impacted_path,
+                        relative_path=dependency_path,
                         impact_level=dep_level,
                         reason_code=dep_reason,
                         authority=dep_file.authority,
@@ -362,12 +404,14 @@ class ChangeImpactAnalyzer:
             )
         )
 
+        # Protected-only and unknown-only reports are both blocked.
+        # Mixed protected + unknown reports fail closed.
         decision = (
             T17Decision.FAIL_CLOSED
             if protected and unknown
             else (
                 T17Decision.BLOCKED
-                if unknown
+                if protected or unknown
                 else T17Decision.ANALYZE
             )
         )
