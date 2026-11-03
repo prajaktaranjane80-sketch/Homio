@@ -209,6 +209,10 @@ def synchronize_execution_projection(
 ) -> None:
     """
     Synchronize execution metadata derived from the current gate plan.
+
+    A subtask-specific acceptance list takes precedence over the gate-wide
+    list. Gates without subtask-specific criteria retain their existing
+    gate-level projection behavior.
     """
     synchronize_current_phase(state)
     execution = state.setdefault("execution", {})
@@ -224,6 +228,7 @@ def synchronize_execution_projection(
         return
 
     current_subtask = gate.get("current_subtask")
+    current_item = None
 
     if isinstance(current_subtask, str) and current_subtask:
         execution["current_subtask"] = current_subtask
@@ -245,7 +250,16 @@ def synchronize_execution_projection(
                     f"{current_subtask}: {title}."
                 )
 
-    criteria = gate.get("acceptance_criteria")
+    subtask_criteria = (
+        current_item.get("acceptance_criteria")
+        if isinstance(current_item, dict)
+        else None
+    )
+    criteria = (
+        subtask_criteria
+        if isinstance(subtask_criteria, list)
+        else gate.get("acceptance_criteria")
+    )
 
     if isinstance(criteria, list):
         execution["current_acceptance_criteria"] = list(criteria)
@@ -802,6 +816,80 @@ def cmd_validate_gate(
     return True
 
 
+def _synchronize_dependency_status_projection(
+    state: dict[str, Any],
+) -> None:
+    """
+    Align existing dependency nodes with the authoritative gate statuses.
+
+    The helper never creates, deletes or reorders graph nodes. A malformed
+    or incomplete graph fails closed rather than leaving stale projections.
+    """
+    execution_plan = state.get("execution_plan")
+    dependencies = state.get("dependencies")
+
+    if not isinstance(execution_plan, dict):
+        raise SystemExit("Canonical execution_plan is missing or invalid.")
+    if not isinstance(dependencies, dict):
+        raise SystemExit("Canonical dependencies graph is missing or invalid.")
+
+    sequence = execution_plan.get("authoritative_sequence")
+    nodes = dependencies.get("nodes")
+
+    if not isinstance(sequence, list) or not isinstance(nodes, list):
+        raise SystemExit(
+            "Authoritative sequence or dependency nodes are missing or invalid."
+        )
+
+    statuses: dict[str, str] = {}
+    for item in sequence:
+        if not isinstance(item, dict):
+            raise SystemExit(
+                "Authoritative sequence contains a malformed gate entry."
+            )
+
+        gate_id = item.get("gate")
+        status = item.get("status")
+        if (
+            not isinstance(gate_id, str)
+            or not gate_id
+            or not isinstance(status, str)
+            or not status
+            or gate_id in statuses
+        ):
+            raise SystemExit(
+                "Authoritative sequence contains a duplicate or invalid gate."
+            )
+
+        statuses[gate_id] = status
+
+    nodes_by_id: dict[str, dict[str, Any]] = {}
+    for node in nodes:
+        if not isinstance(node, dict):
+            raise SystemExit("Dependency graph contains a malformed node.")
+
+        gate_id = node.get("id")
+        if (
+            not isinstance(gate_id, str)
+            or not gate_id
+            or gate_id in nodes_by_id
+        ):
+            raise SystemExit(
+                "Dependency graph contains a duplicate or invalid node."
+            )
+
+        nodes_by_id[gate_id] = node
+
+    if set(nodes_by_id) != set(statuses):
+        raise SystemExit(
+            "Dependency graph node inventory differs from the "
+            "authoritative execution sequence."
+        )
+
+    for gate_id, status in statuses.items():
+        nodes_by_id[gate_id]["status"] = status
+
+
 def cmd_approve_gate(
     state: dict[str, Any],
 ) -> None:
@@ -895,14 +983,49 @@ def cmd_approve_gate(
         materialize_current_gate(state)
 
         next_plan = state["gate_plans"][next_gate]
+        next_subtask_id = next_plan.get("current_subtask")
 
-        state["execution"]["current_subtask"] = (
-            next_plan["current_subtask"]
+        if not isinstance(next_subtask_id, str) or not next_subtask_id:
+            raise SystemExit(
+                f"Next gate {next_gate} has no current subtask."
+            )
+
+        next_subtask = next(
+            (
+                item
+                for item in next_plan.get("subtasks", [])
+                if isinstance(item, dict)
+                and item.get("id") == next_subtask_id
+            ),
+            None,
         )
+        if not isinstance(next_subtask, dict):
+            raise SystemExit(
+                f"Current subtask {next_subtask_id} is missing "
+                f"from gate {next_gate}."
+            )
 
+        subtask_status = next_subtask.get("status")
+        if subtask_status == "PENDING":
+            next_subtask["status"] = "CURRENT"
+        elif subtask_status != "CURRENT":
+            raise SystemExit(
+                f"Current subtask {next_subtask_id} in gate "
+                f"{next_gate} has non-resumable status "
+                f"{subtask_status!r}."
+            )
+
+        next_subtask_title = next_subtask.get("title")
+        if not isinstance(next_subtask_title, str) or not next_subtask_title:
+            raise SystemExit(
+                f"Current subtask {next_subtask_id} in gate "
+                f"{next_gate} has no valid title."
+            )
+
+        next_plan["status"] = "CURRENT"
+        state["execution"]["current_subtask"] = next_subtask_id
         state["execution"]["current_task"] = (
-            f"{next_plan['current_subtask']}: "
-            f"{next_plan['subtasks'][0]['title']}."
+            f"{next_subtask_id}: {next_subtask_title}."
         )
 
     else:
@@ -911,6 +1034,8 @@ def cmd_approve_gate(
         state["execution"]["current_task"] = (
             "All authoritative gates complete."
         )
+
+    _synchronize_dependency_status_projection(state)
 
     emit(
         state,
