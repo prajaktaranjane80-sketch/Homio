@@ -13,4 +13,5 @@ python -m pytest -q -p no:cacheprovider \
   context/test_backend_control_projection.py \
   context/test_github_actions_identity.py \
   context/test_backend_activation_import_bootstrap.py \
+  AUTONOMY_ENGINE/continuity/acrl/T17_Change_Impact_Dependency_Analysis/test_change_impact_analysis.py \
   AUTONOMY_ENGINE/core/identity_tenant
