@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import os
@@ -10,6 +9,13 @@ from pathlib import Path
 def test_backend_activation_bootstraps_canonical_acrl_import_namespace():
     repository_root = Path(__file__).resolve().parents[2]
 
+    wrapper_script = (
+        repository_root
+        / ".github/actions/homio-backend-ci/transitions/"
+        / "backend-workstream-activation/scripts/"
+        / "activate_backend_workstream_wrapper.py"
+    )
+
     activation_script = (
         repository_root
         / ".github/actions/homio-backend-ci/transitions/"
@@ -17,6 +23,7 @@ def test_backend_activation_bootstraps_canonical_acrl_import_namespace():
         / "activate_backend_workstream.py"
     )
 
+    assert wrapper_script.is_file()
     assert activation_script.is_file()
 
     probe = """
@@ -25,37 +32,45 @@ import importlib.util
 import sys
 from pathlib import Path
 
-activation_path = Path(sys.argv[1]).resolve()
+wrapper_path = Path(sys.argv[1]).resolve()
 
 spec = importlib.util.spec_from_file_location(
-    "homio_backend_activation_import_smoke",
-    activation_path,
+    "homio_backend_activation_wrapper_smoke",
+    wrapper_path,
 )
 
 assert spec is not None
 assert spec.loader is not None
 
-module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(module)
+wrapper = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = wrapper
+spec.loader.exec_module(wrapper)
 
-assert module.ROOT == activation_path.parents[6]
-assert module.CONTROL == module.ROOT / "REOS_CONTROL_CENTER"
+activation = wrapper.load_guarded_activation()
 
-assert str(module.CONTROL) in sys.path
-assert str(module.ROOT) in sys.path
+assert activation.ROOT == wrapper_path.parents[6]
+assert activation.CONTROL == activation.ROOT / "REOS_CONTROL_CENTER"
+
+assert str(activation.CONTROL) in sys.path
+assert str(activation.ROOT) in sys.path
+
+assert (
+    activation.EXPECTED_ACTIVATION_PATHS
+    == wrapper.REPAIRED_ACTIVATION_PATHS
+)
 
 identity = importlib.import_module(
     "REOS_CONTROL_CENTER.context.github_actions_identity"
 )
 
-assert module.OWNER == identity.OWNER
-assert module.OWNER_ID == identity.OWNER_ID
-assert module.REPOSITORY == identity.REPOSITORY
-assert module.REPOSITORY_ID == identity.REPOSITORY_ID
-assert module.BRANCH == identity.BRANCH
-assert module.BRANCH_REF == identity.BRANCH_REF
-assert module.OIDC_ISSUER == identity.OIDC_ISSUER
-assert module.EXPECTED_OIDC_SUBJECT == identity.EXPECTED_OIDC_SUBJECT
+assert activation.OWNER == identity.OWNER
+assert activation.OWNER_ID == identity.OWNER_ID
+assert activation.REPOSITORY == identity.REPOSITORY
+assert activation.REPOSITORY_ID == identity.REPOSITORY_ID
+assert activation.BRANCH == identity.BRANCH
+assert activation.BRANCH_REF == identity.BRANCH_REF
+assert activation.OIDC_ISSUER == identity.OIDC_ISSUER
+assert activation.EXPECTED_OIDC_SUBJECT == identity.EXPECTED_OIDC_SUBJECT
 
 assert identity.OWNER == "prajaktaranjane80-sketch"
 assert identity.OWNER_ID == "320960487"
@@ -69,33 +84,50 @@ assert identity.EXPECTED_OIDC_SUBJECT == (
     "ref:refs/heads/reos-development"
 )
 
-# The controller was modified after the audited baseline and must be
-# an explicitly authorized source path for the activation transition.
-assert (
-    "REOS_CONTROL_CENTER/reos_control_center.py"
-    in module.EXPECTED_ACTIVATION_PATHS
-)
-
-# The activation transition must preserve all existing authorization and
-# test-related source paths in its exact allowlist.
 required_activation_paths = {
     ".github/actions/homio-backend-ci/transitions/"
     "backend-workstream-activation/action.yml",
     ".github/actions/homio-backend-ci/transitions/"
     "backend-workstream-activation/scripts/"
     "activate_backend_workstream.py",
+    ".github/actions/homio-backend-ci/transitions/"
+    "backend-workstream-activation/scripts/"
+    "activate_backend_workstream_wrapper.py",
     ".github/workflows/backend-ci.yml",
     ".github/workflows/reusable-backend-workstream-activation.yml",
     "REOS_CONTROL_CENTER/context/github_actions_identity.py",
     "REOS_CONTROL_CENTER/context/test_github_actions_identity.py",
     "REOS_CONTROL_CENTER/context/test_backend_control_projection.py",
-    "REOS_CONTROL_CENTER/context/reos_control_center.py",
-    "REOS_CONTROL_CENTER/context/test_backend_activation_import_bootstrap.py",
+    "REOS_CONTROL_CENTER/reos_control_center.py",
+    "REOS_CONTROL_CENTER/PS Output",
+    "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/"
+    "T17_Change_Impact_Dependency_Analysis/change_impact_analysis.py",
+    "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/"
+    "T17_Change_Impact_Dependency_Analysis/test_change_impact_analysis.py",
 }
 
 assert required_activation_paths.issubset(
-    module.EXPECTED_ACTIVATION_PATHS
+    activation.EXPECTED_ACTIVATION_PATHS
 )
+
+assert (
+    "REOS_CONTROL_CENTER/context/reos_control_center.py"
+    not in activation.EXPECTED_ACTIVATION_PATHS
+)
+
+assert wrapper.source_paths_for_t17(
+    (
+        "REOS_CONTROL_CENTER/PS Output",
+        "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/example.py",
+    )
+) == [
+    "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/example.py",
+]
+
+# Similar-looking paths are not silently excluded.
+assert wrapper.source_paths_for_t17(
+    ("other/PS Output",)
+) == ["other/PS Output"]
 
 import AUTONOMY_ENGINE.continuity.acrl.repository_context  # noqa: E402
 
@@ -113,7 +145,7 @@ assert not any(
             sys.executable,
             "-c",
             probe,
-            str(activation_script),
+            str(wrapper_script),
         ],
         cwd=repository_root,
         env=environment,
