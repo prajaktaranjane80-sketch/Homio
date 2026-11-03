@@ -69,6 +69,34 @@ assert identity.EXPECTED_OIDC_SUBJECT == (
     "ref:refs/heads/reos-development"
 )
 
+# The controller was modified after the audited baseline and must be
+# an explicitly authorized source path for the activation transition.
+assert (
+    "REOS_CONTROL_CENTER/reos_control_center.py"
+    in module.EXPECTED_ACTIVATION_PATHS
+)
+
+# The activation transition must preserve all existing authorization and
+# test-related source paths in its exact allowlist.
+required_activation_paths = {
+    ".github/actions/homio-backend-ci/transitions/"
+    "backend-workstream-activation/action.yml",
+    ".github/actions/homio-backend-ci/transitions/"
+    "backend-workstream-activation/scripts/"
+    "activate_backend_workstream.py",
+    ".github/workflows/backend-ci.yml",
+    ".github/workflows/reusable-backend-workstream-activation.yml",
+    "REOS_CONTROL_CENTER/context/github_actions_identity.py",
+    "REOS_CONTROL_CENTER/context/test_github_actions_identity.py",
+    "REOS_CONTROL_CENTER/context/test_backend_control_projection.py",
+    "REOS_CONTROL_CENTER/context/reos_control_center.py",
+    "REOS_CONTROL_CENTER/context/test_backend_activation_import_bootstrap.py",
+}
+
+assert required_activation_paths.issubset(
+    module.EXPECTED_ACTIVATION_PATHS
+)
+
 import AUTONOMY_ENGINE.continuity.acrl.repository_context  # noqa: E402
 
 assert not any(
