@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import json
@@ -10,6 +11,7 @@ from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 
+
 ROOT = Path(__file__).resolve().parents[6]
 CONTROL = ROOT / "REOS_CONTROL_CENTER"
 STATE_PATH = CONTROL / "data" / "state.json"
@@ -17,28 +19,22 @@ PACKET_PATH = CONTROL / "packets" / "NEW_CHAT_PACKET.txt"
 HANDOFF_PATH = CONTROL / "REOS_NEXT_CHAT.txt"
 SNAPSHOT_DIR = CONTROL / "snapshots"
 
+
 BASELINE_HEAD = "a82dc7af949e1eaed4468b4c6ff6ca4f220a0f30"
 STATE_BLOB_SHA = "6242f63371a725ea99447c218bbbeb46a0c5eddd"
 BACKEND_MASTER_BLOB_SHA = "27b43931d1b6db48065ec41fd3574bd2dbc5ae3c"
 WORK_PLAN_BLOB_SHA = "e69b5107d21e54ed4920178bd6ec62c95e773bb5"
+
 ARCH039_SNAPSHOT_PATH = (
     "REOS_CONTROL_CENTER/snapshots/"
     "state_before_arch039_transition_repair.json"
 )
 ARCH039_SNAPSHOT_BLOB_SHA = "9a086a6d7e5caff45468ed4aa4ecbd8f2ffd3f8c"
 
-REPOSITORY = "prajaktaranjane80-sketch/Homio"
-OWNER = "prajaktaranjane80-sketch"
-BRANCH = "reos-development"
-BRANCH_REF = f"refs/heads/{BRANCH}"
 APPROVAL_PREFIX = "[CONTROL-CENTER-ACTIVATE-BACKEND-001]"
-OIDC_ISSUER = "https://token.actions.githubusercontent.com"
 OIDC_AUDIENCE = "homio-control-center-backend-activation"
 OIDC_JWKS_URL = (
     "https://token.actions.githubusercontent.com/.well-known/jwks"
-)
-EXPECTED_OIDC_SUBJECT = (
-    f"repo:{REPOSITORY}:ref:{BRANCH_REF}"
 )
 
 B0_EVIDENCE_PATH = (
@@ -50,25 +46,6 @@ ACTIVATION_EVIDENCE_PATH = (
     "workstream-activation-ci-evidence.md"
 )
 
-EXPECTED_ACTIVATION_PATHS = {
-    ".github/actions/homio-backend-ci/transitions/"
-    "backend-workstream-activation/action.yml",
-    ".github/actions/homio-backend-ci/transitions/"
-    "backend-workstream-activation/scripts/"
-    "activate_backend_workstream.py",
-    ".github/workflows/backend-ci.yml",
-    ".github/workflows/reusable-backend-workstream-activation.yml",
-    "REOS_CONTROL_CENTER/context/phase_projection.py",
-    "REOS_CONTROL_CENTER/context/test_phase_projection.py",
-    "REOS_CONTROL_CENTER/context/backend_workstream_transition.py",
-    "REOS_CONTROL_CENTER/context/test_backend_workstream_transition.py",
-    B0_EVIDENCE_PATH,
-    ".github/actions/homio-backend-ci/verification/scripts/"
-    "financial_context_tenant.sh",
-    ".github/actions/homio-backend-ci/verification/scripts/"
-    "wiring_tests.sh",
-    "REOS_CONTROL_CENTER/context/test_backend_activation_import_bootstrap.py",
-}
 
 # ACRL's package root is REOS_CONTROL_CENTER. Activation runs from repository
 # root, so both roots must be on sys.path before importing any ACRL module.
@@ -83,10 +60,23 @@ os.chdir(ROOT)
 os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
 sys.dont_write_bytecode = True
 
+
 from REOS_CONTROL_CENTER import reos_control_center as controller  # noqa: E402
 
 from REOS_CONTROL_CENTER.context.backend_workstream_transition import (  # noqa: E402
     activate_backend_workstream_state,
+)
+from REOS_CONTROL_CENTER.context.github_actions_identity import (  # noqa: E402
+    BRANCH,
+    BRANCH_REF,
+    EXPECTED_OIDC_SUBJECT,
+    OIDC_ISSUER,
+    OWNER,
+    OWNER_ID,
+    REPOSITORY,
+    REPOSITORY_ID,
+    GitHubActionsIdentityError,
+    validate_github_actions_identity_claims,
 )
 from REOS_CONTROL_CENTER.context.phase_projection import (  # noqa: E402
     is_phase_coherent,
@@ -131,6 +121,30 @@ from AUTONOMY_ENGINE.security.authentication.oidc_verifier import (  # noqa: E40
 )
 
 import jwt  # noqa: E402
+
+
+EXPECTED_ACTIVATION_PATHS = {
+    ".github/actions/homio-backend-ci/transitions/"
+    "backend-workstream-activation/action.yml",
+    ".github/actions/homio-backend-ci/transitions/"
+    "backend-workstream-activation/scripts/"
+    "activate_backend_workstream.py",
+    ".github/workflows/backend-ci.yml",
+    ".github/workflows/reusable-backend-workstream-activation.yml",
+    "REOS_CONTROL_CENTER/context/phase_projection.py",
+    "REOS_CONTROL_CENTER/context/test_phase_projection.py",
+    "REOS_CONTROL_CENTER/context/backend_workstream_transition.py",
+    "REOS_CONTROL_CENTER/context/test_backend_workstream_transition.py",
+    "REOS_CONTROL_CENTER/context/github_actions_identity.py",
+    "REOS_CONTROL_CENTER/context/test_github_actions_identity.py",
+    "REOS_CONTROL_CENTER/context/test_backend_control_projection.py",
+    B0_EVIDENCE_PATH,
+    ".github/actions/homio-backend-ci/verification/scripts/"
+    "financial_context_tenant.sh",
+    ".github/actions/homio-backend-ci/verification/scripts/"
+    "wiring_tests.sh",
+    "REOS_CONTROL_CENTER/context/test_backend_activation_import_bootstrap.py",
+}
 
 
 def fail(message: str) -> None:
@@ -544,9 +558,9 @@ class GitHubActionsPrincipalVerifier:
     """Verify GitHub's signed OIDC identity and bind the owner actor.
 
     The existing HOMIO OIDCVerifier performs signature, issuer, audience,
-    expiry and subject verification. The additional claims are read from
-    that same already-verified token to bind the repository owner, ref and
-    source commit to the human approval event.
+    expiry and subject-presence verification. The additional GitHub claims
+    are then read from that same already-verified token and checked against
+    the repository's immutable identity contract.
     """
 
     def __init__(self, expected_sha: str) -> None:
@@ -563,6 +577,8 @@ class GitHubActionsPrincipalVerifier:
         self,
         token: str,
     ) -> AuthenticatedPrincipal:
+        # Cryptographic verification must happen before reading unverified
+        # JWT payload claims. Never move this call below jwt.decode().
         principal = self.verifier.verify_access_token(token)
 
         try:
@@ -581,33 +597,23 @@ class GitHubActionsPrincipalVerifier:
         except Exception:
             fail("Verified GitHub OIDC token claims could not be read")
 
-        expected_claims = {
-            "iss": OIDC_ISSUER,
-            "sub": EXPECTED_OIDC_SUBJECT,
-            "repository": REPOSITORY,
-            "repository_owner": OWNER,
-            "actor": OWNER,
-            "ref": BRANCH_REF,
-            "sha": self.expected_sha,
-            "event_name": "push",
-        }
-
-        for name, expected in expected_claims.items():
-            if claims.get(name) != expected:
-                fail(
-                    "GitHub OIDC token scope mismatch for claim "
-                    f"{name!r}"
-                )
+        try:
+            validate_github_actions_identity_claims(
+                claims,
+                expected_sha=self.expected_sha,
+            )
+        except GitHubActionsIdentityError as exc:
+            fail(str(exc))
 
         actor_id = claims.get("actor_id")
-        if not isinstance(actor_id, (str, int)) or not str(actor_id):
-            fail("GitHub OIDC actor identity is incomplete")
+        if not isinstance(actor_id, str) or actor_id != OWNER_ID:
+            fail("GitHub OIDC actor identity is not the repository owner")
 
         if principal.issuer != OIDC_ISSUER:
             fail("OIDC verifier returned an unexpected issuer")
 
         if principal.subject != EXPECTED_OIDC_SUBJECT:
-            fail("OIDC verifier returned an unexpected subject")
+            fail("OIDC verifier returned an unexpected immutable subject")
 
         if OIDC_AUDIENCE not in principal.audiences:
             fail("OIDC verifier returned an unexpected audience")
@@ -647,7 +653,10 @@ def authorize_activation(
             "backend_master_blob_sha": BACKEND_MASTER_BLOB_SHA,
             "work_plan_blob_sha": WORK_PLAN_BLOB_SHA,
             "arch039_snapshot_blob_sha": ARCH039_SNAPSHOT_BLOB_SHA,
-            "owner_commit_sha": expected_sha,
+            "owner_source_commit": expected_sha,
+            "owner_id": OWNER_ID,
+            "repository_id": REPOSITORY_ID,
+            "oidc_subject": EXPECTED_OIDC_SUBJECT,
         },
     )
 
@@ -666,6 +675,9 @@ def authorize_activation(
             f"work_plan_blob_sha={WORK_PLAN_BLOB_SHA}",
             f"arch039_snapshot_blob_sha={ARCH039_SNAPSHOT_BLOB_SHA}",
             f"owner_source_commit={expected_sha}",
+            f"owner_id={OWNER_ID}",
+            f"repository_id={REPOSITORY_ID}",
+            f"oidc_subject={EXPECTED_OIDC_SUBJECT}",
         ),
         metadata={
             "workstream": "BACKEND",
@@ -711,12 +723,15 @@ def authorize_activation(
 
     approval_evidence = (
         f"GitHub repository owner: {OWNER}",
+        f"GitHub repository owner ID: {OWNER_ID}",
         f"GitHub actor: {claims['actor']}",
         f"GitHub actor ID: {claims['actor_id']}",
         f"Repository: {REPOSITORY}",
+        f"Repository ID: {REPOSITORY_ID}",
         f"Branch: {BRANCH}",
         f"Owner-approved source commit: {expected_sha}",
         f"Required commit prefix: {APPROVAL_PREFIX}",
+        f"OIDC immutable subject: {EXPECTED_OIDC_SUBJECT}",
         f"Push event sender: {owner_event['sender']['login']}",
         f"Actions run ID: {os.environ['ACTIONS_RUN_ID']}",
     )
@@ -770,6 +785,8 @@ def authorize_activation(
         "state_blob_sha": STATE_BLOB_SHA,
         "oidc_issuer": principal.issuer,
         "oidc_subject": principal.subject,
+        "owner_id": OWNER_ID,
+        "repository_id": REPOSITORY_ID,
         "actions_run_id": os.environ["ACTIONS_RUN_ID"],
     }
 
@@ -967,6 +984,9 @@ def write_activation_evidence(
         "# BACKEND-001 — Guarded Workstream Activation Evidence",
         "",
         f"- Repository: `{REPOSITORY}`",
+        f"- Repository ID: `{REPOSITORY_ID}`",
+        f"- Repository owner: `{OWNER}`",
+        f"- Repository owner ID: `{OWNER_ID}`",
         f"- Branch: `{BRANCH}`",
         f"- Owner actor: `{approval_record['actor']}`",
         f"- Owner actor ID: `{approval_record['actor_id']}`",
@@ -989,6 +1009,7 @@ def write_activation_evidence(
         ),
         f"- OIDC issuer: `{approval_record['oidc_issuer']}`",
         f"- OIDC subject: `{approval_record['oidc_subject']}`",
+        "- OIDC subject format: immutable owner/repository IDs",
         "- OIDC bearer token: not persisted",
         "",
         "## ARCH-039 reconciliation",
@@ -1317,6 +1338,7 @@ def main() -> None:
     print("T15: PROPOSE")
     print("T17: ANALYZE")
     print("T18: AUTHORIZE")
+    print("OIDC: IMMUTABLE OWNER/REPOSITORY IDENTITY VERIFIED")
     print("ARCH-039: APPROVED AND LOCKED")
     print("=" * 72)
 
