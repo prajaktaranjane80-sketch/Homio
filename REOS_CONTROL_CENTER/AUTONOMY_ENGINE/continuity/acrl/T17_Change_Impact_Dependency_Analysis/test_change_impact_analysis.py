@@ -189,7 +189,7 @@ def test_shell_scripts_are_known_direct_sources(tmp_path):
     assert impact.authority == FileAuthority.AUTHORITATIVE
 
 
-def test_shell_symlink_remains_unknown_and_blocked(tmp_path):
+def test_shell_symlink_remains_blocked_by_repository_boundary(tmp_path):
     root = build_repo(tmp_path / "repo")
     outside = tmp_path / "outside.sh"
     outside.write_text(
@@ -205,9 +205,13 @@ def test_shell_symlink_remains_unknown_and_blocked(tmp_path):
             f"Platform does not support symlink creation: {exc}"
         )
 
-    report = ChangeImpactAnalyzer(root).analyze(
-        ("untrusted.sh",)
-    )
+    with pytest.raises(
+        ChangeImpactSecurityError,
+        match="Changed path escapes repository boundary",
+    ):
+        ChangeImpactAnalyzer(root).analyze(
+            ("untrusted.sh",)
+        )
 
     assert report.decision == T17Decision.BLOCKED
     assert report.unknown_paths == ("untrusted.sh",)
