@@ -1,13 +1,15 @@
+
 # BACKEND-001 — B0 Live Repository Audit Evidence
 
 **Project:** HOMIO / REOS  
 **Repository:** prajaktaranjane80-sketch/Homio  
 **Branch:** reos-development  
-**Audit date:** 2 November 2026  
+**Initial audit date:** 2 November 2026  
+**Verification addendum date:** 3 November 2026  
 **Workstream:** BACKEND  
 **Audit mode:** READ-ONLY
 
-## Verified source baseline
+## 1. Verified source baseline
 
 - Baseline HEAD: `a82dc7af949e1eaed4468b4c6ff6ca4f220a0f30`
 - Canonical state blob SHA: `6242f63371a725ea99447c218bbbeb46a0c5eddd`
@@ -15,7 +17,7 @@
 - Work plan blob SHA: `e69b5107d21e54ed4920178bd6ec62c95e773bb5`
 - ARCH-039 validation snapshot blob SHA: `9a086a6d7e5caff45468ed4aa4ecbd8f2ffd3f8c`
 
-## Verified implementation findings
+## 2. Verified implementation findings
 
 | Area | B0 finding | Disposition |
 |---|---|---|
@@ -29,7 +31,7 @@
 | Event outbox | Existing contract boundary found; not a production implementation | UPDATE only when authorized |
 | Backend CI | Existing modular backend workflow and composite action found | EXTEND; do not create competing CI |
 
-## Confirmed ownership boundaries
+## 3. Confirmed ownership boundaries
 
 - CORE-001 owns identity and tenant authority.
 - CORE-002 owns the existing event-platform boundary.
@@ -43,19 +45,19 @@
 - ACRL remains a developer continuity and recovery boundary.
 - The new Fastify API must coordinate existing owners; it must not recreate their business logic.
 
-## Duplicate review
+## 4. Duplicate review
 
 No second public backend, second public Python API, duplicate CORE engine, duplicate AI platform, duplicate Qdrant engine or competing backend CI workflow is proposed.
 
 Customer, Builder, Communication and Evidence ownership must be resolved through their existing canonical decisions before adding related business-domain responsibilities.
 
-## CI and production evidence boundary
+## 5. Initial B0 CI and production evidence boundary
 
-This B0 audit is read-only. It does not claim that the latest HEAD passed GitHub Actions, that a production backend exists, or that HOMIO is production-ready.
+The initial B0 audit was read-only. At the time of that audit, no current-HEAD Actions pass was claimed.
 
-The latest passing historical Actions result is not substituted for a result on the current source SHA.
+The B0 audit does not claim that a production backend exists or that HOMIO is production-ready.
 
-## B0 completion
+## 6. B0 completion
 
 B0 source inspection, owner mapping, duplicate review, candidate classification and unresolved-dependency identification are recorded here.
 
@@ -67,11 +69,65 @@ B0 source inspection, owner mapping, duplicate review, candidate classification 
 
 **PRODUCTION READINESS: NOT CLAIMED**
 
-## Machine-verifiable activation markers
+## 7. Latest backend verification addendum — 3 November 2026
 
-The following exact markers are a machine-readable projection of the verified
-facts above. They do not change the read-only nature of B0, authorize backend
-implementation by themselves, or claim production readiness.
+The following result is independently read from GitHub Actions.
+
+- Workflow: HOMIO Backend and ACRL Runtime CI
+- Run number: `664`
+- Run ID: `41634730540`
+- Verified source SHA: `e7fc3f838c576d7474bfa2da269ce9a2b20af493`
+- Workflow conclusion: `success`
+- Backend, T21 and ACRL runtime verification: `success`
+- Backend activation job in this run: `skipped`
+- Reason activation was skipped: the triggering commit did not contain the required owner-approval prefix.
+
+Actions evidence:
+
+https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/41634730540
+
+The successful verification establishes that the required development verification job passed on the exact source SHA above.
+
+It does not establish that BACKEND-001 was activated, that B1 was implemented, that a public Fastify application exists, or that production readiness has been achieved.
+
+## 8. Activation boundary and next required transition
+
+The canonical execution state was read from:
+
+`REOS_CONTROL_CENTER/data/state.json`
+
+Observed source blob:
+
+`6242f63371a725ea99447c218bbbeb46a0c5eddd`
+
+Observed execution position:
+
+- Current gate: `APP-001`
+- Current subtask: `APP-001-T01`
+- Execution status: `CONTROL_CENTER_DRIVEN`
+- BACKEND-001 gate: not yet materialized
+- ARCH-039: pending in the architecture registry
+
+The guarded BACKEND-001 activation workflow is responsible for validating:
+
+1. Exact owner, repository, branch and commit identity.
+2. Immutable GitHub OIDC identity.
+3. Exact expected source-path inventory.
+4. B0 evidence and historical ARCH-039 snapshot.
+5. T15 proposal.
+6. T17 fail-closed change-impact analysis.
+7. T18 owner authorization.
+8. Existing Control Center state transition and post-transition verification.
+
+No manual edit to `state.json` is permitted.
+
+A successful guarded transition is expected to select `BACKEND-001-B1` while preserving `APP-001-T01` for its future execution position.
+
+This evidence file does not itself activate the backend workstream.
+
+## 9. Machine-verifiable activation markers
+
+The following exact markers are retained for the guarded activation workflow.
 
 B0 AUDIT RESULT: COMPLETE (READ-ONLY)
 BASELINE HEAD: `a82dc7af949e1eaed4468b4c6ff6ca4f220a0f30`
