@@ -9,6 +9,7 @@ from ..T21_Git_Repository_Read_Write_Coordination.git_read import (
     GitReader,
 )
 from .authority_bridge import AuthorityBridge
+from .operational_runtime import load_execution_projection
 from .task_registry import ACRLTaskRegistry
 
 
@@ -16,11 +17,11 @@ from .task_registry import ACRLTaskRegistry
 class UnifiedRuntimeContext:
     """Immutable runtime context shared across the integrated ACRL chain.
 
-    Existing authority and Git fields remain stable.
+    The original authority, Git and T01-T30 fields remain compatible.
 
-    The execution projection is additive and backward-compatible:
-    older consumers can continue reading the original fields, while new
-    consumers receive the current canonical gate and subtask context.
+    The additive execution projection makes the current Control Center
+    position available to downstream ACRL layers without requiring each
+    consumer to load and interpret state.json independently.
     """
 
     schema_version: str
@@ -43,7 +44,7 @@ class UnifiedRuntimeContext:
     acrl_task_ids: tuple[str, ...]
     context_fingerprint: str
 
-    # Additive execution fields. Defaults preserve older direct constructors.
+    # Additive fields preserve older direct constructors.
     state_integrity_sha256: str = ""
 
     current_gate: str = ""
@@ -75,18 +76,21 @@ class UnifiedRuntimeContext:
         mission_id = mission_id.strip()
         objective = objective.strip()
 
-        # Take a repository snapshot before reading state and the ACRL spine.
+        # Capture repository identity before reconstructing the context.
         git_reader = GitReader(root)
         git_before = git_reader.snapshot()
 
-        # AuthorityBridge is the single owner of canonical state validation.
+        # Keep the existing authority boundary.
         authority = AuthorityBridge(root)
         authority.validate()
-
         authority_data = authority.as_dict()
-        execution = authority.execution_projection()
 
-        # Keep the one canonical T01-T30 registry.
+        # Use the one canonical state reader and integrity implementation.
+        execution = load_execution_projection(
+            root / "data" / "state.json"
+        )
+
+        # Keep the existing canonical T01-T30 registry.
         acrl_root = (
             root
             / "AUTONOMY_ENGINE"
@@ -94,15 +98,16 @@ class UnifiedRuntimeContext:
             / "acrl"
         )
 
-        tasks = ACRLTaskRegistry(acrl_root).validate()
+        tasks = ACRLTaskRegistry(
+            acrl_root
+        ).validate()
 
         task_ids = tuple(
             task.task_id
             for task in tasks
         )
 
-        # Re-read Git identity after the state and registry snapshot.
-        # Reject a repository that changed while context was being built.
+        # Capture repository identity again to reject a moving snapshot.
         git_after = git_reader.snapshot()
 
         stable_repository = (
@@ -122,7 +127,6 @@ class UnifiedRuntimeContext:
             )
 
         git_snapshot = git_after
-
         execution_data = execution.to_dict()
 
         payload = {
@@ -205,7 +209,7 @@ class UnifiedRuntimeContext:
         )
 
     def to_dict(self) -> dict[str, object]:
-        """Return a JSON-compatible, compact runtime context."""
+        """Return a JSON-compatible compact runtime context."""
 
         return {
             "schema_version": self.schema_version,
