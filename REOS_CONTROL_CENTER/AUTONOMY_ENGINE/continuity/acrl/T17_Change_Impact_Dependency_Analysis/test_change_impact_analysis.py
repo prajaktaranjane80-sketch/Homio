@@ -57,17 +57,40 @@ def test_distance(tmp_path):
     assert distances["app/api.py"] == 2
 
 
-def test_unknown_blocks(tmp_path):
+def test_unknown_missing_path_blocks(tmp_path):
     report = engine(tmp_path).analyze(("missing.py",))
 
     assert report.decision == T17Decision.BLOCKED
     assert report.unknown_paths == ("missing.py",)
+    assert report.ready_for_handoff is False
 
 
-def test_protected_detected(tmp_path):
+def test_existing_unknown_classification_blocks(tmp_path):
+    root = build_repo(tmp_path / "repo")
+    opaque = root / "opaque.payload"
+
+    opaque.write_text(
+        "unknown file type\n",
+        encoding="utf-8",
+    )
+
+    report = ChangeImpactAnalyzer(root).analyze(
+        ("opaque.payload",)
+    )
+
+    assert report.decision == T17Decision.BLOCKED
+    assert report.unknown_paths == ("opaque.payload",)
+    assert report.impacts[0].impact_level == ImpactLevel.UNKNOWN
+    assert report.ready_for_handoff is False
+
+
+def test_protected_detected_and_handoff_blocked(tmp_path):
     report = engine(tmp_path).analyze(("state.json",))
 
     assert report.impacts[0].impact_level == ImpactLevel.PROTECTED
+    assert report.protected_paths == ("state.json",)
+    assert report.decision == T17Decision.BLOCKED
+    assert report.ready_for_handoff is False
 
 
 def test_path_normalization(tmp_path):
@@ -95,11 +118,11 @@ def test_traversal_rejected(tmp_path):
 
 
 def test_report_fingerprint_and_validation(tmp_path):
-    e = engine(tmp_path)
-    r = e.analyze(("app/base.py",))
+    analyzer = engine(tmp_path)
+    report = analyzer.analyze(("app/base.py",))
 
-    assert len(r.fingerprint) == 64
-    e.validate_report(r)
+    assert len(report.fingerprint) == 64
+    analyzer.validate_report(report)
 
 
 def test_state_not_mutated(tmp_path):
@@ -112,7 +135,7 @@ def test_state_not_mutated(tmp_path):
 
 
 def test_read_only_flags(tmp_path):
-    r = engine(tmp_path).analyze(("app/base.py",))
+    report = engine(tmp_path).analyze(("app/base.py",))
 
-    assert r.state_mutated is False
-    assert r.execution_authorized is False
+    assert report.state_mutated is False
+    assert report.execution_authorized is False
