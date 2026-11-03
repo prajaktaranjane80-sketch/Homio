@@ -123,6 +123,7 @@ from AUTONOMY_ENGINE.security.authentication.oidc_verifier import (  # noqa: E40
 import jwt  # noqa: E402
 
 
+
 EXPECTED_ACTIVATION_PATHS = {
     ".github/actions/homio-backend-ci/transitions/"
     "backend-workstream-activation/action.yml",
@@ -138,6 +139,7 @@ EXPECTED_ACTIVATION_PATHS = {
     "REOS_CONTROL_CENTER/context/github_actions_identity.py",
     "REOS_CONTROL_CENTER/context/test_github_actions_identity.py",
     "REOS_CONTROL_CENTER/context/test_backend_control_projection.py",
+    "REOS_CONTROL_CENTER/context/reos_control_center.py",
     B0_EVIDENCE_PATH,
     ".github/actions/homio-backend-ci/verification/scripts/"
     "financial_context_tenant.sh",
@@ -145,6 +147,7 @@ EXPECTED_ACTIVATION_PATHS = {
     "wiring_tests.sh",
     "REOS_CONTROL_CENTER/context/test_backend_activation_import_bootstrap.py",
 }
+
 
 
 def fail(message: str) -> None:
