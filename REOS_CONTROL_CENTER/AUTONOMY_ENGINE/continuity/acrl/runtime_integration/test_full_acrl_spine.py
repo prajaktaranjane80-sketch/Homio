@@ -6,10 +6,12 @@ from pathlib import Path
 import pytest
 
 from . import operational_runtime as runtime_module
+from .authority_bridge import AuthorityBridge
 from .task_registry import ACRLTaskRegistry
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
+
 ACRL_ROOT = (
     PROJECT_ROOT
     / "AUTONOMY_ENGINE"
@@ -18,7 +20,11 @@ ACRL_ROOT = (
 )
 
 
-def _make_acrl_tree(root: Path, *, include_compatibility_t14: bool = True) -> Path:
+def _make_acrl_tree(
+    root: Path,
+    *,
+    include_compatibility_t14: bool = True,
+) -> Path:
     root.mkdir(parents=True, exist_ok=True)
 
     for number in range(1, 31):
@@ -34,11 +40,13 @@ def _make_acrl_tree(root: Path, *, include_compatibility_t14: bool = True) -> Pa
             '"""Test layer package."""\n',
             encoding="utf-8",
         )
+
         (layer / "test_smoke.py").write_text(
             "def test_smoke():\n"
             "    assert True\n",
             encoding="utf-8",
         )
+
         (layer / f"t{number:02d}.contract.json").write_text(
             json.dumps(
                 {
@@ -55,10 +63,12 @@ def _make_acrl_tree(root: Path, *, include_compatibility_t14: bool = True) -> Pa
     if include_compatibility_t14:
         compatibility = root / "T14_Full_Regression"
         compatibility.mkdir(parents=True, exist_ok=True)
+
         (compatibility / "__init__.py").write_text(
             '"""T14 compatibility/support package."""\n',
             encoding="utf-8",
         )
+
         (compatibility / "test_compatibility.py").write_text(
             "def test_compatibility_directory_is_retained():\n"
             "    assert True\n",
@@ -69,17 +79,66 @@ def _make_acrl_tree(root: Path, *, include_compatibility_t14: bool = True) -> Pa
 
 
 def _write_valid_state(path: Path) -> bytes:
+    """Write a minimal but internally consistent canonical state fixture."""
+
     path.parent.mkdir(parents=True, exist_ok=True)
 
     state = {
         "constitution": {
-            "canonical_source": "REOS_CONTROL_CENTER/data/state.json",
+            "canonical_source": "data/state.json",
+        },
+        "architecture": {
+            "locked": True,
+            "approved": [
+                {
+                    "id": "ARCH-039",
+                    "status": "APPROVED",
+                },
+            ],
+        },
+        "execution": {
+            "current_gate": "BACKEND-001",
+            "current_task": (
+                "BACKEND-001-B1: Backend application foundation."
+            ),
+            "current_subtask": "BACKEND-001-B1",
+            "status": "CONTROL_CENTER_DRIVEN",
+            "current_acceptance_criteria": [
+                "Build is reproducible.",
+                "Invalid runtime configuration fails safely.",
+                "Health and readiness semantics are tested.",
+                "Graceful shutdown is tested.",
+                "No duplicate public API application exists.",
+            ],
+        },
+        "gate_plans": {
+            "BACKEND-001": {
+                "status": "CURRENT",
+                "current_subtask": "BACKEND-001-B1",
+                "subtasks": [
+                    {
+                        "id": "BACKEND-001-B0",
+                        "status": "DONE",
+                    },
+                    {
+                        "id": "BACKEND-001-B1",
+                        "status": "CURRENT",
+                    },
+                    {
+                        "id": "BACKEND-001-B2",
+                        "status": "PENDING",
+                    },
+                ],
+            },
         },
         "integrity": {
             "sha256": None,
         },
     }
-    state["integrity"]["sha256"] = runtime_module._state_hash(state)
+
+    state["integrity"]["sha256"] = runtime_module._state_hash(
+        state
+    )
 
     raw = (
         json.dumps(
@@ -92,8 +151,13 @@ def _write_valid_state(path: Path) -> bytes:
     ).encode("utf-8")
 
     path.write_bytes(raw)
+
     return raw
 
+
+# ===========================================================================
+# CANONICAL T14 REGISTRY
+# ===========================================================================
 
 def test_live_repository_uses_one_canonical_t14() -> None:
     registry = ACRLTaskRegistry(ACRL_ROOT)
@@ -103,8 +167,15 @@ def test_live_repository_uses_one_canonical_t14() -> None:
         f"T{number:02d}" for number in range(1, 31)
     )
 
-    t14 = next(item for item in descriptors if item.task_id == "T14")
-    assert t14.directory_name == "T14_Repository_Intelligence_Context"
+    t14 = next(
+        item for item in descriptors
+        if item.task_id == "T14"
+    )
+
+    assert (
+        t14.directory_name
+        == "T14_Repository_Intelligence_Context"
+    )
 
 
 def test_duplicate_t14_compatibility_directory_is_not_a_second_task(
@@ -115,45 +186,278 @@ def test_duplicate_t14_compatibility_directory_is_not_a_second_task(
     descriptors = ACRLTaskRegistry(acrl_root).validate()
 
     assert len(descriptors) == 30
-    t14 = next(item for item in descriptors if item.task_id == "T14")
-    assert t14.directory_name == "T14_Repository_Intelligence_Context"
+
+    t14 = next(
+        item for item in descriptors
+        if item.task_id == "T14"
+    )
+
+    assert (
+        t14.directory_name
+        == "T14_Repository_Intelligence_Context"
+    )
 
 
-def test_missing_canonical_t14_fails_closed(tmp_path: Path) -> None:
+def test_missing_canonical_t14_fails_closed(
+    tmp_path: Path,
+) -> None:
     acrl_root = _make_acrl_tree(
         tmp_path / "acrl",
         include_compatibility_t14=True,
     )
-    canonical_t14 = acrl_root / "T14_Repository_Intelligence_Context"
+
+    canonical_t14 = (
+        acrl_root
+        / "T14_Repository_Intelligence_Context"
+    )
 
     for child in canonical_t14.iterdir():
         if child.is_file():
             child.unlink()
+
         elif child.is_dir():
             import shutil
-
             shutil.rmtree(child)
+
     canonical_t14.rmdir()
 
-    with pytest.raises(ValueError, match="Canonical ACRL directory"):
+    with pytest.raises(
+        ValueError,
+        match="Canonical ACRL directory",
+    ):
         ACRLTaskRegistry(acrl_root).discover()
 
+
+# ===========================================================================
+# AUTHORITY BRIDGE — CANONICAL EXECUTION PROJECTION
+# ===========================================================================
+
+def test_authority_bridge_returns_validated_execution_projection(
+    tmp_path: Path,
+) -> None:
+    control_center_root = tmp_path / "REOS_CONTROL_CENTER"
+
+    state_path = (
+        control_center_root
+        / "data"
+        / "state.json"
+    )
+
+    original_bytes = _write_valid_state(state_path)
+
+    bridge = AuthorityBridge(control_center_root)
+
+    bridge.validate()
+
+    authority = bridge.as_dict()
+    projection = bridge.execution_projection()
+
+    assert authority["project"] == "HOMIO / REOS"
+
+    assert (
+        authority["execution_state_authority"]
+        == "REOS_CONTROL_CENTER/data/state.json"
+    )
+
+    assert projection.current_gate == "BACKEND-001"
+    assert projection.current_gate_status == "CURRENT"
+
+    assert (
+        projection.current_task
+        == "BACKEND-001-B1: Backend application foundation."
+    )
+
+    assert projection.current_subtask == "BACKEND-001-B1"
+    assert projection.current_subtask_status == "CURRENT"
+
+    assert (
+        projection.execution_status
+        == "CONTROL_CENTER_DRIVEN"
+    )
+
+    assert projection.current_acceptance_criteria == (
+        "Build is reproducible.",
+        "Invalid runtime configuration fails safely.",
+        "Health and readiness semantics are tested.",
+        "Graceful shutdown is tested.",
+        "No duplicate public API application exists.",
+    )
+
+    assert len(projection.state_integrity_sha256) == 64
+
+    # The authority bridge must remain read-only.
+    assert state_path.read_bytes() == original_bytes
+
+
+def test_authority_bridge_rejects_tampered_state_integrity(
+    tmp_path: Path,
+) -> None:
+    control_center_root = tmp_path / "REOS_CONTROL_CENTER"
+
+    state_path = (
+        control_center_root
+        / "data"
+        / "state.json"
+    )
+
+    _write_valid_state(state_path)
+
+    state = json.loads(
+        state_path.read_text(encoding="utf-8")
+    )
+
+    state["execution"]["current_task"] = (
+        "BACKEND-001-B2: Unauthorized task substitution."
+    )
+
+    state_path.write_text(
+        json.dumps(
+            state,
+            sort_keys=True,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ),
+        encoding="utf-8",
+    )
+
+    bridge = AuthorityBridge(control_center_root)
+
+    with pytest.raises(
+        ValueError,
+        match="integrity check failed",
+    ):
+        bridge.validate()
+
+
+def test_authority_bridge_rejects_execution_gate_projection_conflict(
+    tmp_path: Path,
+) -> None:
+    control_center_root = tmp_path / "REOS_CONTROL_CENTER"
+
+    state_path = (
+        control_center_root
+        / "data"
+        / "state.json"
+    )
+
+    _write_valid_state(state_path)
+
+    state = json.loads(
+        state_path.read_text(encoding="utf-8")
+    )
+
+    # Keep the state hash valid but deliberately create a projection conflict.
+    state["gate_plans"]["BACKEND-001"]["current_subtask"] = (
+        "BACKEND-001-B2"
+    )
+
+    state["integrity"]["sha256"] = runtime_module._state_hash(
+        state
+    )
+
+    state_path.write_text(
+        json.dumps(
+            state,
+            sort_keys=True,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ),
+        encoding="utf-8",
+    )
+
+    bridge = AuthorityBridge(control_center_root)
+
+    with pytest.raises(
+        ValueError,
+        match="Current subtask mismatch",
+    ):
+        bridge.validate()
+
+
+def test_authority_bridge_rejects_unlocked_architecture(
+    tmp_path: Path,
+) -> None:
+    control_center_root = tmp_path / "REOS_CONTROL_CENTER"
+
+    state_path = (
+        control_center_root
+        / "data"
+        / "state.json"
+    )
+
+    _write_valid_state(state_path)
+
+    state = json.loads(
+        state_path.read_text(encoding="utf-8")
+    )
+
+    state["architecture"]["locked"] = False
+
+    state["integrity"]["sha256"] = runtime_module._state_hash(
+        state
+    )
+
+    state_path.write_text(
+        json.dumps(
+            state,
+            sort_keys=True,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ),
+        encoding="utf-8",
+    )
+
+    bridge = AuthorityBridge(control_center_root)
+
+    with pytest.raises(
+        ValueError,
+        match="not locked",
+    ):
+        bridge.validate()
+
+
+# ===========================================================================
+# READ-ONLY OPERATIONAL PREFLIGHT
+# ===========================================================================
 
 def test_read_only_preflight_does_not_change_state_json(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     control_center_root = tmp_path / "REOS_CONTROL_CENTER"
-    state_path = control_center_root / "data" / "state.json"
+
+    state_path = (
+        control_center_root
+        / "data"
+        / "state.json"
+    )
+
     acrl_root = _make_acrl_tree(
-        control_center_root / "AUTONOMY_ENGINE" / "continuity" / "acrl"
+        control_center_root
+        / "AUTONOMY_ENGINE"
+        / "continuity"
+        / "acrl"
     )
 
     before_bytes = _write_valid_state(state_path)
 
-    monkeypatch.setattr(runtime_module, "CONTROL_CENTER_ROOT", control_center_root)
-    monkeypatch.setattr(runtime_module, "STATE_PATH", state_path)
-    monkeypatch.setattr(runtime_module, "ACRL_ROOT", acrl_root)
+    monkeypatch.setattr(
+        runtime_module,
+        "CONTROL_CENTER_ROOT",
+        control_center_root,
+    )
+
+    monkeypatch.setattr(
+        runtime_module,
+        "STATE_PATH",
+        state_path,
+    )
+
+    monkeypatch.setattr(
+        runtime_module,
+        "ACRL_ROOT",
+        acrl_root,
+    )
 
     commands = {
         ("branch", "--show-current"): "reos-development",
@@ -164,10 +468,17 @@ def test_read_only_preflight_does_not_change_state_json(
     def fake_git(*args: str) -> str:
         try:
             return commands[tuple(args)]
-        except KeyError as exc:
-            raise AssertionError(f"Unexpected Git command: {args}") from exc
 
-    monkeypatch.setattr(runtime_module, "_git", fake_git)
+        except KeyError as exc:
+            raise AssertionError(
+                f"Unexpected Git command: {args}"
+            ) from exc
+
+    monkeypatch.setattr(
+        runtime_module,
+        "_git",
+        fake_git,
+    )
 
     result = runtime_module.run_final_operational_proof(
         mission_id="ACRL-READ-ONLY-TEST",
@@ -178,9 +489,11 @@ def test_read_only_preflight_does_not_change_state_json(
     assert result.controller_command == ()
     assert result.state_integrity is True
     assert result.state_changed is False
+
     assert result.evidence["mutation_attempted"] is False
     assert result.evidence["self_authorized_execution"] is False
     assert result.evidence["state_bytes_unchanged"] is True
+
     assert state_path.read_bytes() == before_bytes
 
 
@@ -189,28 +502,61 @@ def test_invalid_state_integrity_fails_closed_without_writing_state(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     control_center_root = tmp_path / "REOS_CONTROL_CENTER"
-    state_path = control_center_root / "data" / "state.json"
-    acrl_root = _make_acrl_tree(
-        control_center_root / "AUTONOMY_ENGINE" / "continuity" / "acrl"
+
+    state_path = (
+        control_center_root
+        / "data"
+        / "state.json"
     )
 
-    state_path.parent.mkdir(parents=True, exist_ok=True)
+    acrl_root = _make_acrl_tree(
+        control_center_root
+        / "AUTONOMY_ENGINE"
+        / "continuity"
+        / "acrl"
+    )
+
+    state_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
     state_path.write_text(
         json.dumps(
             {
                 "constitution": {},
-                "integrity": {"sha256": "0" * 64},
+                "integrity": {
+                    "sha256": "0" * 64,
+                },
             }
         ),
         encoding="utf-8",
     )
+
     before_bytes = state_path.read_bytes()
 
-    monkeypatch.setattr(runtime_module, "CONTROL_CENTER_ROOT", control_center_root)
-    monkeypatch.setattr(runtime_module, "STATE_PATH", state_path)
-    monkeypatch.setattr(runtime_module, "ACRL_ROOT", acrl_root)
+    monkeypatch.setattr(
+        runtime_module,
+        "CONTROL_CENTER_ROOT",
+        control_center_root,
+    )
 
-    with pytest.raises(RuntimeError, match="integrity"):
+    monkeypatch.setattr(
+        runtime_module,
+        "STATE_PATH",
+        state_path,
+    )
+
+    monkeypatch.setattr(
+        runtime_module,
+        "ACRL_ROOT",
+        acrl_root,
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="integrity",
+    ):
         runtime_module.run_final_operational_proof(
             mission_id="ACRL-INVALID-STATE-TEST",
             note="Invalid state must fail closed",
