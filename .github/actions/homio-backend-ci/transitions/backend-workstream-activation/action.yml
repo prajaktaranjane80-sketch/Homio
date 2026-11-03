@@ -1,7 +1,9 @@
 name: Guarded Backend Workstream Activation
 description: >
-  Validates owner approval, T15 proposal, T17 impact analysis and T18
-  authorization before the existing Control Center activates BACKEND-001.
+  Validates owner approval, immutable GitHub OIDC identity, T15 proposal,
+  T17 fail-closed impact analysis and T18 authorization before the existing
+  Control Center activates BACKEND-001 through the guarded compatibility
+  wrapper.
 
 runs:
   using: composite
@@ -12,4 +14,4 @@ runs:
         PYTHONDONTWRITEBYTECODE: "1"
       run: |
         set -euo pipefail
-        python "$GITHUB_ACTION_PATH/scripts/activate_backend_workstream.py"
+        python "$GITHUB_ACTION_PATH/scripts/activate_backend_workstream_wrapper.py"
