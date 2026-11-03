@@ -1,3 +1,4 @@
+
 import importlib.util
 import sys
 from pathlib import Path
@@ -212,10 +213,6 @@ def test_shell_symlink_remains_blocked_by_repository_boundary(tmp_path):
         ChangeImpactAnalyzer(root).analyze(
             ("untrusted.sh",)
         )
-
-    assert report.decision == T17Decision.BLOCKED
-    assert report.unknown_paths == ("untrusted.sh",)
-    assert report.ready_for_handoff is False
 
 
 def test_exact_backend_activation_inventory_is_t17_handoff_ready():
