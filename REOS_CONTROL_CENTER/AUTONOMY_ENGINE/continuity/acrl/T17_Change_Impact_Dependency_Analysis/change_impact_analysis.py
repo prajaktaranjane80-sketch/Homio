@@ -1,8 +1,10 @@
+
 from __future__ import annotations
 
 from dataclasses import replace
+from enum import Enum
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, cast
 
 from ..T16_Repository_Intelligence_File_Discovery.repository_intelligence import (
     FileAuthority,
@@ -64,6 +66,16 @@ from .impact_validation import (
 )
 
 
+class _T17SourceKind(str, Enum):
+    """T17-only source kind for executable shell files.
+
+    T16 schema 1.1 does not define a SHELL category. T17 extends the
+    repository adapter without changing T16 snapshot semantics.
+    """
+
+    SHELL = "SHELL"
+
+
 class T17RepositoryIntelligenceAdapter:
     def __init__(
         self,
@@ -76,9 +88,44 @@ class T17RepositoryIntelligenceAdapter:
     def files(
         self,
     ) -> tuple[RepositoryFile, ...]:
-        return RepositoryScanner(
+        discovered = RepositoryScanner(
             self.repository_root
         ).scan()
+
+        normalized: list[RepositoryFile] = []
+
+        for item in discovered:
+            suffix = Path(
+                item.relative_path
+            ).suffix.lower()
+
+            # T16 1.1 currently reports regular .sh/.bash files as
+            # UNKNOWN because its source-kind registry has no shell
+            # entry. T17 recognizes these executable sources explicitly.
+            #
+            # Upgrade only the exact all-UNKNOWN classification emitted
+            # for a regular shell file. Never override symlinks,
+            # protected files, sensitive files, or a custom safe class.
+            if (
+                suffix in {".sh", ".bash"}
+                and not item.is_symlink
+                and item.source_kind == SourceKind.UNKNOWN
+                and item.authority == FileAuthority.UNKNOWN
+                and item.risk == FileRisk.UNKNOWN
+            ):
+                item = replace(
+                    item,
+                    source_kind=cast(
+                        SourceKind,
+                        _T17SourceKind.SHELL,
+                    ),
+                    authority=FileAuthority.AUTHORITATIVE,
+                    risk=FileRisk.NORMAL,
+                )
+
+            normalized.append(item)
+
+        return tuple(normalized)
 
     def dependency_graph(
         self,
