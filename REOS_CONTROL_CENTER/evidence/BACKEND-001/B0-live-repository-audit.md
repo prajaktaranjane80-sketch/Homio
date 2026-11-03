@@ -1,3 +1,4 @@
+
 # BACKEND-001 — B0 Live Repository Audit Evidence
 
 **Project:** HOMIO / REOS  
@@ -68,9 +69,9 @@ B0 source inspection, owner mapping, duplicate review, candidate classification 
 
 **PRODUCTION READINESS: NOT CLAIMED**
 
-## 7. Latest backend verification addendum — 3 November 2026
+## 7. Earlier backend verification addendum — 3 November 2026
 
-The following result is independently read from GitHub Actions.
+The following result was independently read from GitHub Actions.
 
 - Workflow: HOMIO Backend and ACRL Runtime CI
 - Run number: `664`
@@ -128,12 +129,73 @@ This evidence file does not itself activate the backend workstream.
 
 The following exact markers are retained for the guarded activation workflow.
 
-B0 AUDIT RESULT: COMPLETE (READ-ONLY)
-BASELINE HEAD: `a82dc7af949e1eaed4468b4c6ff6ca4f220a0f30`
-STATE BLOB SHA: `6242f63371a725ea99447c218bbbeb46a0c5eddd`
-BACKEND MASTER BLOB SHA: `27b43931d1b6db48065ec41fd3574bd2dbc5ae3c`
-WORK PLAN BLOB SHA: `e69b5107d21e54ed4920178bd6ec62c95e773bb5`
-PUBLIC FASTIFY APPLICATION: ABSENT
-NO BACKEND SOURCE FILES MODIFIED DURING B0
-B0 EXIT CONDITION: SATISFIED
+B0 AUDIT RESULT: COMPLETE (READ-ONLY)  
+BASELINE HEAD: `a82dc7af949e1eaed4468b4c6ff6ca4f220a0f30`  
+STATE BLOB SHA: `6242f63371a725ea99447c218bbbeb46a0c5eddd`  
+BACKEND MASTER BLOB SHA: `27b43931d1b6db48065ec41fd3574bd2dbc5ae3c`  
+WORK PLAN BLOB SHA: `e69b5107d21e54ed4920178bd6ec62c95e773bb5`  
+PUBLIC FASTIFY APPLICATION: ABSENT  
+NO BACKEND SOURCE FILES MODIFIED DURING B0  
+B0 EXIT CONDITION: SATISFIED  
 PRODUCTION READINESS: NOT CLAIMED
+
+## 10. Latest backend verification addendum — 3 November 2026
+
+The latest live verification was independently read from GitHub Actions.
+
+- Workflow: HOMIO Backend and ACRL Runtime CI
+- Run number: `671`
+- Run ID: `41642418766`
+- Verified source SHA: `d0ba35c32e7d5ef530698627bfc49cec38b04459`
+- Workflow conclusion: `success`
+- Backend, T21 and ACRL runtime verification: `success`
+- Backend activation job: `skipped`
+- Reason activation was skipped: the triggering commit did not contain the required owner-approval prefix.
+
+Actions evidence:
+
+https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/41642418766
+
+### Exact test evidence
+
+| Verification | Result |
+|---|---:|
+| T17 focused regression | 127 passed |
+| Complete ACRL suite | 587 passed |
+| Broader verification suite | 1,452 passed |
+| Transition wiring | PASS |
+| Section 14 quality evaluation | 10 passed, 0 failed, 0 blocked |
+| Section 14 release readiness | `false` |
+
+The reported test totals belong to overlapping verification suites and must not be added together as unique tests.
+
+### Production-release boundary
+
+The same run reported:
+
+- `PRODUCTION_RELEASE_READY=false`
+- `PRODUCTION_RELEASE_BLOCKERS=18`
+
+The blockers include missing measured availability SLO evidence, missing operational attestation, unverified production controls, missing quality approval and unresolved structured-search/Q10 criteria.
+
+A successful development verification does not close these production blockers.
+
+### Current activation position
+
+- Latest branch HEAD: `d0ba35c32e7d5ef530698627bfc49cec38b04459`
+- Canonical state blob: `6242f63371a725ea99447c218bbbeb46a0c5eddd`
+- Backend master blob: `27b43931d1b6db48065ec41fd3574bd2dbc5ae3c`
+- Work plan blob: `e69b5107d21e54ed4920178bd6ec62c95e773bb5`
+- ARCH-039 snapshot blob: `9a086a6d7e5caff45468ed4aa4ecbd8f2ffd3f8c`
+
+The current branch comparison against the activation baseline confirms the expected 20 changed paths. The latest T17 correction is included in the current HEAD, and the exact activation inventory remains consistent with the existing wrapper.
+
+The successful run #671 did not activate BACKEND-001 because its commit did not contain the guarded activation prefix.
+
+The earlier prefixed attempt #669 failed during verification before activation. Its failure must not be represented as a completed transition.
+
+The next valid attempt must use a new owner-authored commit containing a meaningful update to this existing evidence file and the exact guarded prefix. The existing workflow must independently rerun verification and T15/T17/T18 authorization.
+
+No state is to be manually edited.
+
+This addendum proves only the latest development verification result. It does not claim BACKEND-001 activation, B1 implementation, a production Fastify application, or production release readiness.
