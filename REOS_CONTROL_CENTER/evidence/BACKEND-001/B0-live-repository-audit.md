@@ -1,4 +1,3 @@
-
 # BACKEND-001 — B0 Live Repository Audit Evidence
 
 **Project:** HOMIO / REOS  
