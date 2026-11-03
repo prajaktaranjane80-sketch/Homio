@@ -1,82 +1,69 @@
-1. Pehle master ke according file structure
-HOMIO_Backend_Structure ke Section 4.1 mein defined single backend structure hi follow karenge.
 REOS_CONTROL_CENTER/
-└── backend/
-    ├── README.md
-    ├── package.json
-    ├── package-lock.json
-    ├── tsconfig.json
-    ├── tsconfig.build.json
-    ├── eslint.config.mjs
-    ├── vitest.config.ts
-    ├── .env.example
-    │
-    ├── src/
-    │   ├── main.ts
-    │   ├── app.ts
-    │   ├── config/
-    │   │   ├── environment.ts
-    │   │   └── settings.ts
-    │   ├── api/
-    │   │   └── v1/
-    │   │       ├── routes/
-    │   │       ├── schemas/
-    │   │       └── openapi/
-    │   ├── security/
-    │   │   ├── authentication/
-    │   │   ├── authorization/
-    │   │   ├── tenant_context/
-    │   │   └── rate_limits/
-    │   ├── application/
-    │   │   ├── commands/
-    │   │   ├── queries/
-    │   │   └── orchestration/
-    │   ├── integrations/
-    │   │   ├── python_runtime/
-    │   │   ├── events/
-    │   │   └── providers/
-    │   ├── contracts/
-    │   ├── errors/
-    │   └── observability/
-    │
-    ├── contracts/
-    ├── database/
-    │   └── migrations/
-    └── tests/
-        ├── unit/
-        ├── contract/
-        ├── integration/
-        ├── security/
-        └── e2e/
+│
+├── AI_AGENT_ENTRYPOINT.py
+│
+├── data/
+│   └── state.json
+│
+├── AUTONOMY_ENGINE/
+│   └── continuity/
+│       └── acrl/
+│           ├── T07_New_Chat_Bootstrap/
+│           ├── T14_Repository_Intelligence_Context/
+│           ├── T16_Repository_Inventory/
+│           ├── T23_Continuity/
+│           └── T24_Cross_Chat_Continuity_Recovery_Engine/
+│
+├── architecture/
+│   └── [existing approved contracts]
+│
+└── evidence/
+    └── ACRL/
+        ├── startup/
+        ├── context-reconstruction/
+        ├── handoff/
+        ├── fast-resume/
+        └── end-to-end/
 
 
-Ye master ka target hai, abhi repository mein created structure nahi hai. Migration files aur security implementation apne respective approval/dependency ke baad hi aayenge.
-2. Coding ko parts mein divide karenge
-Part	Work
-Part 0	Approved file/folder scaffold
-Part 1	Package, dependencies, TypeScript configuration, build
-Part 2	Fastify app, startup, configuration validation
-Part 3	Error handling, health/readiness, graceful shutdown
-Part 4	API registration, contracts, OpenAPI foundation
-Part 5	Existing CORE/AI integration boundaries
-Part 6	Complete B1 regression and CI verification
 
-Har part mein main ek saath poore related files ka complete code dunga. Ek-ek chhoti file ke liye baar-baar nahi rokunga.
-3. Har part ke baad audit
-Part completion checklist
-- [ ] Exact files aur folders verify
-- [ ] Duplicate file/module/logic check
-- [ ] Imports aur dependency check
-- [ ] TypeScript strict build
-- [ ] ESLint aur focused tests
-- [ ] Existing CORE/AI regression, jahan relevant ho
-- [ ] Security aur tenant-boundary checks
-- [ ] PowerShell audit output review
-- [ ] GitHub source readback aur Actions verification
-- [ ] Gaps fix karke phir next part
 
-PowerShell audit tumhare machine par execute hoga; tum output share karoge, main uska analysis karunga aur GitHub source aur CI se independently cross-check bhi karunga.
-4. Ek important rule
-Existing state.json mein abhi APP-001-T01 current hai. Isliye structure ko yahan finalize karna aur implementation ki exact batches taiyar karna possible hai, lekin repository mein backend files create/save karne se pehle formal execution authorization zaroori hai. Main state bypass nahi karunga.
 
-Mera final recommendation: structure-first, code-part-by-part, audit-after-every-part. Na parallel backend, na duplicate engines, na adhura code. Isi tarah HOMIO backend ko systematically build karenge.
+
+Kaam karne ka exact process
+Part 1 — Reference audit
+- AI_AGENT_ENTRYPOINT.py
+- ACRL T07, T14, T16, T23, T24
+- state.json
+- AI-001 Blueprint
+- 360-Degree Gap Closure Structure
+Existing code, interfaces, dependencies aur execution authority verify karunga.
+
+Part 2 — Core integration
+- Existing ACRL modules ka integration.
+- Startup orchestration.
+- Incremental context retrieval.
+- Fast-resume aur recovery.
+Part 3 — EntryPoint + handoff
+- Complete EntryPoint integration.
+- Verified context generation.
+- Previous progress aur current task reconstruction.
+- New-chat handoff mechanism.
+Part 4 — Testing + evidence
+- Full integration tests.
+- Stale cache and SHA validation.
+- Recovery tests.
+- Startup performance measurements.
+- GitHub Actions evidence.
+Coding delivery ka format
+- Har part mein complete file contents.
+- Exact repository paths.
+- Existing files ke replacement ya modification ki clear identification.
+- Duplicate files nahi.
+- Half code ya incomplete placeholders nahi.
+- Completion ka claim tabhi jab actual implementation aur verification evidence ho.
+Ek important condition: Main AI-001 ko dobara implement nahi karunga. Approved blueprint aur existing ACRL architecture ko follow karunga.
+
+Meri preference hai ki pehle current GitHub HEAD aur canonical state.json dobara verify karun. Uske baad hi coding dunga, taaki galat task par implementation shuru na ho.
+
+Tumhe reference files manually collect karke dene ki zaroorat nahi, agar repository access se woh available hain.
