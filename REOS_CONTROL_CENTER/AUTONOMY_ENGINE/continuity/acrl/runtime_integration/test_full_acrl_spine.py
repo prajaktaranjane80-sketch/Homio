@@ -6,7 +6,6 @@ from pathlib import Path
 import pytest
 
 from . import operational_runtime as runtime_module
-from .authority_bridge import AuthorityBridge
 from .task_registry import ACRLTaskRegistry
 
 
@@ -79,7 +78,7 @@ def _make_acrl_tree(
 
 
 def _write_valid_state(path: Path) -> bytes:
-    """Write a minimal but internally consistent canonical state fixture."""
+    """Write a minimal, internally consistent canonical state fixture."""
 
     path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -229,34 +228,23 @@ def test_missing_canonical_t14_fails_closed(
 
 
 # ===========================================================================
-# AUTHORITY BRIDGE — CANONICAL EXECUTION PROJECTION
+# CANONICAL EXECUTION PROJECTION
 # ===========================================================================
 
-def test_authority_bridge_returns_validated_execution_projection(
+def test_execution_projection_returns_current_control_center_position(
     tmp_path: Path,
 ) -> None:
-    control_center_root = tmp_path / "REOS_CONTROL_CENTER"
-
     state_path = (
-        control_center_root
+        tmp_path
+        / "REOS_CONTROL_CENTER"
         / "data"
         / "state.json"
     )
 
     original_bytes = _write_valid_state(state_path)
 
-    bridge = AuthorityBridge(control_center_root)
-
-    bridge.validate()
-
-    authority = bridge.as_dict()
-    projection = bridge.execution_projection()
-
-    assert authority["project"] == "HOMIO / REOS"
-
-    assert (
-        authority["execution_state_authority"]
-        == "REOS_CONTROL_CENTER/data/state.json"
+    projection = runtime_module.load_execution_projection(
+        state_path
     )
 
     assert projection.current_gate == "BACKEND-001"
@@ -285,17 +273,15 @@ def test_authority_bridge_returns_validated_execution_projection(
 
     assert len(projection.state_integrity_sha256) == 64
 
-    # The authority bridge must remain read-only.
     assert state_path.read_bytes() == original_bytes
 
 
-def test_authority_bridge_rejects_tampered_state_integrity(
+def test_execution_projection_rejects_invalid_state_integrity(
     tmp_path: Path,
 ) -> None:
-    control_center_root = tmp_path / "REOS_CONTROL_CENTER"
-
     state_path = (
-        control_center_root
+        tmp_path
+        / "REOS_CONTROL_CENTER"
         / "data"
         / "state.json"
     )
@@ -320,22 +306,21 @@ def test_authority_bridge_rejects_tampered_state_integrity(
         encoding="utf-8",
     )
 
-    bridge = AuthorityBridge(control_center_root)
-
     with pytest.raises(
-        ValueError,
+        RuntimeError,
         match="integrity check failed",
     ):
-        bridge.validate()
+        runtime_module.load_execution_projection(
+            state_path
+        )
 
 
-def test_authority_bridge_rejects_execution_gate_projection_conflict(
+def test_execution_projection_rejects_gate_plan_conflict(
     tmp_path: Path,
 ) -> None:
-    control_center_root = tmp_path / "REOS_CONTROL_CENTER"
-
     state_path = (
-        control_center_root
+        tmp_path
+        / "REOS_CONTROL_CENTER"
         / "data"
         / "state.json"
     )
@@ -346,7 +331,7 @@ def test_authority_bridge_rejects_execution_gate_projection_conflict(
         state_path.read_text(encoding="utf-8")
     )
 
-    # Keep the state hash valid but deliberately create a projection conflict.
+    # Keep integrity valid while introducing an execution projection conflict.
     state["gate_plans"]["BACKEND-001"]["current_subtask"] = (
         "BACKEND-001-B2"
     )
@@ -365,22 +350,21 @@ def test_authority_bridge_rejects_execution_gate_projection_conflict(
         encoding="utf-8",
     )
 
-    bridge = AuthorityBridge(control_center_root)
-
     with pytest.raises(
-        ValueError,
+        RuntimeError,
         match="Current subtask mismatch",
     ):
-        bridge.validate()
+        runtime_module.load_execution_projection(
+            state_path
+        )
 
 
-def test_authority_bridge_rejects_unlocked_architecture(
+def test_execution_projection_rejects_unlocked_architecture(
     tmp_path: Path,
 ) -> None:
-    control_center_root = tmp_path / "REOS_CONTROL_CENTER"
-
     state_path = (
-        control_center_root
+        tmp_path
+        / "REOS_CONTROL_CENTER"
         / "data"
         / "state.json"
     )
@@ -407,13 +391,13 @@ def test_authority_bridge_rejects_unlocked_architecture(
         encoding="utf-8",
     )
 
-    bridge = AuthorityBridge(control_center_root)
-
     with pytest.raises(
-        ValueError,
+        RuntimeError,
         match="not locked",
     ):
-        bridge.validate()
+        runtime_module.load_execution_projection(
+            state_path
+        )
 
 
 # ===========================================================================
