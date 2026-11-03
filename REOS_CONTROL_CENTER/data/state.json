@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-10-27T09:12:50+00:00",
+    "updated_at": "2026-11-03T13:39:35+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -235,16 +235,22 @@
         "name": "Technology Stack Lock v1.0",
         "status": "APPROVED",
         "approved_at": "2026-08-15T19:50:05+05:30"
-      }
-    ],
-    "pending": [
+      },
       {
         "id": "ARCH-039",
         "name": "Master Blueprint v1.0",
-        "status": "PENDING"
+        "status": "APPROVED",
+        "approved_at": "2026-11-03T13:39:35+00:00",
+        "approval_evidence": {
+          "source": "guarded backend workstream activation",
+          "owner": "prajaktaranjane80-sketch",
+          "source_commit": "ecf9139cc0b256b927e6d266515929191efb446e",
+          "authorization_fingerprint": "3855d22f3ca79a01e7982a607fc329d6ec330d020a74f670fa0a35934fcc71e8"
+        }
       }
     ],
-    "locked": false
+    "pending": [],
+    "locked": true
   },
   "requirements": {
     "business": [
@@ -378,7 +384,107 @@
       "status": "APPROVED"
     }
   ],
-  "change_requests": [],
+  "change_requests": [
+    {
+      "id": "CR-BACKEND-001",
+      "type": "WORKSTREAM_ACTIVATION",
+      "title": "Activate unified HOMIO / REOS backend execution",
+      "status": "APPROVED",
+      "requested_at": "2026-11-03T13:39:35+00:00",
+      "approved_at": "2026-11-03T13:39:35+00:00",
+      "requested_by": "prajaktaranjane80-sketch",
+      "approved_by": "prajaktaranjane80-sketch",
+      "scope": {
+        "workstream": "BACKEND",
+        "gate": "BACKEND-001",
+        "first_subtask": "BACKEND-001-B1",
+        "technical_master": "REOS_CONTROL_CENTER/architecture/backend/plans/HOMIO_Backend_Structure",
+        "delivery_contract": "REOS_CONTROL_CENTER/plan for work",
+        "sequence": "B0-B10",
+        "architecture_reconciliation": "ARCH-039"
+      },
+      "source_baseline": {
+        "repository_head": "a82dc7af949e1eaed4468b4c6ff6ca4f220a0f30",
+        "state_blob_sha": "6242f63371a725ea99447c218bbbeb46a0c5eddd",
+        "backend_master_blob_sha": "27b43931d1b6db48065ec41fd3574bd2dbc5ae3c",
+        "work_plan_blob_sha": "e69b5107d21e54ed4920178bd6ec62c95e773bb5",
+        "b0_evidence_path": "REOS_CONTROL_CENTER/evidence/BACKEND-001/B0-live-repository-audit.md"
+      },
+      "impact_review": {
+        "decision": "ANALYZE",
+        "fingerprint": "f0b83b4174d2c1a454d9346cc7c2ddc1f8c62e676ffbaf0cdf08b511af50ea88",
+        "changed_paths": [
+          ".github/actions/homio-backend-ci/transitions/backend-workstream-activation/action.yml",
+          ".github/actions/homio-backend-ci/transitions/backend-workstream-activation/scripts/activate_backend_workstream.py",
+          ".github/actions/homio-backend-ci/transitions/backend-workstream-activation/scripts/activate_backend_workstream_wrapper.py",
+          ".github/actions/homio-backend-ci/verification/scripts/financial_context_tenant.sh",
+          ".github/actions/homio-backend-ci/verification/scripts/wiring_tests.sh",
+          ".github/workflows/backend-ci.yml",
+          ".github/workflows/reusable-backend-workstream-activation.yml",
+          "reos_control_center/autonomy_engine/continuity/acrl/t17_change_impact_dependency_analysis/change_impact_analysis.py",
+          "reos_control_center/autonomy_engine/continuity/acrl/t17_change_impact_dependency_analysis/test_change_impact_analysis.py",
+          "reos_control_center/context/backend_workstream_transition.py",
+          "reos_control_center/context/github_actions_identity.py",
+          "reos_control_center/context/phase_projection.py",
+          "reos_control_center/context/test_backend_activation_import_bootstrap.py",
+          "reos_control_center/context/test_backend_control_projection.py",
+          "reos_control_center/context/test_backend_workstream_transition.py",
+          "reos_control_center/context/test_github_actions_identity.py",
+          "reos_control_center/context/test_phase_projection.py",
+          "reos_control_center/evidence/backend-001/b0-live-repository-audit.md",
+          "reos_control_center/reos_control_center.py"
+        ],
+        "unknown_paths": [],
+        "protected_paths": []
+      },
+      "operator_proposal": {
+        "decision": "PROPOSE",
+        "request_fingerprint": "a452af751dab1eff562a9d4d436005b67cbf70420713a8c08f31075f05c7fe61",
+        "proposal": {
+          "action_type": "PROPOSE_CHANGE",
+          "description": "Activate BACKEND-001 after B0 audit, preserve APP-001-T01, reconcile previously validated ARCH-039, and insert B0-B10 into the authoritative execution sequence.",
+          "risk": "MEDIUM",
+          "reversible": true,
+          "requires_authorization": true,
+          "evidence_basis": [
+            "baseline_head=a82dc7af949e1eaed4468b4c6ff6ca4f220a0f30",
+            "state_blob_sha=6242f63371a725ea99447c218bbbeb46a0c5eddd",
+            "backend_master_blob_sha=27b43931d1b6db48065ec41fd3574bd2dbc5ae3c",
+            "work_plan_blob_sha=e69b5107d21e54ed4920178bd6ec62c95e773bb5",
+            "arch039_snapshot_blob_sha=9a086a6d7e5caff45468ed4aa4ecbd8f2ffd3f8c",
+            "owner_source_commit=ecf9139cc0b256b927e6d266515929191efb446e",
+            "owner_id=320960487",
+            "repository_id=1346051793",
+            "oidc_subject=repo:prajaktaranjane80-sketch@320960487/Homio@1346051793:ref:refs/heads/reos-development"
+          ],
+          "context_fingerprint": "0c3e9dae748b6136febb4983e00e270fcde4bda92eb1cd2bc6895718491a819b"
+        }
+      },
+      "execution_authorization": {
+        "decision": "AUTHORIZE",
+        "authorization_fingerprint": "3855d22f3ca79a01e7982a607fc329d6ec330d020a74f670fa0a35934fcc71e8",
+        "request_fingerprint": "e7e50afba99b31a6a3b2398a4c79c8722abcf5ed419a9039bfce67ff71f6b4ab",
+        "external_executor_required": true,
+        "state_mutated_by_guard": false
+      },
+      "owner_approval": {
+        "method": "GitHub Actions OIDC + repository-owner push",
+        "actor": "prajaktaranjane80-sketch",
+        "actor_id": "320960487",
+        "source_commit": "ecf9139cc0b256b927e6d266515929191efb446e",
+        "commit_prefix": "[CONTROL-CENTER-ACTIVATE-BACKEND-001]",
+        "oidc_issuer": "https://token.actions.githubusercontent.com",
+        "oidc_subject": "repo:prajaktaranjane80-sketch@320960487/Homio@1346051793:ref:refs/heads/reos-development",
+        "actions_run_id": "41646131399"
+      },
+      "preserved_work": {
+        "gate": "APP-001",
+        "subtask": "APP-001-T01",
+        "status": "PRESERVED_FOR_RESUMPTION",
+        "resume_after": "BACKEND-001"
+      }
+    }
+  ],
   "tasks": [],
   "checkpoints": [],
   "events": [
@@ -2560,25 +2666,57 @@
         "gate": "AI-001",
         "next_gate": "APP-001"
       }
+    },
+    {
+      "id": "aaf4252b-e737-47da-8925-3ee4d957e5af",
+      "time": "2026-11-03T13:39:35+00:00",
+      "type": "GATE_APPROVED_AND_FROZEN",
+      "payload": {
+        "gate": "ARCH-039",
+        "source_snapshot_blob_sha": "9a086a6d7e5caff45468ed4aa4ecbd8f2ffd3f8c",
+        "authorization_fingerprint": "3855d22f3ca79a01e7982a607fc329d6ec330d020a74f670fa0a35934fcc71e8",
+        "approved_by": "prajaktaranjane80-sketch"
+      }
+    },
+    {
+      "id": "bfefa12b-9635-44ba-bf8b-3e0813d13663",
+      "time": "2026-11-03T13:39:35+00:00",
+      "type": "CHANGE_REQUEST_APPROVED",
+      "payload": {
+        "id": "CR-BACKEND-001",
+        "approved_by": "prajaktaranjane80-sketch",
+        "authorization_fingerprint": "3855d22f3ca79a01e7982a607fc329d6ec330d020a74f670fa0a35934fcc71e8"
+      }
+    },
+    {
+      "id": "698b8600-163c-4ab8-9a99-fc579c983f19",
+      "time": "2026-11-03T13:39:35+00:00",
+      "type": "WORKSTREAM_ACTIVATED",
+      "payload": {
+        "gate": "BACKEND-001",
+        "subtask": "BACKEND-001-B1",
+        "preserved_gate": "APP-001",
+        "preserved_subtask": "APP-001-T01",
+        "source_commit": "ecf9139cc0b256b927e6d266515929191efb446e"
+      }
     }
   ],
   "integrity": {
-    "sha256": "095aa1051f70427850825444990b2038173fabbecbd3b83cb3aaa7e08cb50f7f"
+    "sha256": "5e5d56acc759a7f0a593cb22b1055a2a0b78fde78e457407ce628143efc5c3e5"
   },
   "execution": {
-    "current_gate": "APP-001",
-    "current_task": "APP-001-T01: Implement application shell and design system.",
+    "current_gate": "BACKEND-001",
+    "current_task": "BACKEND-001-B1: Backend application foundation.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
-      "Applications derive from frozen contracts.",
-      "Buyer, broker and builder access is correctly isolated.",
-      "Critical workflows are end-to-end functional.",
-      "AI actions respect authorization.",
-      "Accessibility, security and E2E tests pass.",
-      "No business logic is duplicated in the frontend."
+      "Build is reproducible.",
+      "Invalid runtime configuration fails safely.",
+      "Health and readiness semantics are tested.",
+      "Graceful shutdown is tested.",
+      "No duplicate public API application exists."
     ],
-    "current_subtask": "APP-001-T01"
+    "current_subtask": "BACKEND-001-B1"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -2678,18 +2816,24 @@
       },
       {
         "id": "PLAN-016",
-        "gate": "APP-001",
-        "name": "Buyer / Broker / Builder Applications",
+        "gate": "BACKEND-001",
+        "name": "Unified HOMIO / REOS Backend",
         "status": "CURRENT"
       },
       {
         "id": "PLAN-017",
+        "gate": "APP-001",
+        "name": "Buyer / Broker / Builder Applications",
+        "status": "FUTURE"
+      },
+      {
+        "id": "PLAN-018",
         "gate": "REL-001",
         "name": "Testing, Security & Release Gates",
         "status": "FUTURE"
       },
       {
-        "id": "PLAN-018",
+        "id": "PLAN-019",
         "gate": "SCALE-001",
         "name": "Production Scale & International Rollout",
         "status": "FUTURE"
@@ -4813,7 +4957,7 @@
       "id": "APP-001",
       "name": "Buyer / Broker / Builder Applications",
       "objective": "Build user-facing applications from frozen domain and platform contracts.",
-      "status": "CURRENT",
+      "status": "FUTURE",
       "current_subtask": "APP-001-T01",
       "subtasks": [
         {
@@ -4931,6 +5075,183 @@
       ],
       "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
       "created_at": "2026-10-27T09:12:50+00:00"
+    },
+    "BACKEND-001": {
+      "id": "BACKEND-001",
+      "name": "Unified HOMIO / REOS Backend",
+      "objective": "Establish and verify one unified public backend through the B0-B10 sequence in HOMIO_Backend_Structure.",
+      "status": "CURRENT",
+      "current_subtask": "BACKEND-001-B1",
+      "subtasks": [
+        {
+          "id": "BACKEND-001-B0",
+          "title": "Live repository audit and ownership verification",
+          "priority": "CRITICAL",
+          "status": "DONE",
+          "completed_at": "2026-11-03T13:39:35+00:00",
+          "note": "Read-only B0 audit recorded in REOS_CONTROL_CENTER/evidence/BACKEND-001/B0-live-repository-audit.md; baseline a82dc7af949e1eaed4468b4c6ff6ca4f220a0f30. No backend source code was modified during B0."
+        },
+        {
+          "id": "BACKEND-001-B1",
+          "title": "Backend application foundation",
+          "priority": "CRITICAL",
+          "status": "CURRENT",
+          "acceptance_criteria": [
+            "Build is reproducible.",
+            "Invalid runtime configuration fails safely.",
+            "Health and readiness semantics are tested.",
+            "Graceful shutdown is tested.",
+            "No duplicate public API application exists."
+          ]
+        },
+        {
+          "id": "BACKEND-001-B2",
+          "title": "API security and trusted context",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "BACKEND-001-B3",
+          "title": "Python domain-runtime bridge",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "BACKEND-001-B4",
+          "title": "PostgreSQL integration",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "BACKEND-001-B5",
+          "title": "Domain API adapters",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "BACKEND-001-B6",
+          "title": "Event and durable workflow integration",
+          "priority": "HIGH",
+          "status": "PENDING"
+        },
+        {
+          "id": "BACKEND-001-B7",
+          "title": "Search, AI and provider integration",
+          "priority": "HIGH",
+          "status": "PENDING"
+        },
+        {
+          "id": "BACKEND-001-B8",
+          "title": "Complete customer and business journeys",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "BACKEND-001-B9",
+          "title": "Production operations",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        },
+        {
+          "id": "BACKEND-001-B10",
+          "title": "Release verification and final freeze approval",
+          "priority": "CRITICAL",
+          "status": "PENDING"
+        }
+      ],
+      "acceptance_criteria": [
+        "One reproducible public Fastify API application exists.",
+        "Protected routes enforce trusted identity and tenant context.",
+        "Python integration uses one authenticated private runtime boundary.",
+        "Persistence follows approved schema and one write owner per aggregate.",
+        "Adapters preserve canonical CORE domain ownership.",
+        "Events and durable workflows have tested retry and recovery behavior.",
+        "Search and AI integrations preserve authorization and source provenance.",
+        "Critical customer and business journeys pass end-to-end.",
+        "Production operational controls have current evidence.",
+        "Release verification and accountable approval are complete."
+      ],
+      "criteria_state": [
+        {
+          "id": "BACKEND-001-AC01",
+          "criterion": "One reproducible public Fastify API application exists.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "BACKEND-001-AC02",
+          "criterion": "Protected routes enforce trusted identity and tenant context.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "BACKEND-001-AC03",
+          "criterion": "Python integration uses one authenticated private runtime boundary.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "BACKEND-001-AC04",
+          "criterion": "Persistence follows approved schema and one write owner per aggregate.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "BACKEND-001-AC05",
+          "criterion": "Adapters preserve canonical CORE domain ownership.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "BACKEND-001-AC06",
+          "criterion": "Events and durable workflows have tested retry and recovery behavior.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "BACKEND-001-AC07",
+          "criterion": "Search and AI integrations preserve authorization and source provenance.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "BACKEND-001-AC08",
+          "criterion": "Critical customer and business journeys pass end-to-end.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "BACKEND-001-AC09",
+          "criterion": "Production operational controls have current evidence.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        },
+        {
+          "id": "BACKEND-001-AC10",
+          "criterion": "Release verification and accountable approval are complete.",
+          "status": "PENDING",
+          "evidence": null,
+          "verified_at": null
+        }
+      ],
+      "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
+      "created_at": "2026-11-03T13:39:35+00:00",
+      "technical_master": "REOS_CONTROL_CENTER/architecture/backend/plans/HOMIO_Backend_Structure",
+      "technical_sequence": "B0-B10",
+      "workstream": "BACKEND",
+      "baseline": {
+        "repository_head": "a82dc7af949e1eaed4468b4c6ff6ca4f220a0f30",
+        "b0_evidence": "REOS_CONTROL_CENTER/evidence/BACKEND-001/B0-live-repository-audit.md"
+      }
     }
   },
   "autonomous_engine": {
@@ -4957,63 +5278,67 @@
     "nodes": [
       {
         "id": "ARCH-036",
-        "status": "CURRENT"
+        "status": "COMPLETE"
       },
       {
         "id": "ARCH-037",
-        "status": "PENDING"
+        "status": "COMPLETE"
       },
       {
         "id": "ARCH-038",
-        "status": "PENDING"
+        "status": "COMPLETE"
       },
       {
         "id": "ARCH-039",
-        "status": "PENDING"
+        "status": "COMPLETE"
       },
       {
         "id": "REPO-001",
-        "status": "FUTURE"
+        "status": "COMPLETE"
       },
       {
         "id": "ENG-001",
-        "status": "FUTURE"
+        "status": "COMPLETE"
       },
       {
         "id": "CORE-001",
-        "status": "FUTURE"
+        "status": "COMPLETE"
       },
       {
         "id": "CORE-002",
-        "status": "FUTURE"
+        "status": "COMPLETE"
       },
       {
         "id": "CORE-003",
-        "status": "FUTURE"
+        "status": "COMPLETE"
       },
       {
         "id": "CORE-004",
-        "status": "FUTURE"
+        "status": "COMPLETE"
       },
       {
         "id": "CORE-005",
-        "status": "FUTURE"
+        "status": "COMPLETE"
       },
       {
         "id": "CORE-006",
-        "status": "FUTURE"
+        "status": "COMPLETE"
       },
       {
         "id": "CORE-007",
-        "status": "FUTURE"
+        "status": "COMPLETE"
       },
       {
         "id": "CORE-008",
-        "status": "FUTURE"
+        "status": "COMPLETE"
       },
       {
         "id": "AI-001",
-        "status": "FUTURE"
+        "status": "COMPLETE"
+      },
+      {
+        "id": "BACKEND-001",
+        "status": "CURRENT"
       },
       {
         "id": "APP-001",
@@ -5087,6 +5412,10 @@
       ],
       [
         "AI-001",
+        "BACKEND-001"
+      ],
+      [
+        "BACKEND-001",
         "APP-001"
       ],
       [
@@ -5109,6 +5438,6 @@
   "session": {
     "current_session_id": null,
     "last_checkpoint": null,
-    "last_handoff": "REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt"
+    "last_handoff": "/home/runner/work/Homio/Homio/REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt"
   }
 }

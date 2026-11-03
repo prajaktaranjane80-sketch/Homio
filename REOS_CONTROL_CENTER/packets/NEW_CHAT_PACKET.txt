@@ -1,27 +1,32 @@
 HOMIO / REOS — COMPACT CONTROL PACKET v7.0
 ========================================================================
-CURRENT_GATE=APP-001
-CURRENT_TASK=APP-001-T01: Implement application shell and design system.
+CURRENT_GATE=BACKEND-001
+CURRENT_TASK=BACKEND-001-B1: Backend application foundation.
 STATUS=CONTROL_CENTER_DRIVEN
-CURRENT_SUBTASK=APP-001-T01
+CURRENT_SUBTASK=BACKEND-001-B1
 RULE=CONTROL_CENTER_IS_ROADMAP_AUTHORITY
 
 SUBTASKS:
-APP-001-T01|CURRENT|Implement application shell and design system
-APP-001-T02|PENDING|Implement authentication and tenant UX
-APP-001-T03|PENDING|Implement buyer workflows
-APP-001-T04|PENDING|Implement broker workflows
-APP-001-T05|PENDING|Implement builder workflows
-APP-001-T06|PENDING|Implement admin and governance workflows
-APP-001-T07|PENDING|Integrate search, lead, inventory and deal APIs
-APP-001-T08|PENDING|Integrate AI capabilities with policy controls
-APP-001-T09|PENDING|Run accessibility, security and E2E tests
-APP-001-T10|PENDING|Freeze application release candidate
+BACKEND-001-B0|DONE|Live repository audit and ownership verification
+BACKEND-001-B1|CURRENT|Backend application foundation
+BACKEND-001-B2|PENDING|API security and trusted context
+BACKEND-001-B3|PENDING|Python domain-runtime bridge
+BACKEND-001-B4|PENDING|PostgreSQL integration
+BACKEND-001-B5|PENDING|Domain API adapters
+BACKEND-001-B6|PENDING|Event and durable workflow integration
+BACKEND-001-B7|PENDING|Search, AI and provider integration
+BACKEND-001-B8|PENDING|Complete customer and business journeys
+BACKEND-001-B9|PENDING|Production operations
+BACKEND-001-B10|PENDING|Release verification and final freeze approval
 
 ACCEPTANCE CRITERIA:
-APP-001-AC01|PENDING|Applications derive from frozen contracts.
-APP-001-AC02|PENDING|Buyer, broker and builder access is correctly isolated.
-APP-001-AC03|PENDING|Critical workflows are end-to-end functional.
-APP-001-AC04|PENDING|AI actions respect authorization.
-APP-001-AC05|PENDING|Accessibility, security and E2E tests pass.
-APP-001-AC06|PENDING|No business logic is duplicated in the frontend.
+BACKEND-001-AC01|PENDING|One reproducible public Fastify API application exists.
+BACKEND-001-AC02|PENDING|Protected routes enforce trusted identity and tenant context.
+BACKEND-001-AC03|PENDING|Python integration uses one authenticated private runtime boundary.
+BACKEND-001-AC04|PENDING|Persistence follows approved schema and one write owner per aggregate.
+BACKEND-001-AC05|PENDING|Adapters preserve canonical CORE domain ownership.
+BACKEND-001-AC06|PENDING|Events and durable workflows have tested retry and recovery behavior.
+BACKEND-001-AC07|PENDING|Search and AI integrations preserve authorization and source provenance.
+BACKEND-001-AC08|PENDING|Critical customer and business journeys pass end-to-end.
+BACKEND-001-AC09|PENDING|Production operational controls have current evidence.
+BACKEND-001-AC10|PENDING|Release verification and accountable approval are complete.
