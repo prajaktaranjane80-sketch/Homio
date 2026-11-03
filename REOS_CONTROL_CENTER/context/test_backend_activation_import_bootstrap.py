@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import os
@@ -19,6 +20,7 @@ def test_backend_activation_bootstraps_canonical_acrl_import_namespace():
     assert activation_script.is_file()
 
     probe = """
+import importlib
 import importlib.util
 import sys
 from pathlib import Path
@@ -41,6 +43,31 @@ assert module.CONTROL == module.ROOT / "REOS_CONTROL_CENTER"
 
 assert str(module.CONTROL) in sys.path
 assert str(module.ROOT) in sys.path
+
+identity = importlib.import_module(
+    "REOS_CONTROL_CENTER.context.github_actions_identity"
+)
+
+assert module.OWNER == identity.OWNER
+assert module.OWNER_ID == identity.OWNER_ID
+assert module.REPOSITORY == identity.REPOSITORY
+assert module.REPOSITORY_ID == identity.REPOSITORY_ID
+assert module.BRANCH == identity.BRANCH
+assert module.BRANCH_REF == identity.BRANCH_REF
+assert module.OIDC_ISSUER == identity.OIDC_ISSUER
+assert module.EXPECTED_OIDC_SUBJECT == identity.EXPECTED_OIDC_SUBJECT
+
+assert identity.OWNER == "prajaktaranjane80-sketch"
+assert identity.OWNER_ID == "320960487"
+assert identity.REPOSITORY == "prajaktaranjane80-sketch/Homio"
+assert identity.REPOSITORY_ID == "1346051793"
+assert identity.BRANCH_REF == "refs/heads/reos-development"
+
+assert identity.EXPECTED_OIDC_SUBJECT == (
+    "repo:prajaktaranjane80-sketch@320960487/"
+    "Homio@1346051793:"
+    "ref:refs/heads/reos-development"
+)
 
 import AUTONOMY_ENGINE.continuity.acrl.repository_context  # noqa: E402
 
