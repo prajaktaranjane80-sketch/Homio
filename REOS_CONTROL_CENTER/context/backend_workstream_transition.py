@@ -125,6 +125,11 @@ def _build_backend_gate_plan(
                 f"{evidence_path}; baseline {baseline_sha}. "
                 "No backend source code was modified during B0."
             )
+        elif stage_id == "B1":
+            # Keep the active subtask's criteria distinct from the full
+            # backend gate criteria. Control Center projects these onto
+            # execution.current_acceptance_criteria.
+            item["acceptance_criteria"] = list(B1_ACCEPTANCE_CRITERIA)
 
         subtasks.append(item)
 
