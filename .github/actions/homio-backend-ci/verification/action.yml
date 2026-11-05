@@ -1,5 +1,5 @@
 name: HOMIO backend and ACRL verification modules
-description: Runs focused compile, transition wiring, subsystem regressions, and the complete ACRL suite in isolated scripts.
+description: Runs focused compile, transition wiring, subsystem regressions, the unified Fastify backend, and the complete ACRL suite in isolated scripts.
 
 runs:
   using: composite
@@ -60,6 +60,31 @@ runs:
     - name: Run complete ACRL suite
       shell: bash
       run: bash "$GITHUB_ACTION_PATH/scripts/acrl_full_suite.sh"
+
+    # ---------------------------------------------------------
+    # BACKEND-001-B1 — single public Fastify application
+    # ---------------------------------------------------------
+
+    - name: Set up Node.js 24 for the unified Fastify API
+      if: ${{ hashFiles('REOS_CONTROL_CENTER/backend/package.json') != '' }}
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: "24"
+        cache: npm
+        cache-dependency-path: REOS_CONTROL_CENTER/backend/package-lock.json
+
+    - name: Install locked dependencies and verify the public API
+      if: ${{ hashFiles('REOS_CONTROL_CENTER/backend/package.json') != '' }}
+      shell: bash
+      working-directory: REOS_CONTROL_CENTER/backend
+      run: |
+        set -euo pipefail
+        npm ci --no-audit --fund=false
+        npm run verify
+
+    # ---------------------------------------------------------
+    # Existing ACRL evidence/cache publication remains intact.
+    # ---------------------------------------------------------
 
     - name: Seal and independently read back external T14 resume cache
       if: ${{ success() && github.repository == 'prajaktaranjane80-sketch/Homio' && github.ref == 'refs/heads/reos-development' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
