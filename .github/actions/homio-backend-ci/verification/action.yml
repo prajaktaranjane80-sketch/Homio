@@ -1,4 +1,3 @@
-
 name: HOMIO backend and ACRL verification modules
 description: Runs focused compile, transition wiring, subsystem regressions, the unified Fastify backend, and the complete ACRL suite.
 
@@ -31,16 +30,13 @@ runs:
       run: bash "$GITHUB_ACTION_PATH/scripts/ai001_t02_transition_wiring.sh"
 
     - name: Verify AI-001-T03 guarded transition wiring
-      shell: bash
-      run: bash "$GITHUB_ACTION_PATH/scripts/ai001_t03_transition_wiring.sh"
+      shell: bash "$GITHUB_ACTION_PATH/scripts/ai001_t03_transition_wiring.sh"
 
     - name: Verify AI-001-T04 guarded transition wiring
-      shell: bash
-      run: bash "$GITHUB_ACTION_PATH/scripts/ai001_t04_transition_wiring.sh"
+      shell: bash "$GITHUB_ACTION_PATH/scripts/ai001_t04_transition_wiring.sh"
 
     - name: Verify AI-001-T05 guarded transition wiring
-      shell: bash
-      run: bash "$GITHUB_ACTION_PATH/scripts/ai001_t05_transition_wiring.sh"
+      shell: bash "$GITHUB_ACTION_PATH/scripts/ai001_t05_transition_wiring.sh"
 
     - name: Compile backend and verify contracts, including Section 14
       shell: bash
@@ -64,41 +60,63 @@ runs:
 
     # BACKEND-001-B1: Unified Fastify API foundation.
 
+    - name: Require committed B1 backend manifest and lockfile
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        PACKAGE_MANIFEST="REOS_CONTROL_CENTER/backend/package.json"
+        PACKAGE_LOCK="REOS_CONTROL_CENTER/backend/package-lock.json"
+
+        test -s "$PACKAGE_MANIFEST" || {
+          echo "::error::B1 package.json is missing or empty."
+          exit 1
+        }
+
+        test -s "$PACKAGE_LOCK" || {
+          echo "::error::B1 package-lock.json is missing or empty."
+          exit 1
+        }
+
+        git ls-files --error-unmatch "$PACKAGE_MANIFEST" >/dev/null || {
+          echo "::error::B1 package.json must be committed."
+          exit 1
+        }
+
+        git ls-files --error-unmatch "$PACKAGE_LOCK" >/dev/null || {
+          echo "::error::B1 package-lock.json must be committed."
+          exit 1
+        }
+
+        echo "B1_REQUIRED_MANIFEST_PRESENT=true"
+        echo "B1_COMMITTED_LOCKFILE_PRESENT=true"
+
     - name: Set up Node.js 24 for the unified Fastify API
-      if: ${{ hashFiles('REOS_CONTROL_CENTER/backend/package.json') != '' }}
       uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
         node-version: "24"
+        cache: npm
+        cache-dependency-path: REOS_CONTROL_CENTER/backend/package-lock.json
 
-    - name: Generate initial lockfile and verify backend
-      id: backend_node_verify
-      if: ${{ hashFiles('REOS_CONTROL_CENTER/backend/package.json') != '' }}
+    - name: Install exact backend dependencies and verify B1
       shell: bash
       working-directory: REOS_CONTROL_CENTER/backend
       run: |
         set -euo pipefail
 
-        if [[ ! -f package-lock.json ]]; then
-          echo "Generating the initial npm lockfile."
-          npm install --package-lock-only --ignore-scripts --no-audit --fund=false
-          echo "lockfile_generated=true" >> "$GITHUB_OUTPUT"
-        else
-          echo "lockfile_generated=false" >> "$GITHUB_OUTPUT"
-        fi
-
+        test -s package.json
         test -s package-lock.json
 
         npm ci --no-audit --fund=false
+
         npm run verify
 
-    - name: Publish generated B1 package lockfile
-      if: ${{ always() && steps.backend_node_verify.outputs.lockfile_generated == 'true' }}
-      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-      with:
-        name: homio-b1-generated-package-lock-${{ github.sha }}
-        path: REOS_CONTROL_CENTER/backend/package-lock.json
-        if-no-files-found: error
-        retention-days: 30
+        git diff --exit-code -- \
+          REOS_CONTROL_CENTER/backend/package.json \
+          REOS_CONTROL_CENTER/backend/package-lock.json
+
+        echo "B1_BACKEND_VERIFICATION=PASS"
+        echo "B1_LOCKFILE_REPRODUCIBILITY=PASS"
 
     # Existing ACRL evidence and cache publication.
 
