@@ -1,3 +1,4 @@
+
 import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 
@@ -25,17 +26,37 @@ export interface RunningBackend {
   shutdown(reason?: ShutdownReason): Promise<void>;
 }
 
+const IDLE_CONNECTION_REAP_INTERVAL_MS = 50;
+
 async function closeWithinDeadline(
   server: FastifyInstance,
   timeoutMs: number
 ): Promise<void> {
+  // Fastify stops accepting new connections and starts draining requests.
   const closeOperation = server.close();
+
+  // Node closes connections that are idle when close() begins.
+  // A keep-alive connection that is active at that moment can become idle
+  // later and otherwise keep shutdown waiting for keepAliveTimeout.
+  //
+  // Reap only idle connections while Fastify drains. Active requests are
+  // not force-closed and are allowed to finish normally.
+  const idleConnectionSweep = setInterval(() => {
+    server.server.closeIdleConnections();
+  }, IDLE_CONNECTION_REAP_INTERVAL_MS);
+
+  idleConnectionSweep.unref();
+
+  // Reap connections that became idle immediately after close() started.
+  server.server.closeIdleConnections();
 
   let timer: NodeJS.Timeout | undefined;
 
   const deadline = new Promise<never>(
     (_resolve, reject) => {
       timer = setTimeout(() => {
+        // This is the hard shutdown deadline fallback. It is deliberately
+        // separate from normal idle-connection draining.
         server.server.closeAllConnections();
 
         reject(
@@ -55,6 +76,8 @@ async function closeWithinDeadline(
       deadline
     ]);
   } finally {
+    clearInterval(idleConnectionSweep);
+
     if (timer !== undefined) {
       clearTimeout(timer);
     }
