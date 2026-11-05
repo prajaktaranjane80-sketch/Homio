@@ -1,3 +1,4 @@
+
 import Fastify, {
   type FastifyInstance,
   type FastifyPluginAsync
@@ -7,6 +8,7 @@ import type { BackendSettings } from "./config/settings.js";
 
 export interface AppRuntime {
   readonly server: FastifyInstance;
+  markReady(): void;
   markDraining(): void;
   isReady(): boolean;
 }
@@ -53,6 +55,8 @@ export async function buildApp(
   apiV1Plugins: readonly FastifyPluginAsync[] = []
 ): Promise<AppRuntime> {
   let acceptingTraffic = false;
+  let draining = false;
+  let closed = false;
 
   const server = Fastify({
     logger:
@@ -75,6 +79,12 @@ export async function buildApp(
     requestTimeout: settings.requestTimeoutMs
   });
 
+  server.addHook("onClose", async () => {
+    acceptingTraffic = false;
+    draining = true;
+    closed = true;
+  });
+
   server.setNotFoundHandler((request, reply) => {
     return reply.code(404).send({
       ...NOT_FOUND_RESPONSE,
@@ -83,8 +93,6 @@ export async function buildApp(
   });
 
   server.setErrorHandler((error, request, reply) => {
-    // Only genuine Error instances may supply an HTTP status.
-    // Arbitrary thrown objects are always treated as internal failures.
     const knownError = getKnownError(error);
     const statusCode = getClientErrorStatus(knownError);
 
@@ -154,30 +162,36 @@ export async function buildApp(
   };
 
   try {
-    // 1. Register application health routes.
     await server.register(healthRoutes);
 
-    // 2. Register explicitly supplied versioned API plugins.
     for (const plugin of apiV1Plugins) {
       await server.register(plugin, {
         prefix: "/api/v1"
       });
     }
 
-    // 3. Validate the complete Fastify plugin graph.
     await server.ready();
-
-    acceptingTraffic = true;
 
     return {
       server,
 
+      markReady(): void {
+        if (draining || closed) {
+          throw new Error(
+            "Backend cannot become ready after shutdown has started."
+          );
+        }
+
+        acceptingTraffic = true;
+      },
+
       markDraining(): void {
         acceptingTraffic = false;
+        draining = true;
       },
 
       isReady(): boolean {
-        return acceptingTraffic;
+        return acceptingTraffic && !draining && !closed;
       }
     };
   } catch (error) {
