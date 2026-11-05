@@ -19,6 +19,7 @@ on:
       - ".github/workflows/backend-ci.yml"
       - ".github/workflows/reusable-backend-verification.yml"
       - ".github/workflows/reusable-backend-workstream-activation.yml"
+      - ".github/workflows/reusable-backend-b1-completion.yml"
       - ".github/workflows/reusable-ai001-t01-transition.yml"
       - ".github/workflows/reusable-ai001-t02-transition.yml"
       - ".github/workflows/reusable-ai001-t03-transition.yml"
@@ -42,7 +43,6 @@ on:
     branches:
       - reos-development
     paths:
-      # Required-check safety: every PR must run backend verification.
       - "**"
       - "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**"
       - "REOS_CONTROL_CENTER/Frontend/**"
@@ -58,6 +58,7 @@ on:
       - ".github/workflows/backend-ci.yml"
       - ".github/workflows/reusable-backend-verification.yml"
       - ".github/workflows/reusable-backend-workstream-activation.yml"
+      - ".github/workflows/reusable-backend-b1-completion.yml"
       - ".github/workflows/reusable-ai001-t01-transition.yml"
       - ".github/workflows/reusable-ai001-t02-transition.yml"
       - ".github/workflows/reusable-ai001-t03-transition.yml"
@@ -87,8 +88,8 @@ concurrency:
   cancel-in-progress: false
 
 # Verification never changes canonical task state by itself.
-# AI-001 and CORE-008 transitions retain their existing guards.
-# BACKEND-001 activation is separately owner-, OIDC- and T18-guarded.
+# Backend activation and B1 completion use separate guarded transitions.
+# AI-001 and CORE-008 retain their existing transition boundaries.
 
 jobs:
   verification:
@@ -105,6 +106,14 @@ jobs:
       contents: write
       id-token: write
     uses: ./.github/workflows/reusable-backend-workstream-activation.yml
+
+  control_center_complete_backend_b1:
+    name: Guarded Control Center completion (BACKEND-001-B1)
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/reos-development' && startsWith(github.event.head_commit.message, '[CONTROL-CENTER-COMPLETE-BACKEND-001-B1]') }}
+    needs: verification
+    permissions:
+      contents: write
+    uses: ./.github/workflows/reusable-backend-b1-completion.yml
 
   control_center_transition_ai001_t01:
     name: Guarded Control Center transition (AI-001-T01)
