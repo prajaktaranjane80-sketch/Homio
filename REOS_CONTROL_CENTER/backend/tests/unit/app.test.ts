@@ -1,3 +1,4 @@
+
 import {
   afterEach,
   describe,
@@ -25,12 +26,13 @@ describe("single Fastify application", () => {
 
   afterEach(async () => {
     if (runtime !== undefined) {
+      runtime.markDraining();
       await runtime.server.close();
       runtime = undefined;
     }
   });
 
-  it("provides a live endpoint", async () => {
+  it("provides an independent liveness endpoint", async () => {
     runtime = await buildApp(testSettings);
 
     const response = await runtime.server.inject({
@@ -45,8 +47,25 @@ describe("single Fastify application", () => {
     });
   });
 
-  it("reports readiness only while accepting traffic", async () => {
+  it("opens readiness only after the listener lifecycle marks it ready", async () => {
     runtime = await buildApp(testSettings);
+
+    expect(runtime.isReady()).toBe(false);
+
+    const beforeListening = await runtime.server.inject({
+      method: "GET",
+      url: "/health/ready"
+    });
+
+    expect(beforeListening.statusCode).toBe(503);
+
+    expect(beforeListening.json()).toEqual({
+      status: "not_ready"
+    });
+
+    runtime.markReady();
+
+    expect(runtime.isReady()).toBe(true);
 
     const readyResponse = await runtime.server.inject({
       method: "GET",
@@ -61,19 +80,44 @@ describe("single Fastify application", () => {
 
     runtime.markDraining();
 
-    const drainingResponse =
-      await runtime.server.inject({
-        method: "GET",
-        url: "/health/ready"
-      });
+    expect(runtime.isReady()).toBe(false);
+
+    const drainingResponse = await runtime.server.inject({
+      method: "GET",
+      url: "/health/ready"
+    });
 
     expect(drainingResponse.statusCode).toBe(503);
 
     expect(drainingResponse.json()).toEqual({
       status: "not_ready"
     });
+  });
+
+  it("does not become ready again after shutdown begins", async () => {
+    runtime = await buildApp(testSettings);
+
+    runtime.markDraining();
+
+    expect(() => runtime?.markReady()).toThrow(
+      "Backend cannot become ready after shutdown has started."
+    );
 
     expect(runtime.isReady()).toBe(false);
+  });
+
+  it("clears readiness when Fastify closes", async () => {
+    runtime = await buildApp(testSettings);
+
+    runtime.markReady();
+
+    expect(runtime.isReady()).toBe(true);
+
+    await runtime.server.close();
+
+    expect(runtime.isReady()).toBe(false);
+
+    runtime = undefined;
   });
 
   it("returns a safe not-found response", async () => {
