@@ -66,11 +66,16 @@ describe("backend startup and shutdown", () => {
     }
   });
 
-  it("allows an active request to finish before graceful shutdown completes", async () => {
+  it("allows an active request to finish and then reaps its idle keep-alive connection", async () => {
     let signalRequestStarted: () => void = () => undefined;
+    let releaseActiveRequest: () => void = () => undefined;
 
     const requestStarted = new Promise<void>((resolveStarted) => {
       signalRequestStarted = resolveStarted;
+    });
+
+    const activeRequestGate = new Promise<void>((resolveRequest) => {
+      releaseActiveRequest = resolveRequest;
     });
 
     const slowRoutePlugin: FastifyPluginAsync =
@@ -78,9 +83,7 @@ describe("backend startup and shutdown", () => {
         instance.get("/slow-drain", async () => {
           signalRequestStarted();
 
-          await new Promise<void>((resolveDelay) => {
-            setTimeout(resolveDelay, 25);
-          });
+          await activeRequestGate;
 
           return {
             status: "completed"
@@ -93,6 +96,9 @@ describe("backend startup and shutdown", () => {
       [slowRoutePlugin]
     );
 
+    let pendingResponse: Promise<Response> | undefined;
+    let shutdownPromise: Promise<void> | undefined;
+
     try {
       const address = running.server.server.address();
 
@@ -104,15 +110,52 @@ describe("backend startup and shutdown", () => {
 
       const serverAddress = address as AddressInfo;
 
-      const pendingResponse = fetch(
-        `http://127.0.0.1:${serverAddress.port}/api/v1/slow-drain`
+      pendingResponse = fetch(
+        `http://127.0.0.1:${serverAddress.port}/api/v1/slow-drain`,
+        {
+          signal: AbortSignal.timeout(3_000)
+        }
       );
 
-      await requestStarted;
+      // Detect a route miss or early response instead of waiting forever
+      // for a handler-start signal that will never arrive.
+      const requestStartResult = await Promise.race([
+        requestStarted.then(() => "started" as const),
+        pendingResponse.then((response) => ({
+          response
+        }))
+      ]);
 
-      const shutdownPromise = running.shutdown("manual");
+      if (requestStartResult !== "started") {
+        await requestStartResult.response.arrayBuffer();
+
+        throw new Error(
+          "Expected the slow-drain route handler to start, " +
+          `but HTTP ${requestStartResult.response.status} returned first.`
+        );
+      }
+
+      // The request is now confirmed active and blocked on the test gate.
+      shutdownPromise = running.shutdown("manual");
 
       expect(running.isReady()).toBe(false);
+
+      let shutdownSettled = false;
+
+      void shutdownPromise.then(() => {
+        shutdownSettled = true;
+      });
+
+      // Shutdown must remain pending while the handler is still active.
+      await new Promise<void>((resolveTurn) => {
+        setImmediate(resolveTurn);
+      });
+
+      expect(shutdownSettled).toBe(false);
+
+      // Let the in-flight request finish. The server must then reap its
+      // newly idle keep-alive connection without waiting for keepAliveTimeout.
+      releaseActiveRequest();
 
       const response = await pendingResponse;
 
@@ -125,9 +168,19 @@ describe("backend startup and shutdown", () => {
       await shutdownPromise;
 
       expect(running.server.server.listening).toBe(false);
+      expect(running.isReady()).toBe(false);
     } finally {
-      if (running.server.server.listening) {
-        await running.shutdown("manual");
+      // Never leave the test handler blocked if an assertion fails.
+      releaseActiveRequest();
+
+      if (shutdownPromise !== undefined) {
+        await shutdownPromise.catch(() => undefined);
+      } else if (running.server.server.listening) {
+        await running.shutdown("manual").catch(() => undefined);
+      }
+
+      if (pendingResponse !== undefined) {
+        await pendingResponse.catch(() => undefined);
       }
     }
   });
