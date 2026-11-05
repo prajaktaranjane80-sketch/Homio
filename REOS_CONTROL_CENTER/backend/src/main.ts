@@ -1,7 +1,10 @@
 import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 
-import type { FastifyInstance } from "fastify";
+import type {
+  FastifyInstance,
+  FastifyPluginAsync
+} from "fastify";
 
 import {
   ConfigurationError,
@@ -18,7 +21,7 @@ export type ShutdownReason =
 
 export interface RunningBackend {
   readonly server: FastifyInstance;
-
+  isReady(): boolean;
   shutdown(reason?: ShutdownReason): Promise<void>;
 }
 
@@ -33,8 +36,6 @@ async function closeWithinDeadline(
   const deadline = new Promise<never>(
     (_resolve, reject) => {
       timer = setTimeout(() => {
-        // The graceful period has expired.
-        // Close remaining connections instead of hanging forever.
         server.server.closeAllConnections();
 
         reject(
@@ -61,15 +62,22 @@ async function closeWithinDeadline(
 }
 
 export async function startBackend(
-  settings: BackendSettings
+  settings: BackendSettings,
+  apiV1Plugins: readonly FastifyPluginAsync[] = []
 ): Promise<RunningBackend> {
-  const runtime = await buildApp(settings);
+  const runtime = await buildApp(
+    settings,
+    apiV1Plugins
+  );
 
   try {
     await runtime.server.listen({
       host: settings.host,
       port: settings.port
     });
+
+    // Traffic is accepted only after the HTTP listener succeeds.
+    runtime.markReady();
   } catch (error) {
     runtime.markDraining();
 
@@ -87,6 +95,7 @@ export async function startBackend(
       return shutdownPromise;
     }
 
+    // Readiness becomes false before Fastify begins closing.
     runtime.markDraining();
 
     runtime.server.log.info(
@@ -109,17 +118,25 @@ export async function startBackend(
 
   return {
     server: runtime.server,
+
+    isReady(): boolean {
+      return runtime.isReady();
+    },
+
     shutdown
   };
 }
 
 export async function runServer(
-  env: NodeJS.ProcessEnv = process.env
+  env: NodeJS.ProcessEnv = process.env,
+  apiV1Plugins: readonly FastifyPluginAsync[] = []
 ): Promise<void> {
-  // Configuration is validated before the application starts.
   const settings = loadSettings(env);
 
-  const running = await startBackend(settings);
+  const running = await startBackend(
+    settings,
+    apiV1Plugins
+  );
 
   const handleSignal = (signal: NodeJS.Signals): void => {
     void running.shutdown(signal).catch(() => {
