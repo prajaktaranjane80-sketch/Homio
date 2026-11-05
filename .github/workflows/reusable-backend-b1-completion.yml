@@ -1,0 +1,63 @@
+name: Reusable Guarded BACKEND-001-B1 Completion
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  complete_backend_b1:
+    name: Owner-authorized BACKEND-001-B1 completion
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+      EXPECTED_SHA: ${{ github.sha }}
+      VERIFIED_CODE_SHA: ${{ github.sha }}
+      ACTIONS_RUN_ID: ${{ github.run_id }}
+      ACTIONS_SERVER_URL: ${{ github.server_url }}
+      ACTIONS_REPOSITORY: ${{ github.repository }}
+
+    steps:
+      - name: Preserve Git line-ending behavior
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global core.autocrlf false
+          git config --global core.eol native
+
+      - name: Checkout exact verified commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: REOS_CONTROL_CENTER/backend/package-lock.json
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+
+      - name: Install exact ACRL verification dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check pytest
+          python -m pip install --disable-pip-version-check \
+            -r REOS_CONTROL_CENTER/requirements-auth.txt
+          python -m pip install --disable-pip-version-check \
+            "qdrant-client==1.20.0"
+
+      - name: Execute canonical B1 completion
+        uses: ./.github/actions/homio-backend-ci/transitions/backend-b1-completion
