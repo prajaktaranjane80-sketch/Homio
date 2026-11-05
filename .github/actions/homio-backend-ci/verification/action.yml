@@ -1,4 +1,3 @@
-
 name: HOMIO backend and ACRL verification modules
 description: Runs focused compile, transition wiring, subsystem regressions, the unified Fastify backend, and the complete ACRL suite.
 
@@ -25,6 +24,13 @@ runs:
         set -euo pipefail
         python -m pytest -q -p no:cacheprovider \
           .github/actions/homio-backend-ci/verification/tests/test_pull_request_governance.py
+
+    - name: Verify guarded BACKEND-001-B1 completion wiring
+      shell: bash
+      run: |
+        set -euo pipefail
+        python -m pytest -q -p no:cacheprovider \
+          .github/actions/homio-backend-ci/verification/tests/test_backend_b1_completion_transition.py
 
     - name: Verify AI-001-T02 guarded transition wiring
       shell: bash
