@@ -51,6 +51,20 @@ The guarded transition must:
 9. Verify state integrity and remote readback.
 10. Preserve the canonical handoff and evidence records.
 
+## Trigger integrity
+
+The owner-authorized completion commit must contain an actual change to a tracked file covered by:
+
+`.github/workflows/backend-ci.yml`
+
+The commit must not be empty.
+
+The commit subject must begin exactly with:
+
+`[CONTROL-CENTER-COMPLETE-BACKEND-001-B1]`
+
+The completion transition is permitted only from the canonical branch push event after the verification job succeeds.
+
 ## Expected state after successful completion
 
 - `BACKEND-001-B0`: DONE
