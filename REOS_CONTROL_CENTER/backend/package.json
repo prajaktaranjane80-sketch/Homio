@@ -1,3 +1,4 @@
+
 {
   "name": "homio-reos-backend",
   "version": "1.0.0",
@@ -16,7 +17,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify": "npm run lint && npm run typecheck && npm run test && npm run build"
+    "verify:build-reproducibility": "node scripts/verify-build-reproducibility.mjs",
+    "verify": "npm run lint && npm run typecheck && npm run test && npm run verify:build-reproducibility"
   },
   "dependencies": {
     "fastify": "5.12.8"
