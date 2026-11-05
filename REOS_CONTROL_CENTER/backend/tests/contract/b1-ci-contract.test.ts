@@ -1,4 +1,3 @@
-
 import { readFile } from "node:fs/promises";
 
 import { resolve } from "node:path";
@@ -51,19 +50,31 @@ describe("BACKEND-001-B1 CI enforcement contract", () => {
     );
 
     expect(b1Section).toContain(
-      "test -s REOS_CONTROL_CENTER/backend/package.json"
+      'PACKAGE_MANIFEST="REOS_CONTROL_CENTER/backend/package.json"'
     );
 
     expect(b1Section).toContain(
-      "test -s REOS_CONTROL_CENTER/backend/package-lock.json"
+      'PACKAGE_LOCK="REOS_CONTROL_CENTER/backend/package-lock.json"'
     );
 
     expect(b1Section).toContain(
-      "git ls-files --error-unmatch"
+      'test -s "$PACKAGE_MANIFEST"'
     );
 
     expect(b1Section).toContain(
-      "node-version: \"24\""
+      'test -s "$PACKAGE_LOCK"'
+    );
+
+    expect(b1Section).toContain(
+      'git ls-files --error-unmatch "$PACKAGE_MANIFEST"'
+    );
+
+    expect(b1Section).toContain(
+      'git ls-files --error-unmatch "$PACKAGE_LOCK"'
+    );
+
+    expect(b1Section).toContain(
+      'node-version: "24"'
     );
 
     expect(b1Section).toContain(
@@ -76,6 +87,10 @@ describe("BACKEND-001-B1 CI enforcement contract", () => {
 
     expect(b1Section).toContain(
       "npm run verify"
+    );
+
+    expect(b1Section).toContain(
+      "git diff --exit-code -- package.json package-lock.json"
     );
 
     expect(b1Section).not.toMatch(
