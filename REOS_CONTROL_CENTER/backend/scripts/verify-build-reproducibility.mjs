@@ -8,7 +8,10 @@ import {
   resolve,
   sep
 } from "node:path";
-import { fileURLToPath } from "node:url";
+import {
+  URL,
+  fileURLToPath
+} from "node:url";
 
 const BACKEND_ROOT = fileURLToPath(
   new URL("../", import.meta.url)
