@@ -1,3 +1,5 @@
+import { isIP } from "node:net";
+
 import type {
   BackendSettings,
   LogLevel,
@@ -30,6 +32,9 @@ const LOG_LEVELS: readonly LogLevel[] = [
   "silent"
 ];
 
+const DNS_LABEL_PATTERN =
+  /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$/;
+
 export class ConfigurationError extends Error {
   public readonly issues: readonly string[];
 
@@ -41,6 +46,35 @@ export class ConfigurationError extends Error {
     this.name = "ConfigurationError";
     this.issues = Object.freeze([...issues]);
   }
+}
+
+function isValidBindHost(value: string): boolean {
+  if (isIP(value) !== 0) {
+    return true;
+  }
+
+  // Invalid numeric IPv4-looking values must not pass as DNS names.
+  if (/^\d+(?:\.\d+){3}$/.test(value)) {
+    return false;
+  }
+
+  const hostname = value.endsWith(".")
+    ? value.slice(0, -1)
+    : value;
+
+  if (
+    hostname.length === 0 ||
+    hostname.length > 253
+  ) {
+    return false;
+  }
+
+  return hostname
+    .split(".")
+    .every((label) =>
+      label.length <= 63 &&
+      DNS_LABEL_PATTERN.test(label)
+    );
 }
 
 function readInteger(
@@ -87,9 +121,13 @@ function readHost(
 
   const value = rawValue.trim();
 
-  if (value.length === 0 || value !== rawValue) {
+  if (
+    value.length === 0 ||
+    value !== rawValue ||
+    !isValidBindHost(value)
+  ) {
     issues.push(
-      "HOMIO_BACKEND_HOST must be a non-empty host without surrounding whitespace"
+      "HOMIO_BACKEND_HOST must be a valid IP address or DNS hostname without whitespace, URL or path components"
     );
 
     return DEFAULT_HOST;
