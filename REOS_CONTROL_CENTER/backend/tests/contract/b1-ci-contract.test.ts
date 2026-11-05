@@ -1,7 +1,6 @@
+
 import { readFile } from "node:fs/promises";
-
 import { resolve } from "node:path";
-
 import { fileURLToPath } from "node:url";
 
 import {
@@ -14,9 +13,24 @@ const REPOSITORY_ROOT = fileURLToPath(
   new URL("../../../../", import.meta.url)
 );
 
+const BACKEND_ROOT = resolve(
+  REPOSITORY_ROOT,
+  "REOS_CONTROL_CENTER/backend"
+);
+
 const BACKEND_CI_ACTION = resolve(
   REPOSITORY_ROOT,
   ".github/actions/homio-backend-ci/verification/action.yml"
+);
+
+const PACKAGE_MANIFEST = resolve(
+  BACKEND_ROOT,
+  "package.json"
+);
+
+const REPRODUCIBLE_BUILD_SCRIPT = resolve(
+  BACKEND_ROOT,
+  "scripts/verify-build-reproducibility.mjs"
 );
 
 const B1_START_MARKER =
@@ -113,6 +127,56 @@ describe("BACKEND-001-B1 CI enforcement contract", () => {
       b1Section.indexOf("npm ci --no-audit --fund=false")
     ).toBeLessThan(
       b1Section.indexOf("npm run verify")
+    );
+  });
+
+  it("requires two clean production builds with identical output fingerprints", async () => {
+    const packageSource = await readFile(
+      PACKAGE_MANIFEST,
+      "utf8"
+    );
+
+    const packageManifest = JSON.parse(
+      packageSource
+    ) as {
+      scripts?: Record<string, string>;
+    };
+
+    expect(
+      packageManifest.scripts?.["verify:build-reproducibility"]
+    ).toBe(
+      "node scripts/verify-build-reproducibility.mjs"
+    );
+
+    expect(
+      packageManifest.scripts?.verify
+    ).toContain(
+      "npm run verify:build-reproducibility"
+    );
+
+    const script = await readFile(
+      REPRODUCIBLE_BUILD_SCRIPT,
+      "utf8"
+    );
+
+    expect(script).toContain(
+      'await runBuild("first")'
+    );
+
+    expect(script).toContain(
+      'await runBuild("second")'
+    );
+
+    expect(script).toContain(
+      "firstBuild.sha256 !== secondBuild.sha256"
+    );
+
+    expect(script).toContain(
+      "B1_REPRODUCIBLE_BUILD=PASS"
+    );
+
+    expect(script).toContain(
+      "B1_REPRODUCIBLE_BUILD=FAIL"
     );
   });
 });
