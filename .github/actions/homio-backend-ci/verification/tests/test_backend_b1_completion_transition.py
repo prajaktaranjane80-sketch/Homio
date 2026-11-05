@@ -1,3 +1,4 @@
+import ast
 from pathlib import Path
 
 
@@ -42,6 +43,43 @@ def read_required(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def git_command_prefixes(source: str) -> set[tuple[str, ...]]:
+    """Inspect actual Git command argument vectors passed to run()."""
+    tree = ast.parse(source)
+    prefixes: set[tuple[str, ...]] = set()
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+
+        if not isinstance(node.func, ast.Name):
+            continue
+
+        if node.func.id != "run" or not node.args:
+            continue
+
+        command = node.args[0]
+
+        if not isinstance(command, ast.List):
+            continue
+
+        values: list[str] = []
+
+        for item in command.elts:
+            if (
+                not isinstance(item, ast.Constant)
+                or not isinstance(item.value, str)
+            ):
+                break
+
+            values.append(item.value)
+
+        if len(values) >= 2 and values[0] == "git":
+            prefixes.add((values[0], values[1]))
+
+    return prefixes
+
+
 def test_backend_ci_has_exact_owner_guarded_b1_completion():
     workflow = read_required(BACKEND_WORKFLOW)
 
@@ -80,7 +118,7 @@ def test_reusable_workflow_checks_out_exact_verified_commit():
         "ACTIONS_RUN_ID: ${{ github.run_id }}",
         "fetch-depth: 0",
         "persist-credentials: true",
-        "node-version: \"24\"",
+        'node-version: "24"',
         "qdrant-client==1.20.0",
         (
             "uses: ./.github/actions/homio-backend-ci/"
@@ -103,8 +141,6 @@ def test_transition_uses_existing_control_center_and_remote_readback():
         "verify-state",
         "validate_state(",
         "assert_exact_branch(",
-        "git push",
-        "git fetch",
         "CANONICAL_BRANCH_HEAD",
         "BACKEND-001-AC01",
         "BACKEND-001-AC10",
@@ -115,6 +151,13 @@ def test_transition_uses_existing_control_center_and_remote_readback():
     for value in required:
         assert value in script
 
+    # Verify actual Git command argument vectors, not source-code wording.
+    commands = git_command_prefixes(script)
+
+    assert ("git", "push") in commands
+    assert ("git", "fetch") in commands
+
+    # Canonical state must be changed through the Control Center only.
     assert "STATE.write_text(" not in script
     assert "json.dump(" not in script
 
