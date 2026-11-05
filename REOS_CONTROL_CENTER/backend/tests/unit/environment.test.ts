@@ -1,3 +1,4 @@
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -41,10 +42,25 @@ describe("backend runtime configuration", () => {
     });
   });
 
+  it("accepts valid DNS and IPv6 bind hosts", () => {
+    expect(
+      loadSettings({
+        HOMIO_BACKEND_HOST: "localhost"
+      } as NodeJS.ProcessEnv).host
+    ).toBe("localhost");
+
+    expect(
+      loadSettings({
+        HOMIO_BACKEND_HOST: "::1"
+      } as NodeJS.ProcessEnv).host
+    ).toBe("::1");
+  });
+
   it("rejects invalid runtime values together", () => {
     try {
       loadSettings({
         NODE_ENV: "invalid",
+        HOMIO_BACKEND_HOST: "https://example.com",
         HOMIO_BACKEND_PORT: "70000",
         HOMIO_LOG_LEVEL: "verbose",
         HOMIO_REQUEST_TIMEOUT_MS: "-1",
@@ -60,10 +76,14 @@ describe("backend runtime configuration", () => {
       const configurationError =
         error as ConfigurationError;
 
-      expect(configurationError.issues).toHaveLength(5);
+      expect(configurationError.issues).toHaveLength(6);
 
       expect(configurationError.message).toContain(
         "NODE_ENV"
+      );
+
+      expect(configurationError.message).toContain(
+        "HOMIO_BACKEND_HOST"
       );
 
       expect(configurationError.message).toContain(
@@ -76,18 +96,27 @@ describe("backend runtime configuration", () => {
     }
   });
 
-  it("rejects an empty or whitespace-padded host", () => {
-    expect(() =>
-      loadSettings({
-        HOMIO_BACKEND_HOST: "  "
-      } as NodeJS.ProcessEnv)
-    ).toThrow(ConfigurationError);
+  it("rejects malformed bind hosts", () => {
+    const invalidHosts = [
+      "",
+      "  ",
+      " localhost ",
+      "https://localhost",
+      "localhost/path",
+      "bad_host",
+      "-invalid.example",
+      "invalid-.example",
+      "999.999.999.999",
+      "::not-an-ip"
+    ];
 
-    expect(() =>
-      loadSettings({
-        HOMIO_BACKEND_HOST: " localhost "
-      } as NodeJS.ProcessEnv)
-    ).toThrow(ConfigurationError);
+    for (const host of invalidHosts) {
+      expect(() =>
+        loadSettings({
+          HOMIO_BACKEND_HOST: host
+        } as NodeJS.ProcessEnv)
+      ).toThrow(ConfigurationError);
+    }
   });
 
   it("rejects a non-integer port", () => {
