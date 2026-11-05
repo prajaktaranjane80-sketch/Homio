@@ -1,3 +1,4 @@
+
 import {
   describe,
   expect,
@@ -83,8 +84,40 @@ async function collectSourceFiles(
   return results.flat();
 }
 
+function importsFastify(source: string): boolean {
+  return /(?:\bfrom\s*|\bimport\s*\(|\brequire\s*\()\s*["']fastify["']/.test(
+    source
+  );
+}
+
+function getFastifyFactoryNames(
+  source: string
+): string[] {
+  const names = new Set<string>(["Fastify"]);
+
+  const defaultImport = source.match(
+    /\bimport\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*(?:,\s*\{[\s\S]*?\})?\s+from\s*["']fastify["']/
+  );
+
+  if (defaultImport?.[1]) {
+    names.add(defaultImport[1]);
+  }
+
+  const requireImport = source.match(
+    /\b(?:const|let|var)\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*=\s*require\(["']fastify["']\)/
+  );
+
+  if (requireImport?.[1]) {
+    names.add(requireImport[1]);
+  }
+
+  return [...names].filter((name) =>
+    new RegExp(`\\b${name}\\s*\\(`, "g").test(source)
+  );
+}
+
 describe("single public API ownership", () => {
-  it("keeps one Fastify factory and one HTTP listener", async () => {
+  it("keeps one Fastify factory and one Fastify HTTP listener", async () => {
     const files = await collectSourceFiles(CONTROL_ROOT);
 
     const fastifyFactories: string[] = [];
@@ -93,12 +126,36 @@ describe("single public API ownership", () => {
     for (const file of files) {
       const source = await readFile(file, "utf8");
 
-      if (/\bFastify\s*\(/.test(source)) {
-        fastifyFactories.push(relative(CONTROL_ROOT, file));
+      if (!importsFastify(source)) {
+        continue;
       }
 
-      if (/\.listen\s*\(/.test(source)) {
-        listeners.push(relative(CONTROL_ROOT, file));
+      const relativePath = relative(
+        CONTROL_ROOT,
+        file
+      );
+
+      for (const factoryName of getFastifyFactoryNames(source)) {
+        const factoryPattern = new RegExp(
+          `\\b${factoryName}\\s*\\(`,
+          "g"
+        );
+
+        const factoryCount = (
+          source.match(factoryPattern) ?? []
+        ).length;
+
+        for (let index = 0; index < factoryCount; index += 1) {
+          fastifyFactories.push(relativePath);
+        }
+      }
+
+      const listenerCount = (
+        source.match(/\.listen\s*\(/g) ?? []
+      ).length;
+
+      for (let index = 0; index < listenerCount; index += 1) {
+        listeners.push(relativePath);
       }
     }
 
