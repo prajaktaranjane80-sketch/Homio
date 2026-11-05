@@ -1,3 +1,4 @@
+
 name: HOMIO backend and ACRL verification modules
 description: Runs focused compile, transition wiring, subsystem regressions, the unified Fastify backend, and the complete ACRL suite.
 
@@ -30,13 +31,16 @@ runs:
       run: bash "$GITHUB_ACTION_PATH/scripts/ai001_t02_transition_wiring.sh"
 
     - name: Verify AI-001-T03 guarded transition wiring
-      shell: bash "$GITHUB_ACTION_PATH/scripts/ai001_t03_transition_wiring.sh"
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/ai001_t03_transition_wiring.sh"
 
     - name: Verify AI-001-T04 guarded transition wiring
-      shell: bash "$GITHUB_ACTION_PATH/scripts/ai001_t04_transition_wiring.sh"
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/ai001_t04_transition_wiring.sh"
 
     - name: Verify AI-001-T05 guarded transition wiring
-      shell: bash "$GITHUB_ACTION_PATH/scripts/ai001_t05_transition_wiring.sh"
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/ai001_t05_transition_wiring.sh"
 
     - name: Compile backend and verify contracts, including Section 14
       shell: bash
@@ -111,9 +115,7 @@ runs:
 
         npm run verify
 
-        git diff --exit-code -- \
-          REOS_CONTROL_CENTER/backend/package.json \
-          REOS_CONTROL_CENTER/backend/package-lock.json
+        git diff --exit-code -- package.json package-lock.json
 
         echo "B1_BACKEND_VERIFICATION=PASS"
         echo "B1_LOCKFILE_REPRODUCIBILITY=PASS"
