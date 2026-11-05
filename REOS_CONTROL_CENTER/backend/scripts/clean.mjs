@@ -1,4 +1,6 @@
+
 import { rm } from "node:fs/promises";
+import { URL } from "node:url";
 
 const targets = [
   new URL("../dist/", import.meta.url),
