@@ -1,19 +1,20 @@
 # BACKEND-001-B1 — Owner Completion Request
 
-**Project:** HOMIO / REOS
-**Repository:** `prajaktaranjane80-sketch/Homio`
+**Project:** HOMIO / REOS  
+**Repository:** `prajaktaranjane80-sketch/Homio`  
 **Branch:** `reos-development`
 
-## Explicit owner authorization
+## 1. Explicit owner authorization
 
 APPROVAL: AUTHORIZE BACKEND-001-B1 COMPLETION
 
 SCOPE: BACKEND-001-B1 only
 
-This approval authorizes only the guarded completion of the backend
-application foundation after all existing transition validations pass.
+This approval authorizes only the guarded completion of the backend application foundation after all existing transition validations pass.
 
-## B1 technical verification baseline
+This authorization does not authorize completion of the entire backend gate or production release.
+
+## 2. B1 technical verification baseline
 
 - Canonical B1 evidence:
   `REOS_CONTROL_CENTER/evidence/BACKEND-001/B1-application-foundation-ci-evidence.md`
@@ -21,9 +22,7 @@ application foundation after all existing transition validations pass.
 - Verified backend source SHA:
   `36825d1390c8eee680854f1d33bedcf2bd93c1ec`
 
-- Successful source verification:
-  Run #728 — `42024965668`
-
+- Successful source verification: Run #728 — `42024965668`
 - Backend test files: 5 passed.
 - Backend tests: 18 passed.
 - Complete ACRL regression suite: 1456 passed.
@@ -35,81 +34,55 @@ application foundation after all existing transition validations pass.
 - Lockfile reproducibility: PASS.
 - Graceful shutdown regression: PASS.
 
-These are the existing B1 foundation verification results.
-The guarded completion must independently rerun the required checks
-against the exact triggering commit.
+These are historical B1 foundation verification results. The guarded completion must independently rerun the required checks against the exact triggering commit.
 
-## Guarded transition implementation — latest audit
+## 3. Guarded transition implementation
 
-The following three implementation files have been saved on
-`reos-development`.
+The following implementation files are present on `reos-development`.
 
-| File | Blob SHA | Change |
-|---|---|---|
-| `.github/actions/homio-backend-ci/transitions/backend-b1-completion/scripts/guarded_transition.py` | `486712427737ecb2b7cba5c1e77b712fde507e65` | Full replacement; canonical unpadded B3-B10 identifiers; exact identifier-set and duplicate validation |
-| `.github/actions/homio-backend-ci/transitions/backend-b1-completion/scripts/test_guarded_transition.py` | `3640eab91c2d5576710cce936826dd7d733ce4ee` | New regression suite |
-| `.github/actions/homio-backend-ci/transitions/backend-b1-completion/action.yml` | `69c0c4cc217691b0bd114857c3d17f8b5d8c79bc` | Regression test integrated before guarded transition |
+| File | Implementation |
+|---|---|
+| `.github/actions/homio-backend-ci/transitions/backend-b1-completion/scripts/guarded_transition.py` | Canonical unpadded B3–B10 IDs, exact identifier-set validation and duplicate protection |
+| `.github/actions/homio-backend-ci/transitions/backend-b1-completion/scripts/test_guarded_transition.py` | Canonical identifier regression tests |
+| `.github/actions/homio-backend-ci/transitions/backend-b1-completion/action.yml` | Regression test executes before the guarded transition |
 
-### Recent Actions audit
+The composite action must execute its regression test before invoking the guarded transition script.
 
-**Run #734**
+## 4. Latest Actions audit — Run #737
 
-- Run ID: `42176043733`
-- Commit: `f53cca19b558bd7dd3bd72f95a358c863757c043`
-- Commit subject: `Update guarded_transition.py`
-- Backend verification: SUCCESS
-- Guarded B1 completion: SKIPPED
+- Run number: 737
+- Run ID: `42177129984`
+- Tested commit: `91dd01118c432ef9583af6c7caa28df6e28ca592`
+- Commit subject: `Update B1-completion-request.md`
+- Workflow result: FAILURE.
 
-**Run #735**
+### Verification details
 
-- Run ID: `42176165984`
-- Commit: `cf3d1be180a8855fd3375f7521d4fceb551b48bb`
-- Commit subject: `Create test_guarded_transition.py`
-- Backend verification: SUCCESS
-- Guarded B1 completion: SKIPPED
+- Transition wiring tests: 64 passed.
+- Pull-request governance tests: 9 passed.
+- B1 completion contract tests: 5 passed, 1 failed.
+- Failed test: `test_owner_request_is_explicitly_scoped_to_b1`.
 
-**Run #736**
+The failed assertion required this exact text:
 
-- Run ID: `42176424622`
-- Commit: `b4df8bac3e3bb0cbe252eec586c9fe49780ffbd4`
-- Commit subject: `Update action.yml`
-- Backend verification: SUCCESS
-- Guarded B1 completion: SKIPPED
+`BACKEND-001-AC01 through BACKEND-001-AC10`
+
+The previous document contained shortened wording and did not satisfy the contract.
+
+The guarded B1 job was SKIPPED because the triggering commit subject did not start with the required B1 completion prefix.
 
 Actions:
-https://github.com/prajaktaranjane80-sketch/Homio/actions
+https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/42177129984
 
-The workflow requires the triggering commit subject to start with:
+## 5. Exact B1 acceptance boundary
 
-`[CONTROL-CENTER-COMPLETE-BACKEND-001-B1]`
+B1 completion is limited to the backend application foundation.
 
-The three implementation commits did not use this prefix.
-Therefore their green verification results do not prove that
-the guarded B1 transition executed.
+BACKEND-001-AC01 through BACKEND-001-AC10 remain PENDING.
 
-## Previous guarded completion failure
+This approval does not authorize verifying, bulk-changing, or approving any of these gate-level acceptance criteria.
 
-Run #733 — `42032254479` exposed a canonical subtask identifier mismatch.
-
-The previous validator generated identifiers such as
-`BACKEND-001-B03`, while canonical state uses
-`BACKEND-001-B3`.
-
-The current guarded validator uses unpadded identifiers and
-enforces the exact canonical B0-B10 identifier set.
-
-Regression tests have been added for:
-- Canonical unpadded identifiers.
-- Exact B0-B10 identifier set.
-- Live pre-transition state.
-- Expected post-transition state.
-- Rejection of zero-padded aliases.
-- Rejection of duplicate identifiers.
-
-The regression action is integrated, but its execution in the
-guarded B1 completion job has not yet been verified.
-
-## Exact permitted transition
+## 6. Exact permitted transition
 
 Use the existing guarded Control Center transition:
 
@@ -120,16 +93,18 @@ The guarded transition must:
 1. Verify owner identity.
 2. Verify canonical repository and branch.
 3. Verify exact triggering commit SHA.
-4. Verify this B1-only owner approval.
-5. Run the B1 canonical-ID regression tests.
+4. Verify this B1-only owner approval and scope.
+5. Run canonical B1 identifier regression tests.
 6. Rerun backend verification on the exact triggering commit.
 7. Rerun the complete ACRL regression suite.
-8. Validate the canonical B1 state and acceptance contract.
+8. Validate canonical pre-transition state and B1 acceptance requirements.
 9. Execute the existing Control Center completion command.
-10. Verify state integrity and remote readback.
+10. Verify post-transition state integrity and remote readback.
 11. Preserve canonical handoff and evidence records.
 
-## Trigger integrity
+No manual `state.json` editing is authorized.
+
+## 7. Trigger integrity
 
 The next owner-authorized completion commit must:
 
@@ -141,43 +116,37 @@ The next owner-authorized completion commit must:
    `[CONTROL-CENTER-COMPLETE-BACKEND-001-B1]`
 
 5. Pass the existing backend verification job.
-6. Execute the regression test step in the guarded B1 action.
-7. Execute the guarded Control Center completion.
+6. Execute the canonical B1 identifier regression test.
+7. Execute the guarded Control Center completion job.
 
-Do not bypass the guarded transition.
+A normal `Update B1-completion-request.md` commit will not trigger the guarded completion.
 
-## Expected canonical state after successful completion
+Do not bypass or replace the guarded transition.
+
+## 8. Expected canonical state after successful completion
 
 - `BACKEND-001-B0`: DONE
 - `BACKEND-001-B1`: DONE
 - `BACKEND-001-B2`: CURRENT
 - `BACKEND-001-B3` through `BACKEND-001-B10`: PENDING
 
-## Explicit exclusions
+BACKEND-001-AC01 through BACKEND-001-AC10 remain PENDING.
+
+## 9. Explicit exclusions
 
 This approval does not authorize:
 
 - Completing BACKEND-001 as a whole.
-- Verifying or bulk-changing BACKEND-001-AC01 through AC10.
+- Verifying or bulk-changing BACKEND-001-AC01 through BACKEND-001-AC10.
 - Starting B2 implementation during the B1 transition.
 - Manually editing `REOS_CONTROL_CENTER/data/state.json`.
 - Bypassing the existing Control Center.
 - Approving production readiness or production release.
 - Changing frontend files, design systems, CSS or UI behavior.
 
-The guarded transition must stop if the live state, tested SHA,
-branch, owner identity, acceptance criteria or verification evidence
-differs from the expected values.
+The guarded transition must stop if the live state, tested SHA, branch, owner identity, acceptance criteria or verification evidence differs from the expected values.
 
-## Canonical status at this audit
-
-Repository HEAD:
-
-`b4df8bac3e3bb0cbe252eec586c9fe49780ffbd4`
-
-Canonical state blob SHA:
-
-`392d9afd29a5626b04cfc17d6633071e3a54560a`
+## 10. Canonical status at last verified readback
 
 - `BACKEND-001-B0`: DONE
 - `BACKEND-001-B1`: CURRENT
@@ -185,12 +154,14 @@ Canonical state blob SHA:
 - `BACKEND-001-B3` through `BACKEND-001-B10`: PENDING
 - `BACKEND-001-AC01` through `BACKEND-001-AC10`: PENDING
 
-B1 remains CURRENT until the guarded Control Center transition
-succeeds and remote canonical state readback confirms B1 DONE
-and B2 CURRENT.
+Canonical state blob SHA:
 
-## Production readiness distinction
+`392d9afd29a5626b04cfc17d6633071e3a54560a`
+
+B1 remains CURRENT until the guarded Control Center transition succeeds and remote canonical state readback confirms B1 DONE and B2 CURRENT.
+
+## 11. Production readiness distinction
 
 B1 foundation verification is not production release approval.
 
-Production readiness remains a separate requirement.
+Production readiness remains a separate requirement. This owner approval does not authorize a production release.
