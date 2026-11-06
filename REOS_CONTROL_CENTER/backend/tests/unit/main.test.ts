@@ -1,4 +1,3 @@
-
 import {
   describe,
   expect,
@@ -11,6 +10,10 @@ import type { FastifyPluginAsync } from "fastify";
 import { startBackend } from "../../src/main.js";
 
 import type { BackendSettings } from "../../src/config/settings.js";
+
+import {
+  createSecurityRuntime
+} from "../helpers/security-runtime.js";
 
 const testSettings: BackendSettings = {
   nodeEnv: "test",
@@ -80,20 +83,31 @@ describe("backend startup and shutdown", () => {
 
     const slowRoutePlugin: FastifyPluginAsync =
       async (instance) => {
-        instance.get("/slow-drain", async () => {
-          signalRequestStarted();
+        instance.get(
+          "/slow-drain",
+          {
+            config: {
+              homioSecurity: {
+                public: true
+              }
+            }
+          },
+          async () => {
+            signalRequestStarted();
 
-          await activeRequestGate;
+            await activeRequestGate;
 
-          return {
-            status: "completed"
-          };
-        });
+            return {
+              status: "completed"
+            };
+          }
+        );
       };
 
     const running = await startBackend(
       testSettings,
-      [slowRoutePlugin]
+      [slowRoutePlugin],
+      createSecurityRuntime()
     );
 
     let pendingResponse: Promise<Response> | undefined;
@@ -117,8 +131,7 @@ describe("backend startup and shutdown", () => {
         }
       );
 
-      // Detect a route miss or early response instead of waiting forever
-      // for a handler-start signal that will never arrive.
+      // Detect a route miss or early response instead of waiting forever.
       const requestStartResult = await Promise.race([
         requestStarted.then(() => "started" as const),
         pendingResponse.then((response) => ({
@@ -135,7 +148,7 @@ describe("backend startup and shutdown", () => {
         );
       }
 
-      // The request is now confirmed active and blocked on the test gate.
+      // The request is confirmed active and blocked on the test gate.
       shutdownPromise = running.shutdown("manual");
 
       expect(running.isReady()).toBe(false);
@@ -153,8 +166,8 @@ describe("backend startup and shutdown", () => {
 
       expect(shutdownSettled).toBe(false);
 
-      // Let the in-flight request finish. The server must then reap its
-      // newly idle keep-alive connection without waiting for keepAliveTimeout.
+      // Let the in-flight request finish. The server must then reap
+      // its newly idle keep-alive connection.
       releaseActiveRequest();
 
       const response = await pendingResponse;
