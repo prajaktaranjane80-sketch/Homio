@@ -1,9 +1,15 @@
+import { randomUUID } from "node:crypto";
 
 import Fastify, {
   type FastifyInstance,
   type FastifyPluginAsync
 } from "fastify";
 
+import type { BackendSecurityRuntime } from "./security/contracts.js";
+import {
+  createApiSecurityHook,
+  isValidApiRouteSecurityPolicy
+} from "./security/api-security.js";
 import type { BackendSettings } from "./config/settings.js";
 
 export interface AppRuntime {
@@ -52,7 +58,8 @@ function getClientErrorStatus(
 
 export async function buildApp(
   settings: BackendSettings,
-  apiV1Plugins: readonly FastifyPluginAsync[] = []
+  apiV1Plugins: readonly FastifyPluginAsync[] = [],
+  securityRuntime?: BackendSecurityRuntime
 ): Promise<AppRuntime> {
   let acceptingTraffic = false;
   let draining = false;
@@ -64,6 +71,14 @@ export async function buildApp(
         ? false
         : {
             level: settings.logLevel,
+            serializers: {
+              // Do not emit URL query values, route parameters, headers or IPs.
+              req(request) {
+                return {
+                  method: request.method
+                };
+              }
+            },
             redact: {
               paths: [
                 "req.headers.authorization",
@@ -75,9 +90,13 @@ export async function buildApp(
             }
           },
     trustProxy: false,
+    requestIdHeader: false,
+    genReqId: () => randomUUID(),
     bodyLimit: 1_048_576,
     requestTimeout: settings.requestTimeoutMs
   });
+
+  server.decorateRequest("securityContext", null);
 
   server.addHook("onClose", async () => {
     acceptingTraffic = false;
@@ -164,8 +183,36 @@ export async function buildApp(
   try {
     await server.register(healthRoutes);
 
-    for (const plugin of apiV1Plugins) {
-      await server.register(plugin, {
+    if (apiV1Plugins.length > 0) {
+      const activeSecurityRuntime = securityRuntime;
+      if (activeSecurityRuntime === undefined) {
+        throw new Error(
+          "Protected API plugins require the complete B2 security runtime."
+        );
+      }
+
+      // Register all v1 routes below one shared security hook. Each route must
+      // explicitly declare public access or a protected permission operation.
+      await server.register(async (apiV1) => {
+        apiV1.addHook("onRoute", (routeOptions) => {
+          if (!isValidApiRouteSecurityPolicy(
+            routeOptions.config.homioSecurity
+          )) {
+            throw new Error(
+              "Every /api/v1 route must declare a valid B2 security policy."
+            );
+          }
+        });
+
+        apiV1.addHook(
+          "onRequest",
+          createApiSecurityHook(activeSecurityRuntime)
+        );
+
+        for (const plugin of apiV1Plugins) {
+          await apiV1.register(plugin);
+        }
+      }, {
         prefix: "/api/v1"
       });
     }
