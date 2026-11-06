@@ -1,4 +1,3 @@
-
 # BACKEND-001-B1 — Owner Completion Request
 
 **Project:** HOMIO / REOS  
@@ -193,7 +192,7 @@ The guarded transition must stop if the live state, tested SHA, branch, owner id
 
 Latest branch HEAD:
 
-`f8369a2499d679436ffb589f8ee377607ca22cb9`
+`68435befad39acc746c82cdebf4c4b51964a21dc`
 
 Canonical state blob SHA:
 
@@ -205,6 +204,8 @@ Canonical state blob SHA:
 - BACKEND-001-B3 through BACKEND-001-B10: PENDING
 - BACKEND-001-AC01 through BACKEND-001-AC10: PENDING
 
+The state metadata timestamp is still `2026-11-03T13:39:35+00:00`; this is not a reason to infer a different execution position. The branch and state were read directly at the latest audit.
+
 B1 remains CURRENT until the guarded Control Center transition succeeds and remote canonical state readback confirms B1 DONE and B2 CURRENT.
 
 ## 13. Production readiness distinction
@@ -213,9 +214,9 @@ B1 foundation verification is not production release approval.
 
 Production readiness remains a separate requirement. This owner approval does not authorize a production release.
 
-## 14. Latest CI audit and authorization preservation — 2026-11-06
+## 14. Previous CI audit and authorization preservation — 2026-11-06
 
-Latest failed verification:
+Failed verification:
 
 - Actions run: #741
 - Run ID: `42227154370`
@@ -227,9 +228,9 @@ Latest failed verification:
 
 The commit changed only the owner request file. It added 19 lines and removed 199 lines. The previous explicit owner authorization and historical completion contract were unintentionally removed.
 
-The complete original owner request must remain intact. This section is an appended audit addendum, not a replacement for Sections 1–13.
+The complete original owner request was restored in the following commit. This section is an audit addendum, not a replacement for Sections 1–13.
 
-The latest successful complete verification was run #740:
+Run #740 was the successful verification immediately before that failure:
 
 - Run ID: `42178985950`
 - Verified SHA: `1381c0b96f9ba89f826844c297427597ea1be24f`
@@ -241,7 +242,7 @@ The latest successful complete verification was run #740:
 
 Run #741 stopped at the B1 owner-request contract test. The ACRL runtime/resume tests, ACRL security/Git/evidence tests, complete ACRL suite and backend npm verification were skipped. This run does not establish an ACRL test failure.
 
-The latest commit subject did not start with the required owner completion prefix. Therefore the guarded B1 completion job was also skipped.
+The latest commit subject in that failed attempt did not start with the required owner completion prefix. Therefore the guarded B1 completion job was also skipped.
 
 The next owner-authorized completion commit must preserve this complete request, keep the exact approval and scope strings, and use the required prefix:
 
@@ -251,4 +252,88 @@ The existing guarded workflow must rerun every required verification against its
 
 BACKEND-001-AC01 through BACKEND-001-AC10 remain PENDING until their own authorized verification.
 
-This addendum does not complete B1, the full BACKEND-001 gate, or production release.
+This section does not complete B1, the full BACKEND-001 gate, or production release.
+
+## 15. Latest exact-SHA verification — Run #742
+
+Latest branch verification:
+
+- Actions run: #742
+- Run ID: `42229873669`
+- Tested SHA: `68435befad39acc746c82cdebf4c4b51964a21dc`
+- Commit subject: `Update B1-completion-request.md`
+- Workflow conclusion: SUCCESS.
+- Backend runtime verification job: SUCCESS.
+
+Actions:
+https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/42229873669
+
+### Exact verification results
+
+| Verification | Result |
+|---|---|
+| Backend wiring tests | 64 passed |
+| Governance tests | 9 passed |
+| B1 transition contract tests | 6 passed |
+| Section 14 quality evaluation | 10 passed, 0 failed, 0 blocked |
+| Complete ACRL regression suite | 1456 passed |
+| Backend test files | 5 passed |
+| Backend tests | 18 passed |
+| Reproducible production build | PASS |
+| Build output files | 16 |
+| Build fingerprint | `475ced4f69acbfa10f9c8d601dc59100fce860d3f17e16ec66006336d935c2dd` |
+| Backend verification | PASS |
+| Lockfile reproducibility | PASS |
+
+The Section 14 quality evaluation reported `release_ready=False`.
+
+The workflow also reported:
+
+- `PRODUCTION_RELEASE_READY=false`
+- 18 production release blockers.
+
+These production-readiness results are separate from B1's five technical acceptance criteria.
+
+### Guarded completion result
+
+The guarded Control Center completion job was **SKIPPED**, not failed.
+
+Reason: the triggering commit subject was:
+
+`Update B1-completion-request.md`
+
+It did not start with the required prefix:
+
+`[CONTROL-CENTER-COMPLETE-BACKEND-001-B1]`
+
+Therefore Run #742 verifies the B1 source foundation and ACRL regression suite, but it does not complete B1 in canonical state.
+
+### Current canonical readback
+
+- Repository HEAD: `68435befad39acc746c82cdebf4c4b51964a21dc`
+- State blob SHA: `392d9afd29a5626b04cfc17d6633071e3a54560a`
+- BACKEND-001-B0: `DONE`
+- BACKEND-001-B1: `CURRENT`
+- BACKEND-001-B2: `PENDING`
+- BACKEND-001-B3 through B10: `PENDING`
+- BACKEND-001-AC01 through AC10: `PENDING`
+
+### Required next guarded execution
+
+The next owner-authorized non-empty commit must use the exact prefix:
+
+`[CONTROL-CENTER-COMPLETE-BACKEND-001-B1]`
+
+The existing guarded action must then:
+
+1. Validate this exact owner approval and B1-only scope.
+2. Run the seven canonical B1 identifier regression tests.
+3. Reinstall dependencies from the committed lockfile.
+4. Rerun the complete backend verification against the triggering SHA.
+5. Rerun the complete ACRL suite.
+6. Execute the existing Control Center `complete-subtask BACKEND-001-B1` command.
+7. Verify the remote canonical state, evidence, snapshot integrity and handoff.
+
+No manual state edit, direct completion claim, or production approval is permitted.
+
+Only after successful remote readback may B1 be considered DONE and B2 CURRENT.
