@@ -1,9 +1,13 @@
 name: Guarded BACKEND-001-B1 completion
-description: Reverify B1, complete it through the canonical Control Center, and independently verify remote state readback.
+description: Regression-test canonical B1 identifiers, reverify B1, complete it through the canonical Control Center, and independently verify remote state readback.
 
 runs:
   using: composite
   steps:
+    - name: Regression-test canonical B1 subtask identifiers
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/test_guarded_transition.py"
+
     - name: Run guarded B1 verification and Control Center transition
       shell: bash
       run: python "$GITHUB_ACTION_PATH/scripts/guarded_transition.py"
