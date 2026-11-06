@@ -21,7 +21,11 @@ class CanonicalSubtaskIdentifierTests(unittest.TestCase):
             padded_alias = f"BACKEND-001-B{number:02d}"
 
             self.assertIn(canonical_id, statuses)
-            self.assertNotIn(padded_alias, statuses)
+
+            # B10 is already the canonical two-digit identifier.
+            # Only B03-B09 are alternate padded aliases.
+            if padded_alias != canonical_id:
+                self.assertNotIn(padded_alias, statuses)
 
     def test_expected_contract_contains_exactly_b0_through_b10(
         self,
