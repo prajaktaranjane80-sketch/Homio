@@ -1,4 +1,3 @@
-
 import {
   afterEach,
   describe,
@@ -9,8 +8,11 @@ import {
 import type { FastifyPluginAsync } from "fastify";
 
 import { buildApp, type AppRuntime } from "../../src/app.js";
-
 import type { BackendSettings } from "../../src/config/settings.js";
+import {
+  createSecurityRuntime,
+  VALID_TEST_TOKEN
+} from "../helpers/security-runtime.js";
 
 const testSettings: BackendSettings = {
   nodeEnv: "test",
@@ -140,19 +142,33 @@ describe("single Fastify application", () => {
   it("maps internal errors without exposing implementation details", async () => {
     const failingPlugin: FastifyPluginAsync =
       async (instance) => {
-        instance.get("/failure", async () => {
-          throw new Error("internal-private-detail");
-        });
+        instance.get(
+          "/failure",
+          {
+            config: {
+              homioSecurity: {
+                operation: "test.failure"
+              }
+            }
+          },
+          async () => {
+            throw new Error("internal-private-detail");
+          }
+        );
       };
 
     runtime = await buildApp(
       testSettings,
-      [failingPlugin]
+      [failingPlugin],
+      createSecurityRuntime()
     );
 
     const response = await runtime.server.inject({
       method: "GET",
-      url: "/api/v1/failure"
+      url: "/api/v1/failure",
+      headers: {
+        authorization: `Bearer ${VALID_TEST_TOKEN}`
+      }
     });
 
     expect(response.statusCode).toBe(500);
@@ -168,17 +184,28 @@ describe("single Fastify application", () => {
     });
   });
 
-  it("registers versioned routes under the v1 boundary", async () => {
+  it("registers versioned public routes only when explicitly marked public", async () => {
     const routePlugin: FastifyPluginAsync =
       async (instance) => {
-        instance.get("/foundation-check", async () => ({
-          status: "registered"
-        }));
+        instance.get(
+          "/foundation-check",
+          {
+            config: {
+              homioSecurity: {
+                public: true
+              }
+            }
+          },
+          async () => ({
+            status: "registered"
+          })
+        );
       };
 
     runtime = await buildApp(
       testSettings,
-      [routePlugin]
+      [routePlugin],
+      createSecurityRuntime()
     );
 
     const response = await runtime.server.inject({
@@ -191,5 +218,17 @@ describe("single Fastify application", () => {
     expect(response.json()).toEqual({
       status: "registered"
     });
+  });
+
+  it("refuses to compose public API plugins without B2 security dependencies", async () => {
+    const routePlugin: FastifyPluginAsync = async (instance) => {
+      instance.get("/unsecured", async () => ({ ok: true }));
+    };
+
+    await expect(
+      buildApp(testSettings, [routePlugin])
+    ).rejects.toThrow(
+      "Protected API plugins require the complete B2 security runtime."
+    );
   });
 });
