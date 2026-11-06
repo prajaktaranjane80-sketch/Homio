@@ -72,7 +72,6 @@ export async function buildApp(
         : {
             level: settings.logLevel,
             serializers: {
-              // Do not emit URL query values, route parameters, headers or IPs.
               req(request) {
                 return {
                   method: request.method
@@ -185,19 +184,20 @@ export async function buildApp(
 
     if (apiV1Plugins.length > 0) {
       const activeSecurityRuntime = securityRuntime;
+
       if (activeSecurityRuntime === undefined) {
         throw new Error(
           "Protected API plugins require the complete B2 security runtime."
         );
       }
 
-      // Register all v1 routes below one shared security hook. Each route must
-      // explicitly declare public access or a protected permission operation.
       await server.register(async (apiV1) => {
         apiV1.addHook("onRoute", (routeOptions) => {
-          if (!isValidApiRouteSecurityPolicy(
-            routeOptions.config.homioSecurity
-          )) {
+          if (
+            !isValidApiRouteSecurityPolicy(
+              routeOptions.config?.homioSecurity
+            )
+          ) {
             throw new Error(
               "Every /api/v1 route must declare a valid B2 security policy."
             );
