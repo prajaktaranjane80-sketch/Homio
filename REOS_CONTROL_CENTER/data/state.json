@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-11-03T13:39:35+00:00",
+    "updated_at": "2026-11-06T14:51:44+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2699,24 +2699,38 @@
         "preserved_subtask": "APP-001-T01",
         "source_commit": "ecf9139cc0b256b927e6d266515929191efb446e"
       }
+    },
+    {
+      "id": "616f8c10-5e3d-4a02-832f-82e46ae9162f",
+      "time": "2026-11-06T14:51:44+00:00",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "BACKEND-001-B1",
+        "note": "BACKEND-001-B1 completed through the existing Control Center after exact-commit backend verification (5 test files, 18 tests passed), reproducible npm ci/build verification, and the complete ACRL regression suite (1456 passed). GitHub Actions run 42237404718 verified commit 6003c96a4822843f05002af2623c4da137c1a969. Only B1 is completed. BACKEND-001-AC01 through BACKEND-001-AC10 remain PENDING. This transition does not approve the whole backend gate or production."
+      }
     }
   ],
   "integrity": {
-    "sha256": "5e5d56acc759a7f0a593cb22b1055a2a0b78fde78e457407ce628143efc5c3e5"
+    "sha256": "d72d99781cab759e338847992fbffe8cfa406eb436d367b4d3baca6de0fcef2a"
   },
   "execution": {
     "current_gate": "BACKEND-001",
-    "current_task": "BACKEND-001-B1: Backend application foundation.",
+    "current_task": "BACKEND-001-B2: API security and trusted context.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
-      "Build is reproducible.",
-      "Invalid runtime configuration fails safely.",
-      "Health and readiness semantics are tested.",
-      "Graceful shutdown is tested.",
-      "No duplicate public API application exists."
+      "One reproducible public Fastify API application exists.",
+      "Protected routes enforce trusted identity and tenant context.",
+      "Python integration uses one authenticated private runtime boundary.",
+      "Persistence follows approved schema and one write owner per aggregate.",
+      "Adapters preserve canonical CORE domain ownership.",
+      "Events and durable workflows have tested retry and recovery behavior.",
+      "Search and AI integrations preserve authorization and source provenance.",
+      "Critical customer and business journeys pass end-to-end.",
+      "Production operational controls have current evidence.",
+      "Release verification and accountable approval are complete."
     ],
-    "current_subtask": "BACKEND-001-B1"
+    "current_subtask": "BACKEND-001-B2"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -5081,7 +5095,7 @@
       "name": "Unified HOMIO / REOS Backend",
       "objective": "Establish and verify one unified public backend through the B0-B10 sequence in HOMIO_Backend_Structure.",
       "status": "CURRENT",
-      "current_subtask": "BACKEND-001-B1",
+      "current_subtask": "BACKEND-001-B2",
       "subtasks": [
         {
           "id": "BACKEND-001-B0",
@@ -5095,20 +5109,22 @@
           "id": "BACKEND-001-B1",
           "title": "Backend application foundation",
           "priority": "CRITICAL",
-          "status": "CURRENT",
+          "status": "DONE",
           "acceptance_criteria": [
             "Build is reproducible.",
             "Invalid runtime configuration fails safely.",
             "Health and readiness semantics are tested.",
             "Graceful shutdown is tested.",
             "No duplicate public API application exists."
-          ]
+          ],
+          "completed_at": "2026-11-06T14:51:44+00:00",
+          "note": "BACKEND-001-B1 completed through the existing Control Center after exact-commit backend verification (5 test files, 18 tests passed), reproducible npm ci/build verification, and the complete ACRL regression suite (1456 passed). GitHub Actions run 42237404718 verified commit 6003c96a4822843f05002af2623c4da137c1a969. Only B1 is completed. BACKEND-001-AC01 through BACKEND-001-AC10 remain PENDING. This transition does not approve the whole backend gate or production."
         },
         {
           "id": "BACKEND-001-B2",
           "title": "API security and trusted context",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "CURRENT"
         },
         {
           "id": "BACKEND-001-B3",
@@ -5438,6 +5454,6 @@
   "session": {
     "current_session_id": null,
     "last_checkpoint": null,
-    "last_handoff": "/home/runner/work/Homio/Homio/REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt"
+    "last_handoff": "REOS_CONTROL_CENTER/packets/NEW_CHAT_PACKET.txt"
   }
 }

@@ -142,3 +142,30 @@ Expected result after successful guarded transition:
 No manual state.json modification is authorized.
 
 This evidence does not complete the full backend gate, verify gate-level acceptance criteria, or approve production readiness or production release.
+
+
+## Formal B1 completion and exact-SHA verification
+
+- Verified source commit: `6003c96a4822843f05002af2623c4da137c1a969`
+- GitHub Actions run: [42237404718](https://github.com/prajaktaranjane80-sketch/Homio/actions/runs/42237404718)
+- Backend test files: **5 passed**
+- Backend tests: **18 passed**
+- Reproducible dependency install: **PASS**
+- TypeScript verification and production build: **PASS**
+- Complete ACRL regression suite: **1456 passed**
+- Canonical transition: existing Control Center `complete-subtask`
+- Manual `state.json` editing: **not performed**
+- Post-transition state blob SHA: `dd9c4684698270adf19a9380256c94396608a27a`
+
+### Canonical subtask readback
+
+- BACKEND-001-B0: `DONE`
+- BACKEND-001-B1: `DONE`
+- BACKEND-001-B2: `CURRENT`
+- BACKEND-001-B3 through B10: `PENDING`
+
+### Gate-level acceptance boundary
+
+BACKEND-001-AC01 through BACKEND-001-AC10 remain `PENDING`.
+
+This transition closes B1 only. It does not complete BACKEND-001, validate gate-level acceptance criteria, approve production readiness, or authorize a production release.
