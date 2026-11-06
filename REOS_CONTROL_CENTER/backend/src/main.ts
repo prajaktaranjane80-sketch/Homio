@@ -1,4 +1,3 @@
-
 import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 
@@ -13,6 +12,7 @@ import {
 } from "./config/environment.js";
 
 import type { BackendSettings } from "./config/settings.js";
+import type { BackendSecurityRuntime } from "./security/contracts.js";
 
 import { buildApp } from "./app.js";
 
@@ -35,12 +35,8 @@ async function closeWithinDeadline(
   // Fastify stops accepting new connections and starts draining requests.
   const closeOperation = server.close();
 
-  // Node closes connections that are idle when close() begins.
-  // A keep-alive connection that is active at that moment can become idle
-  // later and otherwise keep shutdown waiting for keepAliveTimeout.
-  //
-  // Reap only idle connections while Fastify drains. Active requests are
-  // not force-closed and are allowed to finish normally.
+  // Reap only idle connections while Fastify drains. Active requests
+  // are not force-closed and are allowed to finish normally.
   const idleConnectionSweep = setInterval(() => {
     server.server.closeIdleConnections();
   }, IDLE_CONNECTION_REAP_INTERVAL_MS);
@@ -55,8 +51,7 @@ async function closeWithinDeadline(
   const deadline = new Promise<never>(
     (_resolve, reject) => {
       timer = setTimeout(() => {
-        // This is the hard shutdown deadline fallback. It is deliberately
-        // separate from normal idle-connection draining.
+        // Hard shutdown deadline fallback.
         server.server.closeAllConnections();
 
         reject(
@@ -86,11 +81,13 @@ async function closeWithinDeadline(
 
 export async function startBackend(
   settings: BackendSettings,
-  apiV1Plugins: readonly FastifyPluginAsync[] = []
+  apiV1Plugins: readonly FastifyPluginAsync[] = [],
+  securityRuntime?: BackendSecurityRuntime
 ): Promise<RunningBackend> {
   const runtime = await buildApp(
     settings,
-    apiV1Plugins
+    apiV1Plugins,
+    securityRuntime
   );
 
   try {
@@ -152,13 +149,15 @@ export async function startBackend(
 
 export async function runServer(
   env: NodeJS.ProcessEnv = process.env,
-  apiV1Plugins: readonly FastifyPluginAsync[] = []
+  apiV1Plugins: readonly FastifyPluginAsync[] = [],
+  securityRuntime?: BackendSecurityRuntime
 ): Promise<void> {
   const settings = loadSettings(env);
 
   const running = await startBackend(
     settings,
-    apiV1Plugins
+    apiV1Plugins,
+    securityRuntime
   );
 
   const handleSignal = (signal: NodeJS.Signals): void => {
