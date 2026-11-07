@@ -1,4 +1,3 @@
-
 import {
   afterEach,
   describe,
@@ -46,9 +45,12 @@ function protectedPlugin(
       "/protected",
       {
         config: {
-          homioSecurity: options.security
-        }
-      },
+  ...(options.security === undefined
+    ? {}
+    : {
+        homioSecurity: options.security
+      })
+}
       async (request) => ({
         allowed: true,
         identityId: request.securityContext?.identityId ?? null
