@@ -1,3 +1,4 @@
+
 import {
   afterEach,
   describe,
@@ -8,6 +9,7 @@ import {
 import type { FastifyPluginAsync } from "fastify";
 
 import { buildApp, type AppRuntime } from "../../src/app.js";
+import type { BackendSecurityRuntime } from "../../src/security/contracts.js";
 import type { BackendSettings } from "../../src/config/settings.js";
 import {
   createSecurityRuntime,
@@ -220,15 +222,67 @@ describe("single Fastify application", () => {
     });
   });
 
-  it("refuses to compose public API plugins without B2 security dependencies", async () => {
-    const routePlugin: FastifyPluginAsync = async (instance) => {
-      instance.get("/unsecured", async () => ({ ok: true }));
-    };
+  it("refuses to compose API plugins without a security runtime", async () => {
+    const routePlugin: FastifyPluginAsync =
+      async (instance) => {
+        instance.get(
+          "/unsecured",
+          {
+            config: {
+              homioSecurity: {
+                operation: "test.unsecured"
+              }
+            }
+          },
+          async () => ({
+            ok: true
+          })
+        );
+      };
 
     await expect(
       buildApp(testSettings, [routePlugin])
     ).rejects.toThrow(
       "Protected API plugins require the complete B2 security runtime."
+    );
+  });
+
+  it("refuses to start with an incomplete security runtime adapter", async () => {
+    const routePlugin: FastifyPluginAsync =
+      async (instance) => {
+        instance.get(
+          "/runtime-check",
+          {
+            config: {
+              homioSecurity: {
+                operation: "test.runtime"
+              }
+            }
+          },
+          async () => ({
+            ok: true
+          })
+        );
+      };
+
+    const incompleteRuntime = {
+      tokenVerifier: {
+        verifyAccessToken: async () => ({
+          issuer: "https://identity.example.test/",
+          subject: "test-subject",
+          audiences: ["homio-api"]
+        })
+      }
+    } as unknown as BackendSecurityRuntime;
+
+    await expect(
+      buildApp(
+        testSettings,
+        [routePlugin],
+        incompleteRuntime
+      )
+    ).rejects.toThrow(
+      "B2 security runtime adapter is incomplete: sessionValidator.isSessionActive."
     );
   });
 });
