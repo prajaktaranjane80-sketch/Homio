@@ -1,3 +1,4 @@
+
 import { randomUUID } from "node:crypto";
 
 import Fastify, {
@@ -7,8 +8,10 @@ import Fastify, {
 
 import type { BackendSecurityRuntime } from "./security/contracts.js";
 import {
+  assertBackendSecurityRuntime,
   createApiSecurityHook,
-  isValidApiRouteSecurityPolicy
+  createMutationReauthorizationHook,
+  isValidApiRouteSecurityContract
 } from "./security/api-security.js";
 import type { BackendSettings } from "./config/settings.js";
 
@@ -191,15 +194,16 @@ export async function buildApp(
         );
       }
 
+      // Validate the six authoritative adapters before registering customer routes.
+      assertBackendSecurityRuntime(activeSecurityRuntime);
+
       await server.register(async (apiV1) => {
         apiV1.addHook("onRoute", (routeOptions) => {
           if (
-            !isValidApiRouteSecurityPolicy(
-              routeOptions.config?.homioSecurity
-            )
+            !isValidApiRouteSecurityContract(routeOptions)
           ) {
             throw new Error(
-              "Every /api/v1 route must declare a valid B2 security policy."
+              "Every /api/v1 route must declare valid security metadata and mutation schemas."
             );
           }
         });
@@ -207,6 +211,13 @@ export async function buildApp(
         apiV1.addHook(
           "onRequest",
           createApiSecurityHook(activeSecurityRuntime)
+        );
+
+        // Re-check protected mutations after Fastify request validation
+        // and immediately before their route handlers execute.
+        apiV1.addHook(
+          "preHandler",
+          createMutationReauthorizationHook(activeSecurityRuntime)
         );
 
         for (const plugin of apiV1Plugins) {
