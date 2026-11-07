@@ -45,12 +45,13 @@ function protectedPlugin(
       "/protected",
       {
         config: {
-  ...(options.security === undefined
-    ? {}
-    : {
-        homioSecurity: options.security
-      })
-}
+          ...(options.security === undefined
+            ? {}
+            : {
+                homioSecurity: options.security
+              })
+        }
+      },
       async (request) => ({
         allowed: true,
         identityId: request.securityContext?.identityId ?? null
@@ -909,6 +910,35 @@ describe("B2 Fastify API security boundary", () => {
       buildApp(
         testSettings,
         [invalidMutation],
+        createSecurityRuntime()
+      )
+    ).rejects.toThrow(
+      "Every /api/v1 route must declare valid security metadata and mutation schemas."
+    );
+  });
+
+  it("rejects parameterized read routes without a params schema", async () => {
+    const invalidRoute: FastifyPluginAsync =
+      async (instance) => {
+        instance.get(
+          "/resources/:resourceId",
+          {
+            config: {
+              homioSecurity: {
+                operation: "inventory.read"
+              }
+            }
+          },
+          async () => ({
+            ok: true
+          })
+        );
+      };
+
+    await expect(
+      buildApp(
+        testSettings,
+        [invalidRoute],
         createSecurityRuntime()
       )
     ).rejects.toThrow(
