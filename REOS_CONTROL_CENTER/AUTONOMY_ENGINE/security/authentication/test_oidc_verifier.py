@@ -286,12 +286,16 @@ def test_critical_jose_headers_are_rejected_before_key_lookup(verifier):
         },
     )
 
+    # PyJWT rejects an unsupported critical JOSE extension while parsing
+    # the unverified header. OIDCVerifier deliberately normalizes that
+    # parser failure to malformed_access_token. Both outcomes fail closed.
     with pytest.raises(
         AuthenticationError,
-        match="unsupported_critical_token_header",
+        match="malformed_access_token",
     ):
         instance.verify_access_token(token)
 
+    # The invalid header must be rejected before any JWKS lookup.
     assert client.calls == 0
 
 
