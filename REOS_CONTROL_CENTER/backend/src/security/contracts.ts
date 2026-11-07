@@ -1,3 +1,4 @@
+
 import type { FastifyRequest } from "fastify";
 
 /** Verified by the existing OIDC trust owner; never constructed from request headers. */
@@ -36,6 +37,7 @@ export interface TrustedContextResolverPort {
   resolve(input: {
     readonly principal: VerifiedExternalPrincipal;
     readonly requestedTenantId?: string;
+    readonly requestedOrganizationId?: string;
   }): Promise<TrustedRequestContext | null>;
 }
 
@@ -67,7 +69,11 @@ export interface RateLimitPort {
 }
 
 export interface SecurityAuditEvent {
-  readonly eventType: "API_ACCESS_ALLOWED" | "API_ACCESS_DENIED" | "API_RATE_LIMITED";
+  readonly eventType:
+    | "API_ACCESS_ALLOWED"
+    | "API_ACCESS_DENIED"
+    | "API_RATE_LIMITED"
+    | "API_MUTATION_REAUTHORIZED";
   readonly requestId: string;
   readonly occurredAt: string;
   readonly reasonCode: string;
@@ -98,10 +104,14 @@ export interface ProtectedApiRouteSecurityPolicy {
   readonly public?: false;
   /** Stable permission operation, for example inventory.read or leads.create. */
   readonly operation: string;
-  /** Optional untrusted tenant selector from a route parameter; CORE-001 must validate membership. */
+  /** Optional untrusted tenant selector; CORE-001 must validate membership. */
   readonly requestedTenantId?: (request: FastifyRequest) => string | undefined;
+  /** Optional untrusted organization selector; CORE-001 must validate membership. */
+  readonly requestedOrganizationId?: (request: FastifyRequest) => string | undefined;
   /** Optional resource identifier; authorization owner must verify resource ownership. */
   readonly resourceId?: (request: FastifyRequest) => string | undefined;
+  /** Required for every protected state-changing route. */
+  readonly reauthorizeBeforeMutation?: true;
 }
 
 export type ApiRouteSecurityPolicy =
