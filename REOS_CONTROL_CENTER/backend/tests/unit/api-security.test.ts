@@ -184,6 +184,7 @@ describe("B2 Fastify API security boundary", () => {
 
     for (const failureCase of cases) {
       const sessionCheck = vi.fn(async () => true);
+
       runtime = await buildApp(
         testSettings,
         [protectedPlugin()],
@@ -218,6 +219,7 @@ describe("B2 Fastify API security boundary", () => {
 
   it("rejects verifier results that omit the verified client_id or jti claims", async () => {
     const sessionCheck = vi.fn(async () => true);
+
     runtime = await buildApp(
       testSettings,
       [protectedPlugin()],
@@ -419,25 +421,43 @@ describe("B2 Fastify API security boundary", () => {
     ]);
 
     expect(sessionInputs).toHaveLength(1);
-    expect(sessionInputs[0].principal).toMatchObject({
+
+    const firstSessionInput = sessionInputs[0];
+
+    if (firstSessionInput === undefined) {
+      throw new Error(
+        "Expected one session validation input for the authorized request."
+      );
+    }
+
+    expect(firstSessionInput.principal).toMatchObject({
       clientId: "homio-frontend",
       tokenId: "test-access-token-jti-001"
     });
-    expect(sessionInputs[0]).not.toHaveProperty("accessToken");
+
+    expect(firstSessionInput).not.toHaveProperty("accessToken");
     expect(JSON.stringify(sessionInputs)).not.toContain(
       VALID_TEST_TOKEN
     );
 
     expect(auditRecords).toHaveLength(1);
 
-    expect(auditRecords[0]).toMatchObject({
+    const firstAuditRecord = auditRecords[0];
+
+    if (firstAuditRecord === undefined) {
+      throw new Error(
+        "Expected one audit record for the authorized request."
+      );
+    }
+
+    expect(firstAuditRecord).toMatchObject({
       eventType: "API_ACCESS_ALLOWED",
       actorIdentityId: TEST_CONTEXT.identityId,
       tenantId: TEST_CONTEXT.tenantId,
       operation: "inventory.read"
     });
 
-    const auditJson = JSON.stringify(auditRecords[0]);
+    const auditJson = JSON.stringify(firstAuditRecord);
 
     expect(auditJson).not.toContain(VALID_TEST_TOKEN);
     expect(auditJson).not.toContain("provider-subject-001");
@@ -1140,6 +1160,7 @@ describe("B2 Fastify API security boundary", () => {
   it("blocks a mutation when trusted identity or tenant context changes after ingress", async () => {
     let contextChecks = 0;
     let handlerCalled = false;
+
     const otherTenantContext = {
       ...TEST_CONTEXT,
       tenantId: "66666666-6666-4666-8666-666666666666"
@@ -1149,6 +1170,7 @@ describe("B2 Fastify API security boundary", () => {
       contextResolver: {
         resolve: async () => {
           contextChecks += 1;
+
           return contextChecks === 1
             ? TEST_CONTEXT
             : otherTenantContext;
