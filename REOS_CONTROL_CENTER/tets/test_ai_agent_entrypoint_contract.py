@@ -438,6 +438,92 @@ def test_audit_snapshot_is_explicitly_historical():
 
 
 # ===========================================================================
+# SUPERPOWERS ENGINEERING SKILL INTEGRATION
+# ===========================================================================
+
+def test_superpowers_skill_policy_requires_session_start_and_task_routing():
+
+    assert (
+        entrypoint.ENGINEERING_SKILL_PROVIDER
+        == "Superpowers"
+    )
+
+    assert (
+        entrypoint.ENGINEERING_SKILL_ENTRYPOINT
+        == "using-superpowers"
+    )
+
+    routing = entrypoint.ENGINEERING_SKILL_ROUTING
+
+    assert "brainstorming" in routing["new_feature_or_behavior"]
+
+    assert "test-driven-development" in routing["new_feature_or_behavior"]
+
+    assert "systematic-debugging" in routing["bug_or_test_failure"]
+
+    assert "test-driven-development" in routing["bug_or_test_failure"]
+
+    assert (
+        "verification-before-completion"
+        in routing["completion_and_release_claim"]
+    )
+
+
+def test_superpowers_policy_preserves_acrl_and_state_authority():
+
+    rules = "\n".join(
+        entrypoint.ENGINEERING_SKILL_WORKFLOW_RULES
+    ).lower()
+
+    assert "does not grant task authorization" in rules
+
+    assert "state.json" in rules
+
+    assert "t07 restart" in rules
+
+    assert "t14 repository manifests" in rules
+
+    assert "duplicate orchestration engine" in rules
+
+
+def test_startup_instructions_expose_superpowers_integration():
+
+    instructions = entrypoint.startup_instructions()
+
+    assert (
+        instructions["engineering_skill_provider"]
+        == "Superpowers"
+    )
+
+    assert (
+        instructions["engineering_skill_entrypoint"]
+        == "using-superpowers"
+    )
+
+    assert (
+        instructions["engineering_skill_discovery_required"]
+        is True
+    )
+
+    assert (
+        instructions["engineering_skill_execution_is_project_authority"]
+        is False
+    )
+
+    assert "bug_or_test_failure" in (
+        instructions["engineering_skill_routing"]
+    )
+
+    assert "engineering_skill_workflow_rules" in instructions
+
+    assert instructions["new_session_read_order"][0].startswith("0.")
+
+    assert "using-superpowers" in (
+        instructions["new_session_read_order"][0]
+    )
+
+
+# ===========================================================================
 # OWNER SAVE POLICY
 # ===========================================================================
 
