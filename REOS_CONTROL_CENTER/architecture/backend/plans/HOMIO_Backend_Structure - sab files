@@ -1,0 +1,267 @@
+Haan, tumne sahi pakda. Pichhli file structure incomplete thi. Usmein backend ki existing files, CORE-001–CORE-008, AI-001 ke integration owners aur ACRL ke kuch important layers chhoot gaye the. Use complete 360° structure kehna meri galti thi.
+
+Master Version 3.2 ke Section 4, 5, 8–17, 19 aur 21 ko live repository ke saath dobara reconcile karne par ye corrected structure banta hai.
+1. Sabse pehle: pichhli list mein kya missing tha?
+Missing area	Live repository mein actual position
+Backend configuration	config/environment.ts, config/settings.ts already exist
+Backend foundation	README, package files, ESLint, TypeScript, Vitest, build scripts already exist
+Backend foundation tests	app.test.ts, main.test.ts, environment.test.ts omitted the
+CORE-001–CORE-008	Saare canonical domain owners omitted the
+AI-001	Existing ai_platform/ ke model gateway, agent runtime, retrieval, authorization aur cost-control owners omitted the
+ACRL T16/T17/T19	Existing repository discovery, impact analysis aur test diagnosis owners ko clearly map nahi kiya tha
+ACRL T01–T30 runtime	Runtime integration ke existing components aur registry ka complete picture missing tha
+B0/B1 evidence	Existing Backend evidence directory omitted thi
+B3–B10 target	Master ke future implementation areas tree mein clearly separate nahi kiye the
+
+2. Corrected consolidated file structure
+A. Single CI and verification system
+
+.github/
+│
+├── workflows/
+│   ├── backend-ci.yml                         [REUSE]
+│   └── reusable-backend-verification.yml      [REUSE]
+│
+└── actions/
+    └── homio-backend-ci/
+        └── verification/
+            ├── action.yml                     [UPDATE WHEN NEEDED]
+            │
+            └── scripts/
+                ├── acrl_runtime_resume.sh     [REUSE]
+                ├── acrl_full_suite.sh         [REUSE]
+                ├── acrl_security_git_evidence.sh [REUSE]
+                ├── compile_and_contracts.sh   [REUSE]
+                ├── financial_context_tenant.sh [REUSE]
+                ├── production_readiness_gate.py [REUSE]
+                └── audit_resume_manifest_cache.py [UPDATE]
+
+Important correction: backend-ci.yml mein REOS_CONTROL_CENTER/backend/** already present hai. Isliye backend source ke liye push-path filter dobara add karna zaroori nahi. Previous response ki woh recommendation incorrect thi.
+
+Live backend-ci.yml
+B. Complete existing public backend application
+Current repository mein backend ke 27 tracked files hain. Pichhli tree mein inmein se kai files omitted thi.
+
+REOS_CONTROL_CENTER/backend/
+│
+├── README.md                         [REUSE]
+├── .env.example                      [REUSE]
+├── .gitignore                        [REUSE]
+├── .npmrc                            [REUSE]
+├── package.json                      [REUSE]
+├── package-lock.json                 [REUSE]
+├── tsconfig.json                     [REUSE]
+├── tsconfig.build.json               [REUSE]
+├── eslint.config.mjs                 [REUSE]
+├── vitest.config.ts                  [REUSE]
+│
+├── scripts/
+│   ├── clean.mjs                     [REUSE]
+│   └── verify-build-reproducibility.mjs [REUSE]
+│
+├── src/
+│   ├── main.ts                       [REUSE]
+│   ├── app.ts                        [REUSE]
+│   │
+│   ├── config/
+│   │   ├── environment.ts            [REUSE]
+│   │   └── settings.ts               [REUSE]
+│   │
+│   └── security/
+│       ├── README.md                 [REUSE]
+│       ├── contracts.ts              [UPDATE — B2]
+│       ├── api-security.ts           [UPDATE — B2]
+│       └── fastify.d.ts              [REUSE]
+│
+└── tests/
+    ├── helpers/
+    │   └── security-runtime.ts       [UPDATE — TEST ONLY]
+    │
+    ├── unit/
+    │   ├── app.test.ts               [REUSE]
+    │   ├── main.test.ts              [REUSE]
+    │   ├── environment.test.ts       [REUSE]
+    │   └── api-security.test.ts      [UPDATE — B2]
+    │
+    └── contract/
+        ├── b1-ci-contract.test.ts    [REUSE]
+        └── single-public-api.test.ts [REUSE]
+
+C. Existing canonical business and AI owners
+Already present — reuse, do not duplicate
+
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/
+│
+├── core/
+│   ├── identity_tenant/             [CORE-001]
+│   ├── event_platform/               [CORE-002]
+│   ├── lead_ownership/               [CORE-003]
+│   ├── inventory/                    [CORE-004]
+│   ├── search_matching/              [CORE-005]
+│   ├── deal_transaction/             [CORE-006]
+│   ├── trust_fraud_governance/       [CORE-007]
+│   ├── commission_financial/         [CORE-008]
+│   ├── state_store.py
+│   └── idempotency.py
+│
+├── ai_platform/                      [AI-001]
+│   ├── agent_runtime.py
+│   ├── authorization.py
+│   ├── contracts.py
+│   ├── cost_control.py
+│   ├── model_gateway.py
+│   ├── model_registry.py
+│   ├── retrieval_adapter.py
+│   ├── rag_pipeline.py
+│   ├── tool_bridge.py
+│   └── provider_adapters/
+│
+├── security/
+│   └── authentication/
+│       ├── README.md
+│       ├── oidc_config.py
+│       ├── oidc_verifier.py
+│       └── test_oidc_verifier.py
+│
+├── execution/                        [REUSE]
+├── orchestration/                    [REUSE]
+├── runtime/                          [REUSE]
+├── observability/                    [REUSE]
+│
+└── continuity/
+    └── acrl/                         [DEVELOPER CONTINUITY ONLY]
+
+Ye directories backend application ki replacement nahi hain. Fastify backend in existing owners ko approved interfaces se call karega.
+D. Complete ACRL integration map
+
+REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/
+│
+├── T01–T04/                          [REUSE]
+├── T05_Dependency_Authority_Map/     [REUSE + CONTRACT AUDIT]
+├── T06_Checkpoint_Engine/            [REUSE]
+├── T07_New_Chat_Bootstrap/           [REUSE]
+├── T08_Context_Compression/          [REUSE]
+├── T09_State_Fingerprint/            [REUSE]
+├── T10_Drift_Detection/              [REUSE]
+├── T11_Recovery_Fail_Closed/         [REUSE]
+├── T12_Resume_Safety_Validation/     [REUSE]
+├── T13_Controller_Integration/       [REUSE]
+├── T14_Full_Regression/              [REUSE]
+├── T14_Repository_Intelligence_Context/ [REUSE + RESUME INTEGRATION]
+├── T15_AI_Operator_Autonomy/         [REUSE]
+├── T16_Repository_Intelligence_File_Discovery/ [REUSE]
+├── T17_Change_Impact_Dependency_Analysis/     [REUSE]
+│
+├── T18_Safe_Execution_Authorization_Guard/
+│   ├── test_authenticated_approval_binding.py [UPDATE]
+│   └── test_execution_authorization.py         [UPDATE]
+│
+├── T19_Intelligent_Test_Selection_Failure_Diagnosis/ [REUSE]
+├── T20_Autonomous_Repair_Patch_Verification/    [REUSE]
+├── T21_Git_Repository_Read_Write_Coordination/  [REUSE]
+├── T22_Commit_Execution_Checkpoint_Coordination/ [REUSE]
+├── T23_Reference_Evidence_Resolution_Engine/   [REUSE]
+├── T24_Cross_Chat_Continuity_Recovery_Engine/  [REUSE]
+│
+├── T25_Context_Token_Work_Budget_Manager/
+│   ├── t25.contract.json            [UPDATE]
+│   ├── budget_registry.py           [UPDATE]
+│   └── test_t25_contract.py         [UPDATE]
+│
+├── T26_Autonomous_Execution_Loop_Controller/   [REUSE]
+├── T27_Dependency_Aware_Work_Scheduler/        [REUSE]
+├── T28_Conflict_Resolution_Reconciliation_Engine/ [REUSE]
+├── T29_Human_Decision_Boundary_Controller/     [REUSE]
+├── T30_Autonomous_Completion_Handoff_Engine/  [REUSE]
+│
+└── runtime_integration/
+    ├── acrl_runtime.py               [REUSE]
+    ├── authority_bridge.py           [REUSE]
+    ├── runtime_bindings.py           [REUSE]
+    ├── runtime_orchestrator.py       [REUSE]
+    ├── task_registry.py              [UPDATE]
+    ├── unified_runtime_context.py    [REUSE]
+    ├── test_full_acrl_spine.py       [REUSE]
+    └── test_registry_integrity.py    [UPDATE]
+
+T01–T30 ke alawa root-level compatibility bridges ko bhi preserve karna hai. Unhe duplicate engines samajhkar delete nahi karna.
+E. AI Agent EntryPoint and single-read continuity
+
+REOS_CONTROL_CENTER/
+│
+├── AI_AGENT_ENTRYPOINT.py                  [UPDATE]
+│
+├── tets/
+│   ├── test_ai_agent_entrypoint_contract.py [UPDATE]
+│   └── test_audit_resume_manifest_cache.py  [UPDATE]
+│
+├── AUTONOMY_ENGINE/
+│   └── continuity/
+│       └── acrl/
+│           ├── T07_New_Chat_Bootstrap/      [REUSE]
+│           ├── T14_Repository_Intelligence_Context/ [REUSE]
+│           ├── T16_Repository_Intelligence_File_Discovery/ [REUSE]
+│           ├── T17_Change_Impact_Dependency_Analysis/ [REUSE]
+│           └── T19_Intelligent_Test_Selection_Failure_Diagnosis/ [REUSE]
+│
+└── packets/
+    └── NEW_CHAT_PACKET.txt                  [DERIVED SNAPSHOT ONLY]
+
+EntryPoint mein current repository_paths() sirf T07, T14, T15, T18 aur T20–T24 ke specific keys deta hai. Isko poore ACRL runtime ke saath synchronize karna hoga. Saath hi Backend application, CORE-001–CORE-008, AI-001 aur runtime integration ke owner references bhi document registry mein expose karne honge.
+
+T07/T14/T16/T17/T19 ka reuse karke new session ko full repository scan se bachaya ja sakta hai—lekin current live SHA aur state authority ko hamesha verify karna hi hoga.
+F. B0/B1/B2 evidence owner
+
+REOS_CONTROL_CENTER/
+│
+└── evidence/
+    └── BACKEND-001/
+        ├── B0-live-repository-audit.md           [REUSE]
+        ├── B1-application-foundation-ci-evidence.md [REUSE]
+        ├── B1-completion-request.md               [REUSE]
+        └── workstream-activation-ci-evidence.md   [REUSE]
+
+B2 ka implementation evidence isi canonical directory mein record hona chahiye. Dusra evidence system nahi banana.
+3. Master ke future folders jo abhi missing hain
+Yeh actual missing implementation areas hain, lekin abhi create nahi karne—kyunki B2 current hai aur master B0→B10 dependency order follow karne ko kehta hai.
+Master stage	Conditional target path	Kyon baad mein
+B2	Existing backend/src/security/	Existing owner mein production adapters complete karne hain
+B3	backend/src/integrations/python_runtime/	Authenticated private Python bridge
+B4	backend/database/migrations/	Approved schema aur ARCH-037 authority zaroori
+B5	backend/src/api/v1/, application/, contracts/	Canonical domain API adapters
+B6	backend/src/integrations/events/	CORE-002 event owner, outbox/inbox aur durable workflows
+B7	backend/src/integrations/providers/	CORE-005 aur AI-001 integration
+B8	backend/tests/integration/, security/, e2e/	Complete customer/business journeys
+B9	backend/src/observability/, operations/deployment contracts	Production operational evidence
+B10	Existing evidence and release controls	Exact-SHA, release approval and blocker closure
+
+Ek important unresolved issue: master ARCH-037 ko approved schema authority batata hai, lekin current repository tree mein ARCH-037 naam ka canonical file ya approved migration directory mujhe nahi mila. Isliye B4 schema ya migrations invent karna sahi nahi hoga.
+4. Master file khud bhi update maangti hai
+HOMIO_Backend_Structure
+
+Iske current repo snapshot mein kuch observations outdated hain:
+- Section 2.2: snapshot 2 November ka hai.
+- Section 2.3 / 2.7: current backend state ko fresh live HEAD se reconcile karna hai.
+- Section 16: public Fastify application MISSING_VERIFIED likha hai; ab woh exist karta hai.
+- Section 17.1: workflow filters mein backend path missing batata hai; current workflow mein backend/** already hai.
+- Section 19: R-01, R-12 jaise open items ko latest source se reclassify karna hai.
+Master ko replace karke doosri master file nahi banani. Isi existing master ko in-place current source ke according refresh karna chahiye.
+
+5. Actual update set — ab kaun-si files priority par hain?
+Priority	Existing files	Work
+1	T18 ke 2 test files	Current #771/#772 CI failures fix
+2	T25 contract, registry, contract test	Stale ACRL dependency names correct
+3	ACRL task_registry.py and registry tests	Contract dependency mapping validation
+4	Backend contracts.ts, api-security.ts, helper and unit test	B2 trusted context and production adapter integration
+5	AI_AGENT_ENTRYPOINT.py and its contract test	Full ACRL/backend/CORE/AI source map
+6	T14 cache script and cache test	Full relevant source scope and finding continuity
+7	HOMIO_Backend_Structure	Stale live baseline refresh
+—	backend-ci.yml	Path filters already correct; REUSE
+—	state.json	NO CHANGE
+
+Current live branch HEAD a744c2f... par #772 FAIL hai. Ismein 3 T18 regression failures hain; isliye T18 ke dono test files priority 1 hain. Run #772
+
+Final correction: Ab complete audit map mein 0 unnecessary new files, 1 canonical backend, existing CORE-001–CORE-008, existing AI-001, existing ACRL T01–T30, 1 EntryPoint aur 1 T14 resume-cache mechanism hai.
+
+Is corrected map ko hi next implementation batches ka source banana chahiye. Pehli priority current T18 CI failures aur T25 dependency mismatch hain; future B3–B10 folders tabhi add honge jab unki master-defined prerequisites complete hongi.
+
