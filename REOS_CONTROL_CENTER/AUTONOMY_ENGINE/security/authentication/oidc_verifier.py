@@ -34,9 +34,19 @@ class AuthenticationError(RuntimeError):
 
 @dataclass(frozen=True, slots=True)
 class AuthenticatedPrincipal:
+    """Verified identity and access-token revocation identifiers.
+
+    token_id is the verified RFC 9068 jti claim.
+    client_id is the verified OAuth client identifier.
+
+    The raw bearer token is deliberately not retained in this object.
+    """
+
     issuer: str
     subject: str
     audiences: tuple[str, ...]
+    client_id: str
+    token_id: str
     email: str | None = None
     email_verified: bool = False
 
@@ -76,9 +86,6 @@ class OIDCVerifier:
         if algorithm not in ALLOWED_SIGNING_ALGORITHMS:
             raise AuthenticationError("unsupported_token_algorithm")
 
-        # RFC 9068 requires an explicit access-token media type. This
-        # prevents an ordinary OIDC ID token from being accepted as an API
-        # bearer access token merely because its issuer/signature are valid.
         token_type = header.get("typ")
 
         if (
@@ -87,8 +94,6 @@ class OIDCVerifier:
         ):
             raise AuthenticationError("invalid_access_token_type")
 
-        # This verifier does not implement critical JOSE extensions. It must
-        # not silently ignore a header parameter that the issuer marks critical.
         if "crit" in header:
             raise AuthenticationError("unsupported_critical_token_header")
 
@@ -107,7 +112,7 @@ class OIDCVerifier:
     @staticmethod
     def _validate_required_access_token_claims(
         claims: object,
-    ) -> tuple[str, str, tuple[str, ...]]:
+    ) -> tuple[str, str, str, tuple[str, ...]]:
         if not isinstance(claims, dict):
             raise AuthenticationError("invalid_access_token")
 
@@ -155,7 +160,7 @@ class OIDCVerifier:
         else:
             raise AuthenticationError("invalid_access_token")
 
-        return subject, client_id, audiences
+        return subject, client_id, token_id, audiences
 
     def verify_access_token(
         self,
@@ -184,7 +189,6 @@ class OIDCVerifier:
                 token
             ).key
         except Exception as exc:
-            # Do not leak network, JWKS or provider implementation details.
             raise AuthenticationError(
                 "verification_key_unavailable"
             ) from exc
@@ -220,7 +224,7 @@ class OIDCVerifier:
                 "invalid_access_token"
             ) from exc
 
-        subject, _client_id, audiences = (
+        subject, client_id, token_id, audiences = (
             self._validate_required_access_token_claims(claims)
         )
 
@@ -242,6 +246,8 @@ class OIDCVerifier:
             issuer=self._settings.issuer,
             subject=subject,
             audiences=audiences,
+            client_id=client_id,
+            token_id=token_id,
             email=email,
             email_verified=claims.get("email_verified") is True,
         )
