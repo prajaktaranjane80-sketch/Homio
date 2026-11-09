@@ -14,6 +14,7 @@ from .oidc_verifier import AuthenticationError, OIDCVerifier
 ISSUER = "https://identity.example.test/"
 AUDIENCE = "homio-api"
 CLIENT_ID = "homio-frontend"
+TOKEN_ID = "access-token-unique-id"
 
 SETTINGS = OIDCSettings(
     ISSUER,
@@ -65,7 +66,7 @@ def mint(
         "aud": AUDIENCE,
         "sub": "provider-subject",
         "client_id": CLIENT_ID,
-        "jti": "access-token-unique-id",
+        "jti": TOKEN_ID,
         "iat": now,
         "exp": now + 300,
         "email": "user@example.test",
@@ -101,6 +102,8 @@ def test_valid_rs256_access_token(verifier):
     assert principal.issuer == ISSUER
     assert principal.subject == "provider-subject"
     assert principal.audiences == (AUDIENCE,)
+    assert principal.client_id == CLIENT_ID
+    assert principal.token_id == TOKEN_ID
     assert principal.email_verified is True
 
 
@@ -115,6 +118,8 @@ def test_valid_es256_access_token():
     )
 
     assert principal.subject == "provider-subject"
+    assert principal.client_id == CLIENT_ID
+    assert principal.token_id == TOKEN_ID
 
 
 @pytest.mark.parametrize(
@@ -172,6 +177,7 @@ def test_rfc9068_access_token_media_types_are_accepted(
     )
 
     assert principal.subject == "provider-subject"
+    assert principal.token_id == TOKEN_ID
 
 
 @pytest.mark.parametrize(
@@ -212,9 +218,6 @@ def test_invalid_or_missing_access_token_claims_are_rejected(
 def test_id_token_shaped_jwt_is_rejected(verifier):
     instance, client, key = verifier
 
-    # ID tokens normally use typ=JWT (or omit typ). Even if someone
-    # accidentally gives an ID token the API audience, it must not pass
-    # the RFC 9068 access-token type check.
     token = mint(
         key,
         token_type="JWT",
@@ -269,7 +272,7 @@ def test_critical_jose_headers_are_rejected_before_key_lookup(verifier):
         "aud": AUDIENCE,
         "sub": "provider-subject",
         "client_id": CLIENT_ID,
-        "jti": "access-token-unique-id",
+        "jti": TOKEN_ID,
         "iat": int(time.time()),
         "exp": int(time.time()) + 300,
     }
@@ -286,16 +289,12 @@ def test_critical_jose_headers_are_rejected_before_key_lookup(verifier):
         },
     )
 
-    # PyJWT rejects an unsupported critical JOSE extension while parsing
-    # the unverified header. OIDCVerifier deliberately normalizes that
-    # parser failure to malformed_access_token. Both outcomes fail closed.
     with pytest.raises(
         AuthenticationError,
         match="malformed_access_token",
     ):
         instance.verify_access_token(token)
 
-    # The invalid header must be rejected before any JWKS lookup.
     assert client.calls == 0
 
 
@@ -363,6 +362,8 @@ def test_multiple_audiences_are_preserved(verifier):
         AUDIENCE,
         "other-resource",
     )
+    assert principal.client_id == CLIENT_ID
+    assert principal.token_id == TOKEN_ID
 
 
 def test_email_claim_is_bounded_and_never_used_as_identity_key(verifier):
@@ -391,3 +392,4 @@ def test_access_token_subject_is_not_derived_from_email(verifier):
     )
 
     assert principal.subject == "canonical-provider-subject"
+    assert principal.token_id == TOKEN_ID
