@@ -248,6 +248,60 @@ describe("B2 Fastify API security boundary", () => {
     expect(sessionCheck).not.toHaveBeenCalled();
   });
 
+  it("rejects verified principal identifiers containing ASCII control characters", async () => {
+    const invalidPrincipals = [
+      {
+        clientId: "homio-frontend\u0000",
+        tokenId: "test-access-token-jti-001"
+      },
+      {
+        clientId: "homio-frontend",
+        tokenId: "test-access-token-jti-\u001f001"
+      },
+      {
+        clientId: "homio\u007ffrontend",
+        tokenId: "test-access-token-jti-001"
+      }
+    ] as const;
+
+    for (const invalidPrincipal of invalidPrincipals) {
+      const sessionCheck = vi.fn(async () => true);
+
+      runtime = await buildApp(
+        testSettings,
+        [protectedPlugin()],
+        createSecurityRuntime({
+          tokenVerifier: {
+            verifyAccessToken: async () => ({
+              issuer: "https://identity.example.test/",
+              subject: "provider-subject-001",
+              audiences: ["homio-api"],
+              ...invalidPrincipal
+            })
+          },
+          sessionValidator: {
+            isSessionActive: sessionCheck
+          }
+        })
+      );
+
+      const response = await runtime.server.inject({
+        method: "GET",
+        url: "/api/v1/protected",
+        headers: {
+          authorization: `Bearer ${VALID_TEST_TOKEN}`
+        }
+      });
+
+      expect(response.statusCode).toBe(503);
+      expect(sessionCheck).not.toHaveBeenCalled();
+
+      runtime.markDraining();
+      await runtime.server.close();
+      runtime = undefined;
+    }
+  });
+
   it("runs IP throttling, token verification, session, context, authorization and audit before a protected read handler", async () => {
     const events: string[] = [];
     const auditRecords: SecurityAuditEvent[] = [];
