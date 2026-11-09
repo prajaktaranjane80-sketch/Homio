@@ -1,3 +1,4 @@
+
 # B2 public API security boundary
 
 `api-security.ts` is the single Fastify ingress guard for `/api/v1`. All API
@@ -6,6 +7,10 @@ route plugins are mounted beneath it by `src/app.ts`.
 ## Route contract
 
 Every v1 route must declare `config.homioSecurity`:
+
+Production readiness additionally requires at least one real `/api/v1` route to
+have been registered and validated. A health-only process or empty route plugin
+cannot report production readiness.
 
 - `{ public: true }` is the only way to declare a public route.
 - Protected routes must declare a stable `operation` and may provide trusted
@@ -46,6 +51,12 @@ does not authenticate from browser cookies. This prevents ambient cookie
 credentials from authorizing cross-site requests. Cookie-based frontend
 sessions remain a separate frontend boundary and must not be forwarded as a
 backend identity assertion.
+
+The Fastify application projects verifier output to the five approved principal
+claims and resolver output to the seven approved trusted-context fields. Extra
+profile, credential and domain fields are discarded; the resulting principal,
+audience array and trusted-context snapshot are frozen before use. This is a
+projection over canonical owners, not a second identity or tenant registry.
 
 The security hook never logs or audits tokens, provider subjects, email,
 request bodies or client IP addresses. Audit records contain request ID,
