@@ -1,4 +1,3 @@
-
 import { randomUUID } from "node:crypto";
 
 import Fastify, {
@@ -6,7 +5,11 @@ import Fastify, {
   type FastifyPluginAsync
 } from "fastify";
 
-import type { BackendSecurityRuntime } from "./security/contracts.js";
+import type {
+  BackendSecurityRuntime,
+  TrustedRequestContext,
+  VerifiedExternalPrincipal
+} from "./security/contracts.js";
 import {
   assertBackendSecurityRuntime,
   createApiSecurityHook,
@@ -20,6 +23,98 @@ export interface AppRuntime {
   markReady(): void;
   markDraining(): void;
   isReady(): boolean;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value)
+  );
+}
+
+/**
+ * Expose only the claims required by the backend security contract.
+ * Identity-provider tokens and profile claims must not leak into request context.
+ */
+function minimizeVerifiedPrincipal(
+  value: unknown
+): VerifiedExternalPrincipal {
+  if (!isRecord(value)) {
+    return value as unknown as VerifiedExternalPrincipal;
+  }
+
+  const audiences = Array.isArray(value.audiences)
+    ? Object.freeze([...value.audiences])
+    : value.audiences;
+
+  return Object.freeze({
+    issuer: value.issuer,
+    subject: value.subject,
+    audiences,
+    clientId: value.clientId,
+    tokenId: value.tokenId
+  }) as unknown as VerifiedExternalPrincipal;
+}
+
+/**
+ * A trusted context is intentionally smaller than any domain identity object.
+ * Clone it so downstream adapters cannot mutate the values already authorized.
+ */
+function minimizeTrustedContext(
+  value: unknown
+): TrustedRequestContext | null {
+  if (value === null) {
+    return null;
+  }
+
+  if (!isRecord(value)) {
+    return value as unknown as TrustedRequestContext;
+  }
+
+  return Object.freeze({
+    identityId: value.identityId,
+    accountId: value.accountId,
+    tenantId: value.tenantId,
+    tenantRevision: value.tenantRevision,
+    organizationId: value.organizationId,
+    membershipId: value.membershipId,
+    membershipRevision: value.membershipRevision
+  }) as unknown as TrustedRequestContext;
+}
+
+/**
+ * Normalize adapter outputs once at the single Fastify trust boundary.
+ * This is a projection over canonical owners, not a second identity registry.
+ */
+function createMinimizedSecurityRuntime(
+  runtime: BackendSecurityRuntime
+): BackendSecurityRuntime {
+  return Object.freeze({
+    tokenVerifier: Object.freeze({
+      verifyAccessToken: async (token: string) => {
+        const principal =
+          await runtime.tokenVerifier.verifyAccessToken(token);
+
+        return minimizeVerifiedPrincipal(principal);
+      }
+    }),
+    sessionValidator: runtime.sessionValidator,
+    contextResolver: Object.freeze({
+      resolve: async (input: {
+        readonly principal: VerifiedExternalPrincipal;
+        readonly requestedTenantId?: string;
+        readonly requestedOrganizationId?: string;
+      }) => {
+        const context = await runtime.contextResolver.resolve(input);
+
+        return minimizeTrustedContext(context);
+      }
+    }),
+    authorization: runtime.authorization,
+    rateLimiter: runtime.rateLimiter,
+    audit: runtime.audit
+  });
 }
 
 const NOT_FOUND_RESPONSE = {
@@ -67,6 +162,7 @@ export async function buildApp(
   let acceptingTraffic = false;
   let draining = false;
   let closed = false;
+  let apiV1RouteCount = 0;
 
   const server = Fastify({
     logger:
@@ -197,6 +293,11 @@ export async function buildApp(
       // Validate the six authoritative adapters before registering customer routes.
       assertBackendSecurityRuntime(activeSecurityRuntime);
 
+      // Project adapter results to the minimal B2 contract and freeze snapshots
+      // before the request hooks or route handlers can observe them.
+      const minimizedSecurityRuntime =
+        createMinimizedSecurityRuntime(activeSecurityRuntime);
+
       await server.register(async (apiV1) => {
         apiV1.addHook("onRoute", (routeOptions) => {
           if (
@@ -206,18 +307,20 @@ export async function buildApp(
               "Every /api/v1 route must declare valid security metadata and mutation schemas."
             );
           }
+
+          apiV1RouteCount += 1;
         });
 
         apiV1.addHook(
           "onRequest",
-          createApiSecurityHook(activeSecurityRuntime)
+          createApiSecurityHook(minimizedSecurityRuntime)
         );
 
         // Re-check protected mutations after Fastify request validation
         // and immediately before their route handlers execute.
         apiV1.addHook(
           "preHandler",
-          createMutationReauthorizationHook(activeSecurityRuntime)
+          createMutationReauthorizationHook(minimizedSecurityRuntime)
         );
 
         for (const plugin of apiV1Plugins) {
@@ -229,6 +332,17 @@ export async function buildApp(
     }
 
     await server.ready();
+
+    // A health-only process must never report production readiness as if the
+    // customer API had been mounted and protected by the B2 boundary.
+    if (
+      settings.nodeEnv === "production" &&
+      apiV1RouteCount === 0
+    ) {
+      throw new Error(
+        "Production backend cannot become ready without at least one registered /api/v1 route."
+      );
+    }
 
     return {
       server,
