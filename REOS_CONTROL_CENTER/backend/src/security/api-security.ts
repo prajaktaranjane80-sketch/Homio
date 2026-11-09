@@ -3,6 +3,7 @@ import type {
   FastifyRequest
 } from "fastify";
 
+import { TokenVerificationError } from "./contracts.js";
 import type {
   ApiRouteSecurityPolicy,
   BackendSecurityRuntime,
@@ -66,6 +67,8 @@ function isVerifiedPrincipal(
   const issuer = value.issuer;
   const subject = value.subject;
   const audiences = value.audiences;
+  const clientId = value.clientId;
+  const tokenId = value.tokenId;
 
   if (
     typeof issuer !== "string" ||
@@ -75,6 +78,16 @@ function isVerifiedPrincipal(
     subject.length === 0 ||
     subject.length > 255 ||
     subject.trim() !== subject ||
+    typeof clientId !== "string" ||
+    clientId.length === 0 ||
+    clientId.length > 512 ||
+    clientId.trim() !== clientId ||
+    /[\u0000-\u001F\u007F]/.test(clientId) ||
+    typeof tokenId !== "string" ||
+    tokenId.length === 0 ||
+    tokenId.length > 255 ||
+    tokenId.trim() !== tokenId ||
+    /[\u0000-\u001F\u007F]/.test(tokenId) ||
     !Array.isArray(audiences) ||
     audiences.length === 0 ||
     audiences.length > 16 ||
@@ -657,14 +670,18 @@ async function authorizeProtectedRequest(
 
     principal = verified;
   } catch (error) {
-    const unavailable =
-      error instanceof SecurityDependencyUnavailableError;
+    // Unknown verifier failures are treated as dependency failures, not as
+    // proof of invalid credentials. The adapter must normalize known token
+    // rejection versus JWKS/provider availability failures explicitly.
+    const invalid =
+      error instanceof TokenVerificationError &&
+      error.kind === "invalid";
 
     await denyRequest(runtime, request, reply, {
-      statusCode: unavailable ? 503 : 401,
-      reasonCode: unavailable
-        ? "TOKEN_VERIFICATION_UNAVAILABLE"
-        : "INVALID_BEARER_TOKEN",
+      statusCode: invalid ? 401 : 503,
+      reasonCode: invalid
+        ? "INVALID_BEARER_TOKEN"
+        : "TOKEN_VERIFICATION_UNAVAILABLE",
       operation: routePolicy.operation
     });
     return false;
@@ -673,10 +690,11 @@ async function authorizeProtectedRequest(
   let sessionActive: unknown;
 
   try {
+    // The session owner receives only verified claims (including jti).
+    // Never forward the raw bearer token beyond the OIDC verifier boundary.
     sessionActive =
       await runtime.sessionValidator.isSessionActive({
-        principal,
-        accessToken
+        principal
       });
   } catch {
     await denyRequest(runtime, request, reply, {
