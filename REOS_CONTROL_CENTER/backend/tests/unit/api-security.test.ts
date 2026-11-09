@@ -989,4 +989,81 @@ describe("B2 Fastify API security boundary", () => {
     // because schema validation rejected the request first.
     expect(authorize).toHaveBeenCalledTimes(1);
   });
+
+  it("blocks a mutation when trusted identity or tenant context changes after ingress", async () => {
+    let contextChecks = 0;
+    let handlerCalled = false;
+    const otherTenantContext = {
+      ...TEST_CONTEXT,
+      tenantId: "66666666-6666-4666-8666-666666666666"
+    };
+
+    const security = createSecurityRuntime({
+      contextResolver: {
+        resolve: async () => {
+          contextChecks += 1;
+          return contextChecks === 1
+            ? TEST_CONTEXT
+            : otherTenantContext;
+        }
+      }
+    });
+
+    const mutationPlugin: FastifyPluginAsync =
+      async (instance) => {
+        instance.post(
+          "/context-changed-during-mutation",
+          {
+            schema: {
+              body: {
+                type: "object",
+                additionalProperties: false,
+                required: ["value"],
+                properties: {
+                  value: {
+                    type: "string",
+                    minLength: 1
+                  }
+                }
+              }
+            },
+            config: {
+              homioSecurity: {
+                operation: "leads.create",
+                reauthorizeBeforeMutation: true
+              }
+            }
+          },
+          async () => {
+            handlerCalled = true;
+            return { created: true };
+          }
+        );
+      };
+
+    runtime = await buildApp(
+      testSettings,
+      [mutationPlugin],
+      security
+    );
+
+    const response = await runtime.server.inject({
+      method: "POST",
+      url: "/api/v1/context-changed-during-mutation",
+      headers: {
+        authorization: `Bearer ${VALID_TEST_TOKEN}`
+      },
+      payload: {
+        value: "must not be written"
+      }
+    });
+
+    expect(contextChecks).toBe(2);
+    expect(response.statusCode).toBe(403);
+    expect(handlerCalled).toBe(false);
+    expect(response.body).not.toContain(
+      otherTenantContext.tenantId
+    );
+  });
+
 });
