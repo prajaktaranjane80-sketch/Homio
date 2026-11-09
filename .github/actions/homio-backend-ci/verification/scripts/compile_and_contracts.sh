@@ -1,3 +1,4 @@
+
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -85,10 +86,12 @@ quality_report="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/homio-ai-section14-quality-evalu
 python AUTONOMY_ENGINE/ai_platform/tests/test_section14_quality_evaluation.py \
   --output "$quality_report"
 
-python -c "from pathlib import Path; p = Path('tets/test_ai_agent_entrypoint_contract.py'); assert p.is_file(), f'Required contract test is missing: {p}'"
+python -c "from pathlib import Path; required = (Path('tets/test_ai_agent_entrypoint_contract.py'), Path('tets/test_agent_bootstrap_contract.py')); missing = [str(path) for path in required if not path.is_file()]; assert not missing, f'Required agent contract tests are missing: {missing}'"
 
+# Repository agent bootstrap and canonical EntryPoint contracts.
 python -m pytest -q -p no:cacheprovider \
-  tets/test_ai_agent_entrypoint_contract.py
+  tets/test_ai_agent_entrypoint_contract.py \
+  tets/test_agent_bootstrap_contract.py
 
 # AI-001 T01/T02: gateway and provider/model registry contracts.
 # AI-001 T03: embeddings and tenant-scoped retrieval.
