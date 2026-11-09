@@ -1,4 +1,3 @@
-
 import type {
   FastifyReply,
   FastifyRequest
@@ -123,6 +122,21 @@ function isTrustedContext(
     typeof value.membershipRevision === "number" &&
     Number.isSafeInteger(value.membershipRevision) &&
     value.membershipRevision > 0
+  );
+}
+
+function hasSameTrustedContext(
+  left: TrustedRequestContext,
+  right: TrustedRequestContext
+): boolean {
+  return (
+    left.identityId === right.identityId &&
+    left.accountId === right.accountId &&
+    left.tenantId === right.tenantId &&
+    left.organizationId === right.organizationId &&
+    left.membershipId === right.membershipId &&
+    left.tenantRevision === right.tenantRevision &&
+    left.membershipRevision === right.membershipRevision
   );
 }
 
@@ -557,6 +571,7 @@ async function authorizeProtectedRequest(
     readonly successEventType:
       | "API_ACCESS_ALLOWED"
       | "API_MUTATION_REAUTHORIZED";
+    readonly expectedContext?: TrustedRequestContext;
   }
 ): Promise<boolean> {
   let requestedTenantId: string | undefined;
@@ -723,6 +738,22 @@ async function authorizeProtectedRequest(
   }
 
   const context: TrustedRequestContext = contextValue;
+
+  // A mutation must execute under exactly the context authorized at ingress.
+  // Re-resolving to a different identity, account, tenant, organization,
+  // membership or revision is a time-of-check/time-of-use boundary change.
+  if (
+    options.expectedContext !== undefined &&
+    !hasSameTrustedContext(context, options.expectedContext)
+  ) {
+    await denyRequest(runtime, request, reply, {
+      statusCode: 403,
+      reasonCode: "TRUSTED_CONTEXT_CHANGED_DURING_REQUEST",
+      operation: routePolicy.operation,
+      context: options.expectedContext
+    });
+    return false;
+  }
 
   // Never allow an adapter to widen the requested tenant or organization.
   if (
@@ -944,7 +975,9 @@ export function createMutationReauthorizationHook(
       return;
     }
 
-    if (request.securityContext === null) {
+    const initialContext = request.securityContext;
+
+    if (initialContext === null) {
       await denyRequest(runtime, request, reply, {
         statusCode: 503,
         reasonCode: "INITIAL_SECURITY_CONTEXT_MISSING",
@@ -960,7 +993,8 @@ export function createMutationReauthorizationHook(
       routePolicy,
       {
         consumeIdentityRateLimit: false,
-        successEventType: "API_MUTATION_REAUTHORIZED"
+        successEventType: "API_MUTATION_REAUTHORIZED",
+        expectedContext: initialContext
       }
     );
   };
