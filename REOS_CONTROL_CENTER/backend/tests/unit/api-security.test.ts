@@ -10,6 +10,9 @@ import type { FastifyPluginAsync } from "fastify";
 
 import { buildApp, type AppRuntime } from "../../src/app.js";
 import type { BackendSettings } from "../../src/config/settings.js";
+import {
+  TokenVerificationError
+} from "../../src/security/contracts.js";
 import type {
   ApiRouteSecurityPolicy,
   BackendSecurityRuntime,
@@ -173,9 +176,84 @@ describe("B2 Fastify API security boundary", () => {
     expect(verifyAccessToken).not.toHaveBeenCalled();
   });
 
+  it("maps invalid credentials to 401 and OIDC/JWKS availability failures to 503", async () => {
+    const cases = [
+      { kind: "invalid" as const, expectedStatus: 401 },
+      { kind: "unavailable" as const, expectedStatus: 503 }
+    ];
+
+    for (const failureCase of cases) {
+      const sessionCheck = vi.fn(async () => true);
+      runtime = await buildApp(
+        testSettings,
+        [protectedPlugin()],
+        createSecurityRuntime({
+          tokenVerifier: {
+            verifyAccessToken: async () => {
+              throw new TokenVerificationError(failureCase.kind);
+            }
+          },
+          sessionValidator: {
+            isSessionActive: sessionCheck
+          }
+        })
+      );
+
+      const response = await runtime.server.inject({
+        method: "GET",
+        url: "/api/v1/protected",
+        headers: {
+          authorization: `Bearer ${VALID_TEST_TOKEN}`
+        }
+      });
+
+      expect(response.statusCode).toBe(failureCase.expectedStatus);
+      expect(sessionCheck).not.toHaveBeenCalled();
+
+      runtime.markDraining();
+      await runtime.server.close();
+      runtime = undefined;
+    }
+  });
+
+  it("rejects verifier results that omit the verified client_id or jti claims", async () => {
+    const sessionCheck = vi.fn(async () => true);
+    runtime = await buildApp(
+      testSettings,
+      [protectedPlugin()],
+      createSecurityRuntime({
+        tokenVerifier: {
+          verifyAccessToken: async () => ({
+            issuer: "https://identity.example.test/",
+            subject: "provider-subject-001",
+            audiences: ["homio-api"],
+            clientId: "homio-frontend"
+          } as never)
+        },
+        sessionValidator: {
+          isSessionActive: sessionCheck
+        }
+      })
+    );
+
+    const response = await runtime.server.inject({
+      method: "GET",
+      url: "/api/v1/protected",
+      headers: {
+        authorization: `Bearer ${VALID_TEST_TOKEN}`
+      }
+    });
+
+    expect(response.statusCode).toBe(503);
+    expect(sessionCheck).not.toHaveBeenCalled();
+  });
+
   it("runs IP throttling, token verification, session, context, authorization and audit before a protected read handler", async () => {
     const events: string[] = [];
     const auditRecords: SecurityAuditEvent[] = [];
+    const sessionInputs: Array<
+      Parameters<BackendSecurityRuntime["sessionValidator"]["isSessionActive"]>[0]
+    > = [];
 
     const security = createSecurityRuntime({
       rateLimiter: {
@@ -192,12 +270,15 @@ describe("B2 Fastify API security boundary", () => {
           return {
             issuer: "https://identity.example.test/",
             subject: "provider-subject-001",
-            audiences: ["homio-api"]
+            audiences: ["homio-api"],
+            clientId: "homio-frontend",
+            tokenId: "test-access-token-jti-001"
           };
         }
       },
       sessionValidator: {
-        isSessionActive: async () => {
+        isSessionActive: async (input) => {
+          sessionInputs.push(input);
           events.push("session");
           return true;
         }
@@ -283,6 +364,16 @@ describe("B2 Fastify API security boundary", () => {
       "handler"
     ]);
 
+    expect(sessionInputs).toHaveLength(1);
+    expect(sessionInputs[0].principal).toMatchObject({
+      clientId: "homio-frontend",
+      tokenId: "test-access-token-jti-001"
+    });
+    expect(sessionInputs[0]).not.toHaveProperty("accessToken");
+    expect(JSON.stringify(sessionInputs)).not.toContain(
+      VALID_TEST_TOKEN
+    );
+
     expect(auditRecords).toHaveLength(1);
 
     expect(auditRecords[0]).toMatchObject({
@@ -319,7 +410,9 @@ describe("B2 Fastify API security boundary", () => {
           return {
             issuer: "https://identity.example.test/",
             subject: "provider-subject-001",
-            audiences: ["homio-api"]
+            audiences: ["homio-api"],
+            clientId: "homio-frontend",
+            tokenId: "test-access-token-jti-001"
           };
         }
       },
