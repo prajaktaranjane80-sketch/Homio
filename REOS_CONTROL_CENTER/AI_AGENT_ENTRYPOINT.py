@@ -6,6 +6,7 @@ First-read operating contract and repository reference index for every new
 GPT/AI session working on HOMIO / REOS.
 
 MANDATORY STARTUP:
+0. Discover available engineering skills and invoke using-superpowers.
 1. Read this file.
 2. Refresh the live GitHub branch and repository HEAD.
 3. Read REOS_CONTROL_CENTER/data/state.json and verify its integrity.
@@ -103,6 +104,119 @@ GENERATED_ARTIFACT_PATTERNS: tuple[str, ...] = (
     "__pycache__/",
     "*.pyc",
     "*.pyo",
+)
+
+
+# ===========================================================================
+# 1A. ENGINEERING SKILL ORCHESTRATION — SUPERPOWERS
+# ===========================================================================
+
+# Superpowers is an agent-runtime skill provider.
+#
+# It is NOT:
+# - a Python package dependency;
+# - an ACRL layer;
+# - a project task authority;
+# - a state-management engine;
+# - a GitHub synchronization runner.
+#
+# This policy instructs a HOMIO engineering agent to discover and invoke
+# available Superpowers skills at session start and route work to the
+# appropriate skill workflow.
+#
+# Skill invocation is performed by the agent runtime. This module does not
+# pretend to activate external plugins through Python code.
+
+ENGINEERING_SKILL_PROVIDER = "Superpowers"
+
+ENGINEERING_SKILL_ENTRYPOINT = "using-superpowers"
+
+ENGINEERING_SKILL_ROUTING: dict[str, tuple[str, ...]] = {
+
+    "new_feature_or_behavior": (
+        "brainstorming",
+        "test-driven-development",
+    ),
+
+    "architecture_or_design_change": (
+        "brainstorming",
+        "writing-plans",
+    ),
+
+    "bug_or_test_failure": (
+        "systematic-debugging",
+        "test-driven-development",
+    ),
+
+    "approved_plan_execution": (
+        "executing-plans",
+        "test-driven-development",
+    ),
+
+    "review_feedback": (
+        "receiving-code-review",
+    ),
+
+    "major_implementation_review": (
+        "requesting-code-review",
+    ),
+
+    "completion_and_release_claim": (
+        "verification-before-completion",
+    ),
+
+}
+
+ENGINEERING_SKILL_WORKFLOW_RULES: tuple[str, ...] = (
+
+    "At the start of every HOMIO engineering session, discover the "
+    "currently available agent skills.",
+
+    "Invoke using-superpowers before the first engineering response "
+    "or action, including clarification, repository inspection and debugging.",
+
+    "Read the current skill instructions before applying a skill. "
+    "Do not rely on remembered or outdated skill instructions.",
+
+    "Select task-specific skills from ENGINEERING_SKILL_ROUTING "
+    "before performing the corresponding work.",
+
+    "For new functionality or behavior changes, use brainstorming "
+    "before implementation and respect its design-approval boundary.",
+
+    "For bugs, unexpected behavior and failed tests, use "
+    "systematic-debugging before proposing or applying a fix.",
+
+    "For implementation changes, use test-driven-development before "
+    "production code changes unless the skill explicitly permits an exception.",
+
+    "Use writing-plans only after the applicable design approval boundary.",
+
+    "Use executing-plans only for an approved implementation plan.",
+
+    "Use verification-before-completion before claiming any implementation "
+    "is fixed, complete, passing or production-ready.",
+
+    "Use requesting-code-review for major changes and receiving-code-review "
+    "when review feedback is supplied.",
+
+    "If Superpowers is unavailable in the current agent runtime, use the "
+    "equivalent disciplined engineering workflow and report that the "
+    "external skill provider was unavailable.",
+
+    "Never claim a skill was invoked unless its instructions were actually "
+    "loaded and followed.",
+
+    "Superpowers skill execution is session-local workflow metadata. "
+    "Do not persist plugin activation state in state.json, T07 restart "
+    "payloads or T14 repository manifests.",
+
+    "Superpowers does not grant task authorization, approve architecture, "
+    "mutate canonical state or override ACRL boundaries.",
+
+    "Do not add a repository-side plugin API, Python dependency, "
+    "standalone skill runner or duplicate orchestration engine.",
+
 )
 
 
@@ -758,6 +872,9 @@ SOURCE_OF_TRUTH: dict[str, str] = {
 
 NEW_SESSION_READ_ORDER: tuple[str, ...] = (
 
+    "0. Discover available engineering skills and invoke using-superpowers "
+    "before the first engineering response or action.",
+
     "1. Read AI_AGENT_ENTRYPOINT.py for agent policy, document registry "
     "and workstream routing.",
 
@@ -1097,6 +1214,9 @@ EXECUTION_WORKFLOW: tuple[str, ...] = (
 
 NEW_SESSION_WORKFLOW: tuple[str, ...] = (
 
+    "0. Discover available engineering skills and invoke using-superpowers "
+    "before any engineering response or action.",
+
     "1. Identify HOMIO / REOS and declare BACKEND, FRONTEND or SHARED_INTEGRATION.",
 
     "2. Read this EntryPoint and use its document registry and workstream routing.",
@@ -1411,10 +1531,11 @@ def startup_instructions() -> dict[str, Any]:
     - does not mutate state;
     - does not execute project commands;
     - does not authorize a task;
-    - does not replace ACRL.
+    - does not replace ACRL;
+    - does not activate external plugins through Python.
 
-    Live repository and state refresh are mandatory instructions for the
-    agent, not hidden network operations performed by this module.
+    Live repository, state and skill refresh are instructions for the agent,
+    not hidden network or plugin operations performed by this module.
     """
 
     operating_contract = contract()
@@ -1522,6 +1643,23 @@ def startup_instructions() -> dict[str, Any]:
         "non_developer_owner_contract": list(
             NON_DEVELOPER_OWNER_CONTRACT
         ),
+
+        "engineering_skill_provider": ENGINEERING_SKILL_PROVIDER,
+
+        "engineering_skill_entrypoint": ENGINEERING_SKILL_ENTRYPOINT,
+
+        "engineering_skill_routing": {
+            key: list(value)
+            for key, value in ENGINEERING_SKILL_ROUTING.items()
+        },
+
+        "engineering_skill_workflow_rules": list(
+            ENGINEERING_SKILL_WORKFLOW_RULES
+        ),
+
+        "engineering_skill_discovery_required": True,
+
+        "engineering_skill_execution_is_project_authority": False,
 
         "local_preflight_is_diagnostic_only": True,
 
@@ -1899,6 +2037,8 @@ def print_startup_context() -> None:
 
     print("API OWNERSHIP  : BACKEND OWNS / FRONTEND CONSUMES")
 
+    print("SKILLS         : SUPERPOWERS DISCOVERY / TASK-SPECIFIC ROUTING")
+
     print("-" * 72)
 
     preflight = git_preflight()
@@ -1942,6 +2082,10 @@ def print_startup_context() -> None:
         print(f"{layer:14}: {title}")
 
     print("-" * 72)
+
+    print("RULE           : SUPERPOWERS SKILL DISCOVERY BEFORE ENGINEERING")
+
+    print("RULE           : TASK-SPECIFIC SKILL ROUTING")
 
     print("RULE           : AUDIT BEFORE MODIFY")
 
