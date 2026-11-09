@@ -31,6 +31,13 @@ CI_RUNNER = (
     / "compile_and_contracts.sh"
 )
 
+CI_WORKFLOW = (
+    REPOSITORY_ROOT
+    / ".github"
+    / "workflows"
+    / "backend-ci.yml"
+)
+
 
 def read_required(path: Path) -> str:
     assert path.is_file(), (
@@ -63,11 +70,20 @@ def test_root_agent_bootstrap_is_discoverable_and_loads_superpowers_first():
             f"Root agent bootstrap is missing required instruction: {item}"
         )
 
-    skill_position = bootstrap.index("using-superpowers")
-    entrypoint_position = bootstrap.index(
+    assert "## Mandatory startup" in bootstrap
+    assert "## Skill execution" in bootstrap
+
+    startup_section = bootstrap.split(
+        "## Mandatory startup", 1
+    )[1].split(
+        "## Skill execution", 1
+    )[0]
+
+    skill_position = startup_section.index("using-superpowers")
+    entrypoint_position = startup_section.index(
         "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py"
     )
-    state_position = bootstrap.index(
+    state_position = startup_section.index(
         "REOS_CONTROL_CENTER/data/state.json"
     )
 
@@ -79,18 +95,16 @@ def test_root_bootstrap_does_not_create_duplicate_policy_or_task_authority():
     entrypoint = read_required(CANONICAL_ENTRYPOINT)
 
     assert "not a second" in bootstrap
-    assert "does not grant task authorization" in bootstrap
+    assert "do not grant task authorization" in bootstrap
     assert "do not invent the next task" in bootstrap
     assert "do not create extra runners" in bootstrap
 
-    # The detailed routing matrix remains in the canonical EntryPoint.
     assert "ENGINEERING_SKILL_ROUTING" in entrypoint
     assert "ENGINEERING_SKILL_WORKFLOW_RULES" in entrypoint
 
-    # The root bootstrap must point to the one routing owner, not copy a
-    # separate routing matrix into another repository file.
-    assert "task-specific skills before the corresponding engineering work" in (
-        bootstrap
+    assert (
+        "task-specific skills before the corresponding engineering work"
+        in bootstrap
     )
 
 
@@ -108,3 +122,9 @@ def test_bootstrap_contract_is_part_of_the_existing_backend_ci_runner():
 
     assert "tets/test_ai_agent_entrypoint_contract.py" in runner
     assert "tets/test_agent_bootstrap_contract.py" in runner
+
+
+def test_root_bootstrap_changes_trigger_existing_backend_ci():
+    workflow = read_required(CI_WORKFLOW)
+
+    assert '"AGENTS.md"' in workflow
