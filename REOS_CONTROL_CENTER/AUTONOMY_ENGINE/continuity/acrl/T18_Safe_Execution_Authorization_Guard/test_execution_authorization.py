@@ -39,6 +39,8 @@ from AUTONOMY_ENGINE.security.authentication.oidc_verifier import (
 
 TEST_ISSUER = "https://identity.example.test/"
 TEST_SUBJECT = "provider-subject"
+TEST_CLIENT_ID = "homio-frontend"
+TEST_TOKEN_ID = "test-access-token-jti-001"
 TEST_ACCESS_TOKEN = "signed-test-token"
 
 
@@ -53,6 +55,8 @@ class _TestOIDCVerifier:
             issuer=TEST_ISSUER,
             subject=TEST_SUBJECT,
             audiences=("homio-api",),
+            client_id=TEST_CLIENT_ID,
+            token_id=TEST_TOKEN_ID,
         )
 
 
