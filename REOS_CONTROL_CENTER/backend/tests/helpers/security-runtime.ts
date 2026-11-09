@@ -1,3 +1,6 @@
+import {
+  TokenVerificationError
+} from "../../src/security/contracts.js";
 import type {
   BackendSecurityRuntime,
   TrustedRequestContext,
@@ -9,7 +12,9 @@ export const VALID_TEST_TOKEN = "test-bearer-token";
 export const TEST_PRINCIPAL: VerifiedExternalPrincipal = {
   issuer: "https://identity.example.test/",
   subject: "provider-subject-001",
-  audiences: ["homio-api"]
+  audiences: ["homio-api"],
+  clientId: "homio-frontend",
+  tokenId: "test-access-token-jti-001"
 };
 
 export const TEST_CONTEXT: TrustedRequestContext = {
@@ -29,7 +34,7 @@ export function createSecurityRuntime(
     tokenVerifier: {
       verifyAccessToken: async (token) => {
         if (token !== VALID_TEST_TOKEN) {
-          throw new Error("invalid test token");
+          throw new TokenVerificationError("invalid");
         }
         return TEST_PRINCIPAL;
       }
