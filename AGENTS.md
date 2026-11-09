@@ -1,21 +1,17 @@
-
 # HOMIO / REOS — Repository Agent Bootstrap
 
 This is a thin, auto-discoverable repository bootstrap. It is not a second
 Control Center, execution planner, architecture authority or skill router.
 
-The canonical engineering policy and skill-routing rules live in:
-`REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py`
-
-## Mandatory startup for every repository-working agent
+## Mandatory startup — every repository-working agent
 
 Before the first engineering response, repository inspection or code change:
 
 1. Discover the engineering skills available in the current agent runtime.
 2. When Superpowers is available, read and invoke `using-superpowers` first.
    Do not rely on remembered skill instructions.
-3. Read `REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py` completely enough to
-   follow its current startup, skill-routing, workstream and safety rules.
+3. Follow the canonical engineering policy in
+   `REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py`.
 4. Refresh the live GitHub `reos-development` branch and record its exact HEAD.
 5. Read `REOS_CONTROL_CENTER/data/state.json` from that same live branch.
    Identify the current gate, task, subtask, dependencies and acceptance criteria.
