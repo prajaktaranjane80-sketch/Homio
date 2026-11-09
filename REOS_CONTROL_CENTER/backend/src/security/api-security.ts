@@ -57,6 +57,19 @@ function isUuid(value: unknown): value is string {
   return typeof value === "string" && UUID_PATTERN.test(value);
 }
 
+/** Reject the same C0 and DEL controls previously covered by the regex guard. */
+function containsAsciiControlCharacters(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const characterCode = value.charCodeAt(index);
+
+    if (characterCode <= 0x1f || characterCode === 0x7f) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function isVerifiedPrincipal(
   value: unknown
 ): value is VerifiedExternalPrincipal {
@@ -82,12 +95,12 @@ function isVerifiedPrincipal(
     clientId.length === 0 ||
     clientId.length > 512 ||
     clientId.trim() !== clientId ||
-    /[\u0000-\u001F\u007F]/.test(clientId) ||
+    containsAsciiControlCharacters(clientId) ||
     typeof tokenId !== "string" ||
     tokenId.length === 0 ||
     tokenId.length > 255 ||
     tokenId.trim() !== tokenId ||
-    /[\u0000-\u001F\u007F]/.test(tokenId) ||
+    containsAsciiControlCharacters(tokenId) ||
     !Array.isArray(audiences) ||
     audiences.length === 0 ||
     audiences.length > 16 ||
