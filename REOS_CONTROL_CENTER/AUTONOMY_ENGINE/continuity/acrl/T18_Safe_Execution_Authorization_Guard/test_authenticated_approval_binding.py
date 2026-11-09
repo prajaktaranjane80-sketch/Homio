@@ -26,8 +26,10 @@ from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.exec
 )
 from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.test_execution_authorization import (
     TEST_ACCESS_TOKEN,
+    TEST_CLIENT_ID,
     TEST_ISSUER,
     TEST_SUBJECT,
+    TEST_TOKEN_ID,
     _test_guard,
     _test_policy,
     build_approved_request,
@@ -84,6 +86,8 @@ def test_authenticated_principal_must_be_allowlisted(tmp_path):
         issuer=TEST_ISSUER,
         subject=outsider_subject,
         audiences=("homio-api",),
+        client_id=TEST_CLIENT_ID,
+        token_id="outsider-access-token-jti-001",
     )
     outsider_approval = replace(
         request.approval,
@@ -122,6 +126,8 @@ def test_oidc_verification_failure_fails_closed(tmp_path):
             issuer=TEST_ISSUER,
             subject=TEST_SUBJECT,
             audiences=("homio-api",),
+            client_id=TEST_CLIENT_ID,
+            token_id=TEST_TOKEN_ID,
         ),
         fail=True,
     )
