@@ -1,11 +1,20 @@
 from __future__ import annotations
 
 import copy
+import re
 from typing import Any
 
 
 BACKEND_GATE_ID = "BACKEND-001"
 BACKEND_CHANGE_REQUEST_ID = "CR-BACKEND-001"
+BACKEND_B2_DEPENDENCY_CHANGE_REQUEST_ID = (
+    "CR-BACKEND-001-B2-DEPENDENCY"
+)
+
+BACKEND_TECHNICAL_SEQUENCE = (
+    "B0 -> B1 -> B2-FOUNDATION -> B3 -> B4 -> "
+    "B2-PRODUCTION-BINDING -> B5 -> B6 -> B7 -> B8 -> B9 -> B10"
+)
 
 BACKEND_STAGES = (
     (
@@ -19,8 +28,8 @@ BACKEND_STAGES = (
         "CRITICAL",
     ),
     (
-        "B2",
-        "API security and trusted context",
+        "B2-FOUNDATION",
+        "API security and trusted context — foundation",
         "CRITICAL",
     ),
     (
@@ -31,6 +40,11 @@ BACKEND_STAGES = (
     (
         "B4",
         "PostgreSQL integration",
+        "CRITICAL",
+    ),
+    (
+        "B2-PRODUCTION-BINDING",
+        "API security and trusted context — production binding",
         "CRITICAL",
     ),
     (
@@ -73,6 +87,56 @@ B1_ACCEPTANCE_CRITERIA = [
     "No duplicate public API application exists.",
 ]
 
+B2_FOUNDATION_ACCEPTANCE_CRITERIA = [
+    "One Fastify /api/v1 ingress security boundary is used.",
+    "Bearer authentication is verified before protected handlers.",
+    "Trusted principal and tenant context are server-derived and minimized.",
+    "Protected routes declare valid security metadata and mutation schemas.",
+    "All six security adapter ports are mandatory and fail closed when absent.",
+    "Protected mutations are reauthorized immediately before handlers.",
+    "Security boundary tests cover invalid credentials, missing adapters, "
+    "authorization failures, rate-limit ordering and audit ordering.",
+]
+
+B3_ACCEPTANCE_CRITERIA = [
+    "Private TypeScript-to-Python runtime transport is authenticated.",
+    "Request and response contracts are versioned and validated.",
+    "Trusted actor, tenant and correlation context are preserved.",
+    "Timeout, cancellation and failure classification are tested.",
+    "Ambiguous mutation outcomes use durable idempotency identity.",
+    "No Python business logic is copied into TypeScript.",
+    "No second public Python API is exposed.",
+]
+
+B4_ACCEPTANCE_CRITERIA = [
+    "Only the approved ARCH-037 schema and canonical owners are used.",
+    "Migrations have deterministic ordering and integrity checks.",
+    "Tenant access is enforced by the target persistence boundary.",
+    "Repositories and transaction boundaries have explicit write ownership.",
+    "Durable session and revocation storage is supported.",
+    "Shared rate-limit state and minimized audit persistence are supported.",
+    "Migration, concurrency, backup and recovery tests pass.",
+    "No second schema or persistence authority is introduced.",
+]
+
+B2_PRODUCTION_BINDING_ACCEPTANCE_CRITERIA = [
+    "The approved OIDC verifier is connected through the authenticated B3 boundary.",
+    "Durable session and revocation validation is connected through B4.",
+    "Trusted identity, tenant and active membership are resolved through CORE-001.",
+    "One contract-governed CORE-001 resource/action decision owner is used; "
+    "the T03 membership data contract remains data-only.",
+    "Shared/distributed rate limiting is connected through B4.",
+    "Durable PII-minimized security audit persistence is connected through B4.",
+    "Buyer, broker, builder and privileged-role isolation tests pass.",
+    "Cross-tenant, revoked-session and unauthorized-action tests pass.",
+    "Mutation authorization is revalidated immediately before protected handlers.",
+    "Rate-limit enforcement works across instances.",
+    "Audit persistence occurs before protected handlers.",
+    "Invalid credentials and dependency outages fail closed.",
+    "No frontend cookie is accepted as an API identity credential.",
+    "No production mock, no-op adapter or in-process-only security store remains.",
+]
+
 BACKEND_ACCEPTANCE_CRITERIA = [
     "One reproducible public Fastify API application exists.",
     "Protected routes enforce trusted identity and tenant context.",
@@ -88,12 +152,26 @@ BACKEND_ACCEPTANCE_CRITERIA = [
 
 
 class BackendWorkstreamTransitionError(ValueError):
-    """Raised when a backend workstream activation is unsafe."""
+    """Raised when a backend workstream transition is unsafe."""
 
 
 def _require(condition: bool, message: str) -> None:
     if not condition:
         raise BackendWorkstreamTransitionError(message)
+
+
+def _valid_sha(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and re.fullmatch(r"[0-9a-f]{40}", value) is not None
+    )
+
+
+def _valid_fingerprint(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and re.fullmatch(r"[0-9a-f]{64}", value) is not None
+    )
 
 
 def _build_backend_gate_plan(
@@ -102,10 +180,21 @@ def _build_backend_gate_plan(
     baseline_sha: str,
     evidence_path: str,
 ) -> dict[str, Any]:
+    stage_acceptance = {
+        "B1": B1_ACCEPTANCE_CRITERIA,
+        "B2-FOUNDATION": B2_FOUNDATION_ACCEPTANCE_CRITERIA,
+        "B3": B3_ACCEPTANCE_CRITERIA,
+        "B4": B4_ACCEPTANCE_CRITERIA,
+        "B2-PRODUCTION-BINDING": (
+            B2_PRODUCTION_BINDING_ACCEPTANCE_CRITERIA
+        ),
+    }
+
     subtasks: list[dict[str, Any]] = []
 
-    for index, (stage_id, title, priority) in enumerate(BACKEND_STAGES):
+    for stage_id, title, priority in BACKEND_STAGES:
         status = "PENDING"
+
         if stage_id == "B0":
             status = "DONE"
         elif stage_id == "B1":
@@ -125,11 +214,11 @@ def _build_backend_gate_plan(
                 f"{evidence_path}; baseline {baseline_sha}. "
                 "No backend source code was modified during B0."
             )
-        elif stage_id == "B1":
-            # Keep the active subtask's criteria distinct from the full
-            # backend gate criteria. Control Center projects these onto
-            # execution.current_acceptance_criteria.
-            item["acceptance_criteria"] = list(B1_ACCEPTANCE_CRITERIA)
+
+        if stage_id in stage_acceptance:
+            item["acceptance_criteria"] = list(
+                stage_acceptance[stage_id]
+            )
 
         subtasks.append(item)
 
@@ -152,7 +241,8 @@ def _build_backend_gate_plan(
         "name": "Unified HOMIO / REOS Backend",
         "objective": (
             "Establish and verify one unified public backend through "
-            "the B0-B10 sequence in HOMIO_Backend_Structure."
+            "the guarded B0-B10 sequence and B2 production dependency "
+            "correction in HOMIO_Backend_Structure."
         ),
         "status": "CURRENT",
         "current_subtask": f"{BACKEND_GATE_ID}-B1",
@@ -168,7 +258,7 @@ def _build_backend_gate_plan(
             "REOS_CONTROL_CENTER/architecture/backend/plans/"
             "HOMIO_Backend_Structure"
         ),
-        "technical_sequence": "B0-B10",
+        "technical_sequence": BACKEND_TECHNICAL_SEQUENCE,
         "workstream": "BACKEND",
         "baseline": {
             "repository_head": baseline_sha,
@@ -197,9 +287,9 @@ def activate_backend_workstream_state(
     """
     _require(isinstance(state, dict), "Canonical state must be an object.")
     _require(bool(timestamp), "Transition timestamp is required.")
-    _require(len(baseline_sha) == 40, "Invalid baseline commit SHA.")
-    _require(len(master_blob_sha) == 40, "Invalid backend master blob SHA.")
-    _require(len(work_plan_blob_sha) == 40, "Invalid work-plan blob SHA.")
+    _require(_valid_sha(baseline_sha), "Invalid baseline commit SHA.")
+    _require(_valid_sha(master_blob_sha), "Invalid backend master blob SHA.")
+    _require(_valid_sha(work_plan_blob_sha), "Invalid work-plan blob SHA.")
 
     execution = state.get("execution")
     _require(isinstance(execution, dict), "Canonical execution object missing.")
@@ -301,7 +391,7 @@ def activate_backend_workstream_state(
         "AI-001 or APP-001 is missing from the authoritative sequence.",
     )
     _require(
-        "BACKEND-001" not in gates,
+        BACKEND_GATE_ID not in gates,
         "BACKEND-001 already exists in the authoritative sequence.",
     )
 
@@ -402,7 +492,7 @@ def activate_backend_workstream_state(
         "Approval actor is not the repository owner.",
     )
     _require(
-        approval_record.get("source_commit"),
+        bool(approval_record.get("source_commit")),
         "Owner approval source commit is missing.",
     )
     _require(
@@ -557,7 +647,7 @@ def activate_backend_workstream_state(
                 "HOMIO_Backend_Structure"
             ),
             "delivery_contract": "REOS_CONTROL_CENTER/plan for work",
-            "sequence": "B0-B10",
+            "sequence": BACKEND_TECHNICAL_SEQUENCE,
             "architecture_reconciliation": "ARCH-039",
         },
         "source_baseline": {
@@ -609,5 +699,387 @@ def activate_backend_workstream_state(
     }
 
     candidate["change_requests"].append(change_request)
+
+    return candidate
+
+
+def correct_backend_b2_dependency_state(
+    state: dict[str, Any],
+    *,
+    timestamp: str,
+    baseline_sha: str,
+    master_blob_sha: str,
+    approval_record: dict[str, Any],
+    t15_report: dict[str, Any],
+    t17_report: dict[str, Any],
+    authorization: dict[str, Any],
+) -> dict[str, Any]:
+    """Return a new, validated state with the corrected B2 dependency order.
+
+    The existing Control Center remains the only persistence owner.
+    This function is deterministic and does not mutate the input state.
+    The guarded runner separately completes B2-FOUNDATION through the
+    Control Center after the exact-SHA verification job succeeds.
+    """
+    _require(isinstance(state, dict), "Canonical state must be an object.")
+    _require(bool(timestamp), "Transition timestamp is required.")
+    _require(_valid_sha(baseline_sha), "Invalid source baseline SHA.")
+    _require(_valid_sha(master_blob_sha), "Invalid corrected master blob SHA.")
+
+    execution = state.get("execution")
+    _require(isinstance(execution, dict), "Canonical execution object missing.")
+    _require(
+        execution.get("current_gate") == BACKEND_GATE_ID,
+        "BACKEND-001 must remain the current gate.",
+    )
+    _require(
+        execution.get("current_subtask") == f"{BACKEND_GATE_ID}-B2",
+        "Only the currently active original B2 can be re-sequenced.",
+    )
+    _require(
+        execution.get("status") == "CONTROL_CENTER_DRIVEN",
+        "Unexpected execution status; refusing dependency correction.",
+    )
+
+    gate_plans = state.get("gate_plans")
+    _require(isinstance(gate_plans, dict), "Canonical gate_plans missing.")
+
+    gate = gate_plans.get(BACKEND_GATE_ID)
+    _require(isinstance(gate, dict), "BACKEND-001 gate plan is missing.")
+    _require(
+        gate.get("status") == "CURRENT",
+        "BACKEND-001 gate must remain CURRENT.",
+    )
+    _require(
+        gate.get("current_subtask") == f"{BACKEND_GATE_ID}-B2",
+        "Gate current_subtask does not match the active B2 task.",
+    )
+
+    raw_subtasks = gate.get("subtasks")
+    _require(isinstance(raw_subtasks, list), "Backend subtasks must be a list.")
+    _require(
+        all(isinstance(item, dict) for item in raw_subtasks),
+        "Backend subtasks contain a malformed entry.",
+    )
+
+    subtask_ids = [item.get("id") for item in raw_subtasks]
+    _require(
+        all(isinstance(value, str) and value for value in subtask_ids),
+        "Backend subtask IDs must be non-empty strings.",
+    )
+    _require(
+        len(subtask_ids) == len(set(subtask_ids)),
+        "Backend subtasks contain duplicate identifiers.",
+    )
+
+    legacy_ids = {
+        f"{BACKEND_GATE_ID}-B{number}"
+        for number in range(0, 11)
+    }
+    _require(
+        set(subtask_ids) == legacy_ids,
+        "Backend subtask inventory is not the exact audited B0-B10 baseline.",
+    )
+
+    subtasks = {
+        item["id"]: item
+        for item in raw_subtasks
+    }
+
+    expected_statuses = {
+        f"{BACKEND_GATE_ID}-B0": "DONE",
+        f"{BACKEND_GATE_ID}-B1": "DONE",
+        f"{BACKEND_GATE_ID}-B2": "CURRENT",
+        **{
+            f"{BACKEND_GATE_ID}-B{number}": "PENDING"
+            for number in range(3, 11)
+        },
+    }
+
+    for subtask_id, expected_status in expected_statuses.items():
+        _require(
+            subtasks[subtask_id].get("status") == expected_status,
+            f"{subtask_id} must be {expected_status} before correction.",
+        )
+
+    criteria_state = gate.get("criteria_state")
+    _require(
+        isinstance(criteria_state, list)
+        and len(criteria_state) == len(BACKEND_ACCEPTANCE_CRITERIA),
+        "Backend gate-level acceptance criteria inventory changed.",
+    )
+    _require(
+        all(
+            isinstance(item, dict)
+            and item.get("status") == "PENDING"
+            and item.get("evidence") is None
+            and item.get("verified_at") is None
+            for item in criteria_state
+        ),
+        "Gate-level acceptance criteria must remain entirely PENDING.",
+    )
+
+    _require(
+        isinstance(approval_record, dict),
+        "OIDC-verified owner approval record is missing.",
+    )
+    _require(
+        approval_record.get("actor") == "prajaktaranjane80-sketch",
+        "Approval actor is not the repository owner.",
+    )
+    _require(
+        _valid_sha(approval_record.get("source_commit")),
+        "Approval source commit is invalid.",
+    )
+    _require(
+        _valid_sha(approval_record.get("state_blob_sha")),
+        "Baseline state blob SHA is invalid.",
+    )
+    _require(
+        approval_record.get("oidc_issuer")
+        == "https://token.actions.githubusercontent.com",
+        "Approval OIDC issuer is invalid.",
+    )
+    _require(
+        isinstance(approval_record.get("oidc_subject"), str)
+        and bool(approval_record["oidc_subject"]),
+        "Approval OIDC subject is missing.",
+    )
+    _require(
+        isinstance(approval_record.get("actions_run_id"), str)
+        and bool(approval_record["actions_run_id"]),
+        "Actions run ID is missing from approval evidence.",
+    )
+
+    _require(
+        isinstance(t15_report, dict)
+        and t15_report.get("decision") == "PROPOSE"
+        and t15_report.get("execution_authorized") is False
+        and _valid_fingerprint(t15_report.get("request_fingerprint")),
+        "T15 bounded proposal is missing or invalid.",
+    )
+    _require(
+        isinstance(t17_report, dict)
+        and t17_report.get("decision") == "ANALYZE"
+        and t17_report.get("ready_for_handoff") is True
+        and not t17_report.get("unknown_paths")
+        and not t17_report.get("protected_paths")
+        and _valid_fingerprint(t17_report.get("fingerprint"))
+        and isinstance(t17_report.get("changed_paths"), (list, tuple))
+        and bool(t17_report.get("changed_paths")),
+        "T17 exact-path impact report is not clear for handoff.",
+    )
+    _require(
+        isinstance(authorization, dict)
+        and authorization.get("decision") == "AUTHORIZE"
+        and authorization.get("execution_authorized") is True
+        and authorization.get("state_mutated") is False
+        and authorization.get("requires_external_executor") is True
+        and _valid_fingerprint(
+            authorization.get("authorization_fingerprint")
+        ),
+        "T18 has not authorized the bounded external transition.",
+    )
+
+    existing_requests = state.get("change_requests", [])
+    _require(
+        isinstance(existing_requests, list),
+        "Canonical change_requests must be a list.",
+    )
+    _require(
+        not any(
+            isinstance(item, dict)
+            and item.get("id") == BACKEND_B2_DEPENDENCY_CHANGE_REQUEST_ID
+            for item in existing_requests
+        ),
+        "B2 dependency correction request already exists.",
+    )
+
+    foundation = copy.deepcopy(subtasks[f"{BACKEND_GATE_ID}-B2"])
+    foundation["id"] = f"{BACKEND_GATE_ID}-B2-FOUNDATION"
+    foundation["title"] = (
+        "API security and trusted context — foundation"
+    )
+    foundation["status"] = "CURRENT"
+    foundation["acceptance_criteria"] = list(
+        B2_FOUNDATION_ACCEPTANCE_CRITERIA
+    )
+
+    production_binding: dict[str, Any] = {
+        "id": f"{BACKEND_GATE_ID}-B2-PRODUCTION-BINDING",
+        "title": (
+            "API security and trusted context — production binding"
+        ),
+        "priority": "CRITICAL",
+        "status": "PENDING",
+        "acceptance_criteria": list(
+            B2_PRODUCTION_BINDING_ACCEPTANCE_CRITERIA
+        ),
+    }
+
+    candidate = copy.deepcopy(state)
+    candidate_gate = candidate["gate_plans"][BACKEND_GATE_ID]
+
+    corrected_subtasks: list[dict[str, Any]] = []
+
+    for original in raw_subtasks:
+        stage_id = original["id"].removeprefix(
+            f"{BACKEND_GATE_ID}-"
+        )
+
+        if stage_id == "B2":
+            corrected_subtasks.append(foundation)
+            continue
+
+        item = copy.deepcopy(original)
+
+        if stage_id == "B3":
+            item["acceptance_criteria"] = list(
+                B3_ACCEPTANCE_CRITERIA
+            )
+        elif stage_id == "B4":
+            item["acceptance_criteria"] = list(
+                B4_ACCEPTANCE_CRITERIA
+            )
+
+        corrected_subtasks.append(item)
+
+        if stage_id == "B4":
+            corrected_subtasks.append(
+                copy.deepcopy(production_binding)
+            )
+
+    expected_order = [
+        f"{BACKEND_GATE_ID}-{stage_id}"
+        for stage_id, _, _ in BACKEND_STAGES
+    ]
+
+    actual_order = [
+        item["id"]
+        for item in corrected_subtasks
+    ]
+
+    _require(
+        actual_order == expected_order,
+        "Corrected B2 dependency stage order is inconsistent.",
+    )
+
+    candidate_gate["subtasks"] = corrected_subtasks
+    candidate_gate["current_subtask"] = (
+        f"{BACKEND_GATE_ID}-B2-FOUNDATION"
+    )
+    candidate_gate["technical_sequence"] = (
+        BACKEND_TECHNICAL_SEQUENCE
+    )
+
+    candidate["execution"]["current_subtask"] = (
+        f"{BACKEND_GATE_ID}-B2-FOUNDATION"
+    )
+    candidate["execution"]["current_task"] = (
+        f"{BACKEND_GATE_ID}-B2-FOUNDATION: "
+        "API security and trusted context — foundation."
+    )
+    candidate["execution"]["status"] = "CONTROL_CENTER_DRIVEN"
+    candidate["execution"]["current_acceptance_criteria"] = list(
+        B2_FOUNDATION_ACCEPTANCE_CRITERIA
+    )
+
+    candidate.setdefault("change_requests", [])
+
+    candidate["change_requests"].append(
+        {
+            "id": BACKEND_B2_DEPENDENCY_CHANGE_REQUEST_ID,
+            "type": "STAGE_DEPENDENCY_CORRECTION",
+            "title": (
+                "Correct B2 production dependencies without "
+                "prematurely enabling protected customer routes"
+            ),
+            "status": "APPROVED",
+            "requested_at": timestamp,
+            "approved_at": timestamp,
+            "requested_by": approval_record["actor"],
+            "approved_by": approval_record["actor"],
+            "scope": {
+                "gate": BACKEND_GATE_ID,
+                "previous_active_subtask": (
+                    f"{BACKEND_GATE_ID}-B2"
+                ),
+                "foundation_subtask": (
+                    f"{BACKEND_GATE_ID}-B2-FOUNDATION"
+                ),
+                "production_binding_subtask": (
+                    f"{BACKEND_GATE_ID}-B2-PRODUCTION-BINDING"
+                ),
+                "production_binding_position": "AFTER_B3_AND_B4",
+                "technical_sequence": BACKEND_TECHNICAL_SEQUENCE,
+                "customer_protected_routes_enabled": False,
+            },
+            "source_baseline": {
+                "repository_head": baseline_sha,
+                "source_commit": approval_record["source_commit"],
+                "state_blob_sha": approval_record["state_blob_sha"],
+                "corrected_backend_master_blob_sha": master_blob_sha,
+            },
+            "impact_review": {
+                "decision": t17_report["decision"],
+                "fingerprint": t17_report["fingerprint"],
+                "changed_paths": list(t17_report["changed_paths"]),
+                "unknown_paths": list(t17_report["unknown_paths"]),
+                "protected_paths": list(t17_report["protected_paths"]),
+            },
+            "operator_proposal": {
+                "decision": t15_report["decision"],
+                "request_fingerprint": (
+                    t15_report["request_fingerprint"]
+                ),
+                "proposal": t15_report["proposal"],
+            },
+            "execution_authorization": {
+                "decision": authorization["decision"],
+                "authorization_fingerprint": (
+                    authorization["authorization_fingerprint"]
+                ),
+                "request_fingerprint": (
+                    authorization["request_fingerprint"]
+                ),
+                "external_executor_required": True,
+                "state_mutated_by_guard": False,
+            },
+            "owner_approval": {
+                "method": "GitHub Actions OIDC + repository-owner push",
+                "actor": approval_record["actor"],
+                "actor_id": approval_record.get("actor_id"),
+                "source_commit": approval_record["source_commit"],
+                "repository_id": approval_record.get("repository_id"),
+                "owner_id": approval_record.get("owner_id"),
+                "oidc_issuer": approval_record["oidc_issuer"],
+                "oidc_subject": approval_record["oidc_subject"],
+                "actions_run_id": approval_record["actions_run_id"],
+                "commit_prefix": (
+                    "[CONTROL-CENTER-CORRECT-BACKEND-001-B2-DEPENDENCIES]"
+                ),
+                "bearer_token_persisted": False,
+            },
+            "security_ownership_boundary": {
+                "oidc_verification": (
+                    "Existing AUTONOMY_ENGINE OIDCVerifier"
+                ),
+                "identity_membership": "Existing CORE-001 owner",
+                "membership_t03": (
+                    "Remains a grants/prerequisites data contract; "
+                    "it is not converted into an authorization decision engine."
+                ),
+                "resource_action_decisions": (
+                    "Must use one contract-governed decision owner "
+                    "within the existing CORE-001 authority before "
+                    "B2 production binding can pass."
+                ),
+                "session_rate_limit_audit_persistence": (
+                    "Existing B4 persistence boundary"
+                ),
+                "acrl_runtime_use": False,
+            },
+        }
+    )
 
     return candidate
