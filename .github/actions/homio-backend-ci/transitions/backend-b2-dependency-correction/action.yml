@@ -1,0 +1,17 @@
+name: Guarded BACKEND-001 B2 Dependency Correction
+description: >
+  Verifies the owner-approved B2 dependency correction through T15, T17
+  and T18, then uses the canonical Control Center to close only the
+  already-verified B2 foundation and move execution to B3.
+
+runs:
+  using: composite
+
+  steps:
+    - name: Execute guarded B2 dependency correction
+      shell: bash
+      env:
+        PYTHONDONTWRITEBYTECODE: "1"
+      run: |
+        set -euo pipefail
+        python "$GITHUB_ACTION_PATH/scripts/guarded_transition.py"
