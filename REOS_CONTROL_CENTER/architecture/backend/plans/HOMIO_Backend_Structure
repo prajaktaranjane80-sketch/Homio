@@ -2546,30 +2546,131 @@ Required scope:
 - Graceful shutdown is tested.
 - No duplicate public API application exists.
 
-### B2 — API security and trusted context
+### B2-FOUNDATION — API security and trusted context foundation
 
-**Goal:** Ensure every protected API enforces identity and tenant security before domain operations.
+**Goal:** Establish the single Fastify API security boundary and its strict contracts without exposing protected customer routes prematurely.
 
 Required scope:
 
-- Integrate CORE-001 and the approved identity provider.
-- Verify authentication and session validity.
-- Resolve trusted actor and tenant context.
-- Enforce resource and action permissions.
-- Enforce revocation.
-- Add CSRF controls where applicable.
-- Add rate and abuse limits.
-- Add input validation.
-- Add PII-safe logging and audit.
-- Fail closed on authorization dependency failure.
+- Reuse the existing Fastify `/api/v1` security guard.
+- Enforce bearer authentication before protected handlers.
+- Project only verified principal and trusted context fields.
+- Keep actor, account, tenant, organization and membership identifiers server-derived.
+- Require valid route security metadata and mutation schemas.
+- Require all six security adapter ports.
+- Preserve fail-closed behavior when any required adapter is absent.
+- Reauthorize protected mutations immediately before handlers.
+- Preserve PII-minimized audit event contracts.
+- Preserve the existing negative and boundary regression tests.
 
 **Exit condition:**
 
-- Authenticated access works.
-- Buyer, broker, builder and privileged roles are isolated under approved policies.
-- Cross-tenant negative tests pass.
-- Revocation and unauthorized-action tests pass.
-- No second identity or tenant registry is introduced.
+- The single Fastify security boundary is tested.
+- Missing or incomplete security adapters prevent protected route mounting.
+- Invalid bearer credentials are rejected.
+- Caller-controlled cookies and identity headers are not trusted.
+- Route metadata and mutation reauthorization are enforced.
+- Existing API security and adapter-boundary regression tests pass.
+- No production readiness or protected customer-route exposure is claimed.
+
+### B3 — Python domain-runtime bridge
+
+**Goal:** Let the TypeScript API invoke existing Python domain owners safely.
+
+Required scope:
+
+- Inspect existing runtime hosting and dependency decisions.
+- Define versioned private request/response contracts.
+- Enforce service-to-service authentication.
+- Propagate trusted actor, tenant and correlation context.
+- Validate serialized data.
+- Define timeout, cancellation and failure classification.
+- Prevent public unauthenticated access.
+- Add TypeScript/Python contract tests.
+- Reconcile ambiguous mutation outcomes with durable idempotency identity.
+
+**Exit condition:**
+
+- Private runtime bridge is authenticated.
+- Contract versions are compatible.
+- Authorization context is preserved.
+- Timeout and failure behavior is tested.
+- No Python business logic is copied into TypeScript.
+- No second public Python API exists.
+
+### B4 — PostgreSQL integration
+
+**Goal:** Establish approved persistent business data integration without creating a parallel data model.
+
+Required scope:
+
+- Re-read ARCH-037 and the approved schema.
+- Inspect actual database source and migrations.
+- Reuse canonical schema and ownership.
+- Implement only authorized migrations.
+- Validate migration checksums and ordering.
+- Implement approved repository and transaction patterns.
+- Apply tenant policies.
+- Enforce uniqueness and referential integrity.
+- Define fixed-precision financial semantics.
+- Test supported upgrade and recovery paths.
+- Verify backup and restore in the target environment.
+
+**Exit condition:**
+
+- Approved schema is implemented and migratable.
+- Tenant protections are tested against the target database.
+- Transaction boundaries are explicit.
+- Financial types are safe.
+- Backup/restore evidence exists for release-critical paths.
+- No second schema authority exists.
+
+### B2-PRODUCTION-BINDING — API security and trusted context production binding
+
+**Goal:** Connect the six real production security adapters after B3 and B4 have established their required private runtime and persistence dependencies.
+
+Required scope:
+
+1. Existing approved OIDC access-token verifier.
+2. Durable session and revocation validation.
+3. CORE-001 trusted identity, tenant and active membership resolution.
+4. CORE-001 resource/action authorization decisions.
+5. Shared/distributed rate-limit enforcement.
+6. Durable PII-minimized security audit persistence.
+
+Ownership constraints:
+
+- Use the existing Fastify security boundary.
+- Use the existing OIDC verifier.
+- Use the existing CORE-001 identity and membership authority.
+- CORE-001 T03 remains a grants/prerequisites data contract; do not turn it into a competing authorization engine.
+- Any missing CORE-001 resource/action decision contract must be formalized through the existing CORE-001 owner and its guarded change-control boundary before production binding.
+- Use the B3 authenticated private runtime bridge.
+- Use the B4 approved persistence boundary.
+- Do not use ACRL as customer authentication or authorization runtime.
+
+Required security verification:
+
+- Buyer, broker, builder and privileged-role isolation.
+- Cross-tenant denial.
+- Revoked-session denial.
+- Unauthorized resource/action denial.
+- Mutation reauthorization before protected handlers.
+- Shared rate-limit enforcement across instances.
+- Audit persistence before protected handlers.
+- Invalid credentials and dependency outage fail closed.
+- No raw bearer token, password, unnecessary PII or frontend cookie is persisted or trusted.
+- No production mock, no-op adapter or in-process-only security store remains.
+
+**Exit condition:**
+
+- All six real adapters are connected.
+- Production integration tests pass.
+- Adversarial and cross-tenant security tests pass.
+- Dependency failure tests prove fail-closed behavior.
+- Exact-SHA backend verification passes.
+- The guarded Control Center completion transition and remote readback pass.
+- Only then may the complete B2 objective be declared DONE.
 
 ### B3 — Python domain-runtime bridge
 
@@ -2802,13 +2903,14 @@ A green development workflow alone is not a B10 pass.
 
 The technical sequence is:
 
-`B0 → B1 → B2 → B3 → B4 → B5 → B6 → B7 → B8 → B9 → B10`
+`B0 → B1 → B2-FOUNDATION → B3 → B4 → B2-PRODUCTION-BINDING → B5 → B6 → B7 → B8 → B9 → B10`
 
 Read-only investigations may overlap when authorized. Implementation must not skip a prerequisite merely to work faster.
 
 Examples:
 
 - Do not expose customer routes before trusted security context is established.
+- Do not bind production B2 adapters before the B3 authenticated bridge and B4 durable persistence are verified.
 - Do not persist new business entities before checking the approved schema and canonical owner.
 - Do not invoke Python domain logic without a versioned, authenticated private contract.
 - Do not publish state-changing events without transaction and idempotency design.
