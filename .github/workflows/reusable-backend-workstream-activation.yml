@@ -1,4 +1,4 @@
-name: Reusable Guarded Backend Workstream Activation
+name: Reusable Guarded Backend Workstream Transitions
 
 on:
   workflow_call:
@@ -9,6 +9,15 @@ permissions:
 jobs:
   activate_backend:
     name: Owner-authorized BACKEND-001 activation
+    if: >-
+      ${{
+        github.event_name == 'push' &&
+        github.ref == 'refs/heads/reos-development' &&
+        startsWith(
+          github.event.head_commit.message,
+          '[CONTROL-CENTER-ACTIVATE-BACKEND-001]'
+        )
+      }}
     runs-on: ubuntu-latest
 
     permissions:
@@ -50,5 +59,61 @@ jobs:
           python -m pip install --disable-pip-version-check \
             -r REOS_CONTROL_CENTER/requirements-auth.txt
 
-      - name: Execute T15-T17-T18 guarded Control Center transition
+      - name: Execute T15-T17-T18 guarded backend activation
         uses: ./.github/actions/homio-backend-ci/transitions/backend-workstream-activation
+
+  correct_backend_b2_dependencies:
+    name: Owner-authorized B2 dependency correction
+    if: >-
+      ${{
+        github.event_name == 'push' &&
+        github.ref == 'refs/heads/reos-development' &&
+        startsWith(
+          github.event.head_commit.message,
+          '[CONTROL-CENTER-CORRECT-BACKEND-001-B2-DEPENDENCIES]'
+        )
+      }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      id-token: write
+
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+      EXPECTED_SHA: ${{ github.sha }}
+      VERIFIED_CODE_SHA: ${{ github.sha }}
+      ACTIONS_RUN_ID: ${{ github.run_id }}
+      ACTIONS_RUN_ATTEMPT: ${{ github.run_attempt }}
+      ACTIONS_SERVER_URL: ${{ github.server_url }}
+      ACTIONS_REPOSITORY: ${{ github.repository }}
+
+    steps:
+      - name: Preserve Git line-ending behavior
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global core.autocrlf false
+          git config --global core.eol native
+
+      - name: Checkout exact owner-approved source commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+
+      - name: Install existing authentication dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check \
+            -r REOS_CONTROL_CENTER/requirements-auth.txt
+
+      - name: Execute guarded B2 dependency correction
+        uses: ./.github/actions/homio-backend-ci/transitions/backend-b2-dependency-correction
