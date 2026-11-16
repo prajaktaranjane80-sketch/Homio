@@ -1,4 +1,3 @@
-
 import importlib.util
 import sys
 from pathlib import Path
@@ -17,6 +16,7 @@ from AUTONOMY_ENGINE.continuity.acrl.T17_Change_Impact_Dependency_Analysis.chang
 from AUTONOMY_ENGINE.continuity.acrl.T16_Repository_Intelligence_File_Discovery.repository_intelligence import (
     FileAuthority,
     FileRisk,
+    SourceKind,
 )
 
 
@@ -90,6 +90,26 @@ def test_existing_unknown_classification_blocks(tmp_path):
     assert report.decision == T17Decision.BLOCKED
     assert report.unknown_paths == ("opaque.payload",)
     assert report.impacts[0].impact_level == ImpactLevel.UNKNOWN
+    assert report.ready_for_handoff is False
+
+
+def test_unregistered_extensionless_file_remains_unknown(tmp_path):
+    root = build_repo(tmp_path / "repo")
+    opaque = root / "unregistered_extensionless_file"
+
+    opaque.write_text(
+        "This is not the canonical backend master.\n",
+        encoding="utf-8",
+    )
+
+    report = ChangeImpactAnalyzer(root).analyze(
+        ("unregistered_extensionless_file",)
+    )
+
+    assert report.decision == T17Decision.BLOCKED
+    assert report.unknown_paths == (
+        "unregistered_extensionless_file",
+    )
     assert report.ready_for_handoff is False
 
 
@@ -213,6 +233,60 @@ def test_shell_symlink_remains_blocked_by_repository_boundary(tmp_path):
         ChangeImpactAnalyzer(root).analyze(
             ("untrusted.sh",)
         )
+
+
+def test_exact_extensionless_backend_master_is_known_documentation(
+    tmp_path,
+):
+    root = build_repo(tmp_path / "repo")
+
+    relative_path = (
+        "REOS_CONTROL_CENTER/architecture/backend/plans/"
+        "HOMIO_Backend_Structure"
+    )
+
+    master = root / relative_path
+    master.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    master.write_text(
+        "# HOMIO Backend Structure\n\n"
+        "Canonical backend architecture and dependency contract.\n",
+        encoding="utf-8",
+    )
+
+    adapter = T17RepositoryIntelligenceAdapter(root)
+
+    classified = next(
+        item
+        for item in adapter.files()
+        if item.relative_path == relative_path
+    )
+
+    assert classified.source_kind == SourceKind.DOCUMENTATION
+    assert classified.authority == FileAuthority.DERIVED
+    assert classified.risk == FileRisk.NORMAL
+    assert classified.is_symlink is False
+
+    analyzer = ChangeImpactAnalyzer(root)
+    report = analyzer.analyze((relative_path,))
+    analyzer.validate_report(report)
+
+    assert report.decision == T17Decision.ANALYZE
+    assert report.unknown_paths == ()
+    assert report.protected_paths == ()
+    assert report.ready_for_handoff is True
+
+    impact = next(
+        item
+        for item in report.impacts
+        if item.relative_path == relative_path.lower()
+    )
+
+    assert impact.impact_level == ImpactLevel.DIRECT
+    assert impact.source_kind == SourceKind.DOCUMENTATION.value
+    assert impact.authority == FileAuthority.DERIVED
 
 
 def test_exact_backend_activation_inventory_is_t17_handoff_ready():
