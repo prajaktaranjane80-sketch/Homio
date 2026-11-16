@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from dataclasses import replace
@@ -76,6 +75,18 @@ class _T17SourceKind(str, Enum):
     SHELL = "SHELL"
 
 
+# T16 classifies files using their filename suffix. This canonical backend
+# master intentionally has no suffix, although its contents are Markdown.
+#
+# Match only this exact repository-relative path. This is a file-format
+# classification for T17 impact analysis; it does not change the document's
+# project authority or permit state/architecture mutation.
+EXTENSIONLESS_BACKEND_MASTER_PATH = normalize_repository_path(
+    "REOS_CONTROL_CENTER/architecture/backend/plans/"
+    "HOMIO_Backend_Structure"
+)
+
+
 class T17RepositoryIntelligenceAdapter:
     def __init__(
         self,
@@ -95,9 +106,40 @@ class T17RepositoryIntelligenceAdapter:
         normalized: list[RepositoryFile] = []
 
         for item in discovered:
+            relative_path = normalize_repository_path(
+                item.relative_path
+            )
+
             suffix = Path(
                 item.relative_path
             ).suffix.lower()
+
+            is_default_unknown = (
+                item.source_kind == SourceKind.UNKNOWN
+                and item.authority == FileAuthority.UNKNOWN
+                and item.risk == FileRisk.UNKNOWN
+            )
+
+            # This exact extensionless Markdown master is equivalent to a
+            # documentation file for T17 classification purposes.
+            #
+            # Reclassify only the exact regular file when T16 emitted its
+            # default all-UNKNOWN result. Never override symlinks, protected
+            # paths, sensitive files or an existing explicit classification.
+            if (
+                relative_path == EXTENSIONLESS_BACKEND_MASTER_PATH
+                and not item.is_symlink
+                and is_default_unknown
+            ):
+                item = replace(
+                    item,
+                    source_kind=SourceKind.DOCUMENTATION,
+                    authority=FileAuthority.DERIVED,
+                    risk=FileRisk.NORMAL,
+                )
+
+                normalized.append(item)
+                continue
 
             # T16 1.1 currently reports regular .sh/.bash files as
             # UNKNOWN because its source-kind registry has no shell
@@ -109,9 +151,7 @@ class T17RepositoryIntelligenceAdapter:
             if (
                 suffix in {".sh", ".bash"}
                 and not item.is_symlink
-                and item.source_kind == SourceKind.UNKNOWN
-                and item.authority == FileAuthority.UNKNOWN
-                and item.risk == FileRisk.UNKNOWN
+                and is_default_unknown
             ):
                 item = replace(
                     item,
