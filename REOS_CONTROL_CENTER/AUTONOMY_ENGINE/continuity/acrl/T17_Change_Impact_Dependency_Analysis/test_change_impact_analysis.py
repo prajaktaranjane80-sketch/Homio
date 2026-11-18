@@ -1,4 +1,6 @@
+import ast
 import importlib.util
+import subprocess
 import sys
 from pathlib import Path
 
@@ -235,7 +237,108 @@ def test_shell_symlink_remains_blocked_by_repository_boundary(tmp_path):
         )
 
 
-def test_exact_extensionless_backend_master_is_known_documentation(
+def test_typescript_backend_sources_and_tests_are_classified_safely(
+    tmp_path,
+):
+    root = build_repo(tmp_path / "repo")
+
+    source = (
+        root
+        / "backend"
+        / "src"
+        / "security"
+        / "api-security.ts"
+    )
+    source.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    source.write_text(
+        "export const securityBoundary = true;\n",
+        encoding="utf-8",
+    )
+
+    test_file = (
+        root
+        / "backend"
+        / "tests"
+        / "api-security.test.ts"
+    )
+    test_file.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    test_file.write_text(
+        "import { describe, it } from 'vitest';\n",
+        encoding="utf-8",
+    )
+
+    adapter = T17RepositoryIntelligenceAdapter(root)
+    classified = {
+        item.relative_path: item
+        for item in adapter.files()
+    }
+
+    source_item = classified[
+        "backend/src/security/api-security.ts"
+    ]
+    test_item = classified[
+        "backend/tests/api-security.test.ts"
+    ]
+
+    assert source_item.source_kind.value == "TYPESCRIPT"
+    assert source_item.authority == FileAuthority.AUTHORITATIVE
+    assert source_item.risk == FileRisk.NORMAL
+    assert source_item.is_symlink is False
+
+    assert test_item.source_kind == SourceKind.TEST
+    assert test_item.authority == FileAuthority.DERIVED
+    assert test_item.risk == FileRisk.NORMAL
+    assert test_item.is_symlink is False
+
+    analyzer = ChangeImpactAnalyzer(root)
+    report = analyzer.analyze(
+        (
+            "backend/src/security/api-security.ts",
+            "backend/tests/api-security.test.ts",
+        )
+    )
+    analyzer.validate_report(report)
+
+    assert report.decision == T17Decision.ANALYZE
+    assert report.unknown_paths == ()
+    assert report.protected_paths == ()
+    assert report.ready_for_handoff is True
+
+
+def test_typescript_symlink_remains_blocked_by_repository_boundary(
+    tmp_path,
+):
+    root = build_repo(tmp_path / "repo")
+    outside = tmp_path / "outside.ts"
+    outside.write_text(
+        "export const secret = true;\n",
+        encoding="utf-8",
+    )
+
+    link = root / "untrusted.ts"
+    try:
+        link.symlink_to(outside)
+    except (OSError, NotImplementedError) as exc:
+        pytest.skip(
+            f"Platform does not support symlink creation: {exc}"
+        )
+
+    with pytest.raises(
+        ChangeImpactSecurityError,
+        match="Changed path escapes repository boundary",
+    ):
+        ChangeImpactAnalyzer(root).analyze(
+            ("untrusted.ts",)
+        )
+
+
+def test_exact_backend_master_is_known_documentation(
     tmp_path,
 ):
     root = build_repo(tmp_path / "repo")
@@ -341,3 +444,121 @@ def test_exact_backend_activation_inventory_is_t17_handoff_ready():
     assert report.decision == T17Decision.ANALYZE
     assert report.protected_paths == ()
     assert report.unknown_paths == ()
+
+
+def _guard_literal_assignment(
+    tree: ast.Module,
+    name: str,
+):
+    for node in tree.body:
+        if not isinstance(node, ast.Assign):
+            continue
+
+        matches = any(
+            isinstance(target, ast.Name)
+            and target.id == name
+            for target in node.targets
+        )
+
+        if matches:
+            return node.value
+
+    raise AssertionError(
+        f"Required guarded-transition constant is missing: {name}"
+    )
+
+
+def test_b2_dependency_correction_inventory_matches_guard_and_t17():
+    repository_root = Path(__file__).resolve().parents[5]
+
+    guard_path = (
+        repository_root
+        / ".github/actions/homio-backend-ci/transitions/"
+        / "backend-b2-dependency-correction/scripts/"
+        / "guarded_transition.py"
+    )
+
+    assert guard_path.is_file()
+
+    guard_tree = ast.parse(
+        guard_path.read_text(encoding="utf-8"),
+        filename=str(guard_path),
+    )
+
+    baseline_head = ast.literal_eval(
+        _guard_literal_assignment(
+            guard_tree,
+            "BASELINE_HEAD",
+        )
+    )
+
+    master_path = ast.literal_eval(
+        _guard_literal_assignment(
+            guard_tree,
+            "MASTER_PATH",
+        )
+    )
+
+    expected_paths_node = _guard_literal_assignment(
+        guard_tree,
+        "EXPECTED_SOURCE_PATHS",
+    )
+
+    assert isinstance(expected_paths_node, ast.Set)
+
+    expected_paths = set()
+
+    for element in expected_paths_node.elts:
+        if (
+            isinstance(element, ast.Name)
+            and element.id == "MASTER_PATH"
+        ):
+            expected_paths.add(master_path)
+        else:
+            expected_paths.add(
+                ast.literal_eval(element)
+            )
+
+    changed = subprocess.run(
+        [
+            "git",
+            "diff",
+            "--name-only",
+            baseline_head,
+            "HEAD",
+        ],
+        cwd=repository_root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    actual_paths = set(
+        changed.stdout.splitlines()
+    )
+
+    assert actual_paths == expected_paths, (
+        "B2 dependency correction source-path inventory differs from "
+        "the guarded exact-SHA allowlist; "
+        f"missing={sorted(expected_paths - actual_paths)}; "
+        f"unexpected={sorted(actual_paths - expected_paths)}"
+    )
+
+    analyzer = ChangeImpactAnalyzer(
+        repository_root
+    )
+    report = analyzer.analyze(
+        tuple(sorted(actual_paths))
+    )
+    analyzer.validate_report(report)
+
+    assert report.ready_for_handoff is True, (
+        "B2 dependency correction T17 preflight is not ready: "
+        f"decision={report.decision.value}; "
+        f"unknown={list(report.unknown_paths)}; "
+        f"protected={list(report.protected_paths)}"
+    )
+    assert report.unknown_paths == ()
+    assert report.protected_paths == ()
+    assert report.state_mutated is False
+    assert report.execution_authorized is False
