@@ -1,3 +1,4 @@
+
 import type {
   FastifyReply,
   FastifyRequest
@@ -18,6 +19,16 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3
 const OPERATION_PATTERN = /^[a-z][a-z0-9_.:-]{0,63}$/;
 const RESOURCE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const REASON_CODE_PATTERN = /^[A-Z][A-Z0-9_]{0,63}$/;
+
+const ALLOWED_API_METHODS = new Set([
+  "GET",
+  "HEAD",
+  "OPTIONS",
+  "POST",
+  "PUT",
+  "PATCH",
+  "DELETE"
+]);
 
 const READ_ONLY_METHODS = new Set([
   "GET",
@@ -51,6 +62,180 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     value !== null &&
     !Array.isArray(value)
   );
+}
+
+const JSON_SCHEMA_PRIMITIVE_TYPES = new Set([
+  "string",
+  "number",
+  "integer",
+  "boolean",
+  "null"
+]);
+
+function hasValidSchemaReference(value: Record<string, unknown>): boolean {
+  return (
+    typeof value.$ref === "string" &&
+    value.$ref.length > 0 &&
+    value.$ref.trim() === value.$ref
+  );
+}
+
+/**
+ * Reject empty JSON Schemas ({}), which accept every possible input.
+ * Object schemas must be closed; nested objects use the same contract.
+ * Shared $ref schemas are resolved by Fastify during server.ready().
+ */
+function isMeaningfulJsonSchema(value: unknown): boolean {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  if (hasValidSchemaReference(value)) {
+    return true;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(value, "const")) {
+    return true;
+  }
+
+  if (Array.isArray(value.enum) && value.enum.length > 0) {
+    return true;
+  }
+
+  if (value.type === "object") {
+    return isStrictObjectJsonSchema(value);
+  }
+
+  if (value.type === "array") {
+    return isMeaningfulJsonSchema(value.items);
+  }
+
+  if (
+    typeof value.type === "string" &&
+    JSON_SCHEMA_PRIMITIVE_TYPES.has(value.type)
+  ) {
+    return true;
+  }
+
+  if (
+    Array.isArray(value.type) &&
+    value.type.length > 0 &&
+    value.type.every(
+      (type: unknown) =>
+        typeof type === "string" &&
+        JSON_SCHEMA_PRIMITIVE_TYPES.has(type)
+    )
+  ) {
+    return true;
+  }
+
+  for (const keyword of ["allOf", "anyOf", "oneOf"] as const) {
+    const alternatives = value[keyword];
+
+    if (
+      Array.isArray(alternatives) &&
+      alternatives.length > 0 &&
+      alternatives.every(isMeaningfulJsonSchema)
+    ) {
+      return true;
+    }
+  }
+
+  return (
+    value.not !== undefined &&
+    isMeaningfulJsonSchema(value.not)
+  );
+}
+
+function isStrictObjectJsonSchema(
+  value: unknown,
+  requiredPropertyNames: readonly string[] = [],
+  exactPropertyNames?: readonly string[]
+): boolean {
+  if (
+    !isRecord(value) ||
+    value.type !== "object" ||
+    value.additionalProperties !== false ||
+    !isRecord(value.properties)
+  ) {
+    return false;
+  }
+
+  const propertyNames = Object.keys(value.properties);
+
+  if (
+    !propertyNames.every(
+      (name) =>
+        name.length > 0 &&
+        isMeaningfulJsonSchema(value.properties[name])
+    )
+  ) {
+    return false;
+  }
+
+  if (
+    exactPropertyNames !== undefined &&
+    (
+      propertyNames.length !== exactPropertyNames.length ||
+      !exactPropertyNames.every((name) =>
+        Object.prototype.hasOwnProperty.call(value.properties, name)
+      )
+    )
+  ) {
+    return false;
+  }
+
+  const required = value.required === undefined
+    ? []
+    : value.required;
+
+  if (
+    !Array.isArray(required) ||
+    !required.every(
+      (name: unknown) =>
+        typeof name === "string" &&
+        Object.prototype.hasOwnProperty.call(value.properties, name)
+    ) ||
+    new Set(required).size !== required.length
+  ) {
+    return false;
+  }
+
+  return requiredPropertyNames.every(
+    (name) =>
+      Object.prototype.hasOwnProperty.call(value.properties, name) &&
+      required.includes(name)
+  );
+}
+
+function getPathParameterDefinitions(
+  url: unknown
+): readonly { readonly name: string; readonly optional: boolean }[] | null {
+  if (typeof url !== "string") {
+    return [];
+  }
+
+  if (url.includes("*")) {
+    return null;
+  }
+
+  const definitions = [
+    ...url.matchAll(/(?:^|\/):([A-Za-z][A-Za-z0-9_]*)(\?)?/g)
+  ].map((match) => ({
+    name: match[1] ?? "",
+    optional: match[2] === "?"
+  }));
+
+  const names = definitions.map((item) => item.name);
+
+  if (
+    names.some((name) => name.length === 0) ||
+    new Set(names).size !== names.length
+  ) {
+    return null;
+  }
+
+  return definitions;
 }
 
 function isUuid(value: unknown): value is string {
@@ -87,10 +272,12 @@ function isVerifiedPrincipal(
     typeof issuer !== "string" ||
     issuer.length > 2048 ||
     issuer.trim() !== issuer ||
+    containsAsciiControlCharacters(issuer) ||
     typeof subject !== "string" ||
     subject.length === 0 ||
     subject.length > 255 ||
     subject.trim() !== subject ||
+    containsAsciiControlCharacters(subject) ||
     typeof clientId !== "string" ||
     clientId.length === 0 ||
     clientId.length > 512 ||
@@ -108,7 +295,9 @@ function isVerifiedPrincipal(
       (item: unknown) =>
         typeof item === "string" &&
         item.length > 0 &&
-        item.trim() === item
+        item.length <= 2048 &&
+        item.trim() === item &&
+        !containsAsciiControlCharacters(item)
     )
   ) {
     return false;
@@ -278,10 +467,11 @@ export function isValidApiRouteSecurityContract(
 
   if (
     methods.length === 0 ||
+    new Set(methods).size !== methods.length ||
     !methods.every(
       (method) =>
         typeof method === "string" &&
-        method.length > 0 &&
+        ALLOWED_API_METHODS.has(method) &&
         method === method.toUpperCase()
     )
   ) {
@@ -298,16 +488,39 @@ export function isValidApiRouteSecurityContract(
     ? routeOptions.schema
     : undefined;
 
-  const hasPathParameters =
-    typeof routeOptions.url === "string" &&
-    /(?:^|\/):[A-Za-z][A-Za-z0-9_]*/.test(routeOptions.url);
+  const pathParameters =
+    getPathParameterDefinitions(routeOptions.url);
 
-  // Parameterized reads and mutations both require params validation.
-  if (
-    hasPathParameters &&
-    (
+  if (pathParameters === null) {
+    return false;
+  }
+
+  if (pathParameters.length > 0) {
+    if (
       schema === undefined ||
-      !isRecord(schema.params)
+      !isStrictObjectJsonSchema(
+        schema.params,
+        pathParameters
+          .filter((parameter) => !parameter.optional)
+          .map((parameter) => parameter.name),
+        pathParameters.map((parameter) => parameter.name)
+      )
+    ) {
+      return false;
+    }
+  }
+
+  if (
+    schema !== undefined &&
+    (
+      (schema.params !== undefined &&
+        !isMeaningfulJsonSchema(schema.params)) ||
+      (schema.querystring !== undefined &&
+        !isMeaningfulJsonSchema(schema.querystring)) ||
+      (schema.headers !== undefined &&
+        !isMeaningfulJsonSchema(schema.headers)) ||
+      (schema.body !== undefined &&
+        !isMeaningfulJsonSchema(schema.body))
     )
   ) {
     return false;
@@ -322,7 +535,7 @@ export function isValidApiRouteSecurityContract(
       normalizedMethods.some((method) =>
         METHODS_REQUIRING_BODY_SCHEMA.has(method)
       ) &&
-      !isRecord(schema.body)
+      !isMeaningfulJsonSchema(schema.body)
     ) {
       return false;
     }
