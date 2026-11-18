@@ -63,16 +63,46 @@ EXPECTED_MASTER_SEQUENCE = (
     "B2-PRODUCTION-BINDING → B5 → B6 → B7 → B8 → B9 → B10"
 )
 
+# This is an exact, reviewed source inventory from BASELINE_HEAD through the
+# B2 dependency-correction candidate. The T17 preflight test independently
+# compares this set with `git diff BASELINE_HEAD HEAD` before the owner
+# transition can execute.
 EXPECTED_SOURCE_PATHS = {
     MASTER_PATH,
     "REOS_CONTROL_CENTER/context/backend_workstream_transition.py",
     "REOS_CONTROL_CENTER/context/test_backend_workstream_transition.py",
+    (
+        ".github/actions/homio-backend-ci/verification/tests/"
+        "test_backend_b1_completion_transition.py"
+    ),
+    (
+        ".github/actions/homio-backend-ci/verification/tests/"
+        "test_pull_request_governance.py"
+    ),
     ".github/workflows/backend-ci.yml",
     ".github/workflows/reusable-backend-workstream-activation.yml",
-    ".github/actions/homio-backend-ci/transitions/"
-    "backend-b2-dependency-correction/action.yml",
-    ".github/actions/homio-backend-ci/transitions/"
-    "backend-b2-dependency-correction/scripts/guarded_transition.py",
+    (
+        ".github/actions/homio-backend-ci/transitions/"
+        "backend-b2-dependency-correction/action.yml"
+    ),
+    (
+        ".github/actions/homio-backend-ci/transitions/"
+        "backend-b2-dependency-correction/scripts/guarded_transition.py"
+    ),
+    (
+        "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/"
+        "T17_Change_Impact_Dependency_Analysis/impact_models.py"
+    ),
+    (
+        "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/"
+        "T17_Change_Impact_Dependency_Analysis/change_impact_analysis.py"
+    ),
+    (
+        "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/"
+        "T17_Change_Impact_Dependency_Analysis/test_change_impact_analysis.py"
+    ),
+    "REOS_CONTROL_CENTER/backend/src/security/api-security.ts",
+    "REOS_CONTROL_CENTER/backend/tests/unit/api-security.test.ts",
 }
 
 for import_root in (ROOT, CONTROL):
@@ -863,7 +893,7 @@ def validate_transition_state(
     ]
 
     if actual_order != expected_order:
-        fail("Post-transition canonical backend stage order is invalid")
+        fail("Post-transition backend stage order is invalid")
 
     subtasks = {
         item["id"]: item
