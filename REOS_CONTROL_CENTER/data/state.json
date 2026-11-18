@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-11-06T14:51:44+00:00",
+    "updated_at": "2026-11-18T11:05:44+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -482,6 +482,108 @@
         "subtask": "APP-001-T01",
         "status": "PRESERVED_FOR_RESUMPTION",
         "resume_after": "BACKEND-001"
+      }
+    },
+    {
+      "id": "CR-BACKEND-001-B2-DEPENDENCY",
+      "type": "STAGE_DEPENDENCY_CORRECTION",
+      "title": "Correct B2 production dependencies without prematurely enabling protected customer routes",
+      "status": "APPROVED",
+      "requested_at": "2026-11-18T11:05:44+00:00",
+      "approved_at": "2026-11-18T11:05:44+00:00",
+      "requested_by": "prajaktaranjane80-sketch",
+      "approved_by": "prajaktaranjane80-sketch",
+      "scope": {
+        "gate": "BACKEND-001",
+        "previous_active_subtask": "BACKEND-001-B2",
+        "foundation_subtask": "BACKEND-001-B2-FOUNDATION",
+        "production_binding_subtask": "BACKEND-001-B2-PRODUCTION-BINDING",
+        "production_binding_position": "AFTER_B3_AND_B4",
+        "technical_sequence": "B0 -> B1 -> B2-FOUNDATION -> B3 -> B4 -> B2-PRODUCTION-BINDING -> B5 -> B6 -> B7 -> B8 -> B9 -> B10",
+        "customer_protected_routes_enabled": false
+      },
+      "source_baseline": {
+        "repository_head": "13a056fdd5fd239e4c5aa25d23dc60414baffb2b",
+        "source_commit": "bffd2a008d5ed8d30d6818b058b833e60a7e9ed3",
+        "state_blob_sha": "dd9c4684698270adf19a9380256c94396608a27a",
+        "corrected_backend_master_blob_sha": "f8d9cd456568cc6c8eaae0caf764123a7e859ba6"
+      },
+      "impact_review": {
+        "decision": "ANALYZE",
+        "fingerprint": "49df2388058a034e07a7c7a7f4f2be0bd62a8982abaa4773cf05c07b98ecb8ec",
+        "changed_paths": [
+          ".github/actions/homio-backend-ci/transitions/backend-b2-dependency-correction/action.yml",
+          ".github/actions/homio-backend-ci/transitions/backend-b2-dependency-correction/scripts/guarded_transition.py",
+          ".github/actions/homio-backend-ci/verification/tests/test_backend_b1_completion_transition.py",
+          ".github/actions/homio-backend-ci/verification/tests/test_pull_request_governance.py",
+          ".github/workflows/backend-ci.yml",
+          ".github/workflows/reusable-backend-workstream-activation.yml",
+          "reos_control_center/architecture/backend/plans/homio_backend_structure",
+          "reos_control_center/autonomy_engine/continuity/acrl/t17_change_impact_dependency_analysis/change_impact_analysis.py",
+          "reos_control_center/autonomy_engine/continuity/acrl/t17_change_impact_dependency_analysis/impact_models.py",
+          "reos_control_center/autonomy_engine/continuity/acrl/t17_change_impact_dependency_analysis/test_change_impact_analysis.py",
+          "reos_control_center/autonomy_engine/continuity/acrl/t18_safe_execution_authorization_guard/authorization_validation.py",
+          "reos_control_center/autonomy_engine/continuity/acrl/t18_safe_execution_authorization_guard/test_authenticated_approval_binding.py",
+          "reos_control_center/autonomy_engine/security/authentication/oidc_verifier.py",
+          "reos_control_center/autonomy_engine/security/authentication/test_oidc_verifier.py",
+          "reos_control_center/backend/src/security/api-security.ts",
+          "reos_control_center/backend/tests/unit/api-security.test.ts",
+          "reos_control_center/context/backend_workstream_transition.py",
+          "reos_control_center/context/test_backend_workstream_transition.py"
+        ],
+        "unknown_paths": [],
+        "protected_paths": []
+      },
+      "operator_proposal": {
+        "decision": "PROPOSE",
+        "request_fingerprint": "cc999a9f0314d0ab0f238c0aa8f5942841f7ab2c3c6e371cbab712de6cce2591",
+        "proposal": {
+          "action_type": "PROPOSE_CHANGE",
+          "description": "Re-sequence the existing B2 security foundation and production binding around the B3 authenticated bridge and B4 durable persistence dependencies. Preserve the single Fastify ingress, existing OIDC verifier, CORE-001 ownership, fail-closed behavior and all pending backend gate-level acceptance criteria.",
+          "risk": "MEDIUM",
+          "reversible": true,
+          "requires_authorization": true,
+          "evidence_basis": [
+            "baseline_head=13a056fdd5fd239e4c5aa25d23dc60414baffb2b",
+            "state_blob_sha=dd9c4684698270adf19a9380256c94396608a27a",
+            "baseline_master_blob_sha=27b43931d1b6db48065ec41fd3574bd2dbc5ae3c",
+            "corrected_master_blob_sha=f8d9cd456568cc6c8eaae0caf764123a7e859ba6",
+            "owner_source_commit=bffd2a008d5ed8d30d6818b058b833e60a7e9ed3",
+            "owner_id=320960487",
+            "repository_id=1346051793",
+            "oidc_subject=repo:prajaktaranjane80-sketch@320960487/Homio@1346051793:ref:refs/heads/reos-development",
+            "changed_path_count=18"
+          ],
+          "context_fingerprint": "d196d705862df541af989ded421b9b6eec10173636999fe31b5bddfae3f07b5d"
+        }
+      },
+      "execution_authorization": {
+        "decision": "AUTHORIZE",
+        "authorization_fingerprint": "643a4c63364f69e920198d70a0d181f186b5041e293d5243a8846d54454ba672",
+        "request_fingerprint": "20f8b80653ca23321b20c20aa456234692c1a318e22fe7b2a4ac2125456435e8",
+        "external_executor_required": true,
+        "state_mutated_by_guard": false
+      },
+      "owner_approval": {
+        "method": "GitHub Actions OIDC + repository-owner push",
+        "actor": "prajaktaranjane80-sketch",
+        "actor_id": "320960487",
+        "source_commit": "bffd2a008d5ed8d30d6818b058b833e60a7e9ed3",
+        "repository_id": "1346051793",
+        "owner_id": "320960487",
+        "oidc_issuer": "https://token.actions.githubusercontent.com",
+        "oidc_subject": "repo:prajaktaranjane80-sketch@320960487/Homio@1346051793:ref:refs/heads/reos-development",
+        "actions_run_id": "44291230985",
+        "commit_prefix": "[CONTROL-CENTER-CORRECT-BACKEND-001-B2-DEPENDENCIES]",
+        "bearer_token_persisted": false
+      },
+      "security_ownership_boundary": {
+        "oidc_verification": "Existing AUTONOMY_ENGINE OIDCVerifier",
+        "identity_membership": "Existing CORE-001 owner",
+        "membership_t03": "Remains a grants/prerequisites data contract; it is not converted into an authorization decision engine.",
+        "resource_action_decisions": "Must use one contract-governed decision owner within the existing CORE-001 authority before B2 production binding can pass.",
+        "session_rate_limit_audit_persistence": "Existing B4 persistence boundary",
+        "acrl_runtime_use": false
       }
     }
   ],
@@ -2708,29 +2810,51 @@
         "id": "BACKEND-001-B1",
         "note": "BACKEND-001-B1 completed through the existing Control Center after exact-commit backend verification (5 test files, 18 tests passed), reproducible npm ci/build verification, and the complete ACRL regression suite (1456 passed). GitHub Actions run 42237404718 verified commit 6003c96a4822843f05002af2623c4da137c1a969. Only B1 is completed. BACKEND-001-AC01 through BACKEND-001-AC10 remain PENDING. This transition does not approve the whole backend gate or production."
       }
+    },
+    {
+      "id": "e4bb226b-368e-4cbd-af82-b19204414261",
+      "time": "2026-11-18T11:05:44+00:00",
+      "type": "BACKEND_B2_DEPENDENCIES_CORRECTED",
+      "payload": {
+        "change_request": "CR-BACKEND-001-B2-DEPENDENCY",
+        "source_commit": "bffd2a008d5ed8d30d6818b058b833e60a7e9ed3",
+        "t15_request_fingerprint": "cc999a9f0314d0ab0f238c0aa8f5942841f7ab2c3c6e371cbab712de6cce2591",
+        "t17_fingerprint": "49df2388058a034e07a7c7a7f4f2be0bd62a8982abaa4773cf05c07b98ecb8ec",
+        "t18_authorization_fingerprint": "643a4c63364f69e920198d70a0d181f186b5041e293d5243a8846d54454ba672",
+        "production_binding_after": [
+          "B3",
+          "B4"
+        ]
+      }
+    },
+    {
+      "id": "e13bc021-77ec-446b-87c0-e96c9cd8864d",
+      "time": "2026-11-18T11:05:44+00:00",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "BACKEND-001-B2-FOUNDATION",
+        "note": "BACKEND-001-B2-FOUNDATION completed through the guarded Control Center after the exact-SHA backend and ACRL verification job passed for source commit bffd2a008d5ed8d30d6818b058b833e60a7e9ed3; GitHub Actions run 44291230985, attempt 1. The verified scope includes the single Fastify security boundary, trusted-context contracts, fail-closed adapter requirements, mutation reauthorization and the existing security-boundary regression suite. This completes B2-FOUNDATION only. The six real production adapters are not claimed complete. B3 is now CURRENT; B4 and B2-PRODUCTION-BINDING remain PENDING. Backend gate-level AC01 through AC10 remain PENDING."
+      }
     }
   ],
   "integrity": {
-    "sha256": "d72d99781cab759e338847992fbffe8cfa406eb436d367b4d3baca6de0fcef2a"
+    "sha256": "dcfba8a3148c01899a1e72655b40a79b8120d5d7e3d937657b228c645e272bd1"
   },
   "execution": {
     "current_gate": "BACKEND-001",
-    "current_task": "BACKEND-001-B2: API security and trusted context.",
+    "current_task": "BACKEND-001-B3: Python domain-runtime bridge.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
-      "One reproducible public Fastify API application exists.",
-      "Protected routes enforce trusted identity and tenant context.",
-      "Python integration uses one authenticated private runtime boundary.",
-      "Persistence follows approved schema and one write owner per aggregate.",
-      "Adapters preserve canonical CORE domain ownership.",
-      "Events and durable workflows have tested retry and recovery behavior.",
-      "Search and AI integrations preserve authorization and source provenance.",
-      "Critical customer and business journeys pass end-to-end.",
-      "Production operational controls have current evidence.",
-      "Release verification and accountable approval are complete."
+      "Private TypeScript-to-Python runtime transport is authenticated.",
+      "Request and response contracts are versioned and validated.",
+      "Trusted actor, tenant and correlation context are preserved.",
+      "Timeout, cancellation and failure classification are tested.",
+      "Ambiguous mutation outcomes use durable idempotency identity.",
+      "No Python business logic is copied into TypeScript.",
+      "No second public Python API is exposed."
     ],
-    "current_subtask": "BACKEND-001-B2"
+    "current_subtask": "BACKEND-001-B3"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -5095,7 +5219,7 @@
       "name": "Unified HOMIO / REOS Backend",
       "objective": "Establish and verify one unified public backend through the B0-B10 sequence in HOMIO_Backend_Structure.",
       "status": "CURRENT",
-      "current_subtask": "BACKEND-001-B2",
+      "current_subtask": "BACKEND-001-B3",
       "subtasks": [
         {
           "id": "BACKEND-001-B0",
@@ -5121,22 +5245,74 @@
           "note": "BACKEND-001-B1 completed through the existing Control Center after exact-commit backend verification (5 test files, 18 tests passed), reproducible npm ci/build verification, and the complete ACRL regression suite (1456 passed). GitHub Actions run 42237404718 verified commit 6003c96a4822843f05002af2623c4da137c1a969. Only B1 is completed. BACKEND-001-AC01 through BACKEND-001-AC10 remain PENDING. This transition does not approve the whole backend gate or production."
         },
         {
-          "id": "BACKEND-001-B2",
-          "title": "API security and trusted context",
+          "id": "BACKEND-001-B2-FOUNDATION",
+          "title": "API security and trusted context — foundation",
           "priority": "CRITICAL",
-          "status": "CURRENT"
+          "status": "DONE",
+          "acceptance_criteria": [
+            "One Fastify /api/v1 ingress security boundary is used.",
+            "Bearer authentication is verified before protected handlers.",
+            "Trusted principal and tenant context are server-derived and minimized.",
+            "Protected routes declare valid security metadata and mutation schemas.",
+            "All six security adapter ports are mandatory and fail closed when absent.",
+            "Protected mutations are reauthorized immediately before handlers.",
+            "Security boundary tests cover invalid credentials, missing adapters, authorization failures, rate-limit ordering and audit ordering."
+          ],
+          "completed_at": "2026-11-18T11:05:44+00:00",
+          "note": "BACKEND-001-B2-FOUNDATION completed through the guarded Control Center after the exact-SHA backend and ACRL verification job passed for source commit bffd2a008d5ed8d30d6818b058b833e60a7e9ed3; GitHub Actions run 44291230985, attempt 1. The verified scope includes the single Fastify security boundary, trusted-context contracts, fail-closed adapter requirements, mutation reauthorization and the existing security-boundary regression suite. This completes B2-FOUNDATION only. The six real production adapters are not claimed complete. B3 is now CURRENT; B4 and B2-PRODUCTION-BINDING remain PENDING. Backend gate-level AC01 through AC10 remain PENDING."
         },
         {
           "id": "BACKEND-001-B3",
           "title": "Python domain-runtime bridge",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "CURRENT",
+          "acceptance_criteria": [
+            "Private TypeScript-to-Python runtime transport is authenticated.",
+            "Request and response contracts are versioned and validated.",
+            "Trusted actor, tenant and correlation context are preserved.",
+            "Timeout, cancellation and failure classification are tested.",
+            "Ambiguous mutation outcomes use durable idempotency identity.",
+            "No Python business logic is copied into TypeScript.",
+            "No second public Python API is exposed."
+          ]
         },
         {
           "id": "BACKEND-001-B4",
           "title": "PostgreSQL integration",
           "priority": "CRITICAL",
-          "status": "PENDING"
+          "status": "PENDING",
+          "acceptance_criteria": [
+            "Only the approved ARCH-037 schema and canonical owners are used.",
+            "Migrations have deterministic ordering and integrity checks.",
+            "Tenant access is enforced by the target persistence boundary.",
+            "Repositories and transaction boundaries have explicit write ownership.",
+            "Durable session and revocation storage is supported.",
+            "Shared rate-limit state and minimized audit persistence are supported.",
+            "Migration, concurrency, backup and recovery tests pass.",
+            "No second schema or persistence authority is introduced."
+          ]
+        },
+        {
+          "id": "BACKEND-001-B2-PRODUCTION-BINDING",
+          "title": "API security and trusted context — production binding",
+          "priority": "CRITICAL",
+          "status": "PENDING",
+          "acceptance_criteria": [
+            "The approved OIDC verifier is connected through the authenticated B3 boundary.",
+            "Durable session and revocation validation is connected through B4.",
+            "Trusted identity, tenant and active membership are resolved through CORE-001.",
+            "One contract-governed CORE-001 resource/action decision owner is used; the T03 membership data contract remains data-only.",
+            "Shared/distributed rate limiting is connected through B4.",
+            "Durable PII-minimized security audit persistence is connected through B4.",
+            "Buyer, broker, builder and privileged-role isolation tests pass.",
+            "Cross-tenant, revoked-session and unauthorized-action tests pass.",
+            "Mutation authorization is revalidated immediately before protected handlers.",
+            "Rate-limit enforcement works across instances.",
+            "Audit persistence occurs before protected handlers.",
+            "Invalid credentials and dependency outages fail closed.",
+            "No frontend cookie is accepted as an API identity credential.",
+            "No production mock, no-op adapter or in-process-only security store remains."
+          ]
         },
         {
           "id": "BACKEND-001-B5",
@@ -5262,7 +5438,7 @@
       "completion_policy": "All blocking subtasks DONE + all criteria VERIFIED + explicit approval.",
       "created_at": "2026-11-03T13:39:35+00:00",
       "technical_master": "REOS_CONTROL_CENTER/architecture/backend/plans/HOMIO_Backend_Structure",
-      "technical_sequence": "B0-B10",
+      "technical_sequence": "B0 -> B1 -> B2-FOUNDATION -> B3 -> B4 -> B2-PRODUCTION-BINDING -> B5 -> B6 -> B7 -> B8 -> B9 -> B10",
       "workstream": "BACKEND",
       "baseline": {
         "repository_head": "a82dc7af949e1eaed4468b4c6ff6ca4f220a0f30",
