@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import copy
@@ -153,6 +154,10 @@ def valid_t17():
         "protected_paths": [],
         "state_mutated": False,
         "execution_authorized": False,
+
+        # Required by correct_backend_b2_dependency_state().
+        # This mirrors ChangeImpactReport.to_dict().
+        "ready_for_handoff": True,
     }
 
 
