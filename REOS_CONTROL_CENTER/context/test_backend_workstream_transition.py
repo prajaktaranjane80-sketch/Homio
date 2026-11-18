@@ -1,9 +1,16 @@
-
 from __future__ import annotations
 
 import copy
 
 import pytest
+
+from .github_actions_identity import (
+    EXPECTED_OIDC_SUBJECT,
+    OIDC_ISSUER,
+    OWNER,
+    OWNER_ID,
+    REPOSITORY_ID,
+)
 
 from .backend_workstream_transition import (
     BACKEND_ACCEPTANCE_CRITERIA,
@@ -114,15 +121,14 @@ def make_state() -> dict:
 
 def valid_evidence():
     return {
-        "actor": "prajaktaranjane80-sketch",
-        "actor_id": "verified-by-github-oidc",
+        "actor": OWNER,
+        "actor_id": OWNER_ID,
         "source_commit": "a" * 40,
         "state_blob_sha": "b" * 40,
-        "oidc_issuer": "https://token.actions.githubusercontent.com",
-        "oidc_subject": (
-            "repo:prajaktaranjane80-sketch/Homio:"
-            "ref:refs/heads/reos-development"
-        ),
+        "oidc_issuer": OIDC_ISSUER,
+        "oidc_subject": EXPECTED_OIDC_SUBJECT,
+        "owner_id": OWNER_ID,
+        "repository_id": REPOSITORY_ID,
         "actions_run_id": "123456789",
     }
 
@@ -172,7 +178,7 @@ def valid_t18():
     }
 
 
-def activate(state):
+def activate(state, approval_record=None):
     return activate_backend_workstream_state(
         state,
         timestamp="2026-11-02T12:00:00+00:00",
@@ -183,7 +189,11 @@ def activate(state):
             "REOS_CONTROL_CENTER/evidence/BACKEND-001/"
             "B0-live-repository-audit.md"
         ),
-        approval_record=valid_evidence(),
+        approval_record=(
+            valid_evidence()
+            if approval_record is None
+            else approval_record
+        ),
         t15_report=valid_t15(),
         t17_report=valid_t17(),
         authorization=valid_t18(),
@@ -287,22 +297,26 @@ def make_backend_b2_state() -> dict:
     }
 
 
+def valid_b2_approval_record():
+    return {
+        "actor": OWNER,
+        "actor_id": OWNER_ID,
+        "source_commit": "3" * 40,
+        "state_blob_sha": "4" * 40,
+        "oidc_issuer": OIDC_ISSUER,
+        "oidc_subject": EXPECTED_OIDC_SUBJECT,
+        "owner_id": OWNER_ID,
+        "repository_id": REPOSITORY_ID,
+        "actions_run_id": "123456789",
+    }
+
+
 def correct_b2(state, **overrides):
     arguments = {
         "timestamp": "2026-11-16T13:00:00+00:00",
         "baseline_sha": "1" * 40,
         "master_blob_sha": "2" * 40,
-        "approval_record": {
-            "actor": "prajaktaranjane80-sketch",
-            "actor_id": "320960487",
-            "source_commit": "3" * 40,
-            "state_blob_sha": "4" * 40,
-            "oidc_issuer": "https://token.actions.githubusercontent.com",
-            "oidc_subject": "verified-owner-subject",
-            "owner_id": "320960487",
-            "repository_id": "1346051793",
-            "actions_run_id": "123456789",
-        },
+        "approval_record": valid_b2_approval_record(),
         "t15_report": valid_t15(),
         "t17_report": valid_t17(),
         "authorization": valid_t18(),
@@ -373,6 +387,7 @@ def test_activation_selects_backend_b1_and_preserves_app_t01():
     }
 
     assert dependencies["edges"] == [
+        
         ["AI-001", "BACKEND-001"],
         ["BACKEND-001", "APP-001"],
         ["APP-001", "REL-001"],
@@ -492,6 +507,14 @@ def test_activation_rejects_duplicate_backend_gate():
 
     with pytest.raises(BackendWorkstreamTransitionError):
         activate(state)
+
+
+def test_activation_rejects_noncanonical_oidc_repository_identity():
+    approval = valid_evidence()
+    approval["repository_id"] = "999999999"
+
+    with pytest.raises(BackendWorkstreamTransitionError):
+        activate(make_state(), approval_record=approval)
 
 
 @pytest.mark.parametrize(
@@ -670,13 +693,53 @@ def test_b2_dependency_correction_rejects_blocked_t18():
         correct_b2(state, authorization=authorization)
 
 
-def test_b2_dependency_correction_rejects_missing_oidc_owner_identity():
+@pytest.mark.parametrize(
+    ("field", "invalid_value"),
+    [
+        ("actor", "another-user"),
+        ("actor_id", "999999999"),
+        ("owner_id", "999999999"),
+        ("repository_id", "999999999"),
+        ("oidc_issuer", "https://untrusted.example"),
+        (
+            "oidc_subject",
+            "repo:prajaktaranjane80-sketch/Homio:ref:refs/heads/reos-development",
+        ),
+    ],
+    ids=["actor", "actor-id", "owner-id", "repository-id", "issuer", "subject"],
+)
+def test_b2_dependency_correction_rejects_noncanonical_oidc_owner_identity(
+    field,
+    invalid_value,
+):
     state = make_backend_b2_state()
-    approval = {
-        **valid_evidence(),
-        "owner_id": "wrong-owner",
-        "repository_id": "1346051793",
-    }
+    approval = valid_b2_approval_record()
+    approval[field] = invalid_value
+
+    with pytest.raises(BackendWorkstreamTransitionError):
+        correct_b2(state, approval_record=approval)
+
+
+@pytest.mark.parametrize(
+    "missing_field",
+    [
+        "actor",
+        "actor_id",
+        "owner_id",
+        "repository_id",
+        "source_commit",
+        "state_blob_sha",
+        "oidc_issuer",
+        "oidc_subject",
+        "actions_run_id",
+    ],
+)
+def test_b2_dependency_correction_rejects_missing_oidc_owner_identity(
+    missing_field,
+):
+    state = make_backend_b2_state()
+    approval = valid_b2_approval_record()
+    approval.pop(missing_field)
 
     with pytest.raises(BackendWorkstreamTransitionError):
         correct_b2(state, approval_record=approval)
@@ -719,3 +782,4 @@ def test_b2_dependency_correction_never_completes_full_b2_or_backend_gate():
         for item in gate["subtasks"]
         if item["id"] == "BACKEND-001-B2-PRODUCTION-BINDING"
     )["status"] == "PENDING"
+
