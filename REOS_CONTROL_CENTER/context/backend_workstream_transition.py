@@ -1,8 +1,17 @@
+
 from __future__ import annotations
 
 import copy
 import re
 from typing import Any
+
+from .github_actions_identity import (
+    EXPECTED_OIDC_SUBJECT,
+    OIDC_ISSUER,
+    OWNER,
+    OWNER_ID,
+    REPOSITORY_ID,
+)
 
 
 BACKEND_GATE_ID = "BACKEND-001"
@@ -171,6 +180,58 @@ def _valid_fingerprint(value: object) -> bool:
     return (
         isinstance(value, str)
         and re.fullmatch(r"[0-9a-f]{64}", value) is not None
+    )
+
+
+def _validate_owner_approval_record(
+    approval_record: Any,
+    *,
+    transition_name: str,
+) -> None:
+    """Enforce the canonical immutable GitHub owner identity contract."""
+    _require(
+        isinstance(approval_record, dict),
+        f"{transition_name} owner approval record is missing.",
+    )
+    _require(
+        approval_record.get("actor") == OWNER,
+        f"{transition_name} approval actor is not the repository owner.",
+    )
+    _require(
+        approval_record.get("actor_id") == OWNER_ID,
+        f"{transition_name} approval actor ID is not the immutable "
+        "repository owner ID.",
+    )
+    _require(
+        approval_record.get("owner_id") == OWNER_ID,
+        f"{transition_name} approval owner ID is not the canonical owner ID.",
+    )
+    _require(
+        approval_record.get("repository_id") == REPOSITORY_ID,
+        f"{transition_name} approval repository ID is not the canonical "
+        "repository ID.",
+    )
+    _require(
+        _valid_sha(approval_record.get("source_commit")),
+        f"{transition_name} approval source commit is invalid.",
+    )
+    _require(
+        _valid_sha(approval_record.get("state_blob_sha")),
+        f"{transition_name} baseline state blob SHA is invalid.",
+    )
+    _require(
+        approval_record.get("oidc_issuer") == OIDC_ISSUER,
+        f"{transition_name} OIDC issuer is invalid.",
+    )
+    _require(
+        approval_record.get("oidc_subject") == EXPECTED_OIDC_SUBJECT,
+        f"{transition_name} OIDC subject does not match the immutable "
+        "HOMIO identity.",
+    )
+    _require(
+        isinstance(approval_record.get("actions_run_id"), str)
+        and bool(approval_record["actions_run_id"]),
+        f"{transition_name} Actions run ID is missing.",
     )
 
 
@@ -483,19 +544,12 @@ def activate_backend_workstream_state(
             f"{gate_id} must remain FUTURE.",
         )
 
-    _require(
-        isinstance(approval_record, dict),
-        "Owner approval record is missing.",
+    _validate_owner_approval_record(
+        approval_record,
+        transition_name="Backend activation",
     )
     _require(
-        approval_record.get("actor") == "prajaktaranjane80-sketch",
-        "Approval actor is not the repository owner.",
-    )
-    _require(
-        bool(approval_record.get("source_commit")),
-        "Owner approval source commit is missing.",
-    )
-    _require(
+        
         isinstance(t15_report, dict)
         and t15_report.get("decision") == "PROPOSE"
         and t15_report.get("execution_authorized") is False,
@@ -819,36 +873,9 @@ def correct_backend_b2_dependency_state(
         "Gate-level acceptance criteria must remain entirely PENDING.",
     )
 
-    _require(
-        isinstance(approval_record, dict),
-        "OIDC-verified owner approval record is missing.",
-    )
-    _require(
-        approval_record.get("actor") == "prajaktaranjane80-sketch",
-        "Approval actor is not the repository owner.",
-    )
-    _require(
-        _valid_sha(approval_record.get("source_commit")),
-        "Approval source commit is invalid.",
-    )
-    _require(
-        _valid_sha(approval_record.get("state_blob_sha")),
-        "Baseline state blob SHA is invalid.",
-    )
-    _require(
-        approval_record.get("oidc_issuer")
-        == "https://token.actions.githubusercontent.com",
-        "Approval OIDC issuer is invalid.",
-    )
-    _require(
-        isinstance(approval_record.get("oidc_subject"), str)
-        and bool(approval_record["oidc_subject"]),
-        "Approval OIDC subject is missing.",
-    )
-    _require(
-        isinstance(approval_record.get("actions_run_id"), str)
-        and bool(approval_record["actions_run_id"]),
-        "Actions run ID is missing from approval evidence.",
+    _validate_owner_approval_record(
+        approval_record,
+        transition_name="B2 dependency correction",
     )
 
     _require(
@@ -1083,3 +1110,4 @@ def correct_backend_b2_dependency_state(
     )
 
     return candidate
+
