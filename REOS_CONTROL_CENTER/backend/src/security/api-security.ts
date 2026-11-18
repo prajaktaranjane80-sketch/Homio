@@ -1,4 +1,3 @@
-
 import type {
   FastifyReply,
   FastifyRequest
@@ -155,19 +154,26 @@ function isStrictObjectJsonSchema(
   if (
     !isRecord(value) ||
     value.type !== "object" ||
-    value.additionalProperties !== false ||
-    !isRecord(value.properties)
+    value.additionalProperties !== false
   ) {
     return false;
   }
 
-  const propertyNames = Object.keys(value.properties);
+  // Capture and narrow the property map before using it in callbacks.
+  // Re-reading value.properties inside an Array callback loses TS narrowing.
+  const properties = value.properties;
+
+  if (!isRecord(properties)) {
+    return false;
+  }
+
+  const propertyNames = Object.keys(properties);
 
   if (
     !propertyNames.every(
       (name) =>
         name.length > 0 &&
-        isMeaningfulJsonSchema(value.properties[name])
+        isMeaningfulJsonSchema(properties[name])
     )
   ) {
     return false;
@@ -178,7 +184,7 @@ function isStrictObjectJsonSchema(
     (
       propertyNames.length !== exactPropertyNames.length ||
       !exactPropertyNames.every((name) =>
-        Object.prototype.hasOwnProperty.call(value.properties, name)
+        Object.prototype.hasOwnProperty.call(properties, name)
       )
     )
   ) {
@@ -194,7 +200,7 @@ function isStrictObjectJsonSchema(
     !required.every(
       (name: unknown) =>
         typeof name === "string" &&
-        Object.prototype.hasOwnProperty.call(value.properties, name)
+        Object.prototype.hasOwnProperty.call(properties, name)
     ) ||
     new Set(required).size !== required.length
   ) {
@@ -203,7 +209,7 @@ function isStrictObjectJsonSchema(
 
   return requiredPropertyNames.every(
     (name) =>
-      Object.prototype.hasOwnProperty.call(value.properties, name) &&
+      Object.prototype.hasOwnProperty.call(properties, name) &&
       required.includes(name)
   );
 }
