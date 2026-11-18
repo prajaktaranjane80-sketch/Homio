@@ -1,4 +1,5 @@
 import ast
+import re
 from pathlib import Path
 
 
@@ -34,6 +35,16 @@ OWNER_REQUEST = (
     / "REOS_CONTROL_CENTER/evidence/BACKEND-001/"
     "B1-completion-request.md"
 )
+
+
+def normalize_workflow_condition_source(source: str) -> str:
+    """Normalize inline and YAML block-scalar workflow conditions."""
+    source = re.sub(
+        r"(?m)^([ \t]*if:)[ \t]*[>|][+-]?[ \t]*",
+        r"\1",
+        source,
+    )
+    return re.sub(r"\s+", "", source)
 
 
 def read_required(path: Path) -> str:
@@ -84,10 +95,12 @@ def test_backend_ci_has_exact_owner_guarded_b1_completion():
     workflow = read_required(BACKEND_WORKFLOW)
 
     reusable_path = (
-        '".github/workflows/'
+        '"".github/workflows/"'
         'reusable-backend-b1-completion.yml"'
     )
 
+    # The same existing reusable workflow must be referenced by
+    # both the push-triggered and workflow-call configuration.
     assert workflow.count(reusable_path) == 2
 
     guard = (
@@ -97,7 +110,10 @@ def test_backend_ci_has_exact_owner_guarded_b1_completion():
         "'[CONTROL-CENTER-COMPLETE-BACKEND-001-B1]') }}"
     )
 
-    assert guard in workflow
+    assert (
+        normalize_workflow_condition_source(guard)
+        in normalize_workflow_condition_source(workflow)
+    )
     assert "control_center_complete_backend_b1:" in workflow
     assert "needs: verification" in workflow
     assert (
