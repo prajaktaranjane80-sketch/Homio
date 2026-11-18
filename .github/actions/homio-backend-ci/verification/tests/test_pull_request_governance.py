@@ -1,9 +1,7 @@
-
 from __future__ import annotations
 
 from pathlib import Path
 import re
-
 
 ROOT = Path(__file__).resolve().parents[5]
 WORKFLOWS = ROOT / ".github" / "workflows"
@@ -34,13 +32,11 @@ TRANSITION_WORKFLOW_GLOBS = (
     "reusable-core008-*.yml",
 )
 
-
 def read(path: Path) -> str:
     assert path.is_file(), (
         f"Required governance source is missing: {path.relative_to(ROOT)}"
     )
     return path.read_text(encoding="utf-8")
-
 
 def top_level_section(
     source: str,
@@ -61,7 +57,6 @@ def top_level_section(
     end = source.index(end_marker, start + len(start_marker))
     assert end > start, f"Invalid YAML section order: {section_name}"
     return source[start:end]
-
 
 def job_block(source: str, job_id: str) -> str:
     lines = source.splitlines()
@@ -85,7 +80,6 @@ def job_block(source: str, job_id: str) -> str:
 
     return "\n".join(lines[start:end]) + "\n"
 
-
 def test_pull_request_trigger_covers_every_change_to_canonical_branch() -> None:
     workflow = read(WORKFLOWS / "backend-ci.yml")
     pull_request = top_level_section(
@@ -103,7 +97,6 @@ def test_pull_request_trigger_covers_every_change_to_canonical_branch() -> None:
     # Pull requests must not use the elevated pull_request_target event.
     assert "pull_request_target:" not in workflow
 
-
 def test_push_filter_remains_scoped_and_does_not_replace_pr_coverage() -> None:
     workflow = read(WORKFLOWS / "backend-ci.yml")
     push = top_level_section(workflow, "push", "pull_request")
@@ -112,7 +105,6 @@ def test_push_filter_remains_scoped_and_does_not_replace_pr_coverage() -> None:
     assert "    paths:\n" in push
     assert '      - "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**"' in push
     assert '      - ".github/actions/homio-backend-ci/**"' in push
-
 
 def test_pull_request_invokes_the_read_only_verification_job() -> None:
     workflow = read(WORKFLOWS / "backend-ci.yml")
@@ -136,7 +128,6 @@ def test_pull_request_invokes_the_read_only_verification_job() -> None:
     assert "permissions:\n      contents: read" in verification_job
     assert "ref: ${{ github.sha }}" in verification_job
 
-
 def test_required_check_context_matches_the_live_github_check_run_name() -> None:
     assert REQUIRED_CHECK_CONTEXT == (
         "Backend, T21, and ACRL runtime verification / "
@@ -148,7 +139,6 @@ def test_required_check_context_matches_the_live_github_check_run_name() -> None
     )
     verification_job = job_block(reusable, "verify")
     assert f"name: {VERIFICATION_JOB_NAME}" in verification_job
-
 
 def test_all_control_center_transition_jobs_are_push_only() -> None:
     workflow = read(WORKFLOWS / "backend-ci.yml")
@@ -164,11 +154,15 @@ def test_all_control_center_transition_jobs_are_push_only() -> None:
 
     for job_id in job_ids:
         block = job_block(workflow, job_id)
-        assert "github.event_name == 'push'" in block, job_id
-        assert "github.ref == 'refs/heads/reos-development'" in block, job_id
-        assert "startsWith(github.event.head_commit.message" in block, job_id
-        assert "pull_request" not in block, job_id
 
+        # YAML folded scalars insert line breaks between expression tokens.
+        # Compare normalized source whitespace, not a formatting-specific line.
+        normalized_block = re.sub(r"\s+", "", block)
+
+        assert "github.event_name=='push'" in normalized_block, job_id
+        assert "github.ref=='refs/heads/reos-development'" in normalized_block, job_id
+        assert "startsWith(github.event.head_commit.message," in normalized_block, job_id
+        assert "pull_request" not in normalized_block, job_id
 
 def test_all_reusable_transition_workflows_keep_exact_push_guards() -> None:
     paths: list[Path] = []
@@ -201,7 +195,6 @@ def test_all_reusable_transition_workflows_keep_exact_push_guards() -> None:
         assert "EXPECTED_SHA: ${{ github.sha }}" in workflow, path.name
         assert "VERIFIED_CODE_SHA: ${{ github.sha }}" in workflow, path.name
 
-
 def test_verification_permissions_remain_read_only() -> None:
     workflow = read(WORKFLOWS / "backend-ci.yml")
     reusable = read(
@@ -216,7 +209,6 @@ def test_verification_permissions_remain_read_only() -> None:
     verification = job_block(workflow, "verification")
     assert "contents: write" not in verification
 
-
 def test_governance_test_is_wired_and_runbook_matches_the_live_check() -> None:
     action = read(VERIFICATION_ACTION)
     runbook = read(GOVERNANCE_RUNBOOK)
@@ -229,7 +221,6 @@ def test_governance_test_is_wired_and_runbook_matches_the_live_check() -> None:
     assert "Verify pull-request merge governance contract" in action
     assert REQUIRED_CHECK_CONTEXT in runbook
     assert "HOMIO-reos-development-protection" in runbook
-
 
 def action_step_block(source: str, step_name: str) -> str:
     lines = source.splitlines()
@@ -252,7 +243,6 @@ def action_step_block(source: str, step_name: str) -> str:
             break
 
     return "\n".join(lines[start:end]) + "\n"
-
 
 def test_pull_request_cannot_restore_or_publish_trusted_t14_resume_cache() -> None:
     action = read(VERIFICATION_ACTION)
