@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -102,6 +103,10 @@ class ChangeImpactReport:
             "provenance_source": self.provenance_source,
             "state_mutated": self.state_mutated,
             "execution_authorized": self.execution_authorized,
+
+            # Serialize the computed handoff decision. Downstream
+            # Control Center contracts validate this exact value.
+            "ready_for_handoff": self.ready_for_handoff,
         }
 
 
