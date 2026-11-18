@@ -66,13 +66,10 @@ from .impact_validation import (
 
 
 class _T17SourceKind(str, Enum):
-    """T17-only source kind for executable shell files.
-
-    T16 schema 1.1 does not define a SHELL category. T17 extends the
-    repository adapter without changing T16 snapshot semantics.
-    """
+    """T17-only source kinds absent from the current T16 registry."""
 
     SHELL = "SHELL"
+    TYPESCRIPT = "TYPESCRIPT"
 
 
 # T16 classifies files using their filename suffix. This canonical backend
@@ -110,9 +107,12 @@ class T17RepositoryIntelligenceAdapter:
                 item.relative_path
             )
 
-            suffix = Path(
+            source_path = Path(
                 item.relative_path
-            ).suffix.lower()
+            )
+
+            suffix = source_path.suffix.lower()
+            normalized_name = source_path.name.lower()
 
             is_default_unknown = (
                 item.source_kind == SourceKind.UNKNOWN
@@ -141,13 +141,13 @@ class T17RepositoryIntelligenceAdapter:
                 normalized.append(item)
                 continue
 
-            # T16 1.1 currently reports regular .sh/.bash files as
-            # UNKNOWN because its source-kind registry has no shell
-            # entry. T17 recognizes these executable sources explicitly.
+            # T16 1.1 currently reports regular .sh/.bash files as UNKNOWN
+            # because its source-kind registry has no shell entry. T17
+            # recognizes these executable sources explicitly.
             #
-            # Upgrade only the exact all-UNKNOWN classification emitted
-            # for a regular shell file. Never override symlinks,
-            # protected files, sensitive files, or a custom safe class.
+            # Upgrade only the exact all-UNKNOWN classification emitted for
+            # a regular shell file. Never override symlinks, protected files,
+            # sensitive files or a custom safe classification.
             if (
                 suffix in {".sh", ".bash"}
                 and not item.is_symlink
@@ -160,6 +160,54 @@ class T17RepositoryIntelligenceAdapter:
                         _T17SourceKind.SHELL,
                     ),
                     authority=FileAuthority.AUTHORITATIVE,
+                    risk=FileRisk.NORMAL,
+                )
+
+                normalized.append(item)
+                continue
+
+            # T16's current source registry does not include TypeScript
+            # suffixes. T17 recognizes backend TypeScript sources locally
+            # without changing T16's repository snapshot contract.
+            #
+            # Only reclassify regular files that T16 marked entirely UNKNOWN.
+            # Existing protected, sensitive, excluded and symlink metadata
+            # is preserved unchanged.
+            if (
+                suffix in {".ts", ".mts", ".cts"}
+                and not item.is_symlink
+                and is_default_unknown
+            ):
+                is_typescript_test = (
+                    normalized_name.startswith(
+                        ("test_", "test.")
+                    )
+                    or normalized_name.endswith(
+                        (
+                            "_test.ts",
+                            "_test.mts",
+                            "_test.cts",
+                        )
+                    )
+                    or ".test." in normalized_name
+                    or ".spec." in normalized_name
+                )
+
+                item = replace(
+                    item,
+                    source_kind=(
+                        SourceKind.TEST
+                        if is_typescript_test
+                        else cast(
+                            SourceKind,
+                            _T17SourceKind.TYPESCRIPT,
+                        )
+                    ),
+                    authority=(
+                        FileAuthority.DERIVED
+                        if is_typescript_test
+                        else FileAuthority.AUTHORITATIVE
+                    ),
                     risk=FileRisk.NORMAL,
                 )
 
