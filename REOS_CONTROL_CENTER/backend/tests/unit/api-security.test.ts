@@ -1,3 +1,4 @@
+
 import {
   afterEach,
   describe,
@@ -9,6 +10,9 @@ import {
 import type { FastifyPluginAsync } from "fastify";
 
 import { buildApp, type AppRuntime } from "../../src/app.js";
+import {
+  isValidApiRouteSecurityContract
+} from "../../src/security/api-security.js";
 import type { BackendSettings } from "../../src/config/settings.js";
 import {
   TokenVerificationError
@@ -263,6 +267,16 @@ describe("B2 Fastify API security boundary", () => {
       {
         clientId: "homio\u007ffrontend",
         tokenId: "test-access-token-jti-001"
+      },
+      {
+        clientId: "homio-frontend",
+        tokenId: "test-access-token-jti-001",
+        subject: "provider-subject-001\u0000"
+      },
+      {
+        clientId: "homio-frontend",
+        tokenId: "test-access-token-jti-001",
+        audiences: ["homio-api\u007f"]
       }
     ] as const;
 
@@ -1028,7 +1042,15 @@ describe("B2 Fastify API security boundary", () => {
             schema: {
               body: {
                 type: "object",
-                additionalProperties: false
+                additionalProperties: false,
+                required: ["name"],
+                properties: {
+                  name: {
+                    type: "string",
+                    minLength: 1,
+                    maxLength: 80
+                  }
+                }
               }
             },
             config: {
@@ -1111,6 +1133,237 @@ describe("B2 Fastify API security boundary", () => {
     ).rejects.toThrow(
       "Every /api/v1 route must declare valid security metadata and mutation schemas."
     );
+  });
+
+  it("rejects empty, permissive and incomplete mutation body schemas", () => {
+    const protectedMutation = {
+      method: "POST",
+      url: "/leads",
+      config: {
+        homioSecurity: {
+          operation: "leads.create",
+          reauthorizeBeforeMutation: true
+        }
+      }
+    };
+
+    expect(
+      isValidApiRouteSecurityContract({
+        ...protectedMutation,
+        schema: {
+          body: {}
+        }
+      })
+    ).toBe(false);
+
+    expect(
+      isValidApiRouteSecurityContract({
+        ...protectedMutation,
+        schema: {
+          body: {
+            type: "object",
+            properties: {
+              name: {
+                type: "string"
+              }
+            }
+          }
+        }
+      })
+    ).toBe(false);
+
+    expect(
+      isValidApiRouteSecurityContract({
+        ...protectedMutation,
+        schema: {
+          body: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              name: {}
+            }
+          }
+        }
+      })
+    ).toBe(false);
+
+    expect(
+      isValidApiRouteSecurityContract({
+        ...protectedMutation,
+        schema: {
+          body: {
+            type: "object",
+            additionalProperties: false,
+            required: ["name"],
+            properties: {
+              name: {
+                type: "string",
+                minLength: 1,
+                maxLength: 80
+              },
+              details: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                  source: {
+                    type: "string",
+                    minLength: 1
+                  }
+                }
+              },
+              tags: {
+                type: "array",
+                items: {
+                  type: "string",
+                  minLength: 1
+                }
+              }
+            }
+          }
+        }
+      })
+    ).toBe(true);
+
+    expect(
+      isValidApiRouteSecurityContract({
+        ...protectedMutation,
+        schema: {
+          body: {
+            type: "array",
+            items: {}
+          }
+        }
+      })
+    ).toBe(false);
+  });
+
+  it("requires exact closed schemas for every named path parameter", () => {
+    const protectedRead = {
+      method: "GET",
+      url: "/resources/:resourceId",
+      config: {
+        homioSecurity: {
+          operation: "inventory.read"
+        }
+      }
+    };
+
+    expect(
+      isValidApiRouteSecurityContract({
+        ...protectedRead,
+        schema: {
+          params: {}
+        }
+      })
+    ).toBe(false);
+
+    expect(
+      isValidApiRouteSecurityContract({
+        ...protectedRead,
+        schema: {
+          params: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              resourceId: {
+                type: "string",
+                minLength: 1,
+                maxLength: 128
+              }
+            },
+            required: []
+          }
+        }
+      })
+    ).toBe(false);
+
+    expect(
+      isValidApiRouteSecurityContract({
+        ...protectedRead,
+        schema: {
+          params: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              resourceId: {
+                type: "string",
+                minLength: 1,
+                maxLength: 128
+              }
+            },
+            required: ["resourceId"]
+          }
+        }
+      })
+    ).toBe(true);
+  });
+
+  it("rejects empty explicit querystring and header schemas", () => {
+    const publicRead = {
+      method: "GET",
+      url: "/status",
+      config: {
+        homioSecurity: {
+          public: true
+        }
+      }
+    };
+
+    expect(
+      isValidApiRouteSecurityContract({
+        ...publicRead,
+        schema: {
+          querystring: {}
+        }
+      })
+    ).toBe(false);
+
+    expect(
+      isValidApiRouteSecurityContract({
+        ...publicRead,
+        schema: {
+          headers: {}
+        }
+      })
+    ).toBe(false);
+  });
+
+  it("rejects wildcard paths, unsupported methods and duplicate method declarations", () => {
+    expect(
+      isValidApiRouteSecurityContract({
+        method: "GET",
+        url: "/resources/*",
+        config: {
+          homioSecurity: {
+            public: true
+          }
+        }
+      })
+    ).toBe(false);
+
+    expect(
+      isValidApiRouteSecurityContract({
+        method: "TRACE",
+        url: "/diagnostics",
+        config: {
+          homioSecurity: {
+            public: true
+          }
+        }
+      })
+    ).toBe(false);
+
+    expect(
+      isValidApiRouteSecurityContract({
+        method: ["GET", "GET"],
+        url: "/diagnostics",
+        config: {
+          homioSecurity: {
+            public: true
+          }
+        }
+      })
+    ).toBe(false);
   });
 
   it("uses Fastify JSON schema validation before mutation reauthorization", async () => {
