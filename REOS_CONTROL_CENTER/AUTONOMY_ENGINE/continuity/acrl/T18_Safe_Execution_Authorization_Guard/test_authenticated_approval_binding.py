@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import json
@@ -5,6 +6,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from AUTONOMY_ENGINE.security.authentication.oidc_verifier import (
+    AuthenticatedIdentityPrincipal,
     AuthenticatedPrincipal,
     AuthenticationError,
 )
@@ -41,7 +43,7 @@ class _FixedPrincipalVerifier:
 
     def __init__(
         self,
-        principal: AuthenticatedPrincipal,
+        principal: AuthenticatedPrincipal | AuthenticatedIdentityPrincipal,
         *,
         expected_token: str = TEST_ACCESS_TOKEN,
         fail: bool = False,
@@ -50,7 +52,10 @@ class _FixedPrincipalVerifier:
         self.expected_token = expected_token
         self.fail = fail
 
-    def verify_access_token(self, token: str) -> AuthenticatedPrincipal:
+    def verify_access_token(
+        self,
+        token: str,
+    ) -> AuthenticatedPrincipal | AuthenticatedIdentityPrincipal:
         if self.fail or token != self.expected_token:
             raise AuthenticationError("invalid_access_token")
         return self.principal
@@ -204,3 +209,42 @@ def test_contract_requires_oidc_verified_approver():
         "OIDC-verified approver principal" in item
         for item in contract["required_inputs"]
     )
+
+
+def test_trusted_oidc_identity_principal_is_accepted_without_fake_access_claims(
+    tmp_path,
+):
+    request = _request(tmp_path)
+    identity_principal = AuthenticatedIdentityPrincipal(
+        issuer=TEST_ISSUER,
+        subject=TEST_SUBJECT,
+        audiences=("homio-control-center-backend-b2-dependency-correction",),
+    )
+    verifier = _FixedPrincipalVerifier(identity_principal)
+    result = ExecutionAuthorizationGuard(
+        policy=_test_policy(),
+        principal_verifier=verifier,
+    ).authorize(request)
+
+    assert result.decision is AuthorizationDecision.AUTHORIZE
+    assert result.reason is AuthorizationReason.VALIDATED
+    assert result.execution_authorized is True
+    assert result.state_mutated is False
+
+
+def test_untrusted_oidc_identity_principal_is_still_blocked(tmp_path):
+    request = _request(tmp_path)
+    outsider = AuthenticatedIdentityPrincipal(
+        issuer=TEST_ISSUER,
+        subject="unlisted-workload-identity",
+        audiences=("homio-control-center-backend-b2-dependency-correction",),
+    )
+    verifier = _FixedPrincipalVerifier(outsider)
+    result = ExecutionAuthorizationGuard(
+        policy=_test_policy(),
+        principal_verifier=verifier,
+    ).authorize(request)
+
+    assert result.decision is AuthorizationDecision.BLOCK
+    assert result.reason is AuthorizationReason.APPROVAL_INVALID
+    assert result.execution_authorized is False
