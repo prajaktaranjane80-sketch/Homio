@@ -1,359 +1,249 @@
-
 from __future__ import annotations
 
-from typing import Protocol
+import json
+from dataclasses import replace
+from pathlib import Path
 
-from ....security.authentication.oidc_verifier import (
+from AUTONOMY_ENGINE.security.authentication.oidc_verifier import (
     AuthenticatedIdentityPrincipal,
     AuthenticatedPrincipal,
+    AuthenticationError,
 )
-
-from ..T15_AI_Operator_Autonomy.operator_policy import (
-    OperatorActionType,
+from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.authorization_errors import (
+    SafeAuthorizationPolicyError,
 )
-from ..T15_AI_Operator_Autonomy.operator_autonomy import (
-    OperatorDecision,
-)
-from ..T17_Change_Impact_Dependency_Analysis.impact_identity import (
-    fingerprint_report,
-)
-
-from .authorization_errors import (
-    SafeAuthorizationCompatibilityError,
-    SafeAuthorizationIntegrityError,
-    SafeAuthorizationInputError,
-    SafeAuthorizationSecurityError,
-)
-from .authorization_identity import (
-    approval_scope_fingerprint,
-)
-from .authorization_models import (
+from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.authorization_models import (
     AuthorizationRequest,
-    HumanApproval,
 )
-from .authorization_policy import (
+from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.authorization_policy import (
     SafeAuthorizationPolicy,
 )
+from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.authorization_registry import (
+    AuthorizationDecision,
+    AuthorizationReason,
+)
+from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.execution_authorization import (
+    ExecutionAuthorizationGuard,
+)
+from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.test_execution_authorization import (
+    TEST_ACCESS_TOKEN,
+    TEST_CLIENT_ID,
+    TEST_ISSUER,
+    TEST_SUBJECT,
+    TEST_TOKEN_ID,
+    _test_guard,
+    _test_policy,
+    build_approved_request,
+)
 
 
-class PrincipalTokenVerifier(Protocol):
-    """Verifier boundary for the token profile used by this approval.
+class _FixedPrincipalVerifier:
+    """Controlled adapter for testing T18's OIDC-verifier boundary."""
 
-    API access tokens produce AuthenticatedPrincipal. Narrowly scoped OIDC
-    workload identity tokens produce AuthenticatedIdentityPrincipal. The
-    workload identity type is not valid for customer sessions or API access.
-    """
+    def __init__(
+        self,
+        principal: AuthenticatedPrincipal | AuthenticatedIdentityPrincipal,
+        *,
+        expected_token: str = TEST_ACCESS_TOKEN,
+        fail: bool = False,
+    ) -> None:
+        self.principal = principal
+        self.expected_token = expected_token
+        self.fail = fail
 
     def verify_access_token(
         self,
         token: str,
-    ) -> AuthenticatedPrincipal | AuthenticatedIdentityPrincipal: ...
+    ) -> AuthenticatedPrincipal | AuthenticatedIdentityPrincipal:
+        if self.fail or token != self.expected_token:
+            raise AuthenticationError("invalid_access_token")
+        return self.principal
 
 
-def validate_request_structure(
-    request: AuthorizationRequest,
-) -> None:
-    if not isinstance(
-        request,
-        AuthorizationRequest,
-    ):
-        raise SafeAuthorizationInputError(
-            "Invalid T18 AuthorizationRequest."
-        )
-
-    if not isinstance(request.nonce, str):
-        raise SafeAuthorizationInputError(
-            "T18 nonce must be a string."
-        )
-
-    if not request.nonce.strip():
-        raise SafeAuthorizationInputError(
-            "T18 nonce must be non-empty."
-        )
-
-    if len(request.nonce) > 256:
-        raise SafeAuthorizationInputError(
-            "T18 nonce exceeds maximum length."
-        )
-
-    if (
-        request.approval is not None
-        and not isinstance(request.approval, HumanApproval)
-    ):
-        raise SafeAuthorizationInputError(
-            "T18 approval must be HumanApproval evidence."
-        )
+def _request(tmp_path) -> AuthorizationRequest:
+    return build_approved_request(tmp_path)
 
 
-def validate_upstream_contracts(
-    request: AuthorizationRequest,
-    policy: SafeAuthorizationPolicy,
-) -> None:
-    operator_report = request.operator_report
-    impact_report = request.impact_report
+def test_claimed_approver_must_match_oidc_verified_principal(tmp_path):
+    request = _request(tmp_path)
+    assert request.approval is not None
 
-    if operator_report.schema_version != "1.0":
-        raise SafeAuthorizationCompatibilityError(
-            "Unsupported T15 operator report schema."
-        )
+    forged_approval = replace(
+        request.approval,
+        principal_subject="forged-subject",
+    )
+    forged_request = replace(request, approval=forged_approval)
 
-    if operator_report.authority != "REOS_CONTROL_CENTER":
-        raise SafeAuthorizationSecurityError(
-            "T15 authority boundary is invalid."
-        )
+    result = _test_guard().authorize(forged_request)
 
-    if operator_report.state_mutated:
-        raise SafeAuthorizationSecurityError(
-            "T15 report indicates state mutation."
-        )
+    assert result.decision is AuthorizationDecision.BLOCK
+    assert result.reason is AuthorizationReason.APPROVAL_INVALID
+    assert result.execution_authorized is False
 
-    if operator_report.execution_authorized:
-        raise SafeAuthorizationSecurityError(
-            "T15 report is already execution-authorized."
-        )
 
-    if operator_report.decision is not OperatorDecision.PROPOSE:
-        raise SafeAuthorizationSecurityError(
-            "T18 requires a T15 PROPOSE decision."
-        )
+def test_authenticated_principal_must_be_allowlisted(tmp_path):
+    request = _request(tmp_path)
+    assert request.approval is not None
 
-    if operator_report.proposal is None:
-        raise SafeAuthorizationSecurityError(
-            "T18 requires a bounded T15 proposal."
-        )
+    outsider_subject = "unlisted-approver"
+    outsider = AuthenticatedPrincipal(
+        issuer=TEST_ISSUER,
+        subject=outsider_subject,
+        audiences=("homio-api",),
+        client_id=TEST_CLIENT_ID,
+        token_id="outsider-access-token-jti-001",
+    )
+    outsider_approval = replace(
+        request.approval,
+        principal_subject=outsider_subject,
+    )
+    outsider_request = replace(request, approval=outsider_approval)
 
-    if impact_report.schema_version != "1.0":
-        raise SafeAuthorizationCompatibilityError(
-            "Unsupported T17 report schema."
-        )
+    verifier = _FixedPrincipalVerifier(outsider)
+    guard = ExecutionAuthorizationGuard(
+        policy=_test_policy(),
+        principal_verifier=verifier,
+    )
+    result = guard.authorize(outsider_request)
 
-    if impact_report.state_mutated:
-        raise SafeAuthorizationSecurityError(
-            "T17 report indicates state mutation."
-        )
+    assert result.decision is AuthorizationDecision.BLOCK
+    assert result.reason is AuthorizationReason.APPROVAL_INVALID
+    assert result.execution_authorized is False
 
-    if impact_report.execution_authorized:
-        raise SafeAuthorizationSecurityError(
-            "T17 cannot authorize execution."
-        )
 
-    expected_impact_fingerprint = fingerprint_report(
-        impact_report
+def test_missing_oidc_verifier_fails_closed(tmp_path):
+    request = _request(tmp_path)
+
+    result = ExecutionAuthorizationGuard(
+        policy=_test_policy(),
+    ).authorize(request)
+
+    assert result.decision is AuthorizationDecision.BLOCK
+    assert result.reason is AuthorizationReason.APPROVAL_INVALID
+    assert result.execution_authorized is False
+
+
+def test_oidc_verification_failure_fails_closed(tmp_path):
+    request = _request(tmp_path)
+    verifier = _FixedPrincipalVerifier(
+        AuthenticatedPrincipal(
+            issuer=TEST_ISSUER,
+            subject=TEST_SUBJECT,
+            audiences=("homio-api",),
+            client_id=TEST_CLIENT_ID,
+            token_id=TEST_TOKEN_ID,
+        ),
+        fail=True,
+    )
+    guard = ExecutionAuthorizationGuard(
+        policy=_test_policy(),
+        principal_verifier=verifier,
     )
 
-    if expected_impact_fingerprint != impact_report.fingerprint:
-        raise SafeAuthorizationIntegrityError(
-            "T17 impact report fingerprint mismatch."
-        )
+    result = guard.authorize(request)
 
-    policy.validate()
-
-
-def validate_authorization_scope(
-    request: AuthorizationRequest,
-    policy: SafeAuthorizationPolicy,
-) -> None:
-    proposal = request.operator_report.proposal
-
-    if proposal is None:
-        raise SafeAuthorizationSecurityError(
-            "Missing T15 proposal."
-        )
-
-    if proposal.action_type is not OperatorActionType.PROPOSE_CHANGE:
-        raise SafeAuthorizationSecurityError(
-            "T18 only authorizes bounded change proposals."
-        )
-
-    if not policy.permits(
-        proposal.action_type,
-        proposal.risk,
-    ):
-        raise SafeAuthorizationSecurityError(
-            "Requested action exceeds T18 policy."
-        )
-
-    impact = request.impact_report
-
-    if policy.require_t17_analyze:
-        decision = impact.decision.value
-
-        if decision != "ANALYZE":
-            raise SafeAuthorizationSecurityError(
-                "T17 impact analysis is not in ANALYZE state."
-            )
-
-    if policy.reject_unknown_paths and impact.unknown_paths:
-        raise SafeAuthorizationSecurityError(
-            "T17 contains unknown paths."
-        )
-
-    if (
-        policy.reject_protected_impacts
-        and impact.protected_paths
-    ):
-        raise SafeAuthorizationSecurityError(
-            "T17 contains protected impacts."
-        )
+    assert result.decision is AuthorizationDecision.BLOCK
+    assert result.reason is AuthorizationReason.APPROVAL_INVALID
+    assert result.execution_authorized is False
+    assert "invalid_access_token" not in str(result.to_dict())
 
 
-def validate_human_approval(
-    request: AuthorizationRequest,
-    policy: SafeAuthorizationPolicy,
-    principal_verifier: PrincipalTokenVerifier | None = None,
-) -> None:
-    proposal = request.operator_report.proposal
+def test_bearer_token_is_never_in_serialized_approval_or_request(tmp_path):
+    request = _request(tmp_path)
+    assert request.approval is not None
 
-    if proposal is None:
-        raise SafeAuthorizationSecurityError(
-            "Missing proposal for approval validation."
-        )
+    serialized_approval = json.dumps(request.approval.to_dict())
+    serialized_request = json.dumps(request.to_dict())
 
-    if (
-        policy.require_human_approval_for_change
-        and proposal.action_type is OperatorActionType.PROPOSE_CHANGE
-    ):
-        approval = request.approval
-
-        if approval is None:
-            raise SafeAuthorizationSecurityError(
-                "Explicit human approval is required."
-            )
-
-        if approval.approved is not True:
-            raise SafeAuthorizationSecurityError(
-                "Human approval is not granted."
-            )
-
-        if (
-            not isinstance(approval.approval_id, str)
-            or not approval.approval_id.strip()
-        ):
-            raise SafeAuthorizationInputError(
-                "Approval ID must be non-empty text."
-            )
-
-        if (
-            not isinstance(approval.authority, str)
-            or not approval.authority.strip()
-        ):
-            raise SafeAuthorizationInputError(
-                "Approval authority must be non-empty text."
-            )
-
-        if (
-            not isinstance(approval.evidence, tuple)
-            or not approval.evidence
-            or any(
-                not isinstance(item, str) or not item.strip()
-                for item in approval.evidence
-            )
-        ):
-            raise SafeAuthorizationSecurityError(
-                "Approval evidence must contain "
-                "non-empty text entries."
-            )
-
-        expected_scope = approval_scope_fingerprint(request)
-
-        if approval.scope_fingerprint != expected_scope:
-            raise SafeAuthorizationIntegrityError(
-                "Approval scope fingerprint mismatch."
-            )
-
-        token = approval.authentication_token
-
-        if (
-            not isinstance(token, str)
-            or not token
-            or token != token.strip()
-        ):
-            raise SafeAuthorizationSecurityError(
-                "Approval authentication proof is required."
-            )
-
-        issuer = approval.principal_issuer
-        subject = approval.principal_subject
-
-        if (
-            not isinstance(issuer, str)
-            or not issuer.strip()
-            or issuer != issuer.strip()
-            or not isinstance(subject, str)
-            or not subject.strip()
-            or subject != subject.strip()
-        ):
-            raise SafeAuthorizationSecurityError(
-                "Approval must declare its authenticated principal identity."
-            )
-
-        if principal_verifier is None:
-            raise SafeAuthorizationSecurityError(
-                "Trusted OIDC authentication verifier is not configured."
-            )
-
-        allowed_principals = policy.trusted_approver_principals
-
-        if not allowed_principals:
-            raise SafeAuthorizationSecurityError(
-                "No trusted approver principals are configured."
-            )
-
-        try:
-            authenticated = principal_verifier.verify_access_token(token)
-        except Exception:
-            # Avoid leaking token, issuer or key-provider details.
-            raise SafeAuthorizationSecurityError(
-                "Approval authentication proof could not be verified."
-            ) from None
-
-        if not isinstance(
-            authenticated,
-            (
-                AuthenticatedPrincipal,
-                AuthenticatedIdentityPrincipal,
-            ),
-        ):
-            raise SafeAuthorizationSecurityError(
-                "Authentication verifier returned an untrusted principal type."
-            )
-
-        if (
-            authenticated.issuer != issuer
-            or authenticated.subject != subject
-        ):
-            raise SafeAuthorizationIntegrityError(
-                "Approval principal does not match the authenticated principal."
-            )
-
-        if (
-            authenticated.issuer,
-            authenticated.subject,
-        ) not in allowed_principals:
-            raise SafeAuthorizationSecurityError(
-                "Authenticated principal is not a trusted approver."
-            )
+    assert TEST_ACCESS_TOKEN not in serialized_approval
+    assert TEST_ACCESS_TOKEN not in serialized_request
+    assert TEST_ACCESS_TOKEN not in repr(request.approval)
+    assert (
+        request.approval.to_dict()["authentication_proof_present"]
+        is True
+    )
 
 
-def validate_read_only_invariant(
-    authorization,
-) -> None:
-    if authorization.state_mutated:
-        raise SafeAuthorizationSecurityError(
-            "T18 authorization artifact cannot mutate state."
-        )
+def test_approval_flag_requires_true_boolean(tmp_path):
+    request = _request(tmp_path)
+    assert request.approval is not None
 
-    if authorization.requires_external_executor is not True:
-        raise SafeAuthorizationSecurityError(
-            "T18 authorization must require an external executor."
+    forged_approval = replace(
+        request.approval,
+        approved="yes",
+    )
+    forged_request = replace(request, approval=forged_approval)
+
+    result = _test_guard().authorize(forged_request)
+
+    assert result.decision is AuthorizationDecision.BLOCK
+    assert result.reason is AuthorizationReason.APPROVAL_INVALID
+
+
+def test_t18_policy_cannot_disable_explicit_human_approval():
+    policy = SafeAuthorizationPolicy(
+        require_human_approval_for_change=False,
+    )
+
+    try:
+        policy.validate()
+    except SafeAuthorizationPolicyError:
+        pass
+    else:
+        raise AssertionError(
+            "T18 must not authorize executable changes without human approval."
         )
 
 
-__all__ = [
-    "PrincipalTokenVerifier",
-    "validate_request_structure",
-    "validate_upstream_contracts",
-    "validate_authorization_scope",
-    "validate_human_approval",
-    "validate_read_only_invariant",
-]
+def test_contract_requires_oidc_verified_approver():
+    contract_path = (
+        Path(__file__).resolve().parent
+        / "t18.contract.json"
+    )
+    contract = json.loads(
+        contract_path.read_text(encoding="utf-8")
+    )
+
+    assert any(
+        "OIDC-verified approver principal" in item
+        for item in contract["required_inputs"]
+    )
+
+
+def test_trusted_oidc_identity_principal_is_accepted_without_fake_access_claims(
+    tmp_path,
+):
+    request = _request(tmp_path)
+    identity_principal = AuthenticatedIdentityPrincipal(
+        issuer=TEST_ISSUER,
+        subject=TEST_SUBJECT,
+        audiences=("homio-control-center-backend-b2-dependency-correction",),
+    )
+    verifier = _FixedPrincipalVerifier(identity_principal)
+    result = ExecutionAuthorizationGuard(
+        policy=_test_policy(),
+        principal_verifier=verifier,
+    ).authorize(request)
+
+    assert result.decision is AuthorizationDecision.AUTHORIZE
+    assert result.reason is AuthorizationReason.VALIDATED
+    assert result.execution_authorized is True
+    assert result.state_mutated is False
+
+
+def test_untrusted_oidc_identity_principal_is_still_blocked(tmp_path):
+    request = _request(tmp_path)
+    outsider = AuthenticatedIdentityPrincipal(
+        issuer=TEST_ISSUER,
+        subject="unlisted-workload-identity",
+        audiences=("homio-control-center-backend-b2-dependency-correction",),
+    )
+    verifier = _FixedPrincipalVerifier(outsider)
+    result = ExecutionAuthorizationGuard(
+        policy=_test_policy(),
+        principal_verifier=verifier,
+    ).authorize(request)
+
+    assert result.decision is AuthorizationDecision.BLOCK
+    assert result.reason is AuthorizationReason.APPROVAL_INVALID
+    assert result.execution_authorized is False
