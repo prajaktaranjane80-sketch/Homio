@@ -1,3 +1,4 @@
+
 import ast
 import importlib.util
 import subprocess
@@ -309,6 +310,83 @@ def test_typescript_backend_sources_and_tests_are_classified_safely(
     assert report.unknown_paths == ()
     assert report.protected_paths == ()
     assert report.ready_for_handoff is True
+
+
+def test_typescript_module_variants_and_spec_tests_are_classified_safely(
+    tmp_path,
+):
+    root = build_repo(tmp_path / "repo")
+
+    fixtures = {
+        "backend/src/runtime/runtime.mts": (
+            "export const runtime = true;\n"
+        ),
+        "backend/src/runtime/compat.cts": (
+            "export const compatibility = true;\n"
+        ),
+        "backend/tests/runtime.spec.mts": (
+            "export const runtimeSpec = true;\n"
+        ),
+        "backend/tests/compat.test.cts": (
+            "export const compatibilityTest = true;\n"
+        ),
+    }
+
+    for relative_path, content in fixtures.items():
+        path = root / relative_path
+        path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        path.write_text(
+            content,
+            encoding="utf-8",
+        )
+
+    adapter = T17RepositoryIntelligenceAdapter(root)
+    classified = {
+        item.relative_path: item
+        for item in adapter.files()
+    }
+
+    source_paths = (
+        "backend/src/runtime/runtime.mts",
+        "backend/src/runtime/compat.cts",
+    )
+
+    test_paths = (
+        "backend/tests/runtime.spec.mts",
+        "backend/tests/compat.test.cts",
+    )
+
+    for relative_path in source_paths:
+        item = classified[relative_path]
+
+        assert item.source_kind.value == "TYPESCRIPT"
+        assert item.authority == FileAuthority.AUTHORITATIVE
+        assert item.risk == FileRisk.NORMAL
+        assert item.is_symlink is False
+
+    for relative_path in test_paths:
+        item = classified[relative_path]
+
+        assert item.source_kind == SourceKind.TEST
+        assert item.authority == FileAuthority.DERIVED
+        assert item.risk == FileRisk.NORMAL
+        assert item.is_symlink is False
+
+    analyzer = ChangeImpactAnalyzer(root)
+    report = analyzer.analyze(
+        tuple(sorted(source_paths + test_paths))
+    )
+    analyzer.validate_report(report)
+
+    assert report.decision == T17Decision.ANALYZE
+    assert report.unknown_paths == ()
+    assert report.protected_paths == ()
+    assert report.ready_for_handoff is True
+    assert report.state_mutated is False
+    assert report.execution_authorized is False
 
 
 def test_typescript_symlink_remains_blocked_by_repository_boundary(
