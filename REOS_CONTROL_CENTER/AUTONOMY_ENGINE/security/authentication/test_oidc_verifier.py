@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import time
@@ -81,10 +82,8 @@ def mint(
 
     headers = {
         "kid": "test-key",
+        "typ": token_type,
     }
-
-    if token_type is not None:
-        headers["typ"] = token_type
 
     return jwt.encode(
         claims,
@@ -393,3 +392,250 @@ def test_access_token_subject_is_not_derived_from_email(verifier):
 
     assert principal.subject == "canonical-provider-subject"
     assert principal.token_id == TOKEN_ID
+
+
+def test_valid_github_actions_identity_token_uses_distinct_profile(verifier):
+    instance, client, key = verifier
+
+    claims = instance.verify_identity_token(
+        mint(
+            key,
+            token_type="JWT",
+            client_id=None,
+            jti=None,
+        )
+    )
+
+    assert claims["iss"] == ISSUER
+    assert claims["aud"] == AUDIENCE
+    assert claims["sub"] == "provider-subject"
+    assert "client_id" not in claims
+    assert "jti" not in claims
+    assert client.calls == 1
+
+
+def test_identity_token_profile_does_not_weaken_api_access_tokens(verifier):
+    instance, client, key = verifier
+    identity_token = mint(
+        key,
+        token_type="JWT",
+        client_id=None,
+        jti=None,
+    )
+
+    with pytest.raises(
+        AuthenticationError,
+        match="invalid_access_token_type",
+    ):
+        instance.verify_access_token(identity_token)
+
+    assert client.calls == 0
+
+    verified = instance.verify_identity_token(identity_token)
+
+    assert verified["sub"] == "provider-subject"
+    assert client.calls == 1
+
+
+@pytest.mark.parametrize(
+    "token_type",
+    [
+        None,
+        "at+jwt",
+        "application/at+jwt",
+        "application/jwt",
+        "id+jwt",
+        "",
+        " jwt",
+        "jwt ",
+    ],
+)
+def test_non_identity_token_types_are_rejected_before_key_lookup(
+    verifier,
+    token_type,
+):
+    instance, client, key = verifier
+
+    with pytest.raises(
+        AuthenticationError,
+        match="invalid_identity_token_type",
+    ):
+        instance.verify_identity_token(
+            mint(
+                key,
+                token_type=token_type,
+                client_id=None,
+                jti=None,
+            )
+        )
+
+    assert client.calls == 0
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"iss": "https://attacker.example.test/"},
+        {"aud": "another-service"},
+        {
+            "exp": int(time.time()) - 60,
+            "iat": int(time.time()) - 120,
+        },
+        {"iat": int(time.time()) + 120},
+        {"nbf": int(time.time()) + 120},
+        {"sub": None},
+        {"exp": None},
+        {"iat": None},
+        {"iss": None},
+        {"aud": None},
+        {"sub": ""},
+        {"sub": " "},
+        {"sub": "x" * 256},
+    ],
+)
+def test_invalid_identity_token_claims_are_rejected(
+    verifier,
+    changes,
+):
+    instance, _, key = verifier
+
+    with pytest.raises(AuthenticationError):
+        instance.verify_identity_token(
+            mint(
+                key,
+                token_type="JWT",
+                client_id=None,
+                jti=None,
+                **changes,
+            )
+        )
+
+
+def test_identity_token_bad_signature_is_rejected(verifier):
+    instance, _, _ = verifier
+    other = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+    )
+
+    with pytest.raises(
+        AuthenticationError,
+        match="invalid_identity_token",
+    ):
+        instance.verify_identity_token(
+            mint(
+                other,
+                token_type="JWT",
+                client_id=None,
+                jti=None,
+            )
+        )
+
+
+def test_identity_token_hs256_is_rejected_before_key_lookup(verifier):
+    instance, client, _ = verifier
+    token = mint(
+        "long-test-secret-that-is-not-a-real-key",
+        algorithm="HS256",
+        token_type="JWT",
+        client_id=None,
+        jti=None,
+    )
+
+    with pytest.raises(
+        AuthenticationError,
+        match="unsupported_token_algorithm",
+    ):
+        instance.verify_identity_token(token)
+
+    assert client.calls == 0
+
+
+def test_identity_token_critical_headers_are_rejected_before_key_lookup(
+    verifier,
+):
+    instance, client, key = verifier
+    claims = {
+        "iss": ISSUER,
+        "aud": AUDIENCE,
+        "sub": "provider-subject",
+        "iat": int(time.time()),
+        "exp": int(time.time()) + 300,
+    }
+    token = jwt.encode(
+        claims,
+        key,
+        algorithm="RS256",
+        headers={
+            "kid": "test-key",
+            "typ": "JWT",
+            "crit": ["unknown-extension"],
+            "unknown-extension": True,
+        },
+    )
+
+    with pytest.raises(
+        AuthenticationError,
+        match="malformed_identity_token",
+    ):
+        instance.verify_identity_token(token)
+
+    assert client.calls == 0
+
+
+def test_identity_token_jwks_failure_fails_closed_without_provider_details(
+    rsa_pair,
+):
+    instance = OIDCVerifier(
+        SETTINGS,
+        FakeJwksClient(
+            rsa_pair[1],
+            fail=True,
+        ),
+    )
+
+    with pytest.raises(
+        AuthenticationError,
+        match="verification_key_unavailable",
+    ) as exc:
+        instance.verify_identity_token(
+            mint(
+                rsa_pair[0],
+                token_type="JWT",
+                client_id=None,
+                jti=None,
+            )
+        )
+
+    assert "sensitive provider detail" not in str(exc.value)
+
+
+def test_identity_token_multiple_audiences_are_preserved(verifier):
+    instance, _, key = verifier
+
+    claims = instance.verify_identity_token(
+        mint(
+            key,
+            token_type="JWT",
+            client_id=None,
+            jti=None,
+            aud=[AUDIENCE, "another-service"],
+        )
+    )
+
+    assert claims["aud"] == [AUDIENCE, "another-service"]
+
+
+def test_malformed_identity_tokens_are_rejected_before_key_lookup(verifier):
+    instance, client, _ = verifier
+
+    for token in (
+        "",
+        "not-a-jwt",
+        " a.b.c",
+        "x" * 16_385,
+    ):
+        with pytest.raises(AuthenticationError):
+            instance.verify_identity_token(token)
+
+    assert client.calls == 0
