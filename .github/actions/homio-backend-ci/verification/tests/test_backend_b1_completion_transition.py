@@ -94,8 +94,8 @@ def git_command_prefixes(source: str) -> set[tuple[str, ...]]:
 def test_backend_ci_has_exact_owner_guarded_b1_completion():
     workflow = read_required(BACKEND_WORKFLOW)
 
-    reusable_path = (
-        '"".github/workflows/"'
+        reusable_path = (
+        '".github/workflows/'
         'reusable-backend-b1-completion.yml"'
     )
 
