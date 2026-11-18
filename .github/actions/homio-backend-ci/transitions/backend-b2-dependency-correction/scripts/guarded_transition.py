@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import json
@@ -9,8 +10,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
-
-import jwt
 
 
 ROOT = Path(__file__).resolve().parents[6]
@@ -103,6 +102,22 @@ EXPECTED_SOURCE_PATHS = {
     ),
     "REOS_CONTROL_CENTER/backend/src/security/api-security.ts",
     "REOS_CONTROL_CENTER/backend/tests/unit/api-security.test.ts",
+    (
+        "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/"
+        "authentication/oidc_verifier.py"
+    ),
+    (
+        "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/security/"
+        "authentication/test_oidc_verifier.py"
+    ),
+    (
+        "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/"
+        "T18_Safe_Execution_Authorization_Guard/authorization_validation.py"
+    ),
+    (
+        "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/"
+        "T18_Safe_Execution_Authorization_Guard/test_authenticated_approval_binding.py"
+    ),
 }
 
 for import_root in (ROOT, CONTROL):
@@ -179,7 +194,8 @@ from AUTONOMY_ENGINE.security.authentication.oidc_config import (  # noqa: E402
     OIDCSettings,
 )
 from AUTONOMY_ENGINE.security.authentication.oidc_verifier import (  # noqa: E402
-    AuthenticatedPrincipal,
+    AuthenticatedIdentityPrincipal,
+    AuthenticationError,
     OIDCVerifier,
 )
 
@@ -566,7 +582,14 @@ def request_github_oidc_token() -> str:
 
 
 class GitHubActionsPrincipalVerifier:
-    """Use HOMIO's existing verifier for the signed GitHub OIDC token."""
+    """Verify GitHub Actions OIDC workload identity for T18 approval.
+
+    The Actions identity JWT is a workload identity, not an RFC 9068 API
+    access token. Signature, issuer, audience, expiry and JWT profile are
+    checked by the existing OIDCVerifier identity-token method. Immutable
+    repository, owner, actor, ref, event and exact-SHA claims are then
+    checked by the existing HOMIO GitHub identity contract.
+    """
 
     def __init__(self, expected_sha: str) -> None:
         self.expected_sha = expected_sha
@@ -581,28 +604,14 @@ class GitHubActionsPrincipalVerifier:
 
         self.claims: dict[str, object] = {}
 
-    def verify_access_token(
+    def verify_identity_token(
         self,
         token: str,
-    ) -> AuthenticatedPrincipal:
-        # Cryptographic verification occurs before payload claim access.
-        principal = self.verifier.verify_access_token(token)
-
+    ) -> dict[str, object]:
         try:
-            claims = jwt.decode(
-                token,
-                options={
-                    "verify_signature": False,
-                    "verify_exp": False,
-                    "verify_iat": False,
-                    "verify_aud": False,
-                    "verify_iss": False,
-                    "verify_nbf": False,
-                },
-                algorithms=["RS256", "ES256"],
-            )
-        except Exception:
-            fail("Verified GitHub OIDC claims could not be read")
+            claims = self.verifier.verify_identity_token(token)
+        except AuthenticationError:
+            raise
 
         try:
             validate_github_actions_identity_claims(
@@ -610,22 +619,82 @@ class GitHubActionsPrincipalVerifier:
                 expected_sha=self.expected_sha,
             )
         except GitHubActionsIdentityError as exc:
-            fail(str(exc))
+            raise AuthenticationError(
+                "invalid_github_actions_identity"
+            ) from exc
 
-        if claims.get("actor_id") != OWNER_ID:
-            fail("GitHub OIDC actor ID is not the repository owner")
+        issuer = claims.get("iss")
+        subject = claims.get("sub")
+        actor_id = claims.get("actor_id")
 
-        if principal.issuer != OIDC_ISSUER:
-            fail("OIDC verifier returned an unexpected issuer")
+        if issuer != OIDC_ISSUER:
+            raise AuthenticationError("unexpected_identity_issuer")
 
-        if principal.subject != EXPECTED_OIDC_SUBJECT:
-            fail("OIDC verifier returned an unexpected immutable subject")
+        if subject != EXPECTED_OIDC_SUBJECT:
+            raise AuthenticationError("unexpected_identity_subject")
 
-        if OIDC_AUDIENCE not in principal.audiences:
-            fail("OIDC verifier returned an unexpected audience")
+        if actor_id != OWNER_ID:
+            raise AuthenticationError("unexpected_identity_actor")
+
+        raw_audience = claims.get("aud")
+
+        if isinstance(raw_audience, str):
+            audiences = (raw_audience,)
+        elif (
+            isinstance(raw_audience, list)
+            and raw_audience
+            and all(
+                isinstance(item, str)
+                and item.strip() == item
+                for item in raw_audience
+            )
+        ):
+            audiences = tuple(raw_audience)
+        else:
+            raise AuthenticationError("invalid_identity_audience")
+
+        if OIDC_AUDIENCE not in audiences:
+            raise AuthenticationError("unexpected_identity_audience")
 
         self.claims = claims
-        return principal
+        return claims
+
+    def verify_access_token(
+        self,
+        token: str,
+    ) -> AuthenticatedIdentityPrincipal:
+        # T18's established verifier protocol consumes a verified principal.
+        # This adapter returns a distinct workload-identity type, never an
+        # API access principal or fabricated OAuth client_id/jti.
+        claims = self.verify_identity_token(token)
+
+        issuer = claims.get("iss")
+        subject = claims.get("sub")
+        raw_audience = claims.get("aud")
+
+        if not isinstance(issuer, str) or not isinstance(subject, str):
+            raise AuthenticationError("invalid_verified_identity")
+
+        if isinstance(raw_audience, str):
+            audiences = (raw_audience,)
+        elif (
+            isinstance(raw_audience, list)
+            and raw_audience
+            and all(
+                isinstance(item, str)
+                and item.strip() == item
+                for item in raw_audience
+            )
+        ):
+            audiences = tuple(raw_audience)
+        else:
+            raise AuthenticationError("invalid_verified_identity_audience")
+
+        return AuthenticatedIdentityPrincipal(
+            issuer=issuer,
+            subject=subject,
+            audiences=audiences,
+        )
 
 
 def authorize_dependency_correction(
@@ -641,7 +710,14 @@ def authorize_dependency_correction(
     principal_verifier = GitHubActionsPrincipalVerifier(
         expected_sha
     )
-    principal = principal_verifier.verify_access_token(token)
+    try:
+        principal_verifier.verify_identity_token(token)
+    except AuthenticationError as exc:
+        fail(
+            "GitHub Actions OIDC identity verification failed: "
+            f"{exc.code}"
+        )
+
     claims = principal_verifier.claims
 
     context = OperatorContext(
@@ -768,8 +844,8 @@ def authorize_dependency_correction(
             base_request
         ),
         evidence=approval_evidence,
-        principal_issuer=principal.issuer,
-        principal_subject=principal.subject,
+        principal_issuer=str(claims["iss"]),
+        principal_subject=str(claims["sub"]),
         authentication_token=token,
     )
 
@@ -810,8 +886,8 @@ def authorize_dependency_correction(
         "actor_id": str(claims["actor_id"]),
         "source_commit": expected_sha,
         "state_blob_sha": BASELINE_STATE_BLOB_SHA,
-        "oidc_issuer": principal.issuer,
-        "oidc_subject": principal.subject,
+        "oidc_issuer": str(claims["iss"]),
+        "oidc_subject": str(claims["sub"]),
         "owner_id": OWNER_ID,
         "repository_id": REPOSITORY_ID,
         "actions_run_id": os.environ["ACTIONS_RUN_ID"],
