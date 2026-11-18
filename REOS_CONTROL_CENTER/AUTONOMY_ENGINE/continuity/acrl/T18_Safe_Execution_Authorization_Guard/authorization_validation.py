@@ -1,8 +1,10 @@
+
 from __future__ import annotations
 
 from typing import Protocol
 
 from ....security.authentication.oidc_verifier import (
+    AuthenticatedIdentityPrincipal,
     AuthenticatedPrincipal,
 )
 
@@ -35,12 +37,17 @@ from .authorization_policy import (
 
 
 class PrincipalTokenVerifier(Protocol):
-    """Adapter for HOMIO's existing OIDC access-token verifier."""
+    """Verifier boundary for the token profile used by this approval.
+
+    API access tokens produce AuthenticatedPrincipal. Narrowly scoped OIDC
+    workload identity tokens produce AuthenticatedIdentityPrincipal. The
+    workload identity type is not valid for customer sessions or API access.
+    """
 
     def verify_access_token(
         self,
         token: str,
-    ) -> AuthenticatedPrincipal: ...
+    ) -> AuthenticatedPrincipal | AuthenticatedIdentityPrincipal: ...
 
 
 def validate_request_structure(
@@ -300,7 +307,13 @@ def validate_human_approval(
                 "Approval authentication proof could not be verified."
             ) from None
 
-        if not isinstance(authenticated, AuthenticatedPrincipal):
+        if not isinstance(
+            authenticated,
+            (
+                AuthenticatedPrincipal,
+                AuthenticatedIdentityPrincipal,
+            ),
+        ):
             raise SafeAuthorizationSecurityError(
                 "Authentication verifier returned an untrusted principal type."
             )
