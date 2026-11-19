@@ -1,4 +1,3 @@
-
 /**
  * Single PostgreSQL connection and transaction owner for B4.
  *
@@ -255,7 +254,6 @@ function beginStatement(
 export class PostgresRuntime {
   private readonly pool: PostgresDriverPool;
   private closePromise: Promise<void> | undefined;
-  private roleVerificationPromise: Promise<void> | undefined;
   private closed = false;
 
   public constructor(pool: PostgresDriverPool) {
@@ -270,10 +268,18 @@ export class PostgresRuntime {
     this.pool = pool;
   }
 
+  /**
+   * Explicit operational check.
+   *
+   * This checks the connection acquired by this call. A successful result
+   * must never be reused as proof for another pooled connection.
+   */
   public async verifyRuntimeRoleSafety(): Promise<void> {
     if (this.closed) throw new PostgresRuntimeClosedError();
+
     const client = await this.pool.connect();
     let releaseError: Error | undefined;
+
     try {
       await this.ensureRuntimeRoleSafety(client);
     } catch (error) {
@@ -284,17 +290,26 @@ export class PostgresRuntime {
     }
   }
 
+  /**
+   * Each checked-out connection is a separate security boundary.
+   *
+   * Do not cache this result on PostgresRuntime:
+   * - pooled clients can carry different session state;
+   * - a previously released client may have changed session role;
+   * - a transient role-check failure must not poison all future attempts.
+   *
+   * Verification therefore runs on the exact client that will execute the
+   * transaction, before BEGIN or tenant-scoped SQL is issued.
+   */
   private ensureRuntimeRoleSafety(
     client: PostgresDriverClient
   ): Promise<void> {
-    if (this.roleVerificationPromise === undefined) {
-      this.roleVerificationPromise = this.checkRuntimeRole(client);
-    }
-    return this.roleVerificationPromise;
+    return this.checkRuntimeRole(client);
   }
 
   private async checkRuntimeRole(client: PostgresDriverClient): Promise<void> {
     let rows: readonly unknown[];
+
     try {
       const result = await client.query(POSTGRES_RUNTIME_ROLE_SAFETY_SQL);
       rows = result.rows;
@@ -303,6 +318,7 @@ export class PostgresRuntime {
     }
 
     const candidate = rows[0];
+
     if (
       rows.length !== 1 ||
       typeof candidate !== "object" ||
@@ -313,6 +329,7 @@ export class PostgresRuntime {
     }
 
     const role = candidate as Record<string, unknown>;
+
     if (
       typeof role.role_name !== "string" ||
       role.role_name.trim().length === 0 ||
@@ -325,18 +342,23 @@ export class PostgresRuntime {
     ) {
       throw new PostgresRuntimeRoleError("INVALID_ROLE_RESULT");
     }
+
     if (role.is_superuser) {
       throw new PostgresRuntimeRoleError("SUPERUSER_ROLE");
     }
+
     if (role.bypasses_row_security) {
       throw new PostgresRuntimeRoleError("BYPASS_RLS_ROLE");
     }
+
     if (role.owns_application_tables) {
       throw new PostgresRuntimeRoleError("OWNS_APPLICATION_TABLES");
     }
+
     if (role.tenant_table_count < 1) {
       throw new PostgresRuntimeRoleError("TENANT_TABLES_MISSING");
     }
+
     if (!role.tenant_tables_force_rls) {
       throw new PostgresRuntimeRoleError("TENANT_TABLES_RLS_NOT_FORCED");
     }
@@ -348,14 +370,17 @@ export class PostgresRuntime {
     options: PostgresTransactionOptions = {}
   ): Promise<Result> {
     if (this.closed) throw new PostgresRuntimeClosedError();
+
     if (typeof work !== "function") {
       throw new TypeError("PostgreSQL transaction work must be a function.");
     }
 
     const tenantId = normalizeTenantId(context?.tenantId);
+
     const isolationLevel = normalizeIsolationLevel(
       options.isolationLevel ?? DEFAULT_ISOLATION_LEVEL
     );
+
     const readOnly = normalizeReadOnly(options.readOnly);
     const client = await this.pool.connect();
 
@@ -370,6 +395,7 @@ export class PostgresRuntime {
     const transaction: PostgresTransaction = Object.freeze({
       tenantId,
       readOnly,
+
       query: async <Row extends Record<string, unknown>>(
         rawText: string,
         values?: readonly unknown[]
@@ -377,15 +403,19 @@ export class PostgresRuntime {
         if (!transactionHandleActive) {
           throw new PostgresTransactionClosedError();
         }
+
         const text = normalizeQueryText(rawText);
         const parameters = values === undefined ? undefined : [...values];
+
         const operation = queryQueue.then(async () => {
           const result = await client.query(text, parameters);
+
           return {
             rows: result.rows as readonly Row[],
             rowCount: result.rowCount
           };
         });
+
         queryQueue = operation.then(
           () => undefined,
           (error: unknown) => {
@@ -395,33 +425,45 @@ export class PostgresRuntime {
             }
           }
         );
+
         return operation;
       }
     });
 
     try {
       await this.ensureRuntimeRoleSafety(client);
+
       await client.query(beginStatement(isolationLevel, readOnly));
       transactionActive = true;
+
       await client.query(TENANT_SETTING_SQL, [tenantId]);
 
       const result = await work(transaction);
+
       transactionHandleActive = false;
+
       await queryQueue;
-      if (hasQueryError) throw firstQueryError;
+
+      if (hasQueryError) {
+        throw firstQueryError;
+      }
 
       commitAttempted = true;
+
       try {
         await client.query("COMMIT");
       } catch (error) {
         releaseError = toError(error);
         throw new PostgresTransactionOutcomeUnknownError(error);
       }
+
       transactionActive = false;
       return result;
     } catch (error) {
       transactionHandleActive = false;
+
       await queryQueue;
+
       if (transactionActive && !commitAttempted) {
         try {
           await client.query("ROLLBACK");
@@ -433,6 +475,7 @@ export class PostgresRuntime {
       } else if (!transactionActive && !commitAttempted) {
         releaseError = toError(error);
       }
+
       throw error;
     } finally {
       transactionHandleActive = false;
@@ -445,6 +488,7 @@ export class PostgresRuntime {
       this.closed = true;
       this.closePromise = Promise.resolve().then(() => this.pool.end());
     }
+
     return this.closePromise;
   }
 }
