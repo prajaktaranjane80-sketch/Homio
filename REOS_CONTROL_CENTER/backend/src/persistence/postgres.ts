@@ -1,3 +1,7 @@
+import { assertTransactionQueryAllowed } from "./postgres-query-policy.js";
+
+export { PostgresTransactionQueryPolicyError } from "./postgres-query-policy.js";
+
 /**
  * Single PostgreSQL connection and transaction owner for B4.
  *
@@ -42,6 +46,12 @@ export interface PostgresQuery<Row extends Record<string, unknown>> {
 export interface PostgresTransaction {
   readonly tenantId: string;
   readonly readOnly: boolean;
+  /**
+   * Execute one application-owned statement. Keep SQL static and pass every
+   * caller-controlled value through bind parameters. The runtime denies
+   * transaction/session control, DDL, direct tenant-context mutation and
+   * multiple statements; approved database RLS remains mandatory.
+   */
   query<Row extends Record<string, unknown> = Record<string, unknown>>(
     text: string,
     values?: readonly unknown[]
@@ -166,6 +176,7 @@ export class PostgresRuntimeRoleError extends Error {
   }
 }
 
+
 export class PostgresTransactionClosedError extends Error {
   public constructor() {
     super("The PostgreSQL transaction callback has already completed.");
@@ -233,6 +244,14 @@ function normalizeQueryText(value: unknown): string {
     throw new TypeError("PostgreSQL query text is invalid.");
   }
   return value;
+}
+
+function normalizeQueryValues(value: unknown): readonly unknown[] | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value)) {
+    throw new TypeError("PostgreSQL query values must be an array.");
+  }
+  return [...value];
 }
 
 function toError(value: unknown): Error {
@@ -398,17 +417,39 @@ export class PostgresRuntime {
 
       query: async <Row extends Record<string, unknown>>(
         rawText: string,
-        values?: readonly unknown[]
+        rawValues?: readonly unknown[]
       ): Promise<PostgresQuery<Row>> => {
         if (!transactionHandleActive) {
           throw new PostgresTransactionClosedError();
         }
 
-        const text = normalizeQueryText(rawText);
-        const parameters = values === undefined ? undefined : [...values];
+        let text: string | undefined;
+        let values: readonly unknown[] | undefined;
+        let validationError: unknown;
+        let hasValidationError = false;
+
+        try {
+          text = normalizeQueryText(rawText);
+          assertTransactionQueryAllowed(text);
+          values = normalizeQueryValues(rawValues);
+        } catch (error) {
+          validationError = error;
+          hasValidationError = true;
+        }
 
         const operation = queryQueue.then(async () => {
-          const result = await client.query(text, parameters);
+          if (hasQueryError) {
+            throw firstQueryError;
+          }
+
+          if (hasValidationError) {
+            throw validationError;
+          }
+
+          const result = await client.query(
+            text as string,
+            values === undefined ? undefined : [...values]
+          );
 
           return {
             rows: result.rows as readonly Row[],
