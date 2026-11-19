@@ -1,3 +1,4 @@
+
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -28,7 +29,8 @@ const SAFE_ROLE_RESULT = {
   bypasses_row_security: false,
   owns_application_tables: false,
   tenant_table_count: 2,
-  tenant_tables_force_rls: true
+  tenant_tables_force_rls: true,
+  tenant_tables_have_tenant_restrictive_guard: true
 };
 
 function makePool(options: {
@@ -199,13 +201,17 @@ describe("PostgreSQL tenant transaction owner", () => {
     expect(fixture.releaseErrors[0]).toBeInstanceOf(Error);
   });
 
-  it("blocks superuser and BYPASSRLS application connections before BEGIN", async () => {
+  it("blocks superuser, BYPASSRLS and missing tenant policy guards before BEGIN", async () => {
     for (const unsafeRow of [
       { ...SAFE_ROLE_RESULT, is_superuser: true },
       { ...SAFE_ROLE_RESULT, bypasses_row_security: true },
       { ...SAFE_ROLE_RESULT, owns_application_tables: true },
       { ...SAFE_ROLE_RESULT, tenant_tables_force_rls: false },
-      { ...SAFE_ROLE_RESULT, tenant_table_count: 0 }
+      { ...SAFE_ROLE_RESULT, tenant_table_count: 0 },
+      {
+        ...SAFE_ROLE_RESULT,
+        tenant_tables_have_tenant_restrictive_guard: false
+      }
     ]) {
       const fixture = makePool({ roleRows: [unsafeRow] });
       const runtime = new PostgresRuntime(fixture.pool);
