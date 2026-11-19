@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -29,6 +28,7 @@ targets = (
     Path("AUTONOMY_ENGINE/continuity/acrl/T23_Reference_Evidence_Resolution_Engine"),
     Path("AUTONOMY_ENGINE/continuity/acrl/T24_Cross_Chat_Continuity_Recovery_Engine"),
     Path("AUTONOMY_ENGINE/continuity/acrl/runtime_integration"),
+    Path("backend/python_runtime"),
 )
 
 source_files: set[Path] = set()
@@ -79,6 +79,10 @@ for source_path in sorted(source_files, key=lambda item: item.as_posix()):
 
 print(f"PYTHON_SOURCE_COMPILE_PASS={len(source_files)}")
 PY
+
+# BACKEND-001-B3: authenticated private runtime protocol and existing-owner boundary.
+python -m pytest -q -p no:cacheprovider \
+  backend/python_runtime/homio_python_runtime/tests
 
 # Section 14 writes sanitized deterministic AI-quality evidence.
 quality_report="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/homio-ai-section14-quality-evaluation.json"
