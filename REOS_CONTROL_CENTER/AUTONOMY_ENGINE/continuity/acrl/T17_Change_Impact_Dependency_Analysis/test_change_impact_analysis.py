@@ -545,6 +545,251 @@ def _guard_literal_assignment(
     )
 
 
+def _git_test_command(
+    repository_root: Path,
+    *arguments: str,
+) -> str:
+    completed = subprocess.run(
+        ["git", *arguments],
+        cwd=repository_root,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=15,
+    )
+    return completed.stdout.strip()
+
+
+def _git_test_commit(
+    repository_root: Path,
+    message: str,
+) -> str:
+    _git_test_command(repository_root, "add", "--all")
+    _git_test_command(repository_root, "commit", "-m", message)
+    return _git_test_command(repository_root, "rev-parse", "HEAD")
+
+
+def _latest_approved_b2_candidate(
+    repository_root: Path,
+    baseline_head: str,
+    approval_prefix: str,
+) -> str:
+    if (
+        not isinstance(approval_prefix, str)
+        or not approval_prefix
+        or approval_prefix != approval_prefix.strip()
+    ):
+        raise AssertionError(
+            "The guarded B2 approval prefix is invalid."
+        )
+
+    baseline_ancestry = subprocess.run(
+        [
+            "git",
+            "merge-base",
+            "--is-ancestor",
+            baseline_head,
+            "HEAD",
+        ],
+        cwd=repository_root,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=15,
+    )
+
+    if baseline_ancestry.returncode != 0:
+        raise AssertionError(
+            "The guarded B2 baseline is not an ancestor of the current HEAD."
+        )
+
+    history = subprocess.run(
+        [
+            "git",
+            "log",
+            "--first-parent",
+            "--format=%H%x09%s",
+            f"{baseline_head}..HEAD",
+        ],
+        cwd=repository_root,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=15,
+    )
+
+    # git log is newest-first. The first matching first-parent commit is the
+    # latest explicit owner-approved B2 candidate, not a later B3 commit.
+    for line in history.stdout.splitlines():
+        candidate_sha, separator, subject = line.partition("\t")
+
+        if (
+            not separator
+            or not candidate_sha
+            or not subject.startswith(approval_prefix)
+        ):
+            continue
+
+        candidate_ancestry = subprocess.run(
+            [
+                "git",
+                "merge-base",
+                "--is-ancestor",
+                candidate_sha,
+                "HEAD",
+            ],
+            cwd=repository_root,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+
+        if candidate_ancestry.returncode == 0:
+            return candidate_sha
+
+        if candidate_ancestry.returncode != 1:
+            raise AssertionError(
+                "Git could not validate the approved B2 candidate ancestry: "
+                f"{candidate_ancestry.stderr.strip()}"
+            )
+
+    raise AssertionError(
+        "No committed B2 dependency-correction candidate was found "
+        "after the guarded baseline."
+    )
+
+
+def test_b2_candidate_selection_excludes_later_b3_commits(
+    tmp_path,
+):
+    repository_root = tmp_path / "repository"
+    repository_root.mkdir()
+
+    _git_test_command(repository_root, "init")
+    _git_test_command(
+        repository_root,
+        "config",
+        "user.name",
+        "HOMIO T17 test",
+    )
+    _git_test_command(
+        repository_root,
+        "config",
+        "user.email",
+        "homio-t17-test@example.invalid",
+    )
+
+    (repository_root / "baseline.txt").write_text(
+        "baseline\n",
+        encoding="utf-8",
+    )
+    baseline_head = _git_test_commit(
+        repository_root,
+        "Test baseline",
+    )
+
+    (repository_root / "b2-first.txt").write_text(
+        "B2 first approved source\n",
+        encoding="utf-8",
+    )
+    _git_test_commit(
+        repository_root,
+        "[CONTROL-CENTER-CORRECT-BACKEND-001-B2-DEPENDENCIES] first candidate",
+    )
+
+    (repository_root / "b2-final.txt").write_text(
+        "B2 final approved source\n",
+        encoding="utf-8",
+    )
+    expected_candidate = _git_test_commit(
+        repository_root,
+        "[CONTROL-CENTER-CORRECT-BACKEND-001-B2-DEPENDENCIES] final candidate",
+    )
+
+    (repository_root / "b3-runtime.py").write_text(
+        "B3_RUNTIME = True\n",
+        encoding="utf-8",
+    )
+    _git_test_commit(
+        repository_root,
+        "Add later B3 runtime implementation",
+    )
+
+    selected_candidate = _latest_approved_b2_candidate(
+        repository_root,
+        baseline_head,
+        "[CONTROL-CENTER-CORRECT-BACKEND-001-B2-DEPENDENCIES]",
+    )
+
+    assert selected_candidate == expected_candidate
+
+    changed_paths = set(
+        _git_test_command(
+            repository_root,
+            "diff",
+            "--name-only",
+            baseline_head,
+            selected_candidate,
+        ).splitlines()
+    )
+
+    assert changed_paths == {
+        "b2-first.txt",
+        "b2-final.txt",
+    }
+    assert "b3-runtime.py" not in changed_paths
+
+
+def test_b2_candidate_selection_fails_closed_without_approval(
+    tmp_path,
+):
+    repository_root = tmp_path / "repository"
+    repository_root.mkdir()
+
+    _git_test_command(repository_root, "init")
+    _git_test_command(
+        repository_root,
+        "config",
+        "user.name",
+        "HOMIO T17 test",
+    )
+    _git_test_command(
+        repository_root,
+        "config",
+        "user.email",
+        "homio-t17-test@example.invalid",
+    )
+
+    (repository_root / "baseline.txt").write_text(
+        "baseline\n",
+        encoding="utf-8",
+    )
+    baseline_head = _git_test_commit(
+        repository_root,
+        "Test baseline",
+    )
+
+    (repository_root / "b3-runtime.py").write_text(
+        "B3_RUNTIME = True\n",
+        encoding="utf-8",
+    )
+    _git_test_commit(
+        repository_root,
+        "Add later B3 runtime implementation",
+    )
+
+    with pytest.raises(
+        AssertionError,
+        match="No committed B2 dependency-correction candidate",
+    ):
+        _latest_approved_b2_candidate(
+            repository_root,
+            baseline_head,
+            "[CONTROL-CENTER-CORRECT-BACKEND-001-B2-DEPENDENCIES]",
+        )
+
+
 def test_b2_dependency_correction_inventory_matches_guard_and_t17():
     repository_root = Path(__file__).resolve().parents[5]
 
@@ -576,6 +821,18 @@ def test_b2_dependency_correction_inventory_matches_guard_and_t17():
         )
     )
 
+    approval_prefix = ast.literal_eval(
+        _guard_literal_assignment(
+            guard_tree,
+            "APPROVAL_PREFIX",
+        )
+    )
+
+    assert isinstance(approval_prefix, str)
+    assert approval_prefix.startswith(
+        "[CONTROL-CENTER-CORRECT-BACKEND-001-B2"
+    )
+
     expected_paths_node = _guard_literal_assignment(
         guard_tree,
         "EXPECTED_SOURCE_PATHS",
@@ -596,18 +853,25 @@ def test_b2_dependency_correction_inventory_matches_guard_and_t17():
                 ast.literal_eval(element)
             )
 
+    approved_candidate = _latest_approved_b2_candidate(
+        repository_root,
+        baseline_head,
+        approval_prefix,
+    )
+
     changed = subprocess.run(
         [
             "git",
             "diff",
             "--name-only",
             baseline_head,
-            "HEAD",
+            approved_candidate,
         ],
         cwd=repository_root,
         check=True,
         capture_output=True,
         text=True,
+        timeout=15,
     )
 
     actual_paths = set(
