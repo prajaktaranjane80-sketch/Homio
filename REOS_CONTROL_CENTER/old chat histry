@@ -1,60 +1,658 @@
-B2 ka Foundation complete hai, lekin poora B2 abhi complete nahi hua.
+ok B2-B3  complite karo  or world class work karo
 
-Live state.json ke mutabik:
-Subtask	Status
-B2 Foundation	DONE
-B3 Python runtime bridge	CURRENT
-B4 PostgreSQL integration	PENDING
-B2 Production Binding	PENDING
+Worked for 5m 12s
+Live audit ke according B2–B3 ki actual position:
 
-Production Binding mein six real security adapters, durable session/revocation, CORE-001 authorization, distributed rate limits aur persistent audit abhi verify hone baaki hain. Isliye B2 ko complete kehna galat hoga.
+Work
 
-Aur haan, diagnosis mein zyada time lagna meri taraf se workflow inefficiency hai. Har baar poora repository dobara kholne ke bajaye ACRL ka fast-resume evidence aur EntryPoint ke current-task pointers pehle use karne chahiye.
+Verified status
 
-Actual root cause ACRL mein mila hai. ACRL ka cache mechanism kaam kar raha hai, lekin uska fast-resume rule task transitions ke saath compatible nahi hai.
-1. Live evidence se kya mila
-T14 cache successfully sealed
-Run 44291230985 ne external T14 manifest successfully create aur read-back kiya tha.
-- Audited paths: 79
-- T16 repository inventory: 2,286 files
-- Cache refresh: approximately 4.4 seconds
-- Cache source HEAD: bffd2a008d5e…
-Lekin current HEAD eed5e9ab8f61… hai. Is transition mein sirf paanch files badli thi; koi Python, TypeScript ya ACRL implementation file nahi badli.
-2. Fast-resume kyun fail hota hai?
-T14 ki existing file:
+B2 security foundation
 
-REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T14_Repository_Intelligence_Context/audit_resume_manifest.py
+DONE
 
-Ismein ek strict condition hai:
-- Manifest ka state_json_blob_sha aur live state ka SHA alag ho, toh FULL_AUDIT_REQUIRED.
-- T07 ke existing test mein bhi state SHA badalne par full audit mandatory hai.
-Yaani normal Control Center task transition bhi cache invalidate kar deta hai. Chahe source code unchanged ho, T16 dobara repository inventory karta hai.
+B2 production binding
 
-Yahi actual architectural bottleneck hai.
-3. GPT Memory aur AI Agent EntryPoint ka gap
-Maine AI_AGENT_ENTRYPOINT.py bhi verify kiya.
+B4 ke baad
 
-startup_instructions() explicitly sirf instructions return karta hai. Woh:
-- GitHub fetch nahi karta.
-- T07 ya T14 execute nahi karta.
-- Current state ya CI evidence refresh nahi karta.
-EntryPoint mein T07/T14 ka read order hai, lekin automatic invocation nahi hai. GPT Memory project preferences aur operating rules preserve karti hai; woh live repository state ya external CI cache ka replacement nahi hai.
+B3 Python runtime bridge
 
-Relevant files:
-- AI_AGENT_ENTRYPOINT.py
-- T07 fast-resume tests
-- T14 cache implementation
-4. Iska correct solution
-Naya engine banane ki zaroorat nahi hai. Existing T14/T07 owners ko improve karna chahiye:
-1. state.json ko har session mein live fetch aur integrity-verify karna.
-2. State transition aur source-code changes ko alag classify karna.
-3. State-only transition par T16 ka 2,286-file scan repeat na karna, jab audited source blob SHAs unchanged hon.
-4. Changed source files par existing dependency graph se targeted re-audit karna.
-5. Unknown, protected ya architecture-sensitive changes par full audit mandatory rakhna.
-6. Live task position hamesha state.json se lena, cached manifest se nahi.
-7. New commit ke exact-SHA CI evidence ko independently verify karna.
-Aur meri taraf se bhi correction: mujhe B3 diagnosis se pehle T14 artifact retrieve karke resume decision check karna chahiye tha. Maine pehle unnecessarily bahut saari source files fetch ki. Isi wajah se conversation mein extra time laga.
+CURRENT — incomplete
 
-Abhi GitHub branch unchanged hai: eed5e9ab…; B3 abhi bhi CURRENT hai. Pehle jo worker implementation aur tests pass hone ki baat kahi gayi thi, unhe committed B3 evidence nahi maana ja sakta—abhi exact-SHA GitHub verification nahi hui hai.
+Ek critical dependency: B2 production binding ko B3 aur B4 dono ke baad rakhne ka guarded Control Center decision already recorded hai. B4 ka durable PostgreSQL/idempotency owner abhi bana nahi hai. Isliye production mutations ya mock security adapters activate karna unsafe hoga.
 
-Mera next engineering focus existing T14 mein yeh cache-invalidation gap correct karna hai; uske baad B3 ko exact tests aur guarded CI evidence ke saath complete karna hai. Koi duplicate engine nahi banega.
+B3 mein abhi ka actual code improvement
+Latest commit mein duplicate_key_worker.py fixture add hua tha, lekin integration test usko execute nahi karta tha. Maine existing test file ka complete replacement prepare kiya hai. Ismein real spawned Python worker ke through correctly signed response ke duplicate JSON keys reject hone ka regression test add hai. Existing tests aur test structure preserve kiye hain.
+
+Exact path:
+
+REOS_CONTROL_CENTER/backend/tests/integration/python-runtime-client.test.ts
+
+Complete replacement prepared 583 → 612 lines
+
+GitHub Web Editor mein puri existing file replace karke yeh content save karo:
+
+import {
+  afterEach,
+  describe,
+  expect,
+  it
+} from "vitest";
+import { execFileSync } from "node:child_process";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+import {
+  PythonRuntimeClient
+} from "../../src/integrations/python_runtime/client.js";
+
+import {
+  PYTHON_RUNTIME_AUDIENCE,
+  PYTHON_RUNTIME_OPERATIONS,
+  PYTHON_RUNTIME_PROTOCOL_NAME,
+  PYTHON_RUNTIME_PROTOCOL_VERSION,
+  PYTHON_RUNTIME_SERVICE_ID
+} from "../../src/integrations/python_runtime/contracts.js";
+
+import type {
+  PythonRuntimeClientOptions,
+  RuntimeCorrelationContext,
+  TrustedRuntimeContext
+} from "../../src/integrations/python_runtime/contracts.js";
+
+const BACKEND_ROOT = fileURLToPath(
+  new URL("../../", import.meta.url)
+);
+
+const CONTROL_CENTER_ROOT = resolve(BACKEND_ROOT, "..");
+
+const WORKER_SCRIPT = resolve(
+  BACKEND_ROOT,
+  "python_runtime",
+  "homio_python_runtime",
+  "worker.py"
+);
+
+const CORRELATION_CONTEXT: RuntimeCorrelationContext = {
+  correlationId: "66666666-6666-4666-8666-666666666666"
+};
+
+const TRUSTED_CONTEXT: TrustedRuntimeContext = {
+  correlationId: CORRELATION_CONTEXT.correlationId,
+  actor: {
+    identityId: "11111111-1111-4111-8111-111111111111",
+    accountId: "22222222-2222-4222-8222-222222222222"
+  },
+  tenant: {
+    tenantId: "33333333-3333-4333-8333-333333333333",
+    tenantRevision: 4,
+    organizationId: "44444444-4444-4444-8444-444444444444",
+    membershipId: "55555555-5555-4555-8555-555555555555",
+    membershipRevision: 7
+  }
+};
+
+let clients: PythonRuntimeClient[] = [];
+
+function pythonExecutable(): string {
+  const candidates = [
+    process.env.PYTHON_EXECUTABLE,
+    process.env.PYTHON,
+    process.platform === "win32" ? "python" : "python3",
+    "python"
+  ].filter(
+    (value): value is string =>
+      typeof value === "string" && value.length > 0
+  );
+
+  for (const candidate of candidates) {
+    try {
+      const result = execFileSync(
+        candidate,
+        ["-c", "import sys; print(sys.executable)"],
+        {
+          cwd: CONTROL_CENTER_ROOT,
+          encoding: "utf8",
+          timeout: 5_000,
+          windowsHide: true
+        }
+      ).trim();
+
+      if (result.length > 0) return result;
+    } catch {
+      // Try the next executable name; never use a shell or a command string.
+    }
+  }
+
+  throw new Error(
+    "Python 3.12+ is required for the private runtime integration tests."
+  );
+}
+
+function createClient(
+  ownerFactory = "homio_python_runtime.tests.fixtures.probe_owners:build_runtime",
+  poolSize = 2,
+  requestTimeoutMs = 5_000,
+  workerScript = WORKER_SCRIPT
+): PythonRuntimeClient {
+  const options: PythonRuntimeClientOptions = {
+    pythonExecutable: pythonExecutable(),
+    workerScript,
+    workingDirectory: CONTROL_CENTER_ROOT,
+    ownerFactory,
+    runtimeMode: "test",
+    poolSize,
+    queueLimit: 8,
+    requestTimeoutMs
+  };
+
+  const client = new PythonRuntimeClient(options);
+  clients.push(client);
+  return client;
+}
+
+it(
+  "keeps the TypeScript client and versioned contract document compatible",
+  async () => {
+    const contractPath = resolve(
+      BACKEND_ROOT,
+      "contracts",
+      "python-runtime",
+      "v1",
+      "contract.json"
+    );
+
+    const contract: unknown = JSON.parse(
+      await readFile(contractPath, "utf8")
+    );
+
+    expect(contract).toMatchObject({
+      contract: {
+        protocol: PYTHON_RUNTIME_PROTOCOL_NAME,
+        version: PYTHON_RUNTIME_PROTOCOL_VERSION,
+        owner: "BACKEND-001-B3"
+      }
+    });
+
+    const contractDocument = contract as {
+      authentication: {
+        service_id: string;
+        audience: string;
+      };
+      operations: Record<string, unknown>;
+    };
+
+    expect(contractDocument.authentication.service_id).toBe(
+      PYTHON_RUNTIME_SERVICE_ID
+    );
+    expect(contractDocument.authentication.audience).toBe(
+      PYTHON_RUNTIME_AUDIENCE
+    );
+    expect(
+      Object.keys(contractDocument.operations).sort()
+    ).toEqual([...PYTHON_RUNTIME_OPERATIONS].sort());
+  }
+);
+
+afterEach(async () => {
+  await Promise.all(clients.map((client) => client.close()));
+  clients = [];
+});
+
+describe("authenticated private Python domain runtime IPC", () => {
+  it(
+    "preserves correlation, resolves existing CORE owners and minimizes OIDC claims",
+    async () => {
+      const client = createClient();
+
+      const identity = await client.invoke({
+        operation: "core001.identity.resolve",
+        context: CORRELATION_CONTEXT,
+        payload: {
+          provider: "https://issuer.example.test/",
+          subject: "probe-subject"
+        }
+      });
+
+      expect(identity).toEqual({
+        status: "RESOLVED",
+        identityId: TRUSTED_CONTEXT.actor.identityId,
+        referenceId: "77777777-7777-4777-8777-777777777777"
+      });
+
+      const tenant = await client.invoke({
+        operation: "core001.tenant.resolve_context",
+        context: TRUSTED_CONTEXT,
+        payload: {
+          tenantId: TRUSTED_CONTEXT.tenant.tenantId
+        }
+      });
+
+      expect(tenant).toEqual({
+        status: "RESOLVED",
+        tenantId: TRUSTED_CONTEXT.tenant.tenantId,
+        tenantRevision: 4,
+        context: {
+          tenantStatus: "ACTIVE",
+          tenantKind: "BROKERAGE",
+          operatingMode: "BROKER_SAAS"
+        }
+      });
+
+      const membership = await client.invoke({
+        operation: "core001.membership.resolve",
+        context: TRUSTED_CONTEXT,
+        payload: {
+          tenantId: TRUSTED_CONTEXT.tenant.tenantId,
+          organizationId: TRUSTED_CONTEXT.tenant.organizationId,
+          identityId: TRUSTED_CONTEXT.actor.identityId
+        }
+      });
+
+      expect(membership).toEqual({
+        status: "RESOLVED",
+        membershipId: TRUSTED_CONTEXT.tenant.membershipId,
+        tenantId: TRUSTED_CONTEXT.tenant.tenantId,
+        organizationId: TRUSTED_CONTEXT.tenant.organizationId,
+        identityId: TRUSTED_CONTEXT.actor.identityId,
+        membershipRevision: 7
+      });
+
+      const principal = await client.invoke({
+        operation: "oidc.verify_access_token",
+        context: CORRELATION_CONTEXT,
+        payload: { accessToken: "bridge-test-token" }
+      });
+
+      expect(principal).toEqual({
+        issuer: "https://issuer.example.test/",
+        subject: "probe-subject",
+        audiences: ["homio-api"],
+        clientId: "homio-web",
+        tokenId: "probe-jti"
+      });
+
+      expect(JSON.stringify(principal)).not.toContain("must-not-leak");
+    }
+  );
+
+  it(
+    "snapshots queued context and payload before callers can mutate their references",
+    async () => {
+      const client = createClient(
+        "homio_python_runtime.tests.fixtures.probe_owners:build_slow_runtime",
+        1,
+        5_000
+      );
+
+      const first = client.invoke({
+        operation: "oidc.verify_access_token",
+        context: CORRELATION_CONTEXT,
+        payload: { accessToken: "bridge-test-token" }
+      });
+
+      const mutableContext = {
+        correlationId: CORRELATION_CONTEXT.correlationId
+      };
+
+      const mutablePayload = {
+        provider: "https://issuer.example.test/",
+        subject: "probe-subject"
+      };
+
+      const queued = client.invoke({
+        operation: "core001.identity.resolve",
+        context: mutableContext,
+        payload: mutablePayload
+      });
+
+      mutableContext.correlationId =
+        "99999999-9999-4999-8999-999999999999";
+      mutablePayload.provider = "https://attacker.example.test/";
+      mutablePayload.subject = "attacker-subject";
+
+      await first;
+
+      await expect(queued).resolves.toMatchObject({
+        status: "RESOLVED",
+        identityId: TRUSTED_CONTEXT.actor.identityId
+      });
+    }
+  );
+
+  it(
+    "rejects issuer URLs with user information before private transport",
+    async () => {
+      const client = createClient();
+
+      await expect(client.invoke({
+        operation: "core001.identity.resolve",
+        context: CORRELATION_CONTEXT,
+        payload: {
+          provider: "https://@issuer.example.test/",
+          subject: "probe-subject"
+        }
+      })).rejects.toThrow(/trusted HTTPS issuer URL/);
+    }
+  );
+
+  it(
+    "rejects C0 and C1 Unicode control characters before private transport",
+    async () => {
+      const client = createClient();
+      const controlCharacters = [
+        "\u0000",
+        "\u001f",
+        "\u007f",
+        "\u0085",
+        "\u009f"
+      ];
+
+      for (const controlCharacter of controlCharacters) {
+        await expect(client.invoke({
+          operation: "core001.identity.resolve",
+          context: CORRELATION_CONTEXT,
+          payload: {
+            provider: "https://issuer.example.test/",
+            subject: `subject${controlCharacter}value`
+          }
+        })).rejects.toThrow(/subject is invalid/);
+      }
+    }
+  );
+
+  it(
+    "rejects forbidden control characters in production environment configuration",
+    () => {
+      const productionOptions: Omit<
+        PythonRuntimeClientOptions,
+        "environment"
+      > = {
+        pythonExecutable: pythonExecutable(),
+        workerScript: WORKER_SCRIPT,
+        workingDirectory: CONTROL_CENTER_ROOT,
+        ownerFactory: "AUTONOMY_ENGINE.runtime_composition:build_runtime",
+        runtimeMode: "production"
+      };
+
+      const controlCharacters = [
+        "\u0000",
+        "\u001f",
+        "\u007f",
+        "\u0085"
+      ];
+
+      for (const controlCharacter of controlCharacters) {
+        expect(() => new PythonRuntimeClient({
+          ...productionOptions,
+          environment: {
+            HOMIO_OIDC_ISSUER: "https://issuer.example.test/",
+            HOMIO_OIDC_AUDIENCE: `homio-api${controlCharacter}`,
+            HOMIO_OIDC_JWKS_URL: "https://issuer.example.test/jwks"
+          }
+        })).toThrow(/Runtime environment variable is not permitted/);
+      }
+    }
+  );
+
+  it(
+    "rejects internal spaces in configured HTTPS issuer URLs",
+    () => {
+      expect(() => new PythonRuntimeClient({
+        pythonExecutable: pythonExecutable(),
+        workerScript: WORKER_SCRIPT,
+        workingDirectory: CONTROL_CENTER_ROOT,
+        ownerFactory: "AUTONOMY_ENGINE.runtime_composition:build_runtime",
+        runtimeMode: "production",
+        environment: {
+          HOMIO_OIDC_ISSUER: "https://issuer.example.test/ invalid",
+          HOMIO_OIDC_AUDIENCE: "homio-api",
+          HOMIO_OIDC_JWKS_URL: "https://issuer.example.test/jwks"
+        }
+      })).toThrow(/contains whitespace or control characters/);
+    }
+  );
+
+  it(
+    "rejects an issuer longer than the canonical OIDC owner limit",
+    () => {
+      expect(() => new PythonRuntimeClient({
+        pythonExecutable: pythonExecutable(),
+        workerScript: WORKER_SCRIPT,
+        workingDirectory: CONTROL_CENTER_ROOT,
+        ownerFactory: "AUTONOMY_ENGINE.runtime_composition:build_runtime",
+        runtimeMode: "production",
+        environment: {
+          HOMIO_OIDC_ISSUER: `https://${"a".repeat(240)}.example.test/`,
+          HOMIO_OIDC_AUDIENCE: "homio-api",
+          HOMIO_OIDC_JWKS_URL: "https://issuer.example.test/jwks"
+        }
+      })).toThrow(/valid HTTPS URL/);
+    }
+  );
+
+  it(
+    "rejects cross-tenant and cross-actor arguments before transport",
+    async () => {
+      const client = createClient();
+
+      await expect(client.invoke({
+        operation: "core001.tenant.resolve_context",
+        context: TRUSTED_CONTEXT,
+        payload: {
+          tenantId: "99999999-9999-4999-8999-999999999999"
+        }
+      })).rejects.toThrow(
+        /Tenant selection does not match trusted context/
+      );
+
+      await expect(client.invoke({
+        operation: "core001.membership.resolve",
+        context: TRUSTED_CONTEXT,
+        payload: {
+          tenantId: TRUSTED_CONTEXT.tenant.tenantId,
+          organizationId: TRUSTED_CONTEXT.tenant.organizationId,
+          identityId: "99999999-9999-4999-8999-999999999999"
+        }
+      })).rejects.toThrow(
+        /Membership scope does not match trusted context/
+      );
+    }
+  );
+
+  it(
+    "cancels an in-flight operation by retiring its worker and recovers with a fresh worker",
+    async () => {
+      const client = createClient(
+        "homio_python_runtime.tests.fixtures.probe_owners:build_slow_runtime",
+        1,
+        5_000
+      );
+
+      const controller = new AbortController();
+
+      const pending = client.invoke({
+        operation: "oidc.verify_access_token",
+        context: CORRELATION_CONTEXT,
+        payload: { accessToken: "bridge-test-token" },
+        signal: controller.signal
+      });
+
+      await new Promise((resolvePromise) =>
+        setTimeout(resolvePromise, 60)
+      );
+
+      controller.abort();
+
+      await expect(pending).rejects.toMatchObject({
+        code: "RUNTIME_CANCELLED"
+      });
+
+      // The next call on the same client must use a replacement process.
+      await expect(client.invoke({
+        operation: "oidc.verify_access_token",
+        context: CORRELATION_CONTEXT,
+        payload: { accessToken: "bridge-test-token" }
+      })).resolves.toMatchObject({
+        subject: "probe-subject"
+      });
+    }
+  );
+
+  it(
+    "times out an operation and reports a stable timeout class",
+    async () => {
+      const client = createClient(
+        "homio_python_runtime.tests.fixtures.probe_owners:build_slow_runtime",
+        1,
+        5_000
+      );
+
+      const pending = client.invoke({
+        operation: "oidc.verify_access_token",
+        context: CORRELATION_CONTEXT,
+        payload: { accessToken: "bridge-test-token" },
+        timeoutMs: 120
+      });
+
+      await expect(pending).rejects.toMatchObject({
+        code: "RUNTIME_TIMEOUT"
+      });
+    }
+  );
+});
+
+describe("Python runtime worker authentication", () => {
+  it(
+    "rejects a response that is not authenticated with the per-worker key",
+    async () => {
+      const forgedWorker = resolve(
+        BACKEND_ROOT,
+        "python_runtime",
+        "homio_python_runtime",
+        "tests",
+        "fixtures",
+        "invalid_response_worker.py"
+      );
+
+      const client = createClient(
+        "homio_python_runtime.tests.fixtures.probe_owners:build_runtime",
+        1,
+        5_000,
+        forgedWorker
+      );
+
+      await expect(client.invoke({
+        operation: "oidc.verify_access_token",
+        context: CORRELATION_CONTEXT,
+        payload: { accessToken: "bridge-test-token" }
+      })).rejects.toMatchObject({
+        code: "RUNTIME_AUTHENTICATION_FAILED"
+      });
+    }
+  );
+});
+
+describe("Python runtime response contract validation", () => {
+  it(
+    "rejects a correctly signed response with duplicate JSON object keys",
+    async () => {
+      const duplicateKeyWorker = resolve(
+        BACKEND_ROOT,
+        "python_runtime",
+        "homio_python_runtime",
+        "tests",
+        "fixtures",
+        "duplicate_key_worker.py"
+      );
+
+      const client = createClient(
+        "homio_python_runtime.tests.fixtures.probe_owners:build_runtime",
+        1,
+        5_000,
+        duplicateKeyWorker
+      );
+
+      await expect(client.invoke({
+        operation: "oidc.verify_access_token",
+        context: CORRELATION_CONTEXT,
+        payload: { accessToken: "bridge-test-token" }
+      })).rejects.toMatchObject({
+        code: "RUNTIME_PROTOCOL_INVALID"
+      });
+    }
+  );
+
+  it(
+    "rejects an authenticated owner response containing a C1 control character",
+    async () => {
+      const malformedWorker = resolve(
+        BACKEND_ROOT,
+        "python_runtime",
+        "homio_python_runtime",
+        "tests",
+        "fixtures",
+        "invalid_result_worker.py"
+      );
+
+      const client = createClient(
+        "homio_python_runtime.tests.fixtures.probe_owners:build_runtime",
+        1,
+        5_000,
+        malformedWorker
+      );
+
+      await expect(client.invoke({
+        operation: "oidc.verify_access_token",
+        context: CORRELATION_CONTEXT,
+        payload: { accessToken: "bridge-test-token" }
+      })).rejects.toMatchObject({
+        code: "DOMAIN_RESULT_INVALID"
+      });
+    }
+  );
+
+  it(
+    "fails closed when production OIDC trust configuration is incomplete",
+    () => {
+      expect(() => new PythonRuntimeClient({
+        pythonExecutable: pythonExecutable(),
+        workerScript: WORKER_SCRIPT,
+        workingDirectory: CONTROL_CENTER_ROOT,
+        ownerFactory: "AUTONOMY_ENGINE.runtime_composition:build_runtime",
+        runtimeMode: "production"
+      })).toThrow(
+        /requires the configured OIDC issuer, audience and JWKS URL/
+      );
+
+      expect(() => new PythonRuntimeClient({
+        pythonExecutable: pythonExecutable(),
+        workerScript: WORKER_SCRIPT,
+        workingDirectory: CONTROL_CENTER_ROOT,
+        ownerFactory: "AUTONOMY_ENGINE.runtime_composition:build_runtime",
+        runtimeMode: "production",
+        environment: {
+          HOMIO_OIDC_ISSUER: "https://@issuer.example.test/",
+          HOMIO_OIDC_AUDIENCE: "homio-api",
+          HOMIO_OIDC_JWKS_URL: "https://issuer.example.test/jwks"
+        }
+      })).toThrow(
+        /must be HTTPS without credentials/
+      );
+    }
+  );
+});
+
+B2–B3 ko DONE kehne se pehle jo critical blockers hain
+B3 production composition: worker.py production mein AUTONOMY_ENGINE.runtime_composition:build_runtime expect karta hai, lekin yeh exact path current branch par absent hai. Real CORE-001/OIDC owner composition verify kiye bina factory banana duplicate ya fake authority create karega.
+
+B3 durable idempotency: Current protocol mutations reject karta hai. B4 ke PostgreSQL durable owner ke bina ambiguous mutation recovery complete nahi hoti.
+
+B3 lifecycle: PythonRuntimeClient abhi app.ts / main.ts lifecycle mein instantiate/inject nahi hai.
+
+B2 production: Six real security adapters aur their cross-tenant / revocation / authorization tests abhi connected nahi hain. B4 ke baad hi production binding complete hogi.
+
+Verification status: Current HEAD ka Actions run 44473386086 successful tha, lekin woh is proposed test addition ko verify nahi karta. Is environment mein required Node 24 runtime/repository workspace available nahi tha, isliye main local test-pass claim nahi kar raha. Save ke baad exact new commit SHA par backend-ci.yml verify karna zaroori hai.
+
+Abhi B2 foundation already DONE hai; yeh replacement B3 regression gap address karta hai. B2 production aur B3 ko DONE mark nahi kiya gaya hai—unke remaining owner/dependency/evidence requirements abhi objectively open hain.
