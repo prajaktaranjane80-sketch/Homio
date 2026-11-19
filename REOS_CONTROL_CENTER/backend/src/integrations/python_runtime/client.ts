@@ -35,6 +35,9 @@ const DEFAULT_MESSAGE_BYTES = 1_048_576;
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+// Unicode General Category Cc covers C0 and C1 control characters.
+const CONTROL_CHARACTER_PATTERN = /\p{Cc}/u;
+
 const SAFE_ENVIRONMENT_NAMES = new Set([
   "HOMIO_OIDC_ISSUER",
   "HOMIO_OIDC_AUDIENCE",
@@ -242,7 +245,7 @@ function assertSafeText(
     !value ||
     value.length > maximum ||
     value.trim() !== value ||
-    /[\u0000-\u001f\u007f-\u009f]/.test(value)
+    CONTROL_CHARACTER_PATTERN.test(value)
   ) {
     throw new TypeError(`${field} is invalid.`);
   }
@@ -476,7 +479,6 @@ function validateInvocation(
   throw new TypeError("Python runtime operation is not allowlisted.");
 }
 
-
 function domainResultInvalid(): never {
   throw new PythonRuntimeError("DOMAIN_RESULT_INVALID");
 }
@@ -487,7 +489,7 @@ function resultText(value: unknown, maximum: number): string {
     !value ||
     value.length > maximum ||
     value.trim() !== value ||
-    /[\u0000-\u001f\u007f-\u009f]/.test(value)
+    CONTROL_CHARACTER_PATTERN.test(value)
   ) {
     return domainResultInvalid();
   }
@@ -786,7 +788,8 @@ function validateHttpsConfiguration(
 
   if (
     value !== value.trim() ||
-    /[\u0000-\u0020\u007f-\u009f]/.test(value)
+    CONTROL_CHARACTER_PATTERN.test(value) ||
+    value.includes(" ")
   ) {
     throw new TypeError(
       `${name} contains whitespace or control characters.`
@@ -953,7 +956,7 @@ export class PythonRuntimeClient {
       if (
         !SAFE_ENVIRONMENT_NAMES.has(name) ||
         typeof value !== "string" ||
-        /[\u0000\r\n]/.test(value)
+        CONTROL_CHARACTER_PATTERN.test(value)
       ) {
         throw new TypeError(
           `Runtime environment variable is not permitted: ${name}`
@@ -984,7 +987,7 @@ export class PythonRuntimeClient {
         !audience ||
         audience.length > 512 ||
         audience !== audience.trim() ||
-        /[\u0000-\u001f\u007f-\u009f]/.test(audience)
+        CONTROL_CHARACTER_PATTERN.test(audience)
       ) {
         throw new TypeError("HOMIO_OIDC_AUDIENCE is invalid.");
       }
