@@ -1,3 +1,4 @@
+
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -129,13 +130,22 @@ describe("shared Redis API rate limiter", () => {
     });
   });
 
-  it("rejects malformed caller keys without contacting Redis", async () => {
+  it("rejects malformed and control-character caller keys without contacting Redis", async () => {
     const fixture = makeClient();
     const limiter = new RedisRateLimiter(fixture.client, VALID_OPTIONS);
+    const invalidKeys = [
+      " ",
+      "ip\u0000key",
+      "ip\nkey",
+      "ip\u007fkey",
+      "ip\u0085key"
+    ];
 
-    await expect(
-      limiter.consume({ bucket: "api-ip", key: " " })
-    ).rejects.toThrow("Rate-limit key is invalid.");
+    for (const key of invalidKeys) {
+      await expect(
+        limiter.consume({ bucket: "api-ip", key })
+      ).rejects.toThrow("Rate-limit key is invalid.");
+    }
 
     expect(fixture.eval).not.toHaveBeenCalled();
   });
@@ -179,6 +189,13 @@ describe("shared Redis API rate limiter", () => {
       keySecret: "short"
     })).toThrow(
       "Rate-limit HMAC secret must contain at least 32 UTF-8 bytes."
+    );
+
+    expect(() => new RedisRateLimiter(fixture.client, {
+      ...VALID_OPTIONS,
+      keySecret: `${VALID_OPTIONS.keySecret}\u0000`
+    })).toThrow(
+      "Rate-limit HMAC secret has an invalid format."
     );
 
     expect(() => new RedisRateLimiter(fixture.client, {
