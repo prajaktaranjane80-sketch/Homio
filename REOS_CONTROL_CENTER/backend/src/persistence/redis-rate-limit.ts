@@ -1,3 +1,4 @@
+
 import { createHmac } from "node:crypto";
 
 import type {
@@ -48,10 +49,29 @@ const BUCKETS: readonly RedisRateLimitBucket[] = [
 ];
 
 const KEY_VERSION_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]{0,31}$/;
-const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001f\u007f-\u009f]/u;
 const MAX_RAW_KEY_LENGTH = 2_048;
 const MAX_REQUESTS_PER_WINDOW = 1_000_000_000;
 const MAX_WINDOW_MS = 7 * 24 * 60 * 60 * 1_000;
+
+/**
+ * Detect Unicode C0, DEL and C1 control characters without a control-character
+ * regular expression, keeping the check compatible with the strict ESLint rules.
+ */
+function containsControlCharacters(value: string): boolean {
+  for (const character of value) {
+    const codePoint = character.codePointAt(0);
+
+    if (
+      codePoint !== undefined &&
+      (codePoint <= 0x1f ||
+        (codePoint >= 0x7f && codePoint <= 0x9f))
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 /**
  * All counter mutation and expiry logic runs atomically inside one Lua call.
@@ -143,7 +163,7 @@ function validateOptions(options: RedisRateLimitOptions): {
 
   if (
     options.keySecret !== options.keySecret.trim() ||
-    CONTROL_CHARACTER_PATTERN.test(options.keySecret)
+    containsControlCharacters(options.keySecret)
   ) {
     throw new TypeError("Rate-limit HMAC secret has an invalid format.");
   }
@@ -205,7 +225,7 @@ function validateInput(
     input.key.length === 0 ||
     input.key.length > MAX_RAW_KEY_LENGTH ||
     input.key !== input.key.trim() ||
-    CONTROL_CHARACTER_PATTERN.test(input.key)
+    containsControlCharacters(input.key)
   ) {
     throw new TypeError("Rate-limit key is invalid.");
   }
