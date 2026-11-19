@@ -1,10 +1,8 @@
-
 import { describe, expect, it, vi } from "vitest";
 
 import {
   PostgresRuntime,
-  POSTGRES_RUNTIME_ROLE_SAFETY_SQL,
-  PostgresRuntimeRoleError
+  POSTGRES_RUNTIME_ROLE_SAFETY_SQL
 } from "../../src/persistence/postgres.js";
 
 import type {
@@ -56,7 +54,7 @@ function makePool(roleRows: readonly unknown[]): {
 }
 
 describe("PostgreSQL effective runtime-role protection", () => {
-  it("checks inherited and SET ROLE privileges, not only current_user", () => {
+  it("includes inherited and SET ROLE checks in the safety query", () => {
     expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
       "pg_has_role(session_user, candidate.oid, 'USAGE')"
     );
