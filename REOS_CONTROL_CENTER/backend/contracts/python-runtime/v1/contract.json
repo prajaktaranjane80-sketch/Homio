@@ -1,0 +1,254 @@
+{
+  "contract": {
+    "name": "HOMIO private Python domain-runtime IPC",
+    "protocol": "homio.python-domain-runtime",
+    "version": 1,
+    "status": "ACTIVE_READ_ONLY_FOUNDATION",
+    "owner": "BACKEND-001-B3",
+    "public_network_listener": false,
+    "transport": "Node-managed child-process stdin/stdout JSON Lines"
+  },
+  "authentication": {
+    "service_id": "homio-backend",
+    "audience": "homio-python-domain-runtime",
+    "algorithm": "HMAC-SHA256",
+    "key_bytes_minimum": 32,
+    "key_lifetime": "one worker process",
+    "key_source": "cryptographically random Node-generated per-worker secret passed only to that child process",
+    "request_timestamp_window_ms": 30000,
+    "replay_guard_maximum_entries_per_worker": 65536,
+    "request_identity": [
+      "requestId",
+      "nonce",
+      "issuedAtMs"
+    ],
+    "signature_covers": "all request envelope fields except signature",
+    "trust_policy": {
+      "issuer": "must exactly equal the configured OIDC issuer after signature verification",
+      "audience": "the configured API audience must be present in the verified access-token audiences",
+      "unrecognized_verifier_failures": "classify as dependency unavailable, not invalid credentials",
+      "trusted_context_revisions": "tenant and active-membership revisions returned by existing CORE-001 owners must equal the server-derived B2 context; stale snapshots are rejected"
+    }
+  },
+  "limits": {
+    "max_request_bytes": 1048576,
+    "max_response_bytes": 1048576,
+    "max_json_depth": 32,
+    "max_json_array_items": 10000,
+    "max_json_object_properties": 10000,
+    "json_integer_policy": "safe integers only; decimal and fixed-precision values must be encoded as strings",
+    "duplicate_json_keys": "reject",
+    "non_finite_numbers": "reject",
+    "prototype_keys": "reject"
+  },
+  "request_envelope": {
+    "required_fields": [
+      "protocol",
+      "version",
+      "messageType",
+      "serviceId",
+      "audience",
+      "requestId",
+      "nonce",
+      "issuedAtMs",
+      "operation",
+      "context",
+      "payload",
+      "idempotency",
+      "signature"
+    ],
+    "messageType": "request",
+    "idempotency": null
+  },
+  "context_contracts": {
+    "correlation": {
+      "fields": [
+        "correlationId"
+      ],
+      "used_by": [
+        "oidc.verify_access_token",
+        "core001.identity.resolve"
+      ]
+    },
+    "trusted": {
+      "fields": [
+        "actor.identityId",
+        "actor.accountId",
+        "tenant.tenantId",
+        "tenant.tenantRevision",
+        "tenant.organizationId",
+        "tenant.membershipId",
+        "tenant.membershipRevision",
+        "correlationId"
+      ],
+      "used_by": [
+        "core001.tenant.resolve_context",
+        "core001.membership.resolve"
+      ],
+      "actor_and_tenant_source": "existing Fastify B2 server-derived trusted request context; never caller-provided identity claims"
+    }
+  },
+  "operations": {
+    "oidc.verify_access_token": {
+      "owner": "AUTONOMY_ENGINE.security.authentication.oidc_verifier.OIDCVerifier.verify_access_token",
+      "context": "correlation",
+      "request": [
+        "accessToken"
+      ],
+      "response": [
+        "issuer",
+        "subject",
+        "audiences",
+        "clientId",
+        "tokenId"
+      ],
+      "excluded_response_data": [
+        "email",
+        "profile_claims",
+        "raw_access_token",
+        "provider_secrets"
+      ]
+    },
+    "core001.identity.resolve": {
+      "owner": "AUTONOMY_ENGINE.core.identity_tenant.identity.IdentityRegistry.resolve_external",
+      "context": "correlation or trusted",
+      "request": [
+        "provider",
+        "subject"
+      ],
+      "issuer_policy": "provider must exactly match the configured OIDC issuer",
+      "response": [
+        "status",
+        "identityId",
+        "referenceId"
+      ],
+      "trusted_context_policy": "when a full trusted context is present, resolved identityId must equal its actor.identityId"
+    },
+    "core001.tenant.resolve_context": {
+      "owner": "AUTONOMY_ENGINE.core.identity_tenant.tenant.TenantRegistry.resolve_context",
+      "context": "trusted",
+      "request": [
+        "tenantId"
+      ],
+      "response": [
+        "status",
+        "tenantId",
+        "tenantRevision",
+        "context"
+      ],
+      "scope_policy": "requested tenant must equal trusted tenant and returned owner tenant must equal requested tenant"
+    },
+    "core001.membership.resolve": {
+      "owner": "AUTONOMY_ENGINE.core.identity_tenant.membership.MembershipDirectory.resolve_membership",
+      "context": "trusted",
+      "request": [
+        "tenantId",
+        "organizationId",
+        "identityId"
+      ],
+      "response": [
+        "status",
+        "membershipId",
+        "tenantId",
+        "organizationId",
+        "identityId",
+        "membershipRevision"
+      ],
+      "scope_policy": "requested tenant, organization and identity must exactly equal trusted context; returned owner scope must match request"
+    }
+  },
+  "response_envelope": {
+    "required_fields_on_success": [
+      "protocol",
+      "version",
+      "messageType",
+      "runtimeId",
+      "requestId",
+      "status",
+      "context",
+      "result",
+      "signature"
+    ],
+    "required_fields_on_failure": [
+      "protocol",
+      "version",
+      "messageType",
+      "runtimeId",
+      "requestId",
+      "status",
+      "context",
+      "error",
+      "signature"
+    ],
+    "messageType": "response",
+    "context": "must exactly echo the authenticated request context",
+    "failure_fields": [
+      "code",
+      "message",
+      "retryable"
+    ],
+    "raw_exception_details": "never returned"
+  },
+  "reliability": {
+    "bounded_worker_pool": true,
+    "bounded_queue": true,
+    "single_in_flight_request_per_worker": true,
+    "request_timeout": "per-call bounded timeout",
+    "cancellation": "retires and terminates the active worker so an abandoned call cannot be reused",
+    "worker_recovery": "a subsequent call creates a fresh authenticated worker",
+    "shutdown": "rejects queued work, terminates workers and waits for bounded process exit"
+  },
+  "mutation_policy": {
+    "enabled": false,
+    "reason": "B4 has not yet supplied the approved durable idempotency store and transaction owner",
+    "idempotency_field": null,
+    "non_null_idempotency": "reject with MUTATION_NOT_ENABLED",
+    "automatic_mutation_retry": false,
+    "required_before_enablement": [
+      "B4 durable idempotency identity bound to tenant and operation",
+      "canonical payload fingerprint",
+      "durable result or outcome reconciliation",
+      "same-key/different-payload conflict detection",
+      "crash-after-commit-before-response recovery test"
+    ]
+  },
+  "ownership_invariants": [
+    "Python domain logic remains in its existing CORE owners",
+    "TypeScript contains transport adapters only",
+    "CORE-001 T03 remains a grant/prerequisite model, not an authorization decision engine",
+    "no ACRL dependency is introduced into customer runtime",
+    "no public unauthenticated Python HTTP API is introduced",
+    "no customer-facing route is enabled by this contract"
+  ],
+  "owner_composition": {
+    "factory_required": true,
+    "production_module_namespace": "AUTONOMY_ENGINE.*",
+    "test_module_namespace": "homio_python_runtime.tests.fixtures.*",
+    "production_oidc_configuration": [
+      "HOMIO_OIDC_ISSUER",
+      "HOMIO_OIDC_AUDIENCE",
+      "HOMIO_OIDC_JWKS_URL"
+    ],
+    "domain_dependencies": [
+      "existing OIDCVerifier",
+      "existing CORE-001 IdentityRegistry resolver port",
+      "existing CORE-001 TenantRegistry resolver port",
+      "existing CORE-001 MembershipDirectory resolver port"
+    ],
+    "missing_or_invalid_dependencies": "fail closed; the B3 transport does not construct empty or in-memory production owners",
+    "test_fixtures": "never importable in production mode",
+    "forbidden_production_namespaces": [
+      "AUTONOMY_ENGINE.continuity.acrl"
+    ],
+    "production_namespace_policy": "Only existing domain/security owners under AUTONOMY_ENGINE may be composed; ACRL continuity runtimes are explicitly excluded."
+  },
+  "failure_classes": {
+    "ACCESS_TOKEN_INVALID": "known OIDC credential rejection",
+    "OIDC_VERIFIER_UNAVAILABLE": "JWKS/provider or unknown verifier dependency failure",
+    "TRUSTED_CONTEXT_STALE": "canonical identity, tenant or membership revision differs from the server-derived context",
+    "DOMAIN_RESULT_INVALID": "existing canonical owner returned a malformed or out-of-scope result",
+    "RUNTIME_TIMEOUT": "bounded operation deadline expired; no automatic retry",
+    "RUNTIME_CANCELLED": "caller cancelled; worker process retired",
+    "RUNTIME_AUTHENTICATION_FAILED": "request or response HMAC validation failed"
+  }
+}
