@@ -1,0 +1,13 @@
+name: Guarded BACKEND-001-B3 completion
+description: Verify the read-only B3 runtime boundary, obtain owner-bound T15/T17/T18 authorization, complete only B3 through the canonical Control Center, and verify remote readback.
+
+runs:
+  using: composite
+  steps:
+    - name: Run B3 completion guard regression tests
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/test_guarded_transition.py"
+
+    - name: Execute exact-SHA owner-authorized B3 Control Center transition
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_transition.py"
