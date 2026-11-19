@@ -1,26 +1,21 @@
+
 /**
  * Single PostgreSQL connection and transaction owner for B4.
  *
- * This module is deliberately structural: a real node-postgres Pool is
- * injected by the composition root. It does not create a second driver,
- * ORM, repository registry or business schema.
+ * This adapter deliberately receives the canonical node-postgres Pool from
+ * the composition root. It does not create a second driver, ORM, repository
+ * registry or business schema.
  */
-
 export interface PostgresQueryResult {
   readonly rows: readonly unknown[];
   readonly rowCount: number | null;
 }
 
-/** The subset of node-postgres PoolClient used by the persistence boundary. */
 export interface PostgresDriverClient {
-  query(
-    text: string,
-    values?: unknown[]
-  ): Promise<PostgresQueryResult>;
+  query(text: string, values?: unknown[]): Promise<PostgresQueryResult>;
   release(error?: Error | boolean): void;
 }
 
-/** The subset of node-postgres Pool owned by this runtime. */
 export interface PostgresDriverPool {
   connect(): Promise<PostgresDriverClient>;
   end(): Promise<void>;
@@ -45,7 +40,6 @@ export interface PostgresQuery<Row extends Record<string, unknown>> {
   readonly rowCount: number | null;
 }
 
-/** A transaction handle that cannot expose or release its underlying client. */
 export interface PostgresTransaction {
   readonly tenantId: string;
   readonly readOnly: boolean;
@@ -59,16 +53,32 @@ const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const DEFAULT_ISOLATION_LEVEL: PostgresIsolationLevel = "READ COMMITTED";
+
 const TENANT_SETTING_SQL =
   "SELECT set_config('app.tenant_id', $1, true) AS tenant_id";
 
 /**
- * Runtime-role verification runs against PostgreSQL's catalogs, not an
- * application table. It rejects privileged/table-owner roles and requires
- * FORCE RLS on every permanent user table carrying tenant_id.
+ * Rejects the login role if it, or any role whose privileges it can inherit
+ * or assume with SET ROLE, is a superuser, bypasses RLS, or owns application
+ * tables.
+ *
+ * Checking only current_user is insufficient: role memberships can otherwise
+ * provide an RLS bypass even when the login role itself looks safe.
+ *
+ * PostgreSQL 16+ supports the USAGE and SET membership tests used here.
+ * HOMIO's backend master specifies PostgreSQL 18.4+ as its target.
  */
 export const POSTGRES_RUNTIME_ROLE_SAFETY_SQL = `
-WITH tenant_tables AS (
+WITH effective_roles AS (
+  SELECT
+    candidate.oid,
+    candidate.rolsuper,
+    candidate.rolbypassrls
+  FROM pg_roles AS candidate
+  WHERE candidate.rolname = session_user
+     OR pg_has_role(session_user, candidate.oid, 'USAGE')
+     OR pg_has_role(session_user, candidate.oid, 'SET')
+), tenant_tables AS (
   SELECT DISTINCT
     relation.oid,
     relation.relrowsecurity,
@@ -84,26 +94,30 @@ WITH tenant_tables AS (
     AND attribute.attname = 'tenant_id'
     AND attribute.attnum > 0
     AND attribute.attisdropped = false
-), owned_application_tables AS (
-  SELECT 1
-  FROM pg_class AS relation
-  JOIN pg_namespace AS namespace
-    ON namespace.oid = relation.relnamespace
-  WHERE relation.relowner = (
-    SELECT oid
-    FROM pg_roles
-    WHERE rolname = current_user
-  )
-    AND relation.relkind IN ('r', 'p')
-    AND namespace.nspname <> 'information_schema'
-    AND namespace.nspname NOT LIKE 'pg!_%' ESCAPE '!'
-  LIMIT 1
 )
 SELECT
-  current_user AS role_name,
-  role.rolsuper AS is_superuser,
-  role.rolbypassrls AS bypasses_row_security,
-  EXISTS (SELECT 1 FROM owned_application_tables) AS owns_application_tables,
+  CASE
+    WHEN current_user = session_user THEN session_user
+    ELSE ''
+  END AS role_name,
+  COALESCE(
+    (SELECT bool_or(rolsuper) FROM effective_roles),
+    true
+  ) AS is_superuser,
+  COALESCE(
+    (SELECT bool_or(rolbypassrls) FROM effective_roles),
+    true
+  ) AS bypasses_row_security,
+  EXISTS (
+    SELECT 1
+    FROM pg_class AS relation
+    JOIN pg_namespace AS namespace
+      ON namespace.oid = relation.relnamespace
+    WHERE relation.relowner IN (SELECT oid FROM effective_roles)
+      AND relation.relkind IN ('r', 'p')
+      AND namespace.nspname <> 'information_schema'
+      AND namespace.nspname NOT LIKE 'pg!_%' ESCAPE '!'
+  ) AS owns_application_tables,
   (SELECT count(*)::integer FROM tenant_tables) AS tenant_table_count,
   COALESCE(
     (
@@ -115,8 +129,6 @@ SELECT
     ),
     false
   ) AS tenant_tables_force_rls
-FROM pg_roles AS role
-WHERE role.rolname = current_user
 `.trim();
 
 export class PostgresRuntimeClosedError extends Error {
@@ -145,10 +157,7 @@ export type PostgresRuntimeRoleErrorCode =
 export class PostgresRuntimeRoleError extends Error {
   public readonly code: PostgresRuntimeRoleErrorCode;
 
-  public constructor(
-    code: PostgresRuntimeRoleErrorCode,
-    cause?: unknown
-  ) {
+  public constructor(code: PostgresRuntimeRoleErrorCode, cause?: unknown) {
     super(
       "PostgreSQL application role does not satisfy the tenant isolation boundary.",
       cause === undefined ? undefined : { cause }
@@ -194,13 +203,10 @@ function normalizeTenantId(value: unknown): string {
   if (typeof value !== "string" || !UUID_PATTERN.test(value)) {
     throw new PostgresTenantContextError();
   }
-
   return value.toLowerCase();
 }
 
-function normalizeIsolationLevel(
-  value: unknown
-): PostgresIsolationLevel {
+function normalizeIsolationLevel(value: unknown): PostgresIsolationLevel {
   if (
     value === "READ COMMITTED" ||
     value === "REPEATABLE READ" ||
@@ -208,21 +214,14 @@ function normalizeIsolationLevel(
   ) {
     return value;
   }
-
-  throw new TypeError(
-    "Unsupported PostgreSQL transaction isolation level."
-  );
+  throw new TypeError("Unsupported PostgreSQL transaction isolation level.");
 }
 
 function normalizeReadOnly(value: unknown): boolean {
-  if (value === undefined) {
-    return false;
-  }
-
+  if (value === undefined) return false;
   if (typeof value !== "boolean") {
     throw new TypeError("PostgreSQL readOnly option must be boolean.");
   }
-
   return value;
 }
 
@@ -234,7 +233,6 @@ function normalizeQueryText(value: unknown): string {
   ) {
     throw new TypeError("PostgreSQL query text is invalid.");
   }
-
   return value;
 }
 
@@ -253,12 +251,7 @@ function beginStatement(
     : `BEGIN ISOLATION LEVEL ${isolationLevel}`;
 }
 
-/**
- * Owns exactly one node-postgres Pool and every transaction run through it.
- * Transaction-bound work always uses one checked-out client and transaction-
- * local tenant context, so a pooled connection cannot leak a tenant to its
- * next borrower.
- */
+/** Owns one Pool; every tenant transaction uses one checked-out client. */
 export class PostgresRuntime {
   private readonly pool: PostgresDriverPool;
   private closePromise: Promise<void> | undefined;
@@ -274,22 +267,13 @@ export class PostgresRuntime {
     ) {
       throw new TypeError("A valid node-postgres Pool is required.");
     }
-
     this.pool = pool;
   }
 
-  /**
-   * Explicit startup hook. The first tenant transaction performs the same
-   * verification automatically if the composition root does not call this.
-   */
   public async verifyRuntimeRoleSafety(): Promise<void> {
-    if (this.closed) {
-      throw new PostgresRuntimeClosedError();
-    }
-
+    if (this.closed) throw new PostgresRuntimeClosedError();
     const client = await this.pool.connect();
     let releaseError: Error | undefined;
-
     try {
       await this.ensureRuntimeRoleSafety(client);
     } catch (error) {
@@ -306,29 +290,19 @@ export class PostgresRuntime {
     if (this.roleVerificationPromise === undefined) {
       this.roleVerificationPromise = this.checkRuntimeRole(client);
     }
-
     return this.roleVerificationPromise;
   }
 
-  private async checkRuntimeRole(
-    client: PostgresDriverClient
-  ): Promise<void> {
+  private async checkRuntimeRole(client: PostgresDriverClient): Promise<void> {
     let rows: readonly unknown[];
-
     try {
-      const result = await client.query(
-        POSTGRES_RUNTIME_ROLE_SAFETY_SQL
-      );
+      const result = await client.query(POSTGRES_RUNTIME_ROLE_SAFETY_SQL);
       rows = result.rows;
     } catch (cause) {
-      throw new PostgresRuntimeRoleError(
-        "ROLE_CHECK_UNAVAILABLE",
-        cause
-      );
+      throw new PostgresRuntimeRoleError("ROLE_CHECK_UNAVAILABLE", cause);
     }
 
     const candidate = rows[0];
-
     if (
       rows.length !== 1 ||
       typeof candidate !== "object" ||
@@ -339,7 +313,6 @@ export class PostgresRuntime {
     }
 
     const role = candidate as Record<string, unknown>;
-
     if (
       typeof role.role_name !== "string" ||
       role.role_name.trim().length === 0 ||
@@ -352,46 +325,29 @@ export class PostgresRuntime {
     ) {
       throw new PostgresRuntimeRoleError("INVALID_ROLE_RESULT");
     }
-
     if (role.is_superuser) {
       throw new PostgresRuntimeRoleError("SUPERUSER_ROLE");
     }
-
     if (role.bypasses_row_security) {
       throw new PostgresRuntimeRoleError("BYPASS_RLS_ROLE");
     }
-
     if (role.owns_application_tables) {
       throw new PostgresRuntimeRoleError("OWNS_APPLICATION_TABLES");
     }
-
     if (role.tenant_table_count < 1) {
       throw new PostgresRuntimeRoleError("TENANT_TABLES_MISSING");
     }
-
     if (!role.tenant_tables_force_rls) {
-      throw new PostgresRuntimeRoleError(
-        "TENANT_TABLES_RLS_NOT_FORCED"
-      );
+      throw new PostgresRuntimeRoleError("TENANT_TABLES_RLS_NOT_FORCED");
     }
   }
 
-  /**
-   * Execute tenant-scoped work on one PostgreSQL client.
-   *
-   * The runtime never retries a transaction. In particular, a failed COMMIT
-   * is reported as an unknown outcome and its connection is destroyed rather
-   * than returned to the pool or replayed automatically.
-   */
   public async withTenantTransaction<Result>(
     context: PostgresTenantContext,
     work: (transaction: PostgresTransaction) => Promise<Result>,
     options: PostgresTransactionOptions = {}
   ): Promise<Result> {
-    if (this.closed) {
-      throw new PostgresRuntimeClosedError();
-    }
-
+    if (this.closed) throw new PostgresRuntimeClosedError();
     if (typeof work !== "function") {
       throw new TypeError("PostgreSQL transaction work must be a function.");
     }
@@ -421,7 +377,6 @@ export class PostgresRuntime {
         if (!transactionHandleActive) {
           throw new PostgresTransactionClosedError();
         }
-
         const text = normalizeQueryText(rawText);
         const parameters = values === undefined ? undefined : [...values];
         const operation = queryQueue.then(async () => {
@@ -431,7 +386,6 @@ export class PostgresRuntime {
             rowCount: result.rowCount
           };
         });
-
         queryQueue = operation.then(
           () => undefined,
           (error: unknown) => {
@@ -441,64 +395,44 @@ export class PostgresRuntime {
             }
           }
         );
-
         return operation;
       }
     });
 
     try {
       await this.ensureRuntimeRoleSafety(client);
-
-      await client.query(
-        beginStatement(isolationLevel, readOnly)
-      );
+      await client.query(beginStatement(isolationLevel, readOnly));
       transactionActive = true;
-
-      await client.query(
-        TENANT_SETTING_SQL,
-        [tenantId]
-      );
+      await client.query(TENANT_SETTING_SQL, [tenantId]);
 
       const result = await work(transaction);
       transactionHandleActive = false;
       await queryQueue;
-
-      if (hasQueryError) {
-        throw firstQueryError;
-      }
+      if (hasQueryError) throw firstQueryError;
 
       commitAttempted = true;
-
       try {
         await client.query("COMMIT");
       } catch (error) {
         releaseError = toError(error);
         throw new PostgresTransactionOutcomeUnknownError(error);
       }
-
       transactionActive = false;
       return result;
     } catch (error) {
       transactionHandleActive = false;
       await queryQueue;
-
       if (transactionActive && !commitAttempted) {
         try {
           await client.query("ROLLBACK");
           transactionActive = false;
         } catch (rollbackError) {
           releaseError = toError(rollbackError);
-          throw new PostgresTransactionRollbackError(
-            error,
-            rollbackError
-          );
+          throw new PostgresTransactionRollbackError(error, rollbackError);
         }
       } else if (!transactionActive && !commitAttempted) {
-        // A failed BEGIN leaves connection state uncertain. Destroy the
-        // client rather than returning a potentially unusable connection.
         releaseError = toError(error);
       }
-
       throw error;
     } finally {
       transactionHandleActive = false;
@@ -506,13 +440,11 @@ export class PostgresRuntime {
     }
   }
 
-  /** Close the owned pool exactly once. Repeated calls share one operation. */
   public close(): Promise<void> {
     if (this.closePromise === undefined) {
       this.closed = true;
       this.closePromise = Promise.resolve().then(() => this.pool.end());
     }
-
     return this.closePromise;
   }
 }
