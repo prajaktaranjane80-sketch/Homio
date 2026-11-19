@@ -164,3 +164,15 @@ This update:
 - Does not bypass backend verification or the T15/T17/T18 guarded transition.
 
 The next owner commit must use the exact B3 trigger prefix specified in Section 8. B3 remains `CURRENT` unless the guarded workflow completes successfully and verifies canonical remote readback.
+
+## 12. Single-commit trigger requirement
+
+The request-file modification that creates an eligible non-empty push and the required B3 approval prefix must be included in the same commit.
+
+A separate empty commit with the approval prefix is not a valid substitute because the backend CI workflow uses path filters.
+
+The required commit subject is:
+
+[CONTROL-CENTER-COMPLETE-BACKEND-001-B3] Reissue non-empty owner trigger
+
+The guarded B3 transition must execute only after exact-SHA backend verification passes.
