@@ -1,3 +1,4 @@
+
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -17,7 +18,8 @@ const SAFE_ROLE_RESULT = {
   bypasses_row_security: false,
   owns_application_tables: false,
   tenant_table_count: 2,
-  tenant_tables_force_rls: true
+  tenant_tables_force_rls: true,
+  tenant_tables_have_tenant_restrictive_guard: true
 };
 
 function makePool(roleRows: readonly unknown[]): {
@@ -116,7 +118,7 @@ function makeSequencedPool(
 const TENANT_ID = "11111111-1111-4111-8111-111111111111";
 
 describe("PostgreSQL effective runtime-role protection", () => {
-  it("includes inherited and SET ROLE checks in the safety query", () => {
+  it("includes inherited-role and restrictive tenant-policy checks", () => {
     expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
       "pg_has_role(session_user, candidate.oid, 'USAGE')"
     );
@@ -132,6 +134,85 @@ describe("PostgreSQL effective runtime-role protection", () => {
     expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
       "relation.relowner IN (SELECT oid FROM effective_roles)"
     );
+
+    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
+      "FROM pg_policy AS policy"
+    );
+
+    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
+      "policy.polpermissive = false"
+    );
+
+    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
+      "policy.polcmd = '*'"
+    );
+
+    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
+      "policy.polroles @> ARRAY[0::oid]"
+    );
+
+    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
+      "pg_get_expr(policy.polqual, policy.polrelid)"
+    );
+
+    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
+      "pg_get_expr(policy.polwithcheck, policy.polrelid)"
+    );
+
+    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
+      "tenant_id=current_setting(''app.tenant_id''::text,true)::uuid"
+    );
+
+    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
+      "tenant_tables_have_tenant_restrictive_guard"
+    );
+  });
+
+  it("fails closed when a tenant table lacks the restrictive tenant guard", async () => {
+    const fixture = makePool([
+      {
+        ...SAFE_ROLE_RESULT,
+        tenant_tables_have_tenant_restrictive_guard: false
+      }
+    ]);
+
+    const runtime = new PostgresRuntime(fixture.pool);
+
+    await expect(
+      runtime.withTenantTransaction(
+        { tenantId: TENANT_ID },
+        async () => "must not execute"
+      )
+    ).rejects.toMatchObject({
+      name: "PostgresRuntimeRoleError",
+      code: "TENANT_RLS_POLICY_GUARD_MISSING_OR_UNSAFE"
+    });
+
+    expect(fixture.calls).toEqual([
+      POSTGRES_RUNTIME_ROLE_SAFETY_SQL
+    ]);
+  });
+
+  it("fails closed when the policy attestation field is missing", async () => {
+    const unsafe = { ...SAFE_ROLE_RESULT } as Record<string, unknown>;
+    delete unsafe.tenant_tables_have_tenant_restrictive_guard;
+
+    const fixture = makePool([unsafe]);
+    const runtime = new PostgresRuntime(fixture.pool);
+
+    await expect(
+      runtime.withTenantTransaction(
+        { tenantId: TENANT_ID },
+        async () => "must not execute"
+      )
+    ).rejects.toMatchObject({
+      name: "PostgresRuntimeRoleError",
+      code: "INVALID_ROLE_RESULT"
+    });
+
+    expect(fixture.calls).toEqual([
+      POSTGRES_RUNTIME_ROLE_SAFETY_SQL
+    ]);
   });
 
   it("fails closed when a connection has a changed session role", async () => {
