@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-11-18T11:05:44+00:00",
+    "updated_at": "2026-11-19T08:03:34+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2835,26 +2835,36 @@
         "id": "BACKEND-001-B2-FOUNDATION",
         "note": "BACKEND-001-B2-FOUNDATION completed through the guarded Control Center after the exact-SHA backend and ACRL verification job passed for source commit bffd2a008d5ed8d30d6818b058b833e60a7e9ed3; GitHub Actions run 44291230985, attempt 1. The verified scope includes the single Fastify security boundary, trusted-context contracts, fail-closed adapter requirements, mutation reauthorization and the existing security-boundary regression suite. This completes B2-FOUNDATION only. The six real production adapters are not claimed complete. B3 is now CURRENT; B4 and B2-PRODUCTION-BINDING remain PENDING. Backend gate-level AC01 through AC10 remain PENDING."
       }
+    },
+    {
+      "id": "d21a4105-bfdd-4f9d-a560-aa0c9940278e",
+      "time": "2026-11-19T08:03:34+00:00",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "BACKEND-001-B3",
+        "note": "BACKEND-001-B3 completed through the guarded Control Center after exact-SHA backend, Python/TypeScript IPC contract, and complete ACRL verification passed for source commit 6b35dbcf1d86123846fea4391ba89645c81e0aaa; GitHub Actions run 44484230005, attempt 1. The verified scope is the existing authenticated private Node-managed Python child-process bridge, versioned request/response contract, trusted actor/tenant/correlation propagation, strict serialization, bounded timeout/cancellation, worker lifecycle, replay and failure classification. No Python business logic was copied into TypeScript and no second public Python API was introduced. The B3 protocol remains read-only. Mutations remain disabled until B4 supplies the canonical durable idempotency and transaction owner. Non-null idempotency envelopes fail closed and automatic mutation retries remain disabled. B4 is now CURRENT. B2 production binding and later backend stages remain pending. BACKEND-001-AC01 through AC10 remain PENDING. Production readiness is not claimed."
+      }
     }
   ],
   "integrity": {
-    "sha256": "dcfba8a3148c01899a1e72655b40a79b8120d5d7e3d937657b228c645e272bd1"
+    "sha256": "404000d70e7f03f168be7548e591b12f936da78703c033728afa9fbd58339bef"
   },
   "execution": {
     "current_gate": "BACKEND-001",
-    "current_task": "BACKEND-001-B3: Python domain-runtime bridge.",
+    "current_task": "BACKEND-001-B4: PostgreSQL integration.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
-      "Private TypeScript-to-Python runtime transport is authenticated.",
-      "Request and response contracts are versioned and validated.",
-      "Trusted actor, tenant and correlation context are preserved.",
-      "Timeout, cancellation and failure classification are tested.",
-      "Ambiguous mutation outcomes use durable idempotency identity.",
-      "No Python business logic is copied into TypeScript.",
-      "No second public Python API is exposed."
+      "Only the approved ARCH-037 schema and canonical owners are used.",
+      "Migrations have deterministic ordering and integrity checks.",
+      "Tenant access is enforced by the target persistence boundary.",
+      "Repositories and transaction boundaries have explicit write ownership.",
+      "Durable session and revocation storage is supported.",
+      "Shared rate-limit state and minimized audit persistence are supported.",
+      "Migration, concurrency, backup and recovery tests pass.",
+      "No second schema or persistence authority is introduced."
     ],
-    "current_subtask": "BACKEND-001-B3"
+    "current_subtask": "BACKEND-001-B4"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -5219,7 +5229,7 @@
       "name": "Unified HOMIO / REOS Backend",
       "objective": "Establish and verify one unified public backend through the B0-B10 sequence in HOMIO_Backend_Structure.",
       "status": "CURRENT",
-      "current_subtask": "BACKEND-001-B3",
+      "current_subtask": "BACKEND-001-B4",
       "subtasks": [
         {
           "id": "BACKEND-001-B0",
@@ -5265,7 +5275,7 @@
           "id": "BACKEND-001-B3",
           "title": "Python domain-runtime bridge",
           "priority": "CRITICAL",
-          "status": "CURRENT",
+          "status": "DONE",
           "acceptance_criteria": [
             "Private TypeScript-to-Python runtime transport is authenticated.",
             "Request and response contracts are versioned and validated.",
@@ -5274,13 +5284,15 @@
             "Ambiguous mutation outcomes use durable idempotency identity.",
             "No Python business logic is copied into TypeScript.",
             "No second public Python API is exposed."
-          ]
+          ],
+          "completed_at": "2026-11-19T08:03:34+00:00",
+          "note": "BACKEND-001-B3 completed through the guarded Control Center after exact-SHA backend, Python/TypeScript IPC contract, and complete ACRL verification passed for source commit 6b35dbcf1d86123846fea4391ba89645c81e0aaa; GitHub Actions run 44484230005, attempt 1. The verified scope is the existing authenticated private Node-managed Python child-process bridge, versioned request/response contract, trusted actor/tenant/correlation propagation, strict serialization, bounded timeout/cancellation, worker lifecycle, replay and failure classification. No Python business logic was copied into TypeScript and no second public Python API was introduced. The B3 protocol remains read-only. Mutations remain disabled until B4 supplies the canonical durable idempotency and transaction owner. Non-null idempotency envelopes fail closed and automatic mutation retries remain disabled. B4 is now CURRENT. B2 production binding and later backend stages remain pending. BACKEND-001-AC01 through AC10 remain PENDING. Production readiness is not claimed."
         },
         {
           "id": "BACKEND-001-B4",
           "title": "PostgreSQL integration",
           "priority": "CRITICAL",
-          "status": "PENDING",
+          "status": "CURRENT",
           "acceptance_criteria": [
             "Only the approved ARCH-037 schema and canonical owners are used.",
             "Migrations have deterministic ordering and integrity checks.",
