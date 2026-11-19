@@ -1,4 +1,3 @@
-
 import {
   afterEach,
   describe,
@@ -305,6 +304,83 @@ describe("authenticated private Python domain runtime IPC", () => {
   );
 
   it(
+    "rejects C0 and C1 Unicode control characters before private transport",
+    async () => {
+      const client = createClient();
+      const controlCharacters = [
+        "\u0000",
+        "\u001f",
+        "\u007f",
+        "\u0085",
+        "\u009f"
+      ];
+
+      for (const controlCharacter of controlCharacters) {
+        await expect(client.invoke({
+          operation: "core001.identity.resolve",
+          context: CORRELATION_CONTEXT,
+          payload: {
+            provider: "https://issuer.example.test/",
+            subject: `subject${controlCharacter}value`
+          }
+        })).rejects.toThrow(/subject is invalid/);
+      }
+    }
+  );
+
+  it(
+    "rejects forbidden control characters in production environment configuration",
+    () => {
+      const productionOptions: Omit<
+        PythonRuntimeClientOptions,
+        "environment"
+      > = {
+        pythonExecutable: pythonExecutable(),
+        workerScript: WORKER_SCRIPT,
+        workingDirectory: CONTROL_CENTER_ROOT,
+        ownerFactory: "AUTONOMY_ENGINE.runtime_composition:build_runtime",
+        runtimeMode: "production"
+      };
+
+      const controlCharacters = [
+        "\u0000",
+        "\u001f",
+        "\u007f",
+        "\u0085"
+      ];
+
+      for (const controlCharacter of controlCharacters) {
+        expect(() => new PythonRuntimeClient({
+          ...productionOptions,
+          environment: {
+            HOMIO_OIDC_ISSUER: "https://issuer.example.test/",
+            HOMIO_OIDC_AUDIENCE: `homio-api${controlCharacter}`,
+            HOMIO_OIDC_JWKS_URL: "https://issuer.example.test/jwks"
+          }
+        })).toThrow(/Runtime environment variable is not permitted/);
+      }
+    }
+  );
+
+  it(
+    "rejects internal spaces in configured HTTPS issuer URLs",
+    () => {
+      expect(() => new PythonRuntimeClient({
+        pythonExecutable: pythonExecutable(),
+        workerScript: WORKER_SCRIPT,
+        workingDirectory: CONTROL_CENTER_ROOT,
+        ownerFactory: "AUTONOMY_ENGINE.runtime_composition:build_runtime",
+        runtimeMode: "production",
+        environment: {
+          HOMIO_OIDC_ISSUER: "https://issuer.example.test/ invalid",
+          HOMIO_OIDC_AUDIENCE: "homio-api",
+          HOMIO_OIDC_JWKS_URL: "https://issuer.example.test/jwks"
+        }
+      })).toThrow(/contains whitespace or control characters/);
+    }
+  );
+
+  it(
     "rejects an issuer longer than the canonical OIDC owner limit",
     () => {
       expect(() => new PythonRuntimeClient({
@@ -446,7 +522,7 @@ describe("Python runtime worker authentication", () => {
 
 describe("Python runtime response contract validation", () => {
   it(
-    "rejects an authenticated worker response with an unexpected result schema",
+    "rejects an authenticated owner response containing a C1 control character",
     async () => {
       const malformedWorker = resolve(
         BACKEND_ROOT,
