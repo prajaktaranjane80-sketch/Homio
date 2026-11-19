@@ -1,3 +1,4 @@
+
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -22,7 +23,8 @@ const SAFE_ROLE_RESULT = {
   bypasses_row_security: false,
   owns_application_tables: false,
   tenant_table_count: 2,
-  tenant_tables_force_rls: true
+  tenant_tables_force_rls: true,
+  tenant_tables_have_tenant_restrictive_guard: true
 };
 
 interface QueryCall {
