@@ -1,3 +1,4 @@
+
 import { assertTransactionQueryAllowed } from "./postgres-query-policy.js";
 
 export { PostgresTransactionQueryPolicyError } from "./postgres-query-policy.js";
@@ -76,6 +77,13 @@ const TENANT_SETTING_SQL =
  *
  * PostgreSQL 16+ supports the USAGE and SET membership tests used here.
  * HOMIO's backend master specifies PostgreSQL 18.4+ as its target.
+ *
+ * FORCE ROW LEVEL SECURITY alone is not sufficient. Permissive policies are
+ * combined with OR, so a broad permissive policy can otherwise widen access.
+ * Every tenant table must also have an applicable restrictive FOR ALL policy
+ * whose USING and WITH CHECK expressions both match the transaction-local
+ * app.tenant_id equality. The accepted expressions are deliberately narrow:
+ * unsupported policy forms fail closed instead of being guessed as safe.
  */
 export const POSTGRES_RUNTIME_ROLE_SAFETY_SQL = `
 WITH effective_roles AS (
@@ -87,6 +95,11 @@ WITH effective_roles AS (
   WHERE candidate.rolname = session_user
      OR pg_has_role(session_user, candidate.oid, 'USAGE')
      OR pg_has_role(session_user, candidate.oid, 'SET')
+), tenant_policy_roles AS (
+  SELECT candidate.oid
+  FROM pg_roles AS candidate
+  WHERE candidate.rolname = session_user
+     OR pg_has_role(session_user, candidate.oid, 'USAGE')
 ), tenant_tables AS (
   SELECT DISTINCT
     relation.oid,
@@ -137,7 +150,49 @@ SELECT
       FROM tenant_tables
     ),
     false
-  ) AS tenant_tables_force_rls
+  ) AS tenant_tables_force_rls,
+  NOT EXISTS (
+    SELECT 1
+    FROM tenant_tables AS tenant_table
+    WHERE NOT EXISTS (
+      SELECT 1
+      FROM pg_policy AS policy
+      WHERE policy.polrelid = tenant_table.oid
+        AND policy.polpermissive = false
+        AND policy.polcmd = '*'
+        AND (
+          policy.polroles @> ARRAY[0::oid]
+          OR policy.polroles && ARRAY(
+            SELECT tenant_policy_roles.oid
+            FROM tenant_policy_roles
+          )
+        )
+        AND policy.polqual IS NOT NULL
+        AND policy.polwithcheck IS NOT NULL
+        AND pg_catalog.regexp_replace(
+          pg_catalog.lower(
+            pg_catalog.pg_get_expr(policy.polqual, policy.polrelid)
+          ),
+          '[[:space:]()]',
+          '',
+          'g'
+        ) IN (
+          'tenant_id=current_setting(''app.tenant_id''::text,true)::uuid',
+          'tenant_id=current_setting(''app.tenant_id''::text,true)'
+        )
+        AND pg_catalog.regexp_replace(
+          pg_catalog.lower(
+            pg_catalog.pg_get_expr(policy.polwithcheck, policy.polrelid)
+          ),
+          '[[:space:]()]',
+          '',
+          'g'
+        ) IN (
+          'tenant_id=current_setting(''app.tenant_id''::text,true)::uuid',
+          'tenant_id=current_setting(''app.tenant_id''::text,true)'
+        )
+    )
+  ) AS tenant_tables_have_tenant_restrictive_guard
 `.trim();
 
 export class PostgresRuntimeClosedError extends Error {
@@ -161,7 +216,8 @@ export type PostgresRuntimeRoleErrorCode =
   | "BYPASS_RLS_ROLE"
   | "OWNS_APPLICATION_TABLES"
   | "TENANT_TABLES_MISSING"
-  | "TENANT_TABLES_RLS_NOT_FORCED";
+  | "TENANT_TABLES_RLS_NOT_FORCED"
+  | "TENANT_RLS_POLICY_GUARD_MISSING_OR_UNSAFE";
 
 export class PostgresRuntimeRoleError extends Error {
   public readonly code: PostgresRuntimeRoleErrorCode;
@@ -175,7 +231,6 @@ export class PostgresRuntimeRoleError extends Error {
     this.code = code;
   }
 }
-
 
 export class PostgresTransactionClosedError extends Error {
   public constructor() {
@@ -357,7 +412,8 @@ export class PostgresRuntime {
       typeof role.owns_application_tables !== "boolean" ||
       typeof role.tenant_table_count !== "number" ||
       !Number.isSafeInteger(role.tenant_table_count) ||
-      typeof role.tenant_tables_force_rls !== "boolean"
+      typeof role.tenant_tables_force_rls !== "boolean" ||
+      typeof role.tenant_tables_have_tenant_restrictive_guard !== "boolean"
     ) {
       throw new PostgresRuntimeRoleError("INVALID_ROLE_RESULT");
     }
@@ -380,6 +436,12 @@ export class PostgresRuntime {
 
     if (!role.tenant_tables_force_rls) {
       throw new PostgresRuntimeRoleError("TENANT_TABLES_RLS_NOT_FORCED");
+    }
+
+    if (!role.tenant_tables_have_tenant_restrictive_guard) {
+      throw new PostgresRuntimeRoleError(
+        "TENANT_RLS_POLICY_GUARD_MISSING_OR_UNSAFE"
+      );
     }
   }
 
