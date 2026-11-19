@@ -522,6 +522,35 @@ describe("Python runtime worker authentication", () => {
 
 describe("Python runtime response contract validation", () => {
   it(
+    "rejects a correctly signed response with duplicate JSON object keys",
+    async () => {
+      const duplicateKeyWorker = resolve(
+        BACKEND_ROOT,
+        "python_runtime",
+        "homio_python_runtime",
+        "tests",
+        "fixtures",
+        "duplicate_key_worker.py"
+      );
+
+      const client = createClient(
+        "homio_python_runtime.tests.fixtures.probe_owners:build_runtime",
+        1,
+        5_000,
+        duplicateKeyWorker
+      );
+
+      await expect(client.invoke({
+        operation: "oidc.verify_access_token",
+        context: CORRELATION_CONTEXT,
+        payload: { accessToken: "bridge-test-token" }
+      })).rejects.toMatchObject({
+        code: "RUNTIME_PROTOCOL_INVALID"
+      });
+    }
+  );
+
+  it(
     "rejects an authenticated owner response containing a C1 control character",
     async () => {
       const malformedWorker = resolve(
