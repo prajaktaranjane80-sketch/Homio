@@ -148,3 +148,19 @@ This approval does not authorize:
 - Changing frontend files, UI, CSS, or design systems.
 
 The guarded transition must stop on any baseline drift, unexpected source path, unverified impact, failed verification, missing owner authorization, state mismatch, or failed remote readback.
+
+## 11. Non-empty owner trigger confirmation
+
+The previous owner commit `4e4cca677edb7377c228ea2f74884b5cb8c0b676` carried the required B3 approval prefix but changed zero files. Its Git tree was identical to its parent commit, so the push path filter did not start the backend workflow.
+
+This request-file update is the non-empty source change needed to make the already-approved B3 owner commit eligible for the existing backend CI path filter.
+
+This update:
+
+- Retains the existing B3-only authorization and all original acceptance criteria.
+- Does not authorize any additional task, operation, or production capability.
+- Does not modify `state.json`, the backend master plan, the runtime client, the Python worker, or the versioned runtime contract.
+- Does not change the seven-path B3 source allowlist.
+- Does not bypass backend verification or the T15/T17/T18 guarded transition.
+
+The next owner commit must use the exact B3 trigger prefix specified in Section 8. B3 remains `CURRENT` unless the guarded workflow completes successfully and verifies canonical remote readback.
