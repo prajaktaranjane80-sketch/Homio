@@ -1,4 +1,3 @@
-
 name: HOMIO Backend and ACRL Runtime CI
 
 on:
@@ -23,6 +22,7 @@ on:
       - ".github/workflows/reusable-backend-verification.yml"
       - ".github/workflows/reusable-backend-workstream-activation.yml"
       - ".github/workflows/reusable-backend-b1-completion.yml"
+      - ".github/workflows/reusable-backend-b3-completion.yml"
       - ".github/workflows/reusable-ai001-t01-transition.yml"
       - ".github/workflows/reusable-ai001-t02-transition.yml"
       - ".github/workflows/reusable-ai001-t03-transition.yml"
@@ -63,6 +63,7 @@ on:
       - ".github/workflows/reusable-backend-verification.yml"
       - ".github/workflows/reusable-backend-workstream-activation.yml"
       - ".github/workflows/reusable-backend-b1-completion.yml"
+      - ".github/workflows/reusable-backend-b3-completion.yml"
       - ".github/workflows/reusable-ai001-t01-transition.yml"
       - ".github/workflows/reusable-ai001-t02-transition.yml"
       - ".github/workflows/reusable-ai001-t03-transition.yml"
@@ -92,8 +93,8 @@ concurrency:
   cancel-in-progress: false
 
 # Verification never changes canonical task state by itself.
-# Backend activation, B1 completion and B2 dependency correction use
-# separate, narrowly scoped guarded transitions.
+# Backend activation, B1 completion, B2 dependency correction and B3
+# completion use separate, narrowly scoped guarded transitions.
 # AI-001 and CORE-008 retain their existing transition boundaries.
 
 jobs:
@@ -136,6 +137,23 @@ jobs:
       contents: write
       id-token: write
     uses: ./.github/workflows/reusable-backend-workstream-activation.yml
+
+  control_center_complete_backend_b3:
+    name: Guarded Control Center completion (BACKEND-001-B3)
+    if: >-
+      ${{
+        github.event_name == 'push' &&
+        github.ref == 'refs/heads/reos-development' &&
+        startsWith(
+          github.event.head_commit.message,
+          '[CONTROL-CENTER-COMPLETE-BACKEND-001-B3]'
+        )
+      }}
+    needs: verification
+    permissions:
+      contents: write
+      id-token: write
+    uses: ./.github/workflows/reusable-backend-b3-completion.yml
 
   control_center_transition_ai001_t01:
     name: Guarded Control Center transition (AI-001-T01)
