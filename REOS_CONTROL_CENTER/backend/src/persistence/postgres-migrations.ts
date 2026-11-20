@@ -6,11 +6,8 @@ import type {
 } from "./postgres.js";
 
 export interface PostgresMigration {
-  /** Stable, monotonically increasing eight-digit migration identifier. */
   readonly id: string;
-  /** Lowercase, dash-separated immutable migration name. */
   readonly name: string;
-  /** Exact SQL bytes to execute inside one PostgreSQL transaction. */
   readonly sql: string;
 }
 
@@ -47,12 +44,16 @@ export class PostgresMigrationError extends Error {
   public constructor(
     code: PostgresMigrationErrorCode,
     message: string,
-    options: { readonly cause?: unknown; readonly migrationId?: string } = {}
+    options: {
+      readonly cause?: unknown;
+      readonly migrationId?: string;
+    } = {}
   ) {
     super(
       message,
       options.cause === undefined ? undefined : { cause: options.cause }
     );
+
     this.name = "PostgresMigrationError";
     this.code = code;
 
@@ -66,17 +67,21 @@ const MIGRATION_ID_PATTERN = /^[0-9]{8}$/;
 const MIGRATION_NAME_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 
-// ASCII "HOMI" is a stable namespace for this one repository's advisory lock.
 const MIGRATION_LOCK_NAMESPACE = 0x484f4d49;
 const MIGRATION_LOCK_RESOURCE = 1;
 const MINIMUM_POSTGRES_SERVER_VERSION_NUM = 180004;
 
 export interface PostgresMigrationRunnerOptions {
-  /** Dedicated DDL owner login; never reuse the API application login. */
   readonly migrationRole: string;
-  /** Runtime API role, required to be distinct from the migration role. */
   readonly applicationRole: string;
 }
+
+const EXPECTED_MIGRATION_CHECK_EXPRESSIONS: ReadonlySet<string> =
+  new Set([
+    "migration_id~'^[0-9]{8}$'",
+    "migration_name~'^[a-z][a-z0-9]*(-[a-z0-9]+)*$'",
+    "checksum~'^[a-f0-9]{64}$'"
+  ]);
 
 export const POSTGRES_MIGRATION_RUNTIME_SQL = `
 SELECT
@@ -106,36 +111,91 @@ CREATE TABLE IF NOT EXISTS reos_infra.schema_migrations (
 );
 `.trim();
 
+/**
+ * The infrastructure ledger is owned by the dedicated migration role.
+ * The API role must not be able to read, modify, truncate or maintain it,
+ * and must not be able to create objects in its schema.
+ *
+ * $1 is the configured API role and is always passed as a bound parameter.
+ */
 export const POSTGRES_MIGRATION_VERIFY_SQL = `
 SELECT
   pg_get_userbyid(namespace.nspowner) AS schema_owner,
   pg_get_userbyid(relation.relowner) AS table_owner,
+
   ARRAY(
-    SELECT column_name::text || ':' || data_type::text || ':' || is_nullable::text
+    SELECT
+      column_name::text || ':' ||
+      data_type::text || ':' ||
+      is_nullable::text
     FROM information_schema.columns
     WHERE table_schema = 'reos_infra'
       AND table_name = 'schema_migrations'
     ORDER BY ordinal_position
   ) AS columns,
+
   (
     SELECT pg_get_constraintdef(constraint_row.oid)
     FROM pg_constraint AS constraint_row
     WHERE constraint_row.conrelid = relation.oid
       AND constraint_row.contype = 'p'
   ) AS primary_key,
+
   (
     SELECT pg_get_constraintdef(constraint_row.oid)
     FROM pg_constraint AS constraint_row
     WHERE constraint_row.conrelid = relation.oid
       AND constraint_row.contype = 'u'
   ) AS unique_key,
-  (
-    SELECT COUNT(*)::integer
+
+  ARRAY(
+    SELECT pg_get_expr(
+      constraint_row.conbin,
+      constraint_row.conrelid
+    )
     FROM pg_constraint AS constraint_row
     WHERE constraint_row.conrelid = relation.oid
       AND constraint_row.contype = 'c'
-  ) AS check_constraint_count,
+    ORDER BY 1
+  ) AS check_expressions,
+
+  COALESCE(
+    (
+      SELECT BOOL_AND(constraint_row.convalidated)
+      FROM pg_constraint AS constraint_row
+      WHERE constraint_row.conrelid = relation.oid
+        AND constraint_row.contype = 'c'
+    ),
+    false
+  ) AS check_constraints_validated,
+
+  (
+    SELECT column_default
+    FROM information_schema.columns
+    WHERE table_schema = 'reos_infra'
+      AND table_name = 'schema_migrations'
+      AND column_name = 'applied_at'
+  ) AS applied_at_default,
+
+  (
+    has_table_privilege($1::name, relation.oid, 'SELECT')
+    OR has_table_privilege($1::name, relation.oid, 'INSERT')
+    OR has_table_privilege($1::name, relation.oid, 'UPDATE')
+    OR has_table_privilege($1::name, relation.oid, 'DELETE')
+    OR has_table_privilege($1::name, relation.oid, 'TRUNCATE')
+    OR has_table_privilege($1::name, relation.oid, 'REFERENCES')
+    OR has_table_privilege($1::name, relation.oid, 'TRIGGER')
+    OR has_table_privilege($1::name, relation.oid, 'MAINTAIN')
+  ) AS application_role_has_table_privileges,
+
+  has_schema_privilege(
+    $1::name,
+    namespace.oid,
+    'CREATE'
+  ) AS application_role_can_create_in_schema,
+
   relation.relrowsecurity AS row_security_enabled
+
 FROM pg_namespace AS namespace
 JOIN pg_class AS relation
   ON relation.relnamespace = namespace.oid
@@ -188,10 +248,6 @@ function checksumSql(sql: string): string {
   return createHash("sha256").update(sql, "utf8").digest("hex");
 }
 
-/**
- * Validate, clone and freeze the complete ordered manifest before opening a
- * database connection. The runner never sorts or repairs a caller's manifest.
- */
 export function validatePostgresMigrationManifest(
   migrations: readonly PostgresMigration[]
 ): readonly ValidatedPostgresMigration[] {
@@ -270,12 +326,119 @@ function asError(value: unknown): Error {
     : new Error("Unknown PostgreSQL migration failure.", { cause: value });
 }
 
+/**
+ * pg_get_expr() returns SQL expressions. Remove only syntactic parentheses
+ * and whitespace outside string literals. Parentheses inside regex patterns
+ * must be preserved because they are part of the approved constraint.
+ */
+function normalizeCheckExpression(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const source = value.toLowerCase();
+  let normalized = "";
+  let insideString = false;
+
+  for (let index = 0; index < source.length; index += 1) {
+    const character = source[index];
+
+    if (character === "'") {
+      normalized += character;
+
+      if (insideString && source[index + 1] === "'") {
+        normalized += source[index + 1];
+        index += 1;
+      } else {
+        insideString = !insideString;
+      }
+
+      continue;
+    }
+
+    if (
+      !insideString &&
+      (
+        character === "(" ||
+        character === ")" ||
+        /\s/.test(character)
+      )
+    ) {
+      continue;
+    }
+
+    normalized += character;
+  }
+
+  return normalized.replace(
+    /::(?:pg_catalog\.)?text\b/g,
+    ""
+  );
+}
+
+function verifyMigrationMetadata(
+  rows: readonly unknown[],
+  migrationRole: string,
+  applicationRole: string
+): void {
+  const candidate = rows.length === 1 ? rows[0] : null;
+  const row = asRecord(candidate);
+  const columns = row?.columns;
+  const checkExpressions = row?.check_expressions;
+
+  const normalizedChecks = Array.isArray(checkExpressions)
+    ? checkExpressions.map(normalizeCheckExpression)
+    : [];
+
+  const checksMatch =
+    normalizedChecks.length === EXPECTED_MIGRATION_CHECK_EXPRESSIONS.size &&
+    normalizedChecks.every((value): value is string =>
+      value !== null &&
+      EXPECTED_MIGRATION_CHECK_EXPRESSIONS.has(value)
+    ) &&
+    new Set(normalizedChecks).size ===
+      EXPECTED_MIGRATION_CHECK_EXPRESSIONS.size;
+
+  const expectedColumns = [
+    "migration_id:text:NO",
+    "migration_name:text:NO",
+    "checksum:text:NO",
+    "applied_at:timestamp with time zone:NO"
+  ];
+
+  if (
+    row === null ||
+    row.schema_owner !== migrationRole ||
+    row.table_owner !== migrationRole ||
+    !Array.isArray(columns) ||
+    columns.length !== expectedColumns.length ||
+    !columns.every(
+      (value: unknown, index: number) =>
+        value === expectedColumns[index]
+    ) ||
+    row.primary_key !== "PRIMARY KEY (migration_id)" ||
+    row.unique_key !== "UNIQUE (migration_name)" ||
+    !checksMatch ||
+    row.check_constraints_validated !== true ||
+    row.applied_at_default !== "clock_timestamp()" ||
+    row.application_role_has_table_privileges !== false ||
+    row.application_role_can_create_in_schema !== false ||
+    row.row_security_enabled !== false
+  ) {
+    throw new PostgresMigrationError(
+      "MIGRATION_BOOTSTRAP_FAILED",
+      `The migration ledger does not match the required ownership, integrity and least-privilege contract for ${migrationRole} and ${applicationRole}.`
+    );
+  }
+}
+
 function readHistoryRows(rows: readonly unknown[]): readonly {
   readonly migrationId: string;
   readonly migrationName: string;
   readonly checksum: string;
 }[] {
   const seenNames = new Set<string>();
+
   const history = rows.map((value) => {
     const row = asRecord(value);
 
@@ -369,38 +532,6 @@ function assertHistoryIsManifestPrefix(
   }
 }
 
-function verifyMigrationMetadata(
-  rows: readonly unknown[],
-  migrationRole: string
-): void {
-  const row = asRecord(rows[0]);
-  const columns = row?.columns;
-  const expectedColumns = [
-    "migration_id:text:NO",
-    "migration_name:text:NO",
-    "checksum:text:NO",
-    "applied_at:timestamp with time zone:NO"
-  ];
-
-  if (
-    row === null ||
-    row.schema_owner !== migrationRole ||
-    row.table_owner !== migrationRole ||
-    !Array.isArray(columns) ||
-    columns.length !== expectedColumns.length ||
-    !columns.every((value: unknown, index: number) => value === expectedColumns[index]) ||
-    row.primary_key !== "PRIMARY KEY (migration_id)" ||
-    row.unique_key !== "UNIQUE (migration_name)" ||
-    row.check_constraint_count !== 3 ||
-    row.row_security_enabled !== false
-  ) {
-    throw new PostgresMigrationError(
-      "MIGRATION_BOOTSTRAP_FAILED",
-      "The migration ledger schema, constraints or ownership do not match the approved immutable format."
-    );
-  }
-}
-
 function verifyMigrationRuntime(
   rows: readonly unknown[],
   options: PostgresMigrationRunnerOptions
@@ -467,7 +598,6 @@ async function applyOneMigration(
     await client.query("BEGIN");
     transactionStarted = true;
 
-    // SQL is immutable, repository-reviewed migration source, never user input.
     await client.query(migration.sql);
     await client.query(POSTGRES_MIGRATION_INSERT_SQL, [
       migration.id,
@@ -520,10 +650,8 @@ async function applyOneMigration(
 }
 
 /**
- * B4's single ordered migration executor. It reuses the existing node-postgres
- * pool contract, serializes runners with an advisory lock, and records each
- * migration in the same transaction as its DDL. The API PostgresRuntime and
- * its tenant-scoped query boundary remain the sole application query owner.
+ * One B4 migration executor. It reuses the existing driver pool contract,
+ * advisory lock and single application transaction owner.
  */
 export class PostgresMigrationRunner {
   private readonly pool: PostgresDriverPool;
@@ -574,6 +702,7 @@ export class PostgresMigrationRunner {
         verifyMigrationRuntime(runtimeResult.rows, this.options);
       } catch (error) {
         releaseError = asError(error);
+
         if (
           error instanceof PostgresMigrationError &&
           error.code === "MIGRATION_SERVER_VERSION_UNSUPPORTED"
@@ -597,11 +726,11 @@ export class PostgresMigrationRunner {
           MIGRATION_LOCK_NAMESPACE,
           MIGRATION_LOCK_RESOURCE
         ]);
+
         lockAcquired = readBooleanRow(lockResult.rows, "acquired");
       } catch (error) {
-        // A lost lock response may hide a lock acquired by PostgreSQL. Never
-        // return that session to the pool; destroying it releases any lock.
         releaseError = asError(error);
+
         throw new PostgresMigrationError(
           "MIGRATION_LOCK_UNAVAILABLE",
           "PostgreSQL migration-lock acquisition could not be confirmed; the connection was marked for destruction.",
@@ -621,6 +750,7 @@ export class PostgresMigrationRunner {
         await client.query(POSTGRES_MIGRATION_BOOTSTRAP_SQL);
       } catch (error) {
         releaseError = asError(error);
+
         throw new PostgresMigrationError(
           "MIGRATION_BOOTSTRAP_FAILED",
           "The migration metadata schema could not be initialized safely.",
@@ -630,11 +760,14 @@ export class PostgresMigrationRunner {
 
       try {
         const metadataResult = await client.query(
-          POSTGRES_MIGRATION_VERIFY_SQL
+          POSTGRES_MIGRATION_VERIFY_SQL,
+          [this.options.applicationRole]
         );
+
         verifyMigrationMetadata(
           metadataResult.rows,
-          this.options.migrationRole
+          this.options.migrationRole,
+          this.options.applicationRole
         );
       } catch (error) {
         if (
@@ -650,7 +783,7 @@ export class PostgresMigrationRunner {
           ? error
           : new PostgresMigrationError(
               "MIGRATION_BOOTSTRAP_FAILED",
-              "The migration metadata structure could not be verified.",
+              "The migration metadata structure and permissions could not be verified.",
               { cause: error }
             );
       }
@@ -661,9 +794,11 @@ export class PostgresMigrationRunner {
         const historyResult = await client.query(
           POSTGRES_MIGRATION_HISTORY_SQL
         );
+
         historyRows = historyResult.rows;
       } catch (error) {
         releaseError = asError(error);
+
         throw new PostgresMigrationError(
           "MIGRATION_HISTORY_READ_FAILED",
           "The migration history could not be read and verified.",
@@ -691,8 +826,10 @@ export class PostgresMigrationRunner {
         } catch (error) {
           if (
             error instanceof PostgresMigrationError &&
-            (error.code === "MIGRATION_OUTCOME_UNKNOWN" ||
-              error.code === "MIGRATION_ROLLBACK_FAILED")
+            (
+              error.code === "MIGRATION_OUTCOME_UNKNOWN" ||
+              error.code === "MIGRATION_ROLLBACK_FAILED"
+            )
           ) {
             releaseError = error;
           }
@@ -737,6 +874,7 @@ export class PostgresMigrationRunner {
                 )
               }
             );
+
             releaseError ??= unlockError;
 
             if (failure === undefined) {
@@ -749,6 +887,7 @@ export class PostgresMigrationRunner {
             "The PostgreSQL migration advisory lock could not be released; the connection must be destroyed.",
             { cause: error }
           );
+
           releaseError ??= unlockError;
 
           if (failure === undefined) {
