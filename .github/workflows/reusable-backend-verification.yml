@@ -57,6 +57,12 @@ jobs:
           python -m pip install --disable-pip-version-check \
             "qdrant-client==1.20.0"
 
+      - name: Verify PostgreSQL integration harness secret transport
+        shell: bash
+        run: |
+          set -euo pipefail
+          python REOS_CONTROL_CENTER/backend/scripts/verify_postgres_integration.py --self-test
+
       - name: Execute real PostgreSQL tenant and runtime-role integration checks
         shell: bash
         env:
