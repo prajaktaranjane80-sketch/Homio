@@ -1,4 +1,3 @@
-
 import { assertTransactionQueryAllowed } from "./postgres-query-policy.js";
 
 export { PostgresTransactionQueryPolicyError } from "./postgres-query-policy.js";
@@ -82,8 +81,12 @@ const TENANT_SETTING_SQL =
  * combined with OR, so a broad permissive policy can otherwise widen access.
  * Every tenant table must also have an applicable restrictive FOR ALL policy
  * whose USING and WITH CHECK expressions both match the transaction-local
- * app.tenant_id equality. The accepted expressions are deliberately narrow:
- * unsupported policy forms fail closed instead of being guessed as safe.
+ * app.tenant_id equality.
+ *
+ * PostgreSQL's pg_get_expr() deparser emits parentheses around function calls
+ * and casts. Those parentheses are significant and must be preserved.
+ * Whitespace is normalized only; a small explicit allow-list recognizes the
+ * supported deparser forms. Unknown policy expressions fail closed.
  */
 export const POSTGRES_RUNTIME_ROLE_SAFETY_SQL = `
 WITH effective_roles AS (
@@ -173,22 +176,30 @@ SELECT
           pg_catalog.lower(
             pg_catalog.pg_get_expr(policy.polqual, policy.polrelid)
           ),
-          '[[:space:]()]',
+          '[[:space:]]',
           '',
           'g'
         ) IN (
+          '(tenant_id=(current_setting(''app.tenant_id''::text,true))::uuid)',
+          'tenant_id=(current_setting(''app.tenant_id''::text,true))::uuid',
+          '(tenant_id=current_setting(''app.tenant_id''::text,true)::uuid)',
           'tenant_id=current_setting(''app.tenant_id''::text,true)::uuid',
+          '(tenant_id=current_setting(''app.tenant_id''::text,true))',
           'tenant_id=current_setting(''app.tenant_id''::text,true)'
         )
         AND pg_catalog.regexp_replace(
           pg_catalog.lower(
             pg_catalog.pg_get_expr(policy.polwithcheck, policy.polrelid)
           ),
-          '[[:space:]()]',
+          '[[:space:]]',
           '',
           'g'
         ) IN (
+          '(tenant_id=(current_setting(''app.tenant_id''::text,true))::uuid)',
+          'tenant_id=(current_setting(''app.tenant_id''::text,true))::uuid',
+          '(tenant_id=current_setting(''app.tenant_id''::text,true)::uuid)',
           'tenant_id=current_setting(''app.tenant_id''::text,true)::uuid',
+          '(tenant_id=current_setting(''app.tenant_id''::text,true))',
           'tenant_id=current_setting(''app.tenant_id''::text,true)'
         )
     )
