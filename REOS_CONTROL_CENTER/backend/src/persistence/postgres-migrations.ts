@@ -1,4 +1,3 @@
-
 import { createHash } from "node:crypto";
 
 import type {
@@ -729,9 +728,20 @@ export class PostgresMigrationRunner {
           );
 
           if (!readBooleanRow(unlockResult.rows, "unlocked")) {
-            throw new Error(
-              "The PostgreSQL migration advisory lock was not held at release time."
+            const unlockError = new PostgresMigrationError(
+              "MIGRATION_LOCK_RELEASE_FAILED",
+              "The PostgreSQL migration advisory lock could not be released; the connection must be destroyed.",
+              {
+                cause: new Error(
+                  "The PostgreSQL migration advisory lock was not held at release time."
+                )
+              }
             );
+            releaseError ??= unlockError;
+
+            if (failure === undefined) {
+              failure = unlockError;
+            }
           }
         } catch (error) {
           const unlockError = new PostgresMigrationError(
