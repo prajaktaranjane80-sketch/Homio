@@ -1,135 +1,967 @@
-evidence  files dekho base roote se work complite karo dublicate nahi chahiye synk linc intgration sab thik hai to ultra pro work karo B4 complite karo
-
-Worked for 5m 39s
-B4 ka root-level audit kar liya hai. Sabse important finding: ARCH-037 khud already APPROVED aur FROZEN hai. Uske T01–T11 DONE aur AC01–AC11 VERIFIED hain. Main ARCH-037 ko dobara open nahi kar raha. Lekin approved physical schema ka exact, machine-readable table/column/key/constraint manifest aur uska fingerprint current repository mein verify nahi ho raha. Isi wajah se guessed SQL banana safe nahi hai.
-
-1. GitHub, CI aur ACRL synchronization
-Latest CI successful B4 incomplete
-
-Live HEAD: a377f1fa30cab2a07a7a5b0f45b9909153403999
-
-Latest Actions run #889 isi exact HEAD par successful hai.
-
-Verification
-
-Run #889 ka result
-
-PostgreSQL 18.4 live role/RLS fixture
-
-PASS
-
-T21/workflow wiring regression
-
-64 passed
-
-ACRL runtime/resume regression
-
-1,466 passed
-
-Backend Vitest
-
-12 files, 108 tests passed
-
-Reproducible TypeScript build
-
-PASS
-
-Production readiness
-
-NOT READY — 18 blockers
-
-GitHub se T14 resume cache restore bhi successful mila. Isse confirm hota hai ki GitHub checkout, Actions aur ACRL continuity integration kaam kar rahe hain.
-
-Lekin do gaps hain:
-
-GitHub branch protection abhi false hai.
-
-#889 mein B4 completion/approval transition run nahi hua. B4-specific guarded transition workflow abhi available nahi hai.
-
-2. Ek actual code/test integration defect mila
-Needs correction
-Migration runner ke 533-line test file mein 20 tests hain, lekin woh galat folder mein hai.
-
-Current path:
-
-REOS_CONTROL_CENTER/backend/src/persistence/postgres-migrations.test.ts
-
-Correct path:
-
-REOS_CONTROL_CENTER/backend/tests/unit/postgres-migrations.test.ts
-
-Root cause:
-
-vitest.config.ts sirf tests/**/*.test.ts discover karta hai.
-
-Isliye migration runner ke 20 tests #889 ke 108 tests mein include nahi hue.
-
-Test file src/**/*.ts ke andar hone se production build mein bhi test file emit hone ka risk hai.
-
-Iska correct fix ek file move hai, naya test ya duplicate file banana nahi. Existing contents bilkul same rahenge; import path bhi target folder mein valid rahega.
-
-GitHub Web Editor mein existing file kholkar pencil par click karo aur filename/path ko upar diye destination path par rename karke reos-development par save karo. Purani path remove honi chahiye; dono copies nahi rehni chahiye. Is move ke baad current baseline same raha to expected backend suite 13 files / 128 tests hogi—final count Actions se verify hoga.
-
-3. B4 ke actual root blockers
-Maine teenon live B4 evidence files check kiye:
-
-ARCH-037 addendum approval request
-
-Physical schema reconstruction proposal
-
-Identifier, tenant and security contract
-
-Teeno DRAFT — NOT APPROVED — NON-EXECUTABLE hain aur current HEAD se purane baseline par likhe gaye hain.
-
-B4 requirement
-
-Live source se actual position
-
-Approved physical schema
-
-Exact approved physical manifest/fingerprint unresolved
-
-Canonical owner mapping
-
-Customer/Builder future owners; ID/FK mapping decisions blocked
-
-Financial precision
-
-CORE-008 model exists; database maximum precision per field approved nahi
-
-PostgreSQL integration
-
-Single transaction owner aur migration runner exist; real pg driver/bootstrap wired nahi
-
-Durable sessions
-
-authentication_epoch, verified iat/exp aur revocation lifecycle contract unresolved
-
-Shared rate limiting
-
-Redis adapter exists; production Redis client/configuration and service proof missing
-
-Security audit persistence
-
-Audit port exists; PostgreSQL repository, retention and privileged-read policy missing
-
-Backup/recovery
-
-Disposable CI PostgreSQL test exists; target environment backup/restore/PITR evidence missing
-
-Duplicate architecture nahi banana hai: Existing PostgresRuntime, PostgresMigrationRunner, Redis adapter, CORE-001 identity, CORE-002 event, CORE-003 ownership, CORE-004 inventory, CORE-006 deal aur CORE-008 finance owners hi reuse honge.
-
-4. B4 ko abhi DONE kyun nahi kar sakte
-B4 ka main obstacle code ki quantity nahi, balki approved physical schema aur owner decisions ka exact source evidence hai. ARCH-037 approval ko respect karna zaroori hai; lekin us approval ke naam par unapproved table mappings, Customer/Builder lifecycle, financial precision ya session schema invent karna allowed nahi.
-
-Existing Control Center ka approve-gate poora BACKEND-001 gate approve karke next gate par le jaata hai. Woh B4 addendum approval ka substitute nahi hai. T18 authorization boundary ko weaken karna ya state.json manually edit karna bhi galat hoga.
-
-Isliye:
-
-B4 abhi CURRENT hai, DONE nahi.
-
-B4 ke 8 acceptance criteria ko verified mark nahi kiya gaya.
-
-Main GitHub par direct write ya false completion transition nahi kiya hai.
-
-Abhi immediate action: Upar diya migration test file move save karo. Phir latest Actions run ka link bhejo; main exact HEAD readback, old path removal, new path, 13-file/128-test result aur logs verify karunga. B4 ki remaining implementation owner-approved schema aur target-service evidence ke bina fabricate nahi ki jayegi.
+Root cause mil gaya hai. Latest dono runs #892 aur #893 ek hi TypeScript error par fail hue:
+
+REOS_CONTROL_CENTER/backend/src/persistence/postgres-migrations.ts:364
+
+noUncheckedIndexedAccess: true hone ke karan source[index] ka type string | undefined hai, lekin RegExp.test() ko definite string chahiye. Isliye TypeScript check yahin ruk raha hai aur uske baad ke backend tests/build execute nahi ho rahe.
+
+PostgreSQL 18.4 role/RLS integration aur ACRL ke 1,466 tests pass hue. Problem database service nahi, migration-expression normalizer ka unsafe string indexing hai. Main isi existing file ka complete corrected replacement de raha hoon; duplicate component ya naya engine nahi banaunga.
+Complete file replacement
+Root cause identified
+ GitHub save and CI verification pending
+
+
+Exact path:
+
+REOS_CONTROL_CENTER/backend/src/persistence/postgres-migrations.ts
+
+Current GitHub blob: a051e7f6e825a5ba7fb3625a972c0c2192fe1b4e
+
+Replace the entire file with this version. The correction uses String.charAt() in both scanner accesses, so strict TypeScript always receives a string. It preserves the existing migration owner and behavior.
+
+import { createHash } from "node:crypto";
+
+import type {
+  PostgresDriverClient,
+  PostgresDriverPool
+} from "./postgres.js";
+
+export interface PostgresMigration {
+  readonly id: string;
+  readonly name: string;
+  readonly sql: string;
+}
+
+export interface ValidatedPostgresMigration extends PostgresMigration {
+  readonly checksum: string;
+}
+
+export interface PostgresMigrationReport {
+  readonly appliedCount: number;
+  readonly latestMigrationId: string;
+  readonly latestChecksum: string;
+}
+
+export type PostgresMigrationErrorCode =
+  | "INVALID_MANIFEST"
+  | "CONNECTION_UNAVAILABLE"
+  | "MIGRATION_ROLE_UNAVAILABLE"
+  | "MIGRATION_ROLE_MISMATCH"
+  | "MIGRATION_SERVER_VERSION_UNSUPPORTED"
+  | "MIGRATION_LOCK_UNAVAILABLE"
+  | "MIGRATION_LOCK_RELEASE_FAILED"
+  | "MIGRATION_BOOTSTRAP_FAILED"
+  | "MIGRATION_HISTORY_READ_FAILED"
+  | "MIGRATION_HISTORY_CORRUPT"
+  | "MIGRATION_HISTORY_DRIFT"
+  | "MIGRATION_EXECUTION_FAILED"
+  | "MIGRATION_OUTCOME_UNKNOWN"
+  | "MIGRATION_ROLLBACK_FAILED";
+
+export class PostgresMigrationError extends Error {
+  public readonly code: PostgresMigrationErrorCode;
+  public readonly migrationId?: string;
+
+  public constructor(
+    code: PostgresMigrationErrorCode,
+    message: string,
+    options: {
+      readonly cause?: unknown;
+      readonly migrationId?: string;
+    } = {}
+  ) {
+    super(
+      message,
+      options.cause === undefined ? undefined : { cause: options.cause }
+    );
+
+    this.name = "PostgresMigrationError";
+    this.code = code;
+
+    if (options.migrationId !== undefined) {
+      this.migrationId = options.migrationId;
+    }
+  }
+}
+
+const MIGRATION_ID_PATTERN = /^[0-9]{8}$/;
+const MIGRATION_NAME_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
+const SHA256_PATTERN = /^[a-f0-9]{64}$/;
+
+const MIGRATION_LOCK_NAMESPACE = 0x484f4d49;
+const MIGRATION_LOCK_RESOURCE = 1;
+const MINIMUM_POSTGRES_SERVER_VERSION_NUM = 180004;
+
+export interface PostgresMigrationRunnerOptions {
+  readonly migrationRole: string;
+  readonly applicationRole: string;
+}
+
+const EXPECTED_MIGRATION_CHECK_EXPRESSIONS: ReadonlySet<string> =
+  new Set([
+    "migration_id~'^[0-9]{8}$'",
+    "migration_name~'^[a-z][a-z0-9]*(-[a-z0-9]+)*$'",
+    "checksum~'^[a-f0-9]{64}$'"
+  ]);
+
+export const POSTGRES_MIGRATION_RUNTIME_SQL = `
+SELECT
+  session_user::text AS session_user,
+  current_user::text AS current_user,
+  current_setting('server_version_num')::integer AS server_version_num
+`.trim();
+
+export const POSTGRES_MIGRATION_LOCK_SQL =
+  "SELECT pg_try_advisory_lock($1, $2) AS acquired";
+
+export const POSTGRES_MIGRATION_UNLOCK_SQL =
+  "SELECT pg_advisory_unlock($1, $2) AS unlocked";
+
+export const POSTGRES_MIGRATION_CREATE_SCHEMA_SQL =
+  "CREATE SCHEMA IF NOT EXISTS reos_infra";
+
+export const POSTGRES_MIGRATION_BOOTSTRAP_SQL = `
+CREATE TABLE IF NOT EXISTS reos_infra.schema_migrations (
+  migration_id TEXT PRIMARY KEY
+    CHECK (migration_id ~ '^[0-9]{8}$'),
+  migration_name TEXT NOT NULL UNIQUE
+    CHECK (migration_name ~ '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'),
+  checksum TEXT NOT NULL
+    CHECK (checksum ~ '^[a-f0-9]{64}$'),
+  applied_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
+);
+`.trim();
+
+/**
+ * The infrastructure ledger is owned by the dedicated migration role.
+ * The API role must not be able to read, modify, truncate or maintain it,
+ * and must not be able to create objects in its schema.
+ *
+ * $1 is the configured API role and is always passed as a bound parameter.
+ */
+export const POSTGRES_MIGRATION_VERIFY_SQL = `
+SELECT
+  pg_get_userbyid(namespace.nspowner) AS schema_owner,
+  pg_get_userbyid(relation.relowner) AS table_owner,
+
+  ARRAY(
+    SELECT
+      column_name::text || ':' ||
+      data_type::text || ':' ||
+      is_nullable::text
+    FROM information_schema.columns
+    WHERE table_schema = 'reos_infra'
+      AND table_name = 'schema_migrations'
+    ORDER BY ordinal_position
+  ) AS columns,
+
+  (
+    SELECT pg_get_constraintdef(constraint_row.oid)
+    FROM pg_constraint AS constraint_row
+    WHERE constraint_row.conrelid = relation.oid
+      AND constraint_row.contype = 'p'
+  ) AS primary_key,
+
+  (
+    SELECT pg_get_constraintdef(constraint_row.oid)
+    FROM pg_constraint AS constraint_row
+    WHERE constraint_row.conrelid = relation.oid
+      AND constraint_row.contype = 'u'
+  ) AS unique_key,
+
+  ARRAY(
+    SELECT pg_get_expr(
+      constraint_row.conbin,
+      constraint_row.conrelid
+    )
+    FROM pg_constraint AS constraint_row
+    WHERE constraint_row.conrelid = relation.oid
+      AND constraint_row.contype = 'c'
+    ORDER BY 1
+  ) AS check_expressions,
+
+  COALESCE(
+    (
+      SELECT BOOL_AND(constraint_row.convalidated)
+      FROM pg_constraint AS constraint_row
+      WHERE constraint_row.conrelid = relation.oid
+        AND constraint_row.contype = 'c'
+    ),
+    false
+  ) AS check_constraints_validated,
+
+  (
+    SELECT column_default
+    FROM information_schema.columns
+    WHERE table_schema = 'reos_infra'
+      AND table_name = 'schema_migrations'
+      AND column_name = 'applied_at'
+  ) AS applied_at_default,
+
+  (
+    has_table_privilege($1::name, relation.oid, 'SELECT')
+    OR has_table_privilege($1::name, relation.oid, 'INSERT')
+    OR has_table_privilege($1::name, relation.oid, 'UPDATE')
+    OR has_table_privilege($1::name, relation.oid, 'DELETE')
+    OR has_table_privilege($1::name, relation.oid, 'TRUNCATE')
+    OR has_table_privilege($1::name, relation.oid, 'REFERENCES')
+    OR has_table_privilege($1::name, relation.oid, 'TRIGGER')
+    OR has_table_privilege($1::name, relation.oid, 'MAINTAIN')
+  ) AS application_role_has_table_privileges,
+
+  has_schema_privilege(
+    $1::name,
+    namespace.oid,
+    'CREATE'
+  ) AS application_role_can_create_in_schema,
+
+  relation.relrowsecurity AS row_security_enabled
+
+FROM pg_namespace AS namespace
+JOIN pg_class AS relation
+  ON relation.relnamespace = namespace.oid
+WHERE namespace.nspname = 'reos_infra'
+  AND relation.relname = 'schema_migrations'
+  AND relation.relkind = 'r'
+`.trim();
+
+export const POSTGRES_MIGRATION_HISTORY_SQL = `
+SELECT migration_id, migration_name, checksum
+FROM reos_infra.schema_migrations
+ORDER BY migration_id ASC
+`.trim();
+
+export const POSTGRES_MIGRATION_INSERT_SQL = `
+INSERT INTO reos_infra.schema_migrations (
+  migration_id,
+  migration_name,
+  checksum
+)
+VALUES ($1, $2, $3)
+`.trim();
+
+function validateRunnerOptions(
+  options: PostgresMigrationRunnerOptions
+): PostgresMigrationRunnerOptions {
+  if (
+    typeof options !== "object" ||
+    options === null ||
+    typeof options.migrationRole !== "string" ||
+    options.migrationRole.length === 0 ||
+    options.migrationRole !== options.migrationRole.trim() ||
+    typeof options.applicationRole !== "string" ||
+    options.applicationRole.length === 0 ||
+    options.applicationRole !== options.applicationRole.trim() ||
+    options.migrationRole === options.applicationRole
+  ) {
+    throw new TypeError(
+      "A dedicated migration role distinct from the API role is required."
+    );
+  }
+
+  return Object.freeze({
+    migrationRole: options.migrationRole,
+    applicationRole: options.applicationRole
+  });
+}
+
+function checksumSql(sql: string): string {
+  return createHash("sha256").update(sql, "utf8").digest("hex");
+}
+
+export function validatePostgresMigrationManifest(
+  migrations: readonly PostgresMigration[]
+): readonly ValidatedPostgresMigration[] {
+  if (!Array.isArray(migrations) || migrations.length === 0) {
+    throw new PostgresMigrationError(
+      "INVALID_MANIFEST",
+      "At least one reviewed PostgreSQL migration is required."
+    );
+  }
+
+  const seenIds = new Set<string>();
+  const seenNames = new Set<string>();
+  const validated: ValidatedPostgresMigration[] = [];
+  let previousId = "";
+
+  for (const migration of migrations) {
+    if (
+      typeof migration !== "object" ||
+      migration === null ||
+      typeof migration.id !== "string" ||
+      !MIGRATION_ID_PATTERN.test(migration.id) ||
+      migration.id === "00000000" ||
+      typeof migration.name !== "string" ||
+      migration.name.length > 96 ||
+      !MIGRATION_NAME_PATTERN.test(migration.name) ||
+      typeof migration.sql !== "string" ||
+      migration.sql.trim().length === 0
+    ) {
+      throw new PostgresMigrationError(
+        "INVALID_MANIFEST",
+        "A migration has an invalid ID, name or empty SQL body."
+      );
+    }
+
+    if (seenIds.has(migration.id) || seenNames.has(migration.name)) {
+      throw new PostgresMigrationError(
+        "INVALID_MANIFEST",
+        "Migration IDs and names must both be unique."
+      );
+    }
+
+    if (previousId !== "" && migration.id <= previousId) {
+      throw new PostgresMigrationError(
+        "INVALID_MANIFEST",
+        "Migrations must already be in strictly increasing ID order."
+      );
+    }
+
+    const normalized = Object.freeze({
+      id: migration.id,
+      name: migration.name,
+      sql: migration.sql,
+      checksum: checksumSql(migration.sql)
+    });
+
+    validated.push(normalized);
+    seenIds.add(migration.id);
+    seenNames.add(migration.name);
+    previousId = migration.id;
+  }
+
+  return Object.freeze(validated);
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return null;
+  }
+
+  return value as Record<string, unknown>;
+}
+
+function asError(value: unknown): Error {
+  return value instanceof Error
+    ? value
+    : new Error("Unknown PostgreSQL migration failure.", { cause: value });
+}
+
+/**
+ * pg_get_expr() returns SQL expressions. Remove only syntactic parentheses
+ * and whitespace outside string literals. Parentheses inside regex patterns
+ * must be preserved because they are part of the approved constraint.
+ *
+ * charAt() deliberately returns a definite string. Direct indexed access
+ * returns string | undefined under noUncheckedIndexedAccess.
+ */
+function normalizeCheckExpression(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const source = value.toLowerCase();
+  let normalized = "";
+  let insideString = false;
+
+  for (let index = 0; index < source.length; index += 1) {
+    const character = source.charAt(index);
+
+    if (character === "'") {
+      normalized += character;
+
+      if (
+        insideString &&
+        source.charAt(index + 1) === "'"
+      ) {
+        normalized += source.charAt(index + 1);
+        index += 1;
+      } else {
+        insideString = !insideString;
+      }
+
+      continue;
+    }
+
+    if (
+      !insideString &&
+      (
+        character === "(" ||
+        character === ")" ||
+        /\s/.test(character)
+      )
+    ) {
+      continue;
+    }
+
+    normalized += character;
+  }
+
+  return normalized.replace(
+    /::(?:pg_catalog\.)?text\b/g,
+    ""
+  );
+}
+
+function verifyMigrationMetadata(
+  rows: readonly unknown[],
+  migrationRole: string,
+  applicationRole: string
+): void {
+  const candidate = rows.length === 1 ? rows[0] : null;
+  const row = asRecord(candidate);
+  const columns = row?.columns;
+  const checkExpressions = row?.check_expressions;
+
+  const normalizedChecks = Array.isArray(checkExpressions)
+    ? checkExpressions.map(normalizeCheckExpression)
+    : [];
+
+  const checksMatch =
+    normalizedChecks.length === EXPECTED_MIGRATION_CHECK_EXPRESSIONS.size &&
+    normalizedChecks.every((value): value is string =>
+      value !== null &&
+      EXPECTED_MIGRATION_CHECK_EXPRESSIONS.has(value)
+    ) &&
+    new Set(normalizedChecks).size ===
+      EXPECTED_MIGRATION_CHECK_EXPRESSIONS.size;
+
+  const expectedColumns = [
+    "migration_id:text:NO",
+    "migration_name:text:NO",
+    "checksum:text:NO",
+    "applied_at:timestamp with time zone:NO"
+  ];
+
+  if (
+    row === null ||
+    row.schema_owner !== migrationRole ||
+    row.table_owner !== migrationRole ||
+    !Array.isArray(columns) ||
+    columns.length !== expectedColumns.length ||
+    !columns.every(
+      (value: unknown, index: number) =>
+        value === expectedColumns[index]
+    ) ||
+    row.primary_key !== "PRIMARY KEY (migration_id)" ||
+    row.unique_key !== "UNIQUE (migration_name)" ||
+    !checksMatch ||
+    row.check_constraints_validated !== true ||
+    row.applied_at_default !== "clock_timestamp()" ||
+    row.application_role_has_table_privileges !== false ||
+    row.application_role_can_create_in_schema !== false ||
+    row.row_security_enabled !== false
+  ) {
+    throw new PostgresMigrationError(
+      "MIGRATION_BOOTSTRAP_FAILED",
+      `The migration ledger does not match the required ownership, integrity and least-privilege contract for ${migrationRole} and ${applicationRole}.`
+    );
+  }
+}
+
+function readHistoryRows(rows: readonly unknown[]): readonly {
+  readonly migrationId: string;
+  readonly migrationName: string;
+  readonly checksum: string;
+}[] {
+  const seenNames = new Set<string>();
+
+  const history = rows.map((value) => {
+    const row = asRecord(value);
+
+    if (
+      row === null ||
+      typeof row.migration_id !== "string" ||
+      typeof row.migration_name !== "string" ||
+      typeof row.checksum !== "string" ||
+      !MIGRATION_ID_PATTERN.test(row.migration_id) ||
+      !MIGRATION_NAME_PATTERN.test(row.migration_name) ||
+      !SHA256_PATTERN.test(row.checksum)
+    ) {
+      throw new PostgresMigrationError(
+        "MIGRATION_HISTORY_CORRUPT",
+        "The PostgreSQL migration history contains an invalid row."
+      );
+    }
+
+    if (seenNames.has(row.migration_name)) {
+      throw new PostgresMigrationError(
+        "MIGRATION_HISTORY_CORRUPT",
+        "The PostgreSQL migration history contains a duplicate migration name."
+      );
+    }
+
+    seenNames.add(row.migration_name);
+
+    return Object.freeze({
+      migrationId: row.migration_id,
+      migrationName: row.migration_name,
+      checksum: row.checksum
+    });
+  });
+
+  for (let index = 1; index < history.length; index += 1) {
+    const previous = history[index - 1];
+    const current = history[index];
+
+    if (
+      previous === undefined ||
+      current === undefined ||
+      current.migrationId <= previous.migrationId
+    ) {
+      throw new PostgresMigrationError(
+        "MIGRATION_HISTORY_CORRUPT",
+        "The PostgreSQL migration history is not strictly ordered."
+      );
+    }
+  }
+
+  return Object.freeze(history);
+}
+
+function assertHistoryIsManifestPrefix(
+  history: readonly {
+    readonly migrationId: string;
+    readonly migrationName: string;
+    readonly checksum: string;
+  }[],
+  manifest: readonly ValidatedPostgresMigration[]
+): void {
+  if (history.length > manifest.length) {
+    throw new PostgresMigrationError(
+      "MIGRATION_HISTORY_DRIFT",
+      "Applied migrations are missing from the current immutable manifest."
+    );
+  }
+
+  for (let index = 0; index < history.length; index += 1) {
+    const applied = history[index];
+    const expected = manifest[index];
+
+    if (applied === undefined || expected === undefined) {
+      throw new PostgresMigrationError(
+        "MIGRATION_HISTORY_CORRUPT",
+        "Migration history does not map to the current manifest."
+      );
+    }
+
+    if (
+      applied.migrationId !== expected.id ||
+      applied.migrationName !== expected.name ||
+      applied.checksum !== expected.checksum
+    ) {
+      throw new PostgresMigrationError(
+        "MIGRATION_HISTORY_DRIFT",
+        "An applied migration was removed, renamed, reordered or modified.",
+        { migrationId: expected.id }
+      );
+    }
+  }
+}
+
+function verifyMigrationRuntime(
+  rows: readonly unknown[],
+  options: PostgresMigrationRunnerOptions
+): void {
+  const row = asRecord(rows[0]);
+
+  if (
+    row === null ||
+    typeof row.session_user !== "string" ||
+    typeof row.current_user !== "string" ||
+    typeof row.server_version_num !== "number" ||
+    !Number.isSafeInteger(row.server_version_num)
+  ) {
+    throw new PostgresMigrationError(
+      "MIGRATION_ROLE_UNAVAILABLE",
+      "PostgreSQL did not return a valid migration-role/runtime identity."
+    );
+  }
+
+  if (
+    row.session_user !== options.migrationRole ||
+    row.current_user !== options.migrationRole ||
+    row.session_user === options.applicationRole
+  ) {
+    throw new PostgresMigrationError(
+      "MIGRATION_ROLE_MISMATCH",
+      "The migration connection is not authenticated as the configured dedicated migration role."
+    );
+  }
+
+  if (row.server_version_num < MINIMUM_POSTGRES_SERVER_VERSION_NUM) {
+    throw new PostgresMigrationError(
+      "MIGRATION_SERVER_VERSION_UNSUPPORTED",
+      "The migration target must be PostgreSQL 18.4 or newer."
+    );
+  }
+}
+
+function readBooleanRow(
+  rows: readonly unknown[],
+  field: "acquired" | "unlocked"
+): boolean {
+  const row = asRecord(rows[0]);
+
+  if (row === null || typeof row[field] !== "boolean") {
+    throw new PostgresMigrationError(
+      field === "acquired"
+        ? "MIGRATION_LOCK_UNAVAILABLE"
+        : "MIGRATION_LOCK_RELEASE_FAILED",
+      `PostgreSQL advisory-lock response did not contain ${field}.`
+    );
+  }
+
+  return row[field] as boolean;
+}
+
+async function applyOneMigration(
+  client: PostgresDriverClient,
+  migration: ValidatedPostgresMigration
+): Promise<void> {
+  let transactionStarted = false;
+
+  try {
+    await client.query("BEGIN");
+    transactionStarted = true;
+
+    await client.query(migration.sql);
+    await client.query(POSTGRES_MIGRATION_INSERT_SQL, [
+      migration.id,
+      migration.name,
+      migration.checksum
+    ]);
+
+    try {
+      await client.query("COMMIT");
+      transactionStarted = false;
+    } catch (error) {
+      throw new PostgresMigrationError(
+        "MIGRATION_OUTCOME_UNKNOWN",
+        `PostgreSQL commit outcome is unknown for migration ${migration.id}; do not retry automatically.`,
+        { cause: error, migrationId: migration.id }
+      );
+    }
+  } catch (error) {
+    if (
+      error instanceof PostgresMigrationError &&
+      error.code === "MIGRATION_OUTCOME_UNKNOWN"
+    ) {
+      throw error;
+    }
+
+    if (transactionStarted) {
+      try {
+        await client.query("ROLLBACK");
+      } catch (rollbackError) {
+        throw new PostgresMigrationError(
+          "MIGRATION_ROLLBACK_FAILED",
+          `Migration ${migration.id} failed and rollback also failed; the connection must be destroyed.`,
+          {
+            cause: new AggregateError(
+              [asError(error), asError(rollbackError)],
+              "Migration and rollback both failed."
+            ),
+            migrationId: migration.id
+          }
+        );
+      }
+    }
+
+    throw new PostgresMigrationError(
+      "MIGRATION_EXECUTION_FAILED",
+      `PostgreSQL migration ${migration.id} failed; no automatic retry was attempted.`,
+      { cause: error, migrationId: migration.id }
+    );
+  }
+}
+
+/**
+ * One B4 migration executor. It reuses the existing driver pool contract,
+ * advisory lock and single application transaction owner.
+ */
+export class PostgresMigrationRunner {
+  private readonly pool: PostgresDriverPool;
+  private readonly options: PostgresMigrationRunnerOptions;
+
+  public constructor(
+    pool: PostgresDriverPool,
+    options: PostgresMigrationRunnerOptions
+  ) {
+    if (
+      typeof pool !== "object" ||
+      pool === null ||
+      typeof pool.connect !== "function"
+    ) {
+      throw new TypeError("A PostgreSQL migration pool is required.");
+    }
+
+    this.pool = pool;
+    this.options = validateRunnerOptions(options);
+  }
+
+  public async migrate(
+    migrations: readonly PostgresMigration[]
+  ): Promise<PostgresMigrationReport> {
+    const manifest = validatePostgresMigrationManifest(migrations);
+    let client: PostgresDriverClient;
+
+    try {
+      client = await this.pool.connect();
+    } catch (error) {
+      throw new PostgresMigrationError(
+        "CONNECTION_UNAVAILABLE",
+        "The dedicated PostgreSQL migration connection is unavailable.",
+        { cause: error }
+      );
+    }
+
+    let lockAcquired = false;
+    let releaseError: Error | undefined;
+    let failure: unknown;
+    let report: PostgresMigrationReport | undefined;
+
+    try {
+      try {
+        const runtimeResult = await client.query(
+          POSTGRES_MIGRATION_RUNTIME_SQL
+        );
+        verifyMigrationRuntime(runtimeResult.rows, this.options);
+      } catch (error) {
+        releaseError = asError(error);
+
+        if (
+          error instanceof PostgresMigrationError &&
+          error.code === "MIGRATION_SERVER_VERSION_UNSUPPORTED"
+        ) {
+          releaseError = undefined;
+          throw error;
+        }
+
+        throw new PostgresMigrationError(
+          error instanceof PostgresMigrationError &&
+            error.code === "MIGRATION_ROLE_MISMATCH"
+            ? "MIGRATION_ROLE_MISMATCH"
+            : "MIGRATION_ROLE_UNAVAILABLE",
+          "The configured dedicated PostgreSQL migration role could not be verified; no DDL was attempted.",
+          { cause: error }
+        );
+      }
+
+      try {
+        const lockResult = await client.query(POSTGRES_MIGRATION_LOCK_SQL, [
+          MIGRATION_LOCK_NAMESPACE,
+          MIGRATION_LOCK_RESOURCE
+        ]);
+
+        lockAcquired = readBooleanRow(lockResult.rows, "acquired");
+      } catch (error) {
+        releaseError = asError(error);
+
+        throw new PostgresMigrationError(
+          "MIGRATION_LOCK_UNAVAILABLE",
+          "PostgreSQL migration-lock acquisition could not be confirmed; the connection was marked for destruction.",
+          { cause: error }
+        );
+      }
+
+      if (!lockAcquired) {
+        throw new PostgresMigrationError(
+          "MIGRATION_LOCK_UNAVAILABLE",
+          "Another PostgreSQL migration runner currently owns the migration lock."
+        );
+      }
+
+      try {
+        await client.query(POSTGRES_MIGRATION_CREATE_SCHEMA_SQL);
+        await client.query(POSTGRES_MIGRATION_BOOTSTRAP_SQL);
+      } catch (error) {
+        releaseError = asError(error);
+
+        throw new PostgresMigrationError(
+          "MIGRATION_BOOTSTRAP_FAILED",
+          "The migration metadata schema could not be initialized safely.",
+          { cause: error }
+        );
+      }
+
+      try {
+        const metadataResult = await client.query(
+          POSTGRES_MIGRATION_VERIFY_SQL,
+          [this.options.applicationRole]
+        );
+
+        verifyMigrationMetadata(
+          metadataResult.rows,
+          this.options.migrationRole,
+          this.options.applicationRole
+        );
+      } catch (error) {
+        if (
+          !(
+            error instanceof PostgresMigrationError &&
+            error.code === "MIGRATION_BOOTSTRAP_FAILED"
+          )
+        ) {
+          releaseError = asError(error);
+        }
+
+        throw error instanceof PostgresMigrationError
+          ? error
+          : new PostgresMigrationError(
+              "MIGRATION_BOOTSTRAP_FAILED",
+              "The migration metadata structure and permissions could not be verified.",
+              { cause: error }
+            );
+      }
+
+      let historyRows: readonly unknown[];
+
+      try {
+        const historyResult = await client.query(
+          POSTGRES_MIGRATION_HISTORY_SQL
+        );
+
+        historyRows = historyResult.rows;
+      } catch (error) {
+        releaseError = asError(error);
+
+        throw new PostgresMigrationError(
+          "MIGRATION_HISTORY_READ_FAILED",
+          "The migration history could not be read and verified.",
+          { cause: error }
+        );
+      }
+
+      const history = readHistoryRows(historyRows);
+      assertHistoryIsManifestPrefix(history, manifest);
+
+      let appliedCount = 0;
+
+      for (let index = history.length; index < manifest.length; index += 1) {
+        const migration = manifest[index];
+
+        if (migration === undefined) {
+          throw new PostgresMigrationError(
+            "INVALID_MANIFEST",
+            "Migration manifest changed while execution was in progress."
+          );
+        }
+
+        try {
+          await applyOneMigration(client, migration);
+        } catch (error) {
+          if (
+            error instanceof PostgresMigrationError &&
+            (
+              error.code === "MIGRATION_OUTCOME_UNKNOWN" ||
+              error.code === "MIGRATION_ROLLBACK_FAILED"
+            )
+          ) {
+            releaseError = error;
+          }
+
+          throw error;
+        }
+
+        appliedCount += 1;
+      }
+
+      const latest = manifest[manifest.length - 1];
+
+      if (latest === undefined) {
+        throw new PostgresMigrationError(
+          "INVALID_MANIFEST",
+          "A validated migration manifest unexpectedly became empty."
+        );
+      }
+
+      report = Object.freeze({
+        appliedCount,
+        latestMigrationId: latest.id,
+        latestChecksum: latest.checksum
+      });
+    } catch (error) {
+      failure = error;
+    } finally {
+      if (lockAcquired) {
+        try {
+          const unlockResult = await client.query(
+            POSTGRES_MIGRATION_UNLOCK_SQL,
+            [MIGRATION_LOCK_NAMESPACE, MIGRATION_LOCK_RESOURCE]
+          );
+
+          if (!readBooleanRow(unlockResult.rows, "unlocked")) {
+            const unlockError = new PostgresMigrationError(
+              "MIGRATION_LOCK_RELEASE_FAILED",
+              "The PostgreSQL migration advisory lock could not be released; the connection must be destroyed.",
+              {
+                cause: new Error(
+                  "The PostgreSQL migration advisory lock was not held at release time."
+                )
+              }
+            );
+
+            releaseError ??= unlockError;
+
+            if (failure === undefined) {
+              failure = unlockError;
+            }
+          }
+        } catch (error) {
+          const unlockError = new PostgresMigrationError(
+            "MIGRATION_LOCK_RELEASE_FAILED",
+            "The PostgreSQL migration advisory lock could not be released; the connection must be destroyed.",
+            { cause: error }
+          );
+
+          releaseError ??= unlockError;
+
+          if (failure === undefined) {
+            failure = unlockError;
+          }
+        }
+      }
+
+      try {
+        client.release(releaseError);
+      } catch (error) {
+        if (failure === undefined) {
+          failure = new PostgresMigrationError(
+            "MIGRATION_LOCK_RELEASE_FAILED",
+            "The PostgreSQL migration connection could not be released cleanly.",
+            { cause: error }
+          );
+        }
+      }
+    }
+
+    if (failure !== undefined) {
+      throw failure;
+    }
+
+    if (report === undefined) {
+      throw new PostgresMigrationError(
+        "MIGRATION_HISTORY_CORRUPT",
+        "The migration runner ended without a verified report."
+      );
+    }
+
+    return report;
+  }
+}
+
+export { checksumSql as postgresMigrationChecksum };
+
+
+
+Save ke baad verification
+GitHub web editor mein isi file ko poora replace karke commit karo. Uske baad Actions mein naya run aana chahiye.
+
+Main next readback mein exact commit SHA aur ye checks verify karunga:
+1. npm run lint
+2. npm run typecheck — line 364 ka error nahi aana chahiye.
+3. npm run test — migration unit tests samet complete backend test suite.
+4. Build reproducibility aur complete ACRL suite.
+Important: B4 abhi complete nahi hai. Is CI blocker ke alawa approved physical domain schema, actual migration-runner PostgreSQL integration, durable session/revocation, audit persistence aur real backup/restore evidence abhi B4 acceptance ke hisse hain. Unhe skip karke B4 DONE mark nahi karunga. Branch protection disabled bhi alag governance gap hai.
+
+Latest failing run: Run #893 logs.
