@@ -1,4 +1,3 @@
-
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -161,6 +160,19 @@ describe("PostgreSQL effective runtime-role protection", () => {
 
     expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
       "tenant_id=current_setting(''app.tenant_id''::text,true)::uuid"
+    );
+
+    // Preserve SQL function-call parentheses when normalizing pg_get_expr().
+    // PostgreSQL 18 deparses the UUID-cast policy as:
+    // (tenant_id = (current_setting('app.tenant_id'::text, true))::uuid)
+    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain("'[[:space:]]'");
+
+    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).not.toContain(
+      "'[[:space:]()]'"
+    );
+
+    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
+      "'(tenant_id=(current_setting(''app.tenant_id''::text,true))::uuid)'"
     );
 
     expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
