@@ -1,3 +1,4 @@
+
 import { createHash } from "node:crypto";
 
 import type {
@@ -341,13 +342,13 @@ function normalizeCheckExpression(value: unknown): string | null {
   let insideString = false;
 
   for (let index = 0; index < source.length; index += 1) {
-    const character = source[index];
+    const character = source.charAt(index);
 
     if (character === "'") {
       normalized += character;
 
-      if (insideString && source[index + 1] === "'") {
-        normalized += source[index + 1];
+      if (insideString && source.charAt(index + 1) === "'") {
+        normalized += source.charAt(index + 1);
         index += 1;
       } else {
         insideString = !insideString;
