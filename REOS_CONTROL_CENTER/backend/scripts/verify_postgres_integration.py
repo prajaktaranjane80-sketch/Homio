@@ -16,6 +16,7 @@ import shutil
 import subprocess
 import sys
 from typing import Any
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[3]
 POSTGRES_SOURCE = (
@@ -77,13 +78,18 @@ def run_psql(
     sql: str,
     must_succeed: bool = True,
 ) -> subprocess.CompletedProcess[str]:
+    # Pass the secret through the Docker CLI's inherited environment.
+    # Never place password material in the docker process argument vector.
+    if not isinstance(password, str) or not password or "\x00" in password:
+        raise ValueError("A valid PostgreSQL password is required.")
+
     command = [
         "docker",
         "exec",
+        "--env",
+        "PGPASSWORD",
         "-i",
         container_id,
-        "env",
-        f"PGPASSWORD={password}",
         "psql",
         "--no-psqlrc",
         "--set",
@@ -96,6 +102,9 @@ def run_psql(
         "--quiet",
     ]
 
+    child_environment = os.environ.copy()
+    child_environment["PGPASSWORD"] = password
+
     result = subprocess.run(
         command,
         input=sql,
@@ -103,6 +112,7 @@ def run_psql(
         capture_output=True,
         check=False,
         timeout=45,
+        env=child_environment,
     )
 
     if must_succeed and result.returncode != 0:
@@ -650,7 +660,59 @@ GRANT SELECT ON {SCHEMA}.unsafe_tenant_records TO {API_ROLE};
     )
 
 
+def verify_psql_password_is_not_exposed_in_process_arguments() -> None:
+    """Regression-test the secret transport without Docker or a database."""
+    password = "homio-postgres-harness-secret-self-test"
+    captured: dict[str, Any] = {}
+    original_environment_value = os.environ.get("PGPASSWORD")
+
+    def fake_run(
+        command: list[str],
+        **kwargs: Any,
+    ) -> subprocess.CompletedProcess[str]:
+        captured["command"] = list(command)
+        captured["environment"] = kwargs.get("env")
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    with patch("subprocess.run", side_effect=fake_run) as mocked_run:
+        result = run_psql(
+            container_id="homio-postgres-self-test",
+            user="postgres",
+            password=password,
+            sql="SELECT 1;",
+        )
+
+    command = captured.get("command")
+    child_environment = captured.get("environment")
+
+    require(result.returncode == 0, "The mocked PostgreSQL command did not succeed.")
+    require(
+        mocked_run.call_count == 1,
+        "The PostgreSQL command did not execute exactly once.",
+    )
+    require(isinstance(command, list), "The Docker command arguments were not captured.")
+    require(
+        password not in "\\0".join(command),
+        "The PostgreSQL password leaked into process arguments.",
+    )
+    require(
+        "PGPASSWORD" in command and "--env" in command,
+        "Docker was not instructed to inherit PGPASSWORD from the child environment.",
+    )
+    require(
+        isinstance(child_environment, dict)
+        and child_environment.get("PGPASSWORD") == password,
+        "The PostgreSQL password was not passed through the child process environment.",
+    )
+    require(
+        os.environ.get("PGPASSWORD") == original_environment_value,
+        "The PostgreSQL password unexpectedly mutated the parent process environment.",
+    )
+
+
 def self_test() -> None:
+    verify_psql_password_is_not_exposed_in_process_arguments()
+
     sql = load_role_safety_sql()
 
     required_fragments = (
