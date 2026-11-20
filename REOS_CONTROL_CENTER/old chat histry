@@ -1,3 +1,31 @@
+3. Exactly kya change hua
+- Parentheses ab strip nahi honge; sirf whitespace normalize hoga.
+- PostgreSQL 18.4 ka observed pg_get_expr() format explicit allow-list mein add hua.
+- USING aur WITH CHECK dono ko same strict verification milti hai.
+- Unit test future regression pakdega.
+- Existing workflow aur diagnostic script ko replace karne ki zaroorat nahi hai.
+Local container mein Docker/psql available nahi tha. Isliye live PostgreSQL integration ko yahan rerun nahi kar sakta; actual PostgreSQL 18.4 failure log ke exact expression ke against new comparison statically match hota verify kiya hai.
+
+Abhi B4 complete nahi hua hai. Run #883 mein modular suite step 8 PostgreSQL step fail hone ki wajah se skip hua tha. Dono replacements reos-development par save karne ke baad next Actions run ko verify karna hoga. Us run mein real PostgreSQL test ko tenant A/B isolation, missing tenant context, cross-tenant write rejection, transaction-local reset, inherited BYPASSRLS, owner-role detection aur superuser detection tak pahunchna aur pass hona chahiye. Uske baad bhi B4 ke migration, durable persistence, backup/restore aur guarded Control Center evidence alag se required hain.
+
+Run #883 — failed PostgreSQL integration
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 https://github.com/prajaktaranjane80-sketch/Homio/actions
 
 
@@ -15,113 +43,77 @@ https://github.com/prajaktaranjane80-sketch/Homio/actions
 Worked for 42s
 
 
+Main ab latest push ka exact commit, saved dono files ke SHA/readback, aur us commit ke Actions jobs/logs compare kar raha hoon. Is baar pehle confirm karunga ki GitHub par wahi full replacements save hue hain ya nahi—phir run ka actual result bataunga.
 
 
 
-Bhai, latest Actions aur GitHub file readback verify kar liya. Tumhare naye PostgreSQL changes save ho chuke hain aur latest CI pass hai.
-Latest run #876
+
+
+
+
+
+
+Inspected latest branch changes, workflows, persistence, tests, PostgreSQL integration, and state logic
+
+
+
+
+
+
+Readback confirm hua: dono replacements branch par save hain. Newest commit 0f7d0823... ka Actions run #885 SUCCESS hai; #884 bhi successful tha. Ab main job-level logs verify kar raha hoon ki success mein real PostgreSQL 18.4 integration step bhi execute hua tha, sirf overall workflow green nahi.
+
+
+
+
+
+
+
+
+
+Summarized release status and confirmed next steps
+
+
+
+
+
+Inspected PostgreSQL workflows, migration paths, schema evidence, and tenant security
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bhai, latest Actions check kar liya. PostgreSQL RLS failure fix ho gaya hai aur real PostgreSQL 18.4 integration test pass hua hai.
+Latest Actions #885
 SUCCESS
 
-106 / 106
-Backend unit tests passed · 12 test files
+PASS
+Commit 0f7d0823da20291dcf1a81c0c1d94a7dcaf05f65
 
-ACRL: 1,466 passed
+Open full Actions run
 
-ESLint, TypeScript typecheck and reproducible build: PASS
+Verified results
+- Real PostgreSQL 18.4 role/RLS integration: PASS
+- Tenant A/B isolation: PASS
+- Cross-tenant write rejection: PASS
+- Transaction-local tenant context reset: PASS
+- Inherited BYPASSRLS and table-owner detection: PASS
+- Backend unit suite: 108 passed, 12 files
+- ACRL suite: 1,466 passed
+- Modular backend verification: PASS
 
-Tested SHA: 35437de305e337f41123013233dd6372e160f01c
+Abhi B4 complete nahi hai
+Latest state.json ab bhi BACKEND-001-B4 ko CURRENT rakhta hai. B4 ki migration, persistence aur recovery requirements abhi complete/evidenced nahi hain.
 
-Open successful run #876
+Remaining critical blocker: ARCH-037 ka approved physical table/column catalogue aur migration manifest repository mein nahi mila. B4 schema reconstruction proposal abhi bhi DRAFT — NOT APPROVED — NON-EXECUTABLE hai. Isliye guessed tables ya migrations banana unsafe hoga.
 
-Files successfully saved
-File	Readback
-backend/src/persistence/postgres.ts	Verified
-backend/src/persistence/postgres-query-policy.ts	Verified
-backend/tests/unit/postgres-query-policy.test.ts	Verified
+Ek aur distinction: CI mein PRODUCTION_RELEASE_READY=false aur 18 production blockers abhi bhi report ho rahe hain. CI green hone ka matlab production release ready hona nahi hai.
 
-Failure #874 ka exact reason
-postgres.ts mein helper import aa gaya tha, lekin us waqt helper file repository mein available nahi thi. TypeScript ne TS2307 Cannot find module diya.
-- #874: Failure — missing helper.
-- #875: Helper file saved.
-- #876: Regression tests saved; complete CI successful.
-Failed run #874 · Helper commit #875
-Abhi bhi B4 ke important blockers hain
-B4 remains CURRENT
-1. Approved ARCH-037 physical schema and RLS policy manifest.
-2. Production PostgreSQL driver/pool binding.
-3. Real PostgreSQL cross-tenant isolation and migration tests.
-4. Durable session/revocation, Redis and audit persistence.
-5. Backup/restore and recovery evidence.
-Section 14 abhi bhi release_ready=False report karta hai. Branch protection bhi disabled hai. Latest successful CI ko production approval nahi maana ja sakta.
-
-Control Center state unchanged hai: BACKEND-001-B4 abhi CURRENT hai. Maine koi completion transition ya direct GitHub write nahi kiya.
-
-Ab agla B4 root-level kaam isi existing persistence owner mein real PostgreSQL integration evidence aur approved schema boundary establish karna hai.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-ok best work suru karo or B4 complite karo
-
-
-
-
-
-
-
-
-
-
-
-Worked for 2m 35s
-
-
-
-
-
-B4 ki live स्थिति confirm ho gayi hai: BACKEND-001-B4 abhi CURRENT hai, DONE nahi. B0–B3 state file mein DONE hain; B4 ke 8 acceptance criteria abhi formal completion ke liye pending hain.
-
-Ek important blocker mila: ARCH-037 approved hai, lekin repository mein uska verified executable schema/migration source nahi mila. Uski reconstruction proposal aur identifier/tenant contract dono DRAFT — NOT APPROVED — NON-EXECUTABLE hain. In drafts ko production SQL mein badalna architecture invent karna hoga, jo allowed nahi hai.
-
-Main ab existing PostgreSQL security boundary, owner dependencies aur test evidence ki remaining gaps verify kar raha hoon.### B4 root-cause findings
-B4 requirement	Live finding
-Approved schema	ARCH-037 ka original physical schema/ERD ya SQL manifest current repository mein nahi mila
-Deterministic migrations	Migration files aur approved migration ledger schema absent
-Tenant isolation	Forced-RLS check hai; actual tenant policy correctness aur real PostgreSQL isolation prove nahi hui
-Write ownership	Existing adapter hai, lekin production PostgreSQL driver/pool composition nahi
-Durable sessions	Account ID, authentication epoch aur verified token timestamps ka contract unresolved
-Rate limits and audit	Redis adapter logic hai, par Redis runtime dependency/binding, approved thresholds aur durable audit persistence nahi
-Recovery	Target PostgreSQL backup, restore aur PITR evidence absent
-Formal completion	B4-specific guarded Control Center completion workflow absent
-
-Sabse critical root cause: HOMIO_REOS_MASTER_ARCHITECTURE.json ARCH-037 ko approved/frozen batata hai, lekin usmein approved physical schema manifest nahi hai. Existing B4 proposal ke mutabik approved decision ka original record 15 August 2026 ka hai, jabki accessible reos-development history 25 August 2026 se shuru hoti hai. Isliye exact tables, columns, keys, financial types aur RLS policies ko approved maan kar SQL banana safe nahi hoga.
-
-Maine existing B4 proposal aur compatibility contract ko dobara padha. Dono mein blockers already documented hain. Main teesra duplicate document ya naya persistence engine nahi banaunga.
-Abhi kya verified hai
-- Branch HEAD: 35437de305e337f41123013233dd6372e160f01c
-- Latest CI: Run #876 — Success
-- Backend unit tests: 106 passed
-- ACRL verification: 1466 passed
-- TypeScript, ESLint aur reproducible build: pass
-- Branch protection: disabled
-- B4 status in state.json: CURRENT, not DONE.
-Sources: Live state · B4 schema proposal · B4 compatibility contract
-B4 ko safely unlock karne ke liye ek zaroori input
-Kya 15 August 2026 ka original approved ARCH-037 physical schema/ERD artifact aapke paas available hai?
-
-Us exact approved source ke bina main production schema, migrations ya tenant policies invent nahi karunga. Agar original artifact recover nahi ho sakta, toh existing Control Center aur T17/T18 authorization boundary reuse karke formal, guarded ARCH-037 addendum approval path banana hoga. Uske baad hi real database implementation, integration tests, backup/restore proof aur B4 completion transition safe tareeke se ho sakenge.
-
-B4 abhi complete nahi hua hai. Main ise sirf green unit tests ke basis par DONE declare nahi karunga.
+Mera next engineering focus: frozen ARCH-037 ko badle bina canonical physical-schema ownership aur missing approval evidence resolve karna; uske baad deterministic migration, real persistence aur backup/restore verification. B4 ko premature DONE mark nahi karenge.
