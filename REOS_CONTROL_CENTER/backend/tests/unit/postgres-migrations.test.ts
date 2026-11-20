@@ -1,3 +1,4 @@
+
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -14,10 +15,12 @@ import {
   postgresMigrationChecksum,
   validatePostgresMigrationManifest
 } from "../../src/persistence/postgres-migrations.js";
+
 import type {
   PostgresMigration,
   PostgresMigrationRunnerOptions
 } from "../../src/persistence/postgres-migrations.js";
+
 import type {
   PostgresDriverClient,
   PostgresDriverPool,
@@ -46,6 +49,29 @@ interface FixtureOptions {
   readonly runtimeRow?: unknown;
   readonly metadataRow?: unknown;
 }
+
+const VALID_METADATA_ROW = {
+  schema_owner: "homio_migrator",
+  table_owner: "homio_migrator",
+  columns: [
+    "migration_id:text:NO",
+    "migration_name:text:NO",
+    "checksum:text:NO",
+    "applied_at:timestamp with time zone:NO"
+  ],
+  primary_key: "PRIMARY KEY (migration_id)",
+  unique_key: "UNIQUE (migration_name)",
+  check_expressions: [
+    "(checksum ~ '^[a-f0-9]{64}$'::text)",
+    "(migration_id ~ '^[0-9]{8}$'::text)",
+    "(migration_name ~ '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'::text)"
+  ],
+  check_constraints_validated: true,
+  applied_at_default: "clock_timestamp()",
+  application_role_has_table_privileges: false,
+  application_role_can_create_in_schema: false,
+  row_security_enabled: false
+};
 
 function makePool(options: FixtureOptions = {}): {
   readonly pool: PostgresDriverPool;
@@ -103,20 +129,9 @@ function makePool(options: FixtureOptions = {}): {
 
       if (sql === POSTGRES_MIGRATION_VERIFY_SQL) {
         return {
-          rows: [options.metadataRow ?? {
-            schema_owner: "homio_migrator",
-            table_owner: "homio_migrator",
-            columns: [
-              "migration_id:text:NO",
-              "migration_name:text:NO",
-              "checksum:text:NO",
-              "applied_at:timestamp with time zone:NO"
-            ],
-            primary_key: "PRIMARY KEY (migration_id)",
-            unique_key: "UNIQUE (migration_name)",
-            check_constraint_count: 3,
-            row_security_enabled: false
-          }],
+          rows: [
+            options.metadataRow ?? VALID_METADATA_ROW
+          ],
           rowCount: 1
         };
       }
@@ -130,16 +145,19 @@ function makePool(options: FixtureOptions = {}): {
 
       if (sql === POSTGRES_MIGRATION_INSERT_SQL) {
         const [migrationId, migrationName, checksum] = values ?? [];
+
         history.push({
           migration_id: String(migrationId),
           migration_name: String(migrationName),
           checksum: String(checksum)
         });
+
         return { rows: [], rowCount: 1 };
       }
 
       return { rows: [], rowCount: 0 };
     }),
+
     release: vi.fn((error?: Error | boolean) => {
       releaseErrors.push(error);
     })
@@ -154,7 +172,10 @@ function makePool(options: FixtureOptions = {}): {
   });
 
   return {
-    pool: { connect, end: vi.fn(async () => undefined) },
+    pool: {
+      connect,
+      end: vi.fn(async () => undefined)
+    },
     calls,
     history,
     releaseErrors,
@@ -196,10 +217,12 @@ describe("immutable PostgreSQL migration runner", () => {
 
     expect(Object.isFrozen(manifest)).toBe(true);
     expect(Object.isFrozen(manifest[0])).toBe(true);
+
     expect(manifest.map((item) => item.id)).toEqual([
       "00000001",
       "00000002"
     ]);
+
     expect(manifest[0]?.checksum).toBe(
       postgresMigrationChecksum(MIGRATIONS[0]?.sql ?? "")
     );
@@ -222,14 +245,20 @@ describe("immutable PostgreSQL migration runner", () => {
         server_version_num: 180004
       }
     });
-    const runner = new PostgresMigrationRunner(fixture.pool, VALID_RUNNER_OPTIONS);
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
       code: "MIGRATION_ROLE_MISMATCH"
     });
+
     expect(fixture.calls.map((call) => call.sql)).toEqual([
       POSTGRES_MIGRATION_RUNTIME_SQL
     ]);
+
     expect(fixture.releaseErrors[0]).toBeInstanceOf(Error);
   });
 
@@ -241,11 +270,16 @@ describe("immutable PostgreSQL migration runner", () => {
         server_version_num: 180003
       }
     });
-    const runner = new PostgresMigrationRunner(fixture.pool, VALID_RUNNER_OPTIONS);
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
       code: "MIGRATION_SERVER_VERSION_UNSUPPORTED"
     });
+
     expect(fixture.calls.map((call) => call.sql)).toEqual([
       POSTGRES_MIGRATION_RUNTIME_SQL
     ]);
@@ -253,19 +287,28 @@ describe("immutable PostgreSQL migration runner", () => {
 
   it("rejects an empty, unsorted, duplicate or malformed manifest before connecting", async () => {
     const fixture = makePool();
-    const runner = new PostgresMigrationRunner(fixture.pool, VALID_RUNNER_OPTIONS);
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
 
     expect(() => validatePostgresMigrationManifest([])).toThrow(
       PostgresMigrationError
     );
+
     expect(() => validatePostgresMigrationManifest([
       MIGRATIONS[1] as PostgresMigration,
       MIGRATIONS[0] as PostgresMigration
     ])).toThrow("strictly increasing ID order");
+
     expect(() => validatePostgresMigrationManifest([
       MIGRATIONS[0] as PostgresMigration,
-      { ...MIGRATIONS[0] as PostgresMigration, name: "second-name" }
+      {
+        ...MIGRATIONS[0] as PostgresMigration,
+        name: "second-name"
+      }
     ])).toThrow("must both be unique");
+
     expect(() => validatePostgresMigrationManifest([
       { id: "1", name: "bad-name", sql: " " }
     ])).toThrow("invalid ID, name or empty SQL body");
@@ -273,21 +316,29 @@ describe("immutable PostgreSQL migration runner", () => {
     await expect(runner.migrate([])).rejects.toMatchObject({
       code: "INVALID_MANIFEST"
     });
+
     expect(fixture.connect).not.toHaveBeenCalled();
   });
 
   it("applies ordered migrations and writes each checksum in the same transaction", async () => {
     const fixture = makePool();
-    const runner = new PostgresMigrationRunner(fixture.pool, VALID_RUNNER_OPTIONS);
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
 
     const report = await runner.migrate(MIGRATIONS);
 
     expect(report).toEqual({
       appliedCount: 2,
       latestMigrationId: "00000002",
-      latestChecksum: postgresMigrationChecksum(MIGRATIONS[1]?.sql ?? "")
+      latestChecksum: postgresMigrationChecksum(
+        MIGRATIONS[1]?.sql ?? ""
+      )
     });
+
     expect(fixture.history).toEqual(MIGRATIONS.map(historyFor));
+
     expect(fixture.calls.map((call) => call.sql)).toEqual([
       POSTGRES_MIGRATION_RUNTIME_SQL,
       POSTGRES_MIGRATION_LOCK_SQL,
@@ -305,12 +356,19 @@ describe("immutable PostgreSQL migration runner", () => {
       "COMMIT",
       POSTGRES_MIGRATION_UNLOCK_SQL
     ]);
+
     expect(fixture.calls[1]?.values).toEqual([0x484f4d49, 1]);
+
+    expect(fixture.calls[4]?.values).toEqual([
+      "homio_api"
+    ]);
+
     expect(fixture.calls[8]?.values).toEqual([
       "00000001",
       "bootstrap-domain-schema",
       postgresMigrationChecksum(MIGRATIONS[0]?.sql ?? "")
     ]);
+
     expect(fixture.releaseErrors).toEqual([undefined]);
   });
 
@@ -318,28 +376,54 @@ describe("immutable PostgreSQL migration runner", () => {
     const fixture = makePool({
       applied: MIGRATIONS.map(historyFor)
     });
-    const runner = new PostgresMigrationRunner(fixture.pool, VALID_RUNNER_OPTIONS);
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
 
     const report = await runner.migrate(MIGRATIONS);
 
     expect(report.appliedCount).toBe(0);
-    expect(fixture.calls.some((call) => call.sql === MIGRATIONS[0]?.sql)).toBe(false);
-    expect(fixture.calls.some((call) => call.sql === MIGRATIONS[1]?.sql)).toBe(false);
+
+    expect(
+      fixture.calls.some((call) => call.sql === MIGRATIONS[0]?.sql)
+    ).toBe(false);
+
+    expect(
+      fixture.calls.some((call) => call.sql === MIGRATIONS[1]?.sql)
+    ).toBe(false);
+
     expect(fixture.releaseErrors).toEqual([undefined]);
   });
 
   it("rejects changed applied SQL, renamed migrations and removed history", async () => {
     const changed: readonly PostgresMigration[] = [
-      { ...MIGRATIONS[0] as PostgresMigration, sql: "SELECT 1;" },
+      {
+        ...MIGRATIONS[0] as PostgresMigration,
+        sql: "SELECT 1;"
+      },
       MIGRATIONS[1] as PostgresMigration
     ];
-    const changedFixture = makePool({ applied: [historyFor(MIGRATIONS[0] as PostgresMigration)] });
-    const changedRunner = new PostgresMigrationRunner(changedFixture.pool, VALID_RUNNER_OPTIONS);
+
+    const changedFixture = makePool({
+      applied: [
+        historyFor(MIGRATIONS[0] as PostgresMigration)
+      ]
+    });
+
+    const changedRunner = new PostgresMigrationRunner(
+      changedFixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
 
     await expect(changedRunner.migrate(changed)).rejects.toMatchObject({
       code: "MIGRATION_HISTORY_DRIFT"
     });
-    expect(changedFixture.calls.some((call) => call.sql === "SELECT 1;")).toBe(false);
+
+    expect(
+      changedFixture.calls.some((call) => call.sql === "SELECT 1;")
+    ).toBe(false);
 
     const removedFixture = makePool({
       applied: [
@@ -347,9 +431,17 @@ describe("immutable PostgreSQL migration runner", () => {
         historyFor(MIGRATIONS[1] as PostgresMigration)
       ]
     });
-    const removedRunner = new PostgresMigrationRunner(removedFixture.pool, VALID_RUNNER_OPTIONS);
 
-    await expect(removedRunner.migrate([MIGRATIONS[0] as PostgresMigration])).rejects.toMatchObject({
+    const removedRunner = new PostgresMigrationRunner(
+      removedFixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
+
+    await expect(
+      removedRunner.migrate([
+        MIGRATIONS[0] as PostgresMigration
+      ])
+    ).rejects.toMatchObject({
       code: "MIGRATION_HISTORY_DRIFT"
     });
   });
@@ -364,50 +456,87 @@ describe("immutable PostgreSQL migration runner", () => {
         }
       ]
     });
-    const runner = new PostgresMigrationRunner(fixture.pool, VALID_RUNNER_OPTIONS);
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
       code: "MIGRATION_HISTORY_DRIFT"
     });
-    expect(fixture.calls.some((call) => call.sql === MIGRATIONS[1]?.sql)).toBe(false);
+
+    expect(
+      fixture.calls.some((call) => call.sql === MIGRATIONS[1]?.sql)
+    ).toBe(false);
   });
 
   it("fails fast when another runner owns the advisory lock", async () => {
     const fixture = makePool({ lockAcquired: false });
-    const runner = new PostgresMigrationRunner(fixture.pool, VALID_RUNNER_OPTIONS);
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
       code: "MIGRATION_LOCK_UNAVAILABLE"
     });
+
     expect(fixture.calls.map((call) => call.sql)).toEqual([
       POSTGRES_MIGRATION_RUNTIME_SQL,
       POSTGRES_MIGRATION_LOCK_SQL
     ]);
+
     expect(fixture.releaseErrors).toEqual([undefined]);
   });
 
   it("destroys a connection when the advisory-lock response is lost", async () => {
-    const fixture = makePool({ failOnSql: POSTGRES_MIGRATION_LOCK_SQL });
-    const runner = new PostgresMigrationRunner(fixture.pool, VALID_RUNNER_OPTIONS);
+    const fixture = makePool({
+      failOnSql: POSTGRES_MIGRATION_LOCK_SQL
+    });
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
       code: "MIGRATION_LOCK_UNAVAILABLE"
     });
+
     expect(fixture.releaseErrors[0]).toBeInstanceOf(Error);
   });
 
   it("rolls back a failed migration and leaves the history unchanged", async () => {
     const failingMigration: readonly PostgresMigration[] = [
-      { id: "00000001", name: "failing-ddl", sql: "SELECT fail_migration();" }
+      {
+        id: "00000001",
+        name: "failing-ddl",
+        sql: "SELECT fail_migration();"
+      }
     ];
-    const fixture = makePool({ failOnSql: "SELECT fail_migration();" });
-    const runner = new PostgresMigrationRunner(fixture.pool, VALID_RUNNER_OPTIONS);
 
-    await expect(runner.migrate(failingMigration)).rejects.toMatchObject({
+    const fixture = makePool({
+      failOnSql: "SELECT fail_migration();"
+    });
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
+
+    await expect(
+      runner.migrate(failingMigration)
+    ).rejects.toMatchObject({
       code: "MIGRATION_EXECUTION_FAILED",
       migrationId: "00000001"
     });
-    expect(fixture.calls.map((call) => call.sql)).toContain("ROLLBACK");
+
+    expect(
+      fixture.calls.map((call) => call.sql)
+    ).toContain("ROLLBACK");
+
     expect(fixture.history).toEqual([]);
     expect(fixture.releaseErrors).toEqual([undefined]);
   });
@@ -417,37 +546,62 @@ describe("immutable PostgreSQL migration runner", () => {
       failOnSql: "SELECT fail_migration();",
       failRollback: true
     });
-    const runner = new PostgresMigrationRunner(fixture.pool, VALID_RUNNER_OPTIONS);
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
 
     await expect(runner.migrate([
-      { id: "00000001", name: "failing-ddl", sql: "SELECT fail_migration();" }
+      {
+        id: "00000001",
+        name: "failing-ddl",
+        sql: "SELECT fail_migration();"
+      }
     ])).rejects.toMatchObject({
       code: "MIGRATION_ROLLBACK_FAILED",
       migrationId: "00000001"
     });
+
     expect(fixture.releaseErrors[0]).toBeInstanceOf(Error);
   });
 
   it("never retries or rolls back an ambiguous COMMIT result", async () => {
     const fixture = makePool({ failCommit: true });
-    const runner = new PostgresMigrationRunner(fixture.pool, VALID_RUNNER_OPTIONS);
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
       code: "MIGRATION_OUTCOME_UNKNOWN",
       migrationId: "00000001"
     });
-    expect(fixture.calls.map((call) => call.sql)).toContain("COMMIT");
-    expect(fixture.calls.map((call) => call.sql)).not.toContain("ROLLBACK");
+
+    expect(
+      fixture.calls.map((call) => call.sql)
+    ).toContain("COMMIT");
+
+    expect(
+      fixture.calls.map((call) => call.sql)
+    ).not.toContain("ROLLBACK");
+
     expect(fixture.releaseErrors[0]).toBeInstanceOf(Error);
   });
 
   it("destroys the connection if the advisory lock cannot be released", async () => {
     const fixture = makePool({ unlockResult: false });
-    const runner = new PostgresMigrationRunner(fixture.pool, VALID_RUNNER_OPTIONS);
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
       code: "MIGRATION_LOCK_RELEASE_FAILED"
     });
+
     expect(fixture.releaseErrors[0]).toBeInstanceOf(Error);
   });
 
@@ -459,7 +613,11 @@ describe("immutable PostgreSQL migration runner", () => {
         checksum: "not-a-checksum"
       }]
     });
-    const runner = new PostgresMigrationRunner(fixture.pool, VALID_RUNNER_OPTIONS);
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
       code: "MIGRATION_HISTORY_CORRUPT"
@@ -477,12 +635,19 @@ describe("immutable PostgreSQL migration runner", () => {
         }
       ]
     });
-    const runner = new PostgresMigrationRunner(fixture.pool, VALID_RUNNER_OPTIONS);
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
       code: "MIGRATION_HISTORY_CORRUPT"
     });
-    expect(fixture.calls.some((call) => call.sql === MIGRATIONS[0]?.sql)).toBe(false);
+
+    expect(
+      fixture.calls.some((call) => call.sql === MIGRATIONS[0]?.sql)
+    ).toBe(false);
   });
 
   it("refuses a pre-existing migration ledger with an unapproved shape or owner", async () => {
@@ -493,27 +658,137 @@ describe("immutable PostgreSQL migration runner", () => {
         columns: ["migration_id:text:NO"],
         primary_key: "PRIMARY KEY (migration_id)",
         unique_key: null,
-        check_constraint_count: 0,
+        check_expressions: [],
+        check_constraints_validated: false,
+        applied_at_default: null,
+        application_role_has_table_privileges: true,
+        application_role_can_create_in_schema: true,
         row_security_enabled: false
       }
     });
-    const runner = new PostgresMigrationRunner(fixture.pool, VALID_RUNNER_OPTIONS);
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
       code: "MIGRATION_BOOTSTRAP_FAILED"
     });
-    expect(fixture.calls.some((call) => call.sql === POSTGRES_MIGRATION_HISTORY_SQL)).toBe(false);
+
+    expect(
+      fixture.calls.some((call) => call.sql === POSTGRES_MIGRATION_HISTORY_SQL)
+    ).toBe(false);
+  });
+
+  it("rejects permissive replacement checks even when exactly three checks exist", async () => {
+    const fixture = makePool({
+      metadataRow: {
+        ...VALID_METADATA_ROW,
+        check_expressions: [
+          "(migration_id ~ '.*'::text)",
+          "(migration_name ~ '.*'::text)",
+          "(checksum ~ '.*'::text)"
+        ]
+      }
+    });
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
+
+    await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
+      code: "MIGRATION_BOOTSTRAP_FAILED"
+    });
+  });
+
+  it("rejects an altered applied_at default", async () => {
+    const fixture = makePool({
+      metadataRow: {
+        ...VALID_METADATA_ROW,
+        applied_at_default: "now()"
+      }
+    });
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
+
+    await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
+      code: "MIGRATION_BOOTSTRAP_FAILED"
+    });
+  });
+
+  it("rejects application-role access to the migration ledger", async () => {
+    const fixture = makePool({
+      metadataRow: {
+        ...VALID_METADATA_ROW,
+        application_role_has_table_privileges: true
+      }
+    });
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
+
+    await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
+      code: "MIGRATION_BOOTSTRAP_FAILED"
+    });
+  });
+
+  it("rejects application-role CREATE privilege on the infrastructure schema", async () => {
+    const fixture = makePool({
+      metadataRow: {
+        ...VALID_METADATA_ROW,
+        application_role_can_create_in_schema: true
+      }
+    });
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
+
+    await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
+      code: "MIGRATION_BOOTSTRAP_FAILED"
+    });
+  });
+
+  it("rejects an unvalidated migration-ledger check constraint", async () => {
+    const fixture = makePool({
+      metadataRow: {
+        ...VALID_METADATA_ROW,
+        check_constraints_validated: false
+      }
+    });
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
+
+    await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
+      code: "MIGRATION_BOOTSTRAP_FAILED"
+    });
   });
 
   it("destroys a connection when migration metadata bootstrap fails", async () => {
     const fixture = makePool({
       failOnSql: POSTGRES_MIGRATION_BOOTSTRAP_SQL
     });
-    const runner = new PostgresMigrationRunner(fixture.pool, VALID_RUNNER_OPTIONS);
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
       code: "MIGRATION_BOOTSTRAP_FAILED"
     });
+
     expect(fixture.releaseErrors[0]).toBeInstanceOf(Error);
   });
 
@@ -521,11 +796,16 @@ describe("immutable PostgreSQL migration runner", () => {
     const fixture = makePool({
       failOnSql: POSTGRES_MIGRATION_HISTORY_SQL
     });
-    const runner = new PostgresMigrationRunner(fixture.pool, VALID_RUNNER_OPTIONS);
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
       code: "MIGRATION_HISTORY_READ_FAILED"
     });
+
     expect(fixture.releaseErrors[0]).toBeInstanceOf(Error);
   });
 });
