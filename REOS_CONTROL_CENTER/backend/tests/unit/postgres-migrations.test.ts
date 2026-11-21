@@ -1,9 +1,6 @@
-
 import { describe, expect, it, vi } from "vitest";
 
 import {
-  POSTGRES_MIGRATION_BOOTSTRAP_SQL,
-  POSTGRES_MIGRATION_CREATE_SCHEMA_SQL,
   POSTGRES_MIGRATION_HISTORY_SQL,
   POSTGRES_MIGRATION_INSERT_SQL,
   POSTGRES_MIGRATION_LOCK_SQL,
@@ -48,6 +45,7 @@ interface FixtureOptions {
   readonly connectFailure?: Error;
   readonly runtimeRow?: unknown;
   readonly metadataRow?: unknown;
+  readonly metadataMissing?: boolean;
 }
 
 const VALID_METADATA_ROW = {
@@ -128,11 +126,13 @@ function makePool(options: FixtureOptions = {}): {
       }
 
       if (sql === POSTGRES_MIGRATION_VERIFY_SQL) {
+        const rows = options.metadataMissing
+          ? []
+          : [options.metadataRow ?? VALID_METADATA_ROW];
+
         return {
-          rows: [
-            options.metadataRow ?? VALID_METADATA_ROW
-          ],
-          rowCount: 1
+          rows,
+          rowCount: rows.length
         };
       }
 
@@ -342,8 +342,6 @@ describe("immutable PostgreSQL migration runner", () => {
     expect(fixture.calls.map((call) => call.sql)).toEqual([
       POSTGRES_MIGRATION_RUNTIME_SQL,
       POSTGRES_MIGRATION_LOCK_SQL,
-      POSTGRES_MIGRATION_CREATE_SCHEMA_SQL,
-      POSTGRES_MIGRATION_BOOTSTRAP_SQL,
       POSTGRES_MIGRATION_VERIFY_SQL,
       POSTGRES_MIGRATION_HISTORY_SQL,
       "BEGIN",
@@ -357,13 +355,19 @@ describe("immutable PostgreSQL migration runner", () => {
       POSTGRES_MIGRATION_UNLOCK_SQL
     ]);
 
+    expect(
+      fixture.calls.some((call) =>
+        /^\s*CREATE\s+(?:SCHEMA|TABLE)\b/i.test(call.sql)
+      )
+    ).toBe(false);
+
     expect(fixture.calls[1]?.values).toEqual([0x484f4d49, 1]);
 
-    expect(fixture.calls[4]?.values).toEqual([
+    expect(fixture.calls[2]?.values).toEqual([
       "homio_api"
     ]);
 
-    expect(fixture.calls[8]?.values).toEqual([
+    expect(fixture.calls[6]?.values).toEqual([
       "00000001",
       "bootstrap-domain-schema",
       postgresMigrationChecksum(MIGRATIONS[0]?.sql ?? "")
@@ -673,7 +677,7 @@ describe("immutable PostgreSQL migration runner", () => {
     );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
-      code: "MIGRATION_BOOTSTRAP_FAILED"
+      code: "MIGRATION_METADATA_INVALID"
     });
 
     expect(
@@ -699,7 +703,7 @@ describe("immutable PostgreSQL migration runner", () => {
     );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
-      code: "MIGRATION_BOOTSTRAP_FAILED"
+      code: "MIGRATION_METADATA_INVALID"
     });
   });
 
@@ -717,7 +721,7 @@ describe("immutable PostgreSQL migration runner", () => {
     );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
-      code: "MIGRATION_BOOTSTRAP_FAILED"
+      code: "MIGRATION_METADATA_INVALID"
     });
   });
 
@@ -735,7 +739,7 @@ describe("immutable PostgreSQL migration runner", () => {
     );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
-      code: "MIGRATION_BOOTSTRAP_FAILED"
+      code: "MIGRATION_METADATA_INVALID"
     });
   });
 
@@ -753,7 +757,7 @@ describe("immutable PostgreSQL migration runner", () => {
     );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
-      code: "MIGRATION_BOOTSTRAP_FAILED"
+      code: "MIGRATION_METADATA_INVALID"
     });
   });
 
@@ -771,13 +775,36 @@ describe("immutable PostgreSQL migration runner", () => {
     );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
-      code: "MIGRATION_BOOTSTRAP_FAILED"
+      code: "MIGRATION_METADATA_INVALID"
     });
   });
 
-  it("destroys a connection when migration metadata bootstrap fails", async () => {
+  it("fails closed when the pre-provisioned migration ledger is absent", async () => {
+    const fixture = makePool({ metadataMissing: true });
+
+    const runner = new PostgresMigrationRunner(
+      fixture.pool,
+      VALID_RUNNER_OPTIONS
+    );
+
+    await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
+      code: "MIGRATION_METADATA_INVALID"
+    });
+
+    expect(fixture.calls.map((call) => call.sql)).toEqual([
+      POSTGRES_MIGRATION_RUNTIME_SQL,
+      POSTGRES_MIGRATION_LOCK_SQL,
+      POSTGRES_MIGRATION_VERIFY_SQL,
+      POSTGRES_MIGRATION_UNLOCK_SQL
+    ]);
+
+    expect(fixture.history).toEqual([]);
+    expect(fixture.releaseErrors).toEqual([undefined]);
+  });
+
+  it("destroys a connection when migration metadata verification cannot be queried", async () => {
     const fixture = makePool({
-      failOnSql: POSTGRES_MIGRATION_BOOTSTRAP_SQL
+      failOnSql: POSTGRES_MIGRATION_VERIFY_SQL
     });
 
     const runner = new PostgresMigrationRunner(
@@ -786,7 +813,7 @@ describe("immutable PostgreSQL migration runner", () => {
     );
 
     await expect(runner.migrate(MIGRATIONS)).rejects.toMatchObject({
-      code: "MIGRATION_BOOTSTRAP_FAILED"
+      code: "MIGRATION_METADATA_READ_FAILED"
     });
 
     expect(fixture.releaseErrors[0]).toBeInstanceOf(Error);
