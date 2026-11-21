@@ -355,11 +355,17 @@ describe("immutable PostgreSQL migration runner", () => {
       POSTGRES_MIGRATION_UNLOCK_SQL
     ]);
 
-    expect(
-      fixture.calls.some((call) =>
-        /^\s*CREATE\s+(?:SCHEMA|TABLE)\b/i.test(call.sql)
-      )
-    ).toBe(false);
+   const metadataVerificationIndex = fixture.calls.findIndex(
+  (call) => call.sql === POSTGRES_MIGRATION_VERIFY_SQL
+);
+
+expect(metadataVerificationIndex).toBe(2);
+
+expect(
+  fixture.calls.slice(0, metadataVerificationIndex).some((call) =>
+    /^\s*CREATE\s+(?:SCHEMA|TABLE)\b/i.test(call.sql)
+  )
+).toBe(false);
 
     expect(fixture.calls[1]?.values).toEqual([0x484f4d49, 1]);
 
