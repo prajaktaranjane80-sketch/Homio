@@ -1,4 +1,3 @@
-
 import { createHash } from "node:crypto";
 
 import type {
@@ -30,7 +29,8 @@ export type PostgresMigrationErrorCode =
   | "MIGRATION_SERVER_VERSION_UNSUPPORTED"
   | "MIGRATION_LOCK_UNAVAILABLE"
   | "MIGRATION_LOCK_RELEASE_FAILED"
-  | "MIGRATION_BOOTSTRAP_FAILED"
+  | "MIGRATION_METADATA_INVALID"
+  | "MIGRATION_METADATA_READ_FAILED"
   | "MIGRATION_HISTORY_READ_FAILED"
   | "MIGRATION_HISTORY_CORRUPT"
   | "MIGRATION_HISTORY_DRIFT"
@@ -97,23 +97,9 @@ export const POSTGRES_MIGRATION_LOCK_SQL =
 export const POSTGRES_MIGRATION_UNLOCK_SQL =
   "SELECT pg_advisory_unlock($1, $2) AS unlocked";
 
-export const POSTGRES_MIGRATION_CREATE_SCHEMA_SQL =
-  "CREATE SCHEMA IF NOT EXISTS reos_infra";
-
-export const POSTGRES_MIGRATION_BOOTSTRAP_SQL = `
-CREATE TABLE IF NOT EXISTS reos_infra.schema_migrations (
-  migration_id TEXT PRIMARY KEY
-    CHECK (migration_id ~ '^[0-9]{8}$'),
-  migration_name TEXT NOT NULL UNIQUE
-    CHECK (migration_name ~ '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'),
-  checksum TEXT NOT NULL
-    CHECK (checksum ~ '^[a-f0-9]{64}$'),
-  applied_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
-);
-`.trim();
-
 /**
- * The infrastructure ledger is owned by the dedicated migration role.
+ * The infrastructure ledger must be pre-provisioned by the approved schema owner
+ * and is owned by the dedicated migration role. This runner never creates it.
  * The API role must not be able to read, modify, truncate or maintain it,
  * and must not be able to create objects in its schema.
  *
@@ -427,8 +413,8 @@ function verifyMigrationMetadata(
     row.row_security_enabled !== false
   ) {
     throw new PostgresMigrationError(
-      "MIGRATION_BOOTSTRAP_FAILED",
-      `The migration ledger does not match the required ownership, integrity and least-privilege contract for ${migrationRole} and ${applicationRole}.`
+      "MIGRATION_METADATA_INVALID",
+      `The pre-provisioned migration ledger does not match the required ownership, integrity and least-privilege contract for ${migrationRole} and ${applicationRole}.`
     );
   }
 }
@@ -747,19 +733,6 @@ export class PostgresMigrationRunner {
       }
 
       try {
-        await client.query(POSTGRES_MIGRATION_CREATE_SCHEMA_SQL);
-        await client.query(POSTGRES_MIGRATION_BOOTSTRAP_SQL);
-      } catch (error) {
-        releaseError = asError(error);
-
-        throw new PostgresMigrationError(
-          "MIGRATION_BOOTSTRAP_FAILED",
-          "The migration metadata schema could not be initialized safely.",
-          { cause: error }
-        );
-      }
-
-      try {
         const metadataResult = await client.query(
           POSTGRES_MIGRATION_VERIFY_SQL,
           [this.options.applicationRole]
@@ -772,21 +745,19 @@ export class PostgresMigrationRunner {
         );
       } catch (error) {
         if (
-          !(
-            error instanceof PostgresMigrationError &&
-            error.code === "MIGRATION_BOOTSTRAP_FAILED"
-          )
+          error instanceof PostgresMigrationError &&
+          error.code === "MIGRATION_METADATA_INVALID"
         ) {
-          releaseError = asError(error);
+          throw error;
         }
 
-        throw error instanceof PostgresMigrationError
-          ? error
-          : new PostgresMigrationError(
-              "MIGRATION_BOOTSTRAP_FAILED",
-              "The migration metadata structure and permissions could not be verified.",
-              { cause: error }
-            );
+        releaseError = asError(error);
+
+        throw new PostgresMigrationError(
+          "MIGRATION_METADATA_READ_FAILED",
+          "The pre-provisioned migration ledger could not be queried; no schema or table was created.",
+          { cause: error }
+        );
       }
 
       let historyRows: readonly unknown[];
