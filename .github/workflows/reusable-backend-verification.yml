@@ -72,5 +72,20 @@ jobs:
           set -euo pipefail
           python REOS_CONTROL_CENTER/backend/scripts/verify_postgres_integration.py
 
+      - name: Verify PostgreSQL migration-ledger bootstrap contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python REOS_CONTROL_CENTER/backend/scripts/verify_postgres_migration_ledger.py --self-test
+
+      - name: Execute real PostgreSQL migration-ledger and least-privilege integration checks
+        shell: bash
+        env:
+          POSTGRES_SERVICE_CONTAINER: ${{ job.services.postgres.id }}
+          POSTGRES_TEST_PASSWORD: homio-b4-ci-only-password
+        run: |
+          set -euo pipefail
+          python REOS_CONTROL_CENTER/backend/scripts/verify_postgres_migration_ledger.py
+
       - name: Run modular backend verification suite
         uses: ./.github/actions/homio-backend-ci/verification
