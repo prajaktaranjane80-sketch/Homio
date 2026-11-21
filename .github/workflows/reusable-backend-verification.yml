@@ -24,6 +24,13 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
+      redis:
+        image: redis:8.0.3
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
     env:
       PYTHONDONTWRITEBYTECODE: "1"
       GIT_CONFIG_COUNT: "1"
@@ -71,6 +78,35 @@ jobs:
         run: |
           set -euo pipefail
           python REOS_CONTROL_CENTER/backend/scripts/verify_postgres_integration.py
+
+      - name: Verify PostgreSQL concurrency and recovery verifier contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python REOS_CONTROL_CENTER/backend/scripts/verify_postgres_recovery.py --self-test
+
+      - name: Execute PostgreSQL concurrent-write and full fixture backup/restore checks
+        shell: bash
+        env:
+          POSTGRES_SERVICE_CONTAINER: ${{ job.services.postgres.id }}
+          POSTGRES_TEST_PASSWORD: homio-b4-ci-only-password
+        run: |
+          set -euo pipefail
+          python REOS_CONTROL_CENTER/backend/scripts/verify_postgres_recovery.py
+
+      - name: Verify Redis rate-limit integration contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python REOS_CONTROL_CENTER/backend/scripts/verify_redis_rate_limit.py --self-test
+
+      - name: Execute Redis 8 distributed rate-limit concurrency and expiry checks
+        shell: bash
+        env:
+          REDIS_SERVICE_CONTAINER: ${{ job.services.redis.id }}
+        run: |
+          set -euo pipefail
+          python REOS_CONTROL_CENTER/backend/scripts/verify_redis_rate_limit.py
 
       - name: Verify PostgreSQL migration-ledger bootstrap contract
         shell: bash
