@@ -30,6 +30,33 @@ const testSettings: BackendSettings = {
   shutdownTimeoutMs: 10_000
 };
 
+/**
+ * Inert infrastructure values for buildApp-only production readiness tests.
+ * buildApp must not open database or Redis connections.
+ * Real connection lifecycle is owned by the production composition root.
+ */
+const productionSettings: BackendSettings = {
+  nodeEnv: "production",
+  host: "127.0.0.1",
+  port: 3001,
+  logLevel: "silent",
+  requestTimeoutMs: 30_000,
+  shutdownTimeoutMs: 10_000,
+  postgres: {
+    connectionString:
+      "postgresql://homio_test:unused@127.0.0.1:5432/homio_test",
+    sslMode: "verify-full",
+    poolMax: 1,
+    connectionTimeoutMs: 5_000,
+    idleTimeoutMs: 30_000,
+    statementTimeoutMs: 15_000
+  },
+  redis: {
+    url: "rediss://homio_test:unused@127.0.0.1:6380",
+    connectTimeoutMs: 5_000
+  }
+};
+
 const PRINCIPAL_KEYS = [
   "audiences",
   "clientId",
@@ -61,10 +88,7 @@ describe("B2 adapter trust-boundary normalization", () => {
 
   it("refuses production readiness when only health endpoints are mounted", async () => {
     await expect(
-      buildApp({
-        ...testSettings,
-        nodeEnv: "production"
-      })
+      buildApp(productionSettings)
     ).rejects.toThrow(
       "Production backend cannot become ready without at least one registered /api/v1 route."
     );
@@ -75,10 +99,7 @@ describe("B2 adapter trust-boundary normalization", () => {
 
     await expect(
       buildApp(
-        {
-          ...testSettings,
-          nodeEnv: "production"
-        },
+        productionSettings,
         [emptyPlugin],
         createSecurityRuntime()
       )
