@@ -1,3 +1,4 @@
+
 name: Reusable HOMIO Backend and ACRL Verification
 
 on:
@@ -19,6 +20,8 @@ jobs:
           POSTGRES_DB: postgres
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: homio-b4-ci-only-password
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd "pg_isready -U postgres -d postgres"
           --health-interval 5s
@@ -26,6 +29,8 @@ jobs:
           --health-retries 20
       redis:
         image: redis:8.0.3
+        ports:
+          - 6379:6379
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 5s
