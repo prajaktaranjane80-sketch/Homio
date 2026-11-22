@@ -1,4 +1,4 @@
-name: HOMIO backend and ACRL verification modules
+name: HOMIO backend and ACRL verification
 description: Runs focused compile, transition wiring, subsystem regressions, the unified Fastify backend, and the complete ACRL suite.
 
 runs:
@@ -111,6 +111,9 @@ runs:
     - name: Install exact backend dependencies and verify B1
       shell: bash
       working-directory: REOS_CONTROL_CENTER/backend
+      env:
+        HOMIO_TEST_POSTGRES_ADMIN_URL: postgresql://postgres:homio-b4-ci-only-password@127.0.0.1:5432/postgres
+        HOMIO_TEST_REDIS_URL: redis://127.0.0.1:6379/0
       run: |
         set -euo pipefail
 
