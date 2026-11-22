@@ -568,3 +568,36 @@ The current B4-ARCH037-addendum-approval-request.md is still marked DRAFT — NO
 B4 completion standard: every one of the eight current B4 acceptance criteria must have implementation and test evidence, followed by exact-commit GitHub Actions verification and the guarded Control Center transition. Run #923 is a successful infrastructure baseline, not B4 completion.
 
 This is the file-level scope to follow: no frontend changes, no duplicate backend, no repeated replacement of already-passing infrastructure files.
+
+
+
+Tumhari baat sahi thi. Live state.json mein ARCH-037 ke T01–T11 DONE, AC01–AC11 VERIFIED, aur GATE_APPROVED_AND_FROZEN event 15 August 2026 se recorded hain. ARCH-037 ko dobara approve karne ya reopen karne ki zaroorat nahi hai.
+
+Meri galti thi ki maine B4 ke draft evidence ko state se upar maan liya. Ab us draft ko approval authority nahi maanunga. 
+Evidence cross-check ka actual result
+ARCH-037 approved hai. Is par koi doubt ya pending approval nahi hai. Live state.json mein ARCH-037-T01 se T11 tak DONE, AC01 se AC11 tak VERIFIED, aur GATE_APPROVED_AND_FROZEN event recorded hai.
+
+Maine ye sources cross-check kiye:
+Source	Verified result
+data/state.json	ARCH-037 approved/frozen; B4 current
+evidence/BACKEND-001/	B0–B3 evidence aur B4 ke draft documents
+ACRL T23/T24	Current, canonical evidence resolve karte hain; stale ya conflicting records ko fail-closed rakhte hain
+ACRL T14	Resume manifest UNINITIALIZED hai; yeh authority ya schema store nahi hai
+HOMIO_Backend_Structure	B4 ki implementation requirements aur canonical owner boundaries
+Live backend source	PostgreSQL, Redis, startup wiring aur migration infrastructure pehle se implemented hain
+
+Meri pichhli galti ka root cause
+Maine Real_Estate_OS_Master_Blueprint.docx ke blank template mein Database Schema — Pending ko ARCH-037 ke approval ke against use kiya. Yeh galat tha. Woh document ARCH-037 ka approved state record nahi hai. Real_Estate_OS_Master_Blueprint.docx
+
+
+Isi tarah, B4 ke ARCH037-addendum-approval-request.md aur physical-schema-reconstruction-proposal.md draft documents hain. Unhe approval authority samajhna galat tha. Unse ARCH-037 ki approval cancel ya reopen nahi hoti.
+B4 mein ab kya preserve karna hai aur kya implement karna hai
+Maine live source se verify kiya ki ye kaam already implemented hain—inko dobara banane ki zaroorat nahi:
+- backend/src/persistence/production-runtime.ts — real PostgreSQL pool aur Redis client.
+- backend/src/main.ts — production startup, readiness aur graceful shutdown.
+- backend/src/persistence/postgres.ts — single transaction owner, tenant context aur RLS role checks.
+- backend/src/persistence/postgres-migrations.ts — deterministic migration runner, checksums aur advisory lock.
+- backend/src/persistence/redis-rate-limit.ts — atomic Redis rate limiter.
+B4 ka real remaining scope in existing owners ko approved schema se connect karna, business migrations/repositories, tenant isolation, durable session/revocation, API security audit persistence, outbox/idempotency aur real business-schema recovery tests hai. Current integration tests synthetic tables par hain; unhe actual business-schema proof nahi kehna chahiye.
+
+Ab tumse ARCH-037 ka link, reapproval ya wahi purani files dobara nahi maangunga. B4 ko state.json mein approved ARCH-037 aur CORE-001–CORE-008 ke existing owners ke against hi aage badhana hai. B4 abhi CURRENT hai—approval ke liye nahi, implementation aur evidence complete karne ke liye. Fake completion bhi nahi, aur approval ko dobara kholna bhi nahi
