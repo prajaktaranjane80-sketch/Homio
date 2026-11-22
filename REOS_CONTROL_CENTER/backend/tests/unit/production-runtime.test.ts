@@ -278,4 +278,62 @@ describe("B4 production persistence runtime", () => {
     expect(state.redisClosed).toBe(0);
     expect(state.redisDestroyed).toBe(1);
   });
+
+  it("closes PostgreSQL when Redis client construction throws", async () => {
+    const state = createState();
+    const baseFactories = createFactories(state);
+
+    const factories: ProductionPersistenceDriverFactories = {
+      createPostgresPool(options) {
+        return baseFactories.createPostgresPool(options);
+      },
+
+      createRedisClient() {
+        throw new Error("redis client construction failed");
+      }
+    };
+
+    await expect(
+      createProductionPersistenceRuntime(
+        productionSettings,
+        factories
+      )
+    ).rejects.toThrow("redis client construction failed");
+
+    expect(state.postgresClosed).toBe(1);
+    expect(state.redisClosed).toBe(0);
+    expect(state.redisDestroyed).toBe(0);
+  });
+
+  it("closes the raw PostgreSQL pool when PostgresRuntime rejects the driver", async () => {
+    let postgresClosed = 0;
+    let redisFactoryCalled = false;
+
+    const invalidPool = {
+      async end() {
+        postgresClosed += 1;
+      }
+    } as unknown as ProductionPostgresPool;
+
+    const factories: ProductionPersistenceDriverFactories = {
+      createPostgresPool() {
+        return invalidPool;
+      },
+
+      createRedisClient() {
+        redisFactoryCalled = true;
+        throw new Error("Redis must not be constructed");
+      }
+    };
+
+    await expect(
+      createProductionPersistenceRuntime(
+        productionSettings,
+        factories
+      )
+    ).rejects.toThrow("A valid node-postgres Pool is required.");
+
+    expect(postgresClosed).toBe(1);
+    expect(redisFactoryCalled).toBe(false);
+  });
 });
