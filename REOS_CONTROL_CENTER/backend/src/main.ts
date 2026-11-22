@@ -13,8 +13,12 @@ import {
 
 import type { BackendSettings } from "./config/settings.js";
 import type { BackendSecurityRuntime } from "./security/contracts.js";
-
 import { buildApp } from "./app.js";
+import {
+  createProductionPersistenceRuntime,
+  type ProductionPersistenceDriverFactories,
+  type ProductionPersistenceRuntime
+} from "./persistence/production-runtime.js";
 
 export type ShutdownReason =
   | NodeJS.Signals
@@ -22,6 +26,7 @@ export type ShutdownReason =
 
 export interface RunningBackend {
   readonly server: FastifyInstance;
+  readonly persistence?: ProductionPersistenceRuntime;
   isReady(): boolean;
   shutdown(reason?: ShutdownReason): Promise<void>;
 }
@@ -32,18 +37,14 @@ async function closeWithinDeadline(
   server: FastifyInstance,
   timeoutMs: number
 ): Promise<void> {
-  // Fastify stops accepting new connections and starts draining requests.
   const closeOperation = server.close();
 
-  // Reap only idle connections while Fastify drains. Active requests
-  // are not force-closed and are allowed to finish normally.
   const idleConnectionSweep = setInterval(() => {
     server.server.closeIdleConnections();
   }, IDLE_CONNECTION_REAP_INTERVAL_MS);
 
   idleConnectionSweep.unref();
 
-  // Reap connections that became idle immediately after close() started.
   server.server.closeIdleConnections();
 
   let timer: NodeJS.Timeout | undefined;
@@ -51,7 +52,6 @@ async function closeWithinDeadline(
   const deadline = new Promise<never>(
     (_resolve, reject) => {
       timer = setTimeout(() => {
-        // Hard shutdown deadline fallback.
         server.server.closeAllConnections();
 
         reject(
@@ -82,69 +82,100 @@ async function closeWithinDeadline(
 export async function startBackend(
   settings: BackendSettings,
   apiV1Plugins: readonly FastifyPluginAsync[] = [],
-  securityRuntime?: BackendSecurityRuntime
+  securityRuntime?: BackendSecurityRuntime,
+  persistenceFactories?: ProductionPersistenceDriverFactories
 ): Promise<RunningBackend> {
-  const runtime = await buildApp(
-    settings,
-    apiV1Plugins,
-    securityRuntime
-  );
+  const hasPostgres = settings.postgres !== undefined;
+  const hasRedis = settings.redis !== undefined;
 
-  try {
-    await runtime.server.listen({
-      host: settings.host,
-      port: settings.port
-    });
-
-    // Traffic is accepted only after the HTTP listener succeeds.
-    runtime.markReady();
-  } catch (error) {
-    runtime.markDraining();
-
-    await runtime.server.close().catch(() => undefined);
-
-    throw error;
+  if (hasPostgres !== hasRedis) {
+    throw new ConfigurationError([
+      "HOMIO_POSTGRES_URL and HOMIO_REDIS_URL must be configured together"
+    ]);
   }
 
-  let shutdownPromise: Promise<void> | undefined;
+  let persistence: ProductionPersistenceRuntime | undefined;
 
-  function shutdown(
-    reason: ShutdownReason = "manual"
-  ): Promise<void> {
-    if (shutdownPromise !== undefined) {
+  try {
+    if (hasPostgres && hasRedis) {
+      persistence = await createProductionPersistenceRuntime(
+        settings,
+        persistenceFactories
+      );
+
+      // Verify the database role, tenant RLS boundary and Redis
+      // before allowing the HTTP listener to accept traffic.
+      await persistence.verifyReadiness();
+    }
+
+    const runtime = await buildApp(
+      settings,
+      apiV1Plugins,
+      securityRuntime,
+      persistence?.verifyReadiness
+    );
+
+    try {
+      await runtime.server.listen({
+        host: settings.host,
+        port: settings.port
+      });
+
+      runtime.markReady();
+    } catch (error) {
+      runtime.markDraining();
+      await runtime.server.close().catch(() => undefined);
+      throw error;
+    }
+
+    let shutdownPromise: Promise<void> | undefined;
+
+    function shutdown(
+      reason: ShutdownReason = "manual"
+    ): Promise<void> {
+      if (shutdownPromise !== undefined) {
+        return shutdownPromise;
+      }
+
+      runtime.markDraining();
+
+      runtime.server.log.info(
+        { reason },
+        "HOMIO backend graceful shutdown started"
+      );
+
+      shutdownPromise = (async () => {
+        try {
+          await closeWithinDeadline(
+            runtime.server,
+            settings.shutdownTimeoutMs
+          );
+        } finally {
+          // Keep persistence available while active requests drain.
+          await persistence?.close();
+        }
+      })().then(() => {
+        runtime.server.log.info(
+          { reason },
+          "HOMIO backend shutdown completed"
+        );
+      });
+
       return shutdownPromise;
     }
 
-    // Readiness becomes false before Fastify begins closing.
-    runtime.markDraining();
-
-    runtime.server.log.info(
-      { reason },
-      "HOMIO backend graceful shutdown started"
-    );
-
-    shutdownPromise = closeWithinDeadline(
-      runtime.server,
-      settings.shutdownTimeoutMs
-    ).then(() => {
-      runtime.server.log.info(
-        { reason },
-        "HOMIO backend shutdown completed"
-      );
-    });
-
-    return shutdownPromise;
+    return {
+      server: runtime.server,
+      ...(persistence === undefined ? {} : { persistence }),
+      isReady(): boolean {
+        return runtime.isReady() && (persistence?.isHealthy() ?? true);
+      },
+      shutdown
+    };
+  } catch (error) {
+    await persistence?.close().catch(() => undefined);
+    throw error;
   }
-
-  return {
-    server: runtime.server,
-
-    isReady(): boolean {
-      return runtime.isReady();
-    },
-
-    shutdown
-  };
 }
 
 export async function runServer(
