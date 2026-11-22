@@ -25,6 +25,8 @@ export interface AppRuntime {
   isReady(): boolean;
 }
 
+export type BackendDependencyReadiness = () => Promise<void>;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return (
     typeof value === "object" &&
@@ -33,10 +35,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   );
 }
 
-/**
- * Expose only the claims required by the backend security contract.
- * Identity-provider tokens and profile claims must not leak into request context.
- */
 function minimizeVerifiedPrincipal(
   value: unknown
 ): VerifiedExternalPrincipal {
@@ -57,10 +55,6 @@ function minimizeVerifiedPrincipal(
   }) as unknown as VerifiedExternalPrincipal;
 }
 
-/**
- * A trusted context is intentionally smaller than any domain identity object.
- * Clone it so downstream adapters cannot mutate the values already authorized.
- */
 function minimizeTrustedContext(
   value: unknown
 ): TrustedRequestContext | null {
@@ -83,10 +77,6 @@ function minimizeTrustedContext(
   }) as unknown as TrustedRequestContext;
 }
 
-/**
- * Normalize adapter outputs once at the single Fastify trust boundary.
- * This is a projection over canonical owners, not a second identity registry.
- */
 function createMinimizedSecurityRuntime(
   runtime: BackendSecurityRuntime
 ): BackendSecurityRuntime {
@@ -157,7 +147,8 @@ function getClientErrorStatus(
 export async function buildApp(
   settings: BackendSettings,
   apiV1Plugins: readonly FastifyPluginAsync[] = [],
-  securityRuntime?: BackendSecurityRuntime
+  securityRuntime?: BackendSecurityRuntime,
+  dependencyReadiness?: BackendDependencyReadiness
 ): Promise<AppRuntime> {
   let acceptingTraffic = false;
   let draining = false;
@@ -272,6 +263,16 @@ export async function buildApp(
         });
       }
 
+      if (dependencyReadiness !== undefined) {
+        try {
+          await dependencyReadiness();
+        } catch {
+          return reply.code(503).send({
+            status: "not_ready"
+          });
+        }
+      }
+
       return reply.code(200).send({
         status: "ready"
       });
@@ -290,11 +291,8 @@ export async function buildApp(
         );
       }
 
-      // Validate the six authoritative adapters before registering customer routes.
       assertBackendSecurityRuntime(activeSecurityRuntime);
 
-      // Project adapter results to the minimal B2 contract and freeze snapshots
-      // before the request hooks or route handlers can observe them.
       const minimizedSecurityRuntime =
         createMinimizedSecurityRuntime(activeSecurityRuntime);
 
@@ -316,8 +314,6 @@ export async function buildApp(
           createApiSecurityHook(minimizedSecurityRuntime)
         );
 
-        // Re-check protected mutations after Fastify request validation
-        // and immediately before their route handlers execute.
         apiV1.addHook(
           "preHandler",
           createMutationReauthorizationHook(minimizedSecurityRuntime)
@@ -333,8 +329,6 @@ export async function buildApp(
 
     await server.ready();
 
-    // A health-only process must never report production readiness as if the
-    // customer API had been mounted and protected by the B2 boundary.
     if (
       settings.nodeEnv === "production" &&
       apiV1RouteCount === 0
