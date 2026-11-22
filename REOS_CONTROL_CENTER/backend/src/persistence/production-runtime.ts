@@ -100,6 +100,7 @@ function loadNodeDriverFactories(): ProductionPersistenceDriverFactories {
     createPostgresPool(options) {
       return new postgresModule.Pool(options);
     },
+
     createRedisClient(options) {
       return redisModule.createClient(options);
     }
@@ -179,13 +180,16 @@ function readPostgresServerVersion(
 }
 
 /**
- * Constructs the one production PostgreSQL pool and one Redis client.
+ * Creates the one PostgreSQL pool and one Redis client used by this process.
  *
- * This module does not create business tables, migrations, session stores,
- * audit tables or domain repositories. Those must use the approved ARCH-037
- * schema and canonical CORE owners.
+ * Existing owners remain authoritative:
+ * - PostgresRuntime owns tenant transactions and database role/RLS checks.
+ * - RedisRateLimiter owns atomic shared rate-limit behavior.
+ * - PostgresMigrationRunner owns deterministic migration execution.
  *
- * PostgresRuntime remains the single transaction and tenant-isolation owner.
+ * This composition root does not create business tables, session stores,
+ * security-audit tables or domain repositories. Those require the approved
+ * physical schema and their canonical CORE owners.
  */
 export async function createProductionPersistenceRuntime(
   settings: BackendSettings,
@@ -198,36 +202,82 @@ export async function createProductionPersistenceRuntime(
     throw new ProductionPersistenceConfigurationError();
   }
 
+  // Pool creation is the first resource acquisition. If later composition
+  // fails, this pool is still closed before the error escapes.
   const pool = factories.createPostgresPool(
     createPostgresOptions(postgresSettings)
   );
 
-  const redis = factories.createRedisClient(
-    createRedisOptions(redisSettings)
-  );
-
-  const postgres = new PostgresRuntime(pool);
+  let postgres: PostgresRuntime | undefined;
+  let redis: ProductionRedisClient | undefined;
 
   let postgresHealthy = false;
   let redisHealthy = false;
   let closed = false;
   let closePromise: Promise<void> | undefined;
 
-  pool.on("error", () => {
+  async function closePostgres(): Promise<void> {
+    if (postgres !== undefined) {
+      await postgres.close();
+      return;
+    }
+
+    // PostgresRuntime construction itself can reject an invalid driver.
+    // In that case, the pool still belongs to this composition root.
+    await pool.end();
+  }
+
+  async function closeRedis(): Promise<void> {
+    const client = redis;
+
+    if (client === undefined) {
+      return;
+    }
+
+    if (!client.isOpen) {
+      client.destroy();
+      return;
+    }
+
+    try {
+      await client.quit();
+    } catch (error) {
+      client.destroy();
+      throw error;
+    }
+  }
+
+  async function close(): Promise<void> {
+    if (closePromise !== undefined) {
+      return closePromise;
+    }
+
+    closed = true;
     postgresHealthy = false;
-  });
-
-  redis.on("error", () => {
     redisHealthy = false;
-  });
 
-  redis.on("reconnecting", () => {
-    redisHealthy = false;
-  });
+    closePromise = (async () => {
+      const results = await Promise.allSettled([
+        closePostgres(),
+        closeRedis()
+      ]);
 
-  redis.on("ready", () => {
-    redisHealthy = true;
-  });
+      const failures = results
+        .filter((result): result is PromiseRejectedResult =>
+          result.status === "rejected"
+        )
+        .map((result) => result.reason);
+
+      if (failures.length > 0) {
+        throw new AggregateError(
+          failures,
+          "One or more production persistence clients failed to close cleanly."
+        );
+      }
+    })();
+
+    return closePromise;
+  }
 
   async function verifyReadiness(): Promise<void> {
     if (closed) {
@@ -236,10 +286,18 @@ export async function createProductionPersistenceRuntime(
       );
     }
 
+    const activeRedis = redis;
+
+    if (postgres === undefined || activeRedis === undefined) {
+      throw new ProductionPersistenceUnavailableError(
+        "Production persistence clients have not been initialized."
+      );
+    }
+
     try {
       const [postgresResult, redisResult] = await Promise.all([
         pool.query("SELECT 1"),
-        redis.ping()
+        activeRedis.ping()
       ]);
 
       if (postgresResult.rowCount !== 1 || redisResult !== "PONG") {
@@ -261,53 +319,34 @@ export async function createProductionPersistenceRuntime(
     }
   }
 
-  async function close(): Promise<void> {
-    if (closePromise !== undefined) {
-      return closePromise;
-    }
-
-    closed = true;
-    postgresHealthy = false;
-    redisHealthy = false;
-
-    closePromise = (async () => {
-      const closeRedis = async (): Promise<void> => {
-        if (!redis.isOpen) {
-          redis.destroy();
-          return;
-        }
-
-        try {
-          await redis.quit();
-        } catch (error) {
-          redis.destroy();
-          throw error;
-        }
-      };
-
-      const results = await Promise.allSettled([
-        postgres.close(),
-        closeRedis()
-      ]);
-
-      const failures = results
-        .filter((result): result is PromiseRejectedResult =>
-          result.status === "rejected"
-        )
-        .map((result) => result.reason);
-
-      if (failures.length > 0) {
-        throw new AggregateError(
-          failures,
-          "One or more production persistence clients failed to close cleanly."
-        );
-      }
-    })();
-
-    return closePromise;
-  }
-
   try {
+    postgres = new PostgresRuntime(pool);
+
+    pool.on("error", () => {
+      postgresHealthy = false;
+    });
+
+    // Redis construction is deliberately inside the cleanup boundary.
+    // A factory exception must not leave the already-created PG pool open.
+    redis = factories.createRedisClient(
+      createRedisOptions(redisSettings)
+    );
+
+    redis.on("error", () => {
+      redisHealthy = false;
+    });
+
+    redis.on("reconnecting", () => {
+      redisHealthy = false;
+    });
+
+    redis.on("ready", () => {
+      redisHealthy = true;
+    });
+
+    const activeRedis = redis;
+    const activePostgres = postgres;
+
     await Promise.all([
       pool.query(
         "SELECT current_setting('server_version_num')::integer AS server_version_num"
@@ -320,29 +359,30 @@ export async function createProductionPersistenceRuntime(
           );
         }
       }),
-      redis.connect()
+
+      activeRedis.connect()
     ]);
 
     // Fail closed until the approved tenant tables, FORCE RLS and restrictive
     // tenant policies have been installed by the dedicated migration owner.
-    await postgres.verifyRuntimeRoleSafety();
+    await activePostgres.verifyRuntimeRoleSafety();
 
     await verifyReadiness();
+
+    return Object.freeze({
+      postgres: activePostgres,
+      redis: activeRedis,
+
+      isHealthy(): boolean {
+        return !closed && postgresHealthy && redisHealthy;
+      },
+
+      verifyReadiness,
+
+      close
+    });
   } catch (cause) {
     await close().catch(() => undefined);
     throw cause;
   }
-
-  return Object.freeze({
-    postgres,
-    redis,
-
-    isHealthy(): boolean {
-      return !closed && postgresHealthy && redisHealthy;
-    },
-
-    verifyReadiness,
-
-    close
-  });
 }
