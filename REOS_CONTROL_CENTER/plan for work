@@ -373,3 +373,198 @@ Har bundle mein exact path aur complete replacement file ya clearly marked new f
 Ek aur zaroori distinction: run 44913814610 ka green result parent commit e3ccea0… par tha. Current HEAD 3e071bb8… hai; usmein backend source change nahi hua, lekin final B4 verification ko exact tested SHA se hi bind karna hoga.
 
 Mera commitment: tumhe baar-baar diagnosis, half-file, chhote patches aur wahi purane files replace karne ke liye nahi ghumana hai. Ek coherent B4 delivery deni hai—existing files ki zaroori replacements, missing files ki additions, tests aur exact paths ke saath. Tum GitHub Web Editor mein save karoge; main uske baad live readback aur CI verify karunga. state.json ko manually edit karke B4 DONE nahi dikhaya jayega.
+
+dusare chat ki hisrty
+
+Ek important implementation result mil gaya: PostgreSQL transaction/RLS runtime, migration-checksum runner aur Redis rate-limit adapter pehle se maujood hain. Latest exact-HEAD CI run #923 PASS hai, isliye in files ko dobara replace karna duplicate work hoga.
+
+B4 ka unresolved hissa abhi physical schema catalogue, session/account-epoch contract aur security-audit persistence hai. Existing addendum inko DRAFT / NOT APPROVED mark karta hai; bina in owner decisions ke guessed SQL dena aage data/security defects create karega. Main ab existing code ke actual gaps ko alag kar raha hoon, taaki jo full files legitimately replace/add ho sakti hain unhi ka set doon.
+
+Samajh gaya. Tumhe B4 ke liye exact replace/add file structure aur har file se solve hone wali problem chahiye. Live repository check ke basis par yeh raha.
+
+Pehle ek important baat: ARCH-037, ARCH-038 aur ARCH-039 approved hain. ARCH-037 ke T01–T11 aur AC01–AC11 bhi state mein complete/verified recorded hain. Main un approvals ko question nahi kar raha. Missing cheez hai approved architecture ko implement karne wala exact physical PostgreSQL schema catalogue.
+1. Existing files — inhe replace nahi karna
+Ye existing implementation already hai aur CI mein verify hui hai. Inko dobara replace karne se regressions aur duplicate work ka risk hoga.
+Existing file	Current implementation / solved problem
+REOS_CONTROL_CENTER/backend/src/persistence/postgres.ts	Single PostgreSQL transaction owner, tenant context, RLS and database role safety
+REOS_CONTROL_CENTER/backend/src/persistence/postgres-migrations.ts	Ordered migrations, SHA-256 checksums, migration lock, history-integrity verification
+REOS_CONTROL_CENTER/backend/src/persistence/production-runtime.ts	Single PostgreSQL pool and Redis client, readiness and cleanup
+REOS_CONTROL_CENTER/backend/src/persistence/redis-rate-limit.ts	Shared Redis rate limiting, atomic counters, HMAC-derived keys
+REOS_CONTROL_CENTER/backend/scripts/postgres/bootstrap-migration-ledger.sql	Dedicated migration-role and infrastructure ledger setup
+REOS_CONTROL_CENTER/backend/scripts/verify_postgres_migration_ledger.py	Real PostgreSQL migration-ledger and permission verification
+
+In existing files ka replacement B4 ka solution nahi hai. Latest successful run #923 already includes these implementations.
+2. Exact files that B4 still needs
+All paths below existing backend root ke andar hi rahenge. Koi second backend ya parallel persistence framework nahi banana.
+File path	Action	Problem it must solve
+REOS_CONTROL_CENTER/backend/src/security/contracts.ts	Full replacement, after contract approval	Verified token, canonical account and authentication-epoch contract
+REOS_CONTROL_CENTER/backend/src/security/api-security.ts	Full replacement, after contract approval	Session validation currently runs before trusted CORE-001 context resolution; correct account/session validation order
+REOS_CONTROL_CENTER/backend/src/app.ts	Full replacement, if approved contract changes projections	Preserve and validate the newly approved security context without exposing unnecessary claims
+REOS_CONTROL_CENTER/backend/src/persistence/postgres-session-store.ts	New file	Durable session status, expiry, revocation and authentication-epoch validation
+REOS_CONTROL_CENTER/backend/src/persistence/postgres-security-audit.ts	New file	Persist existing minimized SecurityAuditEvent through PostgreSQL, with append-only behaviour and restricted access
+REOS_CONTROL_CENTER/backend/migrations/	New directory and approved migration files	Implement the actual ARCH-037 tables, constraints, tenant policies and indexes
+REOS_CONTROL_CENTER/backend/tests/integration/postgres-arch037-schema.integration.test.ts	New file	Verify approved business schema against real PostgreSQL
+REOS_CONTROL_CENTER/backend/tests/integration/postgres-session-store.integration.test.ts	New file	Verify expiry, revocation, account lock and authentication-epoch invalidation
+REOS_CONTROL_CENTER/backend/tests/integration/postgres-security-audit.integration.test.ts	New file	Verify audit persistence, privacy minimization and failure handling
+REOS_CONTROL_CENTER/backend/tests/integration/postgres-backup-restore.integration.test.ts	New file or extension of existing integration coverage	Verify actual target-environment restore and post-restore integrity
+
+3. Which B4 problems are solved and which are still open
+B4 requirement	Verified position
+Approved schema and canonical owners	ARCH-037 approved; physical implementation catalogue is missing
+Ordered migrations and checksums	Infrastructure implemented
+ Domain migrations still missing
+Database tenant isolation	Runtime and integration fixture pass
+ Actual approved domain tables still missing
+Repository and transaction ownership	Transaction owner exists; domain repositories cannot be defined without approved physical keys and relationships
+Durable sessions and revocation	Blocked by missing account/epoch and token-lifecycle contract
+Shared rate limits	Implemented
+ Redis integration passes
+Minimized persistent security audit	PostgreSQL adapter and approved retention/access rules missing
+Migration, concurrency, backup and recovery	Generic integration fixtures exist; target-environment backup/restore proof is missing
+No duplicate persistence authority	Existing single backend and persistence owners preserved
+
+4. The exact blocker before those new files can be safely written
+The file:
+
+REOS_CONTROL_CENTER/evidence/BACKEND-001/B4-ARCH037-addendum-approval-request.md
+
+currently says:
+
+DRAFT — OWNER REVIEW REQUIRED — NOT APPROVED — NON-EXECUTABLE
+
+It records that the physical catalogue is absent. The compatibility contract also leaves unresolved the project/unit identity mapping, polymorphic party ownership, financial precision, CORE-001 account/authentication-epoch binding, session lifecycle, audit retention and privileged-access rules.
+
+This is why I cannot safely invent the contents of the migration files or the session/audit tables. Doing so would turn candidate table names and guessed constraints into production data authority. The existing migration runner cannot make an unapproved schema correct.
+
+The next required source artefact is the approved physical schema catalogue and its B4 addendum approval, containing the actual table/column types, primary and foreign keys, unique/check constraints, indexes, RLS policies, session lifecycle contract and audit retention/access policy. The B4 approval must be recorded through the authorized Control Center path; it must not be simulated by editing the draft or state.json.
+
+I am not calling B4 complete: the latest CI run proves the existing infrastructure foundation, not all B4 acceptance criteria. This is the exact replacement/addition structure; the new source files are not yet safe to paste as production implementations because their authoritative schema and contracts are still missing.
+
+Bhai, yeh B4 ka exact file structure hai, problems aur unke corresponding solutions ke saath. Sab paths live repository ke reos-development branch ke liye hain.
+1. B4 target file structure
+Repository: prajaktaranjane80-sketch/Homio
+
+
+REOS_CONTROL_CENTER/
+│
+├── evidence/
+│   └── BACKEND-001/
+│       ├── B4-ARCH037-addendum-approval-request.md
+│       │   [UPDATE — existing approval record]
+│       │
+│       ├── B4-ARCH037-physical-schema-catalogue.md
+│       │   [ADD — exact approved physical schema]
+│       │
+│       ├── B4-identifier-tenant-security-compatibility-contract.md
+│       │   [UPDATE — resolved owner decisions]
+│       │
+│       └── B4-target-backup-restore-evidence.md
+│           [ADD — actual target recovery proof]
+│
+└── backend/
+    │
+    ├── src/
+    │   ├── persistence/
+    │   │   ├── postgres.ts
+    │   │   │   [REUSE — no duplicate transaction owner]
+    │   │   │
+    │   │   ├── postgres-migrations.ts
+    │   │   │   [REUSE — existing migration runner]
+    │   │   │
+    │   │   ├── production-runtime.ts
+    │   │   │   [UPDATE — connect approved adapters]
+    │   │   │
+    │   │   ├── redis-rate-limit.ts
+    │   │   │   [REUSE — existing Redis owner]
+    │   │   │
+    │   │   ├── postgres-session-store.ts
+    │   │   │   [ADD — durable sessions/revocation]
+    │   │   │
+    │   │   ├── postgres-security-audit.ts
+    │   │   │   [ADD — durable security audit]
+    │   │   │
+    │   │   └── schema-migrations/
+    │   │       ├── 00000001-core001-identity-tenant.ts
+    │   │       ├── 00000002-core002-events-outbox.ts
+    │   │       ├── 00000003-core003-lead-ownership.ts
+    │   │       ├── 00000004-core004-inventory.ts
+    │   │       ├── 00000005-core006-deal-transaction.ts
+    │   │       ├── 00000006-core007-trust-governance.ts
+    │   │       ├── 00000007-core008-financial.ts
+    │   │       ├── 00000008-security-sessions-audit.ts
+    │   │       └── index.ts
+    │   │           [ADD — ordered manifest for existing runner]
+    │   │
+    │   ├── security/
+    │   │   ├── contracts.ts
+    │   │   │   [REPLACE — approved account/session contract]
+    │   │   └── api-security.ts
+    │   │       [REPLACE — correct security validation order]
+    │   │
+    │   └── app.ts
+    │       [REPLACE — preserve approved context fields]
+    │
+    ├── tests/
+    │   ├── unit/
+    │   │   ├── postgres-session-store.test.ts
+    │   │   │   [ADD]
+    │   │   └── postgres-security-audit.test.ts
+    │   │       [ADD]
+    │   │
+    │   └── integration/
+    │       ├── postgres-arch037-schema.integration.test.ts
+    │       ├── postgres-session-store.integration.test.ts
+    │       ├── postgres-security-audit.integration.test.ts
+    │       └── postgres-backup-restore.integration.test.ts
+    │           [ADD]
+    │
+    └── scripts/
+        └── postgres/
+            └── verify-target-backup-restore.sh
+                [ADD]
+The migration filenames divide work by existing CORE owners. They do not create new CORE engines. Their SQL definitions must use the approved catalogue, not guessed table definitions. CORE-005 search remains a derived/read-side owner rather than a new canonical business database.
+2. Problem → file → solution
+Root problem	Exact file	Solution
+Approved architecture has no executable physical catalogue in the branch	evidence/BACKEND-001/B4-ARCH037-physical-schema-catalogue.md	Map each approved entity to its actual columns, types, keys, constraints, indexes and RLS rules
+Existing owner identifiers are not all interchangeable	B4-identifier-tenant-security-compatibility-contract.md	Resolve tenant UUIDs, project/unit references, Customer mapping, ownership links and financial precision
+No canonical domain migration bundle exists	backend/src/persistence/schema-migrations/	Add ordered, immutable migrations to the existing PostgresMigrationRunner
+Session validator runs before trusted account context is resolved	security/contracts.ts and security/api-security.ts	Pass the verified principal together with canonical account and authentication-epoch context to the session validator
+No durable PostgreSQL session adapter exists	postgres-session-store.ts	Validate session status, expiry, revocation and current account epoch; never persist raw bearer tokens
+No PostgreSQL API security audit adapter exists	postgres-security-audit.ts	Persist minimized events, enforce append-only writes and restrict audit reads
+New adapters need one composition owner	production-runtime.ts	Connect the adapters to the existing PostgreSQL runtime, without creating another pool or persistence framework
+Existing integration tests use temporary tenant fixtures, not the canonical business schema	postgres-arch037-schema.integration.test.ts	Test actual approved schema, constraints, RLS and tenant-crossing rejection
+Backup/restore target proof is missing	verify-target-backup-restore.sh and postgres-backup-restore.integration.test.ts	Restore into the target-compatible environment and verify integrity, schema and tenant protections
+Recovery evidence is not recorded	B4-target-backup-restore-evidence.md	Record actual backup identity, restore result, verification and tested commit SHA
+
+3. Existing files that must be preserved
+Already implemented — retain existing owners
+These are not new additions and should not be replaced just to repeat working functionality.
+File	What is already handled
+backend/src/persistence/postgres.ts	Transaction ownership, transaction-local tenant context and RLS role safety
+backend/src/persistence/postgres-migrations.ts	Migration ordering, checksums, locking and history integrity
+backend/src/persistence/redis-rate-limit.ts	Atomic Redis shared rate-limit implementation
+backend/scripts/postgres/bootstrap-migration-ledger.sql	Dedicated migration role and protected infrastructure ledger
+backend/scripts/verify_postgres_migration_ledger.py	Actual PostgreSQL ledger and permission verification
+backend/tests/integration/production-persistence.integration.test.ts	Existing real PostgreSQL and Redis infrastructure integration
+
+The Redis implementation already passes its real-service integration. Rate-limit thresholds, windows and outage policy still need explicit approved policy values; do not hardcode arbitrary limits.
+4. Which problems each test must catch
+Test file	Mandatory proof
+postgres-arch037-schema.integration.test.ts	Invalid keys, tenant leakage, wrong foreign keys, uniqueness failures, invalid financial values
+postgres-session-store.test.ts	Unknown, expired, revoked sessions and invalid account/epoch
+postgres-session-store.integration.test.ts	Real PostgreSQL session validation, concurrent revocation and account epoch changes
+postgres-security-audit.test.ts	No bearer tokens, credentials, unnecessary PII or mutable audit events
+postgres-security-audit.integration.test.ts	Actual audit writes, restricted access and fail-closed behavior
+postgres-backup-restore.integration.test.ts	Restore integrity, migration compatibility and isolation after recovery
+
+Migration tests must additionally prove deterministic ordering, duplicate rejection, checksum tampering detection, concurrent-runner safety and interrupted-migration handling.
+5. Important implementation boundary
+The structure above separates three things:
+1. Already working: PostgreSQL transaction/RLS runtime, migration-integrity owner and Redis rate limiter.
+2. Files to implement: Physical schema migrations, durable sessions, security audit adapters and their integration tests.
+3. Approval/evidence dependencies: Physical-schema catalogue, session/account-epoch contract, audit policy and actual target backup/restore proof.
+The current B4-ARCH037-addendum-approval-request.md is still marked DRAFT — NOT APPROVED. The new catalogue and resolved contracts must be attached to that existing approval process before executable domain DDL is introduced. This preserves ARCH-037 and its existing owner decisions rather than inventing another schema authority.
+
+B4 completion standard: every one of the eight current B4 acceptance criteria must have implementation and test evidence, followed by exact-commit GitHub Actions verification and the guarded Control Center transition. Run #923 is a successful infrastructure baseline, not B4 completion.
+
+This is the file-level scope to follow: no frontend changes, no duplicate backend, no repeated replacement of already-passing infrastructure files.
