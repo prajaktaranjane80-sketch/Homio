@@ -1,3 +1,4 @@
+
 import { createRequire } from "node:module";
 
 import type { BackendSettings } from "../config/settings.js";
@@ -102,7 +103,19 @@ function loadNodeDriverFactories(): ProductionPersistenceDriverFactories {
     },
 
     createRedisClient(options) {
-      return redisModule.createClient(options);
+      // node-redis normalizes its options in place during client creation.
+      // The configuration snapshot supplied by this composition root is
+      // intentionally frozen. Give node-redis its own mutable object tree
+      // so library defaults cannot mutate our immutable configuration.
+      return redisModule.createClient({
+        ...options,
+        socket: {
+          ...options.socket
+        },
+        commandOptions: {
+          ...options.commandOptions
+        }
+      });
     }
   };
 }
