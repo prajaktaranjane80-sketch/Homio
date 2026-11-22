@@ -140,7 +140,17 @@ function createFactories(
 
     on(): void {},
 
-    async eval(_script, _options) {
+    async eval(script, options) {
+      if (
+        script.trim().length === 0 ||
+        options.keys.length !== 1 ||
+        options.arguments.length !== 2
+      ) {
+        throw new Error(
+          "Invalid Redis rate-limit evaluation contract."
+        );
+      }
+
       return [1, 1_000, 1];
     }
   };
