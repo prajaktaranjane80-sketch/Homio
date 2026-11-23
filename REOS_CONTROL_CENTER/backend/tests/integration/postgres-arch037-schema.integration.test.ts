@@ -28,6 +28,19 @@ function quoteRole(role: string): string {
   return `"${role}"`;
 }
 
+function requireApplicationRole(): string {
+  if (
+    typeof applicationRole !== "string" ||
+    applicationRole.length === 0
+  ) {
+    throw new Error(
+      "HOMIO_TEST_POSTGRES_APPLICATION_ROLE is required for this integration suite."
+    );
+  }
+
+  return applicationRole;
+}
+
 postgresSuite("ARCH-037 PostgreSQL physical schema integration", () => {
   let pool: Pool;
 
@@ -115,7 +128,7 @@ postgresSuite("ARCH-037 PostgreSQL physical schema integration", () => {
       `SELECT oid::text, rolsuper, rolbypassrls
          FROM pg_catalog.pg_roles
         WHERE rolname = $1`,
-      [applicationRole]
+      [requireApplicationRole()]
     );
 
     expect(roleResult.rows).toHaveLength(1);
@@ -288,7 +301,7 @@ postgresSuite("ARCH-037 PostgreSQL physical schema integration", () => {
         now
       ]);
 
-      await client.query(`SET LOCAL ROLE ${quoteRole(applicationRole!)}`);
+      await client.query(`SET LOCAL ROLE ${quoteRole(requireApplicationRole())}`);
 
       await client.query(
         "SELECT set_config('app.tenant_id', $1, true)",
