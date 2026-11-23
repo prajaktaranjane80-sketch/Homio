@@ -87,8 +87,8 @@ const TENANT_SETTING_SQL =
  *
  * PostgreSQL's pg_get_expr() deparser emits parentheses around function calls
  * and casts. Those parentheses are significant and must be preserved.
- * Whitespace is normalized only; a small explicit allow-list recognizes the
- * supported deparser forms. Unknown policy expressions fail closed.
+ * Whitespace is normalized and the exact lowercase PostgreSQL 18.4
+ * deparser expression is matched. Unknown policy expressions fail closed.
  */
 export const POSTGRES_RUNTIME_ROLE_SAFETY_SQL = `
 WITH effective_roles AS (
@@ -182,10 +182,7 @@ SELECT
           '',
           'g'
         ) IN (
-          '(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND)',
-          'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND',
-          '(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THENcurrent_setting(''app.tenant_id''::text,true)::uuidELSENULL::uuidEND)',
-          'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THENcurrent_setting(''app.tenant_id''::text,true)::uuidELSENULL::uuidEND'
+          '(tenant_id=casewhenpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)then(current_setting(''app.tenant_id''::text,true))::uuidelsenull::uuidend)'
         )
         AND pg_catalog.regexp_replace(
           pg_catalog.lower(
@@ -195,10 +192,7 @@ SELECT
           '',
           'g'
         ) IN (
-          '(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND)',
-          'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND',
-          '(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THENcurrent_setting(''app.tenant_id''::text,true)::uuidELSENULL::uuidEND)',
-          'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THENcurrent_setting(''app.tenant_id''::text,true)::uuidELSENULL::uuidEND'
+          '(tenant_id=casewhenpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)then(current_setting(''app.tenant_id''::text,true))::uuidelsenull::uuidend)'
         )
     )
   ) AS tenant_tables_have_tenant_restrictive_guard
