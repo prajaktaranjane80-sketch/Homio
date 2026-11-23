@@ -117,7 +117,7 @@ function makeSequencedPool(
 const TENANT_ID = "11111111-1111-4111-8111-111111111111";
 
 describe("PostgreSQL effective runtime-role protection", () => {
-  it("includes inherited-role and restrictive tenant-policy checks", () => {
+  it("recognizes only the validated tenant-context policy form", () => {
     expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
       "pg_has_role(session_user, candidate.oid, 'USAGE')"
     );
@@ -162,22 +162,25 @@ describe("PostgreSQL effective runtime-role protection", () => {
       "pg_input_is_valid(current_setting("
     );
 
-    // PostgreSQL 18 deparses the safe CASE policy while retaining the
-    // function-call parentheses. The NULL branch denies empty or malformed
-    // tenant settings without attempting an invalid UUID cast.
-    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain("'[[:space:]]'");
-
-    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).not.toContain(
-      "'[[:space:]()]'"
-    );
-
+    // The PostgreSQL 18.4 deparser can preserve or omit one syntactic
+    // parenthesis pair around the comparison and UUID cast. Parentheses are
+    // not globally stripped: only these four exact CASE expressions match.
     expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
       "'(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND)'"
     );
 
-    // The old direct cast is deliberately not an approved tenant guard.
+    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
+      "'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND'"
+    );
+
     expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).not.toContain(
-      "'(tenant_id=(current_setting(''app.tenant_id''::text,true))::uuid)'"
+      "'tenant_id=current_setting(''app.tenant_id''::text,true)::uuid'"
+    );
+
+    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain("'[[:space:]]'");
+
+    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).not.toContain(
+      "'[[:space:]()]'"
     );
 
     expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
