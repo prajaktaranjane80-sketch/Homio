@@ -9,17 +9,23 @@ import type {
 
 export const VALID_TEST_TOKEN = "test-bearer-token";
 
+const TEST_TOKEN_ISSUED_AT = Math.floor(Date.now() / 1_000) - 30;
+const TEST_TOKEN_EXPIRES_AT = TEST_TOKEN_ISSUED_AT + 3_600;
+
 export const TEST_PRINCIPAL: VerifiedExternalPrincipal = {
   issuer: "https://identity.example.test/",
   subject: "provider-subject-001",
   audiences: ["homio-api"],
   clientId: "homio-frontend",
-  tokenId: "test-access-token-jti-001"
+  tokenId: "test-access-token-jti-001",
+  issuedAtEpochSeconds: TEST_TOKEN_ISSUED_AT,
+  expiresAtEpochSeconds: TEST_TOKEN_EXPIRES_AT
 };
 
 export const TEST_CONTEXT: TrustedRequestContext = {
   identityId: "11111111-1111-4111-8111-111111111111",
   accountId: "22222222-2222-4222-8222-222222222222",
+  authenticationEpoch: 7,
   tenantId: "33333333-3333-4333-8333-333333333333",
   tenantRevision: 2,
   organizationId: "44444444-4444-4444-8444-444444444444",
