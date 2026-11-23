@@ -283,7 +283,7 @@ SELECT COALESCE(
         pg_catalog.lower(
           pg_catalog.pg_get_expr(policy.polqual, policy.polrelid)
         ),
-        '[[:space:]()]',
+        '[[:space:]]',
         '',
         'g'
       ),
@@ -292,11 +292,14 @@ SELECT COALESCE(
         pg_catalog.lower(
           pg_catalog.pg_get_expr(policy.polqual, policy.polrelid)
         ),
-        '[[:space:]()]',
+        '[[:space:]]',
         '',
         'g'
       ) IN (
-        'tenant_id=casewhenpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)thencurrent_setting(''app.tenant_id''::text,true)::uuidelsenull::uuidend'
+        '(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND)',
+        'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND',
+        '(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THENcurrent_setting(''app.tenant_id''::text,true)::uuidELSENULL::uuidEND)',
+        'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THENcurrent_setting(''app.tenant_id''::text,true)::uuidELSENULL::uuidEND'
       ),
 
       'with_check_expression', pg_catalog.pg_get_expr(
@@ -308,7 +311,7 @@ SELECT COALESCE(
         pg_catalog.lower(
           pg_catalog.pg_get_expr(policy.polwithcheck, policy.polrelid)
         ),
-        '[[:space:]()]',
+        '[[:space:]]',
         '',
         'g'
       ),
@@ -317,11 +320,14 @@ SELECT COALESCE(
         pg_catalog.lower(
           pg_catalog.pg_get_expr(policy.polwithcheck, policy.polrelid)
         ),
-        '[[:space:]()]',
+        '[[:space:]]',
         '',
         'g'
       ) IN (
-        'tenant_id=casewhenpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)thencurrent_setting(''app.tenant_id''::text,true)::uuidelsenull::uuidend'
+        '(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND)',
+        'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND',
+        '(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THENcurrent_setting(''app.tenant_id''::text,true)::uuidELSENULL::uuidEND)',
+        'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THENcurrent_setting(''app.tenant_id''::text,true)::uuidELSENULL::uuidEND'
       ),
 
       'using_is_not_null', policy.polqual IS NOT NULL,
@@ -465,31 +471,27 @@ COMMIT;
         "Missing tenant context did not fail closed.",
     )
 
-    for context_label, tenant_context in (
-        ("empty", ""),
-        ("malformed", "not-a-uuid"),
-    ):
-        invalid_context = run_psql(
+    for invalid_tenant_id in ("", "not-a-uuid"):
+        quoted_setting = "'" + invalid_tenant_id.replace("'", "''") + "'"
+        invalid_context = f"""
+BEGIN;
+SELECT set_config('app.tenant_id', {quoted_setting}, true);
+SELECT
+  (SELECT count(*) FROM {TABLE})::text || ':' ||
+  (SELECT count(*) FROM {TABLE})::text;
+COMMIT;
+"""
+
+        invalid_output = run_psql(
             container_id=container_id,
             user=API_ROLE,
             password=api_password,
-            sql=f"""
-BEGIN;
-SELECT set_config('app.tenant_id', '{tenant_context}', true);
-SELECT count(*)::text FROM {TABLE};
-ROLLBACK;
-""",
-        ).stdout.splitlines()
-
-        visible_lines = [
-            line.strip()
-            for line in invalid_context
-            if line.strip()
-        ]
+            sql=invalid_context,
+        ).stdout.strip().splitlines()
 
         require(
-            visible_lines and visible_lines[-1] == "0",
-            f"{context_label.title()} tenant context did not fail closed.",
+            invalid_output and invalid_output[-1] == "0:0",
+            f"Empty or malformed tenant context exposed rows: {invalid_tenant_id!r}.",
         )
 
     wrong_tenant_insert = f"""
@@ -642,7 +644,7 @@ GRANT {BYPASS_ROLE} TO {API_ROLE};
         "The production guard failed to detect a missing restrictive tenant policy.",
     )
 
-    unsafe_legacy_guard = f"""
+    recreate_legacy_guard = f"""
 CREATE POLICY homio_test_tenant_guard ON {TABLE}
   AS RESTRICTIVE FOR ALL TO {API_ROLE}
   USING (tenant_id = current_setting('app.tenant_id', true)::uuid)
@@ -653,10 +655,10 @@ CREATE POLICY homio_test_tenant_guard ON {TABLE}
         container_id=container_id,
         user="postgres",
         password=admin_password,
-        sql=unsafe_legacy_guard,
+        sql=recreate_legacy_guard,
     )
 
-    legacy_guard = role_attestation(
+    legacy_policy_result = role_attestation(
         container_id=container_id,
         user=API_ROLE,
         password=api_password,
@@ -664,20 +666,12 @@ CREATE POLICY homio_test_tenant_guard ON {TABLE}
     )
 
     require(
-        legacy_guard.get("tenant_tables_have_tenant_restrictive_guard") is False,
-        "The production guard accepted the legacy direct UUID-cast tenant policy.",
+        legacy_policy_result.get("tenant_tables_have_tenant_restrictive_guard") is False,
+        "The production guard accepted the legacy policy with an unsafe UUID cast.",
     )
 
-    run_psql(
-        container_id=container_id,
-        user="postgres",
-        password=admin_password,
-        sql=f"DROP POLICY homio_test_tenant_guard ON {TABLE};",
-    )
-
-    recreate_guard = f"""
-CREATE POLICY homio_test_tenant_guard ON {TABLE}
-  AS RESTRICTIVE FOR ALL TO {API_ROLE}
+    safe_recreate_guard = f"""
+ALTER POLICY homio_test_tenant_guard ON {TABLE}
   USING (
     tenant_id = CASE
       WHEN pg_input_is_valid(
@@ -704,7 +698,19 @@ CREATE POLICY homio_test_tenant_guard ON {TABLE}
         container_id=container_id,
         user="postgres",
         password=admin_password,
-        sql=recreate_guard,
+        sql=safe_recreate_guard,
+    )
+
+    safe_policy_result = role_attestation(
+        container_id=container_id,
+        user=API_ROLE,
+        password=api_password,
+        safety_sql=safety_sql,
+    )
+
+    require(
+        safe_policy_result.get("tenant_tables_have_tenant_restrictive_guard") is True,
+        "The production guard failed to recognize the validated tenant-context policy.",
     )
 
     unsafe_table = f"""
@@ -786,7 +792,7 @@ def verify_psql_password_is_not_exposed_in_process_arguments() -> None:
     )
     require(isinstance(command, list), "The Docker command arguments were not captured.")
     require(
-        password not in "\\0".join(command),
+        password not in "\0".join(command),
         "The PostgreSQL password leaked into process arguments.",
     )
     require(
@@ -817,6 +823,7 @@ def self_test() -> None:
         "policy.polcmd = '*'",
         "policy.polwithcheck IS NOT NULL",
         "pg_input_is_valid(current_setting",
+        "ELSENULL::uuidEND",
         "tenant_tables_have_tenant_restrictive_guard",
     )
 
@@ -891,8 +898,8 @@ def main() -> int:
 
     print(
         "PASS: real PostgreSQL role safety, inherited privilege, table ownership, "
-        "restrictive RLS policy, tenant isolation, transaction-local context, "
-        "cross-tenant write denial and superuser detection."
+        "validated restrictive RLS policy, empty/malformed tenant-context denial, "
+        "transaction-local context, cross-tenant write denial and superuser detection."
     )
 
     return 0
