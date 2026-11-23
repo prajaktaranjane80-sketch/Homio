@@ -67,23 +67,22 @@ function readRole(url, environmentName) {
 }
 
 function sameDatabase(left, right) {
-  const leftPort = left.port || "5432";
-  const rightPort = right.port || "5432";
-
   return (
     left.hostname.toLowerCase() === right.hostname.toLowerCase() &&
-    leftPort === rightPort &&
+    (left.port || "5432") === (right.port || "5432") &&
     left.pathname === right.pathname
   );
 }
 
 function buildSslConfiguration() {
   const nodeEnv = process.env.NODE_ENV ?? "development";
+
   const defaultMode = nodeEnv === "production"
     ? "verify-full"
     : "disable";
 
-  const mode = process.env.HOMIO_POSTGRES_SSL_MODE ?? defaultMode;
+  const mode =
+    process.env.HOMIO_POSTGRES_SSL_MODE ?? defaultMode;
 
   if (mode !== "disable" && mode !== "verify-full") {
     fail("HOMIO_POSTGRES_SSL_MODE must be disable or verify-full.");
@@ -134,22 +133,13 @@ async function run() {
 
   const migrationRole = readRole(
     migration.url,
-    "HOMIO_POSTGRES_MIGRATION_ROLE"
+    "HOMIO_MIGRATION_ROLE"
   );
 
   if (applicationRole === migrationRole) {
     fail(
       "The PostgreSQL migration role must be distinct from the application role."
     );
-  }
-
-  // The current CORE-002 repository is intentionally bound to this
-  // canonical schema. A different schema requires a matching repository
-  // owner, not merely a deployment environment-variable override.
-  const schemaName = process.env.HOMIO_POSTGRES_SCHEMA ?? "core002";
-
-  if (schemaName !== "core002") {
-    fail("HOMIO_POSTGRES_SCHEMA must be core002.");
   }
 
   const ssl = buildSslConfiguration();
@@ -177,9 +167,8 @@ async function run() {
             'CREATE'
           ) AS can_create
         FROM pg_namespace AS namespace
-        WHERE namespace.nspname = $1
-      `,
-      [schemaName]
+        WHERE namespace.nspname = 'core002'
+      `
     );
 
     const schema = schemaResult.rows[0];
@@ -201,7 +190,7 @@ async function run() {
       {
         migrationRole,
         applicationRole,
-        schemaName
+        schemaName: "core002"
       }
     );
 
@@ -233,5 +222,6 @@ run().catch(() => {
   process.stderr.write(
     "HOMIO PostgreSQL migration failed. Review the migration-role, schema, manifest and database logs; no automatic retry is performed.\n"
   );
+
   process.exitCode = 1;
 });
