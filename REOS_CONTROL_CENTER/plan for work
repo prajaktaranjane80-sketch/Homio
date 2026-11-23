@@ -689,3 +689,85 @@ Mera corrected conclusion:
 4. Outbox replacement mein confirmed TypeScript defect hai.
 5. Current run ne tests aur reproducible build tak pahunchkar verification complete nahi ki; isliye abhi B4 ko error-free ya DONE kehna galat hoga.
 Abhi sabse pehle outbox file ka complete corrected replacement chahiye. migrate-postgres.mjs ko phir se replace karne ki zarurat nahi hai—uska lint issue resolve ho chuka hai. Uske baad typecheck, tests aur build ke actual results dekhkar hi B4 ke remaining changes decide hone chahiye.
+
+Bhai, maine live GitHub par REOS_CONTROL_CENTER/plan for work ko hi implementation reference maan kar audit kiya hai. ARCH-037 ko dobara approval ke liye nahi khol raha. Tumhari baat sahi hai ki existing owners aur passing files ko baar-baar replace karna galat hoga.
+1. Live status
+Repository HEAD
+Verified
+
+0d96453a6a7db6be38733e3c2f25e7572c22e647
+
+ARCH-037
+APPROVED / FROZEN
+
+T01–T11 DONE, AC01–AC11 VERIFIED.
+
+B4
+CURRENT
+
+Latest Actions #951
+SUCCESS
+
+17 test files, 151 tests passed; ACRL 1,466 passed.
+
+Open exact Actions run
+
+Green CI ka matlab B4 DONE nahi hai. Run #951 mein B4 guarded completion transition execute nahi hua.
+2. Jo files dobara replace nahi karni hain
+Maine in existing owners ko preserve karna confirm kiya:
+Existing file	Current decision
+backend/src/persistence/postgres.ts	REUSE
+backend/src/persistence/postgres-migrations.ts	REUSE
+backend/src/persistence/production-runtime.ts	REUSE; required adapter connection ke liye later UPDATE
+backend/src/persistence/redis-rate-limit.ts	REUSE
+backend/src/main.ts	REUSE
+backend/src/persistence/postgres-migration-manifest.ts	REUSE
+backend/tests/integration/production-persistence.integration.test.ts	REUSE — latest CI PASS
+backend/src/persistence/postgres-core002-outbox.ts	REUSE — latest CI PASS
+
+Pehle se saved RLS, outbox aur production runtime fixes ko dobara nahi bhejunga.
+3. Plan mein ek actual migration-path conflict hai
+plan for work ke proposed structure mein src/persistence/schema-migrations/*.ts files hain. Lekin live migration owner:
+- Sirf eight-digit ID wale .sql migration filenames accept karta hai.
+- migrate-postgres.mjs existing backend/scripts/postgres/migrations folder load karta hai.
+- 00000001 aur 00000002 already CORE-002 migrations ke liye use ho chuke hain.
+Isliye plan ke proposed .ts files aur IDs 00000001, 00000002 ko blindly paste karna galat hoga. Woh existing migration system mein execute nahi honge aur migration IDs collide karenge.
+
+Correct implementation existing SQL migration owner ko extend karke hi hogi:
+
+REOS_CONTROL_CENTER/backend/scripts/postgres/migrations/
+
+Existing migrations ko immutable rakhkar next unused ID se aage badhna hoga. Koi second runner ya parallel migration folder nahi.
+4. Plan ke exact remaining B4 files
+Exact repository path	Operation
+evidence/BACKEND-001/B4-ARCH037-physical-schema-catalogue.md	ADD
+evidence/BACKEND-001/B4-identifier-tenant-security-compatibility-contract.md	UPDATE
+evidence/BACKEND-001/B4-target-backup-restore-evidence.md	ADD
+backend/src/persistence/postgres-session-store.ts	ADD
+backend/src/persistence/postgres-security-audit.ts	ADD
+Existing backend/src/persistence/production-runtime.ts	UPDATE
+Existing backend/src/security/contracts.ts	UPDATE
+Existing backend/src/security/api-security.ts	UPDATE
+Existing backend/src/app.ts	UPDATE
+Existing backend/scripts/postgres/migrations/	ADD ordered SQL migrations
+backend/tests/unit/postgres-session-store.test.ts	ADD
+backend/tests/unit/postgres-security-audit.test.ts	ADD
+backend/tests/integration/postgres-arch037-schema.integration.test.ts	ADD
+backend/tests/integration/postgres-session-store.integration.test.ts	ADD
+backend/tests/integration/postgres-security-audit.integration.test.ts	ADD
+backend/tests/integration/postgres-backup-restore.integration.test.ts	ADD
+backend/scripts/postgres/verify-target-backup-restore.sh	ADD
+Existing .github/workflows/backend-ci.yml	UPDATE with guarded B4 verification/completion
+
+Ye file set tumhare existing plan se hai; koi parallel backend, new API, duplicate persistence engine ya new master document propose nahi kar raha.
+5. Exact reason main abhi guessed code files nahi de raha
+Live branch mein B4-ARCH037-physical-schema-reconstruction-proposal.md aur B4-identifier-tenant-security-compatibility-contract.md abhi DRAFT hain. Proposal mein candidate table names aur mappings hain; woh executable approved DDL ka substitute nahi hain.
+
+Do actual contract issues bhi unresolved hain:
+- CORE-001 ka IdentityAccount.authentication_epoch canonical source hai, lekin current backend session validation ko account context resolve hone se pehle call karta hai. VerifiedExternalPrincipal mein verified iat/exp bhi expose nahi hote.
+- Financial source Decimal aur currency minor units define karta hai, lekin har financial amount ka maximum magnitude define nahi karta. Guess karke numeric precision set karna data-integrity risk hoga.
+state.json ARCH-037 approval confirm karta hai. Yeh approval dobara nahi maang raha. Lekin usmein exact physical SQL catalogue ka content nahi hai, aur live repository mein bhi approved catalogue file nahi mili. Tumhare plan mein isi catalogue ko B4 ka required deliverable bataya gaya hai.
+
+Main candidate SQL ko approved schema kehkar executable migration bana kar nahi dunga—isse existing CORE owners aur tenant/financial data integrity khatre mein aa sakti hai.
+
+Final status: B4 ka infrastructure CI green hai; B4 abhi complete nahi. Mainne abhi koi GitHub file modify nahi ki aur state.json ko touch nahi kiya. ARCH-037 wahi approved/frozen rahega. B4 implementation mein existing SQL migration owner, session/audit adapters, actual schema integration, target recovery evidence aur guarded completion hi remaining delivery hain.
