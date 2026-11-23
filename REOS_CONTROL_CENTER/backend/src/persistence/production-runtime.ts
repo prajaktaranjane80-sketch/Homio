@@ -1,4 +1,3 @@
-
 import { createRequire } from "node:module";
 
 import type { BackendSettings } from "../config/settings.js";
@@ -7,7 +6,13 @@ import {
   type PostgresDriverPool,
   type PostgresQueryResult
 } from "./postgres.js";
-import type { RedisEvalClient } from "./redis-rate-limit.js";
+import {
+  RedisRateLimiter,
+  type RedisEvalClient,
+  type RedisRateLimitOptions
+} from "./redis-rate-limit.js";
+import { PostgresSessionStore } from "./postgres-session-store.js";
+import { PostgresSecurityAuditStore } from "./postgres-security-audit.js";
 
 const MINIMUM_POSTGRES_SERVER_VERSION_NUM = 180004;
 
@@ -37,7 +42,7 @@ export interface RedisClientOptions {
 }
 
 export interface ProductionPostgresPool extends PostgresDriverPool {
-  query(text: string): Promise<PostgresQueryResult>;
+  query(text: string, values?: unknown[]): Promise<PostgresQueryResult>;
   on(event: "error", listener: (error: Error) => void): unknown;
 }
 
@@ -61,6 +66,9 @@ export interface ProductionPersistenceDriverFactories {
 export interface ProductionPersistenceRuntime {
   readonly postgres: PostgresRuntime;
   readonly redis: ProductionRedisClient;
+  readonly sessions: PostgresSessionStore;
+  readonly securityAudit: PostgresSecurityAuditStore;
+  createRateLimiter(options: RedisRateLimitOptions): RedisRateLimiter;
   isHealthy(): boolean;
   verifyReadiness(): Promise<void>;
   close(): Promise<void>;
@@ -103,10 +111,6 @@ function loadNodeDriverFactories(): ProductionPersistenceDriverFactories {
     },
 
     createRedisClient(options) {
-      // node-redis normalizes its options in place during client creation.
-      // The configuration snapshot supplied by this composition root is
-      // intentionally frozen. Give node-redis its own mutable object tree
-      // so library defaults cannot mutate our immutable configuration.
       return redisModule.createClient({
         ...options,
         socket: {
@@ -192,18 +196,6 @@ function readPostgresServerVersion(
   return version;
 }
 
-/**
- * Creates the one PostgreSQL pool and one Redis client used by this process.
- *
- * Existing owners remain authoritative:
- * - PostgresRuntime owns tenant transactions and database role/RLS checks.
- * - RedisRateLimiter owns atomic shared rate-limit behavior.
- * - PostgresMigrationRunner owns deterministic migration execution.
- *
- * This composition root does not create business tables, session stores,
- * security-audit tables or domain repositories. Those require the approved
- * physical schema and their canonical CORE owners.
- */
 export async function createProductionPersistenceRuntime(
   settings: BackendSettings,
   factories: ProductionPersistenceDriverFactories = loadNodeDriverFactories()
@@ -215,8 +207,6 @@ export async function createProductionPersistenceRuntime(
     throw new ProductionPersistenceConfigurationError();
   }
 
-  // Pool creation is the first resource acquisition. If later composition
-  // fails, this pool is still closed before the error escapes.
   const pool = factories.createPostgresPool(
     createPostgresOptions(postgresSettings)
   );
@@ -235,8 +225,6 @@ export async function createProductionPersistenceRuntime(
       return;
     }
 
-    // PostgresRuntime construction itself can reject an invalid driver.
-    // In that case, the pool still belongs to this composition root.
     await pool.end();
   }
 
@@ -339,8 +327,6 @@ export async function createProductionPersistenceRuntime(
       postgresHealthy = false;
     });
 
-    // Redis construction is deliberately inside the cleanup boundary.
-    // A factory exception must not leave the already-created PG pool open.
     redis = factories.createRedisClient(
       createRedisOptions(redisSettings)
     );
@@ -359,6 +345,8 @@ export async function createProductionPersistenceRuntime(
 
     const activeRedis = redis;
     const activePostgres = postgres;
+    const sessions = new PostgresSessionStore(activePostgres);
+    const securityAudit = new PostgresSecurityAuditStore(pool);
 
     await Promise.all([
       pool.query(
@@ -376,8 +364,6 @@ export async function createProductionPersistenceRuntime(
       activeRedis.connect()
     ]);
 
-    // Fail closed until the approved tenant tables, FORCE RLS and restrictive
-    // tenant policies have been installed by the dedicated migration owner.
     await activePostgres.verifyRuntimeRoleSafety();
 
     await verifyReadiness();
@@ -385,6 +371,18 @@ export async function createProductionPersistenceRuntime(
     return Object.freeze({
       postgres: activePostgres,
       redis: activeRedis,
+      sessions,
+      securityAudit,
+
+      createRateLimiter(options: RedisRateLimitOptions): RedisRateLimiter {
+        if (closed) {
+          throw new ProductionPersistenceUnavailableError(
+            "Production persistence is closed."
+          );
+        }
+
+        return new RedisRateLimiter(activeRedis, options);
+      },
 
       isHealthy(): boolean {
         return !closed && postgresHealthy && redisHealthy;
