@@ -38,6 +38,19 @@ function quoteRole(role: string): string {
   return `"${role}"`;
 }
 
+function requireApplicationRole(): string {
+  if (
+    typeof applicationRole !== "string" ||
+    applicationRole.length === 0
+  ) {
+    throw new Error(
+      "HOMIO_TEST_POSTGRES_APPLICATION_ROLE is required for this integration suite."
+    );
+  }
+
+  return applicationRole;
+}
+
 postgresSuite("PostgresSessionStore PostgreSQL integration", () => {
   let adminPool: Pool;
   let roleScopedPool: Pool;
@@ -54,14 +67,14 @@ postgresSuite("PostgresSessionStore PostgreSQL integration", () => {
       max: 3
     });
 
-    const role = quoteRole(applicationRole!);
+    const role = quoteRole(requireApplicationRole());
 
     const rolePool = {
       connect: async () => {
         const client = await roleScopedPool.connect();
 
         try {
-          await client.query(`SET ROLE ${role}`);
+          await client.query(`SET SESSION AUTHORIZATION ${role}`);
           return client;
         } catch (error) {
           client.release();
