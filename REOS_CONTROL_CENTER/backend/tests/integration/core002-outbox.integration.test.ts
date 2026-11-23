@@ -1,3 +1,4 @@
+
 import {
   createHash,
   randomBytes,
@@ -367,7 +368,7 @@ describe.skipIf(!enabled)(
         max: 3
       });
 
-      const migrations = await loadPostgresMigrationManifest(
+      const migrationManifest = await loadPostgresMigrationManifest(
         resolve(process.cwd(), "scripts", "postgres", "migrations"),
         {
           migrationRole,
@@ -375,6 +376,20 @@ describe.skipIf(!enabled)(
           schemaName: "core002"
         }
       );
+
+      // This fixture verifies CORE-002 only. B4 session and audit migrations
+      // have separate owners and integration suites; applying them here would
+      // make the CORE-002 fixture depend on unrelated persistence domains.
+      const core002Migrations = migrationManifest.filter(
+        (migration) => migration.name.startsWith("core002-")
+      );
+
+      expect(
+        core002Migrations.map((migration) => migration.id)
+      ).toEqual([
+        "00000001",
+        "00000002"
+      ]);
 
       const runner = new PostgresMigrationRunner(
         migrationPool as unknown as PostgresDriverPool,
@@ -384,9 +399,9 @@ describe.skipIf(!enabled)(
         }
       );
 
-      const report = await runner.migrate(migrations);
+      const report = await runner.migrate(core002Migrations);
 
-      expect(report.appliedCount).toBe(2);
+      expect(report.appliedCount).toBe(core002Migrations.length);
       expect(report.latestMigrationId).toBe("00000002");
 
       runtime = new PostgresRuntime(
