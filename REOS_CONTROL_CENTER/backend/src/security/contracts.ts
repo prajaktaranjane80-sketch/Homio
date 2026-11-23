@@ -1,20 +1,22 @@
 import type { FastifyRequest } from "fastify";
 
-/** Verified by the existing OIDC trust owner; never constructed from request headers. */
 export interface VerifiedExternalPrincipal {
   readonly issuer: string;
   readonly subject: string;
   readonly audiences: readonly string[];
-  /** Verified OAuth client_id claim; never accepted from request input. */
   readonly clientId: string;
-  /** Verified RFC 9068 jti claim used for revocation/session lookup. */
   readonly tokenId: string;
+  /** Verified JWT iat in Unix seconds; required for durable session creation. */
+  readonly issuedAtEpochSeconds?: number;
+  /** Verified JWT exp in Unix seconds; required for durable session creation. */
+  readonly expiresAtEpochSeconds?: number;
 }
 
-/** Minimal, non-PII request context resolved from CORE-001 authoritative owners. */
 export interface TrustedRequestContext {
   readonly identityId: string;
   readonly accountId: string;
+  /** Current CORE-001 IdentityAccount.authentication_epoch. */
+  readonly authenticationEpoch: number;
   readonly tenantId: string;
   readonly tenantRevision: number;
   readonly organizationId: string;
@@ -26,10 +28,6 @@ export type TokenVerificationFailureKind =
   | "invalid"
   | "unavailable";
 
-/**
- * Normalized failure from the canonical OIDC verifier boundary.
- * Invalid credentials map to 401; trust/JWKS/provider failures map to 503.
- */
 export class TokenVerificationError extends Error {
   public readonly kind: TokenVerificationFailureKind;
 
@@ -46,23 +44,17 @@ export class TokenVerificationError extends Error {
 }
 
 export interface TokenVerificationPort {
-  /** Verify signature, issuer, audience, expiry and allowed signing algorithm. */
   verifyAccessToken(token: string): Promise<VerifiedExternalPrincipal>;
 }
 
 export interface SessionValidationPort {
-  /**
-   * Consult the canonical session/revocation owner using the verified
-   * principal's tokenId (jti). The raw bearer token must never be forwarded
-   * to or persisted by the session/revocation store.
-   */
   isSessionActive(input: {
     readonly principal: VerifiedExternalPrincipal;
+    readonly context: TrustedRequestContext;
   }): Promise<boolean>;
 }
 
 export interface TrustedContextResolverPort {
-  /** Resolve external identity, account, selected tenant and active membership server-side. */
   resolve(input: {
     readonly principal: VerifiedExternalPrincipal;
     readonly requestedTenantId?: string;
@@ -76,7 +68,6 @@ export interface AuthorizationDecision {
 }
 
 export interface AuthorizationPolicyPort {
-  /** Delegate resource/action decisions to the canonical authorization owner. */
   authorize(input: {
     readonly context: TrustedRequestContext;
     readonly operation: string;
@@ -90,7 +81,6 @@ export interface RateLimitDecision {
 }
 
 export interface RateLimitPort {
-  /** The adapter owns policy thresholds and shared/distributed counter storage. */
   consume(input: {
     readonly bucket: "api-ip" | "api-identity-tenant";
     readonly key: string;
@@ -112,7 +102,6 @@ export interface SecurityAuditEvent {
 }
 
 export interface SecurityAuditPort {
-  /** Persist a structured, PII-minimized audit event through the approved audit owner. */
   record(event: SecurityAuditEvent): Promise<void>;
 }
 
@@ -131,15 +120,10 @@ export interface PublicApiRouteSecurityPolicy {
 
 export interface ProtectedApiRouteSecurityPolicy {
   readonly public?: false;
-  /** Stable permission operation, for example inventory.read or leads.create. */
   readonly operation: string;
-  /** Optional untrusted tenant selector; CORE-001 must validate membership. */
   readonly requestedTenantId?: (request: FastifyRequest) => string | undefined;
-  /** Optional untrusted organization selector; CORE-001 must validate membership. */
   readonly requestedOrganizationId?: (request: FastifyRequest) => string | undefined;
-  /** Optional resource identifier; authorization owner must verify resource ownership. */
   readonly resourceId?: (request: FastifyRequest) => string | undefined;
-  /** Required for every protected state-changing route. */
   readonly reauthorizeBeforeMutation?: true;
 }
 
