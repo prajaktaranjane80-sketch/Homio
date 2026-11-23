@@ -328,8 +328,8 @@ function beginStatement(
   readOnly: boolean
 ): string {
   return readOnly
-    ? \`BEGIN ISOLATION LEVEL \${isolationLevel} READ ONLY\`
-    : \`BEGIN ISOLATION LEVEL \${isolationLevel}\`;
+    ? `BEGIN ISOLATION LEVEL ${isolationLevel} READ ONLY`
+    : `BEGIN ISOLATION LEVEL ${isolationLevel}`;
 }
 
 /** Owns one Pool; every tenant transaction uses one checked-out client. */
