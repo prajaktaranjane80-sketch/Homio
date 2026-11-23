@@ -81,7 +81,8 @@ const TENANT_SETTING_SQL =
  * combined with OR, so a broad permissive policy can otherwise widen access.
  * Every tenant table must also have an applicable restrictive FOR ALL policy
  * whose USING and WITH CHECK expressions both match the transaction-local
- * app.tenant_id equality.
+ * app.tenant_id equality guarded by pg_input_is_valid() and a NULL
+ * fail-closed branch.
  *
  * PostgreSQL's pg_get_expr() deparser emits parentheses around function calls
  * and casts. Those parentheses are significant and must be preserved.
@@ -180,12 +181,10 @@ SELECT
           '',
           'g'
         ) IN (
-          '(tenant_id=(current_setting(''app.tenant_id''::text,true))::uuid)',
-          'tenant_id=(current_setting(''app.tenant_id''::text,true))::uuid',
-          '(tenant_id=current_setting(''app.tenant_id''::text,true)::uuid)',
-          'tenant_id=current_setting(''app.tenant_id''::text,true)::uuid',
-          '(tenant_id=current_setting(''app.tenant_id''::text,true))',
-          'tenant_id=current_setting(''app.tenant_id''::text,true)'
+          '(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND)',
+          'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND',
+          '(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THENcurrent_setting(''app.tenant_id''::text,true)::uuidELSENULL::uuidEND)',
+          'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THENcurrent_setting(''app.tenant_id''::text,true)::uuidELSENULL::uuidEND'
         )
         AND pg_catalog.regexp_replace(
           pg_catalog.lower(
@@ -195,12 +194,10 @@ SELECT
           '',
           'g'
         ) IN (
-          '(tenant_id=(current_setting(''app.tenant_id''::text,true))::uuid)',
-          'tenant_id=(current_setting(''app.tenant_id''::text,true))::uuid',
-          '(tenant_id=current_setting(''app.tenant_id''::text,true)::uuid)',
-          'tenant_id=current_setting(''app.tenant_id''::text,true)::uuid',
-          '(tenant_id=current_setting(''app.tenant_id''::text,true))',
-          'tenant_id=current_setting(''app.tenant_id''::text,true)'
+          '(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND)',
+          'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND',
+          '(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THENcurrent_setting(''app.tenant_id''::text,true)::uuidELSENULL::uuidEND)',
+          'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THENcurrent_setting(''app.tenant_id''::text,true)::uuidELSENULL::uuidEND'
         )
     )
   ) AS tenant_tables_have_tenant_restrictive_guard
@@ -331,8 +328,8 @@ function beginStatement(
   readOnly: boolean
 ): string {
   return readOnly
-    ? `BEGIN ISOLATION LEVEL ${isolationLevel} READ ONLY`
-    : `BEGIN ISOLATION LEVEL ${isolationLevel}`;
+    ? \`BEGIN ISOLATION LEVEL \${isolationLevel} READ ONLY\`
+    : \`BEGIN ISOLATION LEVEL \${isolationLevel}\`;
 }
 
 /** Owns one Pool; every tenant transaction uses one checked-out client. */
