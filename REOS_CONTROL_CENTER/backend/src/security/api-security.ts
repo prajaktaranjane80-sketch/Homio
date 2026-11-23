@@ -79,11 +79,6 @@ function hasValidSchemaReference(value: Record<string, unknown>): boolean {
   );
 }
 
-/**
- * Reject empty JSON Schemas ({}), which accept every possible input.
- * Object schemas must be closed; nested objects use the same contract.
- * Shared $ref schemas are resolved by Fastify during server.ready().
- */
 function isMeaningfulJsonSchema(value: unknown): boolean {
   if (!isRecord(value)) {
     return false;
@@ -159,8 +154,6 @@ function isStrictObjectJsonSchema(
     return false;
   }
 
-  // Capture and narrow the property map before using it in callbacks.
-  // Re-reading value.properties inside an Array callback loses TS narrowing.
   const properties = value.properties;
 
   if (!isRecord(properties)) {
@@ -248,7 +241,6 @@ function isUuid(value: unknown): value is string {
   return typeof value === "string" && UUID_PATTERN.test(value);
 }
 
-/** Reject the same C0 and DEL controls previously covered by the regex guard. */
 function containsAsciiControlCharacters(value: string): boolean {
   for (let index = 0; index < value.length; index += 1) {
     const characterCode = value.charCodeAt(index);
@@ -342,7 +334,10 @@ function isTrustedContext(
     value.tenantRevision > 0 &&
     typeof value.membershipRevision === "number" &&
     Number.isSafeInteger(value.membershipRevision) &&
-    value.membershipRevision > 0
+    value.membershipRevision > 0 &&
+    typeof value.authenticationEpoch === "number" &&
+    Number.isSafeInteger(value.authenticationEpoch) &&
+    value.authenticationEpoch > 0
   );
 }
 
@@ -353,6 +348,7 @@ function hasSameTrustedContext(
   return (
     left.identityId === right.identityId &&
     left.accountId === right.accountId &&
+    left.authenticationEpoch === right.authenticationEpoch &&
     left.tenantId === right.tenantId &&
     left.organizationId === right.organizationId &&
     left.membershipId === right.membershipId &&
@@ -902,9 +898,6 @@ async function authorizeProtectedRequest(
 
     principal = verified;
   } catch (error) {
-    // Unknown verifier failures are treated as dependency failures, not as
-    // proof of invalid credentials. The adapter must normalize known token
-    // rejection versus JWKS/provider availability failures explicitly.
     const invalid =
       error instanceof TokenVerificationError &&
       error.kind === "invalid";
@@ -914,35 +907,6 @@ async function authorizeProtectedRequest(
       reasonCode: invalid
         ? "INVALID_BEARER_TOKEN"
         : "TOKEN_VERIFICATION_UNAVAILABLE",
-      operation: routePolicy.operation
-    });
-    return false;
-  }
-
-  let sessionActive: unknown;
-
-  try {
-    // The session owner receives only verified claims (including jti).
-    // Never forward the raw bearer token beyond the OIDC verifier boundary.
-    sessionActive =
-      await runtime.sessionValidator.isSessionActive({
-        principal
-      });
-  } catch {
-    await denyRequest(runtime, request, reply, {
-      statusCode: 503,
-      reasonCode: "SESSION_VALIDATION_UNAVAILABLE",
-      operation: routePolicy.operation
-    });
-    return false;
-  }
-
-  if (sessionActive !== true) {
-    await denyRequest(runtime, request, reply, {
-      statusCode: sessionActive === false ? 401 : 503,
-      reasonCode: sessionActive === false
-        ? "SESSION_INACTIVE"
-        : "SESSION_VALIDATION_INVALID_RESPONSE",
       operation: routePolicy.operation
     });
     return false;
@@ -989,9 +953,6 @@ async function authorizeProtectedRequest(
 
   const context: TrustedRequestContext = contextValue;
 
-  // A mutation must execute under exactly the context authorized at ingress.
-  // Re-resolving to a different identity, account, tenant, organization,
-  // membership or revision is a time-of-check/time-of-use boundary change.
   if (
     options.expectedContext !== undefined &&
     !hasSameTrustedContext(context, options.expectedContext)
@@ -1005,7 +966,6 @@ async function authorizeProtectedRequest(
     return false;
   }
 
-  // Never allow an adapter to widen the requested tenant or organization.
   if (
     (
       requestedTenantId !== undefined &&
@@ -1019,6 +979,36 @@ async function authorizeProtectedRequest(
     await denyRequest(runtime, request, reply, {
       statusCode: 503,
       reasonCode: "TRUSTED_CONTEXT_SCOPE_MISMATCH",
+      operation: routePolicy.operation,
+      context
+    });
+    return false;
+  }
+
+  let sessionActive: unknown;
+
+  try {
+    sessionActive =
+      await runtime.sessionValidator.isSessionActive({
+        principal,
+        context
+      });
+  } catch {
+    await denyRequest(runtime, request, reply, {
+      statusCode: 503,
+      reasonCode: "SESSION_VALIDATION_UNAVAILABLE",
+      operation: routePolicy.operation,
+      context
+    });
+    return false;
+  }
+
+  if (sessionActive !== true) {
+    await denyRequest(runtime, request, reply, {
+      statusCode: sessionActive === false ? 401 : 503,
+      reasonCode: sessionActive === false
+        ? "SESSION_INACTIVE"
+        : "SESSION_VALIDATION_INVALID_RESPONSE",
       operation: routePolicy.operation,
       context
     });
@@ -1132,10 +1122,6 @@ async function authorizeProtectedRequest(
   return true;
 }
 
-/**
- * IP rate limiting applies to public and protected routes.
- * Protected routes additionally require bearer, session, tenant and permission checks.
- */
 export function createApiSecurityHook(
   runtime: BackendSecurityRuntime
 ) {
@@ -1204,10 +1190,6 @@ export function createApiSecurityHook(
   };
 }
 
-/**
- * Re-resolves bearer, session, tenant membership and permission after
- * Fastify validation and immediately before protected mutation handlers.
- */
 export function createMutationReauthorizationHook(
   runtime: BackendSecurityRuntime
 ) {
