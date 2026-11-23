@@ -1,3 +1,4 @@
+
 import { createHash } from "node:crypto";
 
 import type {
@@ -31,7 +32,7 @@ interface CanonicalEnvelopeIdentity {
   readonly idempotencyKey: string | null;
 }
 
-interface PublicationRow {
+interface PublicationRow extends Record<string, unknown> {
   readonly publication_id: unknown;
   readonly tenant_id: unknown;
   readonly event_id: unknown;
