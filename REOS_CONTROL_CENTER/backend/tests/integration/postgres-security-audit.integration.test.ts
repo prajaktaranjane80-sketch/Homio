@@ -33,6 +33,19 @@ function quoteRole(role: string): string {
   return `"${role}"`;
 }
 
+function requireApplicationRole(): string {
+  if (
+    typeof applicationRole !== "string" ||
+    applicationRole.length === 0
+  ) {
+    throw new Error(
+      "HOMIO_TEST_POSTGRES_APPLICATION_ROLE is required for this integration suite."
+    );
+  }
+
+  return applicationRole;
+}
+
 postgresSuite("PostgresSecurityAuditStore PostgreSQL integration", () => {
   let pool: Pool;
 
@@ -65,7 +78,7 @@ postgresSuite("PostgresSecurityAuditStore PostgreSQL integration", () => {
 
     try {
       await client.query("BEGIN");
-      await client.query(`SET LOCAL ROLE ${quoteRole(applicationRole!)}`);
+      await client.query(`SET LOCAL ROLE ${quoteRole(requireApplicationRole())}`);
 
       const store = new PostgresSecurityAuditStore({
         query: async (sql, values) => {
