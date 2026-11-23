@@ -67,6 +67,7 @@ const PRINCIPAL_KEYS = [
 
 const CONTEXT_KEYS = [
   "accountId",
+  "authenticationEpoch",
   "identityId",
   "membershipId",
   "membershipRevision",
