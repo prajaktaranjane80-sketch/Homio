@@ -15,7 +15,9 @@ import {
   it
 } from "vitest";
 
-import type { PostgresDriverPool } from "../../src/persistence/postgres.js";
+import type {
+  PostgresDriverPool
+} from "../../src/persistence/postgres.js";
 
 import {
   PostgresRuntime
@@ -42,11 +44,23 @@ interface QueryResult {
   readonly rowCount: number | null;
 }
 
+interface TestClient {
+  query(
+    text: string,
+    values?: unknown[]
+  ): Promise<QueryResult>;
+
+  release(error?: Error | boolean): void;
+}
+
 interface TestPool {
   query(
     text: string,
     values?: unknown[]
   ): Promise<QueryResult>;
+
+  connect(): Promise<TestClient>;
+
   end(): Promise<void>;
 }
 
@@ -108,7 +122,6 @@ function makeCanonicalEvent(
 } {
   const timestamp = new Date().toISOString();
 
-  // This key order matches CORE-002 canonical JSON serialization.
   const envelope = {
     causation_id: null,
     correlation_id: randomUUID(),
@@ -251,13 +264,7 @@ describe.skipIf(!enabled)(
           AUTHORIZATION ${quoteIdentifier(migrationRole)}
       `);
 
-      const ledgerOwner = await adminPool.connect?.();
-
-      if (ledgerOwner === undefined) {
-        throw new Error(
-          "PostgreSQL test pool does not expose a connection method."
-        );
-      }
+      const ledgerOwner = await adminPool.connect();
 
       try {
         await ledgerOwner.query(
@@ -390,7 +397,11 @@ describe.skipIf(!enabled)(
     }, 60000);
 
     afterAll(async () => {
-      await runtime?.close().catch(() => undefined);
+      if (runtime !== undefined) {
+        await runtime.close().catch(() => undefined);
+      } else {
+        await applicationPool?.end().catch(() => undefined);
+      }
 
       await migrationPool?.end().catch(() => undefined);
       await adminPool?.end().catch(() => undefined);
@@ -418,7 +429,7 @@ describe.skipIf(!enabled)(
       }
     }, 60000);
 
-    it("enforces durable append, outbox transitions, tenant isolation and atomic rollback", async () => {
+    it("enforces append, outbox transitions, tenant isolation and atomic rollback", async () => {
       if (runtime === undefined || applicationPool === undefined) {
         throw new Error(
           "The CORE-002 PostgreSQL fixture was not initialized."
@@ -426,6 +437,7 @@ describe.skipIf(!enabled)(
       }
 
       const eventId = randomUUID();
+
       const event = makeCanonicalEvent(
         tenantA,
         eventId,
@@ -498,7 +510,41 @@ describe.skipIf(!enabled)(
 
       expect(duplicate).toBe(false);
 
+      const concurrentId = randomUUID();
+
+      const concurrentEvent = makeCanonicalEvent(
+        tenantA,
+        concurrentId,
+        `concurrent-${randomUUID()}`
+      );
+
+      const concurrentResults = await Promise.all([
+        runtime.withTenantTransaction(
+          { tenantId: tenantA },
+          (transaction) =>
+            new PostgresCore002EventOutboxRepository(
+              transaction
+            ).appendEvent(concurrentEvent)
+        ),
+        runtime.withTenantTransaction(
+          { tenantId: tenantA },
+          (transaction) =>
+            new PostgresCore002EventOutboxRepository(
+              transaction
+            ).appendEvent(concurrentEvent)
+        )
+      ]);
+
+      expect(
+        concurrentResults.filter((value) => value === true)
+      ).toHaveLength(1);
+
+      expect(
+        concurrentResults.filter((value) => value === false)
+      ).toHaveLength(1);
+
       const rolledBackEventId = randomUUID();
+
       const rolledBackEvent = makeCanonicalEvent(
         tenantA,
         rolledBackEventId,
@@ -589,6 +635,12 @@ describe.skipIf(!enabled)(
         `cross-tenant-${randomUUID()}`
       );
 
+      const crossTenantEventId = (
+        JSON.parse(crossTenantEvent.serializedEnvelope) as {
+          event_id: string;
+        }
+      ).event_id;
+
       await expect(
         runtime.withTenantTransaction(
           { tenantId: tenantA },
@@ -617,11 +669,7 @@ describe.skipIf(!enabled)(
               `,
               [
                 tenantB,
-                crossTenantEvent.serializedEnvelope === ""
-                  ? randomUUID()
-                  : JSON.parse(
-                      crossTenantEvent.serializedEnvelope
-                    ).event_id,
+                crossTenantEventId,
                 crossTenantEvent.serializedEnvelope,
                 crossTenantEvent.immutableFingerprint
               ]
