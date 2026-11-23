@@ -601,3 +601,91 @@ Maine live source se verify kiya ki ye kaam already implemented hain—inko doba
 B4 ka real remaining scope in existing owners ko approved schema se connect karna, business migrations/repositories, tenant isolation, durable session/revocation, API security audit persistence, outbox/idempotency aur real business-schema recovery tests hai. Current integration tests synthetic tables par hain; unhe actual business-schema proof nahi kehna chahiye.
 
 Ab tumse ARCH-037 ka link, reapproval ya wahi purani files dobara nahi maangunga. B4 ko state.json mein approved ARCH-037 aur CORE-001–CORE-008 ke existing owners ke against hi aage badhana hai. B4 abhi CURRENT hai—approval ke liye nahi, implementation aur evidence complete karne ke liye. Fake completion bhi nahi, aur approval ko dobara kholna bhi nahi
+
+
+
+naya audit 
+
+Prajakta, tumhara doubt sahi hai: pichhla diagnosis complete nahi tha. containsControlCharacters() wala change GitHub par save hua hai, lekin uske baad bhi latest run 45121346135 fail hua. Isliye us replacement ko “B4 fixed” kehna galat hota.
+
+Ek aur important confirmation: live state.json abhi bhi BACKEND-001-B4 ko CURRENT rakhta hai. B4 ko DONE mark nahi kiya gaya hai, aur ARCH-037 approval ko dobara kholne ki zarurat nahi dikh rahi.
+
+Haan, tumhara doubt bilkul valid hai. Diagnosis mein gaps the aur pehle diya gaya outbox replacement incomplete tha. Problem tumhare GitHub par save karne ke tareeke mein nahi hai.
+1. Latest CI ka confirmed root cause
+Run #936 — FAILURE
+ 
+- Branch: reos-development
+- Tested HEAD: 7983fab0df047d6db2cc3cf2ae3ff3e98bcf7aac
+- Latest Actions run
+Verification	Result
+PostgreSQL tenant/RLS integration	PASS
+Migration concurrency and recovery	PASS
+Migration-ledger security checks	PASS
+Redis distributed rate-limit checks	PASS
+ESLint	PASS
+TypeScript typecheck	FAIL
+Vitest and build reproducibility	Not reached
+
+Exact error: postgres-core002-outbox.ts mein PublicationRow interface existing PostgresTransaction.query<Row extends Record<string, unknown>> contract satisfy nahi karti.
+
+Failures:
+- Line 642, column 49 — TS2344
+- Line 709, column 49 — TS2344
+Confirmed correction is in this file:
+
+REOS_CONTROL_CENTER/backend/src/persistence/postgres-core002-outbox.ts
+
+PublicationRow ko existing generic contract ke compatible banana hoga:
+interface PublicationRow extends Record<string, unknown> {
+
+
+Dono errors isi type-contract mismatch se aa rahe hain. Pehle replacement mein lint fix hua, lekin TypeScript verification nahi hui thi. Woh meri incomplete verification thi.
+2. plan for work ka diagnosis kitna sahi hai?
+Current plan for work
+
+Is document mein useful diagnosis hai, lekin ise current implementation ka complete aur reliable gap register nahi maan sakte.
+Plan ka finding	Live repository ke against result
+PostgreSQL production runtime missing	Outdated — existing runtime present
+Redis production client missing	Outdated — existing client factory present
+PostgreSQL migration mechanism missing	Incorrect — migration runner and integrity checks exist
+Business-schema migrations missing	Valid gap
+Durable session/revocation persistence	Still unresolved
+Durable security-audit persistence	Still unresolved
+CORE-002 outbox	Adapter added, but typecheck failing
+Financial/domain repository mapping	Still needs implementation evidence
+Target-environment backup/restore proof	Still required
+
+Iski problem yeh hai ki early sections mein PostgreSQL aur Redis runtime missing bataye gaye hain, lekin isi document ke later section mein production-runtime.ts ko implemented bataya gaya hai.
+
+Live repository mein pg, @redis/client, PostgreSQL pool creation aur Redis client creation ke existing owners hain. Latest CI ke real PostgreSQL aur Redis checks bhi pass hue. Isliye in dono ko dobara create ya replace nahi karna chahiye.
+3. ARCH-037 approval ka actual status
+Yeh distinction important hai:
+ARCH-037 APPROVED AND FROZEN
+Live state.json mein:
+- ARCH-037 approval date: 15 August 2026
+- GATE_APPROVED_AND_FROZEN event recorded hai.
+- T01–T11 aur AC01–AC11 completion records present hain.
+Is approval ko dobara open karne ya tumse reapproval maangne ka basis nahi hai.
+
+Lekin B4-ARCH037-physical-schema-reconstruction-proposal.md aur identifier compatibility contract alag documents hain, aur woh DRAFT — NOT APPROVED marked hain. Inmein proposed physical mappings hain; unhe automatically approved SQL schema nahi samajhna chahiye.
+
+Sahi distinction: architecture approval complete hai; approved physical schema ko executable PostgreSQL migrations se map karne ka evidence abhi incomplete hai.
+4. Kaunse references authoritative hain?
+AI_AGENT_ENTRYPOINT.py mein document registry ke according:
+- state.json — current task aur status authority.
+- HOMIO_Backend_Structure — backend technical master.
+- GitHub reos-development — actual code and history.
+- ACRL — continuity and recovery boundary.
+HOMIO_Backend_Structure ka B4 scope approved schema, migrations, repository ownership, tenant policies, financial safety aur target backup/restore par correctly focused hai.
+
+EntryPoint aur master document mein kuch historical at_review values bhi hain—jaise purana APP-001 task aur purana Actions run. Unhe live status nahi samajhna hai. Current status state.json se hi lena hai.
+5. Current B4 position
+state.json abhi bhi BACKEND-001-B4 ko CURRENT rakhta hai. B1, B2-FOUNDATION aur B3 DONE hain. B4 ke baad B2-PRODUCTION-BINDING aata hai.
+
+Mera corrected conclusion:
+1. plan for work ka kuch diagnosis sahi hai, lekin usmein outdated findings hain. Uske basis par blindly additions/replacements nahi hone chahiye.
+2. PostgreSQL/Redis runtime ko dobara banana galat hoga.
+3. Approved ARCH-037 ko reopen nahi karna hai.
+4. Outbox replacement mein confirmed TypeScript defect hai.
+5. Current run ne tests aur reproducible build tak pahunchkar verification complete nahi ki; isliye abhi B4 ko error-free ya DONE kehna galat hoga.
+Abhi sabse pehle outbox file ka complete corrected replacement chahiye. migrate-postgres.mjs ko phir se replace karne ki zarurat nahi hai—uska lint issue resolve ho chuka hai. Uske baad typecheck, tests aur build ke actual results dekhkar hi B4 ke remaining changes decide hone chahiye.
