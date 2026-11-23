@@ -200,8 +200,26 @@ CREATE POLICY homio_test_permissive ON {TABLE}
 
 CREATE POLICY homio_test_tenant_guard ON {TABLE}
   AS RESTRICTIVE FOR ALL TO {API_ROLE}
-  USING (tenant_id = current_setting('app.tenant_id', true)::uuid)
-  WITH CHECK (tenant_id = current_setting('app.tenant_id', true)::uuid);
+  USING (
+    tenant_id = CASE
+      WHEN pg_input_is_valid(
+        current_setting('app.tenant_id', true),
+        'uuid'
+      )
+      THEN current_setting('app.tenant_id', true)::uuid
+      ELSE NULL::uuid
+    END
+  )
+  WITH CHECK (
+    tenant_id = CASE
+      WHEN pg_input_is_valid(
+        current_setting('app.tenant_id', true),
+        'uuid'
+      )
+      THEN current_setting('app.tenant_id', true)::uuid
+      ELSE NULL::uuid
+    END
+  );
 
 RESET ROLE;
 
@@ -278,8 +296,7 @@ SELECT COALESCE(
         '',
         'g'
       ) IN (
-        'tenant_id=current_setting(''app.tenant_id''::text,true)::uuid',
-        'tenant_id=current_setting(''app.tenant_id''::text,true)'
+        'tenant_id=casewhenpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)thencurrent_setting(''app.tenant_id''::text,true)::uuidelsenull::uuidend'
       ),
 
       'with_check_expression', pg_catalog.pg_get_expr(
@@ -304,8 +321,7 @@ SELECT COALESCE(
         '',
         'g'
       ) IN (
-        'tenant_id=current_setting(''app.tenant_id''::text,true)::uuid',
-        'tenant_id=current_setting(''app.tenant_id''::text,true)'
+        'tenant_id=casewhenpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)thencurrent_setting(''app.tenant_id''::text,true)::uuidelsenull::uuidend'
       ),
 
       'using_is_not_null', policy.polqual IS NOT NULL,
@@ -448,6 +464,33 @@ COMMIT;
         missing_context.splitlines()[-1] == "0",
         "Missing tenant context did not fail closed.",
     )
+
+    for context_label, tenant_context in (
+        ("empty", ""),
+        ("malformed", "not-a-uuid"),
+    ):
+        invalid_context = run_psql(
+            container_id=container_id,
+            user=API_ROLE,
+            password=api_password,
+            sql=f"""
+BEGIN;
+SELECT set_config('app.tenant_id', '{tenant_context}', true);
+SELECT count(*)::text FROM {TABLE};
+ROLLBACK;
+""",
+        ).stdout.splitlines()
+
+        visible_lines = [
+            line.strip()
+            for line in invalid_context
+            if line.strip()
+        ]
+
+        require(
+            visible_lines and visible_lines[-1] == "0",
+            f"{context_label.title()} tenant context did not fail closed.",
+        )
 
     wrong_tenant_insert = f"""
 BEGIN;
@@ -599,11 +642,62 @@ GRANT {BYPASS_ROLE} TO {API_ROLE};
         "The production guard failed to detect a missing restrictive tenant policy.",
     )
 
-    recreate_guard = f"""
+    unsafe_legacy_guard = f"""
 CREATE POLICY homio_test_tenant_guard ON {TABLE}
   AS RESTRICTIVE FOR ALL TO {API_ROLE}
   USING (tenant_id = current_setting('app.tenant_id', true)::uuid)
   WITH CHECK (tenant_id = current_setting('app.tenant_id', true)::uuid);
+"""
+
+    run_psql(
+        container_id=container_id,
+        user="postgres",
+        password=admin_password,
+        sql=unsafe_legacy_guard,
+    )
+
+    legacy_guard = role_attestation(
+        container_id=container_id,
+        user=API_ROLE,
+        password=api_password,
+        safety_sql=safety_sql,
+    )
+
+    require(
+        legacy_guard.get("tenant_tables_have_tenant_restrictive_guard") is False,
+        "The production guard accepted the legacy direct UUID-cast tenant policy.",
+    )
+
+    run_psql(
+        container_id=container_id,
+        user="postgres",
+        password=admin_password,
+        sql=f"DROP POLICY homio_test_tenant_guard ON {TABLE};",
+    )
+
+    recreate_guard = f"""
+CREATE POLICY homio_test_tenant_guard ON {TABLE}
+  AS RESTRICTIVE FOR ALL TO {API_ROLE}
+  USING (
+    tenant_id = CASE
+      WHEN pg_input_is_valid(
+        current_setting('app.tenant_id', true),
+        'uuid'
+      )
+      THEN current_setting('app.tenant_id', true)::uuid
+      ELSE NULL::uuid
+    END
+  )
+  WITH CHECK (
+    tenant_id = CASE
+      WHEN pg_input_is_valid(
+        current_setting('app.tenant_id', true),
+        'uuid'
+      )
+      THEN current_setting('app.tenant_id', true)::uuid
+      ELSE NULL::uuid
+    END
+  );
 """
 
     run_psql(
@@ -722,6 +816,7 @@ def self_test() -> None:
         "policy.polpermissive = false",
         "policy.polcmd = '*'",
         "policy.polwithcheck IS NOT NULL",
+        "pg_input_is_valid(current_setting",
         "tenant_tables_have_tenant_restrictive_guard",
     )
 
