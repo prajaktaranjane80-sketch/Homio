@@ -108,6 +108,24 @@ function normalizeUuid(
   return value.toLowerCase();
 }
 
+function containsControlCharacters(value: string): boolean {
+  for (const character of value) {
+    const codePoint = character.codePointAt(0);
+
+    if (
+      codePoint !== undefined &&
+      (
+        codePoint <= 0x1f ||
+        (codePoint >= 0x7f && codePoint <= 0x9f)
+      )
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function requireText(
   value: unknown,
   field: string,
@@ -118,7 +136,7 @@ function requireText(
     value.length === 0 ||
     value.length > maximum ||
     value.trim() !== value ||
-    /[\u0000-\u001f\u007f-\u009f]/.test(value)
+    containsControlCharacters(value)
   ) {
     throw new Core002EventValidationError(
       `${field} is invalid.`
