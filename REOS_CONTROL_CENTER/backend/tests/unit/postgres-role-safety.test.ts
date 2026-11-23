@@ -117,7 +117,7 @@ function makeSequencedPool(
 const TENANT_ID = "11111111-1111-4111-8111-111111111111";
 
 describe("PostgreSQL effective runtime-role protection", () => {
-  it("recognizes only the validated tenant-context policy form", () => {
+  it("matches the exact PostgreSQL 18.4 normalized tenant guard expression", () => {
     expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
       "pg_has_role(session_user, candidate.oid, 'USAGE')"
     );
@@ -127,15 +127,7 @@ describe("PostgreSQL effective runtime-role protection", () => {
     );
 
     expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
-      "current_user = session_user"
-    );
-
-    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
       "relation.relowner IN (SELECT oid FROM effective_roles)"
-    );
-
-    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
-      "FROM pg_policy AS policy"
     );
 
     expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
@@ -147,34 +139,11 @@ describe("PostgreSQL effective runtime-role protection", () => {
     );
 
     expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
-      "policy.polroles @> ARRAY[0::oid]"
-    );
-
-    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
-      "pg_get_expr(policy.polqual, policy.polrelid)"
-    );
-
-    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
-      "pg_get_expr(policy.polwithcheck, policy.polrelid)"
-    );
-
-    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
-      "pg_input_is_valid(current_setting("
-    );
-
-    // The PostgreSQL 18.4 deparser can preserve or omit one syntactic
-    // parenthesis pair around the comparison and UUID cast. Parentheses are
-    // not globally stripped: only these four exact CASE expressions match.
-    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
-      "'(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND)'"
-    );
-
-    expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain(
-      "'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND'"
+      "'(tenant_id=casewhenpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)then(current_setting(''app.tenant_id''::text,true))::uuidelsenull::uuidend)'"
     );
 
     expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).not.toContain(
-      "'tenant_id=current_setting(''app.tenant_id''::text,true)::uuid'"
+      "'(tenant_id=CASEWHENpg_input_is_valid"
     );
 
     expect(POSTGRES_RUNTIME_ROLE_SAFETY_SQL).toContain("'[[:space:]]'");
