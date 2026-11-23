@@ -51,7 +51,13 @@ function minimizeVerifiedPrincipal(
     subject: value.subject,
     audiences,
     clientId: value.clientId,
-    tokenId: value.tokenId
+    tokenId: value.tokenId,
+    ...(typeof value.issuedAtEpochSeconds === "number"
+      ? { issuedAtEpochSeconds: value.issuedAtEpochSeconds }
+      : {}),
+    ...(typeof value.expiresAtEpochSeconds === "number"
+      ? { expiresAtEpochSeconds: value.expiresAtEpochSeconds }
+      : {})
   }) as unknown as VerifiedExternalPrincipal;
 }
 
@@ -69,6 +75,7 @@ function minimizeTrustedContext(
   return Object.freeze({
     identityId: value.identityId,
     accountId: value.accountId,
+    authenticationEpoch: value.authenticationEpoch,
     tenantId: value.tenantId,
     tenantRevision: value.tenantRevision,
     organizationId: value.organizationId,
