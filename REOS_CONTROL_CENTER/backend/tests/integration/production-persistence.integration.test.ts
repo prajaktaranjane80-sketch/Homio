@@ -228,10 +228,24 @@ describe.skipIf(!integrationEnabled)(
           FOR ALL
           TO ${quoteIdentifier(API_ROLE)}
           USING (
-            tenant_id = current_setting('app.tenant_id', true)::uuid
+            tenant_id = CASE
+              WHEN pg_input_is_valid(
+                current_setting('app.tenant_id', true),
+                'uuid'
+              )
+              THEN current_setting('app.tenant_id', true)::uuid
+              ELSE NULL::uuid
+            END
           )
           WITH CHECK (
-            tenant_id = current_setting('app.tenant_id', true)::uuid
+            tenant_id = CASE
+              WHEN pg_input_is_valid(
+                current_setting('app.tenant_id', true),
+                'uuid'
+              )
+              THEN current_setting('app.tenant_id', true)::uuid
+              ELSE NULL::uuid
+            END
           )
         `);
       } finally {
