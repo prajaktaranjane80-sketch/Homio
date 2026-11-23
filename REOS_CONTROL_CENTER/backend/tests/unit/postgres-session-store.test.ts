@@ -13,6 +13,9 @@ import {
   PostgresSessionUnavailableError
 } from "../../src/persistence/postgres-session-store.js";
 import type { PostgresRuntime } from "../../src/persistence/postgres.js";
+import type {
+  VerifiedExternalPrincipal
+} from "../../src/security/contracts.js";
 import {
   TEST_CONTEXT,
   TEST_PRINCIPAL
@@ -55,12 +58,24 @@ function createFixture(options: {
     query
   };
 
+  const transactionCalls: Array<{
+    readonly context: unknown;
+    readonly options: unknown;
+  }> = [];
+
   const withTenantTransaction = vi.fn(
     async (
-      _context: unknown,
+      context: unknown,
       work: (value: typeof transaction) => Promise<unknown>,
-      _options?: unknown
-    ) => work(transaction)
+      options?: unknown
+    ) => {
+      transactionCalls.push({
+        context,
+        options
+      });
+
+      return work(transaction);
+    }
   );
 
   const postgres = {
@@ -71,6 +86,7 @@ function createFixture(options: {
     store: new PostgresSessionStore(postgres),
     calls,
     query,
+    transactionCalls,
     withTenantTransaction
   };
 }
@@ -90,7 +106,7 @@ describe("PostgresSessionStore", () => {
 
     expect(sessionId).toBe("77777777-7777-4777-8777-777777777777");
     expect(fixture.withTenantTransaction).toHaveBeenCalledTimes(1);
-    expect(fixture.withTenantTransaction.mock.calls[0]?.[0]).toEqual({
+    expect(fixture.transactionCalls[0]?.context).toEqual({
       tenantId: TEST_CONTEXT.tenantId
     });
 
@@ -125,7 +141,7 @@ describe("PostgresSessionStore", () => {
 
     expect(active).toBe(true);
     expect(fixture.withTenantTransaction).toHaveBeenCalledTimes(1);
-    expect(fixture.withTenantTransaction.mock.calls[0]?.[2]).toEqual({
+    expect(fixture.transactionCalls[0]?.options).toEqual({
       readOnly: true
     });
 
@@ -151,11 +167,13 @@ describe("PostgresSessionStore", () => {
   it("rejects a token principal without verified iat and exp", async () => {
     const fixture = createFixture();
 
-    const {
-      issuedAtEpochSeconds: _issuedAt,
-      expiresAtEpochSeconds: _expiresAt,
-      ...withoutTemporalClaims
-    } = TEST_PRINCIPAL;
+    const withoutTemporalClaims: VerifiedExternalPrincipal = {
+      issuer: TEST_PRINCIPAL.issuer,
+      subject: TEST_PRINCIPAL.subject,
+      audiences: TEST_PRINCIPAL.audiences,
+      clientId: TEST_PRINCIPAL.clientId,
+      tokenId: TEST_PRINCIPAL.tokenId
+    };
 
     await expect(
       fixture.store.establishSession({
