@@ -25,10 +25,7 @@ const VALID_EVENT: SecurityAuditEvent = {
 
 describe("PostgresSecurityAuditStore", () => {
   it("inserts only minimized allowlisted audit fields", async () => {
-    const query = vi.fn(async (
-      _sql: string,
-      _values?: unknown[]
-    ) => ({
+    const query = vi.fn(async () => ({
       rowCount: 1
     }));
 
@@ -62,10 +59,7 @@ describe("PostgresSecurityAuditStore", () => {
   });
 
   it("records denied events without trusted tenant context", async () => {
-    const query = vi.fn(async (
-      _sql: string,
-      _values?: unknown[]
-    ) => ({
+    const query = vi.fn(async () => ({
       rowCount: 1
     }));
 
@@ -87,10 +81,7 @@ describe("PostgresSecurityAuditStore", () => {
   });
 
   it("rejects invalid reason codes before database access", async () => {
-    const query = vi.fn(async (
-      _sql: string,
-      _values?: unknown[]
-    ) => ({
+    const query = vi.fn(async () => ({
       rowCount: 1
     }));
 
@@ -109,10 +100,7 @@ describe("PostgresSecurityAuditStore", () => {
   });
 
   it("rejects a non-UUID request ID before database access", async () => {
-    const query = vi.fn(async (
-      _sql: string,
-      _values?: unknown[]
-    ) => ({
+    const query = vi.fn(async () => ({
       rowCount: 1
     }));
 
@@ -131,10 +119,7 @@ describe("PostgresSecurityAuditStore", () => {
   });
 
   it("rejects timestamps without an explicit timezone", async () => {
-    const query = vi.fn(async (
-      _sql: string,
-      _values?: unknown[]
-    ) => ({
+    const query = vi.fn(async () => ({
       rowCount: 1
     }));
 
@@ -153,10 +138,7 @@ describe("PostgresSecurityAuditStore", () => {
   });
 
   it("fails closed when the insert fails", async () => {
-    const query = vi.fn(async (
-      _sql: string,
-      _values?: unknown[]
-    ) => {
+    const query = vi.fn(async () => {
       throw new Error("private PostgreSQL detail");
     });
 
@@ -168,10 +150,7 @@ describe("PostgresSecurityAuditStore", () => {
   });
 
   it("fails closed when the insert affects no row", async () => {
-    const query = vi.fn(async (
-      _sql: string,
-      _values?: unknown[]
-    ) => ({
+    const query = vi.fn(async () => ({
       rowCount: 0
     }));
 
