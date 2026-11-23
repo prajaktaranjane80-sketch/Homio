@@ -1,4 +1,3 @@
-
 import {
   afterEach,
   describe,
@@ -60,6 +59,8 @@ const productionSettings: BackendSettings = {
 const PRINCIPAL_KEYS = [
   "audiences",
   "clientId",
+  "expiresAtEpochSeconds",
+  "issuedAtEpochSeconds",
   "issuer",
   "subject",
   "tokenId"
@@ -109,12 +110,14 @@ describe("B2 adapter trust-boundary normalization", () => {
     );
   });
 
-  it("strips non-contract identity claims and freezes principal and tenant snapshots", async () => {
+  it("strips non-contract identity claims, preserves verified token times and freezes principal and tenant snapshots", async () => {
     const auditRecords: SecurityAuditEvent[] = [];
     const observations = {
       principalKeys: [] as string[],
       principalFrozen: false,
       audiencesFrozen: false,
+      principalIssuedAtEpochSeconds: undefined as number | undefined,
+      principalExpiresAtEpochSeconds: undefined as number | undefined,
       contextKeysAtAuthorization: [] as string[],
       contextFrozenAtAuthorization: false
     };
@@ -148,6 +151,10 @@ describe("B2 adapter trust-boundary normalization", () => {
             Object.isFrozen(principal);
           observations.audiencesFrozen =
             Object.isFrozen(principal.audiences);
+          observations.principalIssuedAtEpochSeconds =
+            principal.issuedAtEpochSeconds;
+          observations.principalExpiresAtEpochSeconds =
+            principal.expiresAtEpochSeconds;
 
           return true;
         }
@@ -227,6 +234,14 @@ describe("B2 adapter trust-boundary normalization", () => {
     expect(observations.principalKeys).toEqual(PRINCIPAL_KEYS);
     expect(observations.principalFrozen).toBe(true);
     expect(observations.audiencesFrozen).toBe(true);
+
+    expect(observations.principalIssuedAtEpochSeconds).toBe(
+      TEST_PRINCIPAL.issuedAtEpochSeconds
+    );
+    expect(observations.principalExpiresAtEpochSeconds).toBe(
+      TEST_PRINCIPAL.expiresAtEpochSeconds
+    );
+
     expect(observations.contextKeysAtAuthorization).toEqual(
       CONTEXT_KEYS
     );
