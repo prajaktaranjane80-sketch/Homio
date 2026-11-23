@@ -1,3 +1,5 @@
+import process from "node:process";
+import { URL } from "node:url";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
 
