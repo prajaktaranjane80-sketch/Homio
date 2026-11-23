@@ -296,10 +296,7 @@ SELECT COALESCE(
         '',
         'g'
       ) IN (
-        '(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND)',
-        'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND',
-        '(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THENcurrent_setting(''app.tenant_id''::text,true)::uuidELSENULL::uuidEND)',
-        'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THENcurrent_setting(''app.tenant_id''::text,true)::uuidELSENULL::uuidEND'
+        '(tenant_id=casewhenpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)then(current_setting(''app.tenant_id''::text,true))::uuidelsenull::uuidend)'
       ),
 
       'with_check_expression', pg_catalog.pg_get_expr(
@@ -324,10 +321,7 @@ SELECT COALESCE(
         '',
         'g'
       ) IN (
-        '(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND)',
-        'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THEN(current_setting(''app.tenant_id''::text,true))::uuidELSENULL::uuidEND',
-        '(tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THENcurrent_setting(''app.tenant_id''::text,true)::uuidELSENULL::uuidEND)',
-        'tenant_id=CASEWHENpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)THENcurrent_setting(''app.tenant_id''::text,true)::uuidELSENULL::uuidEND'
+        '(tenant_id=casewhenpg_input_is_valid(current_setting(''app.tenant_id''::text,true),''uuid''::text)then(current_setting(''app.tenant_id''::text,true))::uuidelsenull::uuidend)'
       ),
 
       'using_is_not_null', policy.polqual IS NOT NULL,
@@ -823,7 +817,8 @@ def self_test() -> None:
         "policy.polcmd = '*'",
         "policy.polwithcheck IS NOT NULL",
         "pg_input_is_valid(current_setting",
-        "ELSENULL::uuidEND",
+        "casewhenpg_input_is_valid",
+        "elsenull::uuidend",
         "tenant_tables_have_tenant_restrictive_guard",
     )
 
