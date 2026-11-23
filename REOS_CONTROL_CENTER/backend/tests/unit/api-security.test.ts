@@ -1,4 +1,3 @@
-
 import {
   afterEach,
   describe,
@@ -318,7 +317,7 @@ describe("B2 Fastify API security boundary", () => {
     }
   });
 
-  it("runs IP throttling, token verification, session, context, authorization and audit before a protected read handler", async () => {
+  it("runs IP throttling, token verification, context, session, authorization and audit before a protected read handler", async () => {
     const events: string[] = [];
     const auditRecords: SecurityAuditEvent[] = [];
     const sessionInputs: Array<
@@ -426,8 +425,8 @@ describe("B2 Fastify API security boundary", () => {
     expect(events).toEqual([
       "rate:api-ip",
       "token",
-      "session",
       "context",
+      "session",
       "rate:api-identity-tenant",
       "authorize",
       "audit:API_ACCESS_ALLOWED",
@@ -479,7 +478,7 @@ describe("B2 Fastify API security boundary", () => {
     expect(auditJson).not.toContain("ip");
   });
 
-  it("re-verifies bearer, session, tenant context and permission immediately before a protected mutation handler", async () => {
+  it("re-verifies bearer, trusted tenant context, session and permission immediately before a protected mutation handler", async () => {
     const events: string[] = [];
     const auditRecords: SecurityAuditEvent[] = [];
 
@@ -593,14 +592,14 @@ describe("B2 Fastify API security boundary", () => {
     expect(events).toEqual([
       "rate:api-ip",
       "token",
-      "session",
       "context",
+      "session",
       "rate:api-identity-tenant",
       "authorize",
       "audit:API_ACCESS_ALLOWED",
       "token",
-      "session",
       "context",
+      "session",
       "authorize",
       "audit:API_MUTATION_REAUTHORIZED",
       "handler"
@@ -779,15 +778,16 @@ describe("B2 Fastify API security boundary", () => {
     );
   });
 
-  it("rejects revoked or expired sessions before resolving tenant context", async () => {
+  it("rejects revoked or expired sessions after resolving trusted tenant context", async () => {
     const resolve = vi.fn(async () => TEST_CONTEXT);
+    const isSessionActive = vi.fn(async () => false);
 
     runtime = await buildApp(
       testSettings,
       [protectedPlugin()],
       createSecurityRuntime({
         sessionValidator: {
-          isSessionActive: async () => false
+          isSessionActive
         },
         contextResolver: {
           resolve
@@ -804,7 +804,13 @@ describe("B2 Fastify API security boundary", () => {
     });
 
     expect(response.statusCode).toBe(401);
-    expect(resolve).not.toHaveBeenCalled();
+    expect(resolve).toHaveBeenCalledTimes(1);
+    expect(isSessionActive).toHaveBeenCalledWith({
+      principal: expect.objectContaining({
+        tokenId: "test-access-token-jti-001"
+      }),
+      context: TEST_CONTEXT
+    });
   });
 
   it("denies missing tenant membership and never accepts client tenant headers as trusted context", async () => {
@@ -1487,5 +1493,4 @@ describe("B2 Fastify API security boundary", () => {
       otherTenantContext.tenantId
     );
   });
-
 });
