@@ -386,8 +386,8 @@ describe.skipIf(!enabled)(
 
       const report = await runner.migrate(migrations);
 
-      expect(report.appliedCount).toBe(1);
-      expect(report.latestMigrationId).toBe("00000001");
+      expect(report.appliedCount).toBe(2);
+      expect(report.latestMigrationId).toBe("00000002");
 
       runtime = new PostgresRuntime(
         applicationPool as unknown as PostgresDriverPool
@@ -628,6 +628,44 @@ describe.skipIf(!enabled)(
       );
 
       expect(Number(noContext.rows[0]?.count ?? 0)).toBe(0);
+
+      // Empty and malformed session settings must both fail closed without
+      // raising PostgreSQL's invalid-UUID cast error. Exercise both tenant
+      // tables on the same application connection and roll back each local
+      // setting before reusing the connection.
+      const untrustedContextClient = await applicationPool.connect();
+
+      try {
+        for (const suppliedTenantContext of ["", "not-a-uuid"]) {
+          await untrustedContextClient.query("BEGIN");
+
+          try {
+            await untrustedContextClient.query(
+              "SELECT set_config('app.tenant_id', $1, true) AS tenant_id",
+              [suppliedTenantContext]
+            );
+
+            const deniedRows = await untrustedContextClient.query(`
+              SELECT
+                (
+                  SELECT count(*)::integer
+                  FROM core002.events
+                )
+                +
+                (
+                  SELECT count(*)::integer
+                  FROM core002.outbox_publications
+                ) AS count
+            `);
+
+            expect(Number(deniedRows.rows[0]?.count ?? 0)).toBe(0);
+          } finally {
+            await untrustedContextClient.query("ROLLBACK");
+          }
+        }
+      } finally {
+        untrustedContextClient.release();
+      }
 
       const crossTenantEvent = makeCanonicalEvent(
         tenantB,
