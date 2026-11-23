@@ -12,6 +12,7 @@
     "clean": "node scripts/clean.mjs",
     "build": "npm run clean && tsc -p tsconfig.build.json",
     "start": "node dist/main.js",
+    "migrate:postgres": "npm run build && node scripts/migrate-postgres.mjs",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
