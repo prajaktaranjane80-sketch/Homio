@@ -135,8 +135,14 @@ postgresSuite("ARCH-037 PostgreSQL physical schema integration", () => {
 
     const role = roleResult.rows[0];
 
-    expect(role?.rolsuper).toBe(false);
-    expect(role?.rolbypassrls).toBe(false);
+    if (role === undefined) {
+      throw new Error(
+        "The configured PostgreSQL application role was not returned."
+      );
+    }
+
+    expect(role.rolsuper).toBe(false);
+    expect(role.rolbypassrls).toBe(false);
 
     const tenantTables = await pool.query<{
       readonly schema_name: string;
