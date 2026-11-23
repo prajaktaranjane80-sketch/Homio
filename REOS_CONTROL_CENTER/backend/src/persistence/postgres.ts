@@ -81,8 +81,9 @@ const TENANT_SETTING_SQL =
  * combined with OR, so a broad permissive policy can otherwise widen access.
  * Every tenant table must also have an applicable restrictive FOR ALL policy
  * whose USING and WITH CHECK expressions both match the transaction-local
- * app.tenant_id equality guarded by pg_input_is_valid() and a NULL
- * fail-closed branch.
+ * app.tenant_id equality guarded by pg_input_is_valid(), so absent, empty and
+ * malformed transaction-local settings deny access without raising UUID-cast
+ * errors.
  *
  * PostgreSQL's pg_get_expr() deparser emits parentheses around function calls
  * and casts. Those parentheses are significant and must be preserved.
