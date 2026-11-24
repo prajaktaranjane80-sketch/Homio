@@ -68,14 +68,14 @@ function createFixture(options: {
     async (
       context: unknown,
       work: (value: typeof transaction) => Promise<unknown>,
-      options?: unknown
+      transactionOptions?: unknown
     ) => {
       transactionCalls.push({
         context,
-        options
+        options: transactionOptions
       });
 
-      if (optionsBeforeWork(options, options !== undefined)) {
+      if (options.beforeWork !== undefined) {
         await options.beforeWork();
       }
 
@@ -94,13 +94,6 @@ function createFixture(options: {
     transactionCalls,
     withTenantTransaction
   };
-
-  function optionsBeforeWork(
-    _value: unknown,
-    _present: boolean
-  ): boolean {
-    return false;
-  }
 }
 
 function sha256(value: string): string {
