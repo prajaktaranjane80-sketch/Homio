@@ -176,18 +176,28 @@ Promise<B4PostgresTestDatabase> {
       }
     };
 
-    if (runtime !== undefined) {
-      await capture(() => runtime!.close());
-    } else if (applicationPool !== undefined) {
-      await capture(() => applicationPool!.end());
+    const cleanupRuntime = runtime;
+
+    if (cleanupRuntime !== undefined) {
+      await capture(() => cleanupRuntime.close());
+    } else {
+      const cleanupApplicationPool = applicationPool;
+
+      if (cleanupApplicationPool !== undefined) {
+        await capture(() => cleanupApplicationPool.end());
+      }
     }
 
-    if (migrationPool !== undefined) {
-      await capture(() => migrationPool!.end());
+    const cleanupMigrationPool = migrationPool;
+
+    if (cleanupMigrationPool !== undefined) {
+      await capture(() => cleanupMigrationPool.end());
     }
 
-    if (adminPool !== undefined) {
-      await capture(() => adminPool!.end());
+    const cleanupAdminPool = adminPool;
+
+    if (cleanupAdminPool !== undefined) {
+      await capture(() => cleanupAdminPool.end());
     }
 
     const cleanupRootPool = rootPool;
