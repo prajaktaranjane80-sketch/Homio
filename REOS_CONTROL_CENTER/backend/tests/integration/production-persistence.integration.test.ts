@@ -1,5 +1,6 @@
-import { randomBytes, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 
 import {
   afterAll,
@@ -12,6 +13,9 @@ import {
 import type { BackendSettings } from "../../src/config/settings.js";
 import type { PostgresDriverPool } from "../../src/persistence/postgres.js";
 import {
+  loadPostgresMigrationManifest
+} from "../../src/persistence/postgres-migration-manifest.js";
+import {
   PostgresMigrationRunner
 } from "../../src/persistence/postgres-migrations.js";
 import {
@@ -19,6 +23,14 @@ import {
   type ProductionPersistenceRuntime,
   type ProductionRedisClient
 } from "../../src/persistence/production-runtime.js";
+import type {
+  SecurityAuditEvent,
+  TrustedRequestContext,
+  VerifiedExternalPrincipal
+} from "../../src/security/contracts.js";
+import {
+  PostgresSessionStore
+} from "../../src/persistence/postgres-session-store.js";
 import {
   RedisRateLimiter
 } from "../../src/persistence/redis-rate-limit.js";
@@ -78,6 +90,8 @@ const integrationEnabled =
 const API_ROLE = "homio_b4_api";
 const SCHEMA_OWNER_ROLE = "homio_b4_schema_owner";
 
+const testTimeoutMs = 30_000;
+
 function quoteIdentifier(value: string): string {
   return `"${value.replaceAll("\"", "\"\"")}"`;
 }
@@ -99,7 +113,11 @@ function connectionUrl(
   return url.toString();
 }
 
-const testTimeoutMs = 30_000;
+function sha256(value: string): string {
+  return createHash("sha256")
+    .update(value, "utf8")
+    .digest("hex");
+}
 
 describe.skipIf(!integrationEnabled)(
   "B4 real Node.js PostgreSQL and Redis integration",
@@ -110,16 +128,22 @@ describe.skipIf(!integrationEnabled)(
     let secondaryRedis: ProductionRedisClient | undefined;
 
     let tenantSchema = "";
-    let migrationSchema = "";
     let migrationRole = "";
 
     let createdTenantSchema = false;
-    let createdMigrationSchema = false;
     let createdInfraSchema = false;
     let createdMigrationRole = false;
 
     let applicationUrl = "";
     let migrationUrl = "";
+
+    let b4Migrations:
+      Awaited<ReturnType<typeof loadPostgresMigrationManifest>> = [];
+
+    let migrationRunner: PostgresMigrationRunner | undefined;
+
+    let initialMigrationAppliedCount = -1;
+    let initialMigrationLatestId = "";
 
     const suffix = randomBytes(8).toString("hex");
 
@@ -128,8 +152,6 @@ describe.skipIf(!integrationEnabled)(
 
     const tenantA = randomUUID();
     const tenantB = randomUUID();
-
-    const migrationTableName = "migration_probe";
 
     const tenantTable = (): string =>
       `${quoteIdentifier(tenantSchema)}.tenant_records`;
@@ -161,7 +183,6 @@ describe.skipIf(!integrationEnabled)(
       }
 
       tenantSchema = `homio_node_${suffix}`;
-      migrationSchema = `homio_node_mig_${suffix}`;
       migrationRole = `homio_node_m_${suffix}`;
 
       applicationUrl = connectionUrl(
@@ -176,8 +197,11 @@ describe.skipIf(!integrationEnabled)(
         migrationPassword
       );
 
-      // The previous Python integration steps provision this existing role
-      // and its schema-owner role. Reuse them; do not create another API role.
+      /*
+       * Reuse the existing CI API and schema-owner roles.
+       * This test does not create another API identity or persistence owner.
+       */
+
       await adminPool.query(
         `ALTER ROLE ${quoteIdentifier(API_ROLE)} PASSWORD ${quoteLiteral(applicationPassword)}`
       );
@@ -261,9 +285,13 @@ describe.skipIf(!integrationEnabled)(
         `GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE ${tenantTable()} TO ${quoteIdentifier(API_ROLE)}`
       );
 
-      // The canonical migration runner expects the already-provisioned
-      // reos_infra.schema_migrations ledger. This test provisions only its
-      // disposable CI instance and never touches business-domain tables.
+      /*
+       * Provision only the infrastructure migration ledger.
+       *
+       * The ledger is owned by a separate migration login.
+       * The API role cannot read or create objects in this schema.
+       */
+
       const infraResult = await adminPool.query(`
         SELECT count(*)::integer AS count
         FROM pg_namespace
@@ -289,12 +317,6 @@ describe.skipIf(!integrationEnabled)(
       );
 
       createdInfraSchema = true;
-
-      await adminPool.query(
-        `CREATE SCHEMA ${quoteIdentifier(migrationSchema)} AUTHORIZATION ${quoteIdentifier(migrationRole)}`
-      );
-
-      createdMigrationSchema = true;
 
       const migrationOwnerClient = await adminPool.connect();
 
@@ -394,6 +416,81 @@ describe.skipIf(!integrationEnabled)(
           "The real Node.js PostgreSQL and Redis clients did not become healthy."
         );
       }
+
+      /*
+       * Load the existing canonical manifest.
+       *
+       * Only B4-owned infrastructure migrations 00000003 and 00000004
+       * are executed here. CORE-002 and other domain migrations are not
+       * applied by this fixture.
+       */
+
+      const migrationsDirectory = fileURLToPath(
+        new URL("../../scripts/postgres/migrations/", import.meta.url)
+      );
+
+      const completeManifest = await loadPostgresMigrationManifest(
+        migrationsDirectory,
+        {
+          migrationRole,
+          applicationRole: API_ROLE,
+          schemaName: "core002"
+        }
+      );
+
+      b4Migrations = completeManifest.filter(
+        (migration) =>
+          migration.id === "00000003" ||
+          migration.id === "00000004"
+      );
+
+      const expectedMigrationIds = [
+        "00000003",
+        "00000004"
+      ];
+
+      if (
+        JSON.stringify(b4Migrations.map(({ id }) => id)) !==
+        JSON.stringify(expectedMigrationIds)
+      ) {
+        throw new Error(
+          "The canonical B4 infrastructure migration manifest is incomplete or out of order."
+        );
+      }
+
+      migrationRunner = new PostgresMigrationRunner(
+        migrationPool as unknown as PostgresDriverPool,
+        {
+          migrationRole,
+          applicationRole: API_ROLE
+        }
+      );
+
+      const firstMigrationReport =
+        await migrationRunner.migrate(b4Migrations);
+
+      initialMigrationAppliedCount =
+        firstMigrationReport.appliedCount;
+
+      initialMigrationLatestId =
+        firstMigrationReport.latestMigrationId;
+
+      if (
+        initialMigrationAppliedCount !== 2 ||
+        initialMigrationLatestId !== "00000004"
+      ) {
+        throw new Error(
+          "The canonical B4 session and audit migrations were not fully applied."
+        );
+      }
+
+      /*
+       * Re-verify the real target role after api_sessions exists.
+       * This now checks the session table's FORCE RLS and tenant policy too.
+       */
+
+      await runtime.postgres.verifyRuntimeRoleSafety();
+      await runtime.verifyReadiness();
     }, testTimeoutMs);
 
     afterAll(async () => {
@@ -420,12 +517,6 @@ describe.skipIf(!integrationEnabled)(
           ).catch(() => undefined);
         }
 
-        if (createdMigrationSchema) {
-          await adminPool.query(
-            `DROP SCHEMA IF EXISTS ${quoteIdentifier(migrationSchema)} CASCADE`
-          ).catch(() => undefined);
-        }
-
         if (createdInfraSchema) {
           await adminPool.query(
             "DROP SCHEMA IF EXISTS reos_infra CASCADE"
@@ -442,192 +533,671 @@ describe.skipIf(!integrationEnabled)(
       }
     }, testTimeoutMs);
 
-    it("verifies the actual Node.js database, migration, RLS and Redis owners", async () => {
-      if (
-        adminPool === undefined ||
-        migrationPool === undefined ||
-        runtime === undefined
-      ) {
-        throw new Error(
-          "The real-service integration fixture was not initialized."
+    it(
+      "applies the actual B4 migrations deterministically and idempotently",
+      async () => {
+        if (
+          adminPool === undefined ||
+          migrationRunner === undefined
+        ) {
+          throw new Error(
+            "The B4 migration integration fixture was not initialized."
+          );
+        }
+
+        expect(initialMigrationAppliedCount).toBe(2);
+        expect(initialMigrationLatestId).toBe("00000004");
+
+        const latestMigration =
+          b4Migrations[b4Migrations.length - 1];
+
+        if (latestMigration === undefined) {
+          throw new Error(
+            "The canonical B4 migration manifest is empty."
+          );
+        }
+
+        const secondReport =
+          await migrationRunner.migrate(b4Migrations);
+
+        expect(secondReport.appliedCount).toBe(0);
+        expect(secondReport.latestMigrationId).toBe("00000004");
+        expect(secondReport.latestChecksum).toBe(
+          latestMigration.checksum
         );
-      }
 
-      // One checked-out PostgreSQL connection is reused deliberately.
-      // The transaction-local tenant must not leak into the next transaction.
-      const inserted = await runtime.postgres.withTenantTransaction(
-        { tenantId: tenantA },
-        (transaction) => transaction.query(
-          `INSERT INTO ${tenantTable()} (record_id, tenant_id, payload)
-           VALUES ($1, $2, $3)
-           RETURNING record_id`,
-          [randomUUID(), tenantA, "tenant-a"]
-        )
-      );
+        const ledger = await adminPool.query(`
+          SELECT migration_id, migration_name, checksum
+          FROM reos_infra.schema_migrations
+          ORDER BY migration_id ASC
+        `);
 
-      expect(inserted.rows).toHaveLength(1);
+        expect(ledger.rows).toHaveLength(2);
 
-      const visibleToA = await runtime.postgres.withTenantTransaction(
-        { tenantId: tenantA },
-        (transaction) => transaction.query(
-          `SELECT count(*)::integer AS count
-           FROM ${tenantTable()}`
-        )
-      );
+        expect(
+          ledger.rows.map((row) => row.migration_id)
+        ).toEqual([
+          "00000003",
+          "00000004"
+        ]);
 
-      expect(
-        Number(visibleToA.rows[0]?.count)
-      ).toBe(1);
+        expect(
+          ledger.rows.map((row) => row.checksum)
+        ).toEqual(
+          b4Migrations.map((migration) => migration.checksum)
+        );
 
-      await expect(
-        runtime.postgres.withTenantTransaction(
+        const owners = await adminPool.query(`
+          SELECT
+            relation.relname AS relation_name,
+            pg_get_userbyid(relation.relowner) AS owner_name
+          FROM pg_class AS relation
+          JOIN pg_namespace AS namespace
+            ON namespace.oid = relation.relnamespace
+          WHERE namespace.nspname = 'reos_infra'
+            AND relation.relname IN (
+              'api_sessions',
+              'security_audit_events',
+              'schema_migrations'
+            )
+          ORDER BY relation.relname
+        `);
+
+        expect(owners.rows).toHaveLength(3);
+
+        for (const row of owners.rows) {
+          expect(row.owner_name).toBe(migrationRole);
+        }
+
+        /*
+         * The B4 infrastructure fixture must not silently create CORE
+         * business schemas or become another domain persistence authority.
+         */
+
+        const domainSchemaProbe = await adminPool.query(`
+          SELECT
+            to_regclass('core002.events') IS NOT NULL AS core002_events_exist
+        `);
+
+        expect(
+          domainSchemaProbe.rows[0]?.core002_events_exist
+        ).toBe(false);
+
+        const apiProbePool = new pgModule.Pool({
+          connectionString: applicationUrl,
+          max: 1
+        });
+
+        try {
+          await expect(
+            apiProbePool.query(
+              "SELECT migration_id FROM reos_infra.schema_migrations"
+            )
+          ).rejects.toMatchObject({
+            code: "42501"
+          });
+        } finally {
+          await apiProbePool.end();
+        }
+      },
+      testTimeoutMs
+    );
+
+    it(
+      "enforces tenant isolation through the real Node.js PostgreSQL transaction owner",
+      async () => {
+        if (runtime === undefined) {
+          throw new Error(
+            "The real PostgreSQL runtime was not initialized."
+          );
+        }
+
+        const inserted = await runtime.postgres.withTenantTransaction(
           { tenantId: tenantA },
           (transaction) => transaction.query(
-            `INSERT INTO ${tenantTable()} (record_id, tenant_id, payload)
-             VALUES ($1, $2, $3)`,
-            [randomUUID(), tenantB, "cross-tenant-forbidden"]
+            `INSERT INTO ${tenantTable()} (
+               record_id,
+               tenant_id,
+               payload
+             )
+             VALUES ($1, $2, $3)
+             RETURNING record_id`,
+            [
+              randomUUID(),
+              tenantA,
+              "tenant-a"
+            ]
           )
-        )
-      ).rejects.toThrow();
+        );
 
-      const visibleToB = await runtime.postgres.withTenantTransaction(
-        { tenantId: tenantB },
-        (transaction) => transaction.query(
-          `SELECT count(*)::integer AS count
-           FROM ${tenantTable()}`
-        )
-      );
+        expect(inserted.rows).toHaveLength(1);
 
-      expect(
-        Number(visibleToB.rows[0]?.count)
-      ).toBe(0);
-
-      // Run the existing TypeScript migration owner through the real pg Pool.
-      const migrationPoolAsOwner =
-        migrationPool as unknown as PostgresDriverPool;
-
-      const runner = new PostgresMigrationRunner(
-        migrationPoolAsOwner,
-        {
-          migrationRole,
-          applicationRole: API_ROLE
-        }
-      );
-
-      const migrations = [{
-        id: "00000001",
-        name: "node-driver-integration-proof",
-        sql: `
-          CREATE TABLE ${quoteIdentifier(migrationSchema)}.${migrationTableName} (
-            marker text PRIMARY KEY NOT NULL
+        const visibleToA = await runtime.postgres.withTenantTransaction(
+          { tenantId: tenantA },
+          (transaction) => transaction.query(
+            `SELECT count(*)::integer AS count
+             FROM ${tenantTable()}`
           )
-        `
-      }] as const;
+        );
 
-      const firstReport = await runner.migrate(migrations);
+        expect(
+          Number(visibleToA.rows[0]?.count)
+        ).toBe(1);
 
-      expect(firstReport.appliedCount).toBe(1);
-      expect(firstReport.latestMigrationId).toBe("00000001");
-      expect(firstReport.latestChecksum).toMatch(/^[a-f0-9]{64}$/);
-
-      const secondReport = await runner.migrate(migrations);
-
-      expect(secondReport.appliedCount).toBe(0);
-      expect(secondReport.latestMigrationId).toBe("00000001");
-
-      const createdMigrationTable = await adminPool.query(
-        `SELECT to_regclass($1)::text AS relation`,
-        [`${migrationSchema}.${migrationTableName}`]
-      );
-
-      expect(
-        createdMigrationTable.rows[0]?.relation
-      ).not.toBeNull();
-
-      // The API role must not be able to read the infrastructure ledger.
-      const apiProbePool = new pgModule.Pool({
-        connectionString: applicationUrl,
-        max: 1
-      });
-
-      try {
         await expect(
-          apiProbePool.query(
-            "SELECT migration_id FROM reos_infra.schema_migrations"
+          runtime.postgres.withTenantTransaction(
+            { tenantId: tenantA },
+            (transaction) => transaction.query(
+              `INSERT INTO ${tenantTable()} (
+                 record_id,
+                 tenant_id,
+                 payload
+               )
+               VALUES ($1, $2, $3)`,
+              [
+                randomUUID(),
+                tenantB,
+                "cross-tenant-forbidden"
+              ]
+            )
           )
-        ).rejects.toThrow();
-      } finally {
-        await apiProbePool.end();
-      }
+        ).rejects.toMatchObject({
+          code: "42501"
+        });
 
-      // Two independent Redis clients must observe the same atomic counter.
-      secondaryRedis = redisModule.createClient({
-        url: redisUrl as string
-      });
+        const visibleToB = await runtime.postgres.withTenantTransaction(
+          { tenantId: tenantB },
+          (transaction) => transaction.query(
+            `SELECT count(*)::integer AS count
+             FROM ${tenantTable()}`
+          )
+        );
 
-      await secondaryRedis.connect();
+        expect(
+          Number(visibleToB.rows[0]?.count)
+        ).toBe(0);
 
-      const rateLimitOptions = {
-        keySecret: randomBytes(32).toString("hex"),
-        keyVersion: "node-integration-v1",
-        policyVersion: `ci-${suffix}`,
-        policies: {
-          "api-ip": {
-            maxRequests: 10,
-            windowMs: 5_000
-          },
-          "api-identity-tenant": {
-            maxRequests: 15,
-            windowMs: 5_000
-          }
+        /*
+         * The pool maximum is one connection.
+         * The second tenant transaction proves tenant context is
+         * transaction-local rather than inherited from the previous request.
+         */
+
+        await runtime.postgres.verifyRuntimeRoleSafety();
+      },
+      testTimeoutMs
+    );
+
+    it(
+      "persists durable sessions, binds them to trusted context and enforces revocation",
+      async () => {
+        if (
+          adminPool === undefined ||
+          runtime === undefined
+        ) {
+          throw new Error(
+            "The durable PostgreSQL session fixture was not initialized."
+          );
         }
-      } as const;
 
-      const limiterA = new RedisRateLimiter(
-        runtime.redis,
-        rateLimitOptions
-      );
+        const now = Math.floor(Date.now() / 1_000);
 
-      const limiterB = new RedisRateLimiter(
-        secondaryRedis,
-        rateLimitOptions
-      );
+        const context: TrustedRequestContext = {
+          identityId: randomUUID(),
+          accountId: randomUUID(),
+          authenticationEpoch: 1,
+          tenantId: tenantA,
+          tenantRevision: 1,
+          organizationId: randomUUID(),
+          membershipId: randomUUID(),
+          membershipRevision: 1
+        };
 
-      const decisions = await Promise.all(
-        Array.from({ length: 24 }, (_, index) => {
-          const limiter = index % 2 === 0
-            ? limiterA
-            : limiterB;
+        const principal: VerifiedExternalPrincipal = {
+          issuer: "https://issuer.example.test/",
+          subject: `b4-session-${suffix}`,
+          audiences: ["homio-api"],
+          clientId: "homio-backend-ci",
+          tokenId: randomUUID(),
+          issuedAtEpochSeconds: now - 5,
+          expiresAtEpochSeconds: now + 3_600
+        };
 
-          return limiter.consume({
-            bucket: "api-ip",
-            key: `node-integration-${suffix}`
+        const sessionId = await runtime.sessions.establishSession({
+          principal,
+          context
+        });
+
+        expect(sessionId).toMatch(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        );
+
+        /*
+         * A new adapter instance reads the persisted session.
+         * This is not an in-memory session registry.
+         */
+
+        const reloadedStore = new PostgresSessionStore(
+          runtime.postgres
+        );
+
+        await expect(
+          reloadedStore.isSessionActive({
+            principal,
+            context
+          })
+        ).resolves.toBe(true);
+
+        const persisted = await adminPool.query(
+          `SELECT
+             tenant_id,
+             account_id,
+             identity_id,
+             authentication_epoch,
+             issuer_digest,
+             token_id_digest,
+             revoked_at
+           FROM reos_infra.api_sessions
+           WHERE session_id = $1`,
+          [sessionId]
+        );
+
+        expect(persisted.rows).toHaveLength(1);
+
+        expect(persisted.rows[0]).toMatchObject({
+          tenant_id: tenantA,
+          account_id: context.accountId,
+          identity_id: context.identityId,
+          issuer_digest: sha256(principal.issuer),
+          token_id_digest: sha256(principal.tokenId),
+          revoked_at: null
+        });
+
+        /*
+         * Raw issuer and token identifiers are never stored in the session row.
+         */
+
+        expect(persisted.rows[0]?.issuer_digest).not.toBe(
+          principal.issuer
+        );
+
+        expect(persisted.rows[0]?.token_id_digest).not.toBe(
+          principal.tokenId
+        );
+
+        /*
+         * Changing the trusted authentication epoch invalidates the old
+         * session binding without deleting durable session history.
+         */
+
+        await expect(
+          reloadedStore.isSessionActive({
+            principal,
+            context: {
+              ...context,
+              authenticationEpoch: 2
+            }
+          })
+        ).resolves.toBe(false);
+
+        /*
+         * Cross-tenant context cannot resolve the session.
+         */
+
+        await expect(
+          reloadedStore.isSessionActive({
+            principal,
+            context: {
+              ...context,
+              tenantId: tenantB
+            }
+          })
+        ).resolves.toBe(false);
+
+        /*
+         * Session identity fields are immutable after creation.
+         */
+
+        await expect(
+          runtime.postgres.withTenantTransaction(
+            { tenantId: tenantA },
+            (transaction) => transaction.query(
+              `UPDATE reos_infra.api_sessions
+                  SET account_id = $2
+                WHERE session_id = $1
+                RETURNING session_id`,
+              [
+                sessionId,
+                randomUUID()
+              ]
+            )
+          )
+        ).rejects.toMatchObject({
+          code: "55000"
+        });
+
+        /*
+         * Token-specific revocation is durable and idempotent.
+         */
+
+        await expect(
+          reloadedStore.revokeSession({
+            principal,
+            context,
+            reasonCode: "B4_CI_LOGOUT"
+          })
+        ).resolves.toBe(true);
+
+        await expect(
+          reloadedStore.isSessionActive({
+            principal,
+            context
+          })
+        ).resolves.toBe(false);
+
+        await expect(
+          reloadedStore.revokeSession({
+            principal,
+            context,
+            reasonCode: "B4_CI_LOGOUT"
+          })
+        ).resolves.toBe(true);
+
+        /*
+         * Account-level revocation invalidates all active sessions for
+         * the same trusted account context.
+         */
+
+        const secondPrincipal: VerifiedExternalPrincipal = {
+          ...principal,
+          tokenId: randomUUID()
+        };
+
+        await reloadedStore.establishSession({
+          principal: secondPrincipal,
+          context
+        });
+
+        await expect(
+          reloadedStore.isSessionActive({
+            principal: secondPrincipal,
+            context
+          })
+        ).resolves.toBe(true);
+
+        await expect(
+          reloadedStore.revokeAccountSessions({
+            context,
+            reasonCode: "B4_CI_ACCOUNT_REVOCATION"
+          })
+        ).resolves.toBe(1);
+
+        await expect(
+          reloadedStore.isSessionActive({
+            principal: secondPrincipal,
+            context
+          })
+        ).resolves.toBe(false);
+
+        /*
+         * Expired verified credentials cannot establish new durable sessions.
+         */
+
+        const expiredPrincipal: VerifiedExternalPrincipal = {
+          ...principal,
+          tokenId: randomUUID(),
+          issuedAtEpochSeconds: now - 3_600,
+          expiresAtEpochSeconds: now - 1
+        };
+
+        await expect(
+          reloadedStore.establishSession({
+            principal: expiredPrincipal,
+            context
+          })
+        ).rejects.toThrow(
+          "An expired verified token cannot establish a session."
+        );
+      },
+      testTimeoutMs
+    );
+
+    it(
+      "persists minimized append-only security audit events with least-privilege access",
+      async () => {
+        if (
+          adminPool === undefined ||
+          runtime === undefined
+        ) {
+          throw new Error(
+            "The PostgreSQL security audit fixture was not initialized."
+          );
+        }
+
+        const requestId = randomUUID();
+
+        const event: SecurityAuditEvent = {
+          eventType: "API_ACCESS_DENIED",
+          requestId,
+          occurredAt: new Date().toISOString(),
+          reasonCode: "B4_CI_AUDIT",
+          operation: "inventory.read",
+          actorIdentityId: randomUUID(),
+          tenantId: tenantA
+        };
+
+        await runtime.securityAudit.record(event);
+
+        const stored = await adminPool.query(
+          `SELECT
+             event_type,
+             request_id,
+             occurred_at,
+             reason_code,
+             operation,
+             actor_identity_reference,
+             tenant_reference
+           FROM reos_infra.security_audit_events
+           WHERE request_id = $1`,
+          [requestId]
+        );
+
+        expect(stored.rows).toHaveLength(1);
+
+        expect(stored.rows[0]).toMatchObject({
+          event_type: "API_ACCESS_DENIED",
+          request_id: requestId,
+          reason_code: "B4_CI_AUDIT",
+          operation: "inventory.read",
+          actor_identity_reference: event.actorIdentityId,
+          tenant_reference: tenantA
+        });
+
+        /*
+         * The application role may insert audit events but cannot read,
+         * update or delete the audit history.
+         */
+
+        const apiProbePool = new pgModule.Pool({
+          connectionString: applicationUrl,
+          max: 1
+        });
+
+        try {
+          await expect(
+            apiProbePool.query(
+              `SELECT event_id
+                 FROM reos_infra.security_audit_events
+                WHERE request_id = $1`,
+              [requestId]
+            )
+          ).rejects.toMatchObject({
+            code: "42501"
           });
-        })
-      );
 
-      const allowed = decisions.filter(
-        (decision) => decision.allowed
-      );
+          await expect(
+            apiProbePool.query(
+              `UPDATE reos_infra.security_audit_events
+                  SET reason_code = 'MUTATED'
+                WHERE request_id = $1`,
+              [requestId]
+            )
+          ).rejects.toMatchObject({
+            code: "42501"
+          });
 
-      const denied = decisions.filter(
-        (decision) => !decision.allowed
-      );
+          await expect(
+            apiProbePool.query(
+              `DELETE FROM reos_infra.security_audit_events
+                WHERE request_id = $1`,
+              [requestId]
+            )
+          ).rejects.toMatchObject({
+            code: "42501"
+          });
+        } finally {
+          await apiProbePool.end();
+        }
 
-      expect(allowed).toHaveLength(10);
-      expect(denied).toHaveLength(14);
+        /*
+         * The append-only database trigger independently rejects mutation,
+         * even when the operation is attempted by the administrative owner.
+         */
 
-      expect(
-        denied.every(
-          (decision) =>
-            decision.retryAfterSeconds !== undefined &&
-            decision.retryAfterSeconds >= 1
-        )
-      ).toBe(true);
+        const adminClient = await adminPool.connect();
 
-      await runtime.verifyReadiness();
+        try {
+          await adminClient.query("BEGIN");
+          await adminClient.query("SAVEPOINT audit_mutation");
 
-      expect(runtime.isHealthy()).toBe(true);
-    }, testTimeoutMs);
+          await expect(
+            adminClient.query(
+              `UPDATE reos_infra.security_audit_events
+                  SET reason_code = 'MUTATED'
+                WHERE request_id = $1`,
+              [requestId]
+            )
+          ).rejects.toMatchObject({
+            code: "55000"
+          });
+
+          await adminClient.query(
+            "ROLLBACK TO SAVEPOINT audit_mutation"
+          );
+
+          await adminClient.query("ROLLBACK");
+        } finally {
+          await adminClient.query("ROLLBACK").catch(() => undefined);
+          adminClient.release();
+        }
+
+        /*
+         * Verify the physical audit record does not expose request bodies,
+         * bearer tokens, credential values or authentication secrets.
+         */
+
+        const columns = await adminPool.query(`
+          SELECT column_name
+          FROM information_schema.columns
+          WHERE table_schema = 'reos_infra'
+            AND table_name = 'security_audit_events'
+          ORDER BY ordinal_position
+        `);
+
+        expect(
+          columns.rows.map((row) => row.column_name)
+        ).toEqual([
+          "event_id",
+          "event_type",
+          "request_id",
+          "occurred_at",
+          "reason_code",
+          "operation",
+          "actor_identity_reference",
+          "tenant_reference"
+        ]);
+      },
+      testTimeoutMs
+    );
+
+    it(
+      "enforces shared Redis rate limits across independent clients",
+      async () => {
+        if (runtime === undefined || !redisUrl) {
+          throw new Error(
+            "The real Redis persistence fixture was not initialized."
+          );
+        }
+
+        secondaryRedis = redisModule.createClient({
+          url: redisUrl
+        });
+
+        await secondaryRedis.connect();
+
+        const rateLimitOptions = {
+          keySecret: randomBytes(32).toString("hex"),
+          keyVersion: "node-integration-v1",
+          policyVersion: `ci-${suffix}`,
+          policies: {
+            "api-ip": {
+              maxRequests: 10,
+              windowMs: 5_000
+            },
+            "api-identity-tenant": {
+              maxRequests: 15,
+              windowMs: 5_000
+            }
+          }
+        } as const;
+
+        const limiterA = new RedisRateLimiter(
+          runtime.redis,
+          rateLimitOptions
+        );
+
+        const limiterB = new RedisRateLimiter(
+          secondaryRedis,
+          rateLimitOptions
+        );
+
+        const decisions = await Promise.all(
+          Array.from({ length: 24 }, (_, index) => {
+            const limiter = index % 2 === 0
+              ? limiterA
+              : limiterB;
+
+            return limiter.consume({
+              bucket: "api-ip",
+              key: `node-integration-${suffix}`
+            });
+          })
+        );
+
+        const allowed = decisions.filter(
+          (decision) => decision.allowed
+        );
+
+        const denied = decisions.filter(
+          (decision) => !decision.allowed
+        );
+
+        expect(allowed).toHaveLength(10);
+        expect(denied).toHaveLength(14);
+
+        expect(
+          denied.every(
+            (decision) =>
+              decision.retryAfterSeconds !== undefined &&
+              decision.retryAfterSeconds >= 1
+          )
+        ).toBe(true);
+
+        await runtime.verifyReadiness();
+
+        expect(runtime.isHealthy()).toBe(true);
+      },
+      testTimeoutMs
+    );
   }
 );
