@@ -1,4 +1,3 @@
-
 import { spawn, execFileSync } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
@@ -361,7 +360,7 @@ b4RecoverySuite(
   "B4 actual PostgreSQL infrastructure backup and recovery",
   () => {
     it(
-      "restores actual B4 migrations, durable sessions, audit records and security boundaries",
+      "restores actual B4 migrations, active and revoked sessions, audit records and security boundaries",
       async () => {
         if (
           adminUrl === undefined ||
@@ -541,11 +540,38 @@ b4RecoverySuite(
             expiresAtEpochSeconds: now + 3_600
           };
 
+          const individuallyRevokedPrincipal: VerifiedExternalPrincipal = {
+            ...principal,
+            subject: `b4-recovery-single-revocation-${suffix}`,
+            tokenId: randomUUID()
+          };
+
+          const accountWideContext: TrustedRequestContext = {
+            ...context,
+            accountId: randomUUID()
+          };
+
+          const accountWidePrincipal: VerifiedExternalPrincipal = {
+            ...principal,
+            subject: `b4-recovery-account-revocation-${suffix}`,
+            tokenId: randomUUID()
+          };
+
           const sessionStore = new PostgresSessionStore(runtime);
 
           const sessionId = await sessionStore.establishSession({
             principal,
             context
+          });
+
+          await sessionStore.establishSession({
+            principal: individuallyRevokedPrincipal,
+            context
+          });
+
+          await sessionStore.establishSession({
+            principal: accountWidePrincipal,
+            context: accountWideContext
           });
 
           await expect(
@@ -554,6 +580,42 @@ b4RecoverySuite(
               context
             })
           ).resolves.toBe(true);
+
+          await expect(
+            sessionStore.revokeSession({
+              principal: individuallyRevokedPrincipal,
+              context,
+              reasonCode: "B4_SINGLE_SESSION_REVOKED"
+            })
+          ).resolves.toBe(true);
+
+          await expect(
+            sessionStore.isSessionActive({
+              principal: individuallyRevokedPrincipal,
+              context
+            })
+          ).resolves.toBe(false);
+
+          await expect(
+            sessionStore.isSessionActive({
+              principal,
+              context
+            })
+          ).resolves.toBe(true);
+
+          await expect(
+            sessionStore.revokeAccountSessions({
+              context: accountWideContext,
+              reasonCode: "B4_ACCOUNT_REVOKED"
+            })
+          ).resolves.toBe(1);
+
+          await expect(
+            sessionStore.isSessionActive({
+              principal: accountWidePrincipal,
+              context: accountWideContext
+            })
+          ).resolves.toBe(false);
 
           const requestId = randomUUID();
 
@@ -585,7 +647,7 @@ b4RecoverySuite(
           `);
 
           expect(beforeBackup.rows[0]).toMatchObject({
-            session_count: 1,
+            session_count: 3,
             audit_count: 1,
             migration_count: 2
           });
@@ -679,11 +741,39 @@ b4RecoverySuite(
 
           await expect(
             restoredSessionStore.isSessionActive({
+              principal: individuallyRevokedPrincipal,
+              context
+            })
+          ).resolves.toBe(false);
+
+          await expect(
+            restoredSessionStore.isSessionActive({
+              principal: accountWidePrincipal,
+              context: accountWideContext
+            })
+          ).resolves.toBe(false);
+
+          await expect(
+            restoredSessionStore.isSessionActive({
               principal,
               context: {
                 ...context,
                 tenantId: randomUUID()
               }
+            })
+          ).resolves.toBe(false);
+
+          await expect(
+            restoredSessionStore.revokeAccountSessions({
+              context,
+              reasonCode: "B4_POST_RESTORE_ACCOUNT_REVOKED"
+            })
+          ).resolves.toBe(1);
+
+          await expect(
+            restoredSessionStore.isSessionActive({
+              principal,
+              context
             })
           ).resolves.toBe(false);
 
@@ -872,7 +962,6 @@ b4RecoverySuite(
             code: "55000"
           });
 
-          expect(true).toBe(true);
         } finally {
           if (runtime !== undefined) {
             await runtime.close().catch(() => undefined);
