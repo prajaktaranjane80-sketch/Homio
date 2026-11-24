@@ -1,4 +1,6 @@
+
 import { randomBytes } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 import { Pool } from "pg";
@@ -19,6 +21,20 @@ import {
 const ADMIN_URL_ENV = "HOMIO_TEST_POSTGRES_ADMIN_URL";
 const MINIMUM_POSTGRES_VERSION = 180004;
 
+const BOOTSTRAP_VARIABLE_ENVIRONMENT = {
+  migration_role: "HOMIO_MIGRATION_ROLE",
+  application_role: "HOMIO_APPLICATION_ROLE",
+  migration_password: "HOMIO_MIGRATION_PASSWORD",
+  application_password: "HOMIO_APPLICATION_PASSWORD"
+} as const;
+
+type BootstrapVariableName =
+  keyof typeof BOOTSTRAP_VARIABLE_ENVIRONMENT;
+
+type BootstrapVariableValues = Readonly<
+  Record<BootstrapVariableName, string>
+>;
+
 interface ServerVersionRow {
   readonly server_version_num: number;
 }
@@ -35,9 +51,17 @@ interface MigrationLedgerRow {
   readonly checksum: string;
 }
 
+export interface B4PostgresTestMigration {
+  readonly id: string;
+  readonly name: string;
+  readonly checksum: string;
+}
+
 export interface B4PostgresTestDatabase {
   readonly databaseName: string;
   readonly applicationRole: string;
+  readonly postgresServerVersion: number;
+  readonly migrationHistory: readonly B4PostgresTestMigration[];
   readonly adminPool: Pool;
   readonly applicationPool: Pool;
   readonly runtime: PostgresRuntime;
@@ -77,6 +101,134 @@ function toError(value: unknown): Error {
     : new Error("PostgreSQL test database operation failed.", {
         cause: value
       });
+}
+
+/**
+ * The repository bootstrap files are canonical psql scripts.
+ *
+ * This adapter removes only their supported psql control directives and
+ * safely substitutes their declared environment variables so the exact
+ * checked-in SQL can be executed through the existing node-postgres client.
+ *
+ * Unknown psql commands and unresolved variables fail closed.
+ */
+function compileCanonicalBootstrapSql(
+  source: string,
+  values: BootstrapVariableValues,
+  requiredVariables: readonly BootstrapVariableName[]
+): string {
+  if (typeof source !== "string" || source.trim().length === 0) {
+    throw new Error("A non-empty canonical PostgreSQL bootstrap script is required.");
+  }
+
+  const observedVariables = new Set<BootstrapVariableName>();
+  const executableLines: string[] = [];
+
+  for (const line of source.replace(/\r\n/g, "\n").split("\n")) {
+    const trimmed = line.trim();
+
+    if (/^\\set\s+ON_ERROR_STOP\s+on$/i.test(trimmed)) {
+      continue;
+    }
+
+    const getenvMatch =
+      /^\\getenv\s+([a-z_][a-z0-9_]*)\s+([A-Z][A-Z0-9_]*)$/i.exec(
+        trimmed
+      );
+
+    if (getenvMatch !== null) {
+      const variable = getenvMatch[1] as BootstrapVariableName;
+      const environmentName = getenvMatch[2];
+
+      if (
+        !Object.prototype.hasOwnProperty.call(
+          BOOTSTRAP_VARIABLE_ENVIRONMENT,
+          variable
+        ) ||
+        BOOTSTRAP_VARIABLE_ENVIRONMENT[variable] !== environmentName ||
+        typeof values[variable] !== "string" ||
+        values[variable].length === 0
+      ) {
+        throw new Error(
+          "The canonical bootstrap script declares an unsupported or unresolved variable."
+        );
+      }
+
+      observedVariables.add(variable);
+      continue;
+    }
+
+    if (trimmed.startsWith("\\")) {
+      throw new Error(
+        "The canonical bootstrap script contains an unsupported psql command."
+      );
+    }
+
+    executableLines.push(line);
+  }
+
+  for (const requiredVariable of requiredVariables) {
+    if (!observedVariables.has(requiredVariable)) {
+      throw new Error(
+        `The canonical bootstrap script is missing ${requiredVariable}.`
+      );
+    }
+  }
+
+  let sql = executableLines.join("\n");
+
+  for (const variable of observedVariables) {
+    const value = values[variable];
+    const isIdentifier = variable.endsWith("_role");
+    const token = isIdentifier
+      ? `:"${variable}"`
+      : `:'${variable}'`;
+
+    if (!sql.includes(token)) {
+      throw new Error(
+        `The canonical bootstrap script did not use its declared ${variable} variable.`
+      );
+    }
+
+    sql = sql.replaceAll(
+      token,
+      isIdentifier
+        ? quoteIdentifier(value)
+        : quoteLiteral(value)
+    );
+  }
+
+  if (
+    /:"[a-z_][a-z0-9_]*"/i.test(sql) ||
+    /:'[a-z_][a-z0-9_]*'/i.test(sql)
+  ) {
+    throw new Error(
+      "The canonical bootstrap script contains an unresolved psql variable."
+    );
+  }
+
+  if (sql.trim().length === 0) {
+    throw new Error("The compiled PostgreSQL bootstrap SQL is empty.");
+  }
+
+  return sql;
+}
+
+async function executeCanonicalBootstrapScript(
+  pool: Pool,
+  scriptUrl: URL,
+  values: BootstrapVariableValues,
+  requiredVariables: readonly BootstrapVariableName[]
+): Promise<void> {
+  const source = await readFile(scriptUrl, "utf8");
+
+  const sql = compileCanonicalBootstrapSql(
+    source,
+    values,
+    requiredVariables
+  );
+
+  await pool.query(sql);
 }
 
 async function waitForDatabaseConnectionsToClose(
@@ -125,10 +277,11 @@ Promise<B4PostgresTestDatabase> {
 
   if (
     typeof sourceUrl !== "string" ||
-    sourceUrl.trim().length === 0
+    sourceUrl.length === 0 ||
+    sourceUrl !== sourceUrl.trim()
   ) {
     throw new Error(
-      `${ADMIN_URL_ENV} is required for B4 PostgreSQL integration tests.`
+      `${ADMIN_URL_ENV} is required and must not contain surrounding whitespace.`
     );
   }
 
@@ -220,9 +373,9 @@ Promise<B4PostgresTestDatabase> {
     }
 
     /*
-     * Never drop roles while their temporary database still exists.
-     * A failed connection drain must remain visible and leave the
-     * disposable resources available for investigation.
+     * Never drop temporary roles while the database still exists.
+     * A failed connection drain must remain visible and leave the database
+     * available for investigation.
      */
     if (
       cleanupRootPool !== undefined &&
@@ -307,41 +460,72 @@ Promise<B4PostgresTestDatabase> {
     const migrationPassword = randomBytes(32).toString("hex");
     const applicationPassword = randomBytes(32).toString("hex");
 
-    await rootPool.query(`
-      CREATE ROLE ${quoteIdentifier(migrationRole)}
-        LOGIN
-        INHERIT
-        NOSUPERUSER
-        NOCREATEDB
-        NOCREATEROLE
-        NOREPLICATION
-        NOBYPASSRLS
-        PASSWORD ${quoteLiteral(migrationPassword)}
-    `);
+    const bootstrapVariables: BootstrapVariableValues = Object.freeze({
+      migration_role: migrationRole,
+      application_role: applicationRole,
+      migration_password: migrationPassword,
+      application_password: applicationPassword
+    });
 
-    migrationRoleCreated = true;
-
-    await rootPool.query(`
-      CREATE ROLE ${quoteIdentifier(applicationRole)}
-        LOGIN
-        INHERIT
-        NOSUPERUSER
-        NOCREATEDB
-        NOCREATEROLE
-        NOREPLICATION
-        NOBYPASSRLS
-        PASSWORD ${quoteLiteral(applicationPassword)}
-    `);
-
-    applicationRoleCreated = true;
-
-    await rootPool.query(`
-      CREATE DATABASE ${quoteIdentifier(databaseName)}
-        OWNER ${quoteIdentifier(migrationRole)}
-        TEMPLATE template0
-    `);
+    /*
+     * The temporary database is initially created by the administrator.
+     * The canonical bootstrap SQL then creates the dedicated roles and
+     * migration-owned schemas inside this database.
+     */
+    await rootPool.query(
+      `CREATE DATABASE ${quoteIdentifier(databaseName)} TEMPLATE template0`
+    );
 
     databaseCreated = true;
+
+    const targetAdminUrl = connectionUrl(
+      rootUrl.toString(),
+      decodeURIComponent(rootUrl.username),
+      decodeURIComponent(rootUrl.password),
+      databaseName
+    );
+
+    adminPool = new Pool({
+      connectionString: targetAdminUrl,
+      max: 2,
+      connectionTimeoutMillis: 5_000,
+      idleTimeoutMillis: 2_000
+    });
+
+    /*
+     * Execute the exact checked-in bootstrap SQL.
+     * No second inline migration-ledger DDL is maintained in this helper.
+     */
+    await executeCanonicalBootstrapScript(
+      adminPool,
+      new URL(
+        "../../scripts/postgres/bootstrap-migration-ledger.sql",
+        import.meta.url
+      ),
+      bootstrapVariables,
+      [
+        "migration_role",
+        "application_role",
+        "migration_password",
+        "application_password"
+      ]
+    );
+
+    migrationRoleCreated = true;
+    applicationRoleCreated = true;
+
+    await executeCanonicalBootstrapScript(
+      adminPool,
+      new URL(
+        "../../scripts/postgres/bootstrap-core002-schema.sql",
+        import.meta.url
+      ),
+      bootstrapVariables,
+      [
+        "migration_role",
+        "application_role"
+      ]
+    );
 
     await rootPool.query(`
       REVOKE CONNECT ON DATABASE ${quoteIdentifier(databaseName)}
@@ -353,13 +537,6 @@ Promise<B4PostgresTestDatabase> {
         TO ${quoteIdentifier(migrationRole)},
            ${quoteIdentifier(applicationRole)}
     `);
-
-    const targetAdminUrl = connectionUrl(
-      rootUrl.toString(),
-      decodeURIComponent(rootUrl.username),
-      decodeURIComponent(rootUrl.password),
-      databaseName
-    );
 
     const migrationUrl = connectionUrl(
       rootUrl.toString(),
@@ -375,84 +552,21 @@ Promise<B4PostgresTestDatabase> {
       databaseName
     );
 
-    adminPool = new Pool({
-      connectionString: targetAdminUrl,
-      max: 2,
-      connectionTimeoutMillis: 5_000,
-      idleTimeoutMillis: 2_000
-    });
-
     migrationPool = new Pool({
       connectionString: migrationUrl,
       max: 1,
       connectionTimeoutMillis: 5_000,
-      idleTimeoutMillis: 2_000
+      idleTimeoutMillis: 2_000,
+      application_name: "homio-b4-test-migrations"
     });
 
     applicationPool = new Pool({
       connectionString: applicationUrl,
       max: 3,
       connectionTimeoutMillis: 5_000,
-      idleTimeoutMillis: 2_000
+      idleTimeoutMillis: 2_000,
+      application_name: "homio-b4-test-application"
     });
-
-    /*
-     * The migration login owns the infrastructure schema and ledger.
-     * The API login cannot create objects in this schema or read the ledger.
-     */
-    await migrationPool.query(`
-      CREATE SCHEMA reos_infra
-        AUTHORIZATION ${quoteIdentifier(migrationRole)}
-    `);
-
-    await migrationPool.query(`
-      CREATE TABLE reos_infra.schema_migrations (
-        migration_id text NOT NULL,
-        migration_name text NOT NULL,
-        checksum text NOT NULL,
-        applied_at timestamp with time zone NOT NULL
-          DEFAULT clock_timestamp(),
-
-        CONSTRAINT schema_migrations_pkey
-          PRIMARY KEY (migration_id),
-
-        CONSTRAINT schema_migrations_migration_name_key
-          UNIQUE (migration_name),
-
-        CONSTRAINT schema_migrations_migration_id_check
-          CHECK (migration_id ~ '^[0-9]{8}$'),
-
-        CONSTRAINT schema_migrations_migration_name_check
-          CHECK (
-            migration_name ~ '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'
-          ),
-
-        CONSTRAINT schema_migrations_checksum_check
-          CHECK (checksum ~ '^[a-f0-9]{64}$')
-      )
-    `);
-
-    await migrationPool.query(`
-      ALTER DEFAULT PRIVILEGES
-        FOR ROLE ${quoteIdentifier(migrationRole)}
-        IN SCHEMA reos_infra
-        REVOKE ALL ON TABLES
-        FROM PUBLIC, ${quoteIdentifier(applicationRole)}
-    `);
-
-    await migrationPool.query(
-      "REVOKE ALL ON SCHEMA reos_infra FROM PUBLIC"
-    );
-
-    await migrationPool.query(`
-      REVOKE ALL ON SCHEMA reos_infra
-        FROM ${quoteIdentifier(applicationRole)}
-    `);
-
-    await migrationPool.query(`
-      REVOKE ALL ON TABLE reos_infra.schema_migrations
-        FROM PUBLIC, ${quoteIdentifier(applicationRole)}
-    `);
 
     const migrationsDirectory = fileURLToPath(
       new URL(
@@ -461,6 +575,10 @@ Promise<B4PostgresTestDatabase> {
       )
     );
 
+    /*
+     * The helper consumes the entire canonical manifest.
+     * It never filters the manifest down to selected B4 migration IDs.
+     */
     const completeManifest = await loadPostgresMigrationManifest(
       migrationsDirectory,
       {
@@ -470,24 +588,28 @@ Promise<B4PostgresTestDatabase> {
       }
     );
 
-    const b4Migrations = completeManifest.filter(
-      (migration) =>
-        migration.id === "00000003" ||
-        migration.id === "00000004"
-    );
-
-    const expectedMigrationIds = [
-      "00000003",
-      "00000004"
-    ];
-
-    if (
-      JSON.stringify(b4Migrations.map(({ id }) => id)) !==
-      JSON.stringify(expectedMigrationIds)
-    ) {
+    if (completeManifest.length === 0) {
       throw new Error(
-        "The canonical B4 session and audit migrations are incomplete or out of order."
+        "The canonical PostgreSQL migration manifest is empty."
       );
+    }
+
+    for (let index = 0; index < completeManifest.length; index += 1) {
+      const migration = completeManifest[index];
+
+      if (migration === undefined) {
+        throw new Error(
+          "The canonical PostgreSQL migration manifest changed during validation."
+        );
+      }
+
+      const expectedId = String(index + 1).padStart(8, "0");
+
+      if (migration.id !== expectedId) {
+        throw new Error(
+          `The canonical migration manifest is not a complete ordered prefix; expected ${expectedId}, received ${migration.id}.`
+        );
+      }
     }
 
     const migrationRunner = new PostgresMigrationRunner(
@@ -498,17 +620,28 @@ Promise<B4PostgresTestDatabase> {
       }
     );
 
-    const firstReport = await migrationRunner.migrate(b4Migrations);
-    const repeatReport = await migrationRunner.migrate(b4Migrations);
+    const firstReport = await migrationRunner.migrate(completeManifest);
+    const replayReport = await migrationRunner.migrate(completeManifest);
+
+    const latestMigration =
+      completeManifest[completeManifest.length - 1];
+
+    if (latestMigration === undefined) {
+      throw new Error(
+        "The canonical PostgreSQL migration manifest has no final migration."
+      );
+    }
 
     if (
-      firstReport.appliedCount !== 2 ||
-      firstReport.latestMigrationId !== "00000004" ||
-      repeatReport.appliedCount !== 0 ||
-      repeatReport.latestMigrationId !== "00000004"
+      firstReport.appliedCount !== completeManifest.length ||
+      firstReport.latestMigrationId !== latestMigration.id ||
+      firstReport.latestChecksum !== latestMigration.checksum ||
+      replayReport.appliedCount !== 0 ||
+      replayReport.latestMigrationId !== latestMigration.id ||
+      replayReport.latestChecksum !== latestMigration.checksum
     ) {
       throw new Error(
-        "The B4 migration run was not deterministic and idempotent."
+        "The full canonical migration manifest was not deterministic and idempotent."
       );
     }
 
@@ -523,36 +656,46 @@ Promise<B4PostgresTestDatabase> {
       `
     );
 
+    const expectedLedger = completeManifest.map((migration) => ({
+      migration_id: migration.id,
+      migration_name: migration.name,
+      checksum: migration.checksum
+    }));
+
     if (
-      ledger.rows.length !== 2 ||
-      JSON.stringify(
-        ledger.rows.map((row) => row.migration_id)
-      ) !== JSON.stringify(expectedMigrationIds) ||
-      JSON.stringify(
-        ledger.rows.map((row) => row.checksum)
-      ) !== JSON.stringify(
-        b4Migrations.map((migration) => migration.checksum)
-      )
+      JSON.stringify(ledger.rows) !==
+      JSON.stringify(expectedLedger)
     ) {
       throw new Error(
-        "The persisted B4 migration ledger does not match the canonical manifest."
+        "The persisted migration ledger does not exactly match the full canonical manifest."
       );
     }
+
+    const migrationHistory = Object.freeze(
+      completeManifest.map((migration) =>
+        Object.freeze({
+          id: migration.id,
+          name: migration.name,
+          checksum: migration.checksum
+        })
+      )
+    );
 
     runtime = new PostgresRuntime(
       applicationPool as unknown as PostgresDriverPool
     );
 
     /*
-     * The actual API database login is checked after the B4 session table
-     * exists. This proves its effective role, table ownership, forced RLS
-     * and restrictive tenant policy against a real PostgreSQL connection.
+     * Verify the real API login on an actual pooled application connection.
+     * This uses the same PostgresRuntime security owner as production.
      */
     await runtime.verifyRuntimeRoleSafety();
 
     return Object.freeze({
       databaseName,
       applicationRole,
+      postgresServerVersion: serverVersion,
+      migrationHistory,
       adminPool,
       applicationPool,
       runtime,
