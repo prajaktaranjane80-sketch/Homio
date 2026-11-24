@@ -10,7 +10,10 @@ const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const REASON_CODE_PATTERN = /^[A-Z][A-Z0-9_]{0,63}$/;
 
-type VerifiedSessionPrincipal = VerifiedExternalPrincipal & {
+type VerifiedSessionPrincipal = Pick<
+  VerifiedExternalPrincipal,
+  "issuer" | "tokenId"
+> & {
   readonly issuedAtEpochSeconds: number;
   readonly expiresAtEpochSeconds: number;
 };
@@ -260,24 +263,44 @@ export class PostgresSessionStore {
 function validateTrustedContext(
   value: TrustedRequestContext | undefined
 ): TrustedRequestContext {
+  if (typeof value !== "object" || value === null) {
+    throw new TypeError(
+      "A complete trusted CORE-001 account and tenant context is required."
+    );
+  }
+
+  /*
+   * Capture every field exactly once before validation or an asynchronous
+   * transaction boundary. The frozen snapshot prevents caller mutation,
+   * including mutation between validation and query execution.
+   */
+  const snapshot = Object.freeze({
+    identityId: value.identityId,
+    accountId: value.accountId,
+    authenticationEpoch: value.authenticationEpoch,
+    tenantId: value.tenantId,
+    tenantRevision: value.tenantRevision,
+    organizationId: value.organizationId,
+    membershipId: value.membershipId,
+    membershipRevision: value.membershipRevision
+  });
+
   if (
-    typeof value !== "object" ||
-    value === null ||
-    !isUuid(value.identityId) ||
-    !isUuid(value.accountId) ||
-    !isUuid(value.tenantId) ||
-    !isUuid(value.organizationId) ||
-    !isUuid(value.membershipId) ||
-    !isPositiveInteger(value.tenantRevision) ||
-    !isPositiveInteger(value.membershipRevision) ||
-    !isPositiveInteger(value.authenticationEpoch)
+    !isUuid(snapshot.identityId) ||
+    !isUuid(snapshot.accountId) ||
+    !isUuid(snapshot.tenantId) ||
+    !isUuid(snapshot.organizationId) ||
+    !isUuid(snapshot.membershipId) ||
+    !isPositiveInteger(snapshot.tenantRevision) ||
+    !isPositiveInteger(snapshot.membershipRevision) ||
+    !isPositiveInteger(snapshot.authenticationEpoch)
   ) {
     throw new TypeError(
       "A complete trusted CORE-001 account and tenant context is required."
     );
   }
 
-  return value;
+  return snapshot;
 }
 
 function validatePrincipal(
@@ -289,18 +312,36 @@ function validatePrincipal(
 
   if (
     typeof candidate !== "object" ||
-    candidate === null ||
-    typeof candidate.issuer !== "string" ||
-    candidate.issuer.length === 0 ||
-    candidate.issuer.length > 2048 ||
-    candidate.issuer.trim() !== candidate.issuer ||
-    typeof candidate.tokenId !== "string" ||
-    candidate.tokenId.length === 0 ||
-    candidate.tokenId.length > 255 ||
-    candidate.tokenId.trim() !== candidate.tokenId ||
-    !isPositiveInteger(candidate.issuedAtEpochSeconds) ||
-    !isPositiveInteger(candidate.expiresAtEpochSeconds) ||
-    candidate.expiresAtEpochSeconds <= candidate.issuedAtEpochSeconds
+    candidate === null
+  ) {
+    throw new TypeError(
+      "Verified issuer, token ID, iat and exp claims are required."
+    );
+  }
+
+  /*
+   * Retain only the verified token fields used by durable session identity.
+   * These primitive values are captured before any asynchronous operation.
+   */
+  const issuer: unknown = candidate.issuer;
+  const tokenId: unknown = candidate.tokenId;
+  const issuedAtEpochSeconds: unknown =
+    candidate.issuedAtEpochSeconds;
+  const expiresAtEpochSeconds: unknown =
+    candidate.expiresAtEpochSeconds;
+
+  if (
+    typeof issuer !== "string" ||
+    issuer.length === 0 ||
+    issuer.length > 2048 ||
+    issuer.trim() !== issuer ||
+    typeof tokenId !== "string" ||
+    tokenId.length === 0 ||
+    tokenId.length > 255 ||
+    tokenId.trim() !== tokenId ||
+    !isPositiveInteger(issuedAtEpochSeconds) ||
+    !isPositiveInteger(expiresAtEpochSeconds) ||
+    expiresAtEpochSeconds <= issuedAtEpochSeconds
   ) {
     throw new TypeError(
       "Verified issuer, token ID, iat and exp claims are required."
@@ -310,7 +351,7 @@ function validatePrincipal(
   let parsedIssuer: URL;
 
   try {
-    parsedIssuer = new URL(candidate.issuer);
+    parsedIssuer = new URL(issuer);
   } catch {
     throw new TypeError("The verified token issuer is invalid.");
   }
@@ -325,7 +366,12 @@ function validatePrincipal(
     throw new TypeError("The verified token issuer is invalid.");
   }
 
-  return candidate as VerifiedSessionPrincipal;
+  return Object.freeze({
+    issuer,
+    tokenId,
+    issuedAtEpochSeconds,
+    expiresAtEpochSeconds
+  });
 }
 
 function epochSecondsToTimestamp(value: number): string {
