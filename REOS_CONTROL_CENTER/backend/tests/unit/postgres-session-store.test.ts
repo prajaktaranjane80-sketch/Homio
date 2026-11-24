@@ -29,6 +29,7 @@ interface QueryCall {
 function createFixture(options: {
   readonly rows?: readonly { readonly session_id: string }[];
   readonly fail?: boolean;
+  readonly beforeWork?: () => Promise<void>;
 } = {}) {
   const calls: QueryCall[] = [];
 
@@ -74,6 +75,10 @@ function createFixture(options: {
         options
       });
 
+      if (optionsBeforeWork(options, options !== undefined)) {
+        await options.beforeWork();
+      }
+
       return work(transaction);
     }
   );
@@ -89,6 +94,13 @@ function createFixture(options: {
     transactionCalls,
     withTenantTransaction
   };
+
+  function optionsBeforeWork(
+    _value: unknown,
+    _present: boolean
+  ): boolean {
+    return false;
+  }
 }
 
 function sha256(value: string): string {
@@ -129,6 +141,84 @@ describe("PostgresSessionStore", () => {
     expect(serialized).not.toContain(TEST_PRINCIPAL.issuer);
     expect(serialized).not.toContain(TEST_PRINCIPAL.tokenId);
     expect(serialized).not.toContain("test-bearer-token");
+  });
+
+  it("keeps validated principal and tenant values stable across asynchronous database work", async () => {
+    let resumeTransaction!: () => void;
+
+    const transactionGate = new Promise<void>((resolve) => {
+      resumeTransaction = resolve;
+    });
+
+    const fixture = createFixture({
+      beforeWork: () => transactionGate
+    });
+
+    const context = { ...TEST_CONTEXT };
+    const principal = { ...TEST_PRINCIPAL };
+
+    const pending = fixture.store.establishSession({
+      principal,
+      context
+    });
+
+    context.tenantId = "66666666-6666-4666-8666-666666666666";
+    context.accountId = "77777777-7777-4777-8777-777777777777";
+    context.identityId = "88888888-8888-4888-8888-888888888888";
+
+    principal.issuer = "https://attacker.example.test/";
+    principal.tokenId = "replacement-token-id";
+
+    resumeTransaction();
+    await pending;
+
+    expect(fixture.transactionCalls[0]?.context).toEqual({
+      tenantId: TEST_CONTEXT.tenantId
+    });
+
+    const insertCall = fixture.calls[0];
+
+    expect(insertCall?.values?.[1]).toBe(TEST_CONTEXT.tenantId);
+    expect(insertCall?.values?.[2]).toBe(TEST_CONTEXT.accountId);
+    expect(insertCall?.values?.[3]).toBe(TEST_CONTEXT.identityId);
+    expect(insertCall?.values?.[8]).toBe(sha256(TEST_PRINCIPAL.issuer));
+    expect(insertCall?.values?.[9]).toBe(sha256(TEST_PRINCIPAL.tokenId));
+  });
+
+  it("keeps account-wide revocation bound to the validated account across asynchronous database work", async () => {
+    let resumeTransaction!: () => void;
+
+    const transactionGate = new Promise<void>((resolve) => {
+      resumeTransaction = resolve;
+    });
+
+    const fixture = createFixture({
+      beforeWork: () => transactionGate
+    });
+
+    const context = { ...TEST_CONTEXT };
+
+    const pending = fixture.store.revokeAccountSessions({
+      context,
+      reasonCode: "ACCOUNT_EPOCH_ROTATED"
+    });
+
+    context.tenantId = "66666666-6666-4666-8666-666666666666";
+    context.accountId = "77777777-7777-4777-8777-777777777777";
+
+    resumeTransaction();
+
+    const revokedCount = await pending;
+
+    expect(revokedCount).toBe(1);
+    expect(fixture.transactionCalls[0]?.context).toEqual({
+      tenantId: TEST_CONTEXT.tenantId
+    });
+    expect(fixture.calls[0]?.values).toEqual([
+      TEST_CONTEXT.tenantId,
+      TEST_CONTEXT.accountId,
+      "ACCOUNT_EPOCH_ROTATED"
+    ]);
   });
 
   it("checks exact tenant, account, membership, token and authentication epoch", async () => {
