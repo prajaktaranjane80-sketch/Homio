@@ -88,7 +88,6 @@ const b4RecoverySuite = integrationEnabled
   : describe.skip;
 
 const TEST_TIMEOUT_MS = 90_000;
-const INFRA_SCHEMA = "reos_infra";
 
 function findPostgresContainerId(): string | undefined {
   try {
