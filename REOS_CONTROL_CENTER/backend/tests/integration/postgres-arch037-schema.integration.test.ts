@@ -81,7 +81,7 @@ interface ApplicationIdentityRow {
   readonly current_user: string;
 }
 
-interface LeadRow {
+interface LeadRow extends Record<string, unknown> {
   readonly tenant_id: string;
   readonly lead_id: string;
 }
