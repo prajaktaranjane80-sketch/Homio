@@ -1,3 +1,4 @@
+
 name: HOMIO backend and ACRL verification
 description: Runs focused compile, transition wiring, subsystem regressions, the unified Fastify backend, and the complete ACRL suite.
 
@@ -108,12 +109,13 @@ runs:
         cache: npm
         cache-dependency-path: REOS_CONTROL_CENTER/backend/package-lock.json
 
-    - name: Install exact backend dependencies and verify B1
+    - name: Install exact backend dependencies and verify backend integration
       shell: bash
       working-directory: REOS_CONTROL_CENTER/backend
       env:
         HOMIO_TEST_POSTGRES_ADMIN_URL: postgresql://postgres:homio-b4-ci-only-password@127.0.0.1:5432/postgres
         HOMIO_TEST_REDIS_URL: redis://127.0.0.1:6379/0
+        HOMIO_REQUIRE_POSTGRES_INTEGRATION: "1"
       run: |
         set -euo pipefail
 
@@ -128,6 +130,7 @@ runs:
 
         echo "B1_BACKEND_VERIFICATION=PASS"
         echo "B1_LOCKFILE_REPRODUCIBILITY=PASS"
+        echo "B4_POSTGRES_INTEGRATION_REQUIRED=1"
 
     # Existing ACRL evidence and cache publication.
 
