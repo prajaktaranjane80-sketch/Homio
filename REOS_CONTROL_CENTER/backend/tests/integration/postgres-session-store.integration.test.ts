@@ -1,6 +1,5 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
-import { Pool } from "pg";
 import {
   afterAll,
   beforeAll,
@@ -10,351 +9,403 @@ import {
 } from "vitest";
 
 import {
-  PostgresRuntime,
-  type PostgresDriverPool
-} from "../../src/persistence/postgres.js";
-import {
   PostgresSessionStore
 } from "../../src/persistence/postgres-session-store.js";
+
 import type {
   TrustedRequestContext,
   VerifiedExternalPrincipal
 } from "../../src/security/contracts.js";
 
+import {
+  createB4PostgresTestDatabase
+} from "../helpers/postgres-b4-test-database.js";
+
+import type {
+  B4PostgresTestDatabase
+} from "../helpers/postgres-b4-test-database.js";
+
 const adminUrl = process.env.HOMIO_TEST_POSTGRES_ADMIN_URL;
-const applicationRole =
-  process.env.HOMIO_TEST_POSTGRES_APPLICATION_ROLE;
 
-const postgresSuite =
-  adminUrl !== undefined && applicationRole !== undefined
-    ? describe
-    : describe.skip;
+const integrationEnabled =
+  typeof adminUrl === "string" &&
+  adminUrl.length > 0;
 
-function quoteRole(role: string): string {
-  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(role)) {
-    throw new Error("Invalid PostgreSQL application role name.");
-  }
+const postgresSuite = integrationEnabled
+  ? describe
+  : describe.skip;
 
-  return `"${role}"`;
-}
+const TEST_TIMEOUT_MS = 60_000;
 
-function requireApplicationRole(): string {
-  if (
-    typeof applicationRole !== "string" ||
-    applicationRole.length === 0
-  ) {
+function requireDatabase(
+  database: B4PostgresTestDatabase | undefined
+): B4PostgresTestDatabase {
+  if (database === undefined) {
     throw new Error(
-      "HOMIO_TEST_POSTGRES_APPLICATION_ROLE is required for this integration suite."
+      "The isolated B4 PostgreSQL integration database was not initialized."
     );
   }
 
-  return applicationRole;
+  return database;
 }
 
-postgresSuite("PostgresSessionStore PostgreSQL integration", () => {
-  let adminPool: Pool;
-  let roleScopedPool: Pool;
-  let runtime: PostgresRuntime;
+function digest(value: string): string {
+  return createHash("sha256")
+    .update(value, "utf8")
+    .digest("hex");
+}
 
-  beforeAll(async () => {
-    adminPool = new Pool({
-      connectionString: adminUrl,
-      max: 3
-    });
+function createContext(): TrustedRequestContext {
+  return {
+    identityId: randomUUID(),
+    accountId: randomUUID(),
+    authenticationEpoch: 1,
+    tenantId: randomUUID(),
+    tenantRevision: 1,
+    organizationId: randomUUID(),
+    membershipId: randomUUID(),
+    membershipRevision: 1
+  };
+}
 
-    roleScopedPool = new Pool({
-      connectionString: adminUrl,
-      max: 3
-    });
+function createPrincipal(
+  tokenId: string
+): VerifiedExternalPrincipal {
+  const now = Math.floor(Date.now() / 1_000);
 
-    const role = quoteRole(requireApplicationRole());
+  return {
+    issuer: "https://identity.example.test/",
+    subject: `b4-session-${randomUUID()}`,
+    audiences: ["homio-api"],
+    clientId: "homio-backend-b4-integration",
+    tokenId,
+    issuedAtEpochSeconds: now - 5,
+    expiresAtEpochSeconds: now + 3_600
+  };
+}
 
-    const rolePool = {
-      connect: async () => {
-        const client = await roleScopedPool.connect();
+postgresSuite(
+  "PostgresSessionStore real PostgreSQL integration",
+  () => {
+    let database: B4PostgresTestDatabase | undefined;
 
-        try {
-          await client.query(`SET SESSION AUTHORIZATION ${role}`);
-          return client;
-        } catch (error) {
-          client.release();
-          throw error;
-        }
+    beforeAll(async () => {
+      database = await createB4PostgresTestDatabase();
+    }, TEST_TIMEOUT_MS);
+
+    afterAll(async () => {
+      await database?.close();
+    }, TEST_TIMEOUT_MS);
+
+    it(
+      "persists token-bound sessions and verifies them through the actual API database login",
+      async () => {
+        const target = requireDatabase(database);
+        const store = new PostgresSessionStore(target.runtime);
+
+        const context = createContext();
+        const principal = createPrincipal(randomUUID());
+
+        const sessionId = await store.establishSession({
+          principal,
+          context
+        });
+
+        expect(sessionId).toMatch(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        );
+
+        await expect(
+          store.isSessionActive({
+            principal,
+            context
+          })
+        ).resolves.toBe(true);
+
+        /*
+         * A fresh store instance reads the durable database row.
+         * This is not an in-memory session registry.
+         */
+        const reloadedStore = new PostgresSessionStore(
+          target.runtime
+        );
+
+        await expect(
+          reloadedStore.isSessionActive({
+            principal,
+            context
+          })
+        ).resolves.toBe(true);
+
+        const persisted = await target.adminPool.query<{
+          readonly tenant_id: string;
+          readonly account_id: string;
+          readonly identity_id: string;
+          readonly authentication_epoch: string;
+          readonly issuer_digest: string;
+          readonly token_id_digest: string;
+          readonly revoked_at: Date | null;
+        }>(
+          `
+            SELECT
+              tenant_id,
+              account_id,
+              identity_id,
+              authentication_epoch,
+              issuer_digest,
+              token_id_digest,
+              revoked_at
+            FROM reos_infra.api_sessions
+            WHERE session_id = $1
+          `,
+          [sessionId]
+        );
+
+        expect(persisted.rows).toHaveLength(1);
+
+        expect(persisted.rows[0]).toMatchObject({
+          tenant_id: context.tenantId,
+          account_id: context.accountId,
+          identity_id: context.identityId,
+          issuer_digest: digest(principal.issuer),
+          token_id_digest: digest(principal.tokenId),
+          revoked_at: null
+        });
+
+        expect(persisted.rows[0]?.issuer_digest).not.toBe(
+          principal.issuer
+        );
+
+        expect(persisted.rows[0]?.token_id_digest).not.toBe(
+          principal.tokenId
+        );
+
+        /*
+         * The session is bound to the exact CORE-001 trusted context.
+         * A new authentication epoch or changed tenant/account cannot
+         * resolve the original durable session.
+         */
+        await expect(
+          reloadedStore.isSessionActive({
+            principal,
+            context: {
+              ...context,
+              authenticationEpoch: 2
+            }
+          })
+        ).resolves.toBe(false);
+
+        await expect(
+          reloadedStore.isSessionActive({
+            principal,
+            context: {
+              ...context,
+              tenantId: randomUUID()
+            }
+          })
+        ).resolves.toBe(false);
+
+        await expect(
+          reloadedStore.isSessionActive({
+            principal,
+            context: {
+              ...context,
+              accountId: randomUUID()
+            }
+          })
+        ).resolves.toBe(false);
       },
-      end: async () => roleScopedPool.end()
-    };
-
-    runtime = new PostgresRuntime(
-      rolePool as unknown as PostgresDriverPool
+      TEST_TIMEOUT_MS
     );
 
-    await runtime.verifyRuntimeRoleSafety();
-  });
+    it(
+      "makes token revocation durable, idempotent and irreversible",
+      async () => {
+        const target = requireDatabase(database);
+        const store = new PostgresSessionStore(target.runtime);
 
-  afterAll(async () => {
-    await runtime?.close().catch(() => undefined);
-    await adminPool?.end();
-  });
+        const context = createContext();
+        const principal = createPrincipal(randomUUID());
 
-  it("persists, validates and revokes a session bound to CORE-001 context and authentication epoch", async () => {
-    const identityId = randomUUID();
-    const accountId = randomUUID();
-    const tenantId = randomUUID();
-    const organizationId = randomUUID();
-    const membershipId = randomUUID();
-    const suffix = randomUUID().slice(0, 8);
-    const now = new Date();
-    const createdAt = now.toISOString();
-    const issuedAtEpochSeconds =
-      Math.floor(now.getTime() / 1_000) - 5;
-    const expiresAtEpochSeconds =
-      issuedAtEpochSeconds + 3_600;
-
-    const context: TrustedRequestContext = {
-      identityId,
-      accountId,
-      authenticationEpoch: 1,
-      tenantId,
-      tenantRevision: 1,
-      organizationId,
-      membershipId,
-      membershipRevision: 1
-    };
-
-    const principal: VerifiedExternalPrincipal = {
-      issuer: "https://identity.example.test/",
-      subject: `b4-session-subject-${suffix}`,
-      audiences: ["homio-api"],
-      clientId: "homio-frontend",
-      tokenId: randomUUID(),
-      issuedAtEpochSeconds,
-      expiresAtEpochSeconds
-    };
-
-    const adminClient = await adminPool.connect();
-
-    try {
-      await adminClient.query("BEGIN");
-
-      await adminClient.query(
-        `INSERT INTO core001.identities (
-           identity_id,
-           identity_type,
-           display_name,
-           handle,
-           status,
-           privacy_class,
-           revision,
-           created_at,
-           updated_at
-         )
-         VALUES ($1, 'TEST', 'B4 Session Test', $2, 'ACTIVE', 'TEST', 1, $3, $3)`,
-        [
-          identityId,
-          `b4-session-${suffix}`,
-          createdAt
-        ]
-      );
-
-      await adminClient.query(
-        `INSERT INTO core001.identity_accounts (
-           account_id,
-           identity_id,
-           status,
-           authentication_epoch,
-           created_at,
-           updated_at
-         )
-         VALUES ($1, $2, 'ENABLED', 1, $3, $3)`,
-        [
-          accountId,
-          identityId,
-          createdAt
-        ]
-      );
-
-      await adminClient.query(
-        `INSERT INTO core001.tenants (
-           tenant_id,
-           tenant_kind,
-           operating_mode,
-           display_name,
-           slug,
-           status,
-           isolation_profile,
-           residency_mode,
-           quota_profile,
-           revision,
-           created_at,
-           updated_at
-         )
-         VALUES (
-           $1, 'TEST', 'TEST', 'B4 Session Tenant', $2,
-           'ACTIVE', 'TEST', 'TEST', '{}'::jsonb, 1, $3, $3
-         )`,
-        [
-          tenantId,
-          `b4-session-tenant-${suffix}`,
-          createdAt
-        ]
-      );
-
-      await adminClient.query(
-        `INSERT INTO core001.organizations (
-           organization_id,
-           tenant_id,
-           display_name,
-           slug,
-           status,
-           revision,
-           created_at,
-           updated_at
-         )
-         VALUES (
-           $1, $2, 'B4 Session Organization', $3,
-           'ACTIVE', 1, $4, $4
-         )`,
-        [
-          organizationId,
-          tenantId,
-          `b4-session-org-${suffix}`,
-          createdAt
-        ]
-      );
-
-      await adminClient.query(
-        `INSERT INTO core001.memberships (
-           membership_id,
-           tenant_id,
-           organization_id,
-           identity_id,
-           status,
-           assurance,
-           valid_from,
-           revision,
-           created_at,
-           updated_at
-         )
-         VALUES (
-           $1, $2, $3, $4, 'ACTIVE', 'TEST',
-           $5, 1, $5, $5
-         )`,
-        [
-          membershipId,
-          tenantId,
-          organizationId,
-          identityId,
-          createdAt
-        ]
-      );
-
-      await adminClient.query("COMMIT");
-    } catch (error) {
-      await adminClient.query("ROLLBACK").catch(() => undefined);
-      throw error;
-    } finally {
-      adminClient.release();
-    }
-
-    const store = new PostgresSessionStore(runtime);
-
-    try {
-      const sessionId = await store.establishSession({
-        principal,
-        context
-      });
-
-      expect(sessionId).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-      );
-
-      await expect(
-        store.isSessionActive({
+        const sessionId = await store.establishSession({
           principal,
           context
-        })
-      ).resolves.toBe(true);
+        });
 
-      await expect(
-        store.revokeSession({
-          principal,
-          context,
-          reasonCode: "B4_INTEGRATION_LOGOUT"
-        })
-      ).resolves.toBe(true);
+        await expect(
+          store.revokeSession({
+            principal,
+            context,
+            reasonCode: "B4_INTEGRATION_LOGOUT"
+          })
+        ).resolves.toBe(true);
 
-      await expect(
-        store.isSessionActive({
-          principal,
+        await expect(
+          store.isSessionActive({
+            principal,
+            context
+          })
+        ).resolves.toBe(false);
+
+        /*
+         * Repeating the same revocation is safe and does not rewrite
+         * the original timestamp or reason.
+         */
+        await expect(
+          store.revokeSession({
+            principal,
+            context,
+            reasonCode: "B4_INTEGRATION_LOGOUT"
+          })
+        ).resolves.toBe(true);
+
+        const revoked = await target.adminPool.query<{
+          readonly revoked_at: Date | null;
+          readonly revocation_reason_code: string | null;
+        }>(
+          `
+            SELECT
+              revoked_at,
+              revocation_reason_code
+            FROM reos_infra.api_sessions
+            WHERE session_id = $1
+          `,
+          [sessionId]
+        );
+
+        expect(revoked.rows).toHaveLength(1);
+        expect(revoked.rows[0]?.revoked_at).not.toBeNull();
+        expect(
+          revoked.rows[0]?.revocation_reason_code
+        ).toBe("B4_INTEGRATION_LOGOUT");
+
+        /*
+         * Even the database administrator cannot rewrite immutable
+         * identity fields or delete the durable revocation record.
+         */
+        await expect(
+          target.adminPool.query(
+            `
+              UPDATE reos_infra.api_sessions
+                 SET account_id = $2
+               WHERE session_id = $1
+            `,
+            [
+              sessionId,
+              randomUUID()
+            ]
+          )
+        ).rejects.toMatchObject({
+          code: "55000"
+        });
+
+        await expect(
+          target.adminPool.query(
+            `
+              DELETE FROM reos_infra.api_sessions
+               WHERE session_id = $1
+            `,
+            [sessionId]
+          )
+        ).rejects.toMatchObject({
+          code: "55000"
+        });
+      },
+      TEST_TIMEOUT_MS
+    );
+
+    it(
+      "revokes all active sessions for one tenant-scoped account without deleting history",
+      async () => {
+        const target = requireDatabase(database);
+        const store = new PostgresSessionStore(target.runtime);
+
+        const context = createContext();
+        const firstPrincipal = createPrincipal(randomUUID());
+        const secondPrincipal = createPrincipal(randomUUID());
+
+        const firstSessionId = await store.establishSession({
+          principal: firstPrincipal,
           context
-        })
-      ).resolves.toBe(false);
+        });
 
-      const secondPrincipal: VerifiedExternalPrincipal = {
-        ...principal,
-        tokenId: randomUUID()
-      };
-
-      await store.establishSession({
-        principal: secondPrincipal,
-        context
-      });
-
-      await adminPool.query(
-        `UPDATE core001.identity_accounts
-            SET authentication_epoch = 2,
-                updated_at = clock_timestamp()
-          WHERE account_id = $1`,
-        [accountId]
-      );
-
-      await expect(
-        store.isSessionActive({
+        const secondSessionId = await store.establishSession({
           principal: secondPrincipal,
-          context: {
-            ...context,
-            authenticationEpoch: 2
-          }
-        })
-      ).resolves.toBe(false);
+          context
+        });
 
-      await adminPool.query(
-        `UPDATE core001.identity_accounts
-            SET authentication_epoch = 1,
-                updated_at = clock_timestamp()
-          WHERE account_id = $1`,
-        [accountId]
-      );
-    } finally {
-      await adminPool.query(
-        "DELETE FROM reos_infra.api_sessions WHERE tenant_id = $1",
-        [tenantId]
-      );
+        await expect(
+          store.isSessionActive({
+            principal: firstPrincipal,
+            context
+          })
+        ).resolves.toBe(true);
 
-      await adminPool.query(
-        "DELETE FROM core001.memberships WHERE tenant_id = $1",
-        [tenantId]
-      );
+        await expect(
+          store.isSessionActive({
+            principal: secondPrincipal,
+            context
+          })
+        ).resolves.toBe(true);
 
-      await adminPool.query(
-        "DELETE FROM core001.organizations WHERE tenant_id = $1",
-        [tenantId]
-      );
+        await expect(
+          store.revokeAccountSessions({
+            context,
+            reasonCode: "B4_INTEGRATION_ACCOUNT_REVOKE"
+          })
+        ).resolves.toBe(2);
 
-      await adminPool.query(
-        "DELETE FROM core001.tenants WHERE tenant_id = $1",
-        [tenantId]
-      );
+        await expect(
+          store.isSessionActive({
+            principal: firstPrincipal,
+            context
+          })
+        ).resolves.toBe(false);
 
-      await adminPool.query(
-        "DELETE FROM core001.identity_accounts WHERE account_id = $1",
-        [accountId]
-      );
+        await expect(
+          store.isSessionActive({
+            principal: secondPrincipal,
+            context
+          })
+        ).resolves.toBe(false);
 
-      await adminPool.query(
-        "DELETE FROM core001.identities WHERE identity_id = $1",
-        [identityId]
-      );
-    }
-  });
-});
+        const history = await target.adminPool.query<{
+          readonly session_id: string;
+          readonly revoked_at: Date | null;
+          readonly revocation_reason_code: string | null;
+        }>(
+          `
+            SELECT
+              session_id,
+              revoked_at,
+              revocation_reason_code
+            FROM reos_infra.api_sessions
+            WHERE tenant_id = $1
+              AND account_id = $2
+            ORDER BY session_id
+          `,
+          [
+            context.tenantId,
+            context.accountId
+          ]
+        );
+
+        expect(history.rows).toHaveLength(2);
+
+        for (const row of history.rows) {
+          expect(row.revoked_at).not.toBeNull();
+          expect(row.revocation_reason_code).toBe(
+            "B4_INTEGRATION_ACCOUNT_REVOKE"
+          );
+        }
+
+        expect(
+          history.rows.map((row) => row.session_id).sort()
+        ).toEqual(
+          [firstSessionId, secondSessionId].sort()
+        );
+      },
+      TEST_TIMEOUT_MS
+    );
+  }
+);
