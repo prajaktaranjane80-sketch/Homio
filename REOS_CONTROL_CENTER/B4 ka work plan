@@ -1,551 +1,1927 @@
-# HOMIO / REOS — B4 ROOT-CAUSE SOLUTION AND IMPLEMENTATION CONTRACT
+# HOMIO / REOS — B4 FINAL 360° ENGINEERING EXECUTION CONTRACT
 
+## PostgreSQL Integration — Architecture, Database, API Security Boundary, Recovery and Guarded Completion
+
+**Project:** HOMIO / REOS  
 **Repository:** `prajaktaranjane80-sketch/Homio`  
 **Branch:** `reos-development`  
-**Workstream:** `BACKEND-001-B4 — PostgreSQL integration`  
-**Reference:** `REOS_CONTROL_CENTER/plan for work`  
-**Technical master:** `REOS_CONTROL_CENTER/architecture/backend/plans/HOMIO_Backend_Structure`  
-**Baseline commit:** `da353afe71c62244e0e0c70d6434c82396ae9f5f`  
-**Baseline Actions:** Run #990 — SUCCESS  
-**Document status:** Implementation contract; not a Control Center status transition.
+**Canonical task:** `BACKEND-001-B4`  
+**Task title:** PostgreSQL integration  
+**Architecture authority:** ARCH-037 — Database Final Schema Design v1.0  
+**Backend master:** `REOS_CONTROL_CENTER/architecture/backend/plans/HOMIO_Backend_Structure`  
+**Execution-state authority:** `REOS_CONTROL_CENTER/data/state.json`  
+**Primary implementation directory:** `REOS_CONTROL_CENTER/backend/`  
+**Migration owner:** `REOS_CONTROL_CENTER/backend/scripts/postgres/migrations/`  
+**Completion authority:** Existing guarded HOMIO Control Center transition.
+
+**Document status:** FINAL B4 execution contract.  
+**Implementation status:** Not yet complete.  
+**Purpose:** One authoritative, source-backed specification for completing B4 without creating duplicate systems, weakening security or repeating previous investigations.
 
 ---
 
-## 1. Non-negotiable decisions
+# PART A — AUTHORITY, BASELINE AND SCOPE
 
-1. ARCH-037 remains APPROVED / FROZEN. No reapproval or reopening.
-2. There will be one unified HOMIO backend and one PostgreSQL migration runner.
-3. Existing CORE-001 through CORE-008 owners remain canonical.
-4. Existing PostgreSQL runtime, migration runner, session store, security-audit store, Redis limiter and CORE-002 outbox are reused.
-5. Existing migrations `00000001` through `00000004` are immutable. Never renumber or rewrite them.
-6. No synthetic tables, skipped tests, fake green CI or invented production credentials.
-7. No frontend changes.
-8. `state.json` is changed only by the existing guarded Control Center transition.
-9. Every implementation must be verified on the exact commit SHA that contains it.
+## 1. Authority hierarchy
 
-## 2. Root cause 1 — ARCH-037 integration test is disconnected from the actual test database
+The following hierarchy is mandatory and cannot be overridden by this work plan:
 
-### Existing cause
+1. `REOS_CONTROL_CENTER/data/state.json` — sole machine-readable execution-state authority.
+2. ARCH-037 approved/frozen architecture — canonical database architecture.
+3. CORE-001 through CORE-008 — canonical business-domain ownership and field semantics.
+4. `REOS_CONTROL_CENTER/architecture/backend/plans/HOMIO_Backend_Structure` — unified backend engineering contract.
+5. Existing backend source, tests, migrations and GitHub Actions — executable implementation authority.
+6. This file — B4 implementation sequence, completion criteria and evidence contract.
 
-`backend/tests/integration/postgres-arch037-schema.integration.test.ts` currently expects:
+An old chat, copied proposal, historical work plan or cached snapshot cannot override a newer live state.
+
+### 1.1 ARCH-037 decision
+
+ARCH-037 is APPROVED / FROZEN.
+
+Its recorded subtasks T01–T11 and criteria AC01–AC11 are complete.
+
+B4 implements the approved architecture. It does not reopen ARCH-037, replace its business ownership rules, request duplicate approval or introduce another database architecture.
+
+The physical-schema reconstruction proposal and identifier-compatibility contract are supporting DRAFT records, not independent authorities. They may provide source-backed observations but cannot authorize contradictory DDL.
+
+Where a low-level physical representation must be derived from the frozen architecture and canonical owner models, document the derivation and preserve the existing owner contract. Do not invent business fields, identifiers, relationships or financial semantics.
+
+### 1.2 Current sequence
+
+The authoritative backend sequence is:
+
+`B0 → B1 → B2-FOUNDATION → B3 → B4 → B2-PRODUCTION-BINDING → B5 → B6 → B7 → B8 → B9 → B10`
+
+Current live status at the verified baseline:
+
+- B0 — DONE
+- B1 — DONE
+- B2-FOUNDATION — DONE
+- B3 — DONE
+- B4 — CURRENT
+- B2-PRODUCTION-BINDING — PENDING
+
+B4 must finish before B2 Production Binding can become the active task.
+
+Do not move to B2 prematurely and do not mix B2 implementation into B4.
+
+---
+
+## 2. Verified repository baseline
+
+The following values were read from live GitHub during final-plan preparation.
+
+| Item | Verified value |
+|---|---|
+| Repository | `prajaktaranjane80-sketch/Homio` |
+| Branch | `reos-development` |
+| HEAD | `e498dbc4399f565bb28484cf99cf8678a4db0d44` |
+| HEAD message | Update and rename plan for work to B4 ka work plan |
+| Parent | `da353afe71c62244e0e0c70d6434c82396ae9f5f` |
+| B4 work-plan SHA | `caea098937834d4765c11aa31ab53ced0bf642da` |
+| `state.json` SHA | `5f1a09dba8d84ee5cbc06a49f37b5e68dc75c44b` |
+| Backend master SHA | `f8d9cd456568cc6c8eaae0caf764123a7e859ba6` |
+| AI entrypoint SHA | `2e1d66cec0a8ca17b24ccf285d3133ff16ca2834` |
+| Execution status | `CONTROL_CENTER_DRIVEN` |
+| Current task | `BACKEND-001-B4` |
+
+The previous work-plan file was renamed to `REOS_CONTROL_CENTER/B4 ka work plan`. The renamed path is the current authoritative work-plan location.
+
+These values are a continuity baseline, not permanent live-state values. At the beginning of a later implementation session, refresh the HEAD and `state.json` once and continue from the first incomplete implementation phase. Do not repeat completed research.
+
+---
+
+# PART B — B4 ACCEPTANCE AND ARCHITECTURE
+
+## 3. The eight canonical B4 acceptance criteria
+
+The exact acceptance criteria are owned by `state.json` and `REOS_CONTROL_CENTER/context/backend_workstream_transition.py`.
+
+| ID | Canonical criterion | Mandatory proof |
+|---|---|---|
+| B4-AC01 | Only the approved ARCH-037 schema and canonical owners are used. | Complete physical-schema mapping and CORE owner traceability. |
+| B4-AC02 | Migrations have deterministic ordering and integrity checks. | Immutable ordered SQL migrations, checksums, replay, locking and rollback tests. |
+| B4-AC03 | Tenant access is enforced by the target persistence boundary. | Actual PostgreSQL application-role RLS and cross-tenant denial tests. |
+| B4-AC04 | Repositories and transaction boundaries have explicit write ownership. | One transaction owner and canonical repository write ownership. |
+| B4-AC05 | Durable session and revocation storage is supported. | Durable session lifecycle, authentication-epoch invalidation and restore tests. |
+| B4-AC06 | Shared rate-limit state and minimized audit persistence are supported. | Shared Redis integration and safe append-only security audit persistence. |
+| B4-AC07 | Migration, concurrency, backup and recovery tests pass. | Full migration, concurrent access, backup, restore and recovery evidence. |
+| B4-AC08 | No second schema or persistence authority is introduced. | Existing runtime, CORE owners, Redis and migration runner are reused. |
+
+All eight criteria must be verified independently. One passing test cannot be used as evidence for unrelated criteria.
+
+## 4. One-owner architecture
+
+B4 is one unified PostgreSQL persistence boundary.
+
+| Canonical owner | Responsibility |
+|---|---|
+| CORE-001 | Identity, account, tenant, organization and membership truth. |
+| CORE-002 | Event envelope, event identity and transactional outbox. |
+| CORE-003 | Lead, attribution, lead ownership and ownership-transfer history. |
+| CORE-004 | Project, inventory and property hierarchy. |
+| CORE-005 | Search, matching, Qdrant, derived read-side projections and retrieval. |
+| CORE-006 | Deal, transaction lifecycle and polymorphic parties. |
+| CORE-007 | Trust, fraud, governance and approval records. |
+| CORE-008 | Commission, money, financial ledger and settlement rules. |
+| B4 | PostgreSQL persistence, transaction infrastructure, session storage, security audit storage, database migrations and database recovery. |
+| B2 | API authentication, trusted-context and authorization boundary. |
+| B3 | Existing authenticated private Python runtime bridge. |
+| ACRL | Development continuity, repository coordination and recovery boundary; never customer authentication or authorization runtime. |
+
+One business aggregate must have one canonical write owner.
+
+A database table does not become a new business owner merely because PostgreSQL stores it.
+
+B4 must not duplicate a CORE domain engine, registry, state machine, API, repository authority or event system.
+
+---
+
+# PART C — PRESERVE EXISTING IMPLEMENTATION
+
+## 5. Existing files and owners to reuse
+
+The following files already exist and must be treated as canonical implementation owners.
+
+| Existing path | Required treatment |
+|---|---|
+| `backend/src/persistence/postgres.ts` | Preserve the only PostgreSQL transaction and tenant-context owner. |
+| `backend/src/persistence/postgres-migrations.ts` | Preserve the only SQL migration executor. |
+| `backend/src/persistence/postgres-migration-manifest.ts` | Preserve ordered migration discovery and manifest validation. |
+| `backend/src/persistence/postgres-query-policy.ts` | Preserve the existing transaction-query restrictions. |
+| `backend/src/persistence/production-runtime.ts` | Preserve the single production PostgreSQL and Redis client composition. |
+| `backend/src/persistence/postgres-session-store.ts` | Preserve durable session and revocation storage. |
+| `backend/src/persistence/postgres-security-audit.ts` | Preserve minimized API security audit persistence. |
+| `backend/src/persistence/redis-rate-limit.ts` | Preserve distributed rate limiting. |
+| `backend/src/persistence/postgres-core002-outbox.ts` | Preserve CORE-002 transaction-scoped outbox integration. |
+| `backend/tests/helpers/postgres-b4-test-database.ts` | Upgrade the existing shared PostgreSQL fixture owner. |
+| `backend/scripts/postgres/bootstrap-migration-ledger.sql` | Reuse the existing migration-ledger bootstrap contract. |
+| `backend/scripts/postgres/bootstrap-core002-schema.sql` | Reuse the existing CORE-002 schema bootstrap contract. |
+| `backend/scripts/migrate-postgres.mjs` | Preserve the existing production migration entrypoint. |
+
+Existing dependencies already include:
+
+- `pg` `8.23.1`
+- `@redis/client` `6.3.1`
+
+Do not introduce another database client, Redis library, ORM, migration framework or runtime composition layer.
+
+## 6. Existing migration inventory
+
+The canonical directory is:
+
+`REOS_CONTROL_CENTER/backend/scripts/postgres/migrations/`
+
+Existing migration files:
+
+| ID | File | Owner |
+|---|---|---|
+| `00000001` | `00000001-core002-event-outbox.sql` | CORE-002 |
+| `00000002` | `00000002-core002-safe-tenant-context.sql` | CORE-002 |
+| `00000003` | `00000003-b4-durable-api-sessions.sql` | B4 |
+| `00000004` | `00000004-b4-minimized-security-audit.sql` | B4 |
+
+These migrations are immutable.
+
+Do not renumber, delete, rewrite or replace them.
+
+All new physical schema work must be additive.
+
+The migration runner and migration manifest remain the sole migration owners.
+
+---
+
+# PART D — ROOT-CAUSE IMPLEMENTATION
+
+## 7. Root cause 1: ARCH-037 test is disconnected from the actual B4 database
+
+### Existing behavior
+
+`backend/tests/integration/postgres-arch037-schema.integration.test.ts` reads:
 
 - `HOMIO_TEST_POSTGRES_ADMIN_URL`
 - `HOMIO_TEST_POSTGRES_APPLICATION_ROLE`
 
-The GitHub Actions verification workflow supplies the admin URL. However, it does not separately supply an application role name.
+It selects `describe.skip` if either is absent.
 
-The existing helper:
+The GitHub Actions workflow supplies the admin URL, but it does not independently supply the dynamically generated temporary application role.
 
-`backend/tests/helpers/postgres-b4-test-database.ts`
+The helper `postgres-b4-test-database.ts` already creates the required database, migration role, application role, pools and PostgresRuntime.
 
-already creates a temporary PostgreSQL database, migration role, application role, pools and `PostgresRuntime`. It owns the real application role name.
+The test does not use that helper.
 
-The schema integration test does not consume that helper.
+### Permanent correction
 
-There is a second problem: the helper currently applies B4 migrations `00000003` and `00000004`, not the complete CORE domain schema.
+Update the existing helper and replace the existing ARCH-037 test so that:
 
-**Therefore, simply adding the missing environment variable would expose the missing relations instead of solving the integration.**
+1. The schema test creates its database with `createB4PostgresTestDatabase()`.
+2. It obtains the generated `applicationRole` from the helper.
+3. It uses the helper's actual application connection for application-role behavior.
+4. It uses the helper's admin connection only for catalog inspection and controlled fixture preparation.
+5. It uses the existing PostgresRuntime for tenant transaction behavior.
+6. It does not depend on a separate static application-role environment variable.
+7. It does not create an independent PostgreSQL database or migration runner.
+8. It executes the complete canonical migration manifest.
+9. It uses the existing cleanup owner and propagates cleanup failures.
+10. It proves the PostgreSQL version and generated role identity in its report.
 
-### Permanent solution
+### Required CI setting
 
-Update the existing helper and test so that:
-
-1. The ARCH-037 test creates its disposable database through `createB4PostgresTestDatabase()`.
-2. It obtains `adminPool`, `applicationPool`, `runtime` and `applicationRole` directly from the helper.
-3. It does not require a separately configured application-role environment variable.
-4. The complete ordered migration manifest is applied before schema assertions.
-5. The test uses the application role for tenant-boundary checks and the admin connection only for catalog inspection and controlled test fixture preparation.
-6. All pools and temporary resources are closed through the helper's existing idempotent cleanup operation.
-7. A cleanup failure fails the test; it must not silently leave temporary databases or roles.
-
-### CI skip protection
-
-The CI workflow must set:
+The existing verification environment must set:
 
 `HOMIO_REQUIRE_POSTGRES_INTEGRATION=1`
 
-When this variable is enabled:
+In required CI mode:
 
-- Missing PostgreSQL service configuration must fail the test.
-- The ARCH-037 suite must not be skipped.
-- A missing migration or relation must fail with the exact relation or migration ID.
-- The report must identify the exact PostgreSQL server version.
+- missing PostgreSQL configuration is a failure,
+- PostgreSQL service failure is a failure,
+- the ARCH-037 suite cannot be skipped,
+- missing migrations fail,
+- missing relations fail,
+- cleanup failure fails,
+- a zero-test suite fails.
 
-Local development may retain an optional skip when PostgreSQL is not configured. CI is not allowed to use that escape.
+Do not configure a fixed application-role name in GitHub Actions. The helper generates and returns the real role.
 
-**Files:**
+Local development may retain an optional skip when PostgreSQL is not configured.
 
-- UPDATE `REOS_CONTROL_CENTER/backend/tests/helpers/postgres-b4-test-database.ts`
-- REPLACE `REOS_CONTROL_CENTER/backend/tests/integration/postgres-arch037-schema.integration.test.ts`
-- UPDATE `REOS_CONTROL_CENTER/.github/workflows/backend-ci.yml` only if required to set the mandatory integration flag. Preserve the existing workflow owners.
+## 8. Root cause 2: Physical schema is incomplete
 
-## 3. Root cause 2 — CORE domain migrations are absent from the executable migration chain
+### Required migration sequence
 
-The existing canonical migration directory is:
+Complete the existing SQL directory with these additive migrations:
 
-`REOS_CONTROL_CENTER/backend/scripts/postgres/migrations/`
-
-It contains the existing migration IDs:
-
-| ID | Existing owner |
-|---|---|
-| 00000001 | CORE-002 events and outbox |
-| 00000002 | CORE-002 safe tenant context |
-| 00000003 | B4 durable API sessions |
-| 00000004 | B4 minimized security audit |
-
-These files remain unchanged.
-
-The ARCH-037 integration test expects CORE-001, CORE-002, CORE-003, CORE-004, CORE-006, CORE-007, CORE-008 and B4 persistence relations. The remaining CORE physical-schema migrations must be added to this existing directory.
-
-### Required ordered migration package
-
-| New ID | New migration | Canonical owner |
+| ID | Required file | Owner |
 |---|---|---|
-| 00000005 | `00000005-core001-identity-tenant.sql` | CORE-001 |
-| 00000006 | `00000006-core003-lead-ownership.sql` | CORE-003 |
-| 00000007 | `00000007-core004-inventory.sql` | CORE-004 |
-| 00000008 | `00000008-core006-deal-transaction.sql` | CORE-006 |
-| 00000009 | `00000009-core007-trust-governance.sql` | CORE-007 |
-| 00000010 | `00000010-core008-financial.sql` | CORE-008 |
+| `00000005` | `00000005-core001-identity-tenant.sql` | CORE-001 |
+| `00000006` | `00000006-core003-lead-ownership.sql` | CORE-003 |
+| `00000007` | `00000007-core004-inventory.sql` | CORE-004 |
+| `00000008` | `00000008-core006-deal-transaction.sql` | CORE-006 |
+| `00000009` | `00000009-core007-trust-governance.sql` | CORE-007 |
+| `00000010` | `00000010-core008-financial.sql` | CORE-008 |
+| `00000011` | `00000011-b4-security-audit-tenant-write-guard.sql` | B4 infrastructure |
 
-CORE-002 remains in migrations 00000001 and 00000002.
+Migration 00000011 is an additive security-boundary migration. It does not create a second audit store.
 
-CORE-005 remains a derived/read-side owner. Do not create a second canonical CORE-005 SQL database.
+The seven migration files are one ordered extension of the existing canonical migration chain.
 
-The helper must load and execute the entire canonical manifest in ascending ID order. It must not filter the execution to only `00000003` and `00000004`.
+No TypeScript schema-migration directory may be introduced.
 
-### Migration safety requirements
+### Required relation inventory
 
-Each new migration must:
+The existing ARCH-037 integration contract expects these relations:
 
-- Create only its canonical owner's approved relations.
-- Use the existing migration role as object owner.
-- Apply least-privilege application grants.
-- Define primary keys and unique constraints.
-- Define foreign keys only where the canonical owner contract proves the relationship.
-- Apply tenant protections to every tenant-bearing table.
-- Enable and FORCE RLS.
-- Use the restrictive tenant policy for the application role.
-- Include required indexes and checks.
-- Be immutable after application.
-- Have a checksum recorded in the existing migration ledger.
+| Schema | Required relations |
+|---|---|
+| `core001` | `identities`, `identity_accounts`, `tenants`, `organizations`, `memberships` |
+| `core002` | `events`, `outbox_publications` |
+| `core003` | `leads`, `lead_ownership`, `ownership_transfers` |
+| `core004` | `projects`, `inventory` |
+| `core006` | `deals`, `deal_parties` |
+| `core007` | `governance_decisions`, `approval_requests` |
+| `core008` | `commission_contracts`, `financial_ledger_entries` |
+| `reos_infra` | `schema_migrations`, `api_sessions`, `security_audit_events` |
 
-The migration runner remains the only migration execution owner.
+CORE-005 remains the derived/read-side search owner. It must not receive a second canonical SQL schema.
 
-## 4. Root cause 3 — Tenant and domain identifiers are not universally interchangeable
+This relation list is the minimum tested relation set, not permission to invent additional domain entities or a second schema authority.
 
-Do not fix identifier compatibility by casting every string to UUID.
+### Source traceability requirement
 
-### Tenant identifiers
+Before writing any new SQL file, produce the implementation traceability record:
 
-CORE-001 uses UUID tenant identity. Some other CORE contracts expose tenant identifiers as strings.
+`REOS_CONTROL_CENTER/evidence/BACKEND-001/B4-physical-schema-implementation-manifest.md`
 
-Permanent solution:
+For every persisted relation and column, record:
 
-- Keep each canonical domain's external identifier representation intact.
-- Resolve tenant scope through one CORE-001-owned canonical binding contract.
-- The binding maps an explicitly identified source owner and its external tenant identifier to the canonical CORE-001 tenant UUID.
-- Never silently convert arbitrary strings to UUID.
-- Reject an unmapped or conflicting tenant reference.
-- Use the resolved canonical UUID for database tenant isolation.
-- Preserve the original source identifier when the domain contract requires it.
+- ARCH-037 owner and relevant approved requirement,
+- canonical CORE source file and model,
+- exact source field name,
+- source identifier type,
+- PostgreSQL type,
+- nullability,
+- default behavior,
+- primary/unique key,
+- foreign-key target where proven,
+- tenant scope,
+- RLS policy,
+- required indexes,
+- migration ID,
+- application-role privilege,
+- supporting integration test.
 
-The binding belongs to the existing CORE-001 identity/tenant authority. It must not become another independent tenant registry.
+The traceability manifest is an implementation evidence index, not another schema authority.
 
-### Customer identifiers
+Do not copy unapproved candidate relations from a draft proposal.
 
-CORE-003 and CORE-006 must not assume that their customer identifier representations are automatically identical.
+If a source model does not define a field, do not invent it.
 
-Use the responsible canonical owner to resolve the relationship. Keep an explicit typed reference where the identity relationship is not proven. Reject conflicting mappings.
+If the architecture does not establish a relationship, do not fabricate a foreign key.
 
-### Project and inventory identifiers
+### Exact migration DDL contract
 
-CORE-004 project, developer and inventory identifiers remain opaque strings wherever their canonical contracts define strings.
+Every migration must define:
 
-- Do not convert them to UUID.
-- Enforce tenant-scoped uniqueness.
-- Reference a project from another owner only through the canonical project key.
-- Do not create a unit foreign key unless the actual canonical unit identity and uniqueness contract exist.
+- immutable migration ID and name,
+- deterministic SHA-256 checksum,
+- preconditions and postconditions,
+- exact columns and PostgreSQL types,
+- primary and unique constraints,
+- validated foreign keys,
+- tenant-scoped uniqueness,
+- required check constraints,
+- nullability and default rules,
+- access-path indexes,
+- object ownership,
+- RLS and restrictive tenant policy,
+- least-privilege grants,
+- failure and rollback behavior,
+- post-migration validation,
+- locking and availability impact.
 
-### Deal parties
+A migration file is not complete merely because it creates the expected table.
 
-CORE-006 party references are polymorphic.
+## 9. Root cause 3: Bootstrap and production migration paths must match
 
-Do not create a foreign key from every `party_id` to CORE-001 identities. A customer, seller, builder, broker and representative are not automatically the same identity type.
+The production migration entrypoint is:
 
-Use the existing role and owner contracts to validate each party reference.
+`backend/scripts/migrate-postgres.mjs`
 
-## 5. Root cause 4 — Financial persistence must preserve the canonical Decimal contract
+The existing bootstrap owners are:
+
+- `backend/scripts/postgres/bootstrap-migration-ledger.sql`
+- `backend/scripts/postgres/bootstrap-core002-schema.sql`
+
+The B4 test helper currently creates an inline migration ledger and filters the complete manifest to only migrations `00000003` and `00000004`.
+
+This must be corrected.
+
+### Required shared bootstrap contract
+
+The test database and production migration path must use the same effective ownership and privilege model:
+
+1. Dedicated migration login.
+2. Separate application login.
+3. Dedicated `reos_infra` schema owned by the migration role.
+4. Dedicated immutable migration ledger.
+5. Existing `core002` schema bootstrap.
+6. Restricted default privileges.
+7. No PUBLIC schema/object grants.
+8. No application-role ledger access.
+9. One canonical manifest.
+10. One migration runner.
+
+Where a bootstrap operation is adapted for tests, it must remain behaviorally equivalent to the canonical SQL bootstrap. Do not maintain two subtly different bootstrap implementations.
+
+### Full migration chain
+
+The helper must apply the complete manifest, not a filtered subset.
+
+The expected final IDs are:
+
+`00000001` through `00000011`, in exact ascending order.
+
+The test must verify:
+
+- exact count,
+- exact ID sequence,
+- exact migration names,
+- exact checksums,
+- no missing prefix,
+- no duplicate ID,
+- no altered historical migration,
+- replay applies zero migrations,
+- application role cannot read or mutate migration history.
+
+Do not use `count >= N` as the final integrity test.
+
+---
+
+# PART E — PHYSICAL SCHEMA, IDENTIFIERS AND TENANT SECURITY
+
+## 10. Complete schema integrity contract
+
+The schema test must inspect PostgreSQL catalogs and verify:
+
+1. All required relations exist.
+2. Required columns exist.
+3. Exact PostgreSQL data types are correct.
+4. Nullability is correct.
+5. Default expressions are correct.
+6. Primary keys are correct.
+7. Unique constraints are correct.
+8. Check constraints are validated.
+9. Foreign keys are correct and validated.
+10. Tenant-scoped uniqueness is enforced.
+11. Required indexes exist.
+12. Index predicates and relevant composite keys are correct.
+13. Table owner is the migration role, not application role.
+14. Functions have correct ownership and execution privileges.
+15. Trigger definitions are present and correct.
+16. RLS is enabled on applicable tenant tables.
+17. FORCE RLS is enabled.
+18. The restrictive application-role tenant policy exists.
+19. Policy `USING` and `WITH CHECK` expressions match the safe tenant contract.
+20. No unexpected duplicate canonical schema exists.
+21. Migration ledger matches the immutable manifest.
+22. Financial types preserve exact numeric semantics.
+
+Every failed assertion must identify:
+
+- canonical owner,
+- schema,
+- relation,
+- column or constraint,
+- expected result,
+- actual result.
+
+The test is an independent verifier, not the authority that invents the physical schema.
+
+## 11. Canonical identifier compatibility
+
+Do not force all identifiers into UUID or TEXT indiscriminately.
+
+| Owner | Required preservation |
+|---|---|
+| CORE-001 | Identity, account, tenant, organization and membership UUID semantics. |
+| CORE-002 | Existing event/publication UUID and envelope semantics. |
+| CORE-003 | Lead, tenant, customer and ownership UUID semantics. |
+| CORE-004 | Opaque project, developer, property and inventory identifier semantics. |
+| CORE-006 | String-based deal and party references, including polymorphic party roles. |
+| CORE-007 | Decision and approval identity types as defined by its source models. |
+| CORE-008 | Financial, commission, tenant and account reference semantics as defined by its source models. |
+
+### Tenant identifier rule
+
+The canonical PostgreSQL tenant-isolation context is UUID.
+
+Where CORE owners expose tenant IDs as strings:
+
+1. Verify actual source validators and historical data.
+2. Confirm whether those values are canonical UUID serializations.
+3. Perform strict parsing at the repository boundary.
+4. Reject malformed values.
+5. Never trim, guess, repair or silently generate a replacement ID.
+6. Preserve the source-level representation when required.
+7. Use canonical CORE-001 tenant ownership.
+8. Use an existing owner-governed mapping if a legitimate non-UUID tenant identifier requires mapping.
+9. Reject unmapped and conflicting identifiers.
+
+Do not build a second tenant registry in B4.
+
+### Cross-domain foreign-key restrictions
+
+- CORE-003 customer UUID and CORE-006 customer string are not automatically interchangeable.
+- CORE-006 party references are polymorphic and must not receive a universal identity FK.
+- CORE-004 project/inventory identifiers remain opaque wherever their owner defines strings.
+- `unit_id` alone must not become a universal FK where canonical project/property hierarchy is required.
+- CORE-008 financial account references must preserve their existing source type until their canonical target contract proves a stronger relationship.
+
+A field-name match does not prove referential identity.
+
+## 12. Database tenant enforcement
+
+The existing `PostgresRuntime` remains the only tenant transaction owner.
+
+Every applicable tenant-bearing table must satisfy:
+
+- ENABLE ROW LEVEL SECURITY.
+- FORCE ROW LEVEL SECURITY.
+- Application role is not owner.
+- Application role is not superuser.
+- Application role does not have BYPASSRLS.
+- No inherited or assumable role grants a bypass.
+- A valid restrictive tenant policy applies.
+- Policy checks both `USING` and `WITH CHECK`.
+- Missing, empty or malformed tenant context denies access.
+- Transaction-local tenant context does not leak.
+
+Reuse the canonical safe expression verified in `postgres.ts`:
+
+- `pg_input_is_valid()` guards UUID input.
+- Invalid or absent context resolves to NULL.
+- The policy fails closed.
+- Do not use a direct unsafe UUID cast.
+
+The role-safety check must execute on the exact connection used by the transaction. Do not cache a successful role check across pooled connections.
+
+### Mandatory RLS tests
+
+Use the real application role.
+
+Test:
+
+1. Tenant A reads its own records.
+2. Tenant A cannot read Tenant B records.
+3. Tenant A cannot insert Tenant B records.
+4. Tenant A cannot update Tenant B records.
+5. Missing context exposes no tenant records.
+6. Empty context exposes no tenant records.
+7. Malformed context exposes no tenant records.
+8. Tenant context is reset after commit.
+9. Tenant context is reset after rollback.
+10. A pooled connection reused by another tenant does not leak context.
+11. Application role cannot assume a table-owner or RLS-bypass role.
+12. Administrative access is separate and never treated as application-role proof.
+
+All mandatory checks run against actual PostgreSQL, not mocked policy expressions.
+
+---
+
+# PART F — TRANSACTIONS, FINANCIAL INTEGRITY AND OUTBOX
+
+## 13. Single transaction owner
+
+The existing `PostgresRuntime` is the only transaction boundary.
+
+Repositories must not create their own independent pool or transaction manager.
+
+Every repository must have an explicit canonical write owner.
+
+### Transaction invariants
+
+- One checked-out PostgreSQL client per transaction.
+- Server-derived tenant context.
+- Transaction-local tenant setting.
+- Parameterized SQL.
+- No manual tenant-setting mutation through repository queries.
+- Explicit read-only behavior where appropriate.
+- Defined isolation level.
+- Correct rollback.
+- Ambiguous commit outcomes are not automatically retried.
+- Connection is destroyed or safely released when rollback itself fails.
+- No cross-tenant repository write.
+
+## 14. CORE-002 outbox and idempotency
+
+Reuse:
+
+`backend/src/persistence/postgres-core002-outbox.ts`
+
+The existing CORE-002 owner remains responsible for canonical event envelopes and publication lifecycle.
+
+Required tests:
+
+1. Domain write and event/outbox append share one transaction.
+2. Rollback removes all related writes.
+3. Identical event replay is idempotent.
+4. Reused event ID with changed content is rejected.
+5. Reused idempotency key with changed content is rejected.
+6. Concurrent duplicate operations produce one durable event.
+7. Tenant mismatch is rejected.
+8. A publication cannot exist without its canonical event.
+9. A committed but unpublished event is recoverable.
+10. No blind retry follows an ambiguous commit.
+11. No duplicate event registry or outbox engine is introduced.
+
+B3 mutation behavior remains disabled until the canonical durable idempotency and transaction owner is verified.
+
+## 15. Financial persistence and integrity
 
 CORE-008 remains the financial authority.
 
-Permanent solution:
+The existing ARCH-037 schema test expects PostgreSQL unbounded `NUMERIC` for the relevant financial amount field.
 
-- PostgreSQL amounts use `NUMERIC` without an invented fixed precision.
-- Do not use JavaScript floating-point `number` for persisted financial calculations.
-- Transfer decimal amounts through strings or the existing Decimal representation.
-- Preserve currency identity.
-- Validate permitted fractional scale from the canonical currency minor-unit contract.
-- Reject excess fractional digits and currency mismatches.
-- Test decimal round-trip and large supported values.
-- Add explicit business magnitude limits only when the canonical financial owner defines them.
-- Enforce ledger immutability through the canonical persistence boundary.
+The database type is only one part of the financial contract.
 
-Do not guess `NUMERIC(18,2)` or `NUMERIC(20,6)`.
+Required rules:
 
-## 6. Root cause 5 — Durable sessions and revocation require the full canonical lifecycle
+- Exact Decimal representation.
+- No canonical JavaScript floating-point arithmetic.
+- Decimal strings or canonical Decimal serialization at persistence boundaries.
+- Explicit currency.
+- Currency-specific permitted scale.
+- Approved rounding behavior.
+- Overflow and magnitude checks only where canonical owner policy defines them.
+- Reject invalid precision.
+- Reject currency mismatch.
+- Preserve exact database read/write round-trip.
+- Preserve balanced double-entry invariants where applicable.
+- Immutable posted ledger entries.
+- Reversal/adjustment rather than destructive modification.
+- Idempotent settlement.
+- Reconciliation traceability.
+- Estimate, authorization and settlement remain distinct states.
 
-Reuse:
+Do not invent fixed precision such as `NUMERIC(18,2)`.
 
-- `backend/src/persistence/postgres-session-store.ts`
-- `backend/tests/unit/postgres-session-store.test.ts`
-- `backend/tests/integration/postgres-session-store.integration.test.ts`
-- Existing migration `00000003-b4-durable-api-sessions.sql`
+Do not invent new currencies, rounding modes, magnitude limits or financial states.
 
-The B4 session persistence contract must prove:
+Tests must include exact decimal values, boundary scales, large valid amounts, invalid fractional scales, currency mismatch and concurrent duplicate posting behavior.
 
-1. Session establishment stores only verified, minimized token identity data.
-2. Raw bearer tokens are never persisted.
-3. Issuer and token identity are stored as cryptographic digests.
-4. Session expiry is enforced.
-5. Single-session revocation works.
-6. Account-wide revocation works.
-7. Revocation is irreversible.
-8. Duplicate revocation is safe and idempotent.
-9. Account authentication-epoch mismatch invalidates the session.
-10. Unknown, expired, revoked and unmapped sessions fail closed.
-11. PostgreSQL outage does not turn session validation into success.
-12. Tenant context is applied through the existing PostgresRuntime transaction owner.
+---
 
-The session adapter must not create a new account, identity or authorization authority. CORE-001 remains canonical.
+# PART G — API SECURITY AND PERSISTENCE BOUNDARY
 
-## 7. Root cause 6 — Security audit persistence requires privacy and write-boundary guarantees
+## 16. B4 / B2 security boundary
 
-Reuse:
+B4 provides persistence capabilities.
 
-- `backend/src/persistence/postgres-security-audit.ts`
-- `backend/tests/unit/postgres-security-audit.test.ts`
-- `backend/tests/integration/postgres-security-audit.integration.test.ts`
-- Existing migration `00000004-b4-minimized-security-audit.sql`
+B4 does not become a new authentication or authorization engine.
+
+The existing security contracts are:
+
+- `TokenVerificationPort`
+- `SessionValidationPort`
+- `TrustedContextResolverPort`
+- `AuthorizationPolicyPort`
+- `RateLimitPort`
+- `SecurityAuditPort`
+
+The existing API security owner is:
+
+`backend/src/security/api-security.ts`
+
+The existing contract owner is:
+
+`backend/src/security/contracts.ts`
+
+### Correct responsibility separation
+
+| Capability | Owner |
+|---|---|
+| OIDC/JWT verification | Existing approved OIDC verifier; B2 Production Binding connects it. |
+| Identity/account resolution | CORE-001. |
+| Tenant and membership resolution | CORE-001. |
+| Current authentication epoch | CORE-001. |
+| Resource/action authorization | CORE-001 owner-governed authorization decision contract. |
+| Durable session persistence | B4 PostgresSessionStore. |
+| Session revocation persistence | B4 PostgresSessionStore. |
+| Shared rate-limit storage | B4 RedisRateLimiter. |
+| Minimized API security audit persistence | B4 PostgresSecurityAuditStore. |
+| Fastify request ordering and route enforcement | Existing B2 API security boundary. |
+
+Do not create a second OIDC verifier, identity resolver, authorization engine or public API.
+
+## 17. Required authentication and authorization sequence
+
+The production API security boundary must preserve this logical order:
+
+1. Validate route security metadata.
+2. Parse the bearer credential using the existing strict token parser.
+3. Verify the access token through the approved OIDC verifier.
+4. Resolve trusted identity, account, tenant, organization and active membership through CORE-001.
+5. Resolve the current canonical authentication epoch and relevant membership/tenant revisions.
+6. Validate the durable session using B4 storage against the verified principal and current trusted context.
+7. Apply shared rate-limit policy.
+8. Resolve the canonical resource/action authorization decision through CORE-001.
+9. Persist the required minimized audit event before the protected handler.
+10. Execute the protected handler.
+11. Reauthorize protected mutations immediately before mutation execution where the route policy requires it.
+
+Exact ordering must be verified against the existing `api-security.ts` lifecycle and its tests. Do not silently rearrange middleware.
+
+Invalid credentials, expired sessions, revoked sessions, absent adapters, malformed decisions, authorization-service outages, Redis outages and audit persistence failures must follow the existing fail-closed contracts.
+
+B4 does not implement the OIDC or authorization steps. It must prove its persistence components are ready to be bound by B2.
+
+## 18. B4 persistence adapter contract tests
+
+Add focused integration tests against the existing security ports and actual B4 stores.
+
+### Session adapter
+
+Prove the existing PostgresSessionStore structurally and behaviorally satisfies `SessionValidationPort`.
+
+Test:
+
+- valid session accepted,
+- expired token rejected,
+- missing session rejected,
+- revoked session rejected,
+- wrong tenant rejected,
+- changed account identity rejected,
+- changed membership revision rejected,
+- changed tenant revision rejected,
+- changed authentication epoch rejected,
+- database error fails closed.
+
+### Audit adapter
+
+Prove the existing PostgresSecurityAuditStore structurally and behaviorally satisfies `SecurityAuditPort`.
+
+Test:
+
+- valid minimized event persisted,
+- invalid event rejected,
+- no token or secret field accepted,
+- audit insert failure propagates as unavailable,
+- no update/delete capability exists for application role,
+- tenant reference is bound to trusted context.
+
+### Rate-limit adapter
+
+Prove the existing RedisRateLimiter satisfies `RateLimitPort`.
+
+Test:
+
+- exact bucket mapping,
+- key normalization,
+- atomic shared counter,
+- retry-after behavior,
+- concurrency,
+- expiry,
+- outage behavior,
+- safe key handling.
+
+These are persistence contract tests. They do not complete B2 Production Binding.
+
+## 19. Session authentication epoch and revocation lifecycle
+
+The current session record stores:
+
+- tenant,
+- account,
+- identity,
+- tenant revision,
+- organization,
+- membership,
+- membership revision,
+- issuer digest,
+- token ID digest,
+- authentication epoch,
+- issued time,
+- expiry,
+- revocation time and reason.
+
+The source of truth for current account and membership state remains CORE-001.
+
+Required behavior:
+
+1. Session creation uses a verified principal only.
+2. Raw access tokens are never persisted.
+3. Issuer and token ID are stored as cryptographic digests.
+4. The current CORE-001 context is used during session establishment.
+5. A session is valid only for its exact account, identity, tenant, organization, membership, revisions and token identity.
+6. Expiry is evaluated using database time for the persistence decision.
+7. Single-session revocation is idempotent.
+8. Account-wide revocation preserves history.
+9. Revocation cannot be reversed.
+10. Session identity fields cannot be modified after creation.
+11. Account authentication-epoch change invalidates old sessions when the trusted context supplies the new epoch.
+12. Membership revision change invalidates old membership-bound sessions.
+13. Tenant revision change invalidates old tenant-bound sessions.
+14. Database outage never produces successful session validation.
+
+### Concurrency semantics
+
+Tests must define the revocation linearization point.
+
+Once revocation has committed, all subsequently started validations must reject that session.
+
+A request that already passed validation before revocation commits is an in-flight request; B4 must not claim that a storage update retroactively cancels arbitrary application code.
+
+High-impact mutation operations must use the existing immediate reauthorization hook and preserve the B2 security boundary.
+
+Test:
+
+- validation concurrent with revocation,
+- duplicate revocation,
+- account-wide revocation with multiple active sessions,
+- account epoch change,
+- membership revision change,
+- database failure during validation,
+- connection failure during revocation.
+
+---
+
+# PART H — SECURITY AUDIT, REDIS AND PRIVILEGES
+
+## 20. Security audit write boundary
+
+The existing audit table is append-only and the application role has INSERT-only table privileges.
+
+The persistence contract must also protect the integrity of the tenant reference.
+
+Current audit schema uses `tenant_reference`, not a column named `tenant_id`. The existing generic PostgreSQL tenant-table role check therefore cannot be treated as proof that the audit tenant reference is bound correctly.
+
+### Required additive correction
+
+Use migration `00000011-b4-security-audit-tenant-write-guard.sql` to implement an explicit database-enforced audit write boundary.
+
+The final design must:
+
+- keep one existing audit table,
+- keep one existing audit store,
+- bind tenant references to the trusted transaction context,
+- reject an event whose tenant reference differs from the trusted tenant,
+- define a safe path for legitimate global events with no tenant,
+- prevent application input from selecting an arbitrary audit tenant,
+- retain append-only behavior,
+- restrict maintenance authority,
+- keep database function execution privileges least-privileged,
+- pin any SECURITY DEFINER function's `search_path`,
+- fully qualify referenced objects,
+- revoke PUBLIC execution,
+- grant only the required execution capability.
+
+Do not give the application role general audit UPDATE, DELETE or SELECT access.
+
+Do not create a second audit schema or audit engine.
+
+## 21. Audit minimization, retention and legal hold
+
+Persist only the existing `SecurityAuditEvent` fields that the current security owner defines:
+
+- event type,
+- request ID,
+- occurrence time,
+- reason code,
+- optional operation,
+- optional trusted actor identity reference,
+- optional trusted tenant reference.
+
+Never persist:
+
+- bearer tokens,
+- raw credentials,
+- passwords,
+- authorization headers,
+- request bodies,
+- unnecessary personal information,
+- raw OIDC claims,
+- unnecessary provider payloads.
+
+### Retention
+
+ARCH-037 T07 defines retention, archival and legal-hold requirements.
+
+Implementation must use the existing approved retention policy and legal-hold authority.
+
+Do not invent retention periods.
+
+Do not grant application-role deletion privileges.
+
+The implementation must define and test:
+
+- audit retention configuration source,
+- archive identity,
+- archive integrity proof,
+- legal-hold enforcement,
+- restricted maintenance ownership,
+- retention execution evidence,
+- restoration of archived records where required,
+- audit access traceability.
+
+Partitioning or table replacement must follow the approved ARCH-037 partitioning criteria and the existing migration compatibility contract. Do not add speculative partitioning simply because audit data may grow.
+
+Where no approved retention duration is represented in the available owner policy, preserve records and do not execute deletion based on a guessed duration.
+
+## 22. Redis distributed rate limiting
+
+Reuse the existing RedisRateLimiter and production Redis client.
 
 Required guarantees:
 
-- Persist only the existing minimized `SecurityAuditEvent` contract.
-- Never persist passwords, tokens, bearer credentials, request bodies or unnecessary personal information.
-- Security audit writes are append-only.
-- Application runtime can write but cannot update or delete prior audit events.
-- Ordinary application runtime cannot read the full audit history.
-- Privileged audit reads use a separately authorized read path.
-- Retention is enforced using the approved security-retention policy, not an arbitrary hard-coded number of days.
-- Persistence failure follows the existing fail-closed security contract.
+- shared state across independent API instances,
+- atomic fixed-window or existing approved algorithm behavior,
+- exact TTL expiry,
+- safe HMAC-derived key handling,
+- no raw identity or tenant identifiers stored in keys,
+- validated rate-limit policy,
+- bounded connection and command timeouts,
+- fail-closed dependency failure behavior,
+- no in-process-only production fallback.
 
-Keep API security audit separate from CORE-008 financial audit and ACRL continuity evidence.
+### Key and secret lifecycle
 
-## 8. Root cause 7 — Outbox and idempotency must remain under CORE-002 ownership
+The existing HMAC key handling must have an explicit rotation contract.
 
-Reuse:
+Required proof:
 
-- `backend/src/persistence/postgres-core002-outbox.ts`
-- `backend/tests/integration/core002-outbox.integration.test.ts`
-- Existing migrations 00000001 and 00000002.
+- secret is not logged,
+- key identifiers are versioned,
+- active windows are not silently bypassed by careless rotation,
+- rotation behavior is deterministic,
+- old key acceptance is bounded by the approved maximum window,
+- compromise can trigger controlled immediate rotation,
+- test fixtures do not reuse production secrets.
 
-The implementation must prove:
+Do not create another Redis limiter or key registry.
 
-1. Domain write, canonical event append and outbox publication are in one existing PostgresRuntime transaction.
-2. Identical idempotency replay does not create a duplicate event.
-3. Reuse of an event ID with different content is rejected.
-4. Reuse of an idempotency key with different content is rejected.
-5. Concurrent duplicate commands produce one durable event.
-6. A rollback removes the domain write and associated outbox records together.
-7. A committed but unpublished publication is recoverable after restart.
-8. Tenant scope is enforced by the same transaction boundary.
-9. Ambiguous commit results are never blindly retried.
+### Multi-instance verification
 
-Do not create a second outbox, event publisher, transaction owner or idempotency registry.
+Reuse the existing Redis integration verifier and add only missing tests.
 
-## 9. Root cause 8 — Recovery test coverage does not cover the complete schema
+Prove:
 
-The existing B4 recovery test restores B4 infrastructure relations. The full ARCH-037 domain schema must be included in the same recovery proof.
+- independent Node clients share the same rate limit,
+- concurrent calls cannot exceed the configured policy,
+- exact retry-after behavior,
+- window expiration resets correctly,
+- reconnect and outage behavior fail closed,
+- a Redis restart or state loss cannot be described as durable abuse history.
 
-### Permanent recovery test
+Shared rate-limit state and durable business persistence are different requirements. Do not claim Redis rate-limit counters are durable business records.
 
-UPDATE:
+---
 
-`REOS_CONTROL_CENTER/backend/tests/integration/postgres-b4-recovery.integration.test.ts`
+# PART I — DATABASE PRIVILEGES AND MIGRATION SAFETY
 
-The test must:
+## 23. Database roles and least privilege
 
-1. Create a fresh database through the shared B4 helper.
-2. Apply the entire canonical migration manifest.
-3. Insert test records for CORE domain relations and B4 sessions/audit.
-4. Create a full database backup using PostgreSQL's actual backup tooling.
-5. Restore into a new disposable PostgreSQL database.
-6. Verify migration IDs and checksums after restore.
-7. Verify critical CORE domain records.
-8. Verify active and revoked sessions.
-9. Verify audit records remain append-only.
-10. Verify table ownership and application permissions.
-11. Verify FORCE RLS and restrictive tenant policies after restore.
-12. Verify cross-tenant reads/writes remain denied after restore.
-13. Verify the restored application role can connect and use the intended persistence boundary.
-14. Clean up both databases and all temporary roles safely.
+Maintain distinct roles for:
 
-A recovery failure must be reported, not hidden by cleanup.
+1. Database administrator/bootstrap operator.
+2. Migration owner.
+3. Application runtime.
+4. Restricted maintenance/backup operator where required.
 
-### Target backup evidence
+The application role must not:
 
-Add:
+- own application tables,
+- own schemas,
+- be superuser,
+- have BYPASSRLS,
+- assume a role that bypasses RLS,
+- execute arbitrary DDL,
+- create schemas,
+- alter migration history,
+- write arbitrary audit history,
+- delete session or audit records,
+- read the migration ledger,
+- access unrelated tenant records.
+
+The migration role must not be used as the API runtime login.
+
+The backup operator must not be treated as an application role.
+
+The maintenance role must not become a second business data owner.
+
+### Default privileges
+
+For every schema:
+
+- revoke PUBLIC privileges,
+- define explicit default privileges,
+- explicitly grant only required application operations,
+- verify sequences where used,
+- verify functions and procedures separately,
+- verify views and materialized views separately,
+- verify inherited role memberships,
+- verify future objects do not accidentally inherit API privileges.
+
+Use the existing role-safety verifier. Extend it only through the existing `PostgresRuntime` owner.
+
+## 24. Migration runner production safety
+
+The existing runner provides:
+
+- ordered manifest validation,
+- checksum integrity,
+- migration ledger verification,
+- PostgreSQL advisory locking,
+- transactional application,
+- rollback on failure,
+- ambiguous commit detection,
+- no blind retry.
+
+Preserve these controls.
+
+### Additional migration acceptance
+
+For every migration:
+
+1. Lock acquisition behavior is tested.
+2. Lock contention is tested.
+3. Migration execution has explicit timeout policy.
+4. Lock timeout is bounded.
+5. Statement timeout is bounded.
+6. DDL locking impact is documented.
+7. Failure halfway through a migration rolls back all transactional objects.
+8. The migration ledger is written atomically with the migration.
+9. A successful migration is independently verified.
+10. An applied migration cannot be changed without checksum failure.
+11. Missing earlier migrations reject the manifest.
+12. Concurrent migration workers cannot double-apply one version.
+13. Migration role and application role cannot be confused.
+14. Production migration failure never triggers an automatic blind retry.
+
+### Transactional runner compatibility
+
+The existing migration runner executes migrations in PostgreSQL transactions.
+
+Do not put `CREATE INDEX CONCURRENTLY` or another statement prohibited in a transaction into these migration files.
+
+For operations that require non-transactional execution, extend the existing migration owner only through a separately tested, explicitly versioned execution mode with checksum, locking, failure and recovery semantics.
+
+Do not bypass the existing runner through raw shell SQL in production.
+
+### Expand-migrate-contract
+
+Production schema changes must be compatible with the deployed application during the transition:
+
+1. Expand schema.
+2. Deploy code compatible with old and new representation.
+3. Backfill or migrate data.
+4. Verify row counts and invariants.
+5. Switch reads/writes.
+6. Remove obsolete representation only through an approved later contract.
+
+No destructive column or table change is allowed without the approved compatibility and recovery boundary.
+
+For large production tables, record expected lock and duration impact and prove the deployment strategy in a representative environment.
+
+---
+
+# PART J — PRODUCTION RUNTIME AND API OPERATIONS
+
+## 25. Production runtime readiness
+
+Reuse `backend/src/persistence/production-runtime.ts`.
+
+It remains the single owner of PostgreSQL and Redis client composition.
+
+Required readiness behavior:
+
+- PostgreSQL dependency is reachable.
+- Redis dependency is reachable.
+- PostgreSQL version meets the approved minimum.
+- PostgreSQL runtime role safety passes on an actual pooled connection.
+- All required database schemas exist.
+- The database is at a schema version compatible with the running backend.
+- The migration deployment step has completed successfully.
+- Redis policy configuration is valid.
+- Application cannot report ready while a mandatory dependency is unavailable.
+- Shutdown closes both clients safely.
+- Repeated shutdown is idempotent.
+- A failed initialization cleans up resources and propagates the failure.
+
+The application role must not gain access to the migration ledger merely to check schema version.
+
+Use a deployment preflight/attestation or a restricted schema compatibility probe that preserves the migration ledger's least-privilege boundary.
+
+Do not let every application replica independently perform DDL migrations on startup.
+
+## 26. PostgreSQL production connection security
+
+Production settings must enforce:
+
+- TLS with certificate verification.
+- Hostname verification.
+- Validated CA certificate configuration.
+- Explicit connection timeout.
+- Explicit statement timeout.
+- Bounded pool size.
+- Idle connection policy.
+- Safe client release.
+- No logged credentials.
+- No raw connection URL in error responses.
+- Secret rotation without logging secret contents.
+- Readiness failure on invalid TLS or database credentials.
+
+The existing `production-runtime.ts` and settings owner remain authoritative.
+
+Do not create another connection manager.
+
+## 27. Redis production connection security
+
+Production Redis configuration must enforce:
+
+- TLS for remote production connections.
+- Certificate verification.
+- Explicit connection timeout.
+- Command timeout.
+- Bounded reconnect behavior.
+- Secret-safe error reporting.
+- Dependency health tracking.
+- Correct shutdown behavior.
+- No silent in-memory fallback.
+
+Redis credentials and HMAC secrets must use the existing secret/configuration boundary, never source-code constants or committed plaintext secrets.
+
+## 28. Pool, timeout and resource-exhaustion behavior
+
+The persistence contract must include tests or controlled integration evidence for:
+
+- pool exhaustion,
+- connection timeout,
+- statement timeout,
+- long-running transaction,
+- client disconnect,
+- connection reset,
+- PostgreSQL restart/failover,
+- Redis restart,
+- partial dependency recovery,
+- cleanup after failed operation,
+- resource closure during application shutdown.
+
+A failed operation must not leak a connection or leave the application reporting healthy when a critical dependency is unavailable.
+
+Use the existing health/readiness owner. Do not add a second health engine.
+
+## 29. Observability and safe error behavior
+
+Reuse the existing backend logging and observability contracts.
+
+Capture structured, minimized operational signals for:
+
+- PostgreSQL connection failures,
+- transaction failures,
+- migration failures,
+- migration lock contention,
+- slow queries where approved,
+- connection-pool pressure,
+- RLS denial classification where safe,
+- session-store unavailability,
+- audit-store unavailability,
+- Redis rate-limit unavailability,
+- backup failure,
+- restore failure,
+- schema compatibility failure.
+
+Never emit:
+
+- passwords,
+- tokens,
+- raw authorization headers,
+- connection URLs containing secrets,
+- unrestricted SQL parameters containing personal data,
+- raw audit payloads.
+
+Public API responses must not expose database internals.
+
+---
+
+# PART K — BACKUP, RESTORE, ARCHIVAL AND DISASTER RECOVERY
+
+## 30. Existing recovery evidence classification
+
+The current repository has two useful recovery verifiers:
+
+1. `backend/scripts/verify_postgres_recovery.py` — disposable fixture schema/data concurrency and restore verification.
+2. `backend/tests/integration/postgres-b4-recovery.integration.test.ts` — B4 infrastructure migration, session, audit and security-boundary recovery.
+
+Keep and extend these owners.
+
+Neither existing proof independently establishes complete CORE business schema restoration or target-environment PITR readiness.
+
+## 31. Full B4 database recovery test
+
+Extend the existing TypeScript B4 recovery integration test.
+
+It must use the same shared B4 helper and complete migration manifest.
+
+The recovery test must:
+
+1. Provision a fresh PostgreSQL database.
+2. Apply the full canonical manifest.
+3. Verify the complete required relation set.
+4. Insert source-compatible representative CORE domain fixtures.
+5. Insert records across all applicable tenant domains.
+6. Insert CORE-002 event and publication records.
+7. Insert active and revoked sessions.
+8. Insert minimized API security audit records.
+9. Produce an actual PostgreSQL database backup.
+10. Restore into a separate clean database.
+11. Verify relation count and definitions.
+12. Verify columns and PostgreSQL types.
+13. Verify constraints and indexes.
+14. Verify functions and triggers.
+15. Verify table/schema ownership.
+16. Verify grants and default privileges.
+17. Verify RLS and FORCE RLS.
+18. Verify restrictive tenant policies.
+19. Verify exact migration ledger IDs and checksums.
+20. Verify restored representative business data.
+21. Verify active and revoked session behavior.
+22. Verify audit append-only behavior.
+23. Verify tenant isolation after restore.
+24. Verify application-role privileges after restore.
+25. Close pools and temporary resources safely.
+26. Fail if any cleanup operation leaves an unexplained resource.
+
+The restore target must be separate from the source database. Restoring over the source database is not acceptable integration proof.
+
+## 32. Target backup and restore
+
+Create:
 
 `REOS_CONTROL_CENTER/evidence/BACKEND-001/B4-target-backup-restore-evidence.md`
 
-Record:
+The target evidence must distinguish:
 
-- Tested commit SHA.
-- PostgreSQL target version.
-- Backup identity and creation timestamp.
-- Backup verification result.
-- Restore target identity.
-- Migration checksum verification.
-- Tenant-isolation verification.
-- Recovery result.
-- Measured recovery duration.
-- Measured recovery-point data.
-- Operator and runbook reference.
+- automated disposable CI recovery,
+- controlled non-production target restore,
+- production disaster-recovery exercise.
 
-An ephemeral CI database restore is valid repeatable integration evidence. It must not be falsely described as a production disaster-recovery drill.
+They are not interchangeable.
 
-## 10. Root cause 9 — The schema integration test is too shallow
+### Required backup controls
 
-Replace the current relation-existence-only proof with a schema contract verification suite.
+- Backup encryption at rest.
+- Secure transport.
+- Access control for backup creation and restore.
+- Backup identity and integrity checksum.
+- Retention metadata.
+- Backup access audit.
+- Key-management and rotation evidence.
+- No plaintext database credentials in backup artifacts.
+- Restricted restore operator.
+- Restore verification in an isolated environment.
 
-The test must inspect:
+### Roles and ownership
 
-- Required relations.
-- Required columns and PostgreSQL types.
-- Primary keys.
-- Unique constraints.
-- Check constraints.
-- Foreign-key definitions.
-- Required indexes.
-- RLS enabled status.
-- FORCE RLS status.
-- Restrictive application-role tenant policies.
-- Object ownership.
-- Application-role privileges.
-- Migration IDs and checksums.
-- Financial NUMERIC type safety.
-- No competing CORE-005 schema.
+A logical database dump may not contain all cluster-level roles, login attributes or credentials.
 
-Tenant tests must use the real application role, not the database administrator role.
+The recovery runbook must explicitly provision or restore the required non-secret role definitions and privileges through the approved secure bootstrap path.
 
-The test must produce relation-specific failure messages. A missing or incompatible relation must identify the exact owner, relation and expected contract.
+Do not store role passwords in the backup evidence.
 
-## 11. Exact implementation file sequence
+### Point-in-time recovery
 
-### First bundle — Schema integration foundation
+Where required by ARCH-037 T07 and the target architecture, verify:
 
-1. `backend/tests/helpers/postgres-b4-test-database.ts` — UPDATE.
-2. `backend/tests/integration/postgres-arch037-schema.integration.test.ts` — FULL REPLACEMENT.
-3. `backend/scripts/postgres/migrations/00000005-core001-identity-tenant.sql` — ADD.
-4. `backend/scripts/postgres/migrations/00000006-core003-lead-ownership.sql` — ADD.
-5. `backend/scripts/postgres/migrations/00000007-core004-inventory.sql` — ADD.
-6. `backend/scripts/postgres/migrations/00000008-core006-deal-transaction.sql` — ADD.
-7. `backend/scripts/postgres/migrations/00000009-core007-trust-governance.sql` — ADD.
-8. `backend/scripts/postgres/migrations/00000010-core008-financial.sql` — ADD.
+- WAL archive configuration,
+- continuous WAL availability,
+- base backup identity,
+- recovery target selection,
+- restore command/runbook,
+- successful recovery to the selected point,
+- post-restore migration and schema checks,
+- tenant isolation after PITR.
 
-### Second bundle — Recovery and integrity
+A `pg_dump` snapshot test is not a PITR test.
 
-1. `backend/tests/integration/postgres-b4-recovery.integration.test.ts` — FULL REPLACEMENT.
-2. `REOS_CONTROL_CENTER/evidence/BACKEND-001/B4-target-backup-restore-evidence.md` — ADD.
-3. `backend/scripts/postgres/verify-target-backup-restore.sh` — ADD, using the existing PostgreSQL backup/restore owner.
+### RPO and RTO
 
-### Third bundle — B4 final evidence
+Use the actual approved ARCH-037 T07 policy.
 
-1. Update the existing B4 completion evidence.
-2. Verify every B4 acceptance criterion.
-3. Verify exact commit readback.
-4. Run the existing backend CI.
-5. Execute the existing guarded Control Center B4 completion transition.
+Do not invent numeric RPO/RTO targets.
 
-No second test framework, migration runner, PostgreSQL runtime, API boundary or backend folder is allowed.
+Measure actual restore duration and recovery-point data and compare them with the approved target.
 
-## 12. Verification gate — no false success
+If target-environment recovery is not executed, record NOT PERFORMED. Do not describe a CI fixture as a production recovery drill.
 
-The exact commit must pass:
+---
 
-1. `npm ci --no-audit --fund=false`
-2. `npm run lint`
-3. `npm run typecheck`
-4. `npm run test`
-5. `npm run verify:build-reproducibility`
-6. PostgreSQL 18.4+ integration using the actual Node `pg` driver.
-7. Full fresh-install migration test.
-8. Migration replay and checksum-integrity test.
-9. Migration concurrency test.
-10. Application-role and RLS tenant-isolation tests.
-11. Session and revocation tests.
-12. Security-audit privacy and append-only tests.
-13. CORE-002 concurrent outbox and rollback tests.
-14. Full schema backup/restore tests.
-15. Complete ACRL regression through the existing backend CI workflow.
+# PART L — TESTING AND REGRESSION
 
-Any skipped critical PostgreSQL test in required CI mode is a failure.
+## 33. One canonical PostgreSQL integration harness
 
-The run must be associated with the exact source commit SHA.
+All B4 integration suites must use the existing helper where they require the disposable B4 database:
 
-## 13. B4 acceptance criteria mapping
+`backend/tests/helpers/postgres-b4-test-database.ts`
 
-| B4 criterion | Required evidence |
+The helper owns:
+
+- database creation,
+- migration and application role creation,
+- canonical bootstrap,
+- full manifest application,
+- role connection setup,
+- PostgresRuntime setup,
+- cleanup,
+- resource-drain verification.
+
+Tests must not independently reimplement these behaviors.
+
+The recovery test may create a second restore target because that is a distinct recovery subject, but it must reuse the same bootstrap and manifest contracts.
+
+## 34. Required B4 test inventory
+
+| Test area | Required result |
 |---|---|
-| Approved ARCH-037 schema and canonical owners | Ordered CORE migrations and schema contract tests |
-| Deterministic migrations | Existing runner, immutable IDs, checksum and replay tests |
-| Tenant enforcement | Actual application-role RLS tests on all tenant tables |
-| Explicit transaction/write ownership | Existing PostgresRuntime and CORE owner repository tests |
-| Durable sessions and revocation | Migration 00000003, session lifecycle tests |
-| Shared rate limit and minimized audit | Existing Redis adapter, audit persistence tests |
-| Migration/concurrency/backup/recovery | Real PostgreSQL migration, concurrent-write and full restore suite |
-| No second schema authority | Existing CORE owner mapping and no duplicate schema/engine |
+| Migration manifest | Ordered, valid and complete. |
+| Migration checksum | Exact SHA-256 verification. |
+| Migration replay | Zero additional migrations. |
+| Migration tampering | Applied migration change rejected. |
+| Migration concurrency | One valid execution and no duplicate ledger entries. |
+| Migration rollback | Failed migration leaves no partial transactional state. |
+| Schema relations | Complete required relation set. |
+| Column contract | Exact source-compatible types and nullability. |
+| Constraints | PK, unique, check and FK behavior. |
+| Indexes | Required access paths present. |
+| RLS | FORCE RLS and restrictive policies. |
+| Tenant isolation | Cross-tenant reads/writes denied. |
+| Connection reuse | No tenant-context leakage. |
+| Role safety | No owner/superuser/BYPASSRLS privilege. |
+| Transaction | Explicit write ownership and rollback. |
+| CORE-002 | Outbox/idempotency/concurrency behavior. |
+| Sessions | Expiry, epoch, revision and revocation. |
+| Security audit | Minimized, append-only, tenant-bound write. |
+| Redis | Shared atomic limits, TTL and outage. |
+| Financial | Decimal, currency and ledger invariants. |
+| Recovery | Full independent restore. |
+| Operations | Timeouts, pool and dependency outage. |
+| Guard | Exact-SHA completion and stale-state rejection. |
 
-## 14. Completion rule
+All critical tests must use actual PostgreSQL 18.4+ and Redis 8.0.3 in the CI service environment or a documented compatible target.
 
-B4 is complete only when every one of the eight B4 acceptance criteria has verified implementation and test evidence, the exact source commit passes GitHub Actions, and the existing guarded Control Center transition succeeds with readback.
+Do not replace a real integration proof with a source-text self-test alone.
 
-A green CI run alone does not change `state.json`.
+Source-text self-tests may supplement the runtime proof, not replace it.
 
-No manual status edit is allowed.
+## 35. Adversarial regression scenarios
 
-No B2 Production Binding work is to be substituted for B4 completion.
+The test suite must include:
 
-**Final implementation principle:** fix the shared test harness, executable migration chain, canonical identifier boundaries and complete recovery path. Do not make a skipped test pass by hiding the missing schema, and do not replace existing owners that already work.
+- forged tenant identifier,
+- cross-tenant resource substitution,
+- malformed tenant context,
+- inherited role privilege,
+- application-role table ownership,
+- BYPASSRLS,
+- permissive policy without restrictive guard,
+- changed RLS expression,
+- stale pooled connection context,
+- unauthorized migration role,
+- migration checksum tampering,
+- out-of-order migration,
+- concurrent migration runner,
+- failure during DDL transaction,
+- ambiguous commit outcome,
+- duplicate outbox event,
+- duplicate idempotency key with different payload,
+- invalid Decimal scale,
+- currency mismatch,
+- concurrent financial settlement,
+- revoked session,
+- authentication epoch change,
+- membership revision change,
+- concurrent revocation,
+- audit tenant spoofing,
+- audit update/delete attempt,
+- unauthorized audit read,
+- Redis command timeout,
+- Redis restart,
+- HMAC key rotation,
+- pool exhaustion,
+- PostgreSQL failover,
+- restore with missing role,
+- restore with missing privilege,
+- restore with weakened RLS.
 
-BEST / FINAL solution nahi keh sakte. Main use implementation contract banane se pehle kuch important gaps correct karunga.
+These tests must fail against the unsafe condition and pass only after the real owner implementation is correct.
 
-Sabse zaroori baat: ye gaps ARCH-037 ki approval dobara lene ke liye nahi hain. ARCH-037 approved/frozen hi rahega.
-1. Solution mein jo sahi hai
-- Existing PostgreSQL runtime aur migration runner reuse karna.
-- Purani migrations 00000001–00000004 immutable rakhna.
-- CORE-001–CORE-008 ke canonical owners preserve karna.
-- ARCH-037 tests ko skip karne ke bajaye actual temporary PostgreSQL database se connect karna.
-- Sessions, audit, tenant isolation aur recovery ko same persistence architecture mein rakhna.
-- Exact-SHA CI aur guarded Control Center transition require karna.
-Ye foundation sahi hai.
-2. Critical gaps jo abhi solve karne hain
-Gap 1 — Actual SQL migrations incomplete
-Critical
+---
 
-Solution mein 00000005–00000010 migration filenames diye hain, lekin complete SQL definitions nahi hain.
+# PART M — EXACT IMPLEMENTATION FILES
 
-Har migration mein exact columns, types, primary keys, foreign keys, composite tenant constraints, indexes, grants aur RLS policies hone chahiye. Sirf six migration names add karna implementation nahi hai.
+## 36. Existing files to update or replace
 
-Gap 2 — ARCH-037 test harness integration
-Critical
+All paths are relative to the repository root.
 
-Helper temporary database banata hai, lekin abhi sirf B4 migrations 00000003–00000004 apply karta hai. Schema test bhi helper ko use nahi karta.
+| Path | Action | Purpose |
+|---|---|---|
+| `REOS_CONTROL_CENTER/backend/tests/helpers/postgres-b4-test-database.ts` | UPDATE | Single complete schema test database owner. |
+| `REOS_CONTROL_CENTER/backend/tests/integration/postgres-arch037-schema.integration.test.ts` | FULL REPLACEMENT | Full physical schema, role, constraint and RLS verification. |
+| `REOS_CONTROL_CENTER/backend/tests/integration/postgres-b4-recovery.integration.test.ts` | UPDATE / FULL REPLACEMENT | Full B4 schema restore and post-restore validation. |
+| `REOS_CONTROL_CENTER/backend/tests/integration/postgres-session-store.integration.test.ts` | UPDATE only for missing cases | Session lifecycle, epoch and revocation concurrency. |
+| `REOS_CONTROL_CENTER/backend/tests/integration/postgres-security-audit.integration.test.ts` | UPDATE | Trusted tenant reference, append-only and least privilege. |
+| `REOS_CONTROL_CENTER/backend/tests/unit/postgres-migrations.test.ts` | UPDATE only for missing cases | Migration failure/lock/replay regressions. |
+| `REOS_CONTROL_CENTER/backend/src/persistence/postgres-security-audit.ts` | UPDATE only if required | Use the database-enforced audit tenant-write boundary. |
+| `REOS_CONTROL_CENTER/backend/src/persistence/production-runtime.ts` | UPDATE only if required | Schema readiness and dependency lifecycle contract. |
+| `REOS_CONTROL_CENTER/backend/src/persistence/redis-rate-limit.ts` | UPDATE only if required | Safe HMAC rotation and existing shared limiter behavior. |
+| `.github/actions/homio-backend-ci/verification/action.yml` | UPDATE | Mandatory PostgreSQL integration mode. |
+| `.github/workflows/backend-ci.yml` | UPDATE | B4 guarded completion job. |
 
-Permanent fix mein:
-- Ek shared disposable database.
-- Complete migration manifest.
-- Actual application-role connection.
-- Mandatory CI integration mode.
-- Cleanup verification.
-Test skip hona aur test pass hona alag cheezein hain. Dono ko clearly distinguish karna hoga.
+Preserve files that already satisfy their tests. Do not rewrite a working owner just to match a new naming preference.
 
-Gap 3 — Tenant aur identifier mapping
-Critical
+## 37. New SQL migrations
 
-Solution mein mapping ka direction diya hai, implementation contract nahi.
+Add only to:
 
-CORE-001 tenant UUID, CORE-003 customer UUID, CORE-004 project strings aur CORE-006 customer/party strings ke beech exact canonical mapping, uniqueness aur conflict handling define karna hoga.
+`REOS_CONTROL_CENTER/backend/scripts/postgres/migrations/`
 
-Galat conversion se future cross-tenant data corruption ho sakta hai.
+1. `00000005-core001-identity-tenant.sql`
+2. `00000006-core003-lead-ownership.sql`
+3. `00000007-core004-inventory.sql`
+4. `00000008-core006-deal-transaction.sql`
+5. `00000009-core007-trust-governance.sql`
+6. `00000010-core008-financial.sql`
+7. `00000011-b4-security-audit-tenant-write-guard.sql`
 
-Gap 4 — Session epoch ka ownership
-Critical
+Every migration must be complete and source-backed. Empty placeholder SQL is prohibited.
 
-B4 session store ko session ka stored authentication epoch verify karna hai. Lekin current account epoch ka authoritative value CORE-001 se aana chahiye.
+## 38. Evidence files
 
-Solution ko clear karna hoga:
-- B4 persistence kya store karega.
-- CORE-001 current epoch kaise resolve karega.
-- B2 production binding dono ko kaise connect karega.
-B4 mein duplicate identity/account resolver nahi banana.
+Create:
 
-Gap 5 — Financial precision
-Critical
+- `REOS_CONTROL_CENTER/evidence/BACKEND-001/B4-physical-schema-implementation-manifest.md`
+- `REOS_CONTROL_CENTER/evidence/BACKEND-001/B4-completion-ci-evidence.md`
+- `REOS_CONTROL_CENTER/evidence/BACKEND-001/B4-target-backup-restore-evidence.md`
 
-Unbounded PostgreSQL NUMERIC use karna arbitrary precision guess se bachata hai, lekin maximum amount, permitted scale, rounding aur overflow validation abhi specify nahi hain.
+These are traceability and completion records. They do not replace implementation or tests.
 
-CORE-008 Decimal contract ke against complete numeric validation aur round-trip tests chahiye.
+## 39. B4 guarded completion workflow
 
-Gap 6 — Audit retention aur immutability
-High
+The current repository has guarded B1 and B3 completion patterns, but B4 has no equivalent completion workflow.
 
-Solution append-only audit table ke saath retention bhi maangta hai.
+Add:
 
-Lekin immutable trigger delete ko block karta hai. Isliye retention ka controlled mechanism missing hai.
+- `.github/workflows/reusable-backend-b4-completion.yml`
+- `.github/actions/homio-backend-ci/transitions/backend-b4-completion/action.yml`
+- `.github/actions/homio-backend-ci/transitions/backend-b4-completion/scripts/guarded_transition.py`
+- `.github/actions/homio-backend-ci/transitions/backend-b4-completion/scripts/test_guarded_transition.py`
 
-Ismein partition retention, privileged maintenance ownership, legal hold aur restricted audit-read access ka exact contract hona chahiye. Application role ko audit records modify/delete karne ka access nahi milna chahiye.
+Extend the existing root:
 
-Gap 7 — Complete backup/restore
-Critical
+`.github/workflows/backend-ci.yml`
 
-Existing recovery test infrastructure schema par focused hai. Proposed solution full database recovery ke liye details nahi deta.
+Reuse the canonical:
 
-Full schema, migration ledger, ownership, grants, triggers, RLS policies aur records restore hone ke baad re-verification karni hogi.
+`REOS_CONTROL_CENTER/context/backend_workstream_transition.py`
 
-CI disposable database recovery aur actual target-environment recovery ko alag evidence maana hoga.
+and its existing `B4_ACCEPTANCE_CRITERIA`.
 
-Gap 8 — B4 guarded transition
-Critical
+Do not create a second state engine, workflow authority, approval service or Control Center.
 
-Solution kehta hai existing guarded transition use karna hai. Lekin inspected root .github/workflows/backend-ci.yml mein B1 aur B3 completion jobs hain; B4 completion job nazar nahi aata.
+---
 
-Isliye B4-specific guarded workflow aur evidence validation ka implementation bhi define karna padega.
+# PART N — B4 EXECUTION ORDER
 
-3. Do additional errors jo correct karna zaroori hain
-A. Wrong workflow path
+## 40. Phase 1 — Shared PostgreSQL test foundation
 
-Solution mein ye path diya tha:
+Implement:
 
-REOS_CONTROL_CENTER/.github/workflows/backend-ci.yml
+- helper full-manifest support,
+- generated application-role exposure,
+- single temporary database lifecycle,
+- canonical bootstrap behavior,
+- cleanup verification,
+- ARCH-037 suite integration,
+- mandatory CI mode.
 
-Actual path repository root par hai:
+**Exit condition:** ARCH-037 suite executes in CI using the actual temporary application role and does not skip.
 
-.github/workflows/backend-ci.yml
+## 41. Phase 2 — Physical schema and traceability
 
-Is path mistake ko save hone se pehle correct karna hoga.
+Implement:
 
-B. plan for work ke andar conflicting migration proposals
+- physical-schema implementation manifest,
+- exact CORE owner mapping,
+- migration DDL for `00000005–00000010`,
+- required 20 relations,
+- keys, constraints, indexes,
+- tenant policy and grants.
 
-Us file ke purane section mein backend/src/persistence/schema-migrations/*.ts propose hua hai. Baad ke sections mein correct direction existing SQL migration directory batayi gayi hai:
+**Exit condition:** Clean database reaches the complete expected schema through the existing migration runner.
 
-REOS_CONTROL_CENTER/backend/scripts/postgres/migrations/
+## 42. Phase 3 — Audit database boundary
 
-Purane TypeScript migration proposal ko explicitly superseded mark karna hoga. Warna doosre chat mein phir se duplicate migration structure propose ho sakta hai.
-4. Final quality ke liye missing verification matrix
-Area	Required final proof
-Schema	All canonical relations, columns, keys and constraints
-Migration	Fresh install, replay, checksum and concurrency
-Tenant security	Every tenant table, actual app role and cross-tenant denial
-Repositories	Canonical write owner and transaction consistency
-Sessions	Expiry, revocation and authentication epoch
-Security audit	Minimization, append-only and retention
-Redis	Distributed limiter and outage handling
-Outbox	Concurrent idempotency, rollback and recovery
-Financial	Decimal precision, scale, overflow and immutability
-Recovery	Full database backup and restore
-CI	No skipped required tests; exact commit SHA
-Governance	Guarded B4 transition and state readback
+Implement:
 
-Mera final verdict
-Strong foundation
-Current solution: Implementation direction ke liye achha hai, lekin final execution contract ke liye incomplete hai.
+- additive migration `00000011`,
+- trusted tenant-reference enforcement,
+- global event handling contract,
+- append-only and least-privilege behavior,
+- function ownership and `search_path` protection,
+- privileged maintenance boundary.
 
-Most important corrections: Actual SQL DDL, shared PostgreSQL test harness, canonical identifier mapping, recovery completeness aur B4 transition workflow.
+**Exit condition:** An application role cannot spoof a different tenant in audit persistence or mutate/read the restricted audit history.
 
-ARCH-037: APPROVED / FROZEN hi rahega.
+## 43. Phase 4 — Migration integrity
 
-Meri recommendation hai ki abhi pichhla solution final maan kar save mat karo. Pehle ye gaps usi document mein incorporate hone chahiye, taaki tumhe baar-baar naye chats mein conflicting migration plans aur repeated diagnosis na mile.
+Verify:
 
-Ek aur baat: koi engineer future ke har unknown error ki guarantee nahi de sakta. Lekin in known gaps ko solve karke regression tests aur exact CI gates lagane se repeat hone wali problems ko root level par control kiya ja sakta hai.
+- exact ordering,
+- checksums,
+- immutable history,
+- replay,
+- prefix completeness,
+- advisory-lock contention,
+- concurrent migration workers,
+- transactional rollback,
+- timeout and lock behavior.
+
+**Exit condition:** Migration suite passes against real PostgreSQL.
+
+## 44. Phase 5 — Tenant and transaction proof
+
+Verify:
+
+- all applicable tenant tables,
+- restrictive policy expressions,
+- FORCE RLS,
+- role inheritance,
+- pooled connection reuse,
+- transaction rollback,
+- CORE-002 outbox atomicity,
+- idempotency and concurrency.
+
+**Exit condition:** No cross-tenant read or write can succeed through the application role.
+
+## 45. Phase 6 — Sessions, audit and Redis
+
+Verify:
+
+- complete session lifecycle,
+- account authentication epoch,
+- membership and tenant revision behavior,
+- concurrent revocation,
+- audit write integrity,
+- Redis shared state,
+- HMAC key rotation behavior,
+- dependency outage behavior.
+
+**Exit condition:** B4 persistence components pass real integration and contract tests without taking over B2 ownership.
+
+## 46. Phase 7 — Financial persistence
+
+Verify:
+
+- exact Decimal round-trip,
+- currency scale,
+- approved rounding,
+- ledger balance invariants,
+- immutability,
+- reversal,
+- duplicate settlement and concurrency.
+
+**Exit condition:** CORE-008 financial persistence semantics are preserved.
+
+## 47. Phase 8 — Full recovery and operations
+
+Verify:
+
+- complete B4 database backup,
+- independent restore,
+- schema/ledger/grant/RLS integrity,
+- target recovery evidence,
+- PITR where required,
+- operational timeout and pool behavior,
+- secure backup handling.
+
+**Exit condition:** Restore evidence is complete and accurately classified.
+
+## 48. Phase 9 — Guarded B4 completion
+
+Implement and test:
+
+- B4 completion action,
+- reusable workflow,
+- exact owner/branch/SHA verification,
+- evidence validation,
+- state freshness checks,
+- remote branch readback,
+- guarded Control Center transition.
+
+**Exit condition:** The existing guarded Control Center records B4 DONE and verifies remote state readback.
+
+No phase may be reported complete without its exit proof.
+
+---
+
+# PART O — CI, RELEASE AND GOVERNANCE
+
+## 49. Required GitHub Actions verification
+
+The existing canonical workflow is:
+
+`.github/workflows/backend-ci.yml`
+
+The existing reusable verification workflow is:
+
+`.github/workflows/reusable-backend-verification.yml`
+
+The existing composite verification action is:
+
+`.github/actions/homio-backend-ci/verification/action.yml`
+
+Do not create a separate B4-only CI pipeline when the existing workflow can be extended.
+
+The exact B4 source SHA must pass:
+
+- `npm ci --no-audit --fund=false`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test`
+- `npm run verify:build-reproducibility`
+- real PostgreSQL migration and schema integration
+- real application-role RLS tests
+- Redis distributed integration
+- full B4 recovery integration
+- complete existing ACRL regression suite
+- B4 guarded transition verification.
+
+### Required CI failure conditions
+
+CI must fail if:
+
+- the PostgreSQL integration configuration is missing,
+- the ARCH-037 suite is skipped,
+- a required B4 test is skipped,
+- a required suite discovers zero tests,
+- a required migration is missing,
+- a migration checksum differs,
+- any tenant-isolation assertion fails,
+- any migration integrity assertion fails,
+- recovery verification fails,
+- the tested SHA differs from the triggering SHA,
+- evidence readback fails.
+
+Unrelated optional suites must be classified separately. Do not report skipped B4 tests as a successful B4 verification.
+
+## 50. Actions baseline interpretation
+
+Previous verified run:
+
+- Run #990
+- Run ID `45400467332`
+- Tested SHA `da353afe71c62244e0e0c70d6434c82396ae9f5f`
+- Conclusion SUCCESS.
+
+It proved important PostgreSQL infrastructure, Redis, migration-ledger, concurrent-fixture and recovery behaviors.
+
+It also reported six skipped ARCH-037 schema tests.
+
+Use it as infrastructure regression evidence, not as complete B4 completion evidence.
+
+Do not repeatedly reopen the already-understood skipped-test diagnosis. Implement the shared database/test integration and prove the correction on a new exact source SHA.
+
+## 51. B4 completion evidence format
+
+`B4-completion-ci-evidence.md` must contain:
+
+**Identity**
+
+- repository,
+- branch,
+- source SHA,
+- `state.json` SHA,
+- B4 work-plan SHA,
+- backend master SHA.
+
+**Schema**
+
+- migration IDs,
+- migration names,
+- migration checksums,
+- relations,
+- source-owner mapping,
+- constraint and index summary.
+
+**Security**
+
+- application role,
+- migration role,
+- role-safety result,
+- RLS/FORCE RLS results,
+- cross-tenant results,
+- audit-write result,
+- session lifecycle results.
+
+**Verification**
+
+- exact command,
+- PostgreSQL version,
+- Redis version,
+- tests discovered,
+- passed,
+- failed,
+- skipped,
+- blocked.
+
+**Recovery**
+
+- backup identity,
+- restore identity,
+- schema integrity,
+- data integrity,
+- tenant security after restore,
+- target environment classification.
+
+**GitHub Actions**
+
+- workflow name,
+- run ID,
+- attempt,
+- run URL,
+- exact tested SHA,
+- each job result,
+- artifact references.
+
+**Governance**
+
+- guard result,
+- owner authorization result,
+- state transition result,
+- remote readback.
+
+Never claim a result not present in actual run evidence.
+
+## 52. B4 guarded transition policy
+
+The required owner commit prefix is:
+
+`[CONTROL-CENTER-COMPLETE-BACKEND-001-B4]`
+
+The B4 guard must verify:
+
+1. Exact repository identity.
+2. Exact branch.
+3. Immutable repository-owner identity.
+4. GitHub Actions OIDC identity.
+5. Exact triggering source SHA.
+6. Exact verified source SHA.
+7. Exact workflow run ID and attempt.
+8. Successful required verification job.
+9. Complete required B4 test execution.
+10. Zero skipped required B4 tests.
+11. Complete canonical migration manifest.
+12. Complete schema evidence.
+13. Complete tenant and role safety evidence.
+14. Complete durable session and audit evidence.
+15. Shared Redis evidence.
+16. Complete recovery evidence.
+17. All eight B4 acceptance criteria.
+18. B4 remains CURRENT.
+19. All required predecessor stages remain DONE.
+20. No stale or conflicting state transition.
+21. Guarded state update.
+22. Independent remote readback.
+
+The guard must fail closed for wrong owner, wrong branch, wrong prefix, changed SHA, stale state, missing evidence, failed test, skipped critical test, incomplete criteria or remote readback failure.
+
+A failed guard must leave `state.json` unchanged.
+
+Do not manually edit `state.json`.
+
+The entire BACKEND-001 gate must not be marked complete after B4. The next authorized stage remains B2 Production Binding.
+
+## 53. Repository protection
+
+Branch protection is a separate governance control from the guarded Control Center transition.
+
+The current verified branch protection status was disabled.
+
+Do not confuse a passing guarded workflow with branch-protection enforcement.
+
+The repository governance plan must preserve the applicable required checks, owner-only merge/push policy and exact-branch release conditions. Changes to branch protection must use the repository's existing approved governance process.
+
+Do not silently weaken existing checks to make a completion workflow pass.
+
+---
+
+# PART P — EXPLICIT NON-GOALS
+
+## 54. Prohibited B4 changes
+
+B4 must not:
+
+1. Create another backend.
+2. Create another public API ingress.
+3. Create a second PostgreSQL runtime.
+4. Create another migration runner.
+5. Create a parallel migration directory.
+6. Add an ORM that becomes a competing schema authority.
+7. Add a duplicate tenant or identity registry.
+8. Add a second outbox/event system.
+9. Add another Redis rate limiter.
+10. Add a new authorization engine.
+11. Add a second audit engine.
+12. Move CORE business logic into TypeScript.
+13. Recreate Python CORE business owners.
+14. Create a new Customer, Builder, Evidence or Financial authority.
+15. Create competing CORE-005 canonical SQL storage.
+16. Force all identifiers into UUID or TEXT.
+17. Introduce unproven foreign keys.
+18. Weaken RLS to satisfy tests.
+19. Give application role broad database privileges.
+20. Allow arbitrary audit deletion.
+21. Persist raw credentials or unnecessary PII.
+22. Use floating-point financial persistence.
+23. Insert dummy tables to make ARCH-037 tests pass.
+24. Turn skipped tests into a false green result.
+25. Treat disposable fixture restore as production disaster recovery.
+26. Put secrets into source or evidence.
+27. Make the backend workflow run migrations from every application replica.
+28. Modify frontend UI, CSS, pages or visual behavior.
+29. Modify ACRL to act as a production security runtime.
+30. Reopen ARCH-037 for an unchanged B4 scope.
+31. Start B2 Production Binding before B4 is guarded DONE.
+32. Manually change `state.json`.
+
+---
+
+# PART Q — FINAL B4 DONE DECISION
+
+## 55. Mandatory completion checklist
+
+B4 is DONE only when every applicable item is verified:
+
+- [ ] ARCH-037 remains approved/frozen.
+- [ ] Canonical CORE-001 through CORE-008 ownership is preserved.
+- [ ] Physical schema implementation traceability is complete.
+- [ ] Required SQL migrations are complete and executable.
+- [ ] Existing migrations `00000001–00000004` remain immutable.
+- [ ] The canonical manifest is ordered and checksum-verified.
+- [ ] Fresh migration succeeds.
+- [ ] Migration replay succeeds with zero additional migrations.
+- [ ] Migration concurrency and rollback tests pass.
+- [ ] ARCH-037 integration suite uses the shared B4 helper.
+- [ ] No required ARCH-037 test is skipped.
+- [ ] All required relations, columns, types, constraints and indexes are verified.
+- [ ] All applicable tenant tables use validated FORCE RLS and restrictive policies.
+- [ ] Actual application role cannot bypass RLS.
+- [ ] Connection-pool tenant context cannot leak.
+- [ ] Repository and transaction ownership is explicit.
+- [ ] CORE-002 outbox and idempotency tests pass.
+- [ ] Financial Decimal and currency semantics pass.
+- [ ] Session expiry and revocation tests pass.
+- [ ] Account authentication-epoch and revision invalidation tests pass.
+- [ ] Security audit minimization and tenant-write integrity pass.
+- [ ] Audit append-only and least-privilege behavior passes.
+- [ ] Redis distributed rate-limit integration passes.
+- [ ] Dependency outage behavior is fail-closed.
+- [ ] Full B4 database backup and independent restore pass.
+- [ ] Target-environment backup/restore evidence is accurately recorded.
+- [ ] Required operational security checks pass.
+- [ ] No duplicate schema or persistence authority exists.
+- [ ] Exact source SHA passes backend verification.
+- [ ] Exact source SHA passes complete ACRL regression.
+- [ ] B4-specific guarded workflow passes.
+- [ ] The owner-authorized Control Center transition succeeds.
+- [ ] Remote `state.json` readback confirms B4 DONE.
+- [ ] The next authorized task is confirmed as B2 Production Binding.
+
+An item may not be marked complete based only on a source-code claim, unit test, draft document or old Actions run.
+
+## 56. Completion and production-readiness distinction
+
+B4 completion means that its persistence acceptance criteria and required target recovery evidence are satisfied.
+
+It does not mean the entire HOMIO backend is production-ready.
+
+It does not complete:
+
+- OIDC production binding,
+- CORE-001 API trusted-context and authorization wiring,
+- all six real B2 production security adapters,
+- B5 domain API adapters,
+- later B6–B10 stages,
+- whole-platform release approval.
+
+Those capabilities retain their canonical owners and future execution stages.
+
+---
+
+# PART R — CROSS-CHAT EXECUTION CONTINUITY
+
+## 57. Mandatory continuation rule
+
+This file is the single authoritative B4 work plan.
+
+A new B4 session must not restart the entire B4 audit.
+
+At session start:
+
+1. Read live branch HEAD once.
+2. Read live `state.json` once.
+3. Read this work-plan blob SHA.
+4. Compare the latest saved source files with the last verified implementation bundle.
+5. Identify the first incomplete phase in Part N.
+6. Continue from that phase only.
+7. Do not re-investigate an unchanged and already verified failure.
+8. Re-run a previous investigation only when its source dependency or commit SHA has changed.
+9. Provide complete file replacements with exact paths for owner-controlled GitHub Web Editor saves.
+10. Verify the resulting commit, file readback and Actions run.
+11. Never claim that a file, state or CI result changed without evidence.
+
+The owner works through the GitHub Web Editor. Do not write directly to the repository without the owner's explicit authorization.
+
+Every saved implementation bundle must be verified against the exact source SHA.
+
+## 58. Required final engineering report
+
+For every implementation bundle, record:
+
+- current canonical task,
+- phase and objective,
+- files inspected,
+- files reused,
+- files replaced,
+- files added,
+- files explicitly left unchanged,
+- root cause solved,
+- tests executed,
+- passed/failed/skipped counts,
+- exact commit SHA,
+- Actions run URL and ID,
+- changed-file blob SHAs,
+- remote readback,
+- remaining blockers,
+- next authorized phase.
+
+Do not repeat the entire audit in the report. Report only the work actually completed and its evidence.
+
+---
+
+# FINAL ENGINEERING RULE
+
+**B4 must deliver one secure, canonical, deterministic, tenant-isolated, recoverable PostgreSQL persistence boundary for HOMIO / REOS.**
+
+The solution must preserve existing owners, existing migrations and existing runtime boundaries.
+
+All known gaps must be addressed through implementation and regression evidence, not by weakening tests or inventing schema.
+
+No B4 completion claim is permitted before all eight canonical acceptance criteria, required recovery evidence, exact-SHA CI and guarded Control Center readback succeed.
+
+**Single task authority:** `REOS_CONTROL_CENTER/data/state.json`  
+**Single B4 execution contract:** `REOS_CONTROL_CENTER/B4 ka work plan`  
+**Single migration owner:** `REOS_CONTROL_CENTER/backend/scripts/postgres/migrations/`  
+**Single transaction owner:** Existing `PostgresRuntime`  
+**Single migration executor:** Existing `PostgresMigrationRunner`  
+**Single completion authority:** Existing guarded HOMIO Control Center transition.
