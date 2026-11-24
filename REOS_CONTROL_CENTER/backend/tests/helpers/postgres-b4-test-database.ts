@@ -1,4 +1,3 @@
-
 import { randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -557,7 +556,6 @@ Promise<B4PostgresTestDatabase> {
       max: 1,
       connectionTimeoutMillis: 5_000,
       idleTimeoutMillis: 2_000,
-      application_name: "homio-b4-test-migrations"
     });
 
     applicationPool = new Pool({
@@ -565,7 +563,6 @@ Promise<B4PostgresTestDatabase> {
       max: 3,
       connectionTimeoutMillis: 5_000,
       idleTimeoutMillis: 2_000,
-      application_name: "homio-b4-test-application"
     });
 
     const migrationsDirectory = fileURLToPath(
