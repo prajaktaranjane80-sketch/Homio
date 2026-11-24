@@ -1,4 +1,3 @@
-
 import {
   createHash,
   randomBytes,
@@ -111,6 +110,45 @@ function connectionUrl(
   url.hash = "";
 
   return url.toString();
+}
+
+async function waitForDatabaseConnectionsToClose(
+  pool: TestPool,
+  databaseName: string
+): Promise<void> {
+  const deadline = Date.now() + 10_000;
+  let remaining: readonly Record<string, unknown>[] = [];
+
+  do {
+    const result = await pool.query(
+      `
+        SELECT
+          pid::integer AS pid,
+          application_name,
+          state
+        FROM pg_stat_activity
+        WHERE datname = $1
+          AND pid <> pg_backend_pid()
+        ORDER BY pid
+      `,
+      [databaseName]
+    );
+
+    remaining = result.rows;
+
+    if (remaining.length === 0) {
+      return;
+    }
+
+    await new Promise<void>((resolveWait) => {
+      setTimeout(resolveWait, 25);
+    });
+  } while (Date.now() < deadline);
+
+  throw new Error(
+    "PostgreSQL database still has client sessions after every owned pool was closed: " +
+    JSON.stringify(remaining)
+  );
 }
 
 function makeCanonicalEvent(
@@ -422,10 +460,30 @@ describe.skipIf(!enabled)(
       await adminPool?.end().catch(() => undefined);
 
       if (rootPool !== undefined) {
-        if (databaseCreated) {
-          await rootPool.query(
-            `DROP DATABASE IF EXISTS ${quoteIdentifier(databaseName)} WITH (FORCE)`
-          ).catch(() => undefined);
+        let databaseCleanupError: unknown;
+
+        try {
+          if (databaseCreated) {
+            /*
+             * Never force-terminate a live PostgreSQL client during test
+             * teardown. A forced DROP DATABASE sends SQLSTATE 57P01 to
+             * checked-out/closing node-postgres clients and can surface as
+             * an unhandled client error after their pools have begun closing.
+             *
+             * Wait for the server to confirm that every owned pool connection
+             * has disappeared, then drop the disposable database normally.
+             */
+            await waitForDatabaseConnectionsToClose(
+              rootPool,
+              databaseName
+            );
+
+            await rootPool.query(
+              `DROP DATABASE IF EXISTS ${quoteIdentifier(databaseName)}`
+            );
+          }
+        } catch (error) {
+          databaseCleanupError = error;
         }
 
         if (applicationRoleCreated) {
@@ -441,6 +499,10 @@ describe.skipIf(!enabled)(
         }
 
         await rootPool.end().catch(() => undefined);
+
+        if (databaseCleanupError !== undefined) {
+          throw databaseCleanupError;
+        }
       }
     }, 60000);
 
