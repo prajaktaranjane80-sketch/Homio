@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 
-import { Pool } from "pg";
 import {
   afterAll,
   beforeAll,
@@ -12,170 +11,232 @@ import {
 import {
   PostgresSecurityAuditStore
 } from "../../src/persistence/postgres-security-audit.js";
+
 import type {
   SecurityAuditEvent
 } from "../../src/security/contracts.js";
 
+import {
+  createB4PostgresTestDatabase
+} from "../helpers/postgres-b4-test-database.js";
+
+import type {
+  B4PostgresTestDatabase
+} from "../helpers/postgres-b4-test-database.js";
+
 const adminUrl = process.env.HOMIO_TEST_POSTGRES_ADMIN_URL;
-const applicationRole =
-  process.env.HOMIO_TEST_POSTGRES_APPLICATION_ROLE;
 
-const postgresSuite =
-  adminUrl !== undefined && applicationRole !== undefined
-    ? describe
-    : describe.skip;
+const integrationEnabled =
+  typeof adminUrl === "string" &&
+  adminUrl.length > 0;
 
-function quoteRole(role: string): string {
-  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(role)) {
-    throw new Error("Invalid PostgreSQL application role name.");
-  }
+const postgresSuite = integrationEnabled
+  ? describe
+  : describe.skip;
 
-  return `"${role}"`;
-}
+const TEST_TIMEOUT_MS = 60_000;
 
-function requireApplicationRole(): string {
-  if (
-    typeof applicationRole !== "string" ||
-    applicationRole.length === 0
-  ) {
+function requireDatabase(
+  database: B4PostgresTestDatabase | undefined
+): B4PostgresTestDatabase {
+  if (database === undefined) {
     throw new Error(
-      "HOMIO_TEST_POSTGRES_APPLICATION_ROLE is required for this integration suite."
+      "The isolated B4 PostgreSQL integration database was not initialized."
     );
   }
 
-  return applicationRole;
+  return database;
 }
 
-postgresSuite("PostgresSecurityAuditStore PostgreSQL integration", () => {
-  let pool: Pool;
+postgresSuite(
+  "PostgresSecurityAuditStore real PostgreSQL integration",
+  () => {
+    let database: B4PostgresTestDatabase | undefined;
 
-  beforeAll(async () => {
-    pool = new Pool({
-      connectionString: adminUrl,
-      max: 2
-    });
+    beforeAll(async () => {
+      database = await createB4PostgresTestDatabase();
+    }, TEST_TIMEOUT_MS);
 
-    await pool.query("SELECT 1");
-  });
+    afterAll(async () => {
+      await database?.close();
+    }, TEST_TIMEOUT_MS);
 
-  afterAll(async () => {
-    await pool?.end();
-  });
+    it(
+      "allows the actual API login to insert minimized audit events only",
+      async () => {
+        const target = requireDatabase(database);
 
-  it("allows minimized inserts only and rejects application reads and mutations", async () => {
-    const client = await pool.connect();
-    const requestId = randomUUID();
+        const event: SecurityAuditEvent = {
+          eventType: "API_ACCESS_DENIED",
+          requestId: randomUUID(),
+          occurredAt: new Date().toISOString(),
+          reasonCode: "B4_AUDIT_INTEGRATION",
+          operation: "inventory.read",
+          actorIdentityId: randomUUID(),
+          tenantId: randomUUID()
+        };
 
-    const event: SecurityAuditEvent = {
-      eventType: "API_ACCESS_DENIED",
-      requestId,
-      occurredAt: new Date().toISOString(),
-      reasonCode: "B4_AUDIT_INTEGRATION",
-      operation: "inventory.read",
-      actorIdentityId: randomUUID(),
-      tenantId: randomUUID()
-    };
+        /*
+         * This store call uses the actual PostgreSQL application login.
+         * It does not simulate the application role with SET ROLE.
+         */
+        const store = new PostgresSecurityAuditStore({
+          query: async (sql, values) => {
+            const result = await target.applicationPool.query(
+              sql,
+              values as never[]
+            );
 
-    try {
-      await client.query("BEGIN");
-      await client.query(`SET LOCAL ROLE ${quoteRole(requireApplicationRole())}`);
+            return {
+              rowCount: result.rowCount
+            };
+          }
+        });
 
-      const store = new PostgresSecurityAuditStore({
-        query: async (sql, values) => {
-          const result = await client.query(
-            sql,
-            values as never[]
-          );
+        await store.record(event);
 
-          return {
-            rowCount: result.rowCount
-          };
-        }
-      });
+        /*
+         * The API role has INSERT only. It cannot read its own audit
+         * records or mutate/delete them.
+         */
+        await expect(
+          target.applicationPool.query(
+            `
+              SELECT event_id
+              FROM reos_infra.security_audit_events
+              WHERE request_id = $1
+            `,
+            [event.requestId]
+          )
+        ).rejects.toMatchObject({
+          code: "42501"
+        });
 
-      await store.record(event);
+        await expect(
+          target.applicationPool.query(
+            `
+              UPDATE reos_infra.security_audit_events
+                 SET reason_code = 'MUTATED'
+               WHERE request_id = $1
+            `,
+            [event.requestId]
+          )
+        ).rejects.toMatchObject({
+          code: "42501"
+        });
 
-      await expect(
-        client.query(
-          `SELECT event_id
-             FROM reos_infra.security_audit_events
-            WHERE request_id = $1`,
-          [requestId]
-        )
-      ).rejects.toMatchObject({
-        code: "42501"
-      });
+        await expect(
+          target.applicationPool.query(
+            `
+              DELETE FROM reos_infra.security_audit_events
+               WHERE request_id = $1
+            `,
+            [event.requestId]
+          )
+        ).rejects.toMatchObject({
+          code: "42501"
+        });
 
-      await client.query("RESET ROLE");
+        /*
+         * The privileged verification connection confirms the stored
+         * record contains only the normalized audit references.
+         */
+        const stored = await target.adminPool.query<{
+          readonly event_type: string;
+          readonly request_id: string;
+          readonly reason_code: string;
+          readonly operation: string | null;
+          readonly actor_identity_reference: string | null;
+          readonly tenant_reference: string | null;
+        }>(
+          `
+            SELECT
+              event_type,
+              request_id,
+              reason_code,
+              operation,
+              actor_identity_reference,
+              tenant_reference
+            FROM reos_infra.security_audit_events
+            WHERE request_id = $1
+          `,
+          [event.requestId]
+        );
 
-      const stored = await client.query<{
-        readonly event_type: string;
-        readonly request_id: string;
-        readonly reason_code: string;
-        readonly operation: string | null;
-        readonly actor_identity_reference: string | null;
-        readonly tenant_reference: string | null;
-      }>(
-        `SELECT
-           event_type,
-           request_id,
-           reason_code,
-           operation,
-           actor_identity_reference,
-           tenant_reference
-         FROM reos_infra.security_audit_events
-         WHERE request_id = $1`,
-        [requestId]
-      );
+        expect(stored.rows).toHaveLength(1);
 
-      expect(stored.rows).toHaveLength(1);
-      expect(stored.rows[0]).toMatchObject({
-        event_type: "API_ACCESS_DENIED",
-        request_id: requestId,
-        reason_code: "B4_AUDIT_INTEGRATION",
-        operation: "inventory.read"
-      });
+        expect(stored.rows[0]).toMatchObject({
+          event_type: "API_ACCESS_DENIED",
+          request_id: event.requestId,
+          reason_code: "B4_AUDIT_INTEGRATION",
+          operation: "inventory.read",
+          actor_identity_reference: event.actorIdentityId,
+          tenant_reference: event.tenantId
+        });
 
-      await client.query("SAVEPOINT audit_mutation");
+        /*
+         * The append-only trigger also protects against privileged
+         * accidental updates and deletes.
+         */
+        await expect(
+          target.adminPool.query(
+            `
+              UPDATE reos_infra.security_audit_events
+                 SET reason_code = 'PRIVILEGED_MUTATION'
+               WHERE request_id = $1
+            `,
+            [event.requestId]
+          )
+        ).rejects.toMatchObject({
+          code: "55000"
+        });
 
-      await expect(
-        client.query(
-          `UPDATE reos_infra.security_audit_events
-              SET reason_code = 'MUTATED'
-            WHERE request_id = $1`,
-          [requestId]
-        )
-      ).rejects.toMatchObject({
-        code: "55000"
-      });
-
-      await client.query("ROLLBACK TO SAVEPOINT audit_mutation");
-    } finally {
-      await client.query("ROLLBACK").catch(() => undefined);
-      client.release();
-    }
-  });
-
-  it("does not expose request body, bearer token or credential columns", async () => {
-    const result = await pool.query<{
-      readonly column_name: string;
-    }>(
-      `SELECT column_name
-         FROM information_schema.columns
-        WHERE table_schema = 'reos_infra'
-          AND table_name = 'security_audit_events'
-        ORDER BY ordinal_position`
+        await expect(
+          target.adminPool.query(
+            `
+              DELETE FROM reos_infra.security_audit_events
+               WHERE request_id = $1
+            `,
+            [event.requestId]
+          )
+        ).rejects.toMatchObject({
+          code: "55000"
+        });
+      },
+      TEST_TIMEOUT_MS
     );
 
-    expect(result.rows.map((row) => row.column_name)).toEqual([
-      "event_id",
-      "event_type",
-      "request_id",
-      "occurred_at",
-      "reason_code",
-      "operation",
-      "actor_identity_reference",
-      "tenant_reference"
-    ]);
-  });
-});
+    it(
+      "does not expose request bodies, bearer tokens or credential columns in persisted audit records",
+      async () => {
+        const target = requireDatabase(database);
+
+        const result = await target.adminPool.query<{
+          readonly column_name: string;
+        }>(
+          `
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_schema = 'reos_infra'
+              AND table_name = 'security_audit_events'
+            ORDER BY ordinal_position
+          `
+        );
+
+        expect(
+          result.rows.map((row) => row.column_name)
+        ).toEqual([
+          "event_id",
+          "event_type",
+          "request_id",
+          "occurred_at",
+          "reason_code",
+          "operation",
+          "actor_identity_reference",
+          "tenant_reference"
+        ]);
+      },
+      TEST_TIMEOUT_MS
+    );
+  }
+);
