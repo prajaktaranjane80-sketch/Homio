@@ -956,7 +956,339 @@ function parsePhysicalSchemaManifest(
     content.matchAll(/^#### `([^`]+)`\s*$/gm)
   );
 
-  const result: Record = DIL1;
+  const result: Record<string, ManifestColumn[]> = {};
+
+  for (let index = 0; index < headings.length; index += 1) {
+    const heading = headings[index];
+
+    if (heading === undefined) {
+      continue;
+    }
+
+    const relation = heading[1];
+
+    if (relation === undefined || !relation.includes(".")) {
+      continue;
+    }
+
+    const start = heading.index ?? 0;
+    const next = headings[index + 1];
+    const end = next?.index ?? content.length;
+    const section = content.slice(start, end);
+
+    const rows = section
+      .split("\n")
+      .filter((line) => /^\|\s*`[^`]+`/.test(line));
+
+    const columns: ManifestColumn[] = [];
+
+    for (const line of rows) {
+      const cells = line
+        .split("|")
+        .slice(1, -1)
+        .map(stripMarkdownCell);
+
+      if (cells.length < 5) {
+        continue;
+      }
+
+      const name = cells[0];
+      const postgresType = cells[2];
+      const nullable = cells[3];
+      const defaultDescription = cells[4];
+
+      if (
+        name === undefined ||
+        postgresType === undefined ||
+        nullable === undefined ||
+        defaultDescription === undefined
+      ) {
+        continue;
+      }
+
+      if (name === "Column") {
+        continue;
+      }
+
+      if (nullable !== "Yes" && nullable !== "No") {
+        continue;
+      }
+
+      columns.push({
+        name,
+        postgresType,
+        nullable: nullable === "Yes",
+        defaultDescription
+      });
+    }
+
+    if (columns.length > 0) {
+      result[relation] = columns;
+    }
+  }
+
+  return result;
+}
+
+function postgresTypeName(sourceType: string): string {
+  const types: Readonly<Record<string, string>> = {
+    UUID: "uuid",
+    "UUID[]": "uuid[]",
+    TEXT: "text",
+    "TEXT[]": "text[]",
+    INTEGER: "integer",
+    BIGINT: "bigint",
+    SMALLINT: "smallint",
+    BOOLEAN: "boolean",
+    JSONB: "jsonb",
+    NUMERIC: "numeric",
+    TIMESTAMPTZ: "timestamp with time zone"
+  };
+
+  const mapped = types[sourceType];
+
+  if (mapped === undefined) {
+    throw new Error(
+      `Unsupported PostgreSQL type in B4 physical manifest: ${sourceType}`
+    );
+  }
+
+  return mapped;
+}
+
+function defaultMatchesManifest(
+  column: ManifestColumn,
+  actual: string | null
+): boolean {
+  const description = column.defaultDescription.toLowerCase();
+
+  const expectsDefault =
+    description.includes("default") ||
+    description.includes("reference object default");
+
+  if (!expectsDefault) {
+    return actual === null;
+  }
+
+  if (actual === null) {
+    return false;
+  }
+
+  const expression = normalizeSql(actual);
+
+  if (description.includes("clock timestamp")) {
+    return expression === "clock_timestamp()";
+  }
+
+  if (description.includes("reference object default")) {
+    if (!expression.startsWith("jsonb_build_object(")) {
+      return false;
+    }
+
+    if (column.name === "configuration_ref") {
+      return (
+        expression.includes("'configuration_key'") &&
+        expression.includes("'default'") &&
+        expression.includes("'reference_id'") &&
+        expression.includes("gen_random_uuid()")
+      );
+    }
+
+    if (column.name === "security_profile_ref") {
+      return (
+        expression.includes("'profile_key'") &&
+        expression.includes("'fail_closed'") &&
+        expression.includes("'require_valid_tenant_context'") &&
+        expression.includes("gen_random_uuid()")
+      );
+    }
+
+    return true;
+  }
+
+  if (description.includes("default empty array")) {
+    if (column.postgresType === "JSONB") {
+      return expression === "'[]'::jsonb";
+    }
+
+    if (column.postgresType === "UUID[]") {
+      return expression === "array[]::uuid[]";
+    }
+
+    if (column.postgresType === "TEXT[]") {
+      return expression === "array[]::text[]";
+    }
+
+    return false;
+  }
+
+  if (description.includes("default empty object")) {
+    return expression === "'{}'::jsonb";
+  }
+
+  if (description.includes("default true")) {
+    return expression === "true";
+  }
+
+  const numericDefault = description.match(
+    /default\s+(-?\d+)(?:;|$)/
+  );
+
+  if (numericDefault?.[1] !== undefined) {
+    return expression === numericDefault[1];
+  }
+
+  const quotedDefault = description.match(
+    /default\s+`([^`]+)`/i
+  );
+
+  if (quotedDefault?.[1] !== undefined) {
+    return expression === `'${quotedDefault[1]}'::text`;
+  }
+
+  const enumDefault = description.match(
+    /default\s+([a-z][a-z0-9_]*)/i
+  );
+
+  if (enumDefault?.[1] !== undefined) {
+    return expression === `'${enumDefault[1]}'::text`;
+  }
+
+  return false;
+}
+
+describe("B4 physical-schema manifest cell parsing", () => {
+  it("preserves inline-code defaults embedded in manifest descriptions", () => {
+    const manifest = [
+      "#### `core001.tenants`",
+      "| `quota_profile` | `quota_profile` | TEXT | No | Default `default` |"
+    ].join("\n");
+
+    const parsed = parsePhysicalSchemaManifest(manifest);
+    const column = parsed["core001.tenants"]?.find(
+      (candidate) => candidate.name === "quota_profile"
+    );
+
+    expect(column).toBeDefined();
+
+    if (column === undefined) {
+      throw new Error("The quota_profile manifest column was not parsed.");
+    }
+
+    expect(column.defaultDescription).toBe("Default `default`");
+    expect(
+      defaultMatchesManifest(column, "'default'::text")
+    ).toBe(true);
+  });
+});
+
+function expectedOwner(relation: string): string {
+  const schema = relation.split(".")[0];
+
+  if (schema === undefined) {
+    throw new Error(`Invalid qualified relation name: ${relation}`);
+  }
+
+  const owner = OWNER_BY_SCHEMA[schema];
+
+  if (owner === undefined) {
+    throw new Error(`No canonical owner mapping for ${relation}`);
+  }
+
+  return owner;
+}
+
+function expectedIndexDefinition(index: ExpectedIndex): string {
+  return (
+    `CREATE INDEX ${index.name} ON ${index.relation} ` +
+    `USING btree (${index.keys.join(", ")})`
+  );
+}
+
+postgresSuite(
+  "ARCH-037 PostgreSQL physical schema integration",
+  () => {
+    let database: B4PostgresTestDatabase | undefined;
+    let physicalManifest: PhysicalSchemaManifest = {};
+
+    function requireDatabase(): B4PostgresTestDatabase {
+      if (database === undefined) {
+        throw new Error(
+          "The shared B4 PostgreSQL test database was not initialized."
+        );
+      }
+
+      return database;
+    }
+
+    beforeAll(async () => {
+      database = await createB4PostgresTestDatabase();
+
+      const manifestContent = await readFile(
+        MANIFEST_URL,
+        "utf8"
+      );
+
+      physicalManifest =
+        parsePhysicalSchemaManifest(manifestContent);
+
+      const expectedManifestRelations = Object.keys(
+        EXPECTED_CHECK_CONSTRAINTS
+      ).sort();
+
+      expect(
+        Object.keys(physicalManifest).sort(),
+        "The physical-schema traceability manifest must contain the complete 16-table CORE mapping."
+      ).toEqual(expectedManifestRelations);
+    }, 60_000);
+
+    afterAll(async () => {
+      const current = database;
+      database = undefined;
+
+      await current?.close();
+    }, 30_000);
+
+    it("uses the generated application login and the complete canonical migration ledger", async () => {
+      const current = requireDatabase();
+
+      expect(current.postgresServerVersion).toBeGreaterThanOrEqual(
+        180004
+      );
+
+      const identity =
+        await current.applicationPool.query<ApplicationIdentityRow>(
+          `
+            SELECT
+              session_user::text AS session_user,
+              current_user::text AS current_user
+          `
+        );
+
+      expect(identity.rows).toEqual([
+        {
+          session_user: current.applicationRole,
+          current_user: current.applicationRole
+        }
+      ]);
+
+      expect(current.migrationHistory).toHaveLength(11);
+
+      expect(
+        current.migrationHistory.map((migration) => migration.id)
+      ).toEqual(EXPECTED_MIGRATION_IDS);
+
+      expect(
+        new Set(
+          current.migrationHistory.map((migration) => migration.id)
+        ).size
+      ).toBe(11);
+
+      for (const migration of current.migrationHistory) {
+        expect(migration.checksum).toMatch(/^[a-f0-9]{64}$/);
+      }
+
+      const ledger =
         await current.adminPool.query<MigrationLedgerRow>(
           `
             SELECT
@@ -1059,8 +1391,7 @@ function parsePhysicalSchemaManifest(
         "Canonical relation names must not be duplicated in alternate schemas."
       ).toEqual([]);
     });
-
-    it("matches the physical CORE columns, PostgreSQL types, nullability and declared defaults", async () => {
+        it("matches the physical CORE columns, PostgreSQL types, nullability and declared defaults", async () => {
       const current = requireDatabase();
 
       const relations = Object.keys(physicalManifest);
