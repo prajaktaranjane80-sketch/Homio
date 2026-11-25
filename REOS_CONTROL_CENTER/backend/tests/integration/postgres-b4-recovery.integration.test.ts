@@ -1,5 +1,5 @@
 import { spawn, execFileSync } from "node:child_process";
-import { randomBytes, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
@@ -322,7 +322,7 @@ async function runPsqlInContainer(input: {
   return result.stdout;
 }
 
-async function createSchemaBackup(input: {
+async function createDatabaseBackup(input: {
   readonly containerId: string;
   readonly databaseName: string;
   readonly adminPassword: string;
@@ -338,7 +338,6 @@ async function createSchemaBackup(input: {
       "--host=127.0.0.1",
       "--username=postgres",
       `--dbname=${input.databaseName}`,
-      "--schema=reos_infra",
       "--format=plain"
     ],
     {
@@ -350,10 +349,48 @@ async function createSchemaBackup(input: {
   );
 
   if (result.stdout.trim().length === 0) {
-    throw new Error("PostgreSQL produced an empty B4 backup.");
+    throw new Error("PostgreSQL produced an empty full-database B4 backup.");
   }
 
   return result.stdout;
+}
+
+async function createSchemaOnlyBackup(input: {
+  readonly containerId: string;
+  readonly databaseName: string;
+  readonly adminPassword: string;
+}): Promise<string> {
+  const result = await runDocker(
+    [
+      "exec",
+      "--env",
+      "PGPASSWORD",
+      input.containerId,
+      "pg_dump",
+      "--no-password",
+      "--host=127.0.0.1",
+      "--username=postgres",
+      `--dbname=${input.databaseName}`,
+      "--schema-only",
+      "--format=plain"
+    ],
+    {
+      ...process.env,
+      PGPASSWORD: input.adminPassword
+    },
+    undefined,
+    [input.adminPassword]
+  );
+
+  if (result.stdout.trim().length === 0) {
+    throw new Error("PostgreSQL produced an empty B4 schema-only backup.");
+  }
+
+  return result.stdout;
+}
+
+function sha256(value: string): string {
+  return createHash("sha256").update(value, "utf8").digest("hex");
 }
 
 b4RecoverySuite(
@@ -388,6 +425,7 @@ b4RecoverySuite(
 
         const suffix = randomBytes(8).toString("hex");
         const databaseName = `homio_b4_recovery_${suffix}`;
+        const restoreDatabaseName = `homio_b4_restore_${suffix}`;
         const migrationRole = `homio_b4_m_${suffix}`;
         const applicationRole = `homio_b4_a_${suffix}`;
 
@@ -395,6 +433,7 @@ b4RecoverySuite(
         const applicationPassword = randomBytes(32).toString("hex");
 
         const quotedDatabase = quoteIdentifier(databaseName);
+        const quotedRestoreDatabase = quoteIdentifier(restoreDatabaseName);
         const quotedMigrationRole = quoteIdentifier(migrationRole);
         const quotedApplicationRole = quoteIdentifier(applicationRole);
 
@@ -419,12 +458,34 @@ b4RecoverySuite(
           databaseName
         );
 
+        const restoreTargetAdminUrl = connectionUrl(
+          adminUrl,
+          decodeURIComponent(baseUrl.username),
+          adminPassword,
+          restoreDatabaseName
+        );
+
+        const restoreMigrationUrl = connectionUrl(
+          adminUrl,
+          migrationRole,
+          migrationPassword,
+          restoreDatabaseName
+        );
+
+        const restoreApplicationUrl = connectionUrl(
+          adminUrl,
+          applicationRole,
+          applicationPassword,
+          restoreDatabaseName
+        );
+
         let adminPool: TestPgPool | undefined;
         let targetAdminPool: TestPgPool | undefined;
         let migrationPool: TestPgPool | undefined;
         let applicationPool: TestPgPool | undefined;
         let runtime: PostgresRuntime | undefined;
         let databaseCreated = false;
+        let restoreDatabaseCreated = false;
 
         try {
           adminPool = createPool(adminUrl, 2);
@@ -464,6 +525,41 @@ b4RecoverySuite(
             ]
           });
 
+          const coreBootstrapPath = fileURLToPath(
+            new URL(
+              "../../scripts/postgres/bootstrap-core002-schema.sql",
+              import.meta.url
+            )
+          );
+
+          const coreBootstrapSql = await readFile(
+            coreBootstrapPath,
+            "utf8"
+          );
+
+          await runPsqlInContainer({
+            containerId: postgresContainerId,
+            databaseName,
+            adminPassword,
+            sql: coreBootstrapSql,
+            additionalEnvironment: {
+              HOMIO_MIGRATION_ROLE: migrationRole,
+              HOMIO_APPLICATION_ROLE: applicationRole
+            },
+            secrets: [
+              migrationPassword,
+              applicationPassword
+            ]
+          });
+
+          await adminPool.query(
+            `REVOKE CONNECT ON DATABASE ${quotedDatabase} FROM PUBLIC`
+          );
+
+          await adminPool.query(
+            `GRANT CONNECT ON DATABASE ${quotedDatabase} TO ${quotedMigrationRole}, ${quotedApplicationRole}`
+          );
+
           targetAdminPool = createPool(targetAdminUrl, 3);
           migrationPool = createPool(migrationUrl, 1);
 
@@ -485,28 +581,19 @@ b4RecoverySuite(
             );
 
           /*
-           * This recovery fixture intentionally selects the existing
-           * B4 infrastructure migrations only. Migration 00000011 is
-           * required because the audit store now writes exclusively
-           * through its trusted SECURITY DEFINER append function.
-           *
-           * The selected manifest remains strictly ordered and is reused
-           * unchanged during post-restore ledger verification.
+           * Recovery must exercise the entire canonical database, not only
+           * the reos_infra slice. The same complete, ordered manifest is
+           * used before backup and replayed unchanged after restore.
            */
-          const b4Migrations = completeManifest.filter(
-            (migration) =>
-              migration.id === "00000003" ||
-              migration.id === "00000004" ||
-              migration.id === "00000011"
+          const b4Migrations = completeManifest;
+          const expectedMigrationIds = Array.from(
+            { length: 11 },
+            (_, index) => String(index + 1).padStart(8, "0")
           );
 
           expect(
             b4Migrations.map((migration) => migration.id)
-          ).toEqual([
-            "00000003",
-            "00000004",
-            "00000011"
-          ]);
+          ).toEqual(expectedMigrationIds);
 
           const migrationRunner = new PostgresMigrationRunner(
             migrationPool as unknown as PostgresDriverPool,
@@ -520,7 +607,7 @@ b4RecoverySuite(
             b4Migrations
           );
 
-          expect(migrationReport.appliedCount).toBe(3);
+          expect(migrationReport.appliedCount).toBe(b4Migrations.length);
           expect(migrationReport.latestMigrationId).toBe("00000011");
 
           applicationPool = createPool(applicationUrl, 1);
@@ -531,11 +618,99 @@ b4RecoverySuite(
 
           await runtime.verifyRuntimeRoleSafety();
 
+          const tenantA = randomUUID();
+          const tenantB = randomUUID();
+          const leadA = randomUUID();
+          const leadB = randomUUID();
+          const customerA = randomUUID();
+          const customerB = randomUUID();
+          const persistedAt = new Date().toISOString();
+
+          for (const [tenantId, slug] of [
+            [tenantA, `b4-recovery-a-${tenantA.slice(0, 8)}`],
+            [tenantB, `b4-recovery-b-${tenantB.slice(0, 8)}`]
+          ]) {
+            await targetAdminPool.query(
+              `
+                INSERT INTO core001.tenants (
+                  tenant_id,
+                  tenant_kind,
+                  operating_mode,
+                  display_name,
+                  slug,
+                  status,
+                  isolation_profile,
+                  residency_mode,
+                  quota_profile,
+                  revision,
+                  created_at,
+                  updated_at
+                )
+                VALUES (
+                  $1,
+                  'BROKERAGE',
+                  'BROKER_SAAS',
+                  $2,
+                  $3,
+                  'PROVISIONING',
+                  'SHARED_LOGICAL',
+                  'GLOBAL_ALLOWED',
+                  'default',
+                  1,
+                  $4,
+                  $4
+                )
+              `,
+              [tenantId, slug, slug, persistedAt]
+            );
+          }
+
+          const leadInsert = `
+            INSERT INTO core003.leads (
+              lead_id,
+              tenant_id,
+              customer_id,
+              status,
+              priority,
+              source_type,
+              metadata,
+              revision,
+              created_at,
+              updated_at
+            )
+            VALUES (
+              $1,
+              $2,
+              $3,
+              'NEW',
+              'NORMAL',
+              'OTHER',
+              '{}'::jsonb,
+              1,
+              $4,
+              $4
+            )
+          `;
+
+          await targetAdminPool.query(leadInsert, [
+            leadA,
+            tenantA,
+            customerA,
+            persistedAt
+          ]);
+
+          await targetAdminPool.query(leadInsert, [
+            leadB,
+            tenantB,
+            customerB,
+            persistedAt
+          ]);
+
           const context: TrustedRequestContext = {
             identityId: randomUUID(),
             accountId: randomUUID(),
             authenticationEpoch: 1,
-            tenantId: randomUUID(),
+            tenantId: tenantA,
             tenantRevision: 1,
             organizationId: randomUUID(),
             membershipId: randomUUID(),
@@ -651,33 +826,76 @@ b4RecoverySuite(
           const auditStore = new PostgresSecurityAuditStore(runtime);
 
           await auditStore.record(auditEvent);
-
-          const beforeBackup = await targetAdminPool.query(`
-            SELECT
-              (SELECT count(*)::integer
-                 FROM reos_infra.api_sessions) AS session_count,
-              (SELECT count(*)::integer
-                 FROM reos_infra.security_audit_events
-                WHERE request_id = '${requestId}') AS audit_count,
-              (SELECT count(*)::integer
-                 FROM reos_infra.schema_migrations) AS migration_count
-          `);
+                    const beforeBackup = await targetAdminPool.query(
+            `
+              SELECT
+                (SELECT count(*)::integer
+                   FROM reos_infra.api_sessions) AS session_count,
+                (SELECT count(*)::integer
+                   FROM reos_infra.security_audit_events
+                  WHERE request_id = $2) AS audit_count,
+                (SELECT count(*)::integer
+                   FROM reos_infra.schema_migrations) AS migration_count,
+                (SELECT count(*)::integer
+                   FROM core001.tenants
+                  WHERE tenant_id = ANY($1::uuid[])) AS tenant_count,
+                (SELECT count(*)::integer
+                   FROM core003.leads
+                  WHERE tenant_id = ANY($1::uuid[])) AS lead_count
+            `,
+            [[tenantA, tenantB], requestId]
+          );
 
           expect(beforeBackup.rows[0]).toMatchObject({
             session_count: 3,
             audit_count: 1,
-            migration_count: 3
+            migration_count: 11,
+            tenant_count: 2,
+            lead_count: 2
           });
 
-          const backupSql = await createSchemaBackup({
+          const backupSql = await createDatabaseBackup({
+            containerId: postgresContainerId,
+            databaseName,
+            adminPassword
+          });
+          const schemaBackupSql = await createSchemaOnlyBackup({
             containerId: postgresContainerId,
             databaseName,
             adminPassword
           });
 
-          expect(backupSql).toContain("api_sessions");
-          expect(backupSql).toContain("security_audit_events");
-          expect(backupSql).toContain("schema_migrations");
+          const backupSha256 = sha256(backupSql);
+          const schemaFingerprint = (dump: string): string =>
+            sha256(
+              dump
+                .split(/\r?\n/)
+                .filter(
+                  (line) => !/^\\(?:restrict|unrestrict)\s+/.test(line)
+                )
+                .join("\n")
+            );
+          const schemaSha256 = schemaFingerprint(schemaBackupSql);
+
+          for (const schemaName of [
+            "core001",
+            "core002",
+            "core003",
+            "core004",
+            "core006",
+            "core007",
+            "core008",
+            "reos_infra"
+          ]) {
+            expect(backupSql).toContain(`CREATE SCHEMA ${schemaName};`);
+          }
+
+          expect(backupSql).toContain("CREATE TABLE core001.tenants");
+          expect(backupSql).toContain("CREATE TABLE core003.leads");
+          expect(backupSql).toContain("CREATE TABLE core008.financial_ledger_entries");
+          expect(backupSql).toContain("CREATE TABLE reos_infra.api_sessions");
+          expect(backupSql).toContain("CREATE TABLE reos_infra.security_audit_events");
+          expect(backupSql).toContain("CREATE TABLE reos_infra.schema_migrations");
           expect(backupSql).toContain("append_security_audit_event");
           expect(backupSql).toContain("CREATE POLICY");
           expect(backupSql).toContain("CREATE TRIGGER");
@@ -689,18 +907,69 @@ b4RecoverySuite(
           await migrationPool.end();
           migrationPool = undefined;
 
-          await targetAdminPool.query(
-            "DROP SCHEMA reos_infra CASCADE"
+          await targetAdminPool.end();
+          targetAdminPool = undefined;
+
+          await adminPool.query(
+            `CREATE DATABASE ${quotedRestoreDatabase} TEMPLATE template0`
           );
+          restoreDatabaseCreated = true;
+
+          await adminPool.query(
+            `REVOKE CONNECT ON DATABASE ${quotedRestoreDatabase} FROM PUBLIC`
+          );
+
+          await adminPool.query(
+            `GRANT CONNECT ON DATABASE ${quotedRestoreDatabase} TO ${quotedMigrationRole}, ${quotedApplicationRole}`
+          );
+
+          targetAdminPool = createPool(restoreTargetAdminUrl, 3);
+          migrationPool = createPool(restoreMigrationUrl, 1);
 
           await runPsqlInContainer({
             containerId: postgresContainerId,
-            databaseName,
+            databaseName: restoreDatabaseName,
             adminPassword,
             sql: backupSql
           });
 
-          migrationPool = createPool(migrationUrl, 1);
+
+
+          const restoredDatabasePrivileges = await targetAdminPool.query(
+            `
+              SELECT
+                has_database_privilege(
+                  $1,
+                  current_database(),
+                  'CONNECT'
+                ) AS migration_connect,
+                has_database_privilege(
+                  $2,
+                  current_database(),
+                  'CONNECT'
+                ) AS application_connect,
+                EXISTS (
+                  SELECT 1
+                  FROM pg_catalog.pg_database AS database
+                  CROSS JOIN LATERAL pg_catalog.aclexplode(
+                    COALESCE(
+                      database.datacl,
+                      pg_catalog.acldefault('d', database.datdba)
+                    )
+                  ) AS privilege
+                  WHERE database.datname = current_database()
+                    AND privilege.grantee = 0
+                    AND privilege.privilege_type = 'CONNECT'
+                ) AS public_connect
+            `,
+            [migrationRole, applicationRole]
+          );
+
+          expect(restoredDatabasePrivileges.rows[0]).toEqual({
+            migration_connect: true,
+            application_connect: true,
+            public_connect: false
+          });
 
           const restoredMigrationRunner =
             new PostgresMigrationRunner(
@@ -727,11 +996,7 @@ b4RecoverySuite(
 
           expect(
             restoredLedger.rows.map((row) => row.migration_id)
-          ).toEqual([
-            "00000003",
-            "00000004",
-            "00000011"
-          ]);
+          ).toEqual(expectedMigrationIds);
 
           expect(
             restoredLedger.rows.map((row) => row.checksum)
@@ -739,16 +1004,170 @@ b4RecoverySuite(
             b4Migrations.map((migration) => migration.checksum)
           );
 
+          const restoredSchemaSql = await createSchemaOnlyBackup({
+            containerId: postgresContainerId,
+            databaseName: restoreDatabaseName,
+            adminPassword
+          });
+
+          expect(schemaFingerprint(restoredSchemaSql)).toBe(schemaSha256);
+
+          const restoredSchemas = await targetAdminPool.query(
+            `
+              SELECT nspname AS schema_name
+              FROM pg_catalog.pg_namespace
+              WHERE nspname = ANY($1::text[])
+              ORDER BY nspname
+            `,
+            [[
+              "core001",
+              "core002",
+              "core003",
+              "core004",
+              "core006",
+              "core007",
+              "core008",
+              "reos_infra"
+            ]]
+          );
+
+          expect(
+            restoredSchemas.rows.map((row) => row.schema_name)
+          ).toEqual([
+            "core001",
+            "core002",
+            "core003",
+            "core004",
+            "core006",
+            "core007",
+            "core008",
+            "reos_infra"
+          ]);
+
+          const restoredData = await targetAdminPool.query(
+            `
+              SELECT
+                (SELECT count(*)::integer
+                   FROM reos_infra.api_sessions) AS session_count,
+                (SELECT count(*)::integer
+                   FROM reos_infra.security_audit_events
+                  WHERE request_id = $2) AS audit_count,
+                (SELECT count(*)::integer
+                   FROM reos_infra.schema_migrations) AS migration_count,
+                (SELECT count(*)::integer
+                   FROM core001.tenants
+                  WHERE tenant_id = ANY($1::uuid[])) AS tenant_count,
+                (SELECT count(*)::integer
+                   FROM core003.leads
+                  WHERE tenant_id = ANY($1::uuid[])) AS lead_count
+            `,
+            [[tenantA, tenantB], requestId]
+          );
+
+          expect(restoredData.rows[0]).toMatchObject({
+            session_count: 3,
+            audit_count: 1,
+            migration_count: 11,
+            tenant_count: 2,
+            lead_count: 2
+          });
+
           await migrationPool.end();
           migrationPool = undefined;
 
-          applicationPool = createPool(applicationUrl, 1);
+          applicationPool = createPool(restoreApplicationUrl, 1);
 
           runtime = new PostgresRuntime(
             applicationPool as unknown as PostgresDriverPool
           );
 
           await runtime.verifyRuntimeRoleSafety();
+
+          const managedSchemas = [
+            "core001",
+            "core002",
+            "core003",
+            "core004",
+            "core006",
+            "core007",
+            "core008",
+            "reos_infra"
+          ];
+
+          const restoredTenantTables = await targetAdminPool.query(
+            `
+              SELECT
+                namespace.nspname AS schema_name,
+                relation.relname AS relation_name,
+                relation.relrowsecurity AS rls_enabled,
+                relation.relforcerowsecurity AS rls_forced,
+                pg_catalog.pg_get_userbyid(relation.relowner)
+                  AS relation_owner
+              FROM pg_catalog.pg_class AS relation
+              JOIN pg_catalog.pg_namespace AS namespace
+                ON namespace.oid = relation.relnamespace
+              WHERE relation.relkind IN ('r', 'p')
+                AND namespace.nspname = ANY($1::text[])
+                AND EXISTS (
+                  SELECT 1
+                  FROM pg_catalog.pg_attribute AS attribute
+                  WHERE attribute.attrelid = relation.oid
+                    AND attribute.attname = 'tenant_id'
+                    AND attribute.attnum > 0
+                    AND attribute.attisdropped = false
+                )
+              ORDER BY namespace.nspname, relation.relname
+            `,
+            [managedSchemas]
+          );
+
+          expect(restoredTenantTables.rows.length).toBeGreaterThan(0);
+
+          for (const row of restoredTenantTables.rows) {
+            expect(row.rls_enabled).toBe(true);
+            expect(row.rls_forced).toBe(true);
+            expect(row.relation_owner).toBe(migrationRole);
+          }
+
+          const restoredTenantVisibility =
+            await runtime.withTenantTransaction(
+              { tenantId: tenantA },
+              (transaction) =>
+                transaction.query(
+                  `
+                    SELECT tenant_id, lead_id
+                    FROM core003.leads
+                    WHERE tenant_id = ANY($1::uuid[])
+                    ORDER BY lead_id
+                  `,
+                  [[tenantA, tenantB]]
+                )
+            );
+
+          expect(restoredTenantVisibility.rows).toEqual([
+            {
+              tenant_id: tenantA,
+              lead_id: leadA
+            }
+          ]);
+
+          await expect(
+            runtime.withTenantTransaction(
+              { tenantId: tenantA },
+              (transaction) =>
+                transaction.query(
+                  leadInsert,
+                  [
+                    randomUUID(),
+                    tenantB,
+                    randomUUID(),
+                    persistedAt
+                  ]
+                )
+            )
+          ).rejects.toMatchObject({
+            code: "42501"
+          });
 
           const restoredSessionStore = new PostgresSessionStore(
             runtime
@@ -821,27 +1240,26 @@ b4RecoverySuite(
             tenant_reference: context.tenantId
           });
 
-          const owners = await targetAdminPool.query(`
-            SELECT
-              namespace.nspname AS schema_name,
-              pg_get_userbyid(namespace.nspowner) AS schema_owner,
-              relation.relname AS relation_name,
-              pg_get_userbyid(relation.relowner) AS table_owner
-            FROM pg_namespace AS namespace
-            JOIN pg_class AS relation
-              ON relation.relnamespace = namespace.oid
-            WHERE namespace.nspname = 'reos_infra'
-              AND relation.relkind = 'r'
-            ORDER BY relation.relname
-          `);
+          const owners = await targetAdminPool.query(
+            `
+              SELECT
+                namespace.nspname AS schema_name,
+                pg_catalog.pg_get_userbyid(namespace.nspowner)
+                  AS schema_owner,
+                relation.relname AS relation_name,
+                pg_catalog.pg_get_userbyid(relation.relowner)
+                  AS table_owner
+              FROM pg_catalog.pg_namespace AS namespace
+              JOIN pg_catalog.pg_class AS relation
+                ON relation.relnamespace = namespace.oid
+              WHERE namespace.nspname = ANY($1::text[])
+                AND relation.relkind IN ('r', 'p')
+              ORDER BY namespace.nspname, relation.relname
+            `,
+            [managedSchemas]
+          );
 
-          expect(
-            owners.rows.map((row) => row.relation_name)
-          ).toEqual([
-            "api_sessions",
-            "schema_migrations",
-            "security_audit_events"
-          ]);
+          expect(owners.rows.length).toBeGreaterThan(0);
 
           for (const row of owners.rows) {
             expect(row.schema_owner).toBe(migrationRole);
@@ -995,6 +1413,23 @@ b4RecoverySuite(
           ).rejects.toMatchObject({
             code: "55000"
           });
+
+          console.log("B4_RECOVERY_METHOD=FULL_DATABASE_PG_DUMP_TO_SEPARATE_DATABASE");
+          console.log(`B4_RECOVERY_SOURCE_DATABASE=${databaseName}`);
+          console.log(`B4_RECOVERY_TARGET_DATABASE=${restoreDatabaseName}`);
+          console.log(`B4_RECOVERY_BACKUP_SHA256=${backupSha256}`);
+          console.log(`B4_RECOVERY_BACKUP_BYTES=${Buffer.byteLength(backupSql, "utf8")}`);
+          console.log(`B4_RECOVERY_SCHEMA_SHA256=${schemaSha256}`);
+          console.log("B4_RECOVERY_MIGRATION_COUNT=11");
+          console.log("B4_RECOVERY_REPLAY_APPLIED_COUNT=0");
+          console.log("B4_RECOVERY_SCHEMA_INTEGRITY=PASS");
+          console.log("B4_RECOVERY_DATA_INTEGRITY=PASS");
+          console.log("B4_RECOVERY_TENANT_ISOLATION=PASS");
+          console.log("B4_RECOVERY_DATABASE_ACL=PASS");
+          console.log("B4_RECOVERY_ROLE_AND_GRANT_INTEGRITY=PASS");
+          console.log("B4_RECOVERY_TARGET_CLASS=EPHEMERAL_GITHUB_ACTIONS_POSTGRESQL_18_4");
+          console.log("B4_RECOVERY_PRODUCTION_TARGET=NOT_TESTED");
+          console.log("B4_RECOVERY_VERIFICATION=PASS");
         } finally {
           if (runtime !== undefined) {
             await runtime.close().catch(() => undefined);
@@ -1006,10 +1441,18 @@ b4RecoverySuite(
           await targetAdminPool?.end().catch(() => undefined);
 
           if (adminPool !== undefined) {
+            if (restoreDatabaseCreated) {
+              await adminPool.query(
+                `DROP DATABASE IF EXISTS ${quotedRestoreDatabase} WITH (FORCE)`
+              ).catch(() => undefined);
+              restoreDatabaseCreated = false;
+            }
+
             if (databaseCreated) {
               await adminPool.query(
                 `DROP DATABASE IF EXISTS ${quotedDatabase} WITH (FORCE)`
               ).catch(() => undefined);
+              databaseCreated = false;
             }
 
             await adminPool.query(
@@ -1028,3 +1471,5 @@ b4RecoverySuite(
     );
   }
 );
+
+  
