@@ -1,0 +1,14 @@
+name: Guarded BACKEND-001-B4 completion
+description: Verify exact-SHA PostgreSQL, migration, security, recovery, owner authorization and complete B4 through the existing HOMIO Control Center.
+
+runs:
+  using: composite
+  steps:
+    - name: Run B4 completion guard regression tests
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/test_guarded_transition.py"
+
+    - name: Execute exact-SHA owner-authorized B4 Control Center transition
+      if: ${{ success() }}
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_transition.py"
