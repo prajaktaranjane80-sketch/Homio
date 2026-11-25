@@ -26,8 +26,7 @@ CREATE TABLE core006.deals (
   evidence jsonb NOT NULL DEFAULT '[]'::jsonb,
   audit_log jsonb NOT NULL DEFAULT '[]'::jsonb,
 
-  contract_schema_version text NOT NULL
-    DEFAULT '1.0.0',
+  contract_schema_version text NOT NULL DEFAULT '1.0',
 
   CONSTRAINT deals_pkey
     PRIMARY KEY (tenant_id, deal_id),
