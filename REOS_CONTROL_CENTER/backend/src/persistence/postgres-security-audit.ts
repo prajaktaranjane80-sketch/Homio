@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import type { SecurityAuditEvent } from "../security/contracts.js";
+import type { PostgresRuntime } from "./postgres.js";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -14,16 +15,23 @@ const EVENT_TYPES = new Set<SecurityAuditEvent["eventType"]>([
   "API_MUTATION_REAUTHORIZED"
 ]);
 
-export interface PostgresSecurityAuditQueryResult {
-  readonly rowCount: number | null;
-}
+const APPEND_AUDIT_EVENT_SQL = `
+  SELECT reos_infra.append_security_audit_event(
+    $1::uuid,
+    $2::text,
+    $3::uuid,
+    $4::timestamptz,
+    $5::text,
+    $6::text,
+    $7::uuid,
+    $8::uuid
+  )
+`;
 
-export interface PostgresSecurityAuditQueryPort {
-  query(
-    text: string,
-    values?: unknown[]
-  ): Promise<PostgresSecurityAuditQueryResult>;
-}
+type AuditTransactionRuntime = Pick<
+  PostgresRuntime,
+  "withTenantTransaction" | "withGlobalTransaction"
+>;
 
 export class PostgresSecurityAuditUnavailableError extends Error {
   public constructor(cause?: unknown) {
@@ -36,50 +44,59 @@ export class PostgresSecurityAuditUnavailableError extends Error {
 }
 
 export class PostgresSecurityAuditStore {
-  private readonly pool: PostgresSecurityAuditQueryPort;
+  private readonly runtime: AuditTransactionRuntime;
 
-  public constructor(pool: PostgresSecurityAuditQueryPort) {
+  public constructor(runtime: AuditTransactionRuntime) {
     if (
-      typeof pool !== "object" ||
-      pool === null ||
-      typeof pool.query !== "function"
+      typeof runtime !== "object" ||
+      runtime === null ||
+      typeof runtime.withTenantTransaction !== "function" ||
+      typeof runtime.withGlobalTransaction !== "function"
     ) {
-      throw new TypeError("The canonical PostgreSQL pool query port is required.");
+      throw new TypeError(
+        "The canonical PostgreSQL transaction runtime is required."
+      );
     }
 
-    this.pool = pool;
+    this.runtime = runtime;
   }
 
   public async record(event: SecurityAuditEvent): Promise<void> {
     const normalized = validateAuditEvent(event);
 
+    const values = [
+      randomUUID(),
+      normalized.eventType,
+      normalized.requestId,
+      normalized.occurredAt,
+      normalized.reasonCode,
+      normalized.operation,
+      normalized.actorIdentityId,
+      normalized.tenantId
+    ];
+
     try {
-      const result = await this.pool.query(
-        `INSERT INTO reos_infra.security_audit_events (
-           event_id,
-           event_type,
-           request_id,
-           occurred_at,
-           reason_code,
-           operation,
-           actor_identity_reference,
-           tenant_reference
-         )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        [
-          randomUUID(),
-          normalized.eventType,
-          normalized.requestId,
-          normalized.occurredAt,
-          normalized.reasonCode,
-          normalized.operation,
-          normalized.actorIdentityId,
-          normalized.tenantId
-        ]
-      );
+      const result = normalized.tenantId === null
+        ? await this.runtime.withGlobalTransaction(
+            async (transaction) =>
+              transaction.query(
+                APPEND_AUDIT_EVENT_SQL,
+                values
+              )
+          )
+        : await this.runtime.withTenantTransaction(
+            { tenantId: normalized.tenantId },
+            async (transaction) =>
+              transaction.query(
+                APPEND_AUDIT_EVENT_SQL,
+                values
+              )
+          );
 
       if (result.rowCount !== 1) {
-        throw new Error("The audit insert did not affect exactly one row.");
+        throw new Error(
+          "The audit append operation did not affect exactly one row."
+        );
       }
     } catch (error) {
       throw new PostgresSecurityAuditUnavailableError(error);
@@ -128,14 +145,27 @@ function validateAuditEvent(
     actorIdentityId !== null &&
     !isUuid(actorIdentityId)
   ) {
-    throw new TypeError("The API security audit actor reference is invalid.");
+    throw new TypeError(
+      "The API security audit actor reference is invalid."
+    );
   }
 
   if (
     tenantId !== null &&
     !isUuid(tenantId)
   ) {
-    throw new TypeError("The API security audit tenant reference is invalid.");
+    throw new TypeError(
+      "The API security audit tenant reference is invalid."
+    );
+  }
+
+  if (
+    (actorIdentityId === null) !==
+    (tenantId === null)
+  ) {
+    throw new TypeError(
+      "The API security audit actor and tenant references must be supplied together."
+    );
   }
 
   return Object.freeze({
