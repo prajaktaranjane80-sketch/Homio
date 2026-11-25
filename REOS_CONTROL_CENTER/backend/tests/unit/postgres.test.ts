@@ -1,4 +1,3 @@
-
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -248,16 +247,16 @@ describe("PostgreSQL tenant transaction owner", () => {
     expect(fixture.releaseErrors[0]).toBeInstanceOf(Error);
   });
 
-  it("rejects malformed tenant identifiers before acquiring a connection", async () => {
+  it("throws for malformed tenant identifiers before acquiring a connection", () => {
     const fixture = makePool();
     const runtime = new PostgresRuntime(fixture.pool);
 
-    await expect(
+    expect(() =>
       runtime.withTenantTransaction(
         { tenantId: " tenant-a " },
         async () => undefined
       )
-    ).rejects.toBeInstanceOf(PostgresTenantContextError);
+    ).toThrow(PostgresTenantContextError);
 
     expect(fixture.connect).not.toHaveBeenCalled();
   });
@@ -316,7 +315,7 @@ describe("PostgreSQL tenant transaction owner", () => {
     expect(fixture.calls.map((call) => call.sql)).not.toContain("SELECT 1");
   });
 
-  it("closes the owned pool once and refuses transactions afterward", async () => {
+  it("closes the owned pool once and synchronously refuses later transactions", async () => {
     const fixture = makePool();
     const runtime = new PostgresRuntime(fixture.pool);
 
@@ -327,12 +326,12 @@ describe("PostgreSQL tenant transaction owner", () => {
     await firstClose;
     expect(fixture.end).toHaveBeenCalledTimes(1);
 
-    await expect(
+    expect(() =>
       runtime.withTenantTransaction(
         { tenantId: TENANT_ID },
         async () => undefined
       )
-    ).rejects.toBeInstanceOf(PostgresRuntimeClosedError);
+    ).toThrow(PostgresRuntimeClosedError);
     expect(fixture.connect).not.toHaveBeenCalled();
   });
 
