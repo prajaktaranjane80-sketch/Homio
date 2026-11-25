@@ -23,6 +23,7 @@ on:
       - ".github/workflows/reusable-backend-workstream-activation.yml"
       - ".github/workflows/reusable-backend-b1-completion.yml"
       - ".github/workflows/reusable-backend-b3-completion.yml"
+      - ".github/workflows/reusable-backend-b4-completion.yml"
       - ".github/workflows/reusable-ai001-t01-transition.yml"
       - ".github/workflows/reusable-ai001-t02-transition.yml"
       - ".github/workflows/reusable-ai001-t03-transition.yml"
@@ -64,6 +65,7 @@ on:
       - ".github/workflows/reusable-backend-workstream-activation.yml"
       - ".github/workflows/reusable-backend-b1-completion.yml"
       - ".github/workflows/reusable-backend-b3-completion.yml"
+      - ".github/workflows/reusable-backend-b4-completion.yml"
       - ".github/workflows/reusable-ai001-t01-transition.yml"
       - ".github/workflows/reusable-ai001-t02-transition.yml"
       - ".github/workflows/reusable-ai001-t03-transition.yml"
@@ -93,7 +95,7 @@ concurrency:
   cancel-in-progress: false
 
 # Verification never changes canonical task state by itself.
-# Backend activation, B1 completion, B2 dependency correction and B3
+# Backend activation, B1 completion, B2 dependency correction, B3 and B4
 # completion use separate, narrowly scoped guarded transitions.
 # AI-001 and CORE-008 retain their existing transition boundaries.
 
@@ -154,6 +156,24 @@ jobs:
       contents: write
       id-token: write
     uses: ./.github/workflows/reusable-backend-b3-completion.yml
+
+  control_center_complete_backend_b4:
+    name: Guarded Control Center completion (BACKEND-001-B4)
+    if: >-
+      ${{
+        github.event_name == 'push' &&
+        github.ref == 'refs/heads/reos-development' &&
+        startsWith(
+          github.event.head_commit.message,
+          '[CONTROL-CENTER-COMPLETE-BACKEND-001-B4]'
+        )
+      }}
+    needs: verification
+    permissions:
+      actions: read
+      contents: write
+      id-token: write
+    uses: ./.github/workflows/reusable-backend-b4-completion.yml
 
   control_center_transition_ai001_t01:
     name: Guarded Control Center transition (AI-001-T01)
