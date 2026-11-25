@@ -1,15 +1,25 @@
+DROP TRIGGER IF EXISTS security_audit_events_truncate_guard
+  ON reos_infra.security_audit_events;
 
-BEGIN;
+CREATE TRIGGER security_audit_events_truncate_guard
+  BEFORE TRUNCATE
+  ON reos_infra.security_audit_events
+  FOR EACH STATEMENT
+  EXECUTE FUNCTION
+    reos_infra.reject_security_audit_mutation();
 
-ALTER TABLE reos_infra.security_audit_events
-  ADD CONSTRAINT security_audit_events_tenant_reference_fk
-  FOREIGN KEY (tenant_reference)
-  REFERENCES core001.tenants (tenant_id)
-  ON UPDATE RESTRICT
-  ON DELETE RESTRICT
-  NOT VALID;
+REVOKE ALL ON TABLE
+  reos_infra.security_audit_events
+FROM PUBLIC, __HOMIO_APPLICATION_ROLE__;
 
-ALTER TABLE reos_infra.security_audit_events
-  VALIDATE CONSTRAINT security_audit_events_tenant_reference_fk;
+REVOKE TRUNCATE ON TABLE
+  reos_infra.security_audit_events
+FROM PUBLIC, __HOMIO_APPLICATION_ROLE__;
 
-COMMIT;
+GRANT INSERT ON TABLE
+  reos_infra.security_audit_events
+TO __HOMIO_APPLICATION_ROLE__;
+
+REVOKE ALL ON FUNCTION
+  reos_infra.reject_security_audit_mutation()
+FROM PUBLIC, __HOMIO_APPLICATION_ROLE__;
