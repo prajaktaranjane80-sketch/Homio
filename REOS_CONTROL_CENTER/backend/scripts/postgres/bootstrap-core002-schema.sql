@@ -1,11 +1,3 @@
-
-## File 2 — Bootstrap full replacement
-
-**Exact path:** `REOS_CONTROL_CENTER/backend/scripts/postgres/bootstrap-core002-schema.sql`
-
-Is replacement se existing `core002` bootstrap preserve hai aur six required CORE schemas add kiye gaye hain. Ye one-time bootstrap DBA/admin role se execute hota hai; migration SQL ka owner migration role hi rahega.
-
-```sql
 \set ON_ERROR_STOP on
 
 \getenv migration_role HOMIO_MIGRATION_ROLE
@@ -53,6 +45,16 @@ GRANT USAGE ON SCHEMA
   core007,
   core008
 TO :"application_role";
+
+REVOKE CREATE ON SCHEMA
+  core001,
+  core002,
+  core003,
+  core004,
+  core006,
+  core007,
+  core008
+FROM :"application_role";
 
 ALTER DEFAULT PRIVILEGES
   FOR ROLE :"migration_role"
