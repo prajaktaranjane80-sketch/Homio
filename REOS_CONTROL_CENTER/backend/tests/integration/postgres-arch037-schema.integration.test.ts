@@ -902,3 +902,1635 @@ const EXPECTED_TRIGGERS: readonly ExpectedTrigger[] = [
     definition:
       "CREATE TRIGGER security_audit_events_truncate_guard BEFORE TRUNCATE ON reos_infra.security_audit_events FOR EACH STATEMENT EXECUTE FUNCTION reos_infra.reject_security_audit_mutation()"
   }
+];
+
+const TENANT_SCOPED_UNIQUE_RELATIONS = [
+  "core001.organizations",
+  "core003.leads",
+  "core003.lead_ownership",
+  "core003.ownership_transfers",
+  "core004.projects",
+  "core004.inventory",
+  "core006.deals",
+  "core006.deal_parties",
+  "core007.governance_decisions",
+  "core007.approval_requests",
+  "core008.commission_contracts",
+  "core008.financial_ledger_entries"
+] as const;
+
+function normalizeSql(value: string): string {
+  return value
+    .replaceAll('"', "")
+    .replace(/\s+/g, " ")
+    .replace(/\s*([(),.])\s*/g, "$1")
+    .trim()
+    .toLowerCase();
+}
+
+function stripMarkdownCell(value: string): string {
+  return value.trim().replace(/^`|`$/g, "");
+}
+
+function parsePhysicalSchemaManifest(
+  content: string
+): PhysicalSchemaManifest {
+  const headings = Array.from(
+    content.matchAll(/^#### `([^`]+)`\s*$/gm)
+  );
+
+  const result: Record<string, ManifestColumn[]> = {};
+
+  for (let index = 0; index < headings.length; index += 1) {
+    const heading = headings[index];
+
+    if (heading === undefined) {
+      continue;
+    }
+
+    const relation = heading[1];
+
+    if (relation === undefined || !relation.includes(".")) {
+      continue;
+    }
+
+    const start = heading.index ?? 0;
+    const next = headings[index + 1];
+    const end = next?.index ?? content.length;
+    const section = content.slice(start, end);
+
+    const rows = section
+      .split("\n")
+      .filter((line) => /^\|\s*`[^`]+`/.test(line));
+
+    const columns: ManifestColumn[] = [];
+
+    for (const line of rows) {
+      const cells = line
+        .split("|")
+        .slice(1, -1)
+        .map(stripMarkdownCell);
+
+      if (cells.length < 5) {
+        continue;
+      }
+
+      const name = cells[0];
+      const postgresType = cells[2];
+      const nullable = cells[3];
+      const defaultDescription = cells[4];
+
+      if (
+        name === undefined ||
+        postgresType === undefined ||
+        nullable === undefined ||
+        defaultDescription === undefined
+      ) {
+        continue;
+      }
+
+      if (name === "Column") {
+        continue;
+      }
+
+      if (nullable !== "Yes" && nullable !== "No") {
+        continue;
+      }
+
+      columns.push({
+        name,
+        postgresType,
+        nullable: nullable === "Yes",
+        defaultDescription
+      });
+    }
+
+    if (columns.length > 0) {
+      result[relation] = columns;
+    }
+  }
+
+  return result;
+}
+
+function postgresTypeName(sourceType: string): string {
+  const types: Readonly<Record<string, string>> = {
+    UUID: "uuid",
+    "UUID[]": "uuid[]",
+    TEXT: "text",
+    "TEXT[]": "text[]",
+    INTEGER: "integer",
+    BIGINT: "bigint",
+    SMALLINT: "smallint",
+    BOOLEAN: "boolean",
+    JSONB: "jsonb",
+    NUMERIC: "numeric",
+    TIMESTAMPTZ: "timestamp with time zone"
+  };
+
+  const mapped = types[sourceType];
+
+  if (mapped === undefined) {
+    throw new Error(
+      `Unsupported PostgreSQL type in B4 physical manifest: ${sourceType}`
+    );
+  }
+
+  return mapped;
+}
+
+function defaultMatchesManifest(
+  column: ManifestColumn,
+  actual: string | null
+): boolean {
+  const description = column.defaultDescription.toLowerCase();
+
+  const expectsDefault =
+    description.includes("default") ||
+    description.includes("reference object default");
+
+  if (!expectsDefault) {
+    return actual === null;
+  }
+
+  if (actual === null) {
+    return false;
+  }
+
+  const expression = normalizeSql(actual);
+
+  if (description.includes("clock timestamp")) {
+    return expression === "clock_timestamp()";
+  }
+
+  if (description.includes("reference object default")) {
+    if (!expression.startsWith("jsonb_build_object(")) {
+      return false;
+    }
+
+    if (column.name === "configuration_ref") {
+      return (
+        expression.includes("'configuration_key'") &&
+        expression.includes("'default'") &&
+        expression.includes("'reference_id'") &&
+        expression.includes("gen_random_uuid()")
+      );
+    }
+
+    if (column.name === "security_profile_ref") {
+      return (
+        expression.includes("'profile_key'") &&
+        expression.includes("'fail_closed'") &&
+        expression.includes("'require_valid_tenant_context'") &&
+        expression.includes("gen_random_uuid()")
+      );
+    }
+
+    return true;
+  }
+
+  if (description.includes("default empty array")) {
+    if (column.postgresType === "JSONB") {
+      return expression === "'[]'::jsonb";
+    }
+
+    if (column.postgresType === "UUID[]") {
+      return expression === "array[]::uuid[]";
+    }
+
+    if (column.postgresType === "TEXT[]") {
+      return expression === "array[]::text[]";
+    }
+
+    return false;
+  }
+
+  if (description.includes("default empty object")) {
+    return expression === "'{}'::jsonb";
+  }
+
+  if (description.includes("default true")) {
+    return expression === "true";
+  }
+
+  const numericDefault = description.match(
+    /default\s+(-?\d+)(?:;|$)/
+  );
+
+  if (numericDefault?.[1] !== undefined) {
+    return expression === numericDefault[1];
+  }
+
+  const quotedDefault = description.match(
+    /default\s+`([^`]+)`/i
+  );
+
+  if (quotedDefault?.[1] !== undefined) {
+    return expression === `'${quotedDefault[1]}'::text`;
+  }
+
+  const enumDefault = description.match(
+    /default\s+([a-z][a-z0-9_]*)/i
+  );
+
+  if (enumDefault?.[1] !== undefined) {
+    return expression === `'${enumDefault[1]}'::text`;
+  }
+
+  return false;
+}
+
+function expectedOwner(relation: string): string {
+  const schema = relation.split(".")[0];
+
+  if (schema === undefined) {
+    throw new Error(`Invalid qualified relation name: ${relation}`);
+  }
+
+  const owner = OWNER_BY_SCHEMA[schema];
+
+  if (owner === undefined) {
+    throw new Error(`No canonical owner mapping for ${relation}`);
+  }
+
+  return owner;
+}
+
+function expectedIndexDefinition(index: ExpectedIndex): string {
+  return (
+    `CREATE INDEX ${index.name} ON ${index.relation} ` +
+    `USING btree (${index.keys.join(", ")})`
+  );
+}
+
+postgresSuite(
+  "ARCH-037 PostgreSQL physical schema integration",
+  () => {
+    let database: B4PostgresTestDatabase | undefined;
+    let physicalManifest: PhysicalSchemaManifest = {};
+
+    function requireDatabase(): B4PostgresTestDatabase {
+      if (database === undefined) {
+        throw new Error(
+          "The shared B4 PostgreSQL test database was not initialized."
+        );
+      }
+
+      return database;
+    }
+
+    beforeAll(async () => {
+      database = await createB4PostgresTestDatabase();
+
+      const manifestContent = await readFile(
+        MANIFEST_URL,
+        "utf8"
+      );
+
+      physicalManifest =
+        parsePhysicalSchemaManifest(manifestContent);
+
+      const expectedManifestRelations = Object.keys(
+        EXPECTED_CHECK_CONSTRAINTS
+      ).sort();
+
+      expect(
+        Object.keys(physicalManifest).sort(),
+        "The physical-schema traceability manifest must contain the complete 16-table CORE mapping."
+      ).toEqual(expectedManifestRelations);
+    }, 60_000);
+
+    afterAll(async () => {
+      const current = database;
+      database = undefined;
+
+      await current?.close();
+    }, 30_000);
+
+    it("uses the generated application login and the complete canonical migration ledger", async () => {
+      const current = requireDatabase();
+
+      expect(current.postgresServerVersion).toBeGreaterThanOrEqual(
+        180004
+      );
+
+      const identity =
+        await current.applicationPool.query<ApplicationIdentityRow>(
+          `
+            SELECT
+              session_user::text AS session_user,
+              current_user::text AS current_user
+          `
+        );
+
+      expect(identity.rows).toEqual([
+        {
+          session_user: current.applicationRole,
+          current_user: current.applicationRole
+        }
+      ]);
+
+      expect(current.migrationHistory).toHaveLength(11);
+
+      expect(
+        current.migrationHistory.map((migration) => migration.id)
+      ).toEqual(EXPECTED_MIGRATION_IDS);
+
+      expect(
+        new Set(
+          current.migrationHistory.map((migration) => migration.id)
+        ).size
+      ).toBe(11);
+
+      for (const migration of current.migrationHistory) {
+        expect(migration.checksum).toMatch(/^[a-f0-9]{64}$/);
+      }
+
+      const ledger =
+        await current.adminPool.query<MigrationLedgerRow>(
+          `
+            SELECT
+              migration_id,
+              migration_name,
+              checksum
+            FROM reos_infra.schema_migrations
+            ORDER BY migration_id
+          `
+        );
+
+      expect(ledger.rows).toEqual(
+        current.migrationHistory.map((migration) => ({
+          migration_id: migration.id,
+          migration_name: migration.name,
+          checksum: migration.checksum
+        }))
+      );
+
+      await expect(
+        current.applicationPool.query(
+          `
+            SELECT migration_id
+            FROM reos_infra.schema_migrations
+          `
+        )
+      ).rejects.toMatchObject({
+        code: "42501"
+      });
+    });
+
+    it("creates exactly the approved canonical relations without a duplicate CORE-005 SQL schema", async () => {
+      const current = requireDatabase();
+
+      const result =
+        await current.adminPool.query<RelationRow>(
+          `
+            SELECT
+              required.relation_name,
+              to_regclass(required.relation_name) IS NOT NULL AS exists
+            FROM unnest($1::text[]) AS required(relation_name)
+            ORDER BY required.relation_name
+          `,
+          [[...REQUIRED_RELATIONS]]
+        );
+
+      expect(result.rows).toHaveLength(REQUIRED_RELATIONS.length);
+
+      for (const row of result.rows) {
+        expect(
+          row.exists,
+          `Missing required relation ${row.relation_name}; owner ${expectedOwner(row.relation_name)}`
+        ).toBe(true);
+      }
+
+      const schemas = await current.adminPool.query<{
+        readonly schema_name: string;
+      }>(
+        `
+          SELECT nspname AS schema_name
+          FROM pg_catalog.pg_namespace
+          WHERE nspname ~ '^core[0-9]{3}$'
+             OR nspname = 'reos_infra'
+          ORDER BY nspname
+        `
+      );
+
+      expect(
+        schemas.rows.map((row) => row.schema_name)
+      ).toEqual([...REQUIRED_SCHEMAS].sort());
+
+      const duplicateRelations =
+        await current.adminPool.query<{
+          readonly relation_name: string;
+          readonly schemas: string[];
+        }>(
+          `
+            SELECT
+              relation.relname AS relation_name,
+              array_agg(namespace.nspname ORDER BY namespace.nspname)
+                AS schemas
+            FROM pg_catalog.pg_class AS relation
+            JOIN pg_catalog.pg_namespace AS namespace
+              ON namespace.oid = relation.relnamespace
+            WHERE relation.relkind IN ('r', 'p', 'v', 'm')
+              AND relation.relname = ANY($1::text[])
+            GROUP BY relation.relname
+            HAVING count(*) > 1
+            ORDER BY relation.relname
+          `,
+          [[
+            ...REQUIRED_RELATIONS.map(
+              (relation) => relation.split(".")[1] ?? ""
+            )
+          ]]
+        );
+
+      expect(
+        duplicateRelations.rows,
+        "Canonical relation names must not be duplicated in alternate schemas."
+      ).toEqual([]);
+    });
+
+    it("matches the physical CORE columns, PostgreSQL types, nullability and declared defaults", async () => {
+      const current = requireDatabase();
+
+      const relations = Object.keys(physicalManifest);
+      const schemas = [
+        ...new Set(relations.map((relation) => relation.split(".")[0] ?? ""))
+      ];
+      const relationNames = relations.map(
+        (relation) => relation.split(".")[1] ?? ""
+      );
+
+      const result =
+        await current.adminPool.query<ColumnCatalogRow>(
+          `
+            SELECT
+              namespace.nspname AS schema_name,
+              relation.relname AS relation_name,
+              attribute.attname AS column_name,
+              pg_catalog.format_type(
+                attribute.atttypid,
+                attribute.atttypmod
+              ) AS formatted_type,
+              NOT attribute.attnotnull AS nullable,
+              pg_catalog.pg_get_expr(
+                default_value.adbin,
+                default_value.adrelid
+              ) AS default_expression
+            FROM pg_catalog.pg_attribute AS attribute
+            JOIN pg_catalog.pg_class AS relation
+              ON relation.oid = attribute.attrelid
+            JOIN pg_catalog.pg_namespace AS namespace
+              ON namespace.oid = relation.relnamespace
+            LEFT JOIN pg_catalog.pg_attrdef AS default_value
+              ON default_value.adrelid = attribute.attrelid
+             AND default_value.adnum = attribute.attnum
+            WHERE namespace.nspname = ANY($1::text[])
+              AND relation.relname = ANY($2::text[])
+              AND relation.relkind IN ('r', 'p')
+              AND attribute.attnum > 0
+              AND attribute.attisdropped = false
+            ORDER BY
+              namespace.nspname,
+              relation.relname,
+              attribute.attnum
+          `,
+          [schemas, relationNames]
+        );
+
+      const expectedColumnCount = Object.values(physicalManifest)
+        .reduce((total, columns) => total + columns.length, 0);
+
+      expect(result.rows).toHaveLength(expectedColumnCount);
+
+      const actualByRelation = new Map<
+        string,
+        Map<string, ColumnCatalogRow>
+      >();
+
+      for (const row of result.rows) {
+        const relation =
+          `${row.schema_name}.${row.relation_name}`;
+
+        let columns = actualByRelation.get(relation);
+
+        if (columns === undefined) {
+          columns = new Map();
+          actualByRelation.set(relation, columns);
+        }
+
+        columns.set(row.column_name, row);
+      }
+
+      for (const [relation, expectedColumns] of Object.entries(
+        physicalManifest
+      )) {
+        const owner = expectedOwner(relation);
+        const actualColumns = actualByRelation.get(relation);
+
+        expect(
+          actualColumns,
+          `${owner} ${relation}: relation column catalog must exist.`
+        ).toBeDefined();
+
+        expect(
+          [...(actualColumns?.keys() ?? [])].sort(),
+          `${owner} ${relation}: actual columns must exactly match the traceability mapping.`
+        ).toEqual(
+          expectedColumns.map((column) => column.name).sort()
+        );
+
+        for (const expected of expectedColumns) {
+          const actual = actualColumns?.get(expected.name);
+
+          expect(
+            actual,
+            `${owner} ${relation}.${expected.name}: column must exist.`
+          ).toBeDefined();
+
+          if (actual === undefined) {
+            continue;
+          }
+
+          const expectedType = postgresTypeName(
+            expected.postgresType
+          );
+
+          expect(
+            actual.formatted_type,
+            `${owner} ${relation}.${expected.name}: expected type ${expectedType}, actual ${actual.formatted_type}.`
+          ).toBe(expectedType);
+
+          expect(
+            actual.nullable,
+            `${owner} ${relation}.${expected.name}: expected nullable=${expected.nullable}, actual nullable=${actual.nullable}.`
+          ).toBe(expected.nullable);
+
+          expect(
+            defaultMatchesManifest(expected, actual.default_expression),
+            `${owner} ${relation}.${expected.name}: default declaration mismatch; expected ${expected.defaultDescription}, actual ${actual.default_expression ?? "NULL"}.`
+          ).toBe(true);
+        }
+      }
+    });
+
+    it("verifies exact primary keys, unique constraints, foreign-key targets and validated checks", async () => {
+      const current = requireDatabase();
+
+      const relations = Object.keys(EXPECTED_CHECK_CONSTRAINTS);
+
+      const result =
+        await current.adminPool.query<ConstraintCatalogRow>(
+          `
+            SELECT
+              namespace.nspname AS schema_name,
+              relation.relname AS relation_name,
+              constraint_row.conname AS constraint_name,
+              constraint_row.contype::text AS constraint_type,
+              constraint_row.convalidated AS validated,
+              pg_catalog.pg_get_constraintdef(
+                constraint_row.oid,
+                true
+              ) AS definition,
+              ARRAY(
+                SELECT attribute.attname::text
+                FROM unnest(constraint_row.conkey)
+                  WITH ORDINALITY AS key_column(attnum, ordinality)
+                JOIN pg_catalog.pg_attribute AS attribute
+                  ON attribute.attrelid = constraint_row.conrelid
+                 AND attribute.attnum = key_column.attnum
+                ORDER BY key_column.ordinality
+              ) AS columns,
+              CASE
+                WHEN constraint_row.contype = 'f'
+                THEN referenced_namespace.nspname
+                  || '.'
+                  || referenced_relation.relname
+                ELSE NULL
+              END AS referenced_relation,
+              CASE
+                WHEN constraint_row.contype = 'f'
+                THEN ARRAY(
+                  SELECT referenced_attribute.attname::text
+                  FROM unnest(constraint_row.confkey)
+                    WITH ORDINALITY AS referenced_key(attnum, ordinality)
+                  JOIN pg_catalog.pg_attribute AS referenced_attribute
+                    ON referenced_attribute.attrelid =
+                      constraint_row.confrelid
+                   AND referenced_attribute.attnum =
+                      referenced_key.attnum
+                  ORDER BY referenced_key.ordinality
+                )
+                ELSE NULL
+              END AS referenced_columns
+            FROM unnest($1::text[]) AS expected(qualified_name)
+            JOIN pg_catalog.pg_class AS relation
+              ON relation.oid = to_regclass(expected.qualified_name)
+            JOIN pg_catalog.pg_namespace AS namespace
+              ON namespace.oid = relation.relnamespace
+            JOIN pg_catalog.pg_constraint AS constraint_row
+              ON constraint_row.conrelid = relation.oid
+            LEFT JOIN pg_catalog.pg_class AS referenced_relation
+              ON referenced_relation.oid = constraint_row.confrelid
+            LEFT JOIN pg_catalog.pg_namespace AS referenced_namespace
+              ON referenced_namespace.oid =
+                referenced_relation.relnamespace
+            ORDER BY
+              namespace.nspname,
+              relation.relname,
+              constraint_row.conname
+          `,
+          [relations]
+        );
+
+      const expectedChecks = Object.values(
+        EXPECTED_CHECK_CONSTRAINTS
+      ).flat();
+
+      const expectedNames = [
+        ...EXPECTED_KEY_CONSTRAINTS.map((constraint) => constraint.name),
+        ...expectedChecks
+      ].sort();
+
+      expect(
+        result.rows.map((row) => row.constraint_name).sort(),
+        "Missing or unexpected canonical constraints were found."
+      ).toEqual(expectedNames);
+
+      const actualByName = new Map(
+        result.rows.map((row) => [row.constraint_name, row])
+      );
+
+      for (const row of result.rows) {
+        expect(
+          row.validated,
+          `${row.schema_name}.${row.relation_name}.${row.constraint_name}: constraint must be validated; actual definition ${row.definition}.`
+        ).toBe(true);
+      }
+
+      for (const expected of EXPECTED_KEY_CONSTRAINTS) {
+        const actual = actualByName.get(expected.name);
+
+        expect(
+          actual,
+          `${expected.relation}.${expected.name}: required key constraint is missing.`
+        ).toBeDefined();
+
+        if (actual === undefined) {
+          continue;
+        }
+
+        expect(
+          actual.constraint_type,
+          `${expected.relation}.${expected.name}: constraint type mismatch.`
+        ).toBe(expected.kind);
+
+        expect(
+          actual.columns,
+          `${expected.relation}.${expected.name}: expected columns ${expected.columns.join(", ")}, actual ${actual.columns.join(", ")}.`
+        ).toEqual([...expected.columns]);
+
+        if (expected.kind === "f") {
+          expect(
+            actual.referenced_relation,
+            `${expected.relation}.${expected.name}: foreign-key target mismatch.`
+          ).toBe(expected.referencedRelation);
+
+          expect(
+            actual.referenced_columns,
+            `${expected.relation}.${expected.name}: referenced columns mismatch.`
+          ).toEqual([...(expected.referencedColumns ?? [])]);
+        }
+      }
+
+      const tenantScopedConstraints = EXPECTED_KEY_CONSTRAINTS.filter(
+        (constraint) =>
+          TENANT_SCOPED_UNIQUE_RELATIONS.includes(
+            constraint.relation as (typeof TENANT_SCOPED_UNIQUE_RELATIONS)[number]
+          ) &&
+          (constraint.kind === "p" || constraint.kind === "u")
+      );
+
+      for (const relation of TENANT_SCOPED_UNIQUE_RELATIONS) {
+        const tenantScopedKey = tenantScopedConstraints.some(
+          (constraint) =>
+            constraint.relation === relation &&
+            constraint.columns[0] === "tenant_id"
+        );
+
+        expect(
+          tenantScopedKey,
+          `${expectedOwner(relation)} ${relation}: tenant-scoped unique key must begin with tenant_id.`
+        ).toBe(true);
+      }
+
+      const semanticCheckMarkers: Readonly<
+        Record<string, readonly string[]>
+      > = {
+        tenants_active_owner_check: [
+          "owner_identity_id",
+          "primary_admin_identity_id"
+        ],
+        inventory_hierarchy_check: [
+          "inventory_type",
+          "property_id",
+          "unit_id"
+        ],
+        ownership_transfers_new_revision_check: [
+          "new_revision",
+          "previous_revision"
+        ],
+        approval_requests_time_order_check: [
+          "expires_at",
+          "requested_at"
+        ],
+        financial_ledger_entries_amount_finite_check: [
+          "amount",
+          "nan",
+          "infinity"
+        ],
+        financial_ledger_entries_currency_precision_check: [
+          "round",
+          "amount",
+          "currency_minor_unit"
+        ]
+      };
+
+      for (const [constraintName, markers] of Object.entries(
+        semanticCheckMarkers
+      )) {
+        const actual = actualByName.get(constraintName);
+
+        expect(
+          actual,
+          `Required semantic check ${constraintName} is missing.`
+        ).toBeDefined();
+
+        if (actual === undefined) {
+          continue;
+        }
+
+        const definition = normalizeSql(actual.definition);
+
+        for (const marker of markers) {
+          expect(
+            definition,
+            `${actual.schema_name}.${actual.relation_name}.${constraintName}: expected expression marker ${marker}; actual ${actual.definition}.`
+          ).toContain(marker);
+        }
+      }
+    });
+
+    it("verifies required index definitions, key order, validity and absence of unexpected predicates", async () => {
+      const current = requireDatabase();
+
+      const expectedNames = EXPECTED_INDEXES.map(
+        (index) => index.name
+      );
+
+      const result =
+        await current.adminPool.query<IndexCatalogRow>(
+          `
+            SELECT
+              namespace.nspname AS schema_name,
+              relation.relname AS relation_name,
+              index_relation.relname AS index_name,
+              pg_catalog.pg_get_indexdef(index_row.indexrelid)
+                AS index_definition,
+              index_row.indisunique AS is_unique,
+              index_row.indisvalid AS is_valid,
+              index_row.indisready AS is_ready,
+              pg_catalog.pg_get_expr(
+                index_row.indpred,
+                index_row.indrelid
+              ) AS predicate
+            FROM pg_catalog.pg_index AS index_row
+            JOIN pg_catalog.pg_class AS index_relation
+              ON index_relation.oid = index_row.indexrelid
+            JOIN pg_catalog.pg_class AS relation
+              ON relation.oid = index_row.indrelid
+            JOIN pg_catalog.pg_namespace AS namespace
+              ON namespace.oid = relation.relnamespace
+            WHERE index_relation.relname = ANY($1::text[])
+              AND namespace.nspname = ANY($2::text[])
+            ORDER BY index_relation.relname
+          `,
+          [
+            expectedNames,
+            [...REQUIRED_SCHEMAS]
+          ]
+        );
+
+      expect(
+        result.rows.map((row) => row.index_name).sort()
+      ).toEqual([...expectedNames].sort());
+
+      const actualByName = new Map(
+        result.rows.map((row) => [row.index_name, row])
+      );
+
+      for (const expected of EXPECTED_INDEXES) {
+        const actual = actualByName.get(expected.name);
+
+        expect(
+          actual,
+          `${expected.relation}.${expected.name}: required index is missing.`
+        ).toBeDefined();
+
+        if (actual === undefined) {
+          continue;
+        }
+
+        const owner = expectedOwner(expected.relation);
+        const expectedDefinition = expectedIndexDefinition(expected);
+
+        expect(
+          actual.relation_name,
+          `${owner} ${expected.relation}.${expected.name}: index relation mismatch.`
+        ).toBe(expected.relation.split(".")[1]);
+
+        expect(
+          normalizeSql(actual.index_definition),
+          `${owner} ${expected.relation}.${expected.name}: expected ${expectedDefinition}; actual ${actual.index_definition}.`
+        ).toBe(normalizeSql(expectedDefinition));
+
+        expect(
+          actual.is_unique,
+          `${expected.name}: this declared access-path index must not be unexpectedly unique.`
+        ).toBe(false);
+
+        expect(
+          actual.is_valid,
+          `${expected.name}: index must be valid.`
+        ).toBe(true);
+
+        expect(
+          actual.is_ready,
+          `${expected.name}: index must be ready.`
+        ).toBe(true);
+
+        expect(
+          actual.predicate,
+          `${expected.name}: an unexpected partial-index predicate was found.`
+        ).toBeNull();
+      }
+    });
+
+    it("keeps every managed relation and schema owned by the migration owner, not the application role", async () => {
+      const current = requireDatabase();
+
+      const relations =
+        await current.adminPool.query<RelationOwnerRow>(
+          `
+            SELECT
+              namespace.nspname AS schema_name,
+              relation.relname AS relation_name,
+              pg_catalog.pg_get_userbyid(relation.relowner)
+                AS relation_owner,
+              pg_catalog.pg_get_userbyid(namespace.nspowner)
+                AS schema_owner
+            FROM unnest($1::text[]) AS expected(qualified_name)
+            JOIN pg_catalog.pg_class AS relation
+              ON relation.oid = to_regclass(expected.qualified_name)
+            JOIN pg_catalog.pg_namespace AS namespace
+              ON namespace.oid = relation.relnamespace
+            ORDER BY namespace.nspname, relation.relname
+          `,
+          [[...REQUIRED_RELATIONS]]
+        );
+
+      expect(relations.rows).toHaveLength(REQUIRED_RELATIONS.length);
+
+      const migrationOwner =
+        relations.rows.find(
+          (row) =>
+            `${row.schema_name}.${row.relation_name}` ===
+            "core001.identities"
+        )?.relation_owner;
+
+      expect(
+        migrationOwner,
+        "The migration owner must be discoverable from a canonical managed relation."
+      ).toBeDefined();
+
+      for (const row of relations.rows) {
+        const relation = `${row.schema_name}.${row.relation_name}`;
+        const owner = expectedOwner(relation);
+
+        expect(
+          row.relation_owner,
+          `${owner} ${relation}: expected the single migration owner, actual ${row.relation_owner}.`
+        ).toBe(migrationOwner);
+
+        expect(
+          row.relation_owner,
+          `${owner} ${relation}: the application role must not own the table.`
+        ).not.toBe(current.applicationRole);
+
+        expect(
+          row.schema_owner,
+          `${owner} schema ${row.schema_name}: schema owner must match the migration owner.`
+        ).toBe(migrationOwner);
+      }
+
+      const schemaOwners =
+        await current.adminPool.query<{
+          readonly schema_name: string;
+          readonly schema_owner: string;
+        }>(
+          `
+            SELECT
+              nspname AS schema_name,
+              pg_catalog.pg_get_userbyid(nspowner) AS schema_owner
+            FROM pg_catalog.pg_namespace
+            WHERE nspname = ANY($1::text[])
+            ORDER BY nspname
+          `,
+          [[...REQUIRED_SCHEMAS]]
+        );
+
+      expect(schemaOwners.rows).toHaveLength(REQUIRED_SCHEMAS.length);
+
+      for (const row of schemaOwners.rows) {
+        expect(
+          row.schema_owner,
+          `Schema ${row.schema_name} must be owned by the migration role.`
+        ).toBe(migrationOwner);
+      }
+    });
+
+    it("verifies function ownership, SECURITY DEFINER boundaries and exact execution grants", async () => {
+      const current = requireDatabase();
+
+      const functionNames = EXPECTED_FUNCTIONS.map(
+        (fn) => fn.name
+      );
+
+      const functionSchemas = [
+        ...new Set(EXPECTED_FUNCTIONS.map((fn) => fn.schema))
+      ];
+
+      const migrationOwner =
+        await current.adminPool.query<{
+          readonly owner: string;
+        }>(
+          `
+            SELECT pg_catalog.pg_get_userbyid(relation.relowner) AS owner
+            FROM pg_catalog.pg_class AS relation
+            JOIN pg_catalog.pg_namespace AS namespace
+              ON namespace.oid = relation.relnamespace
+            WHERE namespace.nspname = 'core001'
+              AND relation.relname = 'identities'
+          `
+        );
+
+      const expectedMigrationOwner = migrationOwner.rows[0]?.owner;
+
+      expect(expectedMigrationOwner).toBeDefined();
+
+      const result =
+        await current.adminPool.query<FunctionCatalogRow>(
+          `
+            SELECT
+              namespace.nspname AS schema_name,
+              procedure.proname AS function_name,
+              pg_catalog.pg_get_userbyid(procedure.proowner)
+                AS function_owner,
+              procedure.prosecdef AS security_definer,
+              procedure.proconfig AS configuration,
+              pg_catalog.has_function_privilege(
+                $1,
+                procedure.oid,
+                'EXECUTE'
+              ) AS application_can_execute,
+              EXISTS (
+                SELECT 1
+                FROM pg_catalog.aclexplode(
+                  COALESCE(
+                    procedure.proacl,
+                    pg_catalog.acldefault(
+                      'f',
+                      procedure.proowner
+                    )
+                  )
+                ) AS acl
+                WHERE acl.grantee = 0
+                  AND acl.privilege_type = 'EXECUTE'
+              ) AS public_can_execute,
+              pg_catalog.pg_get_function_identity_arguments(
+                procedure.oid
+              ) AS identity_arguments
+            FROM pg_catalog.pg_proc AS procedure
+            JOIN pg_catalog.pg_namespace AS namespace
+              ON namespace.oid = procedure.pronamespace
+            WHERE procedure.proname = ANY($2::text[])
+              AND namespace.nspname = ANY($3::text[])
+            ORDER BY namespace.nspname, procedure.proname
+          `,
+          [
+            current.applicationRole,
+            functionNames,
+            functionSchemas
+          ]
+        );
+
+      expect(result.rows).toHaveLength(EXPECTED_FUNCTIONS.length);
+
+      const actualByName = new Map(
+        result.rows.map((row) => [
+          `${row.schema_name}.${row.function_name}`,
+          row
+        ])
+      );
+
+      for (const expected of EXPECTED_FUNCTIONS) {
+        const qualifiedName =
+          `${expected.schema}.${expected.name}`;
+
+        const actual = actualByName.get(qualifiedName);
+
+        expect(
+          actual,
+          `${qualifiedName}: required function is missing.`
+        ).toBeDefined();
+
+        if (actual === undefined) {
+          continue;
+        }
+
+        expect(
+          actual.function_owner,
+          `${qualifiedName}: function owner must be the migration role.`
+        ).toBe(expectedMigrationOwner);
+
+        expect(
+          actual.security_definer,
+          `${qualifiedName}: SECURITY DEFINER status mismatch.`
+        ).toBe(expected.securityDefiner);
+
+        expect(
+          actual.application_can_execute,
+          `${qualifiedName}: application execution grant mismatch.`
+        ).toBe(expected.applicationCanExecute);
+
+        expect(
+          actual.public_can_execute,
+          `${qualifiedName}: PUBLIC must not have EXECUTE.`
+        ).toBe(false);
+
+        if (expected.searchPath !== null) {
+          expect(
+            actual.configuration,
+            `${qualifiedName}: function search_path must be pinned.`
+          ).toContain(expected.searchPath);
+        }
+      }
+
+      const appendFunction = actualByName.get(
+        "reos_infra.append_security_audit_event"
+      );
+
+      expect(appendFunction).toBeDefined();
+
+      if (appendFunction !== undefined) {
+        expect(
+          normalizeSql(appendFunction.identity_arguments)
+        ).toBe(
+          normalizeSql(
+            [
+              "p_event_id uuid",
+              "p_event_type text",
+              "p_request_id uuid",
+              "p_occurred_at timestamp with time zone",
+              "p_reason_code text",
+              "p_operation text",
+              "p_actor_identity_reference uuid",
+              "p_tenant_reference uuid"
+            ].join(", ")
+          )
+        );
+      }
+    });
+
+    it("verifies immutable and audit trigger definitions and enabled state", async () => {
+      const current = requireDatabase();
+
+      const expectedTriggerNames = EXPECTED_TRIGGERS.map(
+        (trigger) => trigger.name
+      );
+
+      const result =
+        await current.adminPool.query<TriggerCatalogRow>(
+          `
+            SELECT
+              namespace.nspname AS schema_name,
+              relation.relname AS relation_name,
+              trigger_row.tgname AS trigger_name,
+              pg_catalog.pg_get_triggerdef(
+                trigger_row.oid,
+                true
+              ) AS trigger_definition,
+              trigger_row.tgenabled AS enabled,
+              trigger_row.tgisinternal AS internal
+            FROM pg_catalog.pg_trigger AS trigger_row
+            JOIN pg_catalog.pg_class AS relation
+              ON relation.oid = trigger_row.tgrelid
+            JOIN pg_catalog.pg_namespace AS namespace
+              ON namespace.oid = relation.relnamespace
+            WHERE trigger_row.tgname = ANY($1::text[])
+              AND namespace.nspname = ANY($2::text[])
+            ORDER BY namespace.nspname, trigger_row.tgname
+          `,
+          [
+            expectedTriggerNames,
+            [...REQUIRED_SCHEMAS]
+          ]
+        );
+
+      expect(
+        result.rows.map((row) => row.trigger_name).sort()
+      ).toEqual([...expectedTriggerNames].sort());
+
+      const actualByName = new Map(
+        result.rows.map((row) => [row.trigger_name, row])
+      );
+
+      for (const expected of EXPECTED_TRIGGERS) {
+        const actual = actualByName.get(expected.name);
+        const qualifiedRelation =
+          `${expected.schema}.${expected.relation}`;
+
+        expect(
+          actual,
+          `${qualifiedRelation}.${expected.name}: trigger is missing.`
+        ).toBeDefined();
+
+        if (actual === undefined) {
+          continue;
+        }
+
+        expect(
+          `${actual.schema_name}.${actual.relation_name}`
+        ).toBe(qualifiedRelation);
+
+        expect(
+          normalizeSql(actual.trigger_definition),
+          `${qualifiedRelation}.${expected.name}: trigger definition mismatch; actual ${actual.trigger_definition}.`
+        ).toBe(normalizeSql(expected.definition));
+
+        expect(
+          actual.enabled,
+          `${qualifiedRelation}.${expected.name}: trigger must be enabled in normal operation.`
+        ).toBe("O");
+
+        expect(
+          actual.internal,
+          `${qualifiedRelation}.${expected.name}: expected a user-defined trigger.`
+        ).toBe(false);
+      }
+    });
+
+    it("enforces actual application-role FORCE RLS and the fail-closed tenant policy", async () => {
+      const current = requireDatabase();
+
+      const roleResult =
+        await current.adminPool.query<ApplicationRoleRow>(
+          `
+            SELECT
+              oid::text AS oid,
+              rolcanlogin,
+              rolinherit,
+              rolsuper,
+              rolcreatedb,
+              rolcreaterole,
+              rolreplication,
+              rolbypassrls
+            FROM pg_catalog.pg_roles
+            WHERE rolname = $1
+          `,
+          [current.applicationRole]
+        );
+
+      expect(roleResult.rows).toHaveLength(1);
+
+      const role = roleResult.rows[0];
+
+      if (role === undefined) {
+        throw new Error(
+          "The generated PostgreSQL application role was not returned."
+        );
+      }
+
+      expect(role.rolcanlogin).toBe(true);
+      expect(role.rolinherit).toBe(true);
+      expect(role.rolsuper).toBe(false);
+      expect(role.rolcreatedb).toBe(false);
+      expect(role.rolcreaterole).toBe(false);
+      expect(role.rolreplication).toBe(false);
+      expect(role.rolbypassrls).toBe(false);
+
+      const tenantTables =
+        await current.adminPool.query<TenantTableRow>(
+          `
+            SELECT
+              relation.oid::text AS relation_oid,
+              namespace.nspname AS schema_name,
+              relation.relname AS relation_name,
+              relation.relrowsecurity AS rls_enabled,
+              relation.relforcerowsecurity AS rls_forced,
+              relation.relowner = $1::oid
+                AS application_role_is_owner
+            FROM pg_catalog.pg_class AS relation
+            JOIN pg_catalog.pg_namespace AS namespace
+              ON namespace.oid = relation.relnamespace
+            WHERE relation.relkind IN ('r', 'p')
+              AND namespace.nspname = ANY($2::text[])
+              AND EXISTS (
+                SELECT 1
+                FROM pg_catalog.pg_attribute AS attribute
+                WHERE attribute.attrelid = relation.oid
+                  AND attribute.attname = 'tenant_id'
+                  AND attribute.attnum > 0
+                  AND attribute.attisdropped = false
+              )
+            ORDER BY namespace.nspname, relation.relname
+          `,
+          [
+            role.oid,
+            [...REQUIRED_SCHEMAS]
+          ]
+        );
+
+      expect(
+        tenantTables.rows.length,
+        "The canonical schema must contain tenant-bearing tables."
+      ).toBeGreaterThan(0);
+
+      const tenantPolicies =
+        await current.adminPool.query<TenantPolicyRow>(
+          `
+            SELECT
+              namespace.nspname AS schema_name,
+              relation.relname AS relation_name,
+              policy.polname AS policy_name,
+              policy.polpermissive AS permissive,
+              policy.polcmd AS command,
+              (
+                $1::oid = ANY(policy.polroles)
+                OR 0::oid = ANY(policy.polroles)
+              ) AS applies_to_application_role,
+              pg_catalog.pg_get_expr(
+                policy.polqual,
+                policy.polrelid
+              ) AS using_expression,
+              pg_catalog.pg_get_expr(
+                policy.polwithcheck,
+                policy.polrelid
+              ) AS check_expression
+            FROM pg_catalog.pg_policy AS policy
+            JOIN pg_catalog.pg_class AS relation
+              ON relation.oid = policy.polrelid
+            JOIN pg_catalog.pg_namespace AS namespace
+              ON namespace.oid = relation.relnamespace
+            WHERE relation.oid = ANY($2::oid[])
+            ORDER BY
+              namespace.nspname,
+              relation.relname,
+              policy.polname
+          `,
+          [
+            role.oid,
+            tenantTables.rows.map((row) => row.relation_oid)
+          ]
+        );
+
+      for (const relation of tenantTables.rows) {
+        const qualifiedName =
+          `${relation.schema_name}.${relation.relation_name}`;
+        const owner = expectedOwner(qualifiedName);
+
+        expect(
+          relation.rls_enabled,
+          `${owner} ${qualifiedName}: ENABLE ROW LEVEL SECURITY is required.`
+        ).toBe(true);
+
+        expect(
+          relation.rls_forced,
+          `${owner} ${qualifiedName}: FORCE ROW LEVEL SECURITY is required.`
+        ).toBe(true);
+
+        expect(
+          relation.application_role_is_owner,
+          `${owner} ${qualifiedName}: application role must not own the table.`
+        ).toBe(false);
+
+        const policies = tenantPolicies.rows.filter(
+          (policy) =>
+            policy.schema_name === relation.schema_name &&
+            policy.relation_name === relation.relation_name &&
+            policy.applies_to_application_role
+        );
+
+        const restrictivePolicies = policies.filter(
+          (policy) =>
+            !policy.permissive &&
+            policy.command === "*"
+        );
+
+        expect(
+          restrictivePolicies,
+          `${owner} ${qualifiedName}: exactly one applicable restrictive FOR ALL tenant policy is required.`
+        ).toHaveLength(1);
+
+        const tenantPolicy = restrictivePolicies[0];
+
+        if (tenantPolicy === undefined) {
+          continue;
+        }
+
+        expect(
+          tenantPolicy.using_expression,
+          `${qualifiedName}: USING expression must exist.`
+        ).not.toBeNull();
+
+        expect(
+          tenantPolicy.check_expression,
+          `${qualifiedName}: WITH CHECK expression must exist.`
+        ).not.toBeNull();
+
+        if (
+          tenantPolicy.using_expression === null ||
+          tenantPolicy.check_expression === null
+        ) {
+          continue;
+        }
+
+        const usingExpression = normalizeSql(
+          tenantPolicy.using_expression
+        );
+
+        const checkExpression = normalizeSql(
+          tenantPolicy.check_expression
+        );
+
+        expect(
+          usingExpression,
+          `${qualifiedName}: USING and WITH CHECK must use the same fail-closed expression.`
+        ).toBe(checkExpression);
+
+        expect(usingExpression).toContain("tenant_id=casewhen");
+        expect(usingExpression).toContain("pg_input_is_valid(");
+        expect(usingExpression).toContain(
+          "current_setting('app.tenant_id'"
+        );
+        expect(usingExpression).toContain("else null::uuid");
+      }
+
+      /*
+       * Preserve the existing PostgresRuntime owner as the final authority
+       * for effective role inheritance, assumable-role safety and the exact
+       * canonical tenant-policy expression.
+       */
+      await expect(
+        current.runtime.verifyRuntimeRoleSafety()
+      ).resolves.toBeUndefined();
+
+      const auditPrivileges =
+        await current.adminPool.query<{
+          readonly can_select: boolean;
+          readonly can_insert: boolean;
+          readonly can_update: boolean;
+          readonly can_delete: boolean;
+          readonly can_truncate: boolean;
+        }>(
+          `
+            SELECT
+              has_table_privilege(
+                $1,
+                'reos_infra.security_audit_events',
+                'SELECT'
+              ) AS can_select,
+              has_table_privilege(
+                $1,
+                'reos_infra.security_audit_events',
+                'INSERT'
+              ) AS can_insert,
+              has_table_privilege(
+                $1,
+                'reos_infra.security_audit_events',
+                'UPDATE'
+              ) AS can_update,
+              has_table_privilege(
+                $1,
+                'reos_infra.security_audit_events',
+                'DELETE'
+              ) AS can_delete,
+              has_table_privilege(
+                $1,
+                'reos_infra.security_audit_events',
+                'TRUNCATE'
+              ) AS can_truncate
+          `,
+          [current.applicationRole]
+        );
+
+      expect(auditPrivileges.rows).toEqual([
+        {
+          can_select: false,
+          can_insert: false,
+          can_update: false,
+          can_delete: false,
+          can_truncate: false
+        }
+      ]);
+    });
+
+    it("preserves unbounded PostgreSQL NUMERIC for financial ledger amounts", async () => {
+      const current = requireDatabase();
+
+      const result =
+        await current.adminPool.query<FinancialTypeRow>(
+          `
+            SELECT
+              pg_catalog.format_type(
+                attribute.atttypid,
+                attribute.atttypmod
+              ) AS formatted_type,
+              attribute.atttypmod AS typmod
+            FROM pg_catalog.pg_attribute AS attribute
+            WHERE attribute.attrelid =
+              'core008.financial_ledger_entries'::regclass
+              AND attribute.attname = 'amount'
+              AND attribute.attnum > 0
+              AND attribute.attisdropped = false
+          `
+        );
+
+      expect(result.rows).toHaveLength(1);
+      expect(result.rows[0]?.formatted_type).toBe("numeric");
+      expect(result.rows[0]?.typmod).toBe(-1);
+    });
+
+    it("isolates tenant reads and rejects cross-tenant writes through the actual application login", async () => {
+      const current = requireDatabase();
+
+      const tenantA = randomUUID();
+      const tenantB = randomUUID();
+
+      const leadA = randomUUID();
+      const leadB = randomUUID();
+
+      const customerA = randomUUID();
+      const customerB = randomUUID();
+
+      const now = new Date().toISOString();
+
+      for (const [tenantId, slug] of [
+        [tenantA, `b4-rls-a-${tenantA.slice(0, 8)}`],
+        [tenantB, `b4-rls-b-${tenantB.slice(0, 8)}`]
+      ]) {
+        await current.adminPool.query(
+          `
+            INSERT INTO core001.tenants (
+              tenant_id,
+              tenant_kind,
+              operating_mode,
+              display_name,
+              slug,
+              status,
+              isolation_profile,
+              residency_mode,
+              quota_profile,
+              revision,
+              created_at,
+              updated_at
+            )
+            VALUES (
+              $1,
+              'BROKERAGE',
+              'BROKER_SAAS',
+              $2,
+              $3,
+              'PROVISIONING',
+              'SHARED_LOGICAL',
+              'GLOBAL_ALLOWED',
+              'default',
+              1,
+              $4,
+              $4
+            )
+          `,
+          [
+            tenantId,
+            slug,
+            slug,
+            now
+          ]
+        );
+      }
+
+      const leadInsert = `
+        INSERT INTO core003.leads (
+          lead_id,
+          tenant_id,
+          customer_id,
+          status,
+          priority,
+          source_type,
+          metadata,
+          revision,
+          created_at,
+          updated_at
+        )
+        VALUES (
+          $1,
+          $2,
+          $3,
+          'NEW',
+          'NORMAL',
+          'OTHER',
+          '{}'::jsonb,
+          1,
+          $4,
+          $4
+        )
+      `;
+
+      await current.adminPool.query(leadInsert, [
+        leadA,
+        tenantA,
+        customerA,
+        now
+      ]);
+
+      await current.adminPool.query(leadInsert, [
+        leadB,
+        tenantB,
+        customerB,
+        now
+      ]);
+
+      const visibleToA =
+        await current.runtime.withTenantTransaction(
+          { tenantId: tenantA },
+          (transaction) =>
+            transaction.query<LeadRow>(
+              `
+                SELECT tenant_id, lead_id
+                FROM core003.leads
+                WHERE tenant_id = ANY($1::uuid[])
+                ORDER BY lead_id
+              `,
+              [[tenantA, tenantB]]
+            )
+        );
+
+      expect(visibleToA.rows).toEqual([
+        {
+          tenant_id: tenantA,
+          lead_id: leadA
+        }
+      ]);
+
+      const visibleToB =
+        await current.runtime.withTenantTransaction(
+          { tenantId: tenantB },
+          (transaction) =>
+            transaction.query<LeadRow>(
+              `
+                SELECT tenant_id, lead_id
+                FROM core003.leads
+                WHERE tenant_id = ANY($1::uuid[])
+                ORDER BY lead_id
+              `,
+              [[tenantA, tenantB]]
+            )
+        );
+
+      expect(visibleToB.rows).toEqual([
+        {
+          tenant_id: tenantB,
+          lead_id: leadB
+        }
+      ]);
+
+      await expect(
+        current.runtime.withTenantTransaction(
+          { tenantId: tenantA },
+          (transaction) =>
+            transaction.query(
+              leadInsert,
+              [
+                randomUUID(),
+                tenantB,
+                randomUUID(),
+                now
+              ]
+            )
+        )
+      ).rejects.toMatchObject({
+        code: "42501"
+      });
+    });
+  }
+);
