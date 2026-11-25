@@ -1,4 +1,3 @@
-
 BEGIN;
 
 CREATE SCHEMA core001;
@@ -182,6 +181,11 @@ CREATE TABLE core001.tenants (
       )
     ),
 
+  CONSTRAINT core001_tenants_display_name_check
+    CHECK (
+      char_length(display_name) BETWEEN 1 AND 200
+    ),
+
   CONSTRAINT core001_tenants_slug_check
     CHECK (
       slug ~ '^[a-z0-9][a-z0-9._-]{1,62}[a-z0-9]$'
@@ -204,32 +208,58 @@ CREATE TABLE core001.tenants (
       OR jurisdiction ~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$'
     ),
 
-  CONSTRAINT core001_tenants_region_required_check
-    CHECK (
-      residency_mode <> 'REGION_BOUND'
-      OR residency_region IS NOT NULL
-    ),
-
-  CONSTRAINT core001_tenants_country_required_check
-    CHECK (
-      residency_mode <> 'COUNTRY_BOUND'
-      OR jurisdiction IS NOT NULL
-    ),
-
-  CONSTRAINT core001_tenants_configuration_ref_object_check
+  CONSTRAINT core001_tenants_configuration_ref_check
     CHECK (
       jsonb_typeof(configuration_ref) = 'object'
+      AND configuration_ref ?& ARRAY[
+        'reference_id',
+        'configuration_key',
+        'version'
+      ]
+      AND configuration_ref->>'reference_id'
+        ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+      AND configuration_ref->>'configuration_key'
+        ~ '^[a-z0-9][a-z0-9._-]{0,127}$'
+      AND configuration_ref->>'version'
+        ~ '^[1-9][0-9]*$'
     ),
 
-  CONSTRAINT core001_tenants_security_profile_ref_object_check
+  CONSTRAINT core001_tenants_security_profile_ref_check
     CHECK (
       jsonb_typeof(security_profile_ref) = 'object'
+      AND security_profile_ref ?& ARRAY[
+        'reference_id',
+        'profile_key',
+        'version',
+        'fail_closed',
+        'require_valid_tenant_context'
+      ]
+      AND security_profile_ref->>'reference_id'
+        ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+      AND security_profile_ref->>'profile_key'
+        ~ '^[a-z0-9][a-z0-9._-]{0,127}$'
+      AND security_profile_ref->>'version'
+        ~ '^[1-9][0-9]*$'
+      AND security_profile_ref->>'fail_closed' = 'true'
+      AND security_profile_ref->>'require_valid_tenant_context' = 'true'
     ),
 
   CONSTRAINT core001_tenants_region_ref_object_check
     CHECK (
       region_jurisdiction_ref IS NULL
       OR jsonb_typeof(region_jurisdiction_ref) = 'object'
+    ),
+
+  CONSTRAINT core001_tenants_restricted_residency_check
+    CHECK (
+      residency_mode NOT IN (
+        'REGION_BOUND',
+        'COUNTRY_BOUND',
+        'CUSTOM_POLICY'
+      )
+      OR residency_region IS NOT NULL
+      OR jurisdiction IS NOT NULL
+      OR region_jurisdiction_ref IS NOT NULL
     ),
 
   CONSTRAINT core001_tenants_revision_check
@@ -244,8 +274,6 @@ CREATE TABLE core001.tenants (
       OR (
         owner_identity_id IS NOT NULL
         AND primary_admin_identity_id IS NOT NULL
-        AND security_profile_ref @>
-          '{"fail_closed": true, "require_valid_tenant_context": true}'::jsonb
       )
     )
 );
@@ -335,8 +363,8 @@ PARALLEL SAFE
 SET search_path = pg_catalog
 AS $function$
   SELECT
-    cardinality(value) = count(DISTINCT item)
-  FROM unnest(value) AS item;
+    cardinality(value) = count(DISTINCT items.item)
+  FROM unnest(value) AS items(item);
 $function$;
 
 CREATE TABLE core001.memberships (
