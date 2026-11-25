@@ -346,7 +346,12 @@ export async function createProductionPersistenceRuntime(
     const activeRedis = redis;
     const activePostgres = postgres;
     const sessions = new PostgresSessionStore(activePostgres);
-    const securityAudit = new PostgresSecurityAuditStore(pool);
+
+    /*
+     * The existing PostgresRuntime is the sole transaction and connection
+     * owner for both tenant-scoped and global audit writes.
+     */
+    const securityAudit = new PostgresSecurityAuditStore(activePostgres);
 
     await Promise.all([
       pool.query(
