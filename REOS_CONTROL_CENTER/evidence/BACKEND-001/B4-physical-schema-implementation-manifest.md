@@ -177,7 +177,7 @@ Canonical source: `Identity`
 | `identity_type` | `identity_type` | TEXT | No | IdentityType enum |
 | `display_name` | `display_name` | TEXT | No | 1–120 characters |
 | `handle` | `handle` | TEXT | No | Canonical lowercase; unique |
-| `status` | `status` | TEXT | No | ACTIVE/SUSPENDED/DEACTIVATED |
+| `status` | `status` | TEXT | No | Default ACTIVE; allowed ACTIVE/SUSPENDED/DEACTIVATED |
 | `privacy_class` | `privacy_class` | TEXT | No | INTERNAL/CONFIDENTIAL/RESTRICTED |
 | `revision` | `revision` | INTEGER | No | Default 1; positive |
 | `created_at` | `created_at` | TIMESTAMPTZ | No | Default clock timestamp |
