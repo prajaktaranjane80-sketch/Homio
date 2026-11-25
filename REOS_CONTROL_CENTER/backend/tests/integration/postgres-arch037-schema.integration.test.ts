@@ -928,6 +928,13 @@ function normalizeSql(value: string): string {
     .toLowerCase();
 }
 
+function normalizeTriggerDefinition(value: string): string {
+  return normalizeSql(value).replace(
+    "before update or delete",
+    "before delete or update"
+  );
+}
+
 function stripMarkdownCell(value: string): string {
   return value.trim().replace(/^`|`$/g, "");
 }
@@ -1530,6 +1537,7 @@ postgresSuite(
               ON namespace.oid = relation.relnamespace
             JOIN pg_catalog.pg_constraint AS constraint_row
               ON constraint_row.conrelid = relation.oid
+             AND constraint_row.contype IN ('p', 'u', 'f', 'c')
             LEFT JOIN pg_catalog.pg_class AS referenced_relation
               ON referenced_relation.oid = constraint_row.confrelid
             LEFT JOIN pg_catalog.pg_namespace AS referenced_namespace
@@ -2074,9 +2082,9 @@ postgresSuite(
         ).toBe(qualifiedRelation);
 
         expect(
-          normalizeSql(actual.trigger_definition),
+          normalizeTriggerDefinition(actual.trigger_definition),
           `${qualifiedRelation}.${expected.name}: trigger definition mismatch; actual ${actual.trigger_definition}.`
-        ).toBe(normalizeSql(expected.definition));
+        ).toBe(normalizeTriggerDefinition(expected.definition));
 
         expect(
           actual.enabled,
@@ -2278,12 +2286,14 @@ postgresSuite(
           `${qualifiedName}: USING and WITH CHECK must use the same fail-closed expression.`
         ).toBe(checkExpression);
 
-        expect(usingExpression).toContain("tenant_id=casewhen");
-        expect(usingExpression).toContain("pg_input_is_valid(");
-        expect(usingExpression).toContain(
+        const compactUsingExpression = usingExpression.replace(/\s+/g, "");
+
+        expect(compactUsingExpression).toContain("tenant_id=casewhen");
+        expect(compactUsingExpression).toContain("pg_input_is_valid(");
+        expect(compactUsingExpression).toContain(
           "current_setting('app.tenant_id'"
         );
-        expect(usingExpression).toContain("else null::uuid");
+        expect(compactUsingExpression).toContain("elsenull::uuid");
       }
 
       /*
