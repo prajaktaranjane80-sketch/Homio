@@ -1,3 +1,4 @@
+
 # HOMIO / REOS — B4 Physical Schema Implementation Manifest
 
 **Project:** HOMIO / REOS  
@@ -178,7 +179,7 @@ Canonical source: `Identity`
 | `display_name` | `display_name` | TEXT | No | 1–120 characters |
 | `handle` | `handle` | TEXT | No | Canonical lowercase; unique |
 | `status` | `status` | TEXT | No | Default ACTIVE; allowed ACTIVE/SUSPENDED/DEACTIVATED |
-| `privacy_class` | `privacy_class` | TEXT | No | INTERNAL/CONFIDENTIAL/RESTRICTED |
+| `privacy_class` | `privacy_class` | TEXT | No | Default INTERNAL; allowed INTERNAL/CONFIDENTIAL/RESTRICTED |
 | `revision` | `revision` | INTEGER | No | Default 1; positive |
 | `created_at` | `created_at` | TIMESTAMPTZ | No | Default clock timestamp |
 | `updated_at` | `updated_at` | TIMESTAMPTZ | No | Default clock timestamp; not before created_at |
@@ -199,7 +200,7 @@ Canonical source: `IdentityAccount`
 |---|---|---|---|---|
 | `account_id` | `account_id` | UUID | No | Primary key |
 | `identity_id` | `identity_id` | UUID | No | Unique FK to identities |
-| `status` | `status` | TEXT | No | ENABLED/LOCKED/DISABLED |
+| `status` | `status` | TEXT | No | Default ENABLED; allowed ENABLED/LOCKED/DISABLED |
 | `authentication_epoch` | `authentication_epoch` | BIGINT | No | Default 1; positive |
 | `created_at` | `created_at` | TIMESTAMPTZ | No | Default clock timestamp |
 | `updated_at` | `updated_at` | TIMESTAMPTZ | No | Default clock timestamp; not before created_at |
@@ -445,7 +446,7 @@ Canonical source: `Deal`
 | `ownership_binding` | `ownership_binding` | JSONB | Yes | Optional typed object |
 | `evidence` | `evidence` | JSONB | No | Default empty array |
 | `audit_log` | `audit_log` | JSONB | No | Default empty array |
-| `contract_schema_version` | `contract_schema_version` | TEXT | No | Source contract version |
+| `contract_schema_version` | `contract_schema_version` | TEXT | No | Default `1.0`; source constant DEAL_CONTRACT_SCHEMA_VERSION |
 
 `participants` is deliberately persisted through `core006.deal_parties` rather than duplicated as a second JSONB representation.
 
@@ -464,7 +465,7 @@ Canonical source: `DealPartyRelationship`
 | `role` | `role` | TEXT | No | BUYER/CUSTOMER/SELLER/BUILDER/BROKER/REPRESENTATIVE |
 | `party_id` | `party_id` | TEXT | No | Polymorphic; no universal FK |
 | `relationship_version` | `relationship_version` | INTEGER | No | Default 1; positive |
-| `lifecycle` | `lifecycle` | TEXT | No | ACTIVE/SUSPENDED/REMOVED |
+| `lifecycle` | `lifecycle` | TEXT | No | Default ACTIVE; allowed ACTIVE/SUSPENDED/REMOVED |
 | `metadata` | `metadata` | JSONB | No | Default empty object |
 
 Application privilege: SELECT, INSERT, UPDATE; no DELETE.
@@ -620,3 +621,4 @@ tenant_id = CASE
   THEN current_setting('app.tenant_id', true)::uuid
   ELSE NULL::uuid
 END
+```
