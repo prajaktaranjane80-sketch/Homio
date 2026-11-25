@@ -30,14 +30,18 @@ type AuditQuery = (
   readonly rowCount: number | null;
 }>;
 
+const REQUEST_ID = "11111111-1111-4111-8111-111111111111";
+const ACTOR_ID = "22222222-2222-4222-8222-222222222222";
+const TENANT_ID = "33333333-3333-4333-8333-333333333333";
+
 const VALID_EVENT: SecurityAuditEvent = {
   eventType: "API_ACCESS_DENIED",
-  requestId: "11111111-1111-4111-8111-111111111111",
+  requestId: REQUEST_ID,
   occurredAt: "2026-11-23T10:00:00.000Z",
   reasonCode: "INVALID_BEARER_TOKEN",
   operation: "inventory.read",
-  actorIdentityId: "22222222-2222-4222-8222-222222222222",
-  tenantId: "33333333-3333-4333-8333-333333333333"
+  actorIdentityId: ACTOR_ID,
+  tenantId: TENANT_ID
 };
 
 function createRuntimeMock(options: {
@@ -45,6 +49,7 @@ function createRuntimeMock(options: {
   readonly failure?: Error;
 } = {}) {
   const tenantContexts: string[] = [];
+
   const query = vi.fn<AuditQuery>(async () => {
     if (options.failure !== undefined) {
       throw options.failure;
@@ -92,9 +97,7 @@ describe("PostgresSecurityAuditStore", () => {
     await store.record(VALID_EVENT);
 
     expect(fixture.withTenantTransaction).toHaveBeenCalledTimes(1);
-    expect(fixture.tenantContexts).toEqual([
-      VALID_EVENT.tenantId
-    ]);
+    expect(fixture.tenantContexts).toEqual([TENANT_ID]);
     expect(fixture.withGlobalTransaction).not.toHaveBeenCalled();
     expect(fixture.query).toHaveBeenCalledTimes(1);
 
@@ -107,12 +110,12 @@ describe("PostgresSecurityAuditStore", () => {
     expect(call?.[1]).toEqual([
       expect.any(String),
       "API_ACCESS_DENIED",
-      VALID_EVENT.requestId,
+      REQUEST_ID,
       VALID_EVENT.occurredAt,
       "INVALID_BEARER_TOKEN",
       "inventory.read",
-      VALID_EVENT.actorIdentityId,
-      VALID_EVENT.tenantId
+      ACTOR_ID,
+      TENANT_ID
     ]);
 
     const serialized = JSON.stringify(call?.[1]);
@@ -155,7 +158,7 @@ describe("PostgresSecurityAuditStore", () => {
       requestId: VALID_EVENT.requestId,
       occurredAt: VALID_EVENT.occurredAt,
       reasonCode: VALID_EVENT.reasonCode,
-      tenantId: VALID_EVENT.tenantId
+      tenantId: TENANT_ID
     };
 
     await expect(
@@ -178,7 +181,7 @@ describe("PostgresSecurityAuditStore", () => {
       requestId: VALID_EVENT.requestId,
       occurredAt: VALID_EVENT.occurredAt,
       reasonCode: VALID_EVENT.reasonCode,
-      actorIdentityId: VALID_EVENT.actorIdentityId
+      actorIdentityId: ACTOR_ID
     };
 
     await expect(
