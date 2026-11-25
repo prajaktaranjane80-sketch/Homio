@@ -11,12 +11,21 @@ import {
 } from "../../src/persistence/postgres-security-audit.js";
 
 import type {
+  PostgresRuntime
+} from "../../src/persistence/postgres.js";
+
+import type {
   SecurityAuditEvent
 } from "../../src/security/contracts.js";
 
+type AuditRuntime = Pick<
+  PostgresRuntime,
+  "withTenantTransaction" | "withGlobalTransaction"
+>;
+
 type AuditQuery = (
   sql: string,
-  values?: unknown[]
+  values?: readonly unknown[]
 ) => Promise<{
   readonly rowCount: number | null;
 }>;
@@ -31,14 +40,12 @@ const VALID_EVENT: SecurityAuditEvent = {
   tenantId: "33333333-3333-4333-8333-333333333333"
 };
 
-function createQueryMock(options: {
+function createRuntimeMock(options: {
   readonly rowCount?: number | null;
   readonly failure?: Error;
 } = {}) {
-  return vi.fn<AuditQuery>(async (sql, values) => {
-    void sql;
-    void values;
-
+  const tenantContexts: string[] = [];
+  const query = vi.fn<AuditQuery>(async () => {
     if (options.failure !== undefined) {
       throw options.failure;
     }
@@ -50,21 +57,51 @@ function createQueryMock(options: {
           : options.rowCount
     };
   });
+
+  const withTenantTransaction = vi.fn(async (
+    context: { readonly tenantId: string },
+    work: (transaction: never) => Promise<unknown>
+  ) => {
+    tenantContexts.push(context.tenantId);
+    return work({ query } as never);
+  });
+
+  const withGlobalTransaction = vi.fn(async (
+    work: (transaction: never) => Promise<unknown>
+  ) => work({ query } as never));
+
+  const runtime = {
+    withTenantTransaction,
+    withGlobalTransaction
+  } as unknown as AuditRuntime;
+
+  return {
+    runtime,
+    query,
+    tenantContexts,
+    withTenantTransaction,
+    withGlobalTransaction
+  };
 }
 
 describe("PostgresSecurityAuditStore", () => {
-  it("inserts only minimized allowlisted audit fields", async () => {
-    const query = createQueryMock();
-    const store = new PostgresSecurityAuditStore({ query });
+  it("persists only minimized allowlisted tenant audit fields through the tenant transaction owner", async () => {
+    const fixture = createRuntimeMock();
+    const store = new PostgresSecurityAuditStore(fixture.runtime);
 
     await store.record(VALID_EVENT);
 
-    expect(query).toHaveBeenCalledTimes(1);
+    expect(fixture.withTenantTransaction).toHaveBeenCalledTimes(1);
+    expect(fixture.tenantContexts).toEqual([
+      VALID_EVENT.tenantId
+    ]);
+    expect(fixture.withGlobalTransaction).not.toHaveBeenCalled();
+    expect(fixture.query).toHaveBeenCalledTimes(1);
 
-    const call = query.mock.calls[0];
+    const call = fixture.query.mock.calls[0];
 
     expect(call?.[0]).toContain(
-      "INSERT INTO reos_infra.security_audit_events"
+      "reos_infra.append_security_audit_event"
     );
 
     expect(call?.[1]).toEqual([
@@ -86,9 +123,9 @@ describe("PostgresSecurityAuditStore", () => {
     expect(serialized).not.toContain("cookie");
   });
 
-  it("records denied events without trusted tenant context", async () => {
-    const query = createQueryMock();
-    const store = new PostgresSecurityAuditStore({ query });
+  it("records a global denied event through the unscoped global transaction", async () => {
+    const fixture = createRuntimeMock();
+    const store = new PostgresSecurityAuditStore(fixture.runtime);
 
     const event: SecurityAuditEvent = {
       eventType: "API_ACCESS_DENIED",
@@ -99,15 +136,65 @@ describe("PostgresSecurityAuditStore", () => {
 
     await store.record(event);
 
-    const values = query.mock.calls[0]?.[1];
+    expect(fixture.withGlobalTransaction).toHaveBeenCalledTimes(1);
+    expect(fixture.withTenantTransaction).not.toHaveBeenCalled();
+    expect(fixture.query).toHaveBeenCalledTimes(1);
+
+    const values = fixture.query.mock.calls[0]?.[1];
 
     expect(values?.[6]).toBeNull();
     expect(values?.[7]).toBeNull();
   });
 
+  it("rejects a tenant reference without an actor reference before opening a transaction", async () => {
+    const fixture = createRuntimeMock();
+    const store = new PostgresSecurityAuditStore(fixture.runtime);
+
+    const event: SecurityAuditEvent = {
+      eventType: VALID_EVENT.eventType,
+      requestId: VALID_EVENT.requestId,
+      occurredAt: VALID_EVENT.occurredAt,
+      reasonCode: VALID_EVENT.reasonCode,
+      tenantId: VALID_EVENT.tenantId
+    };
+
+    await expect(
+      store.record(event)
+    ).rejects.toThrow(
+      "The API security audit actor and tenant references must be supplied together."
+    );
+
+    expect(fixture.query).not.toHaveBeenCalled();
+    expect(fixture.withTenantTransaction).not.toHaveBeenCalled();
+    expect(fixture.withGlobalTransaction).not.toHaveBeenCalled();
+  });
+
+  it("rejects an actor reference without a tenant reference before opening a transaction", async () => {
+    const fixture = createRuntimeMock();
+    const store = new PostgresSecurityAuditStore(fixture.runtime);
+
+    const event: SecurityAuditEvent = {
+      eventType: VALID_EVENT.eventType,
+      requestId: VALID_EVENT.requestId,
+      occurredAt: VALID_EVENT.occurredAt,
+      reasonCode: VALID_EVENT.reasonCode,
+      actorIdentityId: VALID_EVENT.actorIdentityId
+    };
+
+    await expect(
+      store.record(event)
+    ).rejects.toThrow(
+      "The API security audit actor and tenant references must be supplied together."
+    );
+
+    expect(fixture.query).not.toHaveBeenCalled();
+    expect(fixture.withTenantTransaction).not.toHaveBeenCalled();
+    expect(fixture.withGlobalTransaction).not.toHaveBeenCalled();
+  });
+
   it("rejects invalid reason codes before database access", async () => {
-    const query = createQueryMock();
-    const store = new PostgresSecurityAuditStore({ query });
+    const fixture = createRuntimeMock();
+    const store = new PostgresSecurityAuditStore(fixture.runtime);
 
     await expect(
       store.record({
@@ -118,12 +205,12 @@ describe("PostgresSecurityAuditStore", () => {
       "The API security audit event is invalid."
     );
 
-    expect(query).not.toHaveBeenCalled();
+    expect(fixture.query).not.toHaveBeenCalled();
   });
 
   it("rejects a non-UUID request ID before database access", async () => {
-    const query = createQueryMock();
-    const store = new PostgresSecurityAuditStore({ query });
+    const fixture = createRuntimeMock();
+    const store = new PostgresSecurityAuditStore(fixture.runtime);
 
     await expect(
       store.record({
@@ -134,12 +221,12 @@ describe("PostgresSecurityAuditStore", () => {
       "The API security audit event is invalid."
     );
 
-    expect(query).not.toHaveBeenCalled();
+    expect(fixture.query).not.toHaveBeenCalled();
   });
 
   it("rejects timestamps without an explicit timezone", async () => {
-    const query = createQueryMock();
-    const store = new PostgresSecurityAuditStore({ query });
+    const fixture = createRuntimeMock();
+    const store = new PostgresSecurityAuditStore(fixture.runtime);
 
     await expect(
       store.record({
@@ -150,15 +237,15 @@ describe("PostgresSecurityAuditStore", () => {
       "The API security audit timestamp must be timezone-aware."
     );
 
-    expect(query).not.toHaveBeenCalled();
+    expect(fixture.query).not.toHaveBeenCalled();
   });
 
-  it("fails closed when the insert fails", async () => {
-    const query = createQueryMock({
+  it("fails closed when the runtime transaction or audit append fails", async () => {
+    const fixture = createRuntimeMock({
       failure: new Error("private PostgreSQL detail")
     });
 
-    const store = new PostgresSecurityAuditStore({ query });
+    const store = new PostgresSecurityAuditStore(fixture.runtime);
 
     await expect(
       store.record(VALID_EVENT)
@@ -167,12 +254,12 @@ describe("PostgresSecurityAuditStore", () => {
     );
   });
 
-  it("fails closed when the insert affects no row", async () => {
-    const query = createQueryMock({
+  it("fails closed when the append operation does not affect exactly one row", async () => {
+    const fixture = createRuntimeMock({
       rowCount: 0
     });
 
-    const store = new PostgresSecurityAuditStore({ query });
+    const store = new PostgresSecurityAuditStore(fixture.runtime);
 
     await expect(
       store.record(VALID_EVENT)
