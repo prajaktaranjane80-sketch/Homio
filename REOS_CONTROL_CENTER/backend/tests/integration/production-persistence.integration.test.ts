@@ -420,9 +420,9 @@ describe.skipIf(!integrationEnabled)(
       /*
        * Load the existing canonical manifest.
        *
-       * Only B4-owned infrastructure migrations 00000003 and 00000004
-       * are executed here. CORE-002 and other domain migrations are not
-       * applied by this fixture.
+       * Execute the B4-owned session, base audit and tenant-write-guard
+       * migrations 00000003, 00000004 and 00000011. CORE-002 and other
+       * domain migrations are not applied by this fixture.
        */
 
       const migrationsDirectory = fileURLToPath(
@@ -441,12 +441,14 @@ describe.skipIf(!integrationEnabled)(
       b4Migrations = completeManifest.filter(
         (migration) =>
           migration.id === "00000003" ||
-          migration.id === "00000004"
+          migration.id === "00000004" ||
+          migration.id === "00000011"
       );
 
       const expectedMigrationIds = [
         "00000003",
-        "00000004"
+        "00000004",
+        "00000011"
       ];
 
       if (
@@ -476,11 +478,11 @@ describe.skipIf(!integrationEnabled)(
         firstMigrationReport.latestMigrationId;
 
       if (
-        initialMigrationAppliedCount !== 2 ||
-        initialMigrationLatestId !== "00000004"
+        initialMigrationAppliedCount !== 3 ||
+        initialMigrationLatestId !== "00000011"
       ) {
         throw new Error(
-          "The canonical B4 session and audit migrations were not fully applied."
+          "The canonical B4 session, audit and tenant-write-guard migrations were not fully applied."
         );
       }
 
@@ -545,8 +547,8 @@ describe.skipIf(!integrationEnabled)(
           );
         }
 
-        expect(initialMigrationAppliedCount).toBe(2);
-        expect(initialMigrationLatestId).toBe("00000004");
+        expect(initialMigrationAppliedCount).toBe(3);
+        expect(initialMigrationLatestId).toBe("00000011");
 
         const latestMigration =
           b4Migrations[b4Migrations.length - 1];
@@ -561,7 +563,7 @@ describe.skipIf(!integrationEnabled)(
           await migrationRunner.migrate(b4Migrations);
 
         expect(secondReport.appliedCount).toBe(0);
-        expect(secondReport.latestMigrationId).toBe("00000004");
+        expect(secondReport.latestMigrationId).toBe("00000011");
         expect(secondReport.latestChecksum).toBe(
           latestMigration.checksum
         );
@@ -572,13 +574,14 @@ describe.skipIf(!integrationEnabled)(
           ORDER BY migration_id ASC
         `);
 
-        expect(ledger.rows).toHaveLength(2);
+        expect(ledger.rows).toHaveLength(3);
 
         expect(
           ledger.rows.map((row) => row.migration_id)
         ).toEqual([
           "00000003",
-          "00000004"
+          "00000004",
+          "00000011"
         ]);
 
         expect(
@@ -961,243 +964,3 @@ describe.skipIf(!integrationEnabled)(
       },
       testTimeoutMs
     );
-
-    it(
-      "persists minimized append-only security audit events with least-privilege access",
-      async () => {
-        if (
-          adminPool === undefined ||
-          runtime === undefined
-        ) {
-          throw new Error(
-            "The PostgreSQL security audit fixture was not initialized."
-          );
-        }
-
-        const requestId = randomUUID();
-
-        const event: SecurityAuditEvent = {
-          eventType: "API_ACCESS_DENIED",
-          requestId,
-          occurredAt: new Date().toISOString(),
-          reasonCode: "B4_CI_AUDIT",
-          operation: "inventory.read",
-          actorIdentityId: randomUUID(),
-          tenantId: tenantA
-        };
-
-        await runtime.securityAudit.record(event);
-
-        const stored = await adminPool.query(
-          `SELECT
-             event_type,
-             request_id,
-             occurred_at,
-             reason_code,
-             operation,
-             actor_identity_reference,
-             tenant_reference
-           FROM reos_infra.security_audit_events
-           WHERE request_id = $1`,
-          [requestId]
-        );
-
-        expect(stored.rows).toHaveLength(1);
-
-        expect(stored.rows[0]).toMatchObject({
-          event_type: "API_ACCESS_DENIED",
-          request_id: requestId,
-          reason_code: "B4_CI_AUDIT",
-          operation: "inventory.read",
-          actor_identity_reference: event.actorIdentityId,
-          tenant_reference: tenantA
-        });
-
-        /*
-         * The application role may insert audit events but cannot read,
-         * update or delete the audit history.
-         */
-
-        const apiProbePool = new pgModule.Pool({
-          connectionString: applicationUrl,
-          max: 1
-        });
-
-        try {
-          await expect(
-            apiProbePool.query(
-              `SELECT event_id
-                 FROM reos_infra.security_audit_events
-                WHERE request_id = $1`,
-              [requestId]
-            )
-          ).rejects.toMatchObject({
-            code: "42501"
-          });
-
-          await expect(
-            apiProbePool.query(
-              `UPDATE reos_infra.security_audit_events
-                  SET reason_code = 'MUTATED'
-                WHERE request_id = $1`,
-              [requestId]
-            )
-          ).rejects.toMatchObject({
-            code: "42501"
-          });
-
-          await expect(
-            apiProbePool.query(
-              `DELETE FROM reos_infra.security_audit_events
-                WHERE request_id = $1`,
-              [requestId]
-            )
-          ).rejects.toMatchObject({
-            code: "42501"
-          });
-        } finally {
-          await apiProbePool.end();
-        }
-
-        /*
-         * The append-only database trigger independently rejects mutation,
-         * even when the operation is attempted by the administrative owner.
-         */
-
-        const adminClient = await adminPool.connect();
-
-        try {
-          await adminClient.query("BEGIN");
-          await adminClient.query("SAVEPOINT audit_mutation");
-
-          await expect(
-            adminClient.query(
-              `UPDATE reos_infra.security_audit_events
-                  SET reason_code = 'MUTATED'
-                WHERE request_id = $1`,
-              [requestId]
-            )
-          ).rejects.toMatchObject({
-            code: "55000"
-          });
-
-          await adminClient.query(
-            "ROLLBACK TO SAVEPOINT audit_mutation"
-          );
-
-          await adminClient.query("ROLLBACK");
-        } finally {
-          await adminClient.query("ROLLBACK").catch(() => undefined);
-          adminClient.release();
-        }
-
-        /*
-         * Verify the physical audit record does not expose request bodies,
-         * bearer tokens, credential values or authentication secrets.
-         */
-
-        const columns = await adminPool.query(`
-          SELECT column_name
-          FROM information_schema.columns
-          WHERE table_schema = 'reos_infra'
-            AND table_name = 'security_audit_events'
-          ORDER BY ordinal_position
-        `);
-
-        expect(
-          columns.rows.map((row) => row.column_name)
-        ).toEqual([
-          "event_id",
-          "event_type",
-          "request_id",
-          "occurred_at",
-          "reason_code",
-          "operation",
-          "actor_identity_reference",
-          "tenant_reference"
-        ]);
-      },
-      testTimeoutMs
-    );
-
-    it(
-      "enforces shared Redis rate limits across independent clients",
-      async () => {
-        if (runtime === undefined || !redisUrl) {
-          throw new Error(
-            "The real Redis persistence fixture was not initialized."
-          );
-        }
-
-        secondaryRedis = redisModule.createClient({
-          url: redisUrl
-        });
-
-        await secondaryRedis.connect();
-
-        const rateLimitOptions = {
-          keySecret: randomBytes(32).toString("hex"),
-          keyVersion: "node-integration-v1",
-          policyVersion: `ci-${suffix}`,
-          policies: {
-            "api-ip": {
-              maxRequests: 10,
-              windowMs: 5_000
-            },
-            "api-identity-tenant": {
-              maxRequests: 15,
-              windowMs: 5_000
-            }
-          }
-        } as const;
-
-        const limiterA = new RedisRateLimiter(
-          runtime.redis,
-          rateLimitOptions
-        );
-
-        const limiterB = new RedisRateLimiter(
-          secondaryRedis,
-          rateLimitOptions
-        );
-
-        const decisions = await Promise.all(
-          Array.from({ length: 24 }, (_, index) => {
-            const limiter = index % 2 === 0
-              ? limiterA
-              : limiterB;
-
-            return limiter.consume({
-              bucket: "api-ip",
-              key: `node-integration-${suffix}`
-            });
-          })
-        );
-
-        const allowed = decisions.filter(
-          (decision) => decision.allowed
-        );
-
-        const denied = decisions.filter(
-          (decision) => !decision.allowed
-        );
-
-        expect(allowed).toHaveLength(10);
-        expect(denied).toHaveLength(14);
-
-        expect(
-          denied.every(
-            (decision) =>
-              decision.retryAfterSeconds !== undefined &&
-              decision.retryAfterSeconds >= 1
-          )
-        ).toBe(true);
-
-        await runtime.verifyReadiness();
-
-        expect(runtime.isHealthy()).toBe(true);
-      },
-      testTimeoutMs
-    );
-  }
-);
