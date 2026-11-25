@@ -43,8 +43,7 @@ export interface PostgresQuery<Row extends Record<string, unknown>> {
   readonly rowCount: number | null;
 }
 
-export interface PostgresTransaction {
-  readonly tenantId: string;
+export interface PostgresTransactionHandle {
   readonly readOnly: boolean;
   /**
    * Execute one application-owned statement. Keep SQL static and pass every
@@ -56,6 +55,21 @@ export interface PostgresTransaction {
     text: string,
     values?: readonly unknown[]
   ): Promise<PostgresQuery<Row>>;
+}
+
+export interface PostgresTransaction extends PostgresTransactionHandle {
+  readonly tenantId: string;
+}
+
+/**
+ * A global transaction deliberately has no tenantId property.
+ *
+ * It still uses the exact same checked-out connection, role-safety check,
+ * transaction queue, SQL policy, rollback and commit handling as a tenant
+ * transaction. The runtime locally clears app.tenant_id before invoking work.
+ */
+export interface PostgresGlobalTransaction extends PostgresTransactionHandle {
+  readonly tenantId?: never;
 }
 
 const UUID_PATTERN =
@@ -327,7 +341,7 @@ function beginStatement(
     : `BEGIN ISOLATION LEVEL ${isolationLevel}`;
 }
 
-/** Owns one Pool; every tenant transaction uses one checked-out client. */
+/** Owns one Pool; every transaction uses one checked-out client. */
 export class PostgresRuntime {
   private readonly pool: PostgresDriverPool;
   private closePromise: Promise<void> | undefined;
@@ -448,7 +462,7 @@ export class PostgresRuntime {
     }
   }
 
-  public async withTenantTransaction<Result>(
+  public withTenantTransaction<Result>(
     context: PostgresTenantContext,
     work: (transaction: PostgresTransaction) => Promise<Result>,
     options: PostgresTransactionOptions = {}
@@ -460,6 +474,52 @@ export class PostgresRuntime {
     }
 
     const tenantId = normalizeTenantId(context?.tenantId);
+
+    return this.runTransaction<Result, PostgresTransaction>(
+      tenantId,
+      work,
+      options
+    );
+  }
+
+  /**
+   * Run a global operation without fabricating a tenant identifier.
+   *
+   * The transaction-local app.tenant_id setting is explicitly cleared on the
+   * checked-out connection before application SQL runs. This prevents a
+   * session-level value left by any prior connection user from becoming the
+   * context of a global audit event.
+   */
+  public withGlobalTransaction<Result>(
+    work: (transaction: PostgresGlobalTransaction) => Promise<Result>,
+    options: PostgresTransactionOptions = {}
+  ): Promise<Result> {
+    if (this.closed) throw new PostgresRuntimeClosedError();
+
+    if (typeof work !== "function") {
+      throw new TypeError("PostgreSQL transaction work must be a function.");
+    }
+
+    return this.runTransaction<Result, PostgresGlobalTransaction>(
+      null,
+      work,
+      options
+    );
+  }
+
+  private async runTransaction<
+    Result,
+    Transaction extends PostgresTransactionHandle
+  >(
+    tenantId: string | null,
+    work: (transaction: Transaction) => Promise<Result>,
+    options: PostgresTransactionOptions
+  ): Promise<Result> {
+    if (this.closed) throw new PostgresRuntimeClosedError();
+
+    if (typeof work !== "function") {
+      throw new TypeError("PostgreSQL transaction work must be a function.");
+    }
 
     const isolationLevel = normalizeIsolationLevel(
       options.isolationLevel ?? DEFAULT_ISOLATION_LEVEL
@@ -476,8 +536,8 @@ export class PostgresRuntime {
     let hasQueryError = false;
     let queryQueue: Promise<void> = Promise.resolve();
 
-    const transaction: PostgresTransaction = Object.freeze({
-      tenantId,
+    const transactionBase = {
+      ...(tenantId === null ? {} : { tenantId }),
       readOnly,
 
       query: async <Row extends Record<string, unknown>>(
@@ -534,7 +594,11 @@ export class PostgresRuntime {
 
         return operation;
       }
-    });
+    };
+
+    const transaction = Object.freeze(
+      transactionBase
+    ) as unknown as Transaction;
 
     try {
       await this.ensureRuntimeRoleSafety(client);
@@ -542,7 +606,15 @@ export class PostgresRuntime {
       await client.query(beginStatement(isolationLevel, readOnly));
       transactionActive = true;
 
-      await client.query(TENANT_SETTING_SQL, [tenantId]);
+      /*
+       * Tenant transactions set their normalized tenant UUID.
+       * Global transactions set an empty transaction-local value, masking
+       * any session-level app.tenant_id value for the duration of this work.
+       */
+      await client.query(
+        TENANT_SETTING_SQL,
+        [tenantId ?? ""]
+      );
 
       const result = await work(transaction);
 
