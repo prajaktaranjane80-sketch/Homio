@@ -484,15 +484,29 @@ b4RecoverySuite(
               }
             );
 
+          /*
+           * This recovery fixture intentionally selects the existing
+           * B4 infrastructure migrations only. Migration 00000011 is
+           * required because the audit store now writes exclusively
+           * through its trusted SECURITY DEFINER append function.
+           *
+           * The selected manifest remains strictly ordered and is reused
+           * unchanged during post-restore ledger verification.
+           */
           const b4Migrations = completeManifest.filter(
             (migration) =>
               migration.id === "00000003" ||
-              migration.id === "00000004"
+              migration.id === "00000004" ||
+              migration.id === "00000011"
           );
 
           expect(
             b4Migrations.map((migration) => migration.id)
-          ).toEqual(["00000003", "00000004"]);
+          ).toEqual([
+            "00000003",
+            "00000004",
+            "00000011"
+          ]);
 
           const migrationRunner = new PostgresMigrationRunner(
             migrationPool as unknown as PostgresDriverPool,
@@ -506,8 +520,8 @@ b4RecoverySuite(
             b4Migrations
           );
 
-          expect(migrationReport.appliedCount).toBe(2);
-          expect(migrationReport.latestMigrationId).toBe("00000004");
+          expect(migrationReport.appliedCount).toBe(3);
+          expect(migrationReport.latestMigrationId).toBe("00000011");
 
           applicationPool = createPool(applicationUrl, 1);
 
@@ -629,9 +643,12 @@ b4RecoverySuite(
             tenantId: context.tenantId
           };
 
-          const auditStore = new PostgresSecurityAuditStore(
-            applicationPool
-          );
+          /*
+           * The audit store must use the existing transaction runtime.
+           * Passing applicationPool directly would bypass the trusted
+           * tenant transaction context and database append function.
+           */
+          const auditStore = new PostgresSecurityAuditStore(runtime);
 
           await auditStore.record(auditEvent);
 
@@ -649,7 +666,7 @@ b4RecoverySuite(
           expect(beforeBackup.rows[0]).toMatchObject({
             session_count: 3,
             audit_count: 1,
-            migration_count: 2
+            migration_count: 3
           });
 
           const backupSql = await createSchemaBackup({
@@ -661,6 +678,7 @@ b4RecoverySuite(
           expect(backupSql).toContain("api_sessions");
           expect(backupSql).toContain("security_audit_events");
           expect(backupSql).toContain("schema_migrations");
+          expect(backupSql).toContain("append_security_audit_event");
           expect(backupSql).toContain("CREATE POLICY");
           expect(backupSql).toContain("CREATE TRIGGER");
 
@@ -699,7 +717,7 @@ b4RecoverySuite(
           expect(restoredMigrationReport.appliedCount).toBe(0);
           expect(
             restoredMigrationReport.latestMigrationId
-          ).toBe("00000004");
+          ).toBe("00000011");
 
           const restoredLedger = await targetAdminPool.query(`
             SELECT migration_id, checksum
@@ -709,7 +727,11 @@ b4RecoverySuite(
 
           expect(
             restoredLedger.rows.map((row) => row.migration_id)
-          ).toEqual(["00000003", "00000004"]);
+          ).toEqual([
+            "00000003",
+            "00000004",
+            "00000011"
+          ]);
 
           expect(
             restoredLedger.rows.map((row) => row.checksum)
@@ -876,7 +898,9 @@ b4RecoverySuite(
             triggers.rows.map((row) => row.trigger_name)
           ).toEqual([
             "api_sessions_immutable_identity",
-            "security_audit_events_append_only"
+            "security_audit_events_append_only",
+            "security_audit_events_tenant_context_guard",
+            "security_audit_events_truncate_guard"
           ]);
 
           const privileges = await targetAdminPool.query(`
@@ -910,7 +934,15 @@ b4RecoverySuite(
               ) AS audit_update,
               has_table_privilege(
                 $1, 'reos_infra.security_audit_events', 'DELETE'
-              ) AS audit_delete
+              ) AS audit_delete,
+              has_table_privilege(
+                $1, 'reos_infra.security_audit_events', 'TRUNCATE'
+              ) AS audit_truncate,
+              has_function_privilege(
+                $1,
+                'reos_infra.append_security_audit_event(uuid,text,uuid,timestamptz,text,text,uuid,uuid)'::regprocedure,
+                'EXECUTE'
+              ) AS audit_append_execute
           `, [applicationRole]);
 
           expect(privileges.rows[0]).toEqual({
@@ -920,10 +952,12 @@ b4RecoverySuite(
             session_insert: true,
             session_update: true,
             session_delete: false,
-            audit_insert: true,
+            audit_insert: false,
             audit_select: false,
             audit_update: false,
-            audit_delete: false
+            audit_delete: false,
+            audit_truncate: false,
+            audit_append_execute: true
           });
 
           await expect(
@@ -961,7 +995,6 @@ b4RecoverySuite(
           ).rejects.toMatchObject({
             code: "55000"
           });
-
         } finally {
           if (runtime !== undefined) {
             await runtime.close().catch(() => undefined);
