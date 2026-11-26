@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import copy
 import os
 import shutil
@@ -69,6 +70,28 @@ class B4CanonicalTransitionContractTests(unittest.TestCase):
         ]["acceptance_criteria"]
         B4CanonicalTransitionContractTests._rehash(state)
         return state
+
+    def test_guard_required_entry_points_remain_at_module_scope(self) -> None:
+        source_path = Path(__file__).with_name("guarded_transition.py")
+        source = source_path.read_text(encoding="utf-8")
+        syntax_tree = ast.parse(source, filename=str(source_path))
+
+        module_functions = {
+            node.name
+            for node in syntax_tree.body
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        }
+        required_functions = {
+            "verify_master_and_plan",
+            "request_github_oidc_token",
+            "read_state",
+            "main",
+        }
+        self.assertTrue(
+            required_functions.issubset(module_functions),
+            "B4 guard entry points must remain top-level module functions; "
+            f"missing={sorted(required_functions - module_functions)}",
+        )
 
     def test_baseline_is_pinned_to_the_live_b4_checkpoint(self) -> None:
         self.assertEqual(len(BASELINE_HEAD), 40)
