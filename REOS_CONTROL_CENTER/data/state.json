@@ -3,7 +3,7 @@
     "product": "HOMIO / REOS",
     "version": "3.4",
     "schema_version": 3,
-    "updated_at": "2026-11-19T08:03:34+00:00",
+    "updated_at": "2026-11-26T11:13:45+00:00",
     "control_center_version": "7.0"
   },
   "constitution": {
@@ -2844,27 +2844,42 @@
         "id": "BACKEND-001-B3",
         "note": "BACKEND-001-B3 completed through the guarded Control Center after exact-SHA backend, Python/TypeScript IPC contract, and complete ACRL verification passed for source commit 6b35dbcf1d86123846fea4391ba89645c81e0aaa; GitHub Actions run 44484230005, attempt 1. The verified scope is the existing authenticated private Node-managed Python child-process bridge, versioned request/response contract, trusted actor/tenant/correlation propagation, strict serialization, bounded timeout/cancellation, worker lifecycle, replay and failure classification. No Python business logic was copied into TypeScript and no second public Python API was introduced. The B3 protocol remains read-only. Mutations remain disabled until B4 supplies the canonical durable idempotency and transaction owner. Non-null idempotency envelopes fail closed and automatic mutation retries remain disabled. B4 is now CURRENT. B2 production binding and later backend stages remain pending. BACKEND-001-AC01 through AC10 remain PENDING. Production readiness is not claimed."
       }
+    },
+    {
+      "id": "236ee797-3a16-4f94-9dc8-e548ef5000db",
+      "time": "2026-11-26T11:13:45+00:00",
+      "type": "SUBTASK_COMPLETED",
+      "payload": {
+        "id": "BACKEND-001-B4",
+        "note": "BACKEND-001-B4 completed through the guarded Control Center after exact-SHA backend, PostgreSQL, Redis, migration, tenant-isolation, session, audit, full-database backup/recovery and complete ACRL verification passed for source commit 17784ada3e96edc5182cebb9cc548b2266b40296; GitHub Actions run 45808014761, attempt 1. All eight B4 acceptance criteria were independently verified against the canonical ARCH-037 schema, ordered migration checksums, PostgreSQL role/RLS boundary, existing PostgresRuntime transaction owner, durable session and revocation store, shared Redis rate limit, minimized append-only audit store, concurrency tests and full-database separate-target CI recovery. The recovery target was disposable GitHub Actions PostgreSQL 18.4; controlled non-production target restore, production disaster recovery and WAL/PITR remain NOT TESTED. No second schema, persistence, migration, transaction or task-state owner was introduced. B4 is DONE and BACKEND-001-B2-PRODUCTION-BINDING is now CURRENT. BACKEND-001-AC01 through AC10 remain PENDING. Production release readiness is not claimed."
+      }
     }
   ],
   "integrity": {
-    "sha256": "404000d70e7f03f168be7548e591b12f936da78703c033728afa9fbd58339bef"
+    "sha256": "fb51c0dbeeba1b9f1c8a67953d6a0147f9445b9cd74b91e622ef05df618fc323"
   },
   "execution": {
     "current_gate": "BACKEND-001",
-    "current_task": "BACKEND-001-B4: PostgreSQL integration.",
+    "current_task": "BACKEND-001-B2-PRODUCTION-BINDING: API security and trusted context — production binding.",
     "status": "CONTROL_CENTER_DRIVEN",
     "next_step_source": "execution_plan.authoritative_sequence",
     "current_acceptance_criteria": [
-      "Only the approved ARCH-037 schema and canonical owners are used.",
-      "Migrations have deterministic ordering and integrity checks.",
-      "Tenant access is enforced by the target persistence boundary.",
-      "Repositories and transaction boundaries have explicit write ownership.",
-      "Durable session and revocation storage is supported.",
-      "Shared rate-limit state and minimized audit persistence are supported.",
-      "Migration, concurrency, backup and recovery tests pass.",
-      "No second schema or persistence authority is introduced."
+      "The approved OIDC verifier is connected through the authenticated B3 boundary.",
+      "Durable session and revocation validation is connected through B4.",
+      "Trusted identity, tenant and active membership are resolved through CORE-001.",
+      "One contract-governed CORE-001 resource/action decision owner is used; the T03 membership data contract remains data-only.",
+      "Shared/distributed rate limiting is connected through B4.",
+      "Durable PII-minimized security audit persistence is connected through B4.",
+      "Buyer, broker, builder and privileged-role isolation tests pass.",
+      "Cross-tenant, revoked-session and unauthorized-action tests pass.",
+      "Mutation authorization is revalidated immediately before protected handlers.",
+      "Rate-limit enforcement works across instances.",
+      "Audit persistence occurs before protected handlers.",
+      "Invalid credentials and dependency outages fail closed.",
+      "No frontend cookie is accepted as an API identity credential.",
+      "No production mock, no-op adapter or in-process-only security store remains."
     ],
-    "current_subtask": "BACKEND-001-B4"
+    "current_subtask": "BACKEND-001-B2-PRODUCTION-BINDING"
   },
   "execution_plan": {
     "plan_version": "1.0",
@@ -5229,7 +5244,7 @@
       "name": "Unified HOMIO / REOS Backend",
       "objective": "Establish and verify one unified public backend through the B0-B10 sequence in HOMIO_Backend_Structure.",
       "status": "CURRENT",
-      "current_subtask": "BACKEND-001-B4",
+      "current_subtask": "BACKEND-001-B2-PRODUCTION-BINDING",
       "subtasks": [
         {
           "id": "BACKEND-001-B0",
@@ -5292,7 +5307,7 @@
           "id": "BACKEND-001-B4",
           "title": "PostgreSQL integration",
           "priority": "CRITICAL",
-          "status": "CURRENT",
+          "status": "DONE",
           "acceptance_criteria": [
             "Only the approved ARCH-037 schema and canonical owners are used.",
             "Migrations have deterministic ordering and integrity checks.",
@@ -5302,13 +5317,15 @@
             "Shared rate-limit state and minimized audit persistence are supported.",
             "Migration, concurrency, backup and recovery tests pass.",
             "No second schema or persistence authority is introduced."
-          ]
+          ],
+          "completed_at": "2026-11-26T11:13:45+00:00",
+          "note": "BACKEND-001-B4 completed through the guarded Control Center after exact-SHA backend, PostgreSQL, Redis, migration, tenant-isolation, session, audit, full-database backup/recovery and complete ACRL verification passed for source commit 17784ada3e96edc5182cebb9cc548b2266b40296; GitHub Actions run 45808014761, attempt 1. All eight B4 acceptance criteria were independently verified against the canonical ARCH-037 schema, ordered migration checksums, PostgreSQL role/RLS boundary, existing PostgresRuntime transaction owner, durable session and revocation store, shared Redis rate limit, minimized append-only audit store, concurrency tests and full-database separate-target CI recovery. The recovery target was disposable GitHub Actions PostgreSQL 18.4; controlled non-production target restore, production disaster recovery and WAL/PITR remain NOT TESTED. No second schema, persistence, migration, transaction or task-state owner was introduced. B4 is DONE and BACKEND-001-B2-PRODUCTION-BINDING is now CURRENT. BACKEND-001-AC01 through AC10 remain PENDING. Production release readiness is not claimed."
         },
         {
           "id": "BACKEND-001-B2-PRODUCTION-BINDING",
           "title": "API security and trusted context — production binding",
           "priority": "CRITICAL",
-          "status": "PENDING",
+          "status": "CURRENT",
           "acceptance_criteria": [
             "The approved OIDC verifier is connected through the authenticated B3 boundary.",
             "Durable session and revocation validation is connected through B4.",
