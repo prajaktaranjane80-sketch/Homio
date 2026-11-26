@@ -1,4 +1,3 @@
-
 # HOMIO / REOS — B4 Physical Schema Implementation Manifest
 
 **Project:** HOMIO / REOS  
@@ -594,6 +593,158 @@ Application privilege: SELECT, INSERT; no UPDATE or DELETE.
 Indexes: tenant/commission/entry_timestamp.
 
 This table is append-only and does not replace an external general ledger or CORE-008 reconciliation owner.
+### 4.7 CORE-002 — `core002`
+
+Existing owner: CORE-002 event envelope and transactional outbox.
+
+Persistence owner:
+`REOS_CONTROL_CENTER/backend/src/persistence/postgres-core002-outbox.ts`
+
+Migration sources:
+- `00000001-core002-event-outbox.sql`
+- `00000002-core002-safe-tenant-context.sql`
+
+#### `core002.events`
+
+| Column | PostgreSQL type | Nullable | Constraint |
+|---|---|---|---|
+| tenant_id | UUID | No | Part of primary key |
+| event_id | UUID | No | Part of primary key |
+| envelope | JSONB | No | Must be a JSON object |
+| immutable_fingerprint | TEXT | No | 64-character lowercase SHA-256 |
+| created_at | TIMESTAMPTZ | No | Default clock_timestamp() |
+
+Primary key: `(tenant_id, event_id)`.
+Unique key: `(tenant_id, event_id, immutable_fingerprint)`.
+
+The event ID and tenant ID must match the corresponding envelope fields.
+
+Indexes:
+- Tenant/idempotency key, unique and partial.
+- Tenant/event type/created time.
+- Tenant/correlation ID.
+
+Tenant isolation: ENABLE RLS and FORCE RLS, with restrictive fail-closed tenant policy.
+
+Application privilege: SELECT and INSERT only. No UPDATE or DELETE.
+
+Event records are immutable.
+
+#### `core002.outbox_publications`
+
+| Column | PostgreSQL type | Nullable | Constraint |
+|---|---|---|---|
+| tenant_id | UUID | No | Part of primary key |
+| publication_id | UUID | No | Part of primary key |
+| event_id | UUID | No | One publication per event |
+| event_fingerprint | TEXT | No | References immutable event fingerprint |
+| created_at | TIMESTAMPTZ | No | Required |
+| state | TEXT | No | Default CREATED |
+| state_changed_at | TIMESTAMPTZ | No | Default clock_timestamp() |
+
+Primary key: `(tenant_id, publication_id)`.
+
+Unique key: `(tenant_id, event_id)`.
+
+The event reference uses a same-tenant composite foreign key.
+
+Allowed states: CREATED, COMMITTED, PUBLISHED, RECOVERABLE and FAILED.
+
+Indexes:
+- Tenant, creation time and publication ID for recoverable publications.
+
+Tenant isolation: ENABLE RLS and FORCE RLS, with restrictive fail-closed tenant policy.
+
+Application privilege: SELECT, INSERT and UPDATE. No DELETE.
+
+Publication identity and event binding are immutable. State updates use the existing guarded transition function.
+
+### 4.8 B4 infrastructure — `reos_infra`
+
+Canonical owner: B4 infrastructure.
+
+Schema owner: Dedicated migration role.
+
+Schema creation source:
+`backend/scripts/postgres/bootstrap-migration-ledger.sql`
+
+#### `reos_infra.schema_migrations`
+
+| Column | PostgreSQL type | Nullable | Constraint |
+|---|---|---|---|
+| migration_id | TEXT | No | Primary key; eight digits |
+| migration_name | TEXT | No | Unique; canonical migration name |
+| checksum | TEXT | No | 64-character lowercase SHA-256 |
+| applied_at | TIMESTAMPTZ | No | Default clock_timestamp() |
+
+Application role has no direct table access. The migration role owns and maintains the ledger.
+
+#### `reos_infra.api_sessions`
+
+Migration source:
+`00000003-b4-durable-api-sessions.sql`
+
+| Column | PostgreSQL type | Nullable | Constraint |
+|---|---|---|---|
+| session_id | UUID | No | Primary key |
+| tenant_id | UUID | No | Tenant isolation |
+| account_id | UUID | No | Required |
+| identity_id | UUID | No | Required |
+| tenant_revision | INTEGER | No | Positive |
+| organization_id | UUID | No | Required |
+| membership_id | UUID | No | Required |
+| membership_revision | INTEGER | No | Positive |
+| issuer_digest | TEXT | No | SHA-256 digest |
+| token_id_digest | TEXT | No | SHA-256 digest |
+| authentication_epoch | BIGINT | No | Positive |
+| issued_at | TIMESTAMPTZ | No | Required |
+| expires_at | TIMESTAMPTZ | No | Later than issued_at |
+| revoked_at | TIMESTAMPTZ | Yes | Optional |
+| revocation_reason_code | TEXT | Yes | Required when revoked |
+
+Unique key: `(tenant_id, issuer_digest, token_id_digest)`.
+
+Indexes:
+- Tenant/account/expiry for active sessions.
+- Expiry for active sessions.
+
+Tenant isolation: ENABLE RLS and FORCE RLS, with restrictive fail-closed tenant policy.
+
+Application privilege: SELECT, INSERT and UPDATE. No DELETE.
+
+Session identity and authentication binding are immutable. Revocation cannot be reversed or rewritten.
+
+Raw bearer tokens and credentials are not stored.
+
+#### `reos_infra.security_audit_events`
+
+Migration sources:
+- `00000004-b4-minimized-security-audit.sql`
+- `00000011-b4-security-audit-tenant-write-guard.sql`
+
+| Column | PostgreSQL type | Nullable | Constraint |
+|---|---|---|---|
+| event_id | UUID | No | Primary key |
+| event_type | TEXT | No | Approved event type |
+| request_id | UUID | No | Required |
+| occurred_at | TIMESTAMPTZ | No | Required |
+| reason_code | TEXT | No | Canonical uppercase reason code |
+| operation | TEXT | Yes | Optional validated operation |
+| actor_identity_reference | UUID | Yes | Paired with tenant reference |
+| tenant_reference | UUID | Yes | Paired with actor identity |
+
+Indexes:
+- Request ID and event time.
+- Event time and event ID.
+- Tenant reference and event time.
+
+The table is append-only.
+
+The application role has no direct table access. Its only write path is the existing `append_security_audit_event` function.
+
+The function validates transaction-local tenant context, actor/tenant pairing and global-event restrictions. It uses a fixed `pg_catalog` search path and fully-qualified table references.
+
+No second audit store or parallel security owner is introduced.
 
 ## 5. Tenant policy and role enforcement
 
