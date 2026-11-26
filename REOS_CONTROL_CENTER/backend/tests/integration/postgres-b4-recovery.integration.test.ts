@@ -1,3 +1,4 @@
+
 import { spawn, execFileSync } from "node:child_process";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
@@ -38,6 +39,9 @@ interface TestQueryResult {
 }
 
 interface TestPgClient {
+  readonly connectionParameters?: {
+    readonly database?: string;
+  };
   query(
     text: string,
     values?: unknown[]
@@ -46,12 +50,21 @@ interface TestPgClient {
 }
 
 interface TestPgPool {
+  on(
+    event: "error",
+    listener: (error: Error, client: TestPgClient) => void
+  ): this;
   connect(): Promise<TestPgClient>;
   query(
     text: string,
     values?: unknown[]
   ): Promise<TestQueryResult>;
   end(): Promise<void>;
+}
+
+interface ObservedPoolError {
+  readonly databaseName: string;
+  readonly error: Error;
 }
 
 interface PgModule {
@@ -87,6 +100,9 @@ const b4RecoverySuite = integrationEnabled
   : describe.skip;
 
 const TEST_TIMEOUT_MS = 90_000;
+const DATABASE_DRAIN_TIMEOUT_MS = 10_000;
+const DATABASE_DRAIN_POLL_INTERVAL_MS = 25;
+const unexpectedPoolErrors: ObservedPoolError[] = [];
 
 function findPostgresContainerId(): string | undefined {
   try {
@@ -252,16 +268,115 @@ function connectionUrl(
   return url.toString();
 }
 
+function registerPoolErrorListener(
+  pool: TestPgPool,
+  fallbackDatabaseName: string,
+  observedErrors: ObservedPoolError[]
+): void {
+  pool.on("error", (error, client) => {
+    observedErrors.push({
+      databaseName:
+        client.connectionParameters?.database ?? fallbackDatabaseName,
+      error
+    });
+  });
+}
+
+function assertNoUnexpectedPoolErrors(
+  observedErrors: ObservedPoolError[]
+): void {
+  if (observedErrors.length === 0) {
+    return;
+  }
+
+  const failures = observedErrors.splice(0);
+  const details = failures
+    .map(
+      ({ databaseName, error }) =>
+        `database=${databaseName}; ${error.name}: ${error.message}`
+    )
+    .join("\n");
+
+  throw new Error(
+    `Unexpected idle PostgreSQL pool error(s) were observed:\n${details}`
+  );
+}
+
+async function waitForDatabaseConnectionsToDrain(
+  adminPool: TestPgPool,
+  databaseName: string,
+  timeoutMs = DATABASE_DRAIN_TIMEOUT_MS
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+
+  while (true) {
+    const result = await adminPool.query(
+      `
+        SELECT count(*)::integer AS connection_count
+        FROM pg_catalog.pg_stat_activity
+        WHERE datname = $1
+          AND pid <> pg_backend_pid()
+      `,
+      [databaseName]
+    );
+
+    const connectionCount = Number(
+      result.rows[0]?.connection_count
+    );
+
+    if (
+      !Number.isSafeInteger(connectionCount) ||
+      connectionCount < 0
+    ) {
+      throw new Error(
+        `PostgreSQL returned an invalid connection count for ${databaseName}.`
+      );
+    }
+
+    if (connectionCount === 0) {
+      return;
+    }
+
+    if (Date.now() >= deadline) {
+      throw new Error(
+        `PostgreSQL database ${databaseName} still has ${connectionCount} active connection(s) after ${timeoutMs}ms; refusing forced database termination.`
+      );
+    }
+
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, DATABASE_DRAIN_POLL_INTERVAL_MS);
+    });
+  }
+}
+
 function createPool(
   connectionString: string,
   max = 3
 ): TestPgPool {
-  return new pgModule.Pool({
+  const databaseName = decodeURIComponent(
+    new URL(connectionString).pathname.replace(/^\/+/, "")
+  );
+
+  if (databaseName.length === 0) {
+    throw new TypeError(
+      "A database name is required for a PostgreSQL test pool."
+    );
+  }
+
+  const pool = new pgModule.Pool({
     connectionString,
     max,
     connectionTimeoutMillis: 5_000,
     idleTimeoutMillis: 5_000
   });
+
+  registerPoolErrorListener(
+    pool,
+    databaseName,
+    unexpectedPoolErrors
+  );
+
+  return pool;
 }
 
 async function runPsqlInContainer(input: {
@@ -393,6 +508,100 @@ function sha256(value: string): string {
   return createHash("sha256").update(value, "utf8").digest("hex");
 }
 
+describe("B4 recovery test PostgreSQL cleanup controls", () => {
+  it("registers idle pool errors for an explicit failing assertion", () => {
+    let errorListener:
+      | ((error: Error, client: TestPgClient) => void)
+      | undefined;
+    const observedErrors: ObservedPoolError[] = [];
+    const fakePool = {
+      on(
+        event: "error",
+        listener: (error: Error, client: TestPgClient) => void
+      ) {
+        expect(event).toBe("error");
+        errorListener = listener;
+        return this;
+      }
+    } as unknown as TestPgPool;
+
+    registerPoolErrorListener(
+      fakePool,
+      "homio_b4_restore_test",
+      observedErrors
+    );
+
+    expect(errorListener).toBeDefined();
+
+    const idleClientError = Object.assign(
+      new Error("terminating connection due to administrator command"),
+      { code: "57P01" }
+    );
+
+    errorListener?.(idleClientError, {
+      connectionParameters: {
+        database: "homio_b4_restore_test"
+      }
+    });
+
+    expect(observedErrors).toHaveLength(1);
+    expect(observedErrors[0]?.databaseName).toBe(
+      "homio_b4_restore_test"
+    );
+    expect(observedErrors[0]?.error).toBe(idleClientError);
+    expect(() =>
+      assertNoUnexpectedPoolErrors(observedErrors)
+    ).toThrow("Unexpected idle PostgreSQL pool error(s)");
+    expect(observedErrors).toHaveLength(0);
+  });
+
+  it("waits for the isolated database backend sessions to close", async () => {
+    let queryCount = 0;
+    const fakePool = {
+      async query() {
+        queryCount += 1;
+
+        return {
+          rows: [
+            {
+              connection_count: queryCount === 1 ? 1 : 0
+            }
+          ],
+          rowCount: 1
+        };
+      }
+    } as unknown as TestPgPool;
+
+    await waitForDatabaseConnectionsToDrain(
+      fakePool,
+      "homio_b4_restore_test"
+    );
+
+    expect(queryCount).toBe(2);
+  });
+
+  it("refuses database teardown while a backend session remains", async () => {
+    const fakePool = {
+      async query() {
+        return {
+          rows: [{ connection_count: 1 }],
+          rowCount: 1
+        };
+      }
+    } as unknown as TestPgPool;
+
+    await expect(
+      waitForDatabaseConnectionsToDrain(
+        fakePool,
+        "homio_b4_restore_test",
+        0
+      )
+    ).rejects.toThrow(
+      "refusing forced database termination"
+    );
+  });
+});
+
 b4RecoverySuite(
   "B4 actual PostgreSQL infrastructure backup and recovery",
   () => {
@@ -486,6 +695,7 @@ b4RecoverySuite(
         let runtime: PostgresRuntime | undefined;
         let databaseCreated = false;
         let restoreDatabaseCreated = false;
+        const cleanupErrors: unknown[] = [];
 
         try {
           adminPool = createPool(adminUrl, 2);
@@ -1432,38 +1642,86 @@ b4RecoverySuite(
           console.log("B4_RECOVERY_VERIFICATION=PASS");
         } finally {
           if (runtime !== undefined) {
-            await runtime.close().catch(() => undefined);
+            await runtime.close().catch((error: unknown) => {
+              cleanupErrors.push(error);
+            });
           } else if (applicationPool !== undefined) {
-            await applicationPool.end().catch(() => undefined);
+            await applicationPool.end().catch((error: unknown) => {
+              cleanupErrors.push(error);
+            });
           }
 
-          await migrationPool?.end().catch(() => undefined);
-          await targetAdminPool?.end().catch(() => undefined);
+          await migrationPool?.end().catch((error: unknown) => {
+            cleanupErrors.push(error);
+          });
+          await targetAdminPool?.end().catch((error: unknown) => {
+            cleanupErrors.push(error);
+          });
 
           if (adminPool !== undefined) {
             if (restoreDatabaseCreated) {
-              await adminPool.query(
-                `DROP DATABASE IF EXISTS ${quotedRestoreDatabase} WITH (FORCE)`
-              ).catch(() => undefined);
-              restoreDatabaseCreated = false;
+              try {
+                await waitForDatabaseConnectionsToDrain(
+                  adminPool,
+                  restoreDatabaseName
+                );
+                await adminPool.query(
+                  `DROP DATABASE IF EXISTS ${quotedRestoreDatabase}`
+                );
+                restoreDatabaseCreated = false;
+              } catch (error) {
+                cleanupErrors.push(error);
+              }
             }
 
             if (databaseCreated) {
-              await adminPool.query(
-                `DROP DATABASE IF EXISTS ${quotedDatabase} WITH (FORCE)`
-              ).catch(() => undefined);
-              databaseCreated = false;
+              try {
+                await waitForDatabaseConnectionsToDrain(
+                  adminPool,
+                  databaseName
+                );
+                await adminPool.query(
+                  `DROP DATABASE IF EXISTS ${quotedDatabase}`
+                );
+                databaseCreated = false;
+              } catch (error) {
+                cleanupErrors.push(error);
+              }
             }
 
             await adminPool.query(
               `DROP ROLE IF EXISTS ${quotedApplicationRole}`
-            ).catch(() => undefined);
+            ).catch((error: unknown) => {
+              cleanupErrors.push(error);
+            });
 
             await adminPool.query(
               `DROP ROLE IF EXISTS ${quotedMigrationRole}`
-            ).catch(() => undefined);
+            ).catch((error: unknown) => {
+              cleanupErrors.push(error);
+            });
 
-            await adminPool.end().catch(() => undefined);
+            await adminPool.end().catch((error: unknown) => {
+              cleanupErrors.push(error);
+            });
+          }
+
+          try {
+            assertNoUnexpectedPoolErrors(unexpectedPoolErrors);
+          } catch (error) {
+            cleanupErrors.push(error);
+          }
+
+          if (cleanupErrors.length > 0) {
+            const details = cleanupErrors
+              .map((error) =>
+                error instanceof Error ? error.message : String(error)
+              )
+              .join("\n");
+
+            throw new Error(
+              `B4 recovery cleanup failed:\n${details}`
+            );
           }
         }
       },
