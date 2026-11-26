@@ -23,16 +23,16 @@ APPROVAL_PREFIX = "[CONTROL-CENTER-COMPLETE-BACKEND-001-B4]"
 OIDC_AUDIENCE = "homio-control-center-backend-b4-completion"
 OIDC_JWKS_URL = "https://token.actions.githubusercontent.com/.well-known/jwks"
 
-# This checkpoint is the live branch HEAD after the owner saved the B4
-# target-backup/restore evidence. It is a baseline, not an execution result.
-BASELINE_HEAD = "8a15cfa03631198b6bdcfa768ce1372c9e74beec"
+# Verified source checkpoint after the owner saved the final B4 schema and
+# target-recovery evidence readbacks. This is not a B4 completion result.
+BASELINE_HEAD = "13d4f01ea39ba0f2f1fd3e848207c15ebd0ff7fa"
 BASELINE_STATE_BLOB_SHA = "5f1a09dba8d84ee5cbc06a49f37b5e68dc75c44b"
 BASELINE_MASTER_BLOB_SHA = "f8d9cd456568cc6c8eaae0caf764123a7e859ba6"
 BASELINE_PLAN_BLOB_SHA = "84c94c82ac5b0fde7c7bdf94acca235402c465ab"
 BASELINE_REGISTER_BLOB_SHA = "fe1deafb694534743447d9113ae52930d8b68d02"
 BASELINE_ENTRYPOINT_BLOB_SHA = "2e1d66cec0a8ca17b24ccf285d3133ff16ca2834"
-BASELINE_SCHEMA_MANIFEST_BLOB_SHA = "377fa5699f774769693b5363d2a10058d20c860c"
-BASELINE_TARGET_RECOVERY_BLOB_SHA = "5009cf707eb860ef8e8417e81a7199dbef4bece5"
+BASELINE_SCHEMA_MANIFEST_BLOB_SHA = "935cd4950d5e8de117a349ac3608cf4e7b663462"
+BASELINE_TARGET_RECOVERY_BLOB_SHA = "9798c2b964426dd37f190108460f9120a6174555"
 
 STATE_PATH = "REOS_CONTROL_CENTER/data/state.json"
 MASTER_PATH = (
@@ -73,12 +73,10 @@ GUARD_TEST_PATH = (
 REUSABLE_WORKFLOW_PATH = ".github/workflows/reusable-backend-b4-completion.yml"
 WORKFLOW_PATH = ".github/workflows/backend-ci.yml"
 
+# The workflow, action, implementation, and evidence are already included in
+# the verified baseline. The next owner commit changes only this guard file.
 EXPECTED_SOURCE_PATHS = {
-    WORKFLOW_PATH,
-    REUSABLE_WORKFLOW_PATH,
-    ACTION_PATH,
     GUARD_PATH,
-    GUARD_TEST_PATH,
 }
 
 MIGRATION_DIRECTORY = (
@@ -121,8 +119,9 @@ EXPECTED_MIGRATION_SHA256 = {
     ),
 }
 
-# Existing owners and evidence are pinned at the B4 checkpoint. The completion
-# change may add only the four B4 guard files and the existing CI workflow wiring.
+# All prerequisites, CI wiring and evidence are pinned at this checkpoint.
+# The owner completion commit may change only this guard; implementation,
+# workflow and evidence sources remain protected by the exact baseline checks.
 EXPECTED_B4_SOURCE_BLOBS = {
     STATE_PATH: BASELINE_STATE_BLOB_SHA,
     MASTER_PATH: BASELINE_MASTER_BLOB_SHA,
@@ -485,7 +484,7 @@ def verify_master_and_plan(expected_sha: str) -> tuple[str, str]:
         "## 52. B4 guarded transition policy",
         APPROVAL_PREFIX,
         "## 55. Mandatory completion checklist",
-        "No B4 completion claim is permitted before all eight canonical acceptance criteria",
+        "No B4 completion claim is permitted before all eight canonical B4 acceptance criteria",
     )
     for marker in plan_markers:
         if marker not in plan:
@@ -1005,6 +1004,8 @@ def verify_actions_run(expected_sha: str) -> dict:
         "summary": summary,
         "artifacts": artifacts,
     }
+
+
 def verify_b4_implementation(expected_sha: str) -> dict:
     plan_blob_sha, master_blob_sha = file_blob_sha(PLAN_PATH, expected_sha), file_blob_sha(
         MASTER_PATH, expected_sha
