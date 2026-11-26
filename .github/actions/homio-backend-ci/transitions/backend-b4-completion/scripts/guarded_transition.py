@@ -119,9 +119,9 @@ EXPECTED_MIGRATION_SHA256 = {
     ),
 }
 
-# All prerequisites, CI wiring and evidence are pinned at this checkpoint.
-# The owner completion commit may change only this guard; implementation,
-# workflow and evidence sources remain protected by the exact baseline checks.
+# All prerequisites, CI wiring and evidence are already in the verified
+# checkpoint. The owner completion commit may change only this guard; all
+# implementation, workflow and evidence sources remain protected.
 EXPECTED_B4_SOURCE_BLOBS = {
     STATE_PATH: BASELINE_STATE_BLOB_SHA,
     MASTER_PATH: BASELINE_MASTER_BLOB_SHA,
@@ -279,7 +279,7 @@ from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.auth
 from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.execution_authorization import (  # noqa: E402
     ExecutionAuthorizationGuard,
 )
-from AUTONOMY_ENGINE.security.authentication.oidc_config import OIDCSettings  # noqa: E402
+from AUTONOMY_ENGINE.security.authentication.oidc_config import OIDCSettings
 from AUTONOMY_ENGINE.security.authentication.oidc_verifier import (  # noqa: E402
     AuthenticatedIdentityPrincipal,
     AuthenticationError,
@@ -484,7 +484,8 @@ def verify_master_and_plan(expected_sha: str) -> tuple[str, str]:
         "## 52. B4 guarded transition policy",
         APPROVAL_PREFIX,
         "## 55. Mandatory completion checklist",
-        "No B4 completion claim is permitted before all eight canonical B4 acceptance criteria",
+        # Stable authoritative wording used by the current B4 plan.
+        "No B4 completion claim is permitted before all eight canonical acceptance criteria",
     )
     for marker in plan_markers:
         if marker not in plan:
