@@ -1,3 +1,4 @@
+
 import { spawn, execFileSync } from "node:child_process";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
@@ -540,7 +541,12 @@ describe("B4 recovery test PostgreSQL cleanup controls", () => {
     errorListener?.(idleClientError, {
       connectionParameters: {
         database: "homio_b4_restore_test"
-      }
+      },
+      query: () => Promise.resolve({
+        rows: [],
+        rowCount: 0
+      }),
+      release: () => undefined
     });
 
     expect(observedErrors).toHaveLength(1);
@@ -573,6 +579,8 @@ describe("B4 recovery test PostgreSQL cleanup controls", () => {
 
     await waitForDatabaseConnectionsToDrain(
       fakePool,
+
+      
       "homio_b4_restore_test"
     );
 
@@ -1153,6 +1161,7 @@ b4RecoverySuite(
                 has_database_privilege(
                   $1,
                   current_database(),
+                  
                   'CONNECT'
                 ) AS migration_connect,
                 has_database_privilege(
@@ -1740,4 +1749,5 @@ b4RecoverySuite(
 );
 
   
+
 
