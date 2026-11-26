@@ -1,22 +1,30 @@
 from __future__ import annotations
 
 import copy
+import os
 import shutil
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+from urllib.request import Request
 
 from guarded_transition import (
     B4_ACCEPTANCE_CRITERIA,
     B4_COMPLETION_EVIDENCE_PATH,
+    BASELINE_GUARD_TEST_BLOB_SHA,
     BASELINE_HEAD,
     BASELINE_MASTER_BLOB_SHA,
     BASELINE_PLAN_BLOB_SHA,
     BASELINE_REGISTER_BLOB_SHA,
     BASELINE_STATE_BLOB_SHA,
     EXPECTED_SOURCE_PATHS,
+    GUARD_PATH,
+    GUARD_TEST_PATH,
     MIGRATION_DIRECTORY,
     TARGET_RECOVERY_EVIDENCE_PATH,
+    _CredentialSafeRedirectHandler,
+    _download_job_log,
     controller,
     expected_subtask_statuses,
     read_state,
@@ -68,6 +76,7 @@ class B4CanonicalTransitionContractTests(unittest.TestCase):
         self.assertEqual(len(BASELINE_MASTER_BLOB_SHA), 40)
         self.assertEqual(len(BASELINE_PLAN_BLOB_SHA), 40)
         self.assertEqual(len(BASELINE_REGISTER_BLOB_SHA), 40)
+        self.assertEqual(len(BASELINE_GUARD_TEST_BLOB_SHA), 40)
         self.assertEqual(
             TARGET_RECOVERY_EVIDENCE_PATH,
             "REOS_CONTROL_CENTER/evidence/BACKEND-001/"
@@ -78,6 +87,24 @@ class B4CanonicalTransitionContractTests(unittest.TestCase):
             "REOS_CONTROL_CENTER/evidence/BACKEND-001/"
             "B4-completion-ci-evidence.md",
         )
+
+    def test_guard_and_regression_test_are_the_only_allowed_source_paths(self) -> None:
+        self.assertEqual(
+            EXPECTED_SOURCE_PATHS,
+            {
+                GUARD_PATH,
+                GUARD_TEST_PATH,
+            },
+        )
+        validate_source_paths(sorted(EXPECTED_SOURCE_PATHS))
+
+        with self.assertRaises(SystemExit):
+            validate_source_paths(
+                sorted(EXPECTED_SOURCE_PATHS | {"REOS_CONTROL_CENTER/data/state.json"})
+            )
+
+        with self.assertRaises(SystemExit):
+            validate_source_paths([GUARD_PATH])
 
     def test_expected_statuses_close_only_b4_and_advance_to_b2_production(self) -> None:
         before = expected_subtask_statuses(transitioned=False)
@@ -171,6 +198,164 @@ class B4CanonicalTransitionContractTests(unittest.TestCase):
                 run_id="987654321",
             )
 
+    def test_job_log_download_reads_github_plain_text_response(self) -> None:
+        expected_log = (
+            "2026-11-26T08:21:18.0000000Z HEAD is now at 6c41cc7 "
+            "Fix authenticated Actions log redirect handling\n"
+            "Backend verification completed successfully.\n"
+        )
+        with (
+            patch.dict(
+                os.environ,
+                {"ACTIONS_API_URL": "https://api.github.com"},
+            ),
+            patch(
+                "guarded_transition._api_get_bytes",
+                return_value=expected_log.encode("utf-8"),
+            ) as get_bytes,
+        ):
+            actual_log = _download_job_log(139780942465)
+
+        self.assertEqual(actual_log, expected_log)
+        get_bytes.assert_called_once_with(
+            "https://api.github.com/repos/"
+            "prajaktaranjane80-sketch/Homio/"
+            "actions/jobs/139780942465/logs"
+        )
+
+    def test_job_log_download_rejects_invalid_job_identifiers(self) -> None:
+        invalid_ids = (
+            0,
+            -1,
+            True,
+            False,
+            "139780942465",
+            None,
+        )
+
+        for job_id in invalid_ids:
+            with self.subTest(job_id=job_id):
+                with patch(
+                    "guarded_transition._api_get_bytes"
+                ) as get_bytes:
+                    with self.assertRaises(SystemExit):
+                        _download_job_log(job_id)
+
+                    get_bytes.assert_not_called()
+
+    def test_job_log_download_rejects_an_empty_response(self) -> None:
+        with (
+            patch.dict(
+                os.environ,
+                {"ACTIONS_API_URL": "https://api.github.com"},
+            ),
+            patch(
+                "guarded_transition._api_get_bytes",
+                return_value=b"",
+            ),
+        ):
+            with self.assertRaises(SystemExit):
+                _download_job_log(139780942465)
+
+    def test_job_log_download_rejects_zip_archive_payload(self) -> None:
+        zip_payload = b"PK\x03\x04fake-archive-payload"
+
+        with (
+            patch.dict(
+                os.environ,
+                {"ACTIONS_API_URL": "https://api.github.com"},
+            ),
+            patch(
+                "guarded_transition._api_get_bytes",
+                return_value=zip_payload,
+            ),
+        ):
+            with self.assertRaises(SystemExit):
+                _download_job_log(139780942465)
+
+    def test_job_log_download_rejects_binary_payload(self) -> None:
+        binary_payload = b"plain-prefix\x00binary-suffix"
+
+        with (
+            patch.dict(
+                os.environ,
+                {"ACTIONS_API_URL": "https://api.github.com"},
+            ),
+            patch(
+                "guarded_transition._api_get_bytes",
+                return_value=binary_payload,
+            ),
+        ):
+            with self.assertRaises(SystemExit):
+                _download_job_log(139780942465)
+
+    def test_job_log_download_preserves_readable_text_with_invalid_utf8_bytes(self) -> None:
+        raw_log = b"GitHub job log contains a replacement byte: \xff\n"
+
+        with (
+            patch.dict(
+                os.environ,
+                {"ACTIONS_API_URL": "https://api.github.com"},
+            ),
+            patch(
+                "guarded_transition._api_get_bytes",
+                return_value=raw_log,
+            ),
+        ):
+            actual_log = _download_job_log(139780942465)
+
+        self.assertIn("GitHub job log contains a replacement byte:", actual_log)
+        self.assertIn("\ufffd", actual_log)
+
+    def test_redirect_handler_removes_credentials_for_cross_origin_redirects(self) -> None:
+        request = Request(
+            "https://api.github.com/repos/example/repo/actions/jobs/123/logs",
+            headers={
+                "Authorization": "Bearer sensitive-token",
+                "Proxy-Authorization": "Basic sensitive-proxy-token",
+                "Accept": "application/vnd.github+json",
+            },
+        )
+        redirected = _CredentialSafeRedirectHandler().redirect_request(
+            request,
+            None,
+            302,
+            "Found",
+            {},
+            "https://logs.githubusercontent.example/signed-download",
+        )
+
+        self.assertIsNotNone(redirected)
+        self.assertNotIn("Authorization", redirected.headers)
+        self.assertNotIn("Proxy-Authorization", redirected.headers)
+        self.assertEqual(
+            redirected.headers.get("Accept"),
+            "application/vnd.github+json",
+        )
+
+    def test_redirect_handler_preserves_credentials_for_same_origin_redirects(self) -> None:
+        request = Request(
+            "https://api.github.com/repos/example/repo/actions/jobs/123/logs",
+            headers={
+                "Authorization": "Bearer same-origin-token",
+                "Accept": "application/vnd.github+json",
+            },
+        )
+        redirected = _CredentialSafeRedirectHandler().redirect_request(
+            request,
+            None,
+            302,
+            "Found",
+            {},
+            "https://api.github.com/repos/example/repo/actions/jobs/123/logs/",
+        )
+
+        self.assertIsNotNone(redirected)
+        self.assertEqual(
+            redirected.headers.get("Authorization"),
+            "Bearer same-origin-token",
+        )
+
     def test_verification_log_requires_all_suites_and_no_skips(self) -> None:
         log = """
         PASS: 16 independent PostgreSQL tenant writes committed without lost updates.
@@ -229,7 +414,10 @@ class B4CanonicalTransitionContractTests(unittest.TestCase):
         )
         summary = validate_backend_verification_log(timestamped)
         self.assertEqual(summary["recovery"]["backup_bytes"], 113631)
-        self.assertEqual(summary["recovery"]["B4_RECOVERY_SOURCE_DATABASE"], "homio_b4_recovery_abcd1234")
+        self.assertEqual(
+            summary["recovery"]["B4_RECOVERY_SOURCE_DATABASE"],
+            "homio_b4_recovery_abcd1234",
+        )
         self.assertEqual(summary["production_release_blockers"], 18)
 
     def test_verification_log_rejects_skipped_vitest_tests(self) -> None:
@@ -327,7 +515,10 @@ class B4CanonicalTransitionContractTests(unittest.TestCase):
         path = Path(__file__).resolve().parents[6] / TARGET_RECOVERY_EVIDENCE_PATH
         content = path.read_text(encoding="utf-8")
         result = verify_target_recovery_evidence_text(content)
-        self.assertEqual(result["classification"], "EPHEMERAL_GITHUB_ACTIONS_POSTGRESQL_18_4")
+        self.assertEqual(
+            result["classification"],
+            "EPHEMERAL_GITHUB_ACTIONS_POSTGRESQL_18_4",
+        )
         self.assertFalse(result["production_tested"])
         self.assertFalse(result["pitr_tested"])
         with self.assertRaises(SystemExit):
@@ -354,11 +545,6 @@ class B4CanonicalTransitionContractTests(unittest.TestCase):
             (target / "00000011-b4-security-audit-tenant-write-guard.sql").unlink()
             with self.assertRaises(SystemExit):
                 verify_migration_manifest(target)
-
-    def test_changed_source_path_allowlist_is_exact(self) -> None:
-        validate_source_paths(sorted(EXPECTED_SOURCE_PATHS))
-        with self.assertRaises(SystemExit):
-            validate_source_paths(sorted(EXPECTED_SOURCE_PATHS | {"REOS_CONTROL_CENTER/data/state.json"}))
 
 
 if __name__ == "__main__":
