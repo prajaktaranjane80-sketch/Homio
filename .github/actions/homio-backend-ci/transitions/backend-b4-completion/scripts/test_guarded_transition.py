@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import ast
@@ -35,6 +34,7 @@ from guarded_transition import (
     controller,
     expected_subtask_statuses,
     read_state,
+    render_completion_evidence,
     validate_backend_verification_log,
     validate_source_paths,
     validate_state,
@@ -125,6 +125,34 @@ class B4CanonicalTransitionContractTests(unittest.TestCase):
             "ACTIONS_SERVER_URL": "https://github.com",
             "ACTIONS_REPOSITORY": REPOSITORY,
         }
+
+    def test_completion_evidence_renderer_removes_trailing_whitespace(self) -> None:
+        lines = [
+            "**Document ID:** B4-CI-001  ",
+            "",
+            "- **Workstream:** BACKEND-001\t",
+            "## Evidence identity",
+            "Final marker",
+        ]
+
+        rendered = render_completion_evidence(lines)
+
+        self.assertEqual(
+            rendered,
+            "**Document ID:** B4-CI-001\n\n"
+            "- **Workstream:** BACKEND-001\n"
+            "## Evidence identity\n"
+            "Final marker",
+        )
+        self.assertTrue(
+            all(line == line.rstrip() for line in rendered.splitlines()),
+            "generated completion evidence must not contain trailing whitespace",
+        )
+        self.assertEqual(
+            render_completion_evidence(rendered.split("\n")),
+            rendered,
+            "completion evidence rendering must be idempotent",
+        )
 
     def test_guard_required_entry_points_remain_at_module_scope(self) -> None:
         source_path = Path(__file__).with_name("guarded_transition.py")
