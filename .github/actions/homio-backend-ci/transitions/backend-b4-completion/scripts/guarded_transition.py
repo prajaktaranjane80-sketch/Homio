@@ -1005,7 +1005,7 @@ def verify_actions_run(expected_sha: str) -> dict:
         "summary": summary,
         "artifacts": artifacts,
     }
-    def verify_b4_implementation(expected_sha: str) -> dict:
+def verify_b4_implementation(expected_sha: str) -> dict:
     plan_blob_sha, master_blob_sha = file_blob_sha(PLAN_PATH, expected_sha), file_blob_sha(
         MASTER_PATH, expected_sha
     )
