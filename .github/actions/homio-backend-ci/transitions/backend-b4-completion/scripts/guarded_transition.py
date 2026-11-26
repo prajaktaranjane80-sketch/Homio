@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import hashlib
@@ -9,8 +10,14 @@ import subprocess
 import sys
 import zipfile
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
-from urllib.request import Request, urlopen
+from urllib.request import (
+    HTTPRedirectHandler,
+    Request,
+    build_opener,
+    urlopen,
+)
 
 
 ROOT = Path(__file__).resolve().parents[6]
@@ -279,7 +286,7 @@ from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.auth
 from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.execution_authorization import (  # noqa: E402
     ExecutionAuthorizationGuard,
 )
-from AUTONOMY_ENGINE.security.authentication.oidc_config import OIDCSettings
+from AUTONOMY_ENGINE.security.authentication.oidc_config import OIDCSettings  # noqa: E402
 from AUTONOMY_ENGINE.security.authentication.oidc_verifier import (  # noqa: E402
     AuthenticatedIdentityPrincipal,
     AuthenticationError,
@@ -852,6 +859,28 @@ def _api_url(path: str) -> str:
     return f"{base}{path}"
 
 
+class _CredentialSafeRedirectHandler(HTTPRedirectHandler):
+    """Do not forward GitHub API credentials to a cross-origin log host."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        redirected = super().redirect_request(
+            req, fp, code, msg, headers, newurl
+        )
+        if redirected is None:
+            return None
+
+        source = urlsplit(req.full_url)
+        target = urlsplit(newurl)
+        source_origin = (source.scheme.lower(), source.netloc.lower())
+        target_origin = (target.scheme.lower(), target.netloc.lower())
+
+        if source_origin != target_origin:
+            redirected.remove_header("Authorization")
+            redirected.remove_header("Proxy-Authorization")
+
+        return redirected
+
+
 def _api_get_bytes(url: str) -> bytes:
     token = os.environ.get("GITHUB_TOKEN", "")
     if not token:
@@ -867,8 +896,15 @@ def _api_get_bytes(url: str) -> bytes:
         method="GET",
     )
     try:
-        with urlopen(request, timeout=45) as response:
+        opener = build_opener(_CredentialSafeRedirectHandler())
+        with opener.open(request, timeout=45) as response:
             return response.read()
+    except HTTPError as exc:
+        request_path = urlsplit(url).path
+        fail(
+            "GitHub Actions evidence request failed: "
+            f"HTTP {exc.code} for API path {request_path}"
+        )
     except Exception as exc:
         fail(f"GitHub Actions evidence request failed: {type(exc).__name__}")
     raise AssertionError("unreachable")
