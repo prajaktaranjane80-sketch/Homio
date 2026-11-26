@@ -33,6 +33,7 @@
 ## 2. Recovery method
 
 **Verified method:** Full PostgreSQL logical database dump restored into a separately created database.
+**CI machine method marker:** `FULL_DATABASE_PG_DUMP_TO_SEPARATE_DATABASE`
 
 The recovery test now uses the complete canonical migration manifest. It does not restrict the backup to `reos_infra`.
 
