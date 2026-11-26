@@ -15,6 +15,14 @@ EXPECTED_ORIGIN = (
     "https://github.com/prajaktaranjane80-sketch/Homio.git"
 )
 
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+
+ACRL_RUNTIME_RESUME_SCRIPT = (
+    REPOSITORY_ROOT
+    / ".github/actions/homio-backend-ci/verification/scripts/"
+    / "acrl_runtime_resume.sh"
+)
+
 GIT_READ_COMMANDS = {
     ("rev-parse", "--show-toplevel"),
     ("branch", "--show-current"),
@@ -870,3 +878,348 @@ def test_entrypoint_does_not_claim_it_fetches_live_github_or_authorizes_tasks():
     assert doc["plan_documents_authorize_tasks"] is False
 
     assert doc["canonical_state_refresh_required"] is True
+
+
+# ===========================================================================
+# SESSION EFFICIENCY AND ORIGINAL OWNER REUSE REGRESSION
+# ===========================================================================
+
+def test_repository_paths_preserve_original_and_add_existing_acrl_owners():
+    paths = entrypoint.repository_paths()
+
+    required = (
+        "t03",
+        "t07",
+        "t08",
+        "t09",
+        "t12",
+        "t14",
+        "t14_full_regression",
+        "t15",
+        "t16",
+        "t17",
+        "t18",
+        "t19",
+        "t20",
+        "t21",
+        "t22",
+        "t23",
+        "t24",
+        "t25",
+        "t26",
+        "t27",
+        "t28",
+        "t29",
+        "t30",
+    )
+
+    for key in required:
+        assert key in paths
+        assert paths[key]
+
+
+def test_document_registry_keeps_distinct_acrl_owners():
+    registry = entrypoint.DOCUMENT_REGISTRY
+
+    expected_owners = {
+        "acrl_t07": "T07_New_Chat_Bootstrap",
+        "acrl_t14": "T14_Repository_Intelligence_Context",
+        "acrl_t16": "T16_Repository_Intelligence_File_Discovery",
+        "acrl_t17": "T17_Change_Impact_Dependency_Analysis",
+        "acrl_t19": "T19_Intelligent_Test_Selection_Failure_Diagnosis",
+        "acrl_t23": "T23_Reference_Evidence_Resolution_Engine",
+        "acrl_t25": "T25_Context_Token_Work_Budget_Manager",
+        "acrl_t26": "T26_Autonomous_Execution_Loop_Controller",
+        "acrl_t27": "T27_Dependency_Aware_Work_Scheduler",
+        "acrl_t28": "T28_Conflict_Resolution_Reconciliation_Engine",
+        "acrl_t29": "T29_Human_Decision_Boundary_Controller",
+        "acrl_t30": "T30_Autonomous_Completion_Handoff_Engine",
+    }
+
+    for key, expected_path_fragment in expected_owners.items():
+        assert key in registry
+        assert expected_path_fragment in registry[key]["path"]
+
+
+def test_acrl_owner_routing_does_not_create_new_execution_authority():
+    routing = entrypoint.ACRL_OWNER_ROUTING
+
+    assert routing["bootstrap"] == "acrl_t07"
+
+    assert routing["resume_and_repository_context"] == "acrl_t14"
+
+    assert routing["repository_discovery_and_snapshot"] == "acrl_t16"
+
+    assert routing["change_impact_and_dependencies"] == "acrl_t17"
+
+    assert routing["test_selection_and_failure_diagnosis"] == "acrl_t19"
+
+    assert routing["evidence_identity_and_resolution"] == "acrl_t23"
+
+    assert routing["context_token_and_work_budget"] == "acrl_t25"
+
+    assert routing["completion_proof_and_handoff"] == "acrl_t30"
+
+
+def test_session_efficiency_rules_preserve_authority_while_reusing_evidence():
+    rules = "\n".join(
+        entrypoint.SESSION_EFFICIENCY_RULES
+    ).lower()
+
+    assert "reuse-first" in rules
+
+    assert "state.json" in rules
+
+    assert "t14" in rules
+
+    assert "t16 one-snapshot rule" in rules
+
+    assert "t17 impact rule" in rules
+
+    assert "t23 evidence rule" in rules
+
+    assert "t19 test selection" in rules
+
+    assert "never trade required verification" in rules
+
+
+def test_t14_resume_decisions_are_explicit_and_fail_closed():
+    assert set(entrypoint.T14_RESUME_DECISIONS) == {
+        "FAST_RESUME",
+        "TARGETED_REAUDIT",
+        "FULL_AUDIT_REQUIRED",
+        "INVALID_MANIFEST",
+    }
+
+    rules = "\n".join(
+        entrypoint.T14_RESUME_RULES
+    ).lower()
+
+    assert "state.json" in rules
+
+    assert "head" in rules
+
+    assert "working-tree" in rules
+
+    assert "deleted paths" in rules
+
+    assert "do not manually" in rules
+
+    assert "live state.json execution position" in rules
+
+
+def test_t14_resume_policy_does_not_allow_manual_cache_sealing():
+    rules = "\n".join(
+        (
+            *entrypoint.T14_RESUME_RULES,
+            *entrypoint.FAILURE_RULES,
+        )
+    ).lower()
+
+    assert "do not mark it sealed manually" in rules
+
+    assert "only the existing ci cache-generation process" in rules
+
+
+def test_research_reuse_uses_existing_t14_and_t23_owners():
+    rules = "\n".join(
+        entrypoint.RESEARCH_REUSE_RULES
+    ).lower()
+
+    assert "no new research" in rules
+
+    assert "t14" in rules
+
+    assert "t23" in rules
+
+    assert "evidence identity" in rules
+
+    assert "retrieval timestamp" in rules
+
+    assert "do not invent" in rules
+
+
+def test_session_policy_does_not_create_a_second_research_registry():
+    combined = "\n".join(
+        (
+            *entrypoint.SESSION_EFFICIENCY_RULES,
+            *entrypoint.RESEARCH_REUSE_RULES,
+        )
+    ).lower()
+
+    assert "do not add another research" in combined
+
+    assert (
+        entrypoint.DOCUMENT_REGISTRY["acrl_t14"]["authority"]
+        == "DERIVED_CONTEXT_ONLY"
+    )
+
+    assert (
+        entrypoint.DOCUMENT_REGISTRY["acrl_t23"]["authority"]
+        == "EVIDENCE_BOUNDARY"
+    )
+
+
+def test_ci_failure_deduplication_uses_exact_run_and_failure_identity():
+    rules = "\n".join(
+        entrypoint.CI_FAILURE_DEDUPLICATION_RULES
+    ).lower()
+
+    for item in (
+        "repository",
+        "branch",
+        "workflow",
+        "run id",
+        "attempt",
+        "tested head_sha",
+        "job name",
+        "failed step",
+        "normalized error signature",
+    ):
+        assert item in rules
+
+
+def test_context_budget_rules_do_not_claim_or_increase_model_capacity():
+    rules = "\n".join(
+        entrypoint.CONTEXT_BUDGET_RULES
+    ).lower()
+
+    assert "t25" in rules
+
+    assert "do not claim knowledge" in rules
+
+    assert "increase budgets implicitly" in rules
+
+    assert "required technical requirements" in rules
+
+
+def test_t26_to_t30_keep_distinct_non_execution_boundaries():
+    combined = "\n".join(
+        (
+            entrypoint.DOCUMENT_REGISTRY["acrl_t26"]["role"],
+            entrypoint.DOCUMENT_REGISTRY["acrl_t27"]["role"],
+            entrypoint.DOCUMENT_REGISTRY["acrl_t28"]["role"],
+            entrypoint.DOCUMENT_REGISTRY["acrl_t29"]["role"],
+            entrypoint.DOCUMENT_REGISTRY["acrl_t30"]["role"],
+            *entrypoint.SESSION_EFFICIENCY_RULES,
+        )
+    ).lower()
+
+    assert "does not execute commands" in combined
+
+    assert "does not execute scheduled work" in combined
+
+    assert "human decision" in combined
+
+    assert "human approval" in combined
+
+    assert "completion" in combined
+
+
+def test_startup_instructions_expose_complete_efficiency_policy():
+    instructions = entrypoint.startup_instructions()
+
+    assert "acrl_owner_routing" in instructions
+
+    assert "session_efficiency_rules" in instructions
+
+    assert "t14_resume_decisions" in instructions
+
+    assert "t14_resume_rules" in instructions
+
+    assert "research_reuse_rules" in instructions
+
+    assert "ci_failure_deduplication_rules" in instructions
+
+    assert "context_budget_rules" in instructions
+
+    assert instructions["t14_manifest_is_non_authoritative"] is True
+
+    assert instructions["t16_one_snapshot_per_investigation_batch"] is True
+
+    assert instructions["t23_resolves_supplied_evidence_not_general_search"] is True
+
+    assert instructions["t19_analysis_is_read_only"] is True
+
+    assert instructions["t25_budget_manager_is_not_execution_authority"] is True
+
+    assert instructions["t26_loop_control_is_not_execution_authority"] is True
+
+    assert instructions["t27_scheduler_is_not_execution_authority"] is True
+
+    assert instructions["t28_reconciliation_cannot_bypass_human_boundary"] is True
+
+    assert instructions["t29_human_approval_cannot_be_inferred"] is True
+
+    assert instructions["t30_completion_requires_proof_quorum"] is True
+
+
+def test_new_session_workflow_uses_resume_before_broad_reaudit():
+    workflow = "\n".join(
+        entrypoint.NEW_SESSION_WORKFLOW
+    ).lower()
+
+    assert workflow.index("retrieve the exact current external t14 artifact") < (
+        workflow.index("inspect exact target files")
+    )
+
+    assert "fast_resume" in workflow
+
+    assert "targeted_reaudit" in workflow
+
+    assert "full_audit_required" in workflow
+
+    assert "one repository snapshot per investigation batch" in workflow
+
+    assert "resolve exact evidence identities" in workflow
+
+
+def test_failure_rules_block_redundant_ci_diagnosis_but_allow_new_failures():
+    rules = "\n".join(
+        entrypoint.FAILURE_RULES
+    ).lower()
+
+    assert "same tested sha" in rules
+
+    assert "normalized error signature" in rules
+
+    assert "fresh root-cause analysis" in rules
+
+
+def test_entrypoint_contract_test_is_part_of_existing_acrl_runtime_script():
+    assert ACRL_RUNTIME_RESUME_SCRIPT.is_file()
+
+    content = ACRL_RUNTIME_RESUME_SCRIPT.read_text(
+        encoding="utf-8"
+    )
+
+    assert (
+        "tets/test_ai_agent_entrypoint_contract.py"
+        in content
+    )
+
+    assert "AUTONOMY_ENGINE/continuity/acrl/runtime_integration" in content
+
+    assert "test_audit_resume_manifest.py" in content
+
+    assert "test_repository_context.py" in content
+
+    assert "test_fast_resume_and_stale_manifest.py" in content
+
+    assert "test_new_chat_bootstrap.py" in content
+
+    assert "test_checkpoint_state_coherence.py" in content
+
+    assert "test_audit_resume_manifest_cache.py" in content
+
+
+def test_entrypoint_does_not_claim_live_github_fetch_or_task_authorization():
+    instructions = entrypoint.startup_instructions()
+
+    assert instructions["live_github_refresh_required"] is True
+
+    assert instructions["canonical_state_refresh_required"] is True
+
+    assert instructions["plan_documents_authorize_tasks"] is False
+
+    assert instructions["engineering_skill_execution_is_project_authority"] is False
