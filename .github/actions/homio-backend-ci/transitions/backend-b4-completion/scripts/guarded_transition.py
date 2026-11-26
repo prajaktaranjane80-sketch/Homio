@@ -281,7 +281,7 @@ from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.auth
 from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.execution_authorization import (  # noqa: E402
     ExecutionAuthorizationGuard,
 )
-from AUTONOMY_ENGINE.security.authentication.oidc_config import OIDCSettings  # noqa: E402
+from AUTONOMY_ENGINE.security.authentication.oidc_config import OIDCSettings
 from AUTONOMY_ENGINE.security.authentication.oidc_verifier import (  # noqa: E402
     AuthenticatedIdentityPrincipal,
     AuthenticationError,
@@ -939,7 +939,9 @@ def _download_job_log(job_id: int) -> str:
     if not log.strip():
         fail("GitHub Actions verification job log contains no readable text")
     return log
-    def verify_actions_run(expected_sha: str) -> dict:
+
+
+def verify_actions_run(expected_sha: str) -> dict:
     run_id = os.environ.get("ACTIONS_RUN_ID", "")
     attempt = os.environ.get("ACTIONS_RUN_ATTEMPT", "")
     if not run_id.isdigit() or not attempt.isdigit():
@@ -1004,7 +1006,7 @@ def _download_job_log(job_id: int) -> str:
         "Execute real PostgreSQL migration-ledger and least-privilege integration checks",
         "Run modular backend verification suite",
     )
-    for step_name in required_steps:
+        for step_name in required_steps:
         if step_results.get(step_name) != "success":
             fail(f"required exact-SHA verification step did not pass: {step_name}")
 
@@ -1497,7 +1499,7 @@ def validate_transition_state(state: dict, *, expected_sha: str, run_id: str) ->
         state,
         transitioned=True,
         expected_sha=expected_sha,
-        run_id=run_id,
+            run_id=run_id,
     )
 
 
@@ -2012,5 +2014,4 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
-
-
+        
