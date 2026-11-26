@@ -1,4 +1,3 @@
-
 import { spawn, execFileSync } from "node:child_process";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
@@ -695,6 +694,8 @@ b4RecoverySuite(
         let runtime: PostgresRuntime | undefined;
         let databaseCreated = false;
         let restoreDatabaseCreated = false;
+        let testExecutionFailed = false;
+        let testExecutionError: unknown;
         const cleanupErrors: unknown[] = [];
 
         try {
@@ -1036,6 +1037,7 @@ b4RecoverySuite(
           const auditStore = new PostgresSecurityAuditStore(runtime);
 
           await auditStore.record(auditEvent);
+          
                     const beforeBackup = await targetAdminPool.query(
             `
               SELECT
@@ -1640,6 +1642,9 @@ b4RecoverySuite(
           console.log("B4_RECOVERY_TARGET_CLASS=EPHEMERAL_GITHUB_ACTIONS_POSTGRESQL_18_4");
           console.log("B4_RECOVERY_PRODUCTION_TARGET=NOT_TESTED");
           console.log("B4_RECOVERY_VERIFICATION=PASS");
+        } catch (error) {
+          testExecutionFailed = true;
+          testExecutionError = error;
         } finally {
           if (runtime !== undefined) {
             await runtime.close().catch((error: unknown) => {
@@ -1706,23 +1711,27 @@ b4RecoverySuite(
             });
           }
 
-          try {
-            assertNoUnexpectedPoolErrors(unexpectedPoolErrors);
-          } catch (error) {
-            cleanupErrors.push(error);
-          }
+        }
 
-          if (cleanupErrors.length > 0) {
-            const details = cleanupErrors
-              .map((error) =>
-                error instanceof Error ? error.message : String(error)
-              )
-              .join("\n");
+        try {
+          assertNoUnexpectedPoolErrors(unexpectedPoolErrors);
+        } catch (error) {
+          cleanupErrors.push(error);
+        }
 
-            throw new Error(
-              `B4 recovery cleanup failed:\n${details}`
-            );
-          }
+        const failures: unknown[] = [];
+
+        if (testExecutionFailed) {
+          failures.push(testExecutionError);
+        }
+
+        failures.push(...cleanupErrors);
+
+        if (failures.length > 0) {
+          throw new AggregateError(
+            failures,
+            "B4 recovery integration test or cleanup failed."
+          );
         }
       },
       TEST_TIMEOUT_MS
@@ -1731,3 +1740,4 @@ b4RecoverySuite(
 );
 
   
+
