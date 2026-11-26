@@ -281,7 +281,7 @@ from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.auth
 from AUTONOMY_ENGINE.continuity.acrl.T18_Safe_Execution_Authorization_Guard.execution_authorization import (  # noqa: E402
     ExecutionAuthorizationGuard,
 )
-from AUTONOMY_ENGINE.security.authentication.oidc_config import OIDCSettings
+from AUTONOMY_ENGINE.security.authentication.oidc_config import OIDCSettings  # noqa: E402
 from AUTONOMY_ENGINE.security.authentication.oidc_verifier import (  # noqa: E402
     AuthenticatedIdentityPrincipal,
     AuthenticationError,
@@ -447,9 +447,7 @@ def verify_source_baseline(expected_sha: str) -> list[str]:
     if (ROOT / B4_COMPLETION_EVIDENCE_PATH).exists():
         fail("B4 completion evidence already exists; duplicate transition is forbidden")
     return sorted(changed)
-
-
-def verify_master_and_plan(expected_sha: str) -> tuple[str, str]:
+    def verify_master_and_plan(expected_sha: str) -> tuple[str, str]:
     master = run(["git", "show", f"{expected_sha}:{MASTER_PATH}"], display=False)
     plan = run(["git", "show", f"{expected_sha}:{PLAN_PATH}"], display=False)
     master_markers = (
@@ -1006,7 +1004,7 @@ def verify_actions_run(expected_sha: str) -> dict:
         "Execute real PostgreSQL migration-ledger and least-privilege integration checks",
         "Run modular backend verification suite",
     )
-        for step_name in required_steps:
+    for step_name in required_steps:
         if step_results.get(step_name) != "success":
             fail(f"required exact-SHA verification step did not pass: {step_name}")
 
@@ -1073,9 +1071,7 @@ def verify_b4_implementation(expected_sha: str) -> dict:
         "schema_manifest_blob_sha": BASELINE_SCHEMA_MANIFEST_BLOB_SHA,
         "target_recovery_blob_sha": BASELINE_TARGET_RECOVERY_BLOB_SHA,
     }
-
-
-def request_github_oidc_token() -> str:
+    def request_github_oidc_token() -> str:
     request_url = os.environ.get("ACTIONS_ID_TOKEN_REQUEST_URL", "")
     request_token = os.environ.get("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "")
     if not request_url or not request_token:
@@ -1347,9 +1343,7 @@ def authorize_b4_completion(
         authorization.to_dict(),
         approval_record,
     )
-
-
-def read_state() -> dict:
+    def read_state() -> dict:
     try:
         return json.loads(STATE.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError):
@@ -1499,7 +1493,7 @@ def validate_transition_state(state: dict, *, expected_sha: str, run_id: str) ->
         state,
         transitioned=True,
         expected_sha=expected_sha,
-            run_id=run_id,
+        run_id=run_id,
     )
 
 
@@ -1678,7 +1672,7 @@ def build_completion_evidence(
             "| B4-AC04 — explicit repository and transaction write ownership | Existing `PostgresRuntime` transaction owner and global transaction tests passed; no parallel persistence owner introduced. |",
             "| B4-AC05 — durable session and revocation storage | Session integration and full restore checks passed. |",
             "| B4-AC06 — shared rate limit and minimized audit persistence | Redis distributed concurrency/TTL and append-only security-audit tests passed. |",
-            "| B4-AC07 — migration, concurrency, backup and recovery | Migration, concurrent writes and complete separate-database backup/restore passed on disposable CI PostgreSQL. |",
+            "| B4-AC07 — migration, concurrency, backup and recovery | Migration, concurrency and full separate-database backup/restore passed on disposable CI PostgreSQL. |",
             "| B4-AC08 — no second schema or persistence authority | Existing runtime, migration runner, ARCH-037 and CORE owners reused; source allowlist rejects new competing owners. |",
             "",
             "## 10. Guarded owner authorization",
@@ -1747,9 +1741,7 @@ def build_completion_evidence(
         ]
     )
     return "\n".join(lines)
-
-
-def main() -> None:
+    def main() -> None:
     required_env = (
         "GITHUB_ACTOR",
         "GITHUB_EVENT_NAME",
@@ -2013,5 +2005,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-        
+    
