@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import hashlib
@@ -1515,6 +1516,15 @@ def preserve_line_endings(path: Path) -> None:
         path.write_bytes(normalized.replace(b"\n", b"\r\n"))
 
 
+def render_completion_evidence(lines: list[str]) -> str:
+    """Render Git-clean Markdown evidence without trailing whitespace."""
+    if not isinstance(lines, list) or any(
+        not isinstance(line, str) for line in lines
+    ):
+        fail("B4 completion evidence lines must be a list of text lines")
+    return "\n".join(line.rstrip() for line in lines)
+
+
 def build_completion_evidence(
     *,
     expected_sha: str,
@@ -1748,7 +1758,7 @@ def build_completion_evidence(
             "",
         ]
     )
-    return "\n".join(lines)
+    return render_completion_evidence(lines)
 
 
 def main() -> None:
