@@ -1,7 +1,9 @@
+
 from __future__ import annotations
 
 import ast
 import copy
+import json
 import os
 import shutil
 import tempfile
@@ -11,6 +13,7 @@ from unittest.mock import patch
 from urllib.request import Request
 
 from guarded_transition import (
+    APPROVAL_PREFIX,
     B4_ACCEPTANCE_CRITERIA,
     B4_COMPLETION_EVIDENCE_PATH,
     BASELINE_GUARD_TEST_BLOB_SHA,
@@ -19,10 +22,13 @@ from guarded_transition import (
     BASELINE_PLAN_BLOB_SHA,
     BASELINE_REGISTER_BLOB_SHA,
     BASELINE_STATE_BLOB_SHA,
+    BRANCH_REF,
     EXPECTED_SOURCE_PATHS,
     GUARD_PATH,
     GUARD_TEST_PATH,
     MIGRATION_DIRECTORY,
+    OWNER,
+    REPOSITORY,
     TARGET_RECOVERY_EVIDENCE_PATH,
     _CredentialSafeRedirectHandler,
     _download_job_log,
@@ -33,9 +39,13 @@ from guarded_transition import (
     validate_source_paths,
     validate_state,
     verify_migration_manifest,
+    verify_owner_push,
     verify_physical_schema_manifest,
     verify_target_recovery_evidence_text,
 )
+
+
+B4_APPROVAL_TEST_SHA = "0123456789abcdef0123456789abcdef01234567"
 
 
 class B4CanonicalTransitionContractTests(unittest.TestCase):
@@ -71,6 +81,51 @@ class B4CanonicalTransitionContractTests(unittest.TestCase):
         B4CanonicalTransitionContractTests._rehash(state)
         return state
 
+    @staticmethod
+    def _owner_push_environment(
+        directory: Path,
+        *,
+        actor: str = OWNER,
+        event_name: str = "push",
+        environment_ref: str = BRANCH_REF,
+        environment_repository: str = REPOSITORY,
+        expected_sha: str = B4_APPROVAL_TEST_SHA,
+        verified_code_sha: str = B4_APPROVAL_TEST_SHA,
+        event_ref: str = BRANCH_REF,
+        event_after: str = B4_APPROVAL_TEST_SHA,
+        event_repository: str = REPOSITORY,
+        sender: str = OWNER,
+        message: object = (
+            f"{APPROVAL_PREFIX} Owner-authorized B4 completion request"
+        ),
+    ) -> dict[str, str]:
+        event_path = directory / "github-push-event.json"
+        event = {
+            "ref": event_ref,
+            "after": event_after,
+            "repository": {"full_name": event_repository},
+            "sender": {"login": sender},
+            "head_commit": {"message": message},
+        }
+        event_path.write_text(
+            json.dumps(event),
+            encoding="utf-8",
+        )
+
+        return {
+            "GITHUB_ACTOR": actor,
+            "GITHUB_EVENT_NAME": event_name,
+            "GITHUB_EVENT_PATH": str(event_path),
+            "GITHUB_REF": environment_ref,
+            "GITHUB_REPOSITORY": environment_repository,
+            "EXPECTED_SHA": expected_sha,
+            "VERIFIED_CODE_SHA": verified_code_sha,
+            "ACTIONS_RUN_ID": "45800000000",
+            "ACTIONS_RUN_ATTEMPT": "1",
+            "ACTIONS_SERVER_URL": "https://github.com",
+            "ACTIONS_REPOSITORY": REPOSITORY,
+        }
+
     def test_guard_required_entry_points_remain_at_module_scope(self) -> None:
         source_path = Path(__file__).with_name("guarded_transition.py")
         source = source_path.read_text(encoding="utf-8")
@@ -92,6 +147,63 @@ class B4CanonicalTransitionContractTests(unittest.TestCase):
             "B4 guard entry points must remain top-level module functions; "
             f"missing={sorted(required_functions - module_functions)}",
         )
+
+    def test_owner_push_accepts_exact_owner_identity_and_approval_prefix(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            environment = self._owner_push_environment(Path(temporary))
+            with patch.dict(os.environ, environment, clear=True):
+                event = verify_owner_push(B4_APPROVAL_TEST_SHA)
+
+        self.assertEqual(event["ref"], BRANCH_REF)
+        self.assertEqual(event["after"], B4_APPROVAL_TEST_SHA)
+        self.assertEqual(
+            event["repository"]["full_name"],
+            REPOSITORY,
+        )
+        self.assertEqual(event["sender"]["login"], OWNER)
+        self.assertTrue(
+            event["head_commit"]["message"].startswith(APPROVAL_PREFIX)
+        )
+
+    def test_owner_push_rejects_invalid_owner_event_and_approval_metadata(self) -> None:
+        invalid_cases = (
+            ("non-owner actor", {"actor": "untrusted-actor"}),
+            ("non-push event", {"event_name": "workflow_dispatch"}),
+            ("wrong environment branch", {"environment_ref": "refs/heads/main"}),
+            (
+                "wrong environment repository",
+                {"environment_repository": "another-owner/another-repo"},
+            ),
+            ("wrong expected SHA", {"expected_sha": "f" * 40}),
+            ("wrong verified SHA", {"verified_code_sha": "e" * 40}),
+            ("wrong event branch", {"event_ref": "refs/heads/main"}),
+            ("wrong event SHA", {"event_after": "d" * 40}),
+            (
+                "wrong event repository",
+                {"event_repository": "another-owner/another-repo"},
+            ),
+            ("wrong event sender", {"sender": "untrusted-sender"}),
+            (
+                "leading whitespace before approval prefix",
+                {"message": f" {APPROVAL_PREFIX} invalid prefix position"},
+            ),
+            (
+                "missing approval prefix",
+                {"message": "Update test_guarded_transition.py"},
+            ),
+            ("non-string commit message", {"message": None}),
+        )
+
+        for label, changes in invalid_cases:
+            with self.subTest(case=label):
+                with tempfile.TemporaryDirectory() as temporary:
+                    environment = self._owner_push_environment(
+                        Path(temporary),
+                        **changes,
+                    )
+                    with patch.dict(os.environ, environment, clear=True):
+                        with self.assertRaises(SystemExit):
+                            verify_owner_push(B4_APPROVAL_TEST_SHA)
 
     def test_baseline_is_pinned_to_the_live_b4_checkpoint(self) -> None:
         self.assertEqual(len(BASELINE_HEAD), 40)
