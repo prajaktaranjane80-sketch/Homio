@@ -6,6 +6,7 @@ on:
       - reos-development
     paths:
       # B4 completion is push-only and requires a non-empty owner commit.
+      # B4 owner approval must trigger the exact-SHA guarded completion.
       # This workflow has a paths filter: an empty approval-marker commit is
       # intentionally filtered out and cannot start the guarded B4 transition.
       # The owner approval commit must change one of the existing B4 allowlisted
