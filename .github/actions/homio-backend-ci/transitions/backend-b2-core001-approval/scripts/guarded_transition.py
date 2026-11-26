@@ -51,9 +51,6 @@ APPROVAL_PREFIX = (
     "[CONTROL-CENTER-APPROVE-BACKEND-001-B2-CORE001-AUTHZ]"
 )
 OIDC_AUDIENCE = "homio-control-center-b2-core001-authorization-approval"
-OIDC_JWKS_URL = (
-    "https://token.actions.githubusercontent.com/.well-known/jwks"
-)
 
 EXPECTED_SOURCE_PATHS = {
     ".github/workflows/backend-ci.yml",
@@ -86,12 +83,12 @@ sys.dont_write_bytecode = True
 from REOS_CONTROL_CENTER import reos_control_center as controller  # noqa: E402
 from REOS_CONTROL_CENTER.context.backend_workstream_transition import (  # noqa: E402
     BACKEND_GATE_ID,
+    BACKEND_STAGES,
+    BACKEND_ACCEPTANCE_CRITERIA,
     B2_PRODUCTION_BINDING_ACCEPTANCE_CRITERIA,
     _validate_owner_approval_record,
 )
 from REOS_CONTROL_CENTER.context.github_actions_identity import (  # noqa: E402
-    BRANCH as IDENTITY_BRANCH,
-    BRANCH_REF as IDENTITY_BRANCH_REF,
     EXPECTED_OIDC_SUBJECT,
     OIDC_ISSUER,
     OWNER_ID,
@@ -169,10 +166,10 @@ def file_blob_sha(path: str, ref: str = "HEAD") -> str:
 
 def load_existing_b2_guard():
     """
-    Reuse the already-existing B2 T15/T17/T18 and OIDC implementation.
+    Reuse the existing B2 T15/T17/T18 and OIDC implementation.
 
-    This module is loaded only as a library. Its old transition main()
-    is never invoked by this approval workflow.
+    This module is loaded only as a library. Its original transition
+    main() is never invoked by this approval workflow.
     """
     path = (
         ROOT
@@ -196,7 +193,6 @@ def load_existing_b2_guard():
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
 
-    # Reuse its implementation with this transition's exact scope.
     module.APPROVAL_PREFIX = APPROVAL_PREFIX
     module.OIDC_AUDIENCE = OIDC_AUDIENCE
 
@@ -280,8 +276,6 @@ def verify_owner_push(expected_sha: str) -> dict:
         "Verified code SHA differs from the triggering commit.",
     )
 
-    # The existing owner-push validator checks the event sender, branch,
-    # repository, commit SHA and exact approval prefix.
     return EXISTING_B2_GUARD.verify_owner_push(expected_sha)
 
 
@@ -308,10 +302,10 @@ def verify_request_document(expected_sha: str) -> None:
             f"Change request document is missing required scope: {marker}",
         )
 
-    actual_blob_sha = file_blob_sha(REQUEST_PATH, expected_sha)
     require(
-        actual_blob_sha == BASELINE_REQUEST_BLOB_SHA,
-        "The approved proposal document differs from its reviewed baseline.",
+        file_blob_sha(REQUEST_PATH, expected_sha)
+        == BASELINE_REQUEST_BLOB_SHA,
+        "The proposal document differs from its reviewed baseline.",
     )
 
 
@@ -402,6 +396,28 @@ def verify_source_baseline(expected_sha: str) -> list[str]:
     return sorted(actual_paths)
 
 
+def expected_stage_statuses() -> dict[str, str]:
+    result = {}
+
+    for stage_id, _, _ in BACKEND_STAGES:
+        if stage_id in {
+            "B0",
+            "B1",
+            "B2-FOUNDATION",
+            "B3",
+            "B4",
+        }:
+            status = "DONE"
+        elif stage_id == "B2-PRODUCTION-BINDING":
+            status = "CURRENT"
+        else:
+            status = "PENDING"
+
+        result[f"BACKEND-001-{stage_id}"] = status
+
+    return result
+
+
 def verify_current_state(state: dict) -> None:
     require(
         isinstance(state, dict),
@@ -414,8 +430,7 @@ def verify_current_state(state: dict) -> None:
     )
 
     execution = state.get("execution", {})
-    gate_plans = state.get("gate_plans", {})
-    gate = gate_plans.get(BACKEND_GATE_ID, {})
+    gate = state.get("gate_plans", {}).get(BACKEND_GATE_ID, {})
 
     require(
         execution.get("current_gate") == BACKEND_GATE_ID,
@@ -448,28 +463,14 @@ def verify_current_state(state: dict) -> None:
     subtasks = gate.get("subtasks")
     require(isinstance(subtasks, list), "Backend subtask list is missing.")
 
-    expected_statuses = {
-        "BACKEND-001-B0": "DONE",
-        "BACKEND-001-B1": "DONE",
-        "BACKEND-001-B2-FOUNDATION": "DONE",
-        "BACKEND-001-B3": "DONE",
-        "BACKEND-001-B4": "DONE",
-        "BACKEND-001-B2-PRODUCTION-BINDING": "CURRENT",
-        **{
-            f"BACKEND-001-B{number}": "PENDING"
-            for number in range(5, 11)
-        },
-    }
-
-    actual = {
+    actual_statuses = {
         item.get("id"): item.get("status")
         for item in subtasks
         if isinstance(item, dict)
     }
-
     require(
-        actual == expected_statuses,
-        "Backend stage sequence/statuses differ from the current authority.",
+        actual_statuses == expected_stage_statuses(),
+        "Backend stage sequence/statuses differ from current authority.",
     )
 
     criteria_state = gate.get("criteria_state")
@@ -577,9 +578,7 @@ def authorize_change_request(
         ),
         metadata={
             "change_request_id": CHANGE_REQUEST_ID,
-            "approved_scope": (
-                "B2-CORE001-AUTHZ-001 only"
-            ),
+            "approved_scope": "B2-CORE001-AUTHZ-001 only",
             "production_customer_routes": False,
             "B2_completion": False,
             "backend_acceptance_criteria_completion": False,
@@ -693,8 +692,6 @@ def authorize_change_request(
         ),
     )
 
-    # Only safe identity metadata is persisted. The OIDC bearer token
-    # remains in memory and is never included in state or evidence.
     approval_record = {
         "actor": claims["actor"],
         "actor_id": str(claims["actor_id"]),
@@ -780,7 +777,7 @@ def build_approved_state(
     }
     require(
         normalized_t17_paths == normalized_expected_paths,
-        "T17 analyzed paths differ from the approved exact source inventory.",
+        "T17 analyzed paths differ from exact approved source inventory.",
     )
 
     require(
@@ -891,6 +888,43 @@ def build_approved_state(
     return candidate
 
 
+def verify_current_state_projection_only(state: dict) -> None:
+    execution = state.get("execution", {})
+    gate = state.get("gate_plans", {}).get(BACKEND_GATE_ID, {})
+
+    require(
+        execution.get("current_gate") == BACKEND_GATE_ID
+        and execution.get("current_subtask")
+        == "BACKEND-001-B2-PRODUCTION-BINDING"
+        and execution.get("status") == "CONTROL_CENTER_DRIVEN",
+        "Approval transition changed the current execution task.",
+    )
+    require(
+        gate.get("status") == "CURRENT"
+        and gate.get("current_subtask")
+        == "BACKEND-001-B2-PRODUCTION-BINDING",
+        "Approval transition changed the backend gate projection.",
+    )
+
+    subtasks = gate.get("subtasks", [])
+    statuses = {
+        item.get("id"): item.get("status")
+        for item in subtasks
+        if isinstance(item, dict)
+    }
+    require(
+        statuses == expected_stage_statuses(),
+        "Approval transition changed one or more backend stage statuses.",
+    )
+    require(
+        all(
+            item.get("status") == "PENDING"
+            for item in gate.get("criteria_state", [])
+        ),
+        "Approval transition changed backend acceptance criteria.",
+    )
+
+
 def validate_approved_state(state: dict, *, expected_source_sha: str) -> None:
     require(
         state.get("integrity", {}).get("sha256")
@@ -914,7 +948,7 @@ def validate_approved_state(state: dict, *, expected_source_sha: str) -> None:
     approval = matches[0].get("owner_approval", {})
     require(
         approval.get("source_commit") == expected_source_sha,
-        "Persisted owner approval source SHA differs from the verified SHA.",
+        "Persisted owner approval source SHA differs from verified SHA.",
     )
     require(
         approval.get("commit_prefix") == APPROVAL_PREFIX,
@@ -922,33 +956,7 @@ def validate_approved_state(state: dict, *, expected_source_sha: str) -> None:
     )
     require(
         approval.get("bearer_token_persisted") is False,
-        "The OIDC bearer token persistence boundary was violated.",
-    )
-
-
-def verify_current_state_projection_only(state: dict) -> None:
-    execution = state.get("execution", {})
-    gate = state.get("gate_plans", {}).get(BACKEND_GATE_ID, {})
-
-    require(
-        execution.get("current_gate") == BACKEND_GATE_ID
-        and execution.get("current_subtask")
-        == "BACKEND-001-B2-PRODUCTION-BINDING"
-        and execution.get("status") == "CONTROL_CENTER_DRIVEN",
-        "Approval transition changed the current execution task.",
-    )
-    require(
-        gate.get("status") == "CURRENT"
-        and gate.get("current_subtask")
-        == "BACKEND-001-B2-PRODUCTION-BINDING",
-        "Approval transition changed the backend gate projection.",
-    )
-    require(
-        all(
-            item.get("status") == "PENDING"
-            for item in gate.get("criteria_state", [])
-        ),
-        "Approval transition changed backend acceptance criteria.",
+        "OIDC bearer token persistence boundary was violated.",
     )
 
 
@@ -1000,6 +1008,7 @@ def write_evidence(
         "",
         "- BACKEND-001-B0 through B4: `DONE`",
         "- BACKEND-001-B2-PRODUCTION-BINDING: `CURRENT`",
+        "- B2 Production Binding: `CURRENT`",
         "- BACKEND-001-B5 through B10: `PENDING`",
         "- BACKEND-001-AC01 through AC10: `PENDING`",
         "- Production customer routes enabled: **NO**",
@@ -1082,7 +1091,7 @@ def main() -> None:
         },
     )
 
-    # The existing Control Center remains the only state writer.
+    # Existing Control Center is the sole canonical state writer.
     controller.build_handoff_packet(candidate)
     controller.save_state(candidate)
 
@@ -1166,7 +1175,14 @@ def main() -> None:
     )
 
     run(["git", "add", "--", *staged_paths])
-    run(["git", "-c", "core.whitespace=cr-at-eol", "diff", "--cached", "--check"])
+    run([
+        "git",
+        "-c",
+        "core.whitespace=cr-at-eol",
+        "diff",
+        "--cached",
+        "--check",
+    ])
 
     actual_staged = set(
         run(
@@ -1202,7 +1218,7 @@ def main() -> None:
     transition_sha = run(["git", "rev-parse", "HEAD"], display=False)
     require(
         run(["git", "rev-parse", "HEAD^"], display=False) == expected_sha,
-        "Transition commit parent differs from the verified owner SHA.",
+        "Transition commit parent differs from verified owner SHA.",
     )
 
     run(
@@ -1217,7 +1233,7 @@ def main() -> None:
     remote_sha = run(["git", "rev-parse", "FETCH_HEAD"], display=False)
     require(
         remote_sha == transition_sha,
-        "Canonical branch readback differs from the transition commit.",
+        "Canonical branch readback differs from transition commit.",
     )
 
     remote_state = json.loads(
@@ -1252,7 +1268,7 @@ def main() -> None:
         authorization["authorization_fingerprint"],
         saved_state_blob_sha,
         "B2 Production Binding: `CURRENT`",
-        "AC01 through AC10: `PENDING`",
+        "BACKEND-001-AC01 through AC10: `PENDING`",
     ):
         require(
             marker in remote_evidence,
