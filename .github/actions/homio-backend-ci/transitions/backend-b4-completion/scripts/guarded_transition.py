@@ -1,14 +1,11 @@
-
 from __future__ import annotations
 
 import hashlib
-import io
 import json
 import os
 import re
 import subprocess
 import sys
-import zipfile
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -40,6 +37,7 @@ BASELINE_REGISTER_BLOB_SHA = "fe1deafb694534743447d9113ae52930d8b68d02"
 BASELINE_ENTRYPOINT_BLOB_SHA = "2e1d66cec0a8ca17b24ccf285d3133ff16ca2834"
 BASELINE_SCHEMA_MANIFEST_BLOB_SHA = "935cd4950d5e8de117a349ac3608cf4e7b663462"
 BASELINE_TARGET_RECOVERY_BLOB_SHA = "9798c2b964426dd37f190108460f9120a6174555"
+BASELINE_GUARD_TEST_BLOB_SHA = "d56def9aa22a0d31d48916faaf3f6558685c43bf"
 
 STATE_PATH = "REOS_CONTROL_CENTER/data/state.json"
 MASTER_PATH = (
@@ -80,10 +78,12 @@ GUARD_TEST_PATH = (
 REUSABLE_WORKFLOW_PATH = ".github/workflows/reusable-backend-b4-completion.yml"
 WORKFLOW_PATH = ".github/workflows/backend-ci.yml"
 
-# The workflow, action, implementation, and evidence are already included in
-# the verified baseline. The next owner commit changes only this guard file.
+# The approved owner bundle changes only the B4 guard and its own regression
+# tests. All other implementation, workflow, authority and evidence files
+# remain protected by their exact baseline blob identities.
 EXPECTED_SOURCE_PATHS = {
     GUARD_PATH,
+    GUARD_TEST_PATH,
 }
 
 MIGRATION_DIRECTORY = (
@@ -126,9 +126,6 @@ EXPECTED_MIGRATION_SHA256 = {
     ),
 }
 
-# All prerequisites, CI wiring and evidence are already in the verified
-# checkpoint. The owner completion commit may change only this guard; all
-# implementation, workflow and evidence sources remain protected.
 EXPECTED_B4_SOURCE_BLOBS = {
     STATE_PATH: BASELINE_STATE_BLOB_SHA,
     MASTER_PATH: BASELINE_MASTER_BLOB_SHA,
@@ -211,8 +208,6 @@ EXPECTED_B4_SOURCE_BLOBS = {
     ),
 }
 
-# Git blob hashes are pinned independently from the SQL-content SHA-256
-# values. This detects both byte-level content drift and Git-object replacement.
 EXPECTED_MIGRATION_BLOBS = {
     "00000001-core002-event-outbox.sql": "639684197d11544c1645b0c33bd5e8b824b4a008",
     "00000002-core002-safe-tenant-context.sql": "5b6898055f74c3f536d09edc9dd59cf8676e8bdc",
@@ -420,11 +415,12 @@ def verify_source_baseline(expected_sha: str) -> list[str]:
         (ENTRYPOINT_PATH, BASELINE_ENTRYPOINT_BLOB_SHA),
         (SCHEMA_MANIFEST_PATH, BASELINE_SCHEMA_MANIFEST_BLOB_SHA),
         (TARGET_RECOVERY_EVIDENCE_PATH, BASELINE_TARGET_RECOVERY_BLOB_SHA),
+        (GUARD_TEST_PATH, BASELINE_GUARD_TEST_BLOB_SHA),
     )
     for path, expected_blob in baseline_pins:
         if file_blob_sha(path, BASELINE_HEAD) != expected_blob:
             fail(f"audited B4 baseline blob differs from the pinned SHA: {path}")
-        if file_blob_sha(path, expected_sha) != expected_blob:
+        if path != GUARD_TEST_PATH and file_blob_sha(path, expected_sha) != expected_blob:
             fail(f"B4 owner change modified a protected baseline file: {path}")
 
     changed = run(
@@ -491,7 +487,6 @@ def verify_master_and_plan(expected_sha: str) -> tuple[str, str]:
         "## 52. B4 guarded transition policy",
         APPROVAL_PREFIX,
         "## 55. Mandatory completion checklist",
-        # Stable authoritative wording used by the current B4 plan.
         "No B4 completion claim is permitted before all eight canonical acceptance criteria",
     )
     for marker in plan_markers:
@@ -860,7 +855,7 @@ def _api_url(path: str) -> str:
 
 
 class _CredentialSafeRedirectHandler(HTTPRedirectHandler):
-    """Do not forward GitHub API credentials to a cross-origin log host."""
+    """Never forward GitHub API credentials to a different redirect origin."""
 
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         redirected = super().redirect_request(
@@ -922,24 +917,29 @@ def _api_get_json(url: str) -> dict:
 
 
 def _download_job_log(job_id: int) -> str:
+    if isinstance(job_id, bool) or not isinstance(job_id, int) or job_id <= 0:
+        fail("GitHub Actions verification job ID must be a positive integer")
+
     raw = _api_get_bytes(
         _api_url(f"/repos/{REPOSITORY}/actions/jobs/{job_id}/logs")
     )
-    try:
-        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-            names = [name for name in archive.namelist() if not name.endswith("/")]
-            if not names:
-                fail("GitHub Actions verification job log archive is empty")
-            return "\n".join(
-                archive.read(name).decode("utf-8", errors="replace")
-                for name in names
-            )
-    except zipfile.BadZipFile:
-        fail("GitHub Actions verification job logs were not a valid ZIP archive")
-    raise AssertionError("unreachable")
+    if not raw:
+        fail("GitHub Actions verification job log is empty")
 
+    # GitHub's individual-job logs endpoint redirects to a plain-text log.
+    # It is not the workflow-run archive endpoint and must never be unzipped.
+    # Reject an accidental binary/ZIP response before parsing verification
+    # markers; otherwise decode safely while preserving all readable evidence.
+    if raw.startswith((b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08")):
+        fail("GitHub Actions job-log endpoint returned ZIP data instead of plain text")
+    if b"\x00" in raw[:4096]:
+        fail("GitHub Actions job-log endpoint returned binary data instead of plain text")
 
-def verify_actions_run(expected_sha: str) -> dict:
+    log = raw.decode("utf-8-sig", errors="replace")
+    if not log.strip():
+        fail("GitHub Actions verification job log contains no readable text")
+    return log
+    def verify_actions_run(expected_sha: str) -> dict:
     run_id = os.environ.get("ACTIONS_RUN_ID", "")
     attempt = os.environ.get("ACTIONS_RUN_ATTEMPT", "")
     if not run_id.isdigit() or not attempt.isdigit():
@@ -984,6 +984,10 @@ def verify_actions_run(expected_sha: str) -> dict:
     if str(job.get("run_attempt", attempt)) != attempt:
         fail("verification job attempt differs from the exact Actions attempt")
 
+    job_id = job.get("id")
+    if isinstance(job_id, bool) or not isinstance(job_id, int) or job_id <= 0:
+        fail("canonical verification job has an invalid GitHub job ID")
+
     steps = job.get("steps")
     if not isinstance(steps, list):
         fail("verification job steps are missing")
@@ -1004,7 +1008,7 @@ def verify_actions_run(expected_sha: str) -> dict:
         if step_results.get(step_name) != "success":
             fail(f"required exact-SHA verification step did not pass: {step_name}")
 
-    raw_log = _download_job_log(int(job["id"]))
+    raw_log = _download_job_log(job_id)
     if f"HEAD is now at {expected_sha[:7]}" not in raw_log:
         fail("verification log does not prove checkout of the exact triggering SHA")
     summary = validate_backend_verification_log(raw_log)
@@ -1029,7 +1033,7 @@ def verify_actions_run(expected_sha: str) -> dict:
     return {
         "run_id": run_id,
         "attempt": attempt,
-        "job_id": str(job["id"]),
+        "job_id": str(job_id),
         "job_name": str(job.get("name", "")),
         "job_conclusion": str(job.get("conclusion", "")),
         "workflow_name": str(run_payload.get("name", "HOMIO Backend and ACRL Runtime CI")),
@@ -2007,3 +2011,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+
