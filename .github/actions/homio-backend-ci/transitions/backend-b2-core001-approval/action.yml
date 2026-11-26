@@ -1,0 +1,17 @@
+name: Guarded B2 CORE-001 Owner Approval
+description: >
+  Verifies exact-source owner approval through existing T15, T17 and T18
+  owners, then records only the bounded CORE-001 change-request approval
+  through the existing Control Center.
+
+runs:
+  using: composite
+  steps:
+    - name: Run CORE-001 approval transition regression tests
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/test_guarded_transition.py"
+
+    - name: Execute exact-SHA owner-authorized CORE-001 approval transition
+      if: ${{ success() }}
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_transition.py"
