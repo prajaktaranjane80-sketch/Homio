@@ -447,7 +447,9 @@ def verify_source_baseline(expected_sha: str) -> list[str]:
     if (ROOT / B4_COMPLETION_EVIDENCE_PATH).exists():
         fail("B4 completion evidence already exists; duplicate transition is forbidden")
     return sorted(changed)
-    def verify_master_and_plan(expected_sha: str) -> tuple[str, str]:
+
+
+def verify_master_and_plan(expected_sha: str) -> tuple[str, str]:
     master = run(["git", "show", f"{expected_sha}:{MASTER_PATH}"], display=False)
     plan = run(["git", "show", f"{expected_sha}:{PLAN_PATH}"], display=False)
     master_markers = (
@@ -998,6 +1000,8 @@ def verify_actions_run(expected_sha: str) -> dict:
     }
     required_steps = (
         "Checkout exact triggering commit with verified ancestry",
+        "Set up Python 3.12",
+        "Verify PostgreSQL integration harness secret transport",
         "Execute real PostgreSQL tenant and runtime-role integration checks",
         "Execute PostgreSQL concurrent-write and full fixture backup/restore checks",
         "Execute Redis 8 distributed rate-limit concurrency and expiry checks",
@@ -1071,7 +1075,9 @@ def verify_b4_implementation(expected_sha: str) -> dict:
         "schema_manifest_blob_sha": BASELINE_SCHEMA_MANIFEST_BLOB_SHA,
         "target_recovery_blob_sha": BASELINE_TARGET_RECOVERY_BLOB_SHA,
     }
-    def request_github_oidc_token() -> str:
+
+
+def request_github_oidc_token() -> str:
     request_url = os.environ.get("ACTIONS_ID_TOKEN_REQUEST_URL", "")
     request_token = os.environ.get("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "")
     if not request_url or not request_token:
@@ -1343,7 +1349,9 @@ def authorize_b4_completion(
         authorization.to_dict(),
         approval_record,
     )
-    def read_state() -> dict:
+
+
+def read_state() -> dict:
     try:
         return json.loads(STATE.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError):
@@ -1741,7 +1749,9 @@ def build_completion_evidence(
         ]
     )
     return "\n".join(lines)
-    def main() -> None:
+
+
+def main() -> None:
     required_env = (
         "GITHUB_ACTOR",
         "GITHUB_EVENT_NAME",
@@ -2005,4 +2015,3 @@ def build_completion_evidence(
 
 if __name__ == "__main__":
     main()
-    
