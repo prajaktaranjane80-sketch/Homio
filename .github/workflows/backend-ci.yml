@@ -6,11 +6,8 @@ on:
       - reos-development
     paths:
       # B4 completion is push-only and requires a non-empty owner commit.
-      # B4 owner approval must trigger the exact-SHA guarded completion.
-      # This workflow has a paths filter: an empty approval-marker commit is
-      # intentionally filtered out and cannot start the guarded B4 transition.
-      # The owner approval commit must change one of the existing B4 allowlisted
-      # workflow/action paths so verification and the exact-SHA guard both run.
+      # The owner approval commit must change an allowlisted workflow/action
+      # path so exact-SHA verification and guarded Control Center execution run.
       - "AGENTS.md"
       - "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/**"
       - "REOS_CONTROL_CENTER/backend/**"
@@ -101,8 +98,8 @@ concurrency:
   cancel-in-progress: false
 
 # Verification never changes canonical task state by itself.
-# Backend activation, B1 completion, B2 dependency correction, B3 and B4
-# completion use separate, narrowly scoped guarded transitions.
+# Backend activation, B1 completion, B2 dependency correction, B2 CORE-001
+# owner approval, B3 and B4 completion use separate guarded transitions.
 # AI-001 and CORE-008 retain their existing transition boundaries.
 
 jobs:
@@ -138,8 +135,22 @@ jobs:
     uses: ./.github/workflows/reusable-backend-b1-completion.yml
 
   control_center_correct_backend_b2_dependencies:
-    name: Guarded B2 dependency correction (BACKEND-001)
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/reos-development' && startsWith(github.event.head_commit.message, '[CONTROL-CENTER-CORRECT-BACKEND-001-B2-DEPENDENCIES]') }}
+    name: Guarded B2 change-control transition (BACKEND-001)
+    if: >-
+      ${{
+        github.event_name == 'push' &&
+        github.ref == 'refs/heads/reos-development' &&
+        (
+          startsWith(
+            github.event.head_commit.message,
+            '[CONTROL-CENTER-CORRECT-BACKEND-001-B2-DEPENDENCIES]'
+          ) ||
+          startsWith(
+            github.event.head_commit.message,
+            '[CONTROL-CENTER-APPROVE-BACKEND-001-B2-CORE001-AUTHZ]'
+          )
+        )
+      }}
     needs: verification
     permissions:
       contents: write
