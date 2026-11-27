@@ -388,7 +388,7 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
             self.skipTest("Dedicated owner-record guard is not installed yet.")
 
         self.assertEqual(
-            guard.OWNER_APPROVAL_SOURCE_PATHS,
+            guard.EXPECTED_SOURCE_PATHS,
             {guard.APPROVAL_RECORD_PATH},
         )
 
