@@ -1,7 +1,12 @@
+
 from __future__ import annotations
 
 import copy
+from pathlib import Path
+import subprocess
+import tempfile
 import unittest
+from unittest.mock import patch
 
 import guarded_transition as guard
 from REOS_CONTROL_CENTER.context.backend_workstream_transition import (
@@ -16,6 +21,18 @@ from REOS_CONTROL_CENTER.context.github_actions_identity import (
     OWNER_ID,
     REPOSITORY_ID,
 )
+
+
+def run_git(repository: Path, *arguments: str) -> str:
+    completed = subprocess.run(
+        ["git", *arguments],
+        cwd=repository,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=True,
+    )
+    return completed.stdout.strip()
 
 
 def make_state() -> dict:
@@ -182,7 +199,9 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
         self.assertFalse(
             approved[0]["scope"]["production_customer_routes_enabled"]
         )
-        self.assertFalse(approved[0]["scope"]["b2_task_completed"])
+        self.assertFalse(
+            approved[0]["scope"]["b2_task_completed"]
+        )
 
     def test_does_not_mutate_the_input_state(self):
         source = make_state()
@@ -226,6 +245,118 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
         self.assertTrue(
             all(item["status"] == "PENDING" for item in criteria)
         )
+
+    def test_source_inventory_uses_exact_approval_commit_not_historical_branch_diff(self):
+        historical_paths = {
+            "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py",
+            (
+                "REOS_CONTROL_CENTER/backend/tests/integration/"
+                "postgres-financial-ledger.integration.test.ts"
+            ),
+        }
+
+        with tempfile.TemporaryDirectory(
+            prefix="homio-b2-approval-"
+        ) as temporary_directory:
+            repository = Path(temporary_directory)
+
+            run_git(repository, "init")
+            run_git(repository, "config", "user.name", "HOMIO Guard Tests")
+            run_git(
+                repository,
+                "config",
+                "user.email",
+                "homio-guard-tests@example.invalid",
+            )
+
+            baseline_readme = repository / "README.md"
+            baseline_readme.write_text(
+                "Synthetic approval-guard baseline.\n",
+                encoding="utf-8",
+            )
+            run_git(repository, "add", "--all")
+            run_git(repository, "commit", "-m", "baseline")
+            baseline_sha = run_git(repository, "rev-parse", "HEAD")
+
+            for relative_path in sorted(historical_paths):
+                target = repository / relative_path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(
+                    "Previously committed unrelated change.\n",
+                    encoding="utf-8",
+                )
+
+            run_git(repository, "add", "--all")
+            run_git(
+                repository,
+                "commit",
+                "-m",
+                "previous unrelated implementation bundle",
+            )
+
+            for relative_path in sorted(guard.EXPECTED_SOURCE_PATHS):
+                target = repository / relative_path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(
+                    "Exact owner approval source bundle.\n",
+                    encoding="utf-8",
+                )
+
+            run_git(repository, "add", "--all")
+            run_git(
+                repository,
+                "commit",
+                "-m",
+                "exact owner approval source bundle",
+            )
+            owner_source_sha = run_git(repository, "rev-parse", "HEAD")
+
+            reviewed_blob_shas = {
+                guard.STATE_PATH: guard.BASELINE_STATE_BLOB_SHA,
+                guard.MASTER_PATH: guard.BASELINE_MASTER_BLOB_SHA,
+                guard.REQUEST_PATH: guard.BASELINE_REQUEST_BLOB_SHA,
+            }
+
+            def reviewed_blob_sha(path: str, ref: str = "HEAD") -> str:
+                if path not in reviewed_blob_shas:
+                    raise AssertionError(
+                        f"Unexpected source blob lookup: {path}"
+                    )
+                return reviewed_blob_shas[path]
+
+            with (
+                patch.object(guard, "ROOT", repository),
+                patch.object(guard, "BASELINE_HEAD", baseline_sha),
+                patch.object(
+                    guard,
+                    "file_blob_sha",
+                    side_effect=reviewed_blob_sha,
+                ),
+                patch.object(guard, "assert_exact_branch"),
+                patch.object(guard, "verify_request_document"),
+            ):
+                changed_paths = guard.verify_source_baseline(
+                    owner_source_sha
+                )
+
+            self.assertEqual(
+                changed_paths,
+                sorted(guard.EXPECTED_SOURCE_PATHS),
+            )
+
+            cumulative_paths = set(
+                run_git(
+                    repository,
+                    "diff",
+                    "--name-only",
+                    baseline_sha,
+                    owner_source_sha,
+                ).splitlines()
+            )
+            self.assertEqual(
+                cumulative_paths,
+                guard.EXPECTED_SOURCE_PATHS | historical_paths,
+            )
 
     def test_rejects_wrong_current_subtask(self):
         state = make_state()
