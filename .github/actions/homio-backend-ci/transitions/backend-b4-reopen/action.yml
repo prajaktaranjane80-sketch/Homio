@@ -1,0 +1,16 @@
+
+name: Guarded BACKEND-001-B4 recovery correction
+
+description: Owner-authorized guarded reopening of B4 through the existing REOS Control Center, preserving the prior completion event and exact recovery evidence baseline.
+
+runs:
+  using: composite
+  steps:
+    - name: Run B4 reopen guard regression suite
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/test_guarded_reopen.py"
+
+    - name: Execute owner-authorized B4 Control Center reopen and remote readback
+      if: ${{ success() }}
+      shell: bash
+      run: python "$GITHUB_ACTION_PATH/scripts/guarded_reopen.py"
