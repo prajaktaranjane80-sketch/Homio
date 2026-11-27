@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -273,10 +272,6 @@ class OIDCVerifier:
                     "verify_aud": True,
                 },
             )
-        except PyJWKClientError:
-            raise AuthenticationError(
-                "verification_key_unavailable"
-            ) from None
         except PyJWTError as exc:
             raise AuthenticationError(
                 "invalid_access_token"
