@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import copy
@@ -9,6 +8,8 @@ import unittest
 from unittest.mock import patch
 
 import guarded_transition as guard
+from test_core001_source_baseline import TestCore001SourceBaseline  # noqa: F401
+
 from REOS_CONTROL_CENTER.context.backend_workstream_transition import (
     BACKEND_STAGES,
     BACKEND_ACCEPTANCE_CRITERIA,
@@ -274,6 +275,17 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
                 "Synthetic approval-guard baseline.\n",
                 encoding="utf-8",
             )
+
+            for relative_path in sorted(
+                guard.CORE001_SOURCE_BLOB_SHAS
+            ):
+                target = repository / relative_path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(
+                    "Reviewed CORE-001 source fixture.\n",
+                    encoding="utf-8",
+                )
+
             run_git(repository, "add", "--all")
             run_git(repository, "commit", "-m", "baseline")
             baseline_sha = run_git(repository, "rev-parse", "HEAD")
@@ -315,6 +327,7 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
                 guard.STATE_PATH: guard.BASELINE_STATE_BLOB_SHA,
                 guard.MASTER_PATH: guard.BASELINE_MASTER_BLOB_SHA,
                 guard.REQUEST_PATH: guard.BASELINE_REQUEST_BLOB_SHA,
+                **guard.CORE001_SOURCE_BLOB_SHAS,
             }
 
             def reviewed_blob_sha(path: str, ref: str = "HEAD") -> str:
