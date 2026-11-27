@@ -121,13 +121,13 @@ def verify_core001_source_baseline(
     baseline_sha: str = BASELINE_HEAD,
 ) -> None:
     """
-    Verify exact CORE-001 file inventory and blob identities.
+    Verify the exact CORE-001 file inventory and blob identities.
 
-    Both the historical reviewed baseline and the owner-approved source
-    commit must contain exactly the same 15 canonical files and exact
-    reviewed Git blob SHAs.
+    Both refs are validated before any Git process is started.
+    Both commits must contain exactly the reviewed 15 files with
+    their expected Git blob SHAs.
 
-    This check is read-only. It does not mutate repository state.
+    This check is read-only.
     """
     refs = (
         (baseline_sha, "reviewed baseline"),
@@ -146,12 +146,14 @@ def verify_core001_source_baseline(
             "CORE-001 source manifest must contain exactly 15 paths."
         )
 
+    # Validate every caller-supplied ref before any Git access.
     for ref, label in refs:
         if not valid_sha(ref):
             raise Core001SourceBaselineError(
                 f"CORE-001 {label} SHA is invalid."
             )
 
+    for ref, label in refs:
         listed = _run_git(
             root,
             "ls-tree",
