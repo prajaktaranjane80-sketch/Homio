@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import copy
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -25,6 +26,7 @@ from guarded_reopen import (
     validate_reopen_baseline,
     validate_reopen_baseline_after,
     verify_commit_scope,
+    parse_porcelain_status_paths,
     ALLOWED_OWNER_COMMIT_PATHS,
     STATE_PATH,
 )
@@ -111,6 +113,55 @@ def sample_state() -> dict:
             }
         ],
     }
+
+
+class CommandOutputTests(unittest.TestCase):
+    def test_run_preserves_git_status_columns_and_leading_path_character(self) -> None:
+        command = ["git", "status", "--porcelain=v1", "--untracked-files=all"]
+        completed = subprocess.CompletedProcess(
+            args=command,
+            returncode=0,
+            stdout=" M REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt\n",
+            stderr="",
+        )
+
+        with patch("guarded_reopen.subprocess.run", return_value=completed):
+            output = guarded_reopen.run(command)
+
+        self.assertEqual(
+            output,
+            " M REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt",
+        )
+        self.assertEqual(
+            parse_porcelain_status_paths(output),
+            {"REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt"},
+        )
+
+    def test_status_parser_handles_multiple_records_without_trimming_status_columns(self) -> None:
+        output = (
+            " M REOS_CONTROL_CENTER/data/state.json\n"
+            "?? REOS_CONTROL_CENTER/snapshots/state_test.json\n"
+        )
+
+        self.assertEqual(
+            parse_porcelain_status_paths(output),
+            {
+                "REOS_CONTROL_CENTER/data/state.json",
+                "REOS_CONTROL_CENTER/snapshots/state_test.json",
+            },
+        )
+
+    def test_status_parser_rejects_malformed_or_truncated_records(self) -> None:
+        malformed_records = (
+            "M REOS_CONTROL_CENTER/REOS_NEXT_CHAT.txt",
+            " M ",
+            "bad-record",
+        )
+
+        for output in malformed_records:
+            with self.subTest(output=output):
+                with self.assertRaises(SystemExit):
+                    parse_porcelain_status_paths(output)
 
 
 class OwnerPushTests(unittest.TestCase):
