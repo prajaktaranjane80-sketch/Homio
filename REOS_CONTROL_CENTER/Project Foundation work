@@ -1,0 +1,1217 @@
+भाई, अब live GitHub देखकर मेरा जवाब है: हाँ, तुमने जो AI Agent Entry Point और ACRL बनाया था, उसका उद्देश्य मेरी बताई हुई ज्यादातर 46 समस्याओं को रोकना ही था।
+
+मेरी गलती थी कि मैंने उन 46 बातों को ऐसे प्रस्तुत किया जैसे हमें अब एक नया Anti-Repetition Protocol बनाना पड़ेगा। वास्तव में हमें नया engine या duplicate registry नहीं बनानी चाहिए।
+1. तुम्हारे AI Agent Entry Point में ये controls पहले से मौजूद हैं
+मैंने live reos-development branch की file पढ़ी है।
+Already implemented in policy
+तुम्हारी समस्या	पहले से मौजूद owner
+बार-बार वही research	T14, T23
+बार-बार पूरी repository search	T16
+Unnecessary file comparison	T17
+गलत command / unauthorized execution	T15, T18, T21
+पुराने CI failures दोहराना	T19
+गलत file replacement	T17, T20
+Git synchronization टूटना	T21, T22
+पुराने chat का context खोना	T07, T24
+Context और token waste	T08, T25
+बार-बार execution loop	T26
+Dependency research दोहराना	T27
+अलग-अलग findings में conflict	T28
+बिना approval बदलाव	T29
+अधूरा handoff	T30
+
+इसके अतिरिक्त Entry Point में अलग-अलग policies भी हैं:
+- SESSION_EFFICIENCY_RULES
+- T14_RESUME_RULES
+- RESEARCH_REUSE_RULES
+- CI_FAILURE_DEDUPLICATION_RULES
+- CONTEXT_BUDGET_RULES
+- CROSS_CHAT_SYNC_RULES
+Source: AI_AGENT_ENTRYPOINT.py
+2. फिर भी समस्या क्यों आ रही है?
+मुझे live verification में दो महत्वपूर्ण बातें मिलीं।
+समस्या 1 — T14 का current resume artifact उपलब्ध नहीं है
+Verified issue
+Repository में audit_resume_manifest.json की वर्तमान स्थिति UNINITIALIZED है।
+
+इसकी design के अनुसार यह जानबूझकर template रखा गया है। असली sealed manifest external GitHub Actions artifact से आना चाहिए।
+
+Current HEAD:
+
+f72aa2e37b7c04e1609090d455629b7c6b5e66a8
+
+पिछले सफल run का T14 artifact दूसरे SHA e93e49d... के लिए है। वह नए HEAD पर reuse नहीं किया जा सकता।
+
+T14 manifest
+
+समस्या 2 — Current CI failure
+Current HEAD CI failed
+Run 46000060510 में production-persistence.integration.test.ts का hook 30 seconds में timeout हुआ और socket unexpected close हुआ।
+
+Current run के artifacts में T14 resume artifact नहीं मिला; केवल quality evaluation artifact उपलब्ध है।
+
+Current Actions run
+
+इसका मतलब है कि हमारे पास अच्छी reuse policies होने के बावजूद अभी current HEAD के लिए वैध fast-resume evidence नहीं है।
+3. एक और सीमा समझना जरूरी है
+तुम्हारा ACRL T25 context और work budget manage करने के लिए बना है। लेकिन वह ChatGPT platform के hidden context meter को सीधे नहीं पढ़ सकता।
+
+इसीलिए repository research को optimize करना संभव है, लेकिन ChatGPT के actual remaining context tokens का exact measurement उपलब्ध न हो तो वह दावा नहीं कर सकता।
+4. मेरा engineering verdict
+Architecture already exists
+नया Anti-Repetition Engine बनाने की जरूरत अभी दिखाई नहीं देती।
+
+मौजूदा समस्या के तीन हिस्से हैं:
+1. Existing ACRL owners को सही तरीके से invoke और reuse नहीं करना।
+2. Current HEAD के लिए valid T14 continuity evidence उपलब्ध न होना।
+3. Agent की policy और उसके वास्तविक व्यवहार में अंतर।
+एक अतिरिक्त observation: GitHub branch metadata में reos-development अभी protected नहीं है। Entry Point की policy और GitHub की server-side branch protection अलग चीजें हैं।
+
+भाई, मेरी बात ध्यान से समझो: हमने पहले ही इस समस्या का architecture बनाया हुआ है। अब हमें एक और architecture बनाने के बजाय यह सुनिश्चित करना है कि जो बनाया है वह हर session में सही ढंग से काम करे।
+aare fir bhi mai AI_AGENT_ENTRYPOINT.py  sirf ye file read karani boli to bhi tum bahot read verification reasearch karate ho bhai ess file se kam kiya hai  or bhi file mai deta rahata hu fir bhi tum shayed maine di file or git project same hai koi changes to nahi hai isaliye shayed tum bahot read reasearch karate ho muze bata tum kya karate ho itana read and reasearch  agar AI_AGENT_ENTRYPOINT.py  iss file mai almost 80% project ka pata chalata hai to ?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+भाई, अब मैं तुम्हारी असली बात समझ गया हूँ। तुम चाहते हो कि मैं तुम्हारे दिए हुए documents और AI_AGENT_ENTRYPOINT.py का उपयोग करके सीधे काम करूँ, न कि हर बार उन्हीं documents को आधार बनाकर पूरी repository में फिर से research शुरू कर दूँ।
+
+तुम्हारी बात सही है। मेरे working process में अनावश्यक re-reading और over-verification हो रही है।
+1. क्या AI_AGENT_ENTRYPOINT.py में 80% project की जानकारी है?
+काफी हद तक project का overall structure और engineering direction इसमें मौजूद है।
+
+मैंने live GitHub वाली पूरी 3,070-line Entry Point file देखी है।
+
+इसमें पहले से मौजूद हैं:
+- Project identity और architecture ownership।
+- Backend, frontend और shared integration boundaries।
+- सभी प्रमुख ACRL owners T07–T30।
+- Repository document registry और master references।
+- Dependency और change-impact rules।
+- Git synchronization और write authorization policies।
+- Research और evidence reuse policies।
+- CI failure deduplication।
+- Context और token management।
+- New-chat bootstrap और cross-chat handoff।
+- Existing tests और verification requirements।
+लेकिन एक अंतर है:
+
+Entry Point project का master navigation और operating contract है, पूरे project का source code नहीं।
+
+इसलिए इसमें project को समझने के लिए बार-बार पूरी repository खोजने की जरूरत नहीं होनी चाहिए।
+2. फिर मैं वास्तव में इतना research क्यों करता हूँ?
+मेरा वर्तमान working cycle कुछ ऐसा बन जाता है:
+अनावश्यक research cycle
+1. तुम्हारा दिया हुआ document पढ़ना।
+2. उसी document का GitHub version फिर पढ़ना।
+3. दूसरे master document में वही जानकारी खोजना।
+4. उसकी dependencies और ACRL owners फिर खोलना।
+5. पहले verified findings को दोबारा check करना।
+6. फिर code और tests पर पहुँचना।
+अनावश्यक दोहराव
+
+यहाँ सबसे बड़ी गलती है कि मैं कई बार document identity verification को complete document re-reading और repository re-research में बदल देता हूँ।
+
+दूसरी गलती यह है कि पुराने findings और नए evidence को अलग रखने के बजाय कई बार मैं पूरी जानकारी फिर से इकट्ठा करता हूँ।
+3. तुम्हारे लिए सही workflow क्या होना चाहिए?
+मैं इसे तुम्हारे मौजूदा Entry Point और ACRL के अनुसार ऐसे चलाऊँगा:
+HOMIO — Existing System First
+Step 1 — Initial synchronization
+
+एक बार live branch HEAD और state.json की पहचान।
+
+Step 2 — Entry Point
+
+एक बार पढ़ना। इसके बाद उसका verified policy और registry संदर्भ reuse करना।
+
+Step 3 — तुम्हारे दिए हुए documents
+
+उनका exact path और Git blob SHA compare करना।
+- SHA समान: document match verified, दोबारा पूरा नहीं पढ़ना।
+- SHA अलग: केवल relevant difference देखना।
+- SHA उपलब्ध नहीं: पहले सीमित identity verification।
+
+Step 4 — ACRL T14
+
+Valid resume artifact हो तो FAST_RESUME।
+
+बदलाव हो तो TARGETED_REAUDIT।
+
+Full audit केवल तब, जब evidence वास्तव में इसकी माँग करे।
+
+Step 5 — Actual engineering
+
+केवल संबंधित source files, dependencies और tests।
+
+Step 6 — Post-save verification
+
+नया commit, changed paths, exact saved content और संबंधित CI evidence।
+
+4. मैंने live GitHub में एक वास्तविक बाधा भी देखी है
+वर्तमान branch HEAD:
+
+f72aa2e37b7c04e1609090d455629b7c6b5e66a8
+
+Entry Point blob SHA:
+
+f21a5d993fb2692838c77acc442f7059b9861958
+
+T14 का पिछला सफल resume artifact पुराने commit e93e49d... का है। वर्तमान HEAD के लिए वह valid नहीं है।
+
+इसलिए T14 इस समय पुराने repository evidence को FAST_RESUME के रूप में स्वीकार नहीं कर सकता।
+
+यह एक वास्तविक कारण है कि नए sessions में extra research हो सकती है। लेकिन इसका मतलब यह नहीं कि हर बार पूरी repository दोबारा पढ़ी जाए।
+5. अब मैं अपने काम करने का तरीका बदलूँगा
+तुम्हारे लिए ये नियम लागू होने चाहिए:
+परिस्थिति	मेरा व्यवहार
+Entry Point पहले verified है	अनावश्यक reread नहीं
+तुम master reference देते हो	उसी को प्राथमिकता
+File SHA समान है	पूरा comparison दोबारा नहीं
+पुरानी CI failure वही है	verified diagnosis reuse
+कोई नया commit नहीं	full repository audit नहीं
+कोई नई dependency नहीं	unrelated dependency research नहीं
+नया failure मिला	केवल affected scope की investigation
+पहले का काम PASS है	बिना regression evidence दोबारा नहीं खोलना
+
+एक जरूरी अपवाद: सुरक्षा, authorization, exact saved content या वास्तविक बदलाव की verification कभी skip नहीं होगी।
+
+मेरी स्पष्ट बात
+तुमने AI_AGENT_ENTRYPOINT.py और ACRL इसी उद्देश्य के लिए बनाए थे। मुझे उन्हीं का सही उपयोग करना चाहिए था। तुम्हें बार-बार नया protocol या नया engine बनाने की सलाह देना सही दिशा नहीं थी।
+
+अब लक्ष्य नया system बनाना नहीं है।
+
+लक्ष्य है कि मौजूदा HOMIO AI Agent वास्तव में अपने Entry Point और ACRL के अनुसार काम करे—कम दोहराव, कम context consumption, कम गलत बदलाव और सीधे professional engineering execution के साथ।
+
+nahi bhai tum 1-2 file esi banao jo pura poject 100% jankari rakhe or o hi 2 files read karake tum pura project samaj sako...ab samajo B4 ka work plan    ye maine working file banayee hai ab isake acording kam karana hai to tume pura project reasearch verification read nahi karan 1-2 esy file ho jo 100% project ka refarance ho or ye kam tume generic nahi ultra pro karana hai jara deeply search karake bata ham kaise aage kam karenge
+
+
+
+
+
+
+
+
+
+
+
+
+
+Worked for 2m 53s
+
+Planned project references
+
+
+
+भाई, अब मैं इसे “नया protocol जोड़ना” नहीं, बल्कि एक या दो authoritative project-reference files में पूरे project का usable map बनाना समझ रहा हूँ—ताकि हर नए chat में पूरी repository दोबारा न खंगालनी पड़े। मैं पहले मौजूदा Entry Point, live task state, तुम्हारा B4 work plan और उसके master reference को मिलाकर देखूँगा; फिर बताऊँगा कि कौन-सी जानकारी उन 1–2 files में स्थिर रूप से रखी जा सकती है, कौन-सी live GitHub से सिर्फ delta के रूप में refresh करनी होगी, और B4 पर इसका इस्तेमाल कैसे होगा।
+
+
+
+
+
+
+
+
+
+Clarified reference design
+
+
+Refined the project map
+
+
+
+
+
+Consolidated project knowledge
+
+
+
+
+
+Mapped structure, improved reference system, and chose reference model
+
+
+
+
+
+Designed and finalized an efficient reference system approach
+
+
+
+
+
+Designed and evaluated a SHA-backed canonical project reference system
+
+
+
+
+
+
+और एक concrete कारण भी सामने आया: तुम्हारे B4 reference register में B4 Work Plan और Backend Structure के blob SHA पहले से दर्ज हैं, और live GitHub पर दोनों SHA अभी भी बिल्कुल वही हैं। यानी इन दोनों लंबी files को दोबारा पूरा पढ़ने की जरूरत नहीं थी। मैंने इस session में register खोलने से पहले दोनों documents पूरा fetch कर दिए—यही वही अनावश्यक क्रम है जिसे तुम्हारा design रोकना चाहता है। साथ ही register में actual research entries और phase/checkpoint status अभी भरे हुए नहीं हैं; rules लिखे हैं, पर saved findings अधूरे हैं।
+
+
+
+
+
+
+
+
+
+Recommended fast, safe project reference architecture and strategy
+
+
+
+
+
+
+
+
+
+
+
+
+
+भाई, अब मुझे समझ आ गया कि तुम्हें वास्तव में क्या चाहिए। तुम्हें कोई और checklist, protocol या search engine नहीं चाहिए। तुम्हें ऐसा HOMIO Project Knowledge System चाहिए कि मुझे project की जानकारी बार-बार repository से निकालनी ही न पड़े।
+
+मैंने live repository, Entry Point, ACRL T14/T16, B4 Work Plan और B4 Reference Register की जाँच की है। मेरी recommendation नीचे है।
+1. पहले research से क्या पता चला?
+तुम्हारे पास पहले से काफी मजबूत infrastructure मौजूद है।
+A. AI_AGENT_ENTRYPOINT.py
+Existing — 3,070 lines
+इसमें project identity, ownership, source registry, ACRL routing, task authority, Git synchronization, research policies और engineering boundaries हैं।
+
+यह बताता है कि project कैसे समझना और operate करना है।
+
+इसमें पूरे project के हर source file का implementation विवरण नहीं है।
+
+B. ACRL T16 — Repository Intelligence
+Existing
+यह repository files classify करता है, paths और fingerprints बनाता है तथा Python module/import topology पहचानता है। इसका contract graph dependency relationships भी उपलब्ध कराता है।
+
+C. ACRL T14 — Repository Intelligence Context
+Existing
+इसके पास पहले से इन चीजों का support है:
+- Audited files के blob SHA
+- Previous findings और उनका status
+- CI और test evidence
+- Research evidence
+- FAST_RESUME
+- TARGETED_REAUDIT
+- FULL_AUDIT_REQUIRED
+
+D. B4-search-reference-register.md
+Existing but incomplete records
+इसमें repeated research रोकने के बहुत अच्छे नियम हैं, लेकिन actual investigation history पर्याप्त रूप से भरी हुई नहीं है।
+
+इनका मतलब है कि हमें नया engine बनाने के बजाय इन मौजूदा systems को सही तरीके से जोड़ना चाहिए।
+2. मेरा प्रस्ताव: केवल 2 मुख्य Project Reference Files
+FILE 1 — AI_AGENT_ENTRYPOINT.py
+KEEP
+
+Agent Operating Intelligence
+यह project का operating brain रहेगा।
+
+इसमें existing जानकारी का उपयोग होगा:
+- Project identity
+- Architecture और ownership
+- सभी canonical document references
+- ACRL responsibilities
+- Agent working rules
+- Security और authorization boundaries
+- GitHub synchronization
+- Engineering execution sequence
+
+
+FILE 2 — HOMIO_PROJECT_REFERENCE_ATLAS
+PROPOSED
+
+Complete Project Knowledge Map
+यह पूरे repository का detailed technical reference होगा।
+
+इसमें शामिल होंगे:
+- सभी project workstreams और उनके owners
+- CORE-001 से CORE-008 का पूरा ownership map
+- AI-001 और ACRL architecture references
+- Backend और frontend structure
+- Existing services, engines और registries
+- APIs, contracts और integrations के exact locations
+- Database और persistence ownership
+- Source files और test files का mapping
+- CI workflows और reusable Actions
+- Dependency और import relationships
+- Architecture decisions और approved constraints
+- हर capability का canonical reference
+- किस बदलाव से कौन-सी दूसरी files प्रभावित होती हैं
+यह केवल file-list नहीं होगा। इसमें यह समझने का रास्ता भी होगा कि एक module दूसरे module से कैसे जुड़ा है।
+
+
+बहुत जरूरी अंतर: Atlas में पूरे project की 100% reference coverage होगी, लेकिन सभी source files का पूरा code कॉपी नहीं होगा। ऐसा करने से एक और विशाल, duplicate और जल्दी stale होने वाला document बन जाएगा। वास्तविक implementation का मालिक संबंधित source file ही रहेगा।
+3. इस Atlas को कैसे तैयार करेंगे?
+यहाँ सबसे महत्वपूर्ण बात है: हम इसे हाथ से बार-बार update नहीं करेंगे।
+
+मौजूदा ACRL owners का उपयोग करेंगे।
+Existing architecture का उपयोग
+AI_AGENT_ENTRYPOINT.py
+
+Agent को project और authorities समझाता है।
+
+
+ACRL T16
+
+Repository inventory, file classification, source relationships और fingerprints।
+
+
+ACRL T14
+
+Verified findings, exact SHA, previous research और freshness assessment।
+
+
+HOMIO_PROJECT_REFERENCE_ATLAS
+Proposed output
+Complete project reference map
+
+
+Atlas और T14 cache को non-authoritative reference बनाना है। state.json और actual GitHub source की authority कभी नहीं बदलनी है।
+4. फिर हर नया chat कैसे चलेगा?
+यह सबसे महत्वपूर्ण बदलाव होगा।
+क्रम	क्या पढ़ा जाएगा	कितना काम
+1	AI_AGENT_ENTRYPOINT.py	केवल policy revision बदलने पर पूरी reading
+2	Project Reference Atlas	केवल नया या invalidated reference
+3	Live GitHub HEAD	एक छोटा refresh
+4	state.json	केवल current task और आवश्यक gate fields
+5	तुम्हारी working file	केवल संबंधित phase या changed sections
+6	Actual source files	केवल implementation के लिए जरूरी files
+
+उदाहरण के लिए तुम B4 Work Plan देते हो।
+
+मैं पहले B4 Register में उसके source SHA को देखूँगा। अभी इसका परिणाम हमारे पास है:
+B4 Work Plan
+Recorded SHA
+MATCH
+
+84c94c82ac5b0fde7c7bdf94acca235402c465ab
+
+Backend Structure
+Recorded SHA
+MATCH
+
+f8d9cd456568cc6c8eaae0caf764123a7e859ba6
+
+Current execution state
+FRESH READ REQUIRED
+B4 अभी CURRENT है। Live state.json के अनुसार B4 recovery correction के बाद Phase 8 से काम जारी करना है।
+
+इसलिए पूरा B4 Work Plan और Backend Structure फिर से पढ़ने के बजाय उनके पुराने verified references इस्तेमाल होंगे।
+
+केवल Phase 8 के actual implementation के लिए जरूरी files inspect होंगी।
+5. अभी जो दो समस्याएँ मिली हैं, उन्हें भी ठीक करना होगा
+समस्या A — Reference Register की जानकारी अधूरी है।
+
+तुम्हारे B4 register में:
+- B4-S001 और B4-S002 जैसे reference records मौजूद हैं।
+- Phase P1–P9 सभी UNKNOWN हैं।
+- Investigation history में actual B4-RXXX findings की जगह template है।
+- Implementation checkpoint और active work record खाली हैं।
+इसलिए register के rules मौजूद हैं, लेकिन अगले chat को वास्तविक saved findings पर्याप्त नहीं मिलतीं।
+
+समस्या B — T14 का current artifact उपलब्ध नहीं है।
+
+Current HEAD f72aa2e37b7c04e1609090d455629b7c6b5e66a8 के लिए सफल T14 resume artifact नहीं मिला। पिछला उपलब्ध artifact पुराने commit का है।
+
+Current Actions run 46000060510 भी B4 persistence integration timeout के कारण failed है।
+
+इसलिए वर्तमान HEAD पर FAST_RESUME का दावा नहीं कर सकते।
+
+इन दोनों समस्याओं को मौजूदा owners के अंदर ही हल करना होगा।
+6. आगे निर्माण के तीन संभावित रास्ते
+Approach	फायदा	नुकसान
+A. EntryPoint + T14/T16 generated Atlas	Existing architecture reuse, कम duplication, automatic freshness	Existing artifact generation reliable करना होगा
+B. नया manually maintained mega-reference document	पढ़ना आसान	दोबारा stale होने और duplicate information का खतरा
+C. सारी जानकारी EntryPoint में डालना	केवल एक file	पहले से 3,070 lines वाली policy और भी भारी, difficult to maintain
+
+मेरी recommendation: Approach A
+यह तुम्हारे पहले से बने AI Agent और ACRL design को बदले बिना उसका पूरा फायदा उठाने का रास्ता है।
+
+7. Implementation का क्रम
+मेरे हिसाब से काम इस क्रम में होना चाहिए:
+1. पहले AI_AGENT_ENTRYPOINT.py और existing ACRL architecture के साथ Atlas का exact data contract तय करना।
+2. T16 से complete project inventory और ownership/dependency references निकालना।
+3. T14 के existing manifest और evidence model का उपयोग करके verified knowledge तथा SHA freshness सुरक्षित करना।
+4. एक Atlas output तैयार करना, कोई duplicate repository engine या registry नहीं।
+5. नए chat के लिए केवल दो मुख्य project reference inputs का resume flow तय करना।
+6. Entry Point contract tests और existing ACRL regression में इसकी continuity verify करना।
+7. GitHub Actions में exact HEAD पर artifact और resume evidence verify करना।
+8. इसके बाद B4 के Phase 8 को तुम्हारे work plan के अनुसार जारी रखना।
+मैं अभी किसी existing file को बदल नहीं रहा हूँ।
+
+एक जरूरी निर्णय तुम्हारा चाहिए:
+
+क्या हम Approach A अपनाएँ—यानी मौजूदा AI_AGENT_ENTRYPOINT.py को सुरक्षित रखकर ACRL T14/T16 के मौजूदा owners से एक complete, SHA-verified HOMIO_PROJECT_REFERENCE_ATLAS तैयार करें, ताकि आगे हर नए chat में पूरा project research दोबारा न करना पड़े?
+
+ha isse or pro bana bhai bar bar kahi chije change hoti hai jaise CI or bhi chije kahe bar galatise kahi bar update se change hoti rahati hai or o chije fir in 2 files mai update nahi hoti to uska bhi pro solution chahiye
+
+Worked for 4m 30s
+भाई, अब इसे हम और मजबूत बनाएँगे। तुम्हारी नई requirement के लिए केवल एक Project Atlas बनाना पर्याप्त नहीं है। हमें ऐसा system चाहिए जो हर बार repository में बदलाव होने पर अपनी जानकारी अपने आप update करे, बदलाव का असर पहचाने और पुराने reference को गलती से current न माने।
+
+मैंने live GitHub में मौजूदा CI और ACRL pipeline भी देखी है। एक महत्वपूर्ण root cause मिला है।
+
+1. सबसे पहले: मौजूदा system में क्या कमी है?
+तुम्हारे repository में पहले से:
+
+AI_AGENT_ENTRYPOINT.py — operating policy और reference registry
+
+ACRL T14 — repository resume और evidence freshness
+
+ACRL T16 — source inventory और dependency intelligence
+
+GitHub Actions — verification और T14 artifact publication
+
+मौजूद हैं।
+
+लेकिन मौजूदा .github/actions/homio-backend-ci/verification/action.yml में T14 cache seal और publish करने के steps की condition success() है।
+
+इसलिए backend CI fail होने पर नया T14 cache प्रकाशित नहीं होता।
+
+Live repository में सत्यापित
+27 November 2026 के current HEAD पर run 46000060510 failed हुआ। उसी run में T14 resume artifact नहीं था, जबकि quality evaluation artifact था।
+
+इसका मतलब है कि repository का नया code मौजूद है, लेकिन पूरे CI suite के fail होने पर उसका नया reusable reference उपलब्ध नहीं होता।
+
+मौजूदा CI action देखें
+
+यह design में सुधार करने का सबसे महत्वपूर्ण कारण है।
+
+2. Final architecture: दो मुख्य reference files
+FILE 01
+
+Existing
+AI_AGENT_ENTRYPOINT.py
+
+Project का operating brain।
+
+यह तय करेगा कि:
+
+किस authority को मानना है।
+
+कौन-सी file किसकी owner है।
+
+कौन-सा ACRL engine इस्तेमाल करना है।
+
+Research कब करनी है।
+
+पुराना evidence कब reuse करना है।
+
+किस बदलाव पर रुकना है।
+
+FILE 02
+
+New generated reference
+HOMIO_PROJECT_REFERENCE_ATLAS.json
+
+पूरे repository का automatically updated technical map।
+
+यह बताएगा:
+
+कौन-सी files मौजूद हैं।
+
+प्रत्येक file का exact Git SHA क्या है।
+
+कौन-सा module किसका owner है।
+
+कौन-सी file किस दूसरी file पर निर्भर है।
+
+कौन-से workflows और reusable Actions मौजूद हैं।
+
+कौन-से tests किस code को verify करते हैं।
+
+कौन-से documents authoritative हैं।
+
+कौन-से पुराने findings अभी valid हैं।
+
+कौन-से changes ने पुराने findings invalidate किए हैं।
+
+दूसरी file को repository में manually maintain नहीं करेंगे। इसे GitHub Actions artifact के रूप में generate करेंगे। इससे reos-development में अतिरिक्त bot commits, HEAD changes और infinite CI loops नहीं होंगे।
+
+3. सबसे महत्वपूर्ण: Automatic Update System
+हमारा नया reference हर बार manually update नहीं करना होगा।
+
+Automatic Atlas Generation
+
+GitHub — reos-development
+
+कोई भी tracked file बदलती है और नया commit आता है।
+
+Dedicated lightweight Atlas workflow
+
+हर push पर चलता है। कोई paths filter नहीं, जिससे भविष्य में नए folder या CI file छूटें नहीं।
+
+Existing ACRL T16
+
+Tracked file inventory, source classification, Python और TypeScript/JavaScript/CSS imports, dependency graph और repository fingerprint।
+
+T14 + existing authority registry
+
+पुराने findings, evidence identities, source SHA और freshness conditions का उपयोग।
+
+HOMIO_PROJECT_REFERENCE_ATLAS.json
+
+Exact HEAD reference
+पूरा नया verified reference package।
+
+Workflow को इन परिस्थितियों में चलाएँगे:
+
+Trigger
+
+काम
+
+हर push
+
+नया Atlas
+
+Existing Backend CI पूरा होने पर
+
+CI-generated state changes के बाद current branch snapshot
+
+Manual workflow dispatch
+
+जरूरत पर दोबारा generation
+
+Weekly schedule
+
+Artifact expiry और continuity recovery
+
+इससे CI की नई configuration, reusable action, test, dependency या documentation change होने पर Atlas छूटेगा नहीं।
+
+4. कौन-कौन सी चीजें अपने आप update होंगी?
+यह इस system का सबसे महत्वपूर्ण हिस्सा है।
+
+Repository में क्या बदला?
+
+Atlas में क्या update होगा?
+
+Python / TypeScript source
+
+File index, imports और dependency mapping
+
+New / deleted / renamed file
+
+Complete inventory और path references
+
+GitHub Actions workflow
+
+Workflow graph, jobs और triggers
+
+Reusable workflow
+
+Workflow dependencies और execution relationships
+
+Composite action
+
+Action references और verification sequence
+
+CI test commands
+
+Test-to-code mapping
+
+package.json / lockfile
+
+Dependency information
+
+Python requirements
+
+Package dependency mapping
+
+state.json
+
+Current execution snapshot और state SHA
+
+AI_AGENT_ENTRYPOINT.py
+
+Operating rules और document registry
+
+Architecture master
+
+Architecture reference और affected sections
+
+B4/B5 work plan
+
+Task-specific reference और phase mapping
+
+विशेष रूप से CI के लिए हम केवल workflow का नाम नहीं रखेंगे। उसके अंदर क्या चल रहा है, उसका relationship भी बनाएँगे।
+
+उदाहरण:
+
+CI Reference Map
+
+backend-ci.yml
+
+reusable-backend-verification.yml
+
+homio-backend-ci/verification/action.yml
+
+Existing verification scripts → tests → results
+यह reference relationship है; वास्तविक PASS/FAIL status अलग live evidence रहेगा।
+5. सबसे जरूरी: Change Detection और Selective Reverification
+मान लो कल तुमने केवल CI workflow में बदलाव किया।
+
+पुराने तरीके में पूरा project research शुरू हो जाता था।
+
+नए तरीके में:
+
+Example: केवल CI configuration बदली
+
+Reuse Backend source code के unchanged findings।
+
+Reuse CORE domain ownership।
+
+Recheck बदला हुआ workflow।
+
+Recheck संबंधित reusable actions और test wiring।
+
+Recheck नई configuration पर relevant CI evidence।
+
+बाकी verified project knowledge सुरक्षित रहेगी।
+
+इसके लिए प्रत्येक file के साथ exact Git blob SHA होगा।
+
+इसका नियम:
+
+Same SHA = पुराने findings reuse।
+
+Changed SHA = केवल प्रभावित findings invalidate।
+
+Deleted file = उसके पुराने references हटाएँ और dependents जाँचें।
+
+Renamed file = पुराने और नए path का संबंध सुरक्षित रखें।
+
+Unrelated file change = unrelated research दोबारा नहीं।
+
+T16 का मौजूदा dependency graph और T17 का change-impact owner इसी काम के लिए इस्तेमाल होंगे।
+
+6. गलत या अधूरी update होने पर सुरक्षा
+यहाँ मैं विशेष रूप से मजबूत व्यवस्था चाहता हूँ।
+
+Atlas में ये metadata अनिवार्य होंगे:
+
+Metadata
+
+उद्देश्य
+
+Source commit SHA
+
+किस exact commit से बना
+
+Git tree SHA
+
+repository snapshot की पहचान
+
+EntryPoint blob SHA
+
+operating policy की freshness
+
+state.json blob SHA
+
+task snapshot की पहचान
+
+Generator version
+
+Atlas बनाने वाले builder का version
+
+Schema version
+
+Atlas format compatibility
+
+Dependency fingerprint
+
+dependency graph integrity
+
+Workflow fingerprint
+
+CI configuration integrity
+
+Generated timestamp
+
+freshness
+
+Integrity fingerprint
+
+accidental corruption detection
+
+Coverage report
+
+कितनी files classify/index हुईं
+
+Fail-closed behavior:
+
+अगर Atlas generation fail हुई, incomplete हुई या उसका SHA गलत है:
+
+पुराना Atlas current घोषित नहीं होगा।
+
+पुराने Atlas को historical reference माना जाएगा।
+
+पूरा project दोबारा audit नहीं होगा।
+
+पिछले valid Atlas और नए HEAD के बीच targeted changes पहचाने जाएँगे।
+
+समस्या ठीक होने तक गलत reference के आधार पर implementation नहीं होगी।
+
+7. GitHub से बाहर होने वाले बदलाव भी संभालने होंगे
+एक सीमा स्पष्ट रखनी जरूरी है। हर बदलाव GitHub commit में नहीं आता।
+
+उदाहरण:
+
+GitHub Secrets और Environment Variables।
+
+Repository permissions और branch protection।
+
+External API provider changes।
+
+Production database में वास्तविक schema drift।
+
+Redis/PostgreSQL runtime configuration।
+
+Deployment और operational status।
+
+इनका मूल्य static Atlas से हमेशा पता नहीं चल सकता।
+
+इसलिए Atlas में एक EXTERNAL_DEPENDENCY_MAP भी होगा। इसमें exact owner, verification method और last verified evidence reference होगा। Secrets की values कभी संग्रहित नहीं होंगी।
+
+जब कोई task इन external dependencies पर निर्भर होगा, तभी संबंधित live check किया जाएगा।
+
+8. Context consumption भी कम करना है
+Atlas को हजारों files के पूरे contents के साथ model के context में नहीं डालेंगे।
+
+यह बहुत बड़ी गलती होगी।
+
+हमारा तरीका होगा:
+
+Atlas = Complete machine-readable index
+
+Agent = केवल आवश्यक project knowledge load करेगा।
+
+उदाहरण के लिए B4 में:
+
+Atlas से PostgreSQL persistence ownership निकलेगा।
+
+B4 plan से Phase 8 की आवश्यकताएँ मिलेंगी।
+
+Relevant source files और tests के paths मिलेंगे।
+
+केवल संबंधित code और test पढ़े जाएँगे।
+
+इसलिए 3,000 files का reference होने का मतलब 3,000 files को context में लाना नहीं होगा।
+
+Atlas में 100% tracked-file inventory की कोशिश होगी। Unsupported formats और जिनका semantic mapping नहीं हो पाया, उन्हें साफ तौर पर दर्ज किया जाएगा। 100% semantic understanding का झूठा दावा नहीं करेंगे।
+
+9. B4 पर इसका पहला वास्तविक उपयोग
+अभी live data के अनुसार:
+
+Current B4 baseline
+
+Repository HEAD
+
+Verified
+f72aa2e37b7c04e1609090d455629b7c6b5e66a8
+
+Work plan
+
+REOS_CONTROL_CENTER/B4 ka work plan
+
+Previously recorded SHA matches live
+Backend master
+
+HOMIO_Backend_Structure
+
+Previously recorded SHA matches live
+Execution position
+
+B4 — Phase 8 resume
+state.json इसकी वर्तमान task authority है।
+
+B4 के लिए इस system को implement करने के बाद हमें ARCH-037 और B4 की पहले से पूरी हुई research फिर से नहीं करनी होगी। Phase 8 की वास्तविक स्थिति और उसके evidence से आगे चलेंगे।
+
+10. Implementation में कौन-सी existing files reuse होंगी?
+मैं यह scope प्रस्तावित करता हूँ:
+
+Path
+
+प्रस्तावित काम
+
+REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py
+
+Atlas reference और startup integration
+
+.../T16_Repository_Intelligence_File_Discovery/
+
+Existing T16 में lightweight Atlas exporter
+
+.../T14_Repository_Intelligence_Context/
+
+Existing freshness और evidence validation का reuse
+
+.github/workflows/
+
+एक स्वतंत्र lightweight Atlas generation workflow
+
+Existing T16 tests
+
+Atlas generation और integrity regression
+
+Existing EntryPoint contract test
+
+New-chat read order और Atlas rules verification
+
+कोई नया repository scanner, दूसरा ACRL, दूसरा task manager या अलग CI engine नहीं बनेगा।
+
+Backend CI की सभी tests हर repository commit पर चलाने की भी जरूरत नहीं होगी। Atlas का अलग lightweight workflow केवल reference generation करेगा।
+
+मेरा final recommendation
+Recommended architecture
+Two Reference Files + Automatic Generation + Exact-Commit Validation + Targeted Reverification.
+
+इसके बाद:
+
+तुम्हारा project knowledge स्थायी रहेगा।
+
+CI changes छूटेंगे नहीं।
+
+गलत file replacement के बाद पुराने references silently reuse नहीं होंगे।
+
+New chat पर पूरा repository research नहीं होगा।
+
+Existing architecture का duplication नहीं होगा।
+
+Backend और frontend के बीच ownership synchronization सुरक्षित रहेगा।
+
+एक जरूरी implementation boundary: तुम्हारा AI_AGENT_ENTRYPOINT.py और ACRL policy सुरक्षित रहेंगे। हम केवल आवश्यक integration जोड़ेंगे, पूरे EntryPoint की अनावश्यक replacement नहीं करेंगे।
+
+अब इस विस्तृत design को अंतिम मानकर implementation शुरू करने की तुम्हारी स्वीकृति है? इसके बाद मैं पहले Atlas generation और validation का complete implementation दूँगा, exact repository paths और पूरी replacement files के साथ।
+or kya kya gaps hai isami jo hame or pro banana hai like tum khud owenr hote to or kya addition karate
+Bhai, agar main HOMIO / REOS ka owner engineer hota, toh main is design ko sirf repository reference system nahi banata. Main ise ek aisa self-maintaining engineering continuity system banata, jo changes ko khud track kare, purane evidence ko stale mark kare aur next chat ko bina repeat research ke exact current work par le aaye.
+
+Tumhare existing AI_AGENT_ENTRYPOINT.py, ACRL, T14 aur T16 mein already kaafi foundations hain. Isliye main koi naya duplicate engine, registry ya orchestration layer nahi banata. Main existing owners ko strengthen karta.
+
+Mere hisaab se abhi 10 important additions chahiye
+1. Authority Conflict Resolver — sabse important
+System ko sirf files dhoondhna nahi, balki conflicting information ka decision bhi karna aana chahiye.
+
+Example: kisi master architecture document mein APP-001 current dikhe, lekin live state.json B4 bataye. System ko khud pata hona chahiye ki kis source ko kis type ke decision ke liye follow karna hai.
+
+Iske liye har source ka authority type fixed ho:
+
+Task aur status: state.json
+
+Actual implementation: live GitHub source files
+
+Task acceptance criteria: authoritative work plan
+
+Architecture: designated master reference
+
+Repository map aur derived information: Atlas
+
+Continuity aur execution policies: EntryPoint / ACRL
+
+Rule: Do authoritative sources mein contradiction aaye toh system guess nahi karega. Sirf conflicting information verify karega aur phir aage badhega.
+
+2. Automatic Change-Impact Engine — sirf changed file nahi, uska poora effect
+Maan lo backend mein ek dependency update hui. Uska impact package files, tests, workflows, reusable actions aur dependent modules par ho sakta hai.
+
+Atlas ko sirf ye nahi batana chahiye ki kaunsi file badli. Use ye bhi dikhana chahiye:
+
+Kaunse modules affect hue.
+
+Kaunse contracts ya dependencies affect hue.
+
+Kaunse tests dobara chalne chahiye.
+
+Kaunse previous findings invalidate hue.
+
+Kaunsa evidence abhi bhi valid hai.
+
+Ye existing T16 dependency aur impact-analysis ownership ke andar hi hona chahiye.
+
+3. Evidence Freshness Engine — purana PASS dobara current na ban sake
+Mere liye ye production-grade system ki mandatory condition hai.
+
+Har evidence ke saath record ho:
+
+Information
+
+Kyon zaroori hai
+
+Source commit SHA
+
+Kis code par evidence bana
+
+File blob SHA
+
+Kaunsi exact file verify hui
+
+CI run ID / attempt
+
+Kaunsa exact run tha
+
+Verification date
+
+Kab verify hua
+
+Verification method
+
+Kaise verify hua
+
+Validity status
+
+Current, stale, invalid, unknown
+
+Invalidation reason
+
+Evidence kyon invalid hua
+
+Example: ek test purane SHA par PASS tha. Ab code change ho gaya. System use current PASS nahi maanega.
+
+4. Event Coverage — har tarah ke updates capture hone chahiye
+Pehle wale design mein ek important gap tha: GitHub par kuch automation GITHUB_TOKEN se commit kar sakti hai. Aise changes par normal push event se doosra workflow automatically trigger hona guaranteed nahi hota.
+
+Isliye main ye व्यवस्था add karta:
+
+GitHub UI se push → Atlas refresh.
+
+Pull request → reference validation.
+
+Automation se state/branch update → explicit workflow_dispatch ya repository_dispatch.
+
+Backend CI complete → relevant current-head verification.
+
+Manual refresh → recovery option.
+
+Scheduled refresh → missed updates ke liye backstop.
+
+Saath mein branch HEAD generation se pehle aur baad verify hoga. Branch change ho gaya toh purane snapshot ko current bolkar publish nahi karenge.
+
+5. Real Coverage Report — 100% inventory ka matlab 100% understanding nahi
+Atlas ko har tracked file ka record banana chahiye. Lekin jo format ya language parser samajh nahi sakta, use chupana nahi chahiye.
+
+Mujhe do alag measurements chahiye:
+
+Inventory coverage: repository ki kitni tracked files record hui.
+
+Analysis coverage: unmein se kitni files ko supported parser ne kitni depth tak analyse kiya.
+
+Unsupported file, binary, submodule, generated file ya unknown ownership ko clearly report kiya jayega.
+
+Isse system kabhi galat claim nahi karega ki usne poora project samajh liya.
+
+6. Single File Ownership and Dependency Map
+Har important file ka ek clear owner hona chahiye.
+
+Example:
+
+Area
+
+Existing owner
+
+Repository discovery
+
+T16
+
+Resume / audit decision
+
+T14
+
+New chat bootstrap
+
+T07
+
+Change impact
+
+T17
+
+Test selection and diagnosis
+
+T19
+
+Repair verification
+
+T20
+
+Evidence resolution
+
+T23
+
+Context budget
+
+T25
+
+Completion proof
+
+T30
+
+Atlas in owners ko replace nahi karega. Woh unke outputs ko ek searchable map mein connect karega.
+
+Koi second scanner, second resume engine ya second evidence registry nahi.
+
+7. Automatic New-Chat Session Pack
+Ye addition tumhari original problem ko directly solve karega.
+
+Nayi chat shuru hote hi poora repository ya hazaaron lines ke documents context mein daalne ki jagah Atlas se ek compact session pack generate hoga.
+
+Usmein sirf:
+
+Current branch aur exact HEAD.
+
+Live task aur subtask.
+
+Current authoritative work plan.
+
+Relevant file ownership.
+
+Previous completed work.
+
+Current unresolved work.
+
+Last verified CI result.
+
+Known failure ka root cause.
+
+Kya evidence stale hua.
+
+Next permitted implementation step.
+
+Kaunsi exact files read karni hain.
+
+Isse har chat mein hum zero se project research shuru nahi karenge.
+
+Aur session pack Atlas ka generated section hoga, teesri independent reference file nahi.
+
+8. CI Failure Memory — same error par same investigation dobara nahi
+Har failure ko unique identity mile:
+
+workflow + run + attempt + commit SHA + job + failed step + failure signature
+
+Phir system compare kare:
+
+Kya failure pehle aa chuka hai?
+
+Kya exact source SHA same hai?
+
+Kya error signature same hai?
+
+Kya previous root cause verified tha?
+
+Kya uske baad relevant code change hua?
+
+Agar same failure hai, toh previous verified diagnosis reuse hoga. Agar actual code ya error badla hai, tab targeted investigation hogi.
+
+Important: Old failure ka fix current failure par bina verification apply nahi hoga.
+
+9. Security, Integrity and Recovery
+Atlas bhi ek generated data artifact hai, authority source nahi. Isliye uska misuse ya stale version accept nahi hona chahiye.
+
+Main ye checks rakhta:
+
+Generator sirf read-only repository inspection kare.
+
+Repository files ko execute na kare.
+
+File paths aur symlinks validate hon.
+
+Secret values kabhi Atlas mein na aayen.
+
+Workflow permissions minimum read-only hon.
+
+JSON schema aur fingerprint validate hon.
+
+Artifact ka exact source SHA verify ho.
+
+Missing ya invalid artifact par historical version ko current mark na kiya jaaye.
+
+Generator failure aur backend test failure ko alag report kiya jaaye.
+
+10. Enforced Rules — documentation likhne se rule enforce nahi hota
+Ye sabse bada engineering principle hai.
+
+Sirf EntryPoint mein likh dena kaafi nahi ki duplicate files nahi banani, complete replacement dena hai, ya state change verify karna hai.
+
+Un important rules ko automated contract tests se enforce karna hoga.
+
+Examples:
+
+Existing owner ke hote duplicate owner create na ho.
+
+Task authority state.json ke against na chale.
+
+Incorrect SHA wala evidence current na maana jaaye.
+
+Atlas mein duplicate file records na hon.
+
+Required tracked files inventory se miss na hon.
+
+Failed CI ko PASS evidence mein convert na kiya ja sake.
+
+Guarded transition ke bina task DONE mark na ho.
+
+Backend-only changes se frontend files unnecessarily modify na hon.
+
+Ek aur important baat: external changes
+Kuch changes GitHub repository mein commit nahi hote. Jaise GitHub Secrets, branch protection, environment approvals, external API configuration aur live database schema.
+
+Atlas inki presence aur verification metadata record kar sakta hai, lekin unhe repository scan se discover karne ka jhootha claim nahi karna chahiye.
+
+Jis task ko unki zaroorat ho, usi samay relevant live verification honi chahiye. Secret values kabhi copy nahi honi chahiye.
+
+Final owner-level architecture
+HOMIO / REOS Engineering Continuity
+AI_AGENT_ENTRYPOINT.py
+
+Stable rules · Authority · Startup · Navigation
+
+HOMIO_PROJECT_REFERENCE_ATLAS
+
+Automatically generated · Exact-SHA repository map · Dependencies · CI · Evidence freshness · Change impact
+
+Task-Specific Session Pack
+
+Only current task · Required files · Previous verified work · Next permitted step
+
+Existing T14 / T16–T30
+
+Their current responsibilities remain with their existing owners.
+
+GitHub Actions
+
+Automatic generation, validation, change capture and artifact publication.
+
+Result: Current, verified, targeted engineering continuity
+
+Meri final recommendation
+Main aur koi naya independent project-reference document ya engine nahi banaunga. Existing EntryPoint ko stable policy layer rakhunga aur generated Atlas ko changing repository information ka source banaunga.
+
+Implementation ke liye meri priority hogi:
+
+Authority, ownership aur freshness contracts.
+
+Existing T16 se Atlas generation.
+
+Inventory, dependency aur change-impact validation.
+
+GitHub event coverage aur automatic artifact publication.
+
+Session Pack aur CI failure memory.
+
+Existing EntryPoint/ACRL ke contract tests.
+
+Current B4 task par actual resume verification.
+
+Ek important boundary: Atlas banne ke baad bhi B4 ka live status state.json se hi aayega; Atlas kabhi B4 acceptance criteria ya task authority replace nahi karega.
+
+Mera target hai: ek baar verified research ko baar-baar na karna, ek baar fix hui problem ko bina naye evidence ke dobara na kholna, aur repository mein koi relevant change ho toh uska impact automatically trace karna. यही HOMIO / REOS ke liye professional engineering standard hona chahiye.
+
+मैं अभी AI_AGENT_ENTRYPOINT.py या किसी ACRL file में कोई बदलाव नहीं कर रहा हूँ। पहले से मौजूद system की कमी और उसके actual runtime activation को ठीक से समझना जरूरी है।
