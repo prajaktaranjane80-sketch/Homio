@@ -401,8 +401,13 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
 
         candidate = build(t17=t17)
 
+        approved_request = next(
+            item
+            for item in candidate["change_requests"]
+            if item.get("id") == guard.CHANGE_REQUEST_ID
+        )
         self.assertEqual(
-            candidate["change_requests"][0]["impact_review"]["changed_paths"],
+            approved_request["impact_review"]["changed_paths"],
             [guard.APPROVAL_RECORD_PATH],
         )
 
