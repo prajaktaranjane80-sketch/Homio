@@ -761,7 +761,7 @@ describe.skipIf(!integrationEnabled)(
           issuer: "https://issuer.example.test/",
           subject: `b4-session-${suffix}`,
           audiences: ["homio-api"],
-          clientId: "homio-backend-ci",
+                    clientId: "homio-backend-ci",
           tokenId: randomUUID(),
           issuedAtEpochSeconds: now - 5,
           expiresAtEpochSeconds: now + 3_600
@@ -1211,7 +1211,9 @@ describe.skipIf(!integrationEnabled)(
     it.skipIf(process.env.GITHUB_ACTIONS !== "true")(
       "fails readiness during Redis service loss and recovers the production runtime after Redis restart",
       async () => {
-        if (runtime === undefined || !redisUrl || adminPool === undefined) {
+        const activeRuntime = runtime;
+
+        if (activeRuntime === undefined || !redisUrl || adminPool === undefined) {
           throw new Error(
             "The real PostgreSQL and Redis production runtime was not initialized."
           );
@@ -1314,9 +1316,9 @@ describe.skipIf(!integrationEnabled)(
 
           while (Date.now() < deadline) {
             try {
-              await runtime.verifyReadiness();
+              await activeRuntime.verifyReadiness();
 
-              if (runtime.isHealthy()) {
+              if (activeRuntime.isHealthy()) {
                 return;
               }
 
@@ -1369,9 +1371,9 @@ describe.skipIf(!integrationEnabled)(
             );
           }
 
-          await runtime.verifyReadiness();
-          expect(runtime.isHealthy()).toBe(true);
-          expect(await runtime.redis.ping()).toBe("PONG");
+          await activeRuntime.verifyReadiness();
+          expect(activeRuntime.isHealthy()).toBe(true);
+          expect(await activeRuntime.redis.ping()).toBe("PONG");
 
           /*
            * Stop only the loopback-published Redis 8.0.3 service container
@@ -1399,14 +1401,14 @@ describe.skipIf(!integrationEnabled)(
            * independently through the same production PostgresRuntime.
            */
           await expect(
-            runtime.verifyReadiness()
+            activeRuntime.verifyReadiness()
           ).rejects.toMatchObject({
             name: "ProductionPersistenceUnavailableError"
           });
 
-          expect(runtime.isHealthy()).toBe(false);
+          expect(activeRuntime.isHealthy()).toBe(false);
 
-          const postgresProbe = await runtime.postgres.withTenantTransaction(
+          const postgresProbe = await activeRuntime.postgres.withTenantTransaction(
             { tenantId: tenantA },
             (transaction) => transaction.query(
               "SELECT 1 AS postgres_available"
@@ -1479,20 +1481,20 @@ describe.skipIf(!integrationEnabled)(
           );
         }
 
-        expect(runtime.isHealthy()).toBe(true);
+        expect(activeRuntime.isHealthy()).toBe(true);
 
         /*
          * Exercise the real production shutdown path after successful
          * dependency recovery. Repeated close must remain idempotent.
          */
-        await runtime.close();
-        await runtime.close();
+        await activeRuntime.close();
+        await activeRuntime.close();
 
-        expect(runtime.redis.isOpen).toBe(false);
-        expect(runtime.isHealthy()).toBe(false);
+        expect(activeRuntime.redis.isOpen).toBe(false);
+        expect(activeRuntime.isHealthy()).toBe(false);
 
         await expect(
-          runtime.verifyReadiness()
+          activeRuntime.verifyReadiness()
         ).rejects.toMatchObject({
           name: "ProductionPersistenceUnavailableError"
         });
@@ -1514,4 +1516,5 @@ describe.skipIf(!integrationEnabled)(
 );
 
 
-  
+
+          
