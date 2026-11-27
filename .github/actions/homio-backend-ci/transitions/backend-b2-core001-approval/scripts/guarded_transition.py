@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import copy
@@ -162,6 +163,49 @@ def file_blob_sha(path: str, ref: str = "HEAD") -> str:
         ["git", "rev-parse", f"{ref}:{path}"],
         display=False,
     )
+
+
+def changed_paths_for_commit(source_sha: str) -> list[str]:
+    """
+    Return only the paths changed by the exact owner source commit.
+
+    The historical reviewed baseline remains an ancestry and trust anchor.
+    It is deliberately not used as the diff base because unrelated,
+    previously verified commits may exist between that baseline and the
+    current owner approval commit.
+    """
+    require(
+        valid_sha(source_sha),
+        "Owner source commit SHA is invalid.",
+    )
+
+    parent_sha = run(
+        ["git", "rev-parse", f"{source_sha}^"],
+        display=False,
+    )
+    require(
+        valid_sha(parent_sha),
+        "Owner source commit parent SHA is invalid.",
+    )
+
+    changed_paths = run(
+        [
+            "git",
+            "diff",
+            "--name-only",
+            "--no-renames",
+            parent_sha,
+            source_sha,
+        ],
+        display=False,
+    ).splitlines()
+
+    require(
+        len(changed_paths) == len(set(changed_paths)),
+        "Owner source commit returned duplicate changed paths.",
+    )
+
+    return sorted(changed_paths)
 
 
 def load_existing_b2_guard():
@@ -371,16 +415,7 @@ def verify_source_baseline(expected_sha: str) -> list[str]:
         "Owner source commit unexpectedly changes the approval request.",
     )
 
-    changed_paths = run(
-        [
-            "git",
-            "diff",
-            "--name-only",
-            BASELINE_HEAD,
-            expected_sha,
-        ],
-        display=False,
-    ).splitlines()
+    changed_paths = changed_paths_for_commit(expected_sha)
 
     actual_paths = set(changed_paths)
     require(
