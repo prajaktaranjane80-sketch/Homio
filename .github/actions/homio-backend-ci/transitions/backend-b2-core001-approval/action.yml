@@ -1,12 +1,19 @@
-
 name: Guarded B2 CORE-001 Owner Approval
 description: >
-  Executes the exact-SHA CORE-001 owner approval transition after the
-  repository-level B2 guard regression suite and backend verification pass.
+  Verifies the immutable CORE-001 owner-source baseline before executing
+  the exact-SHA CORE-001 owner approval transition.
 
 runs:
   using: composite
   steps:
+    - name: Verify canonical CORE-001 source inventory and hashes
+      shell: bash
+      run: |
+        set -euo pipefail
+        python "$GITHUB_ACTION_PATH/scripts/verify_core001_source_baseline.py"
+
     - name: Execute exact-SHA owner-authorized CORE-001 approval transition
       shell: bash
-      run: python "$GITHUB_ACTION_PATH/scripts/guarded_transition.py"
+      run: |
+        set -euo pipefail
+        python "$GITHUB_ACTION_PATH/scripts/guarded_transition.py"
