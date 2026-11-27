@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
+import { EventEmitter } from "node:events";
 
 import { Pool } from "pg";
 
@@ -430,7 +431,19 @@ b4OperationsSuite(
             idleTimeoutMillis: 120_000
           });
 
-          restartPool.on("error", (error) => {
+          /*
+           * pg's runtime Pool inherits EventEmitter, but the installed public
+           * Pool declaration does not expose .on(). Verify the runtime contract
+           * before registering the idle-client error observer. This avoids an
+           * unchecked structural cast and preserves strict callback typing.
+           */
+          if (!(restartPool instanceof EventEmitter)) {
+            throw new Error(
+              "The PostgreSQL pool does not expose the required EventEmitter error channel."
+            );
+          }
+
+          restartPool.on("error", (error: Error) => {
             restartPoolErrors.push(error);
           });
 
