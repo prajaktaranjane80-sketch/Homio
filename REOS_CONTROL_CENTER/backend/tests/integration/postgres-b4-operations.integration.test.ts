@@ -17,7 +17,7 @@ const POSTGRES_IMAGE = "postgres:18.4";
 const CONTAINER_READY_TIMEOUT_MS = 45_000;
 const CONTAINER_POLL_INTERVAL_MS = 250;
 const LONG_TRANSACTION_IDLE_TIMEOUT_MS = 250;
-const LONG_TRANSACTION_WAIT_MS = 500;
+const LONG_TRANSACTION_POLL_INTERVAL_MS = 50;
 const STATEMENT_TIMEOUT_MS = 200;
 
 interface DockerOptions {
@@ -321,12 +321,30 @@ b4OperationsSuite(
             rows: [{ client_disconnect_recovered: 1 }]
           });
 
-          // An idle, long-running transaction is terminated by PostgreSQL's
-          // transaction timeout; the dead client is discarded, not reused.
+          // The PostgreSQL server emits SQLSTATE 25P03 as an asynchronous
+          // client error when it terminates an idle-in-transaction session.
+          // Capture that event before starting the transaction; do not issue a
+          // second query against a socket the server has already closed.
           const idleTransactionClient =
             await database.applicationPool.connect();
 
+          const idleTransactionErrors: Array<
+            Error & { readonly code?: string }
+          > = [];
+
           try {
+            if (!(idleTransactionClient instanceof EventEmitter)) {
+              throw new Error(
+                "The PostgreSQL client does not expose its EventEmitter error channel."
+              );
+            }
+
+            idleTransactionClient.on("error", (error: Error) => {
+              idleTransactionErrors.push(
+                error as Error & { readonly code?: string }
+              );
+            });
+
             await idleTransactionClient.query("BEGIN");
 
             await idleTransactionClient.query(
@@ -335,13 +353,20 @@ b4OperationsSuite(
             );
 
             await idleTransactionClient.query("SELECT 1");
-            await wait(LONG_TRANSACTION_WAIT_MS);
 
-            await expect(
-              idleTransactionClient.query("SELECT 1")
-            ).rejects.toMatchObject({
-              code: "25P03"
-            });
+            const idleTimeoutDeadline = Date.now() + 10_000;
+
+            while (
+              idleTransactionErrors.length === 0 &&
+              Date.now() < idleTimeoutDeadline
+            ) {
+              await wait(LONG_TRANSACTION_POLL_INTERVAL_MS);
+            }
+
+            expect(
+              idleTransactionErrors.some((error) => error.code === "25P03"),
+              "PostgreSQL must terminate the idle transaction with SQLSTATE 25P03."
+            ).toBe(true);
           } finally {
             idleTransactionClient.release(true);
           }
