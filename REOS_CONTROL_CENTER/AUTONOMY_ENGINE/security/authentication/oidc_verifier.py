@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -38,10 +37,9 @@ class AuthenticationError(RuntimeError):
 class AuthenticatedPrincipal:
     """Verified identity and access-token revocation identifiers.
 
-    token_id is the verified RFC 9068 jti claim.
-    client_id is the verified OAuth client identifier.
-
-    The raw bearer token is deliberately not retained in this object.
+    The issue and expiry timestamps are copied only after successful
+    signature, issuer, audience and time validation. The raw bearer
+    token is deliberately not retained in this object.
     """
 
     issuer: str
@@ -49,6 +47,8 @@ class AuthenticatedPrincipal:
     audiences: tuple[str, ...]
     client_id: str
     token_id: str
+    issued_at_epoch_seconds: int
+    expires_at_epoch_seconds: int
     email: str | None = None
     email_verified: bool = False
 
@@ -284,6 +284,20 @@ class OIDCVerifier:
         if self._settings.audience not in audiences:
             raise AuthenticationError("invalid_access_token")
 
+        # These values come from the already-verified JWT payload.
+        # Require whole Unix seconds because the durable B4 session
+        # owner uses integer NumericDate values as part of session identity.
+        issued_at = claims.get("iat")
+        expires_at = claims.get("exp")
+
+        if (
+            type(issued_at) is not int
+            or issued_at <= 0
+            or type(expires_at) is not int
+            or expires_at <= issued_at
+        ):
+            raise AuthenticationError("invalid_access_token")
+
         raw_email = claims.get("email")
         email: str | None = None
 
@@ -301,6 +315,8 @@ class OIDCVerifier:
             audiences=audiences,
             client_id=client_id,
             token_id=token_id,
+            issued_at_epoch_seconds=issued_at,
+            expires_at_epoch_seconds=expires_at,
             email=email,
             email_verified=claims.get("email_verified") is True,
         )
