@@ -759,7 +759,7 @@ describe.skipIf(!integrationEnabled)(
 
         const principal: VerifiedExternalPrincipal = {
           issuer: "https://issuer.example.test/",
-          subject: \`b4-session-\${suffix}\`,
+          subject: `b4-session-${suffix}`,
           audiences: ["homio-api"],
           clientId: "homio-backend-ci",
           tokenId: randomUUID(),
@@ -866,10 +866,10 @@ describe.skipIf(!integrationEnabled)(
           runtime.postgres.withTenantTransaction(
             { tenantId: tenantA },
             (transaction) => transaction.query(
-              \`UPDATE reos_infra.api_sessions
+              `UPDATE reos_infra.api_sessions
                   SET account_id = $2
                 WHERE session_id = $1
-                RETURNING session_id\`,
+                RETURNING session_id`,
               [
                 sessionId,
                 randomUUID()
@@ -1512,5 +1512,6 @@ describe.skipIf(!integrationEnabled)(
     );
   }
 );
-    
-    
+
+
+  
