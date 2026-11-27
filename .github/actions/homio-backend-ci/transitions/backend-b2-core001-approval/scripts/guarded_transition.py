@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import copy
@@ -30,6 +29,10 @@ EVIDENCE_PATH = (
     "REOS_CONTROL_CENTER/evidence/BACKEND-001/"
     "B2-core001-authorization-approval-evidence.md"
 )
+APPROVAL_RECORD_PATH = (
+    "REOS_CONTROL_CENTER/evidence/BACKEND-001/"
+    "B2-core001-authorization-owner-approval.md"
+)
 
 BASELINE_HEAD = "ae9e2e24344c391a116cc85b8d358b80bfcaa8e4"
 BASELINE_STATE_BLOB_SHA = (
@@ -53,21 +56,34 @@ APPROVAL_PREFIX = (
 )
 OIDC_AUDIENCE = "homio-control-center-b2-core001-authorization-approval"
 
+# This exact record is the only source file that may be changed by the
+# owner-approval commit. The repository owner must create/save it only when
+# explicitly choosing to approve the bounded change request.
+#
+# The GitHub Actions owner identity, OIDC principal, exact commit path,
+# immutable state/master/request baselines and T15/T17/T18 checks are
+# independently verified. The record cannot authorize production routes
+# or completion of B2.
+APPROVAL_RECORD_CONTENT = """# B2 CORE-001 Owner Approval
+
+- Change request: `B2-CORE001-AUTHZ-001`
+- Decision: `APPROVE`
+- Approval scope: `Bounded owner-extension request only`
+- Repository: `prajaktaranjane80-sketch/Homio`
+- Branch: `reos-development`
+
+I, the repository owner, explicitly approve only the bounded changes described in `B2-core001-resource-action-decision-change-request.md`.
+
+This approval covers the T01 identity/account-resolution extension, the authenticated B3 trusted-context and private authorization operation, one resource/action decision owner within existing CORE-001, default-deny behavior, approved assurance and attribute sources, role-isolation fixtures, and the regression coverage defined by that request.
+
+This approval does not authorize production customer routes, B2 completion, backend acceptance-criteria completion, production release, manual `state.json` edits, frontend changes, or any work outside the referenced request.
+"""
+
+# Owner approval must be a dedicated one-file commit. This intentionally
+# replaces the previous five-infrastructure-files-in-one-commit requirement,
+# which is incompatible with normal GitHub Web Editor saves.
 EXPECTED_SOURCE_PATHS = {
-    ".github/workflows/backend-ci.yml",
-    ".github/workflows/reusable-backend-workstream-activation.yml",
-    (
-        ".github/actions/homio-backend-ci/transitions/"
-        "backend-b2-core001-approval/action.yml"
-    ),
-    (
-        ".github/actions/homio-backend-ci/transitions/"
-        "backend-b2-core001-approval/scripts/guarded_transition.py"
-    ),
-    (
-        ".github/actions/homio-backend-ci/transitions/"
-        "backend-b2-core001-approval/scripts/test_guarded_transition.py"
-    ),
+    APPROVAL_RECORD_PATH,
 }
 
 for import_root in (ROOT, CONTROL):
@@ -353,6 +369,39 @@ def verify_request_document(expected_sha: str) -> None:
     )
 
 
+def verify_owner_approval_record(expected_sha: str) -> None:
+    """
+    Require the exact owner-attestation text from the triggering commit.
+
+    The dedicated file is deliberately separate from the proposed change
+    request, which remains immutable and NOT APPROVED until the guarded
+    transition records the decision.
+    """
+    require(
+        valid_sha(expected_sha),
+        "Owner approval source SHA is invalid.",
+    )
+
+    content = run(
+        ["git", "show", f"{expected_sha}:{APPROVAL_RECORD_PATH}"],
+        display=False,
+    )
+
+    normalized_content = content.replace("\r\n", "\n").strip()
+    expected_content = APPROVAL_RECORD_CONTENT.replace(
+        "\r\n",
+        "\n",
+    ).strip()
+
+    require(
+        normalized_content == expected_content,
+        (
+            "Owner approval record does not exactly match the "
+            "approved CORE-001 change-request scope."
+        ),
+    )
+
+
 def verify_source_baseline(expected_sha: str) -> list[str]:
     assert_exact_branch(expected_sha)
 
@@ -416,18 +465,20 @@ def verify_source_baseline(expected_sha: str) -> list[str]:
     )
 
     changed_paths = changed_paths_for_commit(expected_sha)
-
     actual_paths = set(changed_paths)
+
     require(
         actual_paths == EXPECTED_SOURCE_PATHS,
         (
-            "Exact approval source-path inventory mismatch; "
+            "Exact owner approval path inventory mismatch; "
             f"missing={sorted(EXPECTED_SOURCE_PATHS - actual_paths)}; "
             f"unexpected={sorted(actual_paths - EXPECTED_SOURCE_PATHS)}"
         ),
     )
 
     verify_request_document(expected_sha)
+    verify_owner_approval_record(expected_sha)
+
     return sorted(actual_paths)
 
 
@@ -812,7 +863,7 @@ def build_approved_state(
     }
     require(
         normalized_t17_paths == normalized_expected_paths,
-        "T17 analyzed paths differ from exact approved source inventory.",
+        "T17 analyzed paths differ from the exact owner approval record path.",
     )
 
     require(
@@ -1013,6 +1064,7 @@ def write_evidence(
         "",
         f"- Change request: `{CHANGE_REQUEST_ID}`",
         "- Approval result: **APPROVED — BOUNDED CHANGE SCOPE ONLY**",
+        f"- Owner approval record: `{APPROVAL_RECORD_PATH}`",
         f"- Verified owner source commit: `{source_sha}`",
         f"- GitHub Actions run: `{run_id}`",
         f"- GitHub Actions attempt: `{run_attempt}`",
@@ -1297,6 +1349,7 @@ def main() -> None:
     )
     for marker in (
         CHANGE_REQUEST_ID,
+        APPROVAL_RECORD_PATH,
         expected_sha,
         t15_report["request_fingerprint"],
         t17_report["fingerprint"],
