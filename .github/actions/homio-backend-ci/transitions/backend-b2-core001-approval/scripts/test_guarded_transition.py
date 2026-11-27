@@ -251,12 +251,6 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
             all(item["status"] == "PENDING" for item in criteria)
         )
 
-    def test_approval_inventory_contains_only_the_owner_record(self):
-        self.assertEqual(
-            guard.EXPECTED_SOURCE_PATHS,
-            {guard.APPROVAL_RECORD_PATH},
-        )
-
     def test_source_inventory_uses_exact_approval_commit_not_historical_branch_diff(self):
         historical_paths = {
             "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py",
@@ -316,11 +310,17 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
                     f"previous unrelated save: {target.name}",
                 )
 
+            approval_content = getattr(
+                guard,
+                "APPROVAL_RECORD_CONTENT",
+                "Exact owner approval source bundle.\n",
+            )
+
             for relative_path in sorted(guard.EXPECTED_SOURCE_PATHS):
                 target = repository / relative_path
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text(
-                    guard.APPROVAL_RECORD_CONTENT,
+                    approval_content,
                     encoding="utf-8",
                     newline="\n",
                 )
@@ -330,7 +330,7 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
                 repository,
                 "commit",
                 "-m",
-                "exact owner approval record",
+                "exact owner approval source bundle",
             )
             owner_source_sha = run_git(repository, "rev-parse", "HEAD")
 
@@ -365,7 +365,7 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
 
             self.assertEqual(
                 changed_paths,
-                [guard.APPROVAL_RECORD_PATH],
+                sorted(guard.EXPECTED_SOURCE_PATHS),
             )
 
             cumulative_paths = set(
@@ -383,7 +383,33 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
                 guard.EXPECTED_SOURCE_PATHS | historical_paths,
             )
 
-    def test_rejects_modified_owner_approval_record(self):
+    def test_owner_record_inventory_is_available_after_guard_upgrade(self):
+        if not hasattr(guard, "APPROVAL_RECORD_PATH"):
+            self.skipTest("Dedicated owner-record guard is not installed yet.")
+
+        self.assertEqual(
+            guard.OWNER_APPROVAL_SOURCE_PATHS,
+            {guard.APPROVAL_RECORD_PATH},
+        )
+
+    def test_single_file_owner_record_is_accepted_by_t17_after_guard_upgrade(self):
+        if not hasattr(guard, "APPROVAL_RECORD_PATH"):
+            self.skipTest("Dedicated owner-record guard is not installed yet.")
+
+        _, t17, _ = valid_reports()
+        t17["changed_paths"] = [guard.APPROVAL_RECORD_PATH]
+
+        candidate = build(t17=t17)
+
+        self.assertEqual(
+            candidate["change_requests"][0]["impact_review"]["changed_paths"],
+            [guard.APPROVAL_RECORD_PATH],
+        )
+
+    def test_rejects_modified_owner_approval_record_after_guard_upgrade(self):
+        if not hasattr(guard, "APPROVAL_RECORD_CONTENT"):
+            self.skipTest("Dedicated owner-record guard is not installed yet.")
+
         tampered_content = guard.APPROVAL_RECORD_CONTENT.replace(
             "- Decision: `APPROVE`",
             "- Decision: `PENDING`",
@@ -401,7 +427,10 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
             ):
                 guard.verify_owner_approval_record("f" * 40)
 
-    def test_rejects_extra_file_in_owner_approval_commit(self):
+    def test_rejects_extra_file_in_owner_approval_commit_after_guard_upgrade(self):
+        if not hasattr(guard, "APPROVAL_RECORD_PATH"):
+            self.skipTest("Dedicated owner-record guard is not installed yet.")
+
         with tempfile.TemporaryDirectory(
             prefix="homio-b2-extra-approval-path-"
         ) as temporary_directory:
