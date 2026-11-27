@@ -126,7 +126,6 @@ describe.skipIf(!integrationEnabled)(
     let adminPool: TestPostgresPool | undefined;
     let migrationPool: TestPostgresPool | undefined;
     let runtime: ProductionPersistenceRuntime | undefined;
-    let secondaryRedis: ProductionRedisClient | undefined;
 
     let tenantSchema = "";
     let migrationRole = "";
@@ -497,42 +496,88 @@ describe.skipIf(!integrationEnabled)(
     }, testTimeoutMs);
 
     afterAll(async () => {
-      await runtime?.close().catch(() => undefined);
+      const cleanupErrors: Error[] = [];
 
-      await migrationPool?.end().catch(() => undefined);
-
-      if (secondaryRedis !== undefined) {
+      const attemptCleanup = async (
+        operation: string,
+        cleanup: () => Promise<unknown>
+      ): Promise<void> => {
         try {
-          if (secondaryRedis.isOpen) {
-            await secondaryRedis.quit();
-          } else {
-            secondaryRedis.destroy();
-          }
-        } catch {
-          secondaryRedis.destroy();
+          await cleanup();
+        } catch (error) {
+          cleanupErrors.push(
+            new Error(
+              `B4 integration fixture cleanup failed: ${operation}.`,
+              { cause: error }
+            )
+          );
         }
-      }
+      };
 
-      if (adminPool !== undefined) {
+      await attemptCleanup(
+        "production persistence runtime",
+        async () => {
+          await runtime?.close();
+        }
+      );
+
+      await attemptCleanup(
+        "migration pool",
+        async () => {
+          await migrationPool?.end();
+        }
+      );
+
+      const activeAdminPool = adminPool;
+
+      if (activeAdminPool !== undefined) {
         if (createdTenantSchema) {
-          await adminPool.query(
-            `DROP SCHEMA IF EXISTS ${quoteIdentifier(tenantSchema)} CASCADE`
-          ).catch(() => undefined);
+          await attemptCleanup(
+            "temporary tenant schema",
+            async () => {
+              await activeAdminPool.query(
+                `DROP SCHEMA IF EXISTS ${quoteIdentifier(tenantSchema)} CASCADE`
+              );
+            }
+          );
         }
 
         if (createdInfraSchema) {
-          await adminPool.query(
-            "DROP SCHEMA IF EXISTS reos_infra CASCADE"
-          ).catch(() => undefined);
+          await attemptCleanup(
+            "infrastructure schema",
+            async () => {
+              await activeAdminPool.query(
+                "DROP SCHEMA IF EXISTS reos_infra CASCADE"
+
+                    );
+            }
+          );
         }
 
         if (createdMigrationRole) {
-          await adminPool.query(
-            `DROP ROLE IF EXISTS ${quoteIdentifier(migrationRole)}`
-          ).catch(() => undefined);
+          await attemptCleanup(
+            "temporary migration role",
+            async () => {
+              await activeAdminPool.query(
+                `DROP ROLE IF EXISTS ${quoteIdentifier(migrationRole)}`
+              );
+            }
+          );
         }
 
-        await adminPool.end().catch(() => undefined);
+        await attemptCleanup(
+          "administrative PostgreSQL pool",
+          async () => {
+            await activeAdminPool.end();
+          }
+        );
+      }
+
+      if (cleanupErrors.length > 0) {
+        throw new AggregateError(
+          cleanupErrors,
+          "B4 production persistence integration fixture cleanup failed."
+        );
       }
     }, testTimeoutMs);
 
@@ -1059,6 +1104,11 @@ describe.skipIf(!integrationEnabled)(
           ).rejects.toMatchObject({
             code: "42501"
           });
+                        [requestId]
+            )
+          ).rejects.toMatchObject({
+            code: "42501"
+          });
         } finally {
           await apiProbePool.end();
         }
@@ -1133,73 +1183,140 @@ describe.skipIf(!integrationEnabled)(
           );
         }
 
-        secondaryRedis = redisModule.createClient({
+        /*
+         * This test-owned client must never outlive this test. In particular,
+         * it must be closed before the following test deliberately restarts
+         * the disposable Redis service.
+         */
+        const secondaryRedis = redisModule.createClient({
           url: redisUrl
         });
 
-        await secondaryRedis.connect();
+        let secondaryRedisConnected = false;
+        let secondaryRedisError: unknown;
+        let operationFailed = false;
+        let operationError: unknown;
+        let cleanupFailed = false;
+        let cleanupError: unknown;
 
-        const rateLimitOptions = {
-          keySecret: randomBytes(32).toString("hex"),
-          keyVersion: "node-integration-v1",
-          policyVersion: `ci-${suffix}`,
-          policies: {
-            "api-ip": {
-              maxRequests: 10,
-              windowMs: 5_000
-            },
-            "api-identity-tenant": {
-              maxRequests: 15,
-              windowMs: 5_000
+        /*
+         * Node Redis requires an error listener. Capture the event so it is
+         * reported as a test failure rather than an unhandled process error.
+         */
+        secondaryRedis.on("error", (error) => {
+          secondaryRedisError = error;
+        });
+
+        try {
+          await secondaryRedis.connect();
+          secondaryRedisConnected = true;
+
+          const rateLimitOptions = {
+            keySecret: randomBytes(32).toString("hex"),
+            keyVersion: "node-integration-v1",
+            policyVersion: `ci-${suffix}`,
+            policies: {
+              "api-ip": {
+                maxRequests: 10,
+                windowMs: 5_000
+              },
+              "api-identity-tenant": {
+                maxRequests: 15,
+                windowMs: 5_000
+              }
             }
+          } as const;
+
+          const limiterA = new RedisRateLimiter(
+            runtime.redis,
+            rateLimitOptions
+          );
+
+          const limiterB = new RedisRateLimiter(
+            secondaryRedis,
+            rateLimitOptions
+          );
+
+          const decisions = await Promise.all(
+            Array.from({ length: 24 }, (_, index) => {
+              const limiter = index % 2 === 0
+                ? limiterA
+                : limiterB;
+
+              return limiter.consume({
+                bucket: "api-ip",
+                key: `node-integration-${suffix}`
+              });
+            })
+          );
+
+          const allowed = decisions.filter(
+            (decision) => decision.allowed
+          );
+
+          const denied = decisions.filter(
+            (decision) => !decision.allowed
+          );
+
+          expect(allowed).toHaveLength(10);
+          expect(denied).toHaveLength(14);
+
+          expect(
+            denied.every(
+              (decision) =>
+                decision.retryAfterSeconds !== undefined &&
+                decision.retryAfterSeconds >= 1
+            )
+          ).toBe(true);
+
+          if (secondaryRedisError !== undefined) {
+            throw new Error(
+              "The secondary Redis client emitted an error during the shared rate-limit integration test.",
+              { cause: secondaryRedisError }
+            );
           }
-        } as const;
 
-        const limiterA = new RedisRateLimiter(
-          runtime.redis,
-          rateLimitOptions
-        );
+          await runtime.verifyReadiness();
 
-        const limiterB = new RedisRateLimiter(
-          secondaryRedis,
-          rateLimitOptions
-        );
+          expect(runtime.isHealthy()).toBe(true);
+        } catch (error) {
+          operationFailed = true;
+          operationError = error;
+        }
 
-        const decisions = await Promise.all(
-          Array.from({ length: 24 }, (_, index) => {
-            const limiter = index % 2 === 0
-              ? limiterA
-              : limiterB;
+        /*
+         * Close while Redis is still available. If connection setup did not
+         * finish, destroy the client directly instead of sending QUIT over
+         * an unestablished or failed connection.
+         */
+        try {
+          if (secondaryRedisConnected && secondaryRedis.isOpen) {
+            await secondaryRedis.quit();
+          } else {
+            secondaryRedis.destroy();
+          }
 
-            return limiter.consume({
-              bucket: "api-ip",
-              key: `node-integration-${suffix}`
-            });
-          })
-        );
+          expect(secondaryRedis.isOpen).toBe(false);
+        } catch (error) {
+          secondaryRedis.destroy();
+          cleanupFailed = true;
+          cleanupError = error;
+        }
 
-        const allowed = decisions.filter(
-          (decision) => decision.allowed
-        );
+        if (operationFailed && cleanupFailed) {
+          throw new AggregateError(
+            [operationError, cleanupError],
+            "The shared Redis rate-limit test failed and its secondary client also failed to close."
+          );
+        }
 
-        const denied = decisions.filter(
-          (decision) => !decision.allowed
-        );
+        if (operationFailed) {
+          throw operationError;
+        }
 
-        expect(allowed).toHaveLength(10);
-        expect(denied).toHaveLength(14);
-
-        expect(
-          denied.every(
-            (decision) =>
-              decision.retryAfterSeconds !== undefined &&
-              decision.retryAfterSeconds >= 1
-          )
-        ).toBe(true);
-
-        await runtime.verifyReadiness();
-
-        expect(runtime.isHealthy()).toBe(true);
+        if (cleanupFailed) {
+          throw cleanupError;
+        }
       },
       testTimeoutMs
     );
@@ -1515,6 +1632,4 @@ describe.skipIf(!integrationEnabled)(
   }
 );
 
-
-
-          
+                
