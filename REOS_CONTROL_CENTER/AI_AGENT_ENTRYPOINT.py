@@ -97,6 +97,18 @@ CANONICAL_CODE_SOURCE = (
     "GitHub repository branch reos-development"
 )
 
+# Existing owner-controlled activation point for the EntryPoint contract
+# regression. This is a reference to the existing ACRL runtime path, not a
+# new runner or a second CI orchestration layer.
+ACRL_RUNTIME_RESUME_SCRIPT_RELATIVE_PATH = (
+    ".github/actions/homio-backend-ci/verification/scripts/"
+    "acrl_runtime_resume.sh"
+)
+
+ENTRYPOINT_CONTRACT_TEST_RELATIVE_PATH = (
+    "REOS_CONTROL_CENTER/tets/test_ai_agent_entrypoint_contract.py"
+)
+
 # Default owner working method:
 # The assistant supplies complete file content and exact repository path.
 # The owner saves through the GitHub web editor.
@@ -850,8 +862,7 @@ DOCUMENT_REGISTRY: dict[str, dict[str, str]] = {
 
     "entrypoint_contract_test": {
         "path": (
-            "REOS_CONTROL_CENTER/tets/"
-            "test_ai_agent_entrypoint_contract.py"
+            ENTRYPOINT_CONTRACT_TEST_RELATIVE_PATH
         ),
         "role": (
             "Automated regression for EntryPoint identity, ownership, "
@@ -1103,8 +1114,11 @@ T14_RESUME_RULES: tuple[str, ...] = (
     "Never use stale CI evidence as proof for a new commit SHA.",
 
     "Never manually change audit_resume_manifest.json status to SEALED. "
+    "Do not manually seal, edit or promote the derived manifest; only the "
+    "existing CI-owned cache-generation process may produce its status.",
+
     "Only the existing CI cache-generation process may build, validate "
-    "and publish its external derived artifact.",
+    "and publish the external derived artifact.",
 
     "If the exact artifact cannot be retrieved, report that limitation "
     "and continue only with an independently supported live baseline.",
@@ -1127,6 +1141,10 @@ RESEARCH_REUSE_RULES: tuple[str, ...] = (
     "A reusable research record must have an exact evidence identity, "
     "canonical source URL, source scope, retrieval timestamp and any "
     "required source/version identity.",
+
+    "Do not invent evidence identities, source URLs, citations, retrieval "
+    "timestamps or source provenance. Report an unresolved reference instead "
+    "of fabricating missing evidence.",
 
     "A prior search result is not automatically valid for a different "
     "task, a changed source, a new HEAD or a changed acceptance criterion.",
@@ -1210,6 +1228,9 @@ CONTEXT_BUDGET_RULES: tuple[str, ...] = (
 
     "Do not claim knowledge of the runtime's exact remaining model-token "
     "capacity unless that value is explicitly available.",
+
+    "Do not increase budgets implicitly, infer unused capacity or bypass "
+    "the existing T25 budget decision and reservation boundaries.",
 
     "Prioritize live authority, current task, acceptance criteria, source "
     "ownership, exact references, failing tests, evidence and blockers.",
@@ -1729,9 +1750,17 @@ DEVELOPMENT_WORKFLOW_RULES: tuple[str, ...] = (
     "Never treat T20 VERIFIED as proof that a Git commit occurred.",
 
     "The existing backend-ci.yml workflow must run the EntryPoint "
-    "contract regression through the existing ACRL runtime verification path.",
+    "contract regression through the existing ACRL runtime verification "
+    "script at .github/actions/homio-backend-ci/verification/scripts/"
+    "acrl_runtime_resume.sh.",
 
-    "The contract test must not be silently skipped if its file is missing.",
+    "The existing ACRL runtime script must execute "
+    "tets/test_ai_agent_entrypoint_contract.py as a required regression "
+    "before its other ACRL runtime regression groups.",
+
+    "The EntryPoint contract test must not be silently skipped if its file "
+    "is missing or fails. The existing fail-fast execution boundary must "
+    "remain enabled.",
 
     "Do not create, download, invoke or rely on a standalone runner as "
     "a competing workflow authority.",
@@ -1977,7 +2006,7 @@ NEW_SESSION_WORKFLOW: tuple[str, ...] = (
     "13. Use T16 for one repository snapshot per investigation batch and "
     "T17 for the affected dependency closure.",
 
-    "14. Use T23 to resolve exact evidence references and reuse valid "
+    "14. Use T23 to resolve exact evidence identities and reuse valid "
     "research/CI evidence. Do not repeat identical broad searches.",
 
     "15. Inspect exact target files, source owners, callers, contracts, "
@@ -2499,6 +2528,19 @@ def startup_instructions() -> dict[str, Any]:
 
         "engineering_skill_execution_is_project_authority": False,
 
+        "entrypoint_contract_regression": {
+            "required": True,
+            "test_path": ENTRYPOINT_CONTRACT_TEST_RELATIVE_PATH,
+            "activation_script": (
+                ACRL_RUNTIME_RESUME_SCRIPT_RELATIVE_PATH
+            ),
+            "activation_owner": (
+                "Existing ACRL runtime verification path"
+            ),
+            "standalone_runner_allowed": False,
+            "missing_or_failing_test_is_blocking": True,
+        },
+
         "local_preflight_is_diagnostic_only": True,
 
         "live_github_refresh_required": True,
@@ -2899,6 +2941,18 @@ def print_startup_context() -> None:
 
     print("SKILLS         : SUPERPOWERS DISCOVERY / TASK-SPECIFIC ROUTING")
 
+    print("ENTRYPOINT TEST: REQUIRED EXISTING ACRL RUNTIME REGRESSION")
+
+    print(
+        "TEST ACTIVATION:",
+        ACRL_RUNTIME_RESUME_SCRIPT_RELATIVE_PATH,
+    )
+
+    print(
+        "TEST PATH      :",
+        ENTRYPOINT_CONTRACT_TEST_RELATIVE_PATH,
+    )
+
     print("-" * 72)
 
     preflight = git_preflight()
@@ -2985,6 +3039,8 @@ def print_startup_context() -> None:
     print("RULE           : OWNER SAVES VIA GITHUB WEB UI")
 
     print("RULE           : REFRESH HEAD AND TARGET SHA BEFORE SAVE")
+
+    print("RULE           : ENTRYPOINT REGRESSION IS REQUIRED")
 
     print("RULE           : VERIFY EXACT COMMIT AND ACTIONS")
 
