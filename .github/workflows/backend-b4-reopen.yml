@@ -5,9 +5,9 @@ on:
   push:
     branches:
       - reos-development
-    # The reopen transition is triggered only after its complete guard bundle is saved.
-    # Commit message prefix is the explicit owner authorization.
-    # Corrected porcelain parsing after the previous run exposed the leading-space bug.
+    # Run only after the complete guarded B4 bundle is present.
+    # The commit prefix is explicit owner authorization.
+    # Retry uses the corrected porcelain whitespace-preserving parser.
     paths:
       - ".github/workflows/backend-b4-reopen.yml"
 
