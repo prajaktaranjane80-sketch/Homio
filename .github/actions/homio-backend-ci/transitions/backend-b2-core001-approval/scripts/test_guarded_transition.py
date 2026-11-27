@@ -251,6 +251,12 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
             all(item["status"] == "PENDING" for item in criteria)
         )
 
+    def test_approval_inventory_contains_only_the_owner_record(self):
+        self.assertEqual(
+            guard.EXPECTED_SOURCE_PATHS,
+            {guard.APPROVAL_RECORD_PATH},
+        )
+
     def test_source_inventory_uses_exact_approval_commit_not_historical_branch_diff(self):
         historical_paths = {
             "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py",
@@ -302,20 +308,21 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
                     encoding="utf-8",
                 )
 
-            run_git(repository, "add", "--all")
-            run_git(
-                repository,
-                "commit",
-                "-m",
-                "previous unrelated implementation bundle",
-            )
+                run_git(repository, "add", "--all")
+                run_git(
+                    repository,
+                    "commit",
+                    "-m",
+                    f"previous unrelated save: {target.name}",
+                )
 
             for relative_path in sorted(guard.EXPECTED_SOURCE_PATHS):
                 target = repository / relative_path
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text(
-                    "Exact owner approval source bundle.\n",
+                    guard.APPROVAL_RECORD_CONTENT,
                     encoding="utf-8",
+                    newline="\n",
                 )
 
             run_git(repository, "add", "--all")
@@ -323,7 +330,7 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
                 repository,
                 "commit",
                 "-m",
-                "exact owner approval source bundle",
+                "exact owner approval record",
             )
             owner_source_sha = run_git(repository, "rev-parse", "HEAD")
 
@@ -358,7 +365,7 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
 
             self.assertEqual(
                 changed_paths,
-                sorted(guard.EXPECTED_SOURCE_PATHS),
+                [guard.APPROVAL_RECORD_PATH],
             )
 
             cumulative_paths = set(
@@ -375,6 +382,103 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
                 cumulative_paths,
                 guard.EXPECTED_SOURCE_PATHS | historical_paths,
             )
+
+    def test_rejects_modified_owner_approval_record(self):
+        tampered_content = guard.APPROVAL_RECORD_CONTENT.replace(
+            "- Decision: `APPROVE`",
+            "- Decision: `PENDING`",
+            1,
+        )
+
+        with patch.object(
+            guard,
+            "run",
+            return_value=tampered_content,
+        ):
+            with self.assertRaisesRegex(
+                guard.GuardedTransitionError,
+                "does not exactly match",
+            ):
+                guard.verify_owner_approval_record("f" * 40)
+
+    def test_rejects_extra_file_in_owner_approval_commit(self):
+        with tempfile.TemporaryDirectory(
+            prefix="homio-b2-extra-approval-path-"
+        ) as temporary_directory:
+            repository = Path(temporary_directory)
+
+            run_git(repository, "init")
+            run_git(repository, "config", "user.name", "HOMIO Guard Tests")
+            run_git(
+                repository,
+                "config",
+                "user.email",
+                "homio-guard-tests@example.invalid",
+            )
+
+            baseline_readme = repository / "README.md"
+            baseline_readme.write_text(
+                "Synthetic approval-guard baseline.\n",
+                encoding="utf-8",
+            )
+
+            run_git(repository, "add", "--all")
+            run_git(repository, "commit", "-m", "baseline")
+            baseline_sha = run_git(repository, "rev-parse", "HEAD")
+
+            approval_path = repository / guard.APPROVAL_RECORD_PATH
+            approval_path.parent.mkdir(parents=True, exist_ok=True)
+            approval_path.write_text(
+                guard.APPROVAL_RECORD_CONTENT,
+                encoding="utf-8",
+                newline="\n",
+            )
+
+            extra_path = repository / "UNEXPECTED-APPROVAL-CHANGE.txt"
+            extra_path.write_text(
+                "This extra change must block approval.\n",
+                encoding="utf-8",
+            )
+
+            run_git(repository, "add", "--all")
+            run_git(
+                repository,
+                "commit",
+                "-m",
+                "owner approval with an unexpected extra file",
+            )
+            owner_source_sha = run_git(repository, "rev-parse", "HEAD")
+
+            reviewed_blob_shas = {
+                guard.STATE_PATH: guard.BASELINE_STATE_BLOB_SHA,
+                guard.MASTER_PATH: guard.BASELINE_MASTER_BLOB_SHA,
+                guard.REQUEST_PATH: guard.BASELINE_REQUEST_BLOB_SHA,
+            }
+
+            def reviewed_blob_sha(path: str, ref: str = "HEAD") -> str:
+                if path not in reviewed_blob_shas:
+                    raise AssertionError(
+                        f"Unexpected source blob lookup: {path}"
+                    )
+                return reviewed_blob_shas[path]
+
+            with (
+                patch.object(guard, "ROOT", repository),
+                patch.object(guard, "BASELINE_HEAD", baseline_sha),
+                patch.object(
+                    guard,
+                    "file_blob_sha",
+                    side_effect=reviewed_blob_sha,
+                ),
+                patch.object(guard, "assert_exact_branch"),
+                patch.object(guard, "verify_request_document"),
+                patch.object(guard, "verify_owner_approval_record"),
+            ):
+                with self.assertRaisesRegex(
+                    guard.GuardedTransitionError,
+                    "Exact owner approval path inventory mismatch",
+                ):
+                    guard.verify_source_baseline(owner_source_sha)
 
     def test_rejects_wrong_current_subtask(self):
         state = make_state()
