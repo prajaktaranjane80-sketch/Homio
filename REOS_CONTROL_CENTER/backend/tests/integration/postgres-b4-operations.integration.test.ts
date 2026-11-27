@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
+import { createConnection, createServer } from "node:net";
 
 import { Pool } from "pg";
 
@@ -123,6 +124,84 @@ function getPublishedPostgresPort(containerName: string): number {
   return port;
 }
 
+async function reserveLoopbackPort(): Promise<number> {
+  const server = createServer();
+
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+
+  const address = server.address();
+
+  if (address === null || typeof address === "string") {
+    await new Promise<void>((resolve, reject) => {
+      server.close((error) => error ? reject(error) : resolve());
+    });
+
+    throw new Error("The operating system did not allocate a loopback TCP port.");
+  }
+
+  const port = address.port;
+
+  await new Promise<void>((resolve, reject) => {
+    server.close((error) => error ? reject(error) : resolve());
+  });
+
+  return port;
+}
+
+async function waitForPublishedPostgresPort(
+  port: number,
+  timeoutMs = CONTAINER_READY_TIMEOUT_MS
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  let lastConnectionError: Error | undefined;
+
+  while (Date.now() < deadline) {
+    const acceptingConnections = await new Promise<boolean>((resolve) => {
+      const socket = createConnection({
+        host: "127.0.0.1",
+        port
+      });
+
+      let settled = false;
+
+      const finish = (connected: boolean, error?: Error): void => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+
+        if (error !== undefined) {
+          lastConnectionError = error;
+        }
+
+        socket.destroy();
+        resolve(connected);
+      };
+
+      socket.setTimeout(2_000);
+      socket.once("connect", () => finish(true));
+      socket.once("error", (error: Error) => finish(false, error));
+      socket.once("timeout", () => finish(false));
+    });
+
+    if (acceptingConnections) {
+      return;
+    }
+
+    await wait(CONTAINER_POLL_INTERVAL_MS);
+  }
+
+  throw new Error(
+    "The PostgreSQL container is ready internally, but its published loopback port " +
+    `127.0.0.1:${port} did not accept host connections within the bounded window.`,
+    { cause: lastConnectionError }
+  );
+}
+
 function makeAdminConnectionUrl(
   port: number,
   password: string
@@ -171,6 +250,11 @@ b4OperationsSuite(
         const cleanupErrors: Error[] = [];
 
         try {
+          // Reserve one stable loopback host port before creating the container.
+          // Unlike Docker's anonymous publish assignment, the explicit mapping
+          // remains the same endpoint across container restarts.
+          const postgresPort = await reserveLoopbackPort();
+
           runDocker(
             [
               "run",
@@ -178,7 +262,7 @@ b4OperationsSuite(
               "--name",
               containerName,
               "--publish",
-              "127.0.0.1::5432",
+              `127.0.0.1:${postgresPort}:5432`,
               "--env",
               "POSTGRES_PASSWORD",
               "--env",
@@ -195,7 +279,16 @@ b4OperationsSuite(
 
           await waitForPostgresContainer(containerName);
 
-          const postgresPort = getPublishedPostgresPort(containerName);
+          const publishedPostgresPort = getPublishedPostgresPort(containerName);
+
+          if (publishedPostgresPort !== postgresPort) {
+            throw new Error(
+              "Docker published PostgreSQL on an unexpected host port; " +
+              "the isolated test endpoint must remain stable."
+            );
+          }
+
+          await waitForPublishedPostgresPort(postgresPort);
 
           const adminUrl = makeAdminConnectionUrl(
             postgresPort,
@@ -488,6 +581,15 @@ b4OperationsSuite(
           );
 
           await waitForPostgresContainer(containerName);
+
+          // pg_isready inside the container does not prove that Docker has
+          // restored the host-side port-forwarding path. Wait for the actual
+          // endpoint used by the application pool before probing reconnection.
+          await waitForPublishedPostgresPort(postgresPort);
+
+          expect(
+            getPublishedPostgresPort(containerName)
+          ).toBe(postgresPort);
 
           let recoveredAfterRestart = false;
           const recoveryDeadline = Date.now() + 30_000;
