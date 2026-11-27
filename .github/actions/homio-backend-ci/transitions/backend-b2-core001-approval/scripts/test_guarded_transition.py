@@ -8,6 +8,8 @@ import unittest
 from unittest.mock import patch
 
 import guarded_transition as guard
+import verify_core001_source_baseline as source_verifier
+
 from test_core001_source_baseline import TestCore001SourceBaseline  # noqa: F401
 
 from REOS_CONTROL_CENTER.context.backend_workstream_transition import (
@@ -116,6 +118,7 @@ def make_state() -> dict:
         "events": [],
         "integrity": {"sha256": None},
     }
+
     state["integrity"]["sha256"] = guard.controller.calculate_hash(state)
     return state
 
@@ -130,6 +133,7 @@ def valid_reports():
             "requires_authorization": True,
         },
     }
+
     t17 = {
         "decision": "ANALYZE",
         "ready_for_handoff": True,
@@ -138,6 +142,7 @@ def valid_reports():
         "fingerprint": "b" * 64,
         "changed_paths": sorted(guard.EXPECTED_SOURCE_PATHS),
     }
+
     t18 = {
         "decision": "AUTHORIZE",
         "execution_authorized": True,
@@ -146,6 +151,7 @@ def valid_reports():
         "authorization_fingerprint": "c" * 64,
         "request_fingerprint": "d" * 64,
     }
+
     return t15, t17, t18
 
 
@@ -228,10 +234,8 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
             item["id"]: item["status"]
             for item in candidate["gate_plans"]["BACKEND-001"]["subtasks"]
         }
-        self.assertEqual(
-            statuses["BACKEND-001-B4"],
-            "DONE",
-        )
+
+        self.assertEqual(statuses["BACKEND-001-B4"], "DONE")
         self.assertEqual(
             statuses["BACKEND-001-B2-PRODUCTION-BINDING"],
             "CURRENT",
@@ -277,7 +281,7 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
             )
 
             for relative_path in sorted(
-                guard.CORE001_SOURCE_BLOB_SHAS
+                source_verifier.CORE001_SOURCE_BLOB_SHAS
             ):
                 target = repository / relative_path
                 target.parent.mkdir(parents=True, exist_ok=True)
@@ -327,7 +331,7 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
                 guard.STATE_PATH: guard.BASELINE_STATE_BLOB_SHA,
                 guard.MASTER_PATH: guard.BASELINE_MASTER_BLOB_SHA,
                 guard.REQUEST_PATH: guard.BASELINE_REQUEST_BLOB_SHA,
-                **guard.CORE001_SOURCE_BLOB_SHAS,
+                **source_verifier.CORE001_SOURCE_BLOB_SHAS,
             }
 
             def reviewed_blob_sha(path: str, ref: str = "HEAD") -> str:
@@ -366,6 +370,7 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
                     owner_source_sha,
                 ).splitlines()
             )
+
             self.assertEqual(
                 cumulative_paths,
                 guard.EXPECTED_SOURCE_PATHS | historical_paths,
@@ -381,11 +386,13 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
 
     def test_rejects_b4_not_done(self):
         state = make_state()
+
         b4 = next(
             item
             for item in state["gate_plans"]["BACKEND-001"]["subtasks"]
             if item["id"] == "BACKEND-001-B4"
         )
+
         b4["status"] = "PENDING"
         state["integrity"]["sha256"] = guard.controller.calculate_hash(state)
 
@@ -394,6 +401,7 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
 
     def test_rejects_already_verified_gate_criterion(self):
         state = make_state()
+
         state["gate_plans"]["BACKEND-001"]["criteria_state"][0]["status"] = (
             "VERIFIED"
         )
@@ -404,6 +412,7 @@ class TestB2Core001ApprovalTransition(unittest.TestCase):
 
     def test_rejects_duplicate_change_request(self):
         state = make_state()
+
         state["change_requests"].append({
             "id": guard.CHANGE_REQUEST_ID,
             "status": "APPROVED",
