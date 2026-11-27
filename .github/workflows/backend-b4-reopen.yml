@@ -1,12 +1,13 @@
+
 name: HOMIO Guarded B4 Recovery Reopen
 
 on:
   push:
     branches:
       - reos-development
-    # Create/save the three transition files first and this workflow file last.
-    # Owner approval is supplied by the exact commit-message prefix below.
-    # This avoids firing the owner transition before its complete guard bundle exists.
+    # The reopen transition is triggered only after its complete guard bundle is saved.
+    # Commit message prefix is the explicit owner authorization.
+    # Corrected porcelain parsing after the previous run exposed the leading-space bug.
     paths:
       - ".github/workflows/backend-b4-reopen.yml"
 
