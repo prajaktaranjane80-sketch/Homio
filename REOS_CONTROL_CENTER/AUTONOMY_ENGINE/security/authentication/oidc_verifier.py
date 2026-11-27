@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -37,9 +38,9 @@ class AuthenticationError(RuntimeError):
 class AuthenticatedPrincipal:
     """Verified identity and access-token revocation identifiers.
 
-    The issue and expiry timestamps are copied only after successful
-    signature, issuer, audience and time validation. The raw bearer
-    token is deliberately not retained in this object.
+    Timestamp defaults preserve compatibility with existing identity-only
+    consumers. OIDCVerifier always supplies verified integer timestamps.
+    Any durable session consumer must reject missing timestamps.
     """
 
     issuer: str
@@ -47,8 +48,8 @@ class AuthenticatedPrincipal:
     audiences: tuple[str, ...]
     client_id: str
     token_id: str
-    issued_at_epoch_seconds: int
-    expires_at_epoch_seconds: int
+    issued_at_epoch_seconds: int | None = None
+    expires_at_epoch_seconds: int | None = None
     email: str | None = None
     email_verified: bool = False
 
@@ -272,6 +273,10 @@ class OIDCVerifier:
                     "verify_aud": True,
                 },
             )
+        except PyJWKClientError:
+            raise AuthenticationError(
+                "verification_key_unavailable"
+            ) from None
         except PyJWTError as exc:
             raise AuthenticationError(
                 "invalid_access_token"
@@ -284,9 +289,6 @@ class OIDCVerifier:
         if self._settings.audience not in audiences:
             raise AuthenticationError("invalid_access_token")
 
-        # These values come from the already-verified JWT payload.
-        # Require whole Unix seconds because the durable B4 session
-        # owner uses integer NumericDate values as part of session identity.
         issued_at = claims.get("iat")
         expires_at = claims.get("exp")
 
