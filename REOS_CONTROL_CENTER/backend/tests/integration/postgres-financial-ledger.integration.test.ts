@@ -1,4 +1,3 @@
-
 import { randomUUID } from "node:crypto";
 
 import {
@@ -364,7 +363,7 @@ postgresSuite(
     );
 
     it(
-      "enforces append-only ledger immutability for UPDATE and DELETE",
+      "enforces append-only ledger immutability across application privileges and database triggers",
       async () => {
         const target = requireDatabase(database);
         const record = createRecord(tenantA);
@@ -374,34 +373,77 @@ postgresSuite(
           record
         );
 
+        const identityValues = [
+          tenantA,
+          record.entryId,
+          record.entryVersion
+        ];
+
+        const updateSql = `
+          UPDATE core008.financial_ledger_entries
+          SET amount = amount
+          WHERE tenant_id = $1::uuid
+            AND entry_id = $2::text
+            AND entry_version = $3::integer
+        `;
+
+        const deleteSql = `
+          DELETE FROM core008.financial_ledger_entries
+          WHERE tenant_id = $1::uuid
+            AND entry_id = $2::text
+            AND entry_version = $3::integer
+        `;
+
+        /*
+         * The application role is intentionally granted only SELECT and
+         * INSERT on this append-only table. PostgreSQL rejects UPDATE and
+         * DELETE at the privilege boundary before row triggers can execute.
+         * SQLSTATE 42501 is therefore the correct application-role result.
+         */
         await expect(
           target.runtime.withTenantTransaction(
             { tenantId: tenantA },
             (transaction) => transaction.query(
-              `
-                UPDATE core008.financial_ledger_entries
-                SET amount = amount
-                WHERE entry_id = $1
-                  AND entry_version = $2
-              `,
-              [record.entryId, record.entryVersion]
+              updateSql,
+              identityValues
             )
           )
         ).rejects.toMatchObject({
-          code: "55000"
+          code: "42501"
         });
 
         await expect(
           target.runtime.withTenantTransaction(
             { tenantId: tenantA },
             (transaction) => transaction.query(
-              `
-                DELETE FROM core008.financial_ledger_entries
-                WHERE entry_id = $1
-                  AND entry_version = $2
-              `,
-              [record.entryId, record.entryVersion]
+              deleteSql,
+              identityValues
             )
+          )
+        ).rejects.toMatchObject({
+          code: "42501"
+        });
+
+        /*
+         * Independently exercise the database trigger using the isolated
+         * test database's administrator connection. This connection has
+         * enough privilege to reach the trigger, so the canonical
+         * append-only trigger must reject both mutations with SQLSTATE 55000.
+         * The production application role is never granted these privileges.
+         */
+        await expect(
+          target.adminPool.query(
+            updateSql,
+            identityValues
+          )
+        ).rejects.toMatchObject({
+          code: "55000"
+        });
+
+        await expect(
+          target.adminPool.query(
+            deleteSql,
+            identityValues
           )
         ).rejects.toMatchObject({
           code: "55000"
