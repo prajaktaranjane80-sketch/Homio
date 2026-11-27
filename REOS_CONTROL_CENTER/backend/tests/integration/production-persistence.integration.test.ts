@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
@@ -555,7 +556,7 @@ describe.skipIf(!integrationEnabled)(
 
         if (latestMigration === undefined) {
           throw new Error(
-            "The canonical B4 migration manifest is empty."
+            "The canonical B4 infrastructure migration manifest is empty."
           );
         }
 
@@ -758,7 +759,7 @@ describe.skipIf(!integrationEnabled)(
 
         const principal: VerifiedExternalPrincipal = {
           issuer: "https://issuer.example.test/",
-          subject: `b4-session-${suffix}`,
+          subject: \`b4-session-\${suffix}\`,
           audiences: ["homio-api"],
           clientId: "homio-backend-ci",
           tokenId: randomUUID(),
@@ -865,10 +866,10 @@ describe.skipIf(!integrationEnabled)(
           runtime.postgres.withTenantTransaction(
             { tenantId: tenantA },
             (transaction) => transaction.query(
-              `UPDATE reos_infra.api_sessions
+              \`UPDATE reos_infra.api_sessions
                   SET account_id = $2
                 WHERE session_id = $1
-                RETURNING session_id`,
+                RETURNING session_id\`,
               [
                 sessionId,
                 randomUUID()
@@ -964,9 +965,7 @@ describe.skipIf(!integrationEnabled)(
       },
       testTimeoutMs
     );
-
-
-      it(
+        it(
       "persists minimized append-only security audit events with least-privilege access",
       async () => {
         if (
@@ -1204,5 +1203,314 @@ describe.skipIf(!integrationEnabled)(
       },
       testTimeoutMs
     );
+
+    /*
+     * This destructive service-restart probe is restricted to the disposable
+     * Redis container owned by the GitHub Actions job.
+     */
+    it.skipIf(process.env.GITHUB_ACTIONS !== "true")(
+      "fails readiness during Redis service loss and recovers the production runtime after Redis restart",
+      async () => {
+        if (runtime === undefined || !redisUrl || adminPool === undefined) {
+          throw new Error(
+            "The real PostgreSQL and Redis production runtime was not initialized."
+          );
+        }
+
+        const endpoint = new URL(redisUrl);
+        const loopbackHosts = new Set([
+          "127.0.0.1",
+          "localhost",
+          "::1"
+        ]);
+
+        if (!loopbackHosts.has(endpoint.hostname)) {
+          throw new Error(
+            "The Redis restart probe is restricted to the isolated loopback CI service."
+          );
+        }
+
+        const publishedPort = Number(endpoint.port || "6379");
+
+        if (
+          !Number.isInteger(publishedPort) ||
+          publishedPort < 1 ||
+          publishedPort > 65_535
+        ) {
+          throw new Error(
+            "The Redis integration endpoint has an invalid published port."
+          );
+        }
+
+        const runDocker = (
+          args: readonly string[],
+          timeoutMs = 15_000
+        ): string => {
+          try {
+            return execFileSync("docker", [...args], {
+              encoding: "utf8",
+              stdio: ["ignore", "pipe", "pipe"],
+              timeout: timeoutMs,
+              maxBuffer: 1024 * 1024
+            }).trim();
+          } catch (error) {
+            throw new Error(
+              "The disposable Redis CI container operation failed.",
+              { cause: error }
+            );
+          }
+        };
+
+        const pause = (milliseconds: number): Promise<void> =>
+          new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+        let redisContainerId: string | undefined;
+        let operationError: unknown;
+        const cleanupErrors: Error[] = [];
+
+        const waitForRedisServer = async (): Promise<void> => {
+          if (redisContainerId === undefined) {
+            throw new Error(
+              "The Redis CI container identity was not established."
+            );
+          }
+
+          const deadline = Date.now() + 30_000;
+          let lastError: unknown;
+
+          while (Date.now() < deadline) {
+            try {
+              const response = runDocker([
+                "exec",
+                redisContainerId,
+                "redis-cli",
+                "--raw",
+                "PING"
+              ]);
+
+              if (response === "PONG") {
+                return;
+              }
+
+              lastError = new Error(
+                "The Redis service returned an unexpected readiness response."
+              );
+            } catch (error) {
+              lastError = error;
+            }
+
+            await pause(250);
+          }
+
+          throw new Error(
+            "Redis 8.0.3 did not become ready after the container restart.",
+            { cause: lastError }
+          );
+        };
+
+        const waitForRuntimeReadiness = async (): Promise<void> => {
+          const deadline = Date.now() + 30_000;
+          let lastError: unknown;
+
+          while (Date.now() < deadline) {
+            try {
+              await runtime.verifyReadiness();
+
+              if (runtime.isHealthy()) {
+                return;
+              }
+
+              lastError = new Error(
+                "The production persistence runtime remained unhealthy after readiness verification."
+              );
+            } catch (error) {
+              lastError = error;
+            }
+
+            await pause(250);
+          }
+
+          throw new Error(
+            "The production persistence runtime did not recover after Redis restart.",
+            { cause: lastError }
+          );
+        };
+
+        try {
+          const containerIds = runDocker([
+            "ps",
+            "--filter",
+            "publish=" + publishedPort,
+            "--format",
+            "{{.ID}}"
+          ])
+            .split(/\r?\n/)
+            .map((value) => value.trim())
+            .filter((value) => value.length > 0);
+
+          if (containerIds.length !== 1 || containerIds[0] === undefined) {
+            throw new Error(
+              "The Redis restart probe requires exactly one Docker container published on the configured Redis port."
+            );
+          }
+
+          redisContainerId = containerIds[0];
+
+          const image = runDocker([
+            "inspect",
+            "--format",
+            "{{.Config.Image}}",
+            redisContainerId
+          ]);
+
+          if (!/(^|\/)redis:8\.0\.3(?:$|[-@])/.test(image)) {
+            throw new Error(
+              "The selected Redis CI container does not use the approved redis:8.0.3 image."
+            );
+          }
+
+          await runtime.verifyReadiness();
+          expect(runtime.isHealthy()).toBe(true);
+          expect(await runtime.redis.ping()).toBe("PONG");
+
+          /*
+           * Stop only the loopback-published Redis 8.0.3 service container
+           * owned by this GitHub Actions job. PostgreSQL remains untouched.
+           */
+          runDocker([
+            "stop",
+            "--time",
+            "2",
+            redisContainerId
+          ]);
+
+          expect(
+            runDocker([
+              "inspect",
+              "--format",
+              "{{.State.Running}}",
+              redisContainerId
+            ])
+          ).toBe("false");
+
+          /*
+           * The mandatory Redis dependency is unavailable, so the existing
+           * production readiness owner must fail closed. PostgreSQL is probed
+           * independently through the same production PostgresRuntime.
+           */
+          await expect(
+            runtime.verifyReadiness()
+          ).rejects.toMatchObject({
+            name: "ProductionPersistenceUnavailableError"
+          });
+
+          expect(runtime.isHealthy()).toBe(false);
+
+          const postgresProbe = await runtime.postgres.withTenantTransaction(
+            { tenantId: tenantA },
+            (transaction) => transaction.query(
+              "SELECT 1 AS postgres_available"
+            )
+          );
+
+          expect(postgresProbe.rowCount).toBe(1);
+          expect(
+            Number(postgresProbe.rows[0]?.postgres_available)
+          ).toBe(1);
+
+          /*
+           * Redis rate-limit counters are not durable business history.
+           * This test proves dependency recovery only; it makes no claim that
+           * ephemeral Redis state survives a restart.
+           */
+        } catch (error) {
+          operationError = error;
+        } finally {
+          /*
+           * Always restore the disposable CI service, including when an
+           * assertion or readiness probe fails after the stop operation.
+           */
+          if (redisContainerId !== undefined) {
+            try {
+              const isRunning = runDocker([
+                "inspect",
+                "--format",
+                "{{.State.Running}}",
+                redisContainerId
+              ]) === "true";
+
+              if (!isRunning) {
+                runDocker([
+                  "start",
+                  redisContainerId
+                ]);
+              }
+
+              await waitForRedisServer();
+              await waitForRuntimeReadiness();
+            } catch (error) {
+              cleanupErrors.push(
+                error instanceof Error
+                  ? error
+                  : new Error(
+                      "Redis CI service cleanup failed.",
+                      { cause: error }
+                    )
+              );
+            }
+          }
+        }
+
+        if (operationError !== undefined && cleanupErrors.length > 0) {
+          throw new AggregateError(
+            [operationError, ...cleanupErrors],
+            "Redis outage verification failed and the CI dependency cleanup also failed."
+          );
+        }
+
+        if (operationError !== undefined) {
+          throw operationError;
+        }
+
+        if (cleanupErrors.length > 0) {
+          throw new AggregateError(
+            cleanupErrors,
+            "The Redis CI dependency did not recover cleanly."
+          );
+        }
+
+        expect(runtime.isHealthy()).toBe(true);
+
+        /*
+         * Exercise the real production shutdown path after successful
+         * dependency recovery. Repeated close must remain idempotent.
+         */
+        await runtime.close();
+        await runtime.close();
+
+        expect(runtime.redis.isOpen).toBe(false);
+        expect(runtime.isHealthy()).toBe(false);
+
+        await expect(
+          runtime.verifyReadiness()
+        ).rejects.toMatchObject({
+          name: "ProductionPersistenceUnavailableError"
+        });
+
+        const remainingApplicationSessions = await adminPool.query(
+          "SELECT count(*)::integer AS count " +
+          "FROM pg_stat_activity " +
+          "WHERE usename = $1 AND datname = current_database()",
+          [API_ROLE]
+        );
+
+        expect(
+          Number(remainingApplicationSessions.rows[0]?.count)
+        ).toBe(0);
+      },
+      60_000
+    );
   }
 );
+    
+    
