@@ -1,3 +1,4 @@
+
 """
 HOMIO / REOS — AI AGENT ENTRYPOINT
 ==================================
@@ -718,7 +719,7 @@ DOCUMENT_REGISTRY: dict[str, dict[str, str]] = {
             "Completion proof quorum, residual-work detection, dependency "
             "closure and continuity-preserving handoff."
         ),
-              "authority": "COMPLETION_PROOF_AND_HANDOFF_BOUNDARY",
+        "authority": "COMPLETION_PROOF_AND_HANDOFF_BOUNDARY",
     },
 
     "backend_master": {
@@ -1078,11 +1079,6 @@ T14_RESUME_RULES: tuple[str, ...] = (
     "manifest into the repository.",
 
     "Identify the exact artifact by the existing "
-    "```
-
-**Part 4/9 — lines 1081–1440**
-
-```python
     "homio-acrl-audit-resume-<HEAD-SHA>-<RUN-ID>-<ATTEMPT> naming contract.",
 
     "Verify the artifact run ID, attempt, repository, branch and tested "
@@ -1361,6 +1357,7 @@ WORKSTREAM_ROUTING: dict[str, dict[str, Any]] = {
 # ===========================================================================
 # 6. CROSS-CHAT SYNCHRONIZATION RULES
 # ===========================================================================
+
 CROSS_CHAT_SYNC_RULES: tuple[str, ...] = (
 
     "Every chat must declare BACKEND, FRONTEND or SHARED_INTEGRATION "
@@ -1631,6 +1628,7 @@ NEW_SESSION_READ_ORDER: tuple[str, ...] = (
 # ===========================================================================
 # 10. AGENT OPERATING RULES
 # ===========================================================================
+
 AI_OPERATING_RULES: tuple[str, ...] = (
 
     "Treat REOS_CONTROL_CENTER as the project control authority.",
@@ -1801,7 +1799,8 @@ REMOTE_GIT_SYNCHRONIZATION_RULES: tuple[str, ...] = (
     "T18 remains the applicable execution-authorization boundary.",
 
     "T20 remains the repair and patch-verification boundary.",
-      "T21 remains the Git repository coordination boundary.",
+
+    "T21 remains the Git repository coordination boundary.",
 
     "T22 remains the commit and checkpoint coordination boundary.",
 
@@ -2041,9 +2040,11 @@ NEW_SESSION_WORKFLOW: tuple[str, ...] = (
 
 )
 
+
 # ===========================================================================
 # 17. OWNER WORKING CONTRACT
 # ===========================================================================
+
 NON_DEVELOPER_OWNER_CONTRACT: tuple[str, ...] = (
 
     "The owner is not required to write or debug implementation code manually.",
@@ -2339,7 +2340,8 @@ def repository_paths() -> dict[str, str]:
         "frontend_master": DOCUMENT_REGISTRY["frontend_master"]["path"],
 
         "h360_reference": DOCUMENT_REGISTRY["h360_gap_reference"]["path"],
-              "workflow_sync_reference": (
+
+        "workflow_sync_reference": (
             DOCUMENT_REGISTRY["workflow_sync_reference"]["path"]
         ),
 
@@ -3065,6 +3067,3 @@ def print_startup_context() -> None:
 
 if __name__ == "__main__":
     print_startup_context()
-  
-
-
