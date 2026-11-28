@@ -346,9 +346,7 @@ describe.skipIf(!integrationEnabled)(
               CHECK (
                 migration_name ~ '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'
               ),
-
-            CONSTRAINT schema_migrations_checksum_check
-              CHECK (checksum ~ '^[a-f0-9]{64}$')
+                            CHECK (checksum ~ '^[a-f0-9]{64}$')
           )
         `);
       } finally {
@@ -1312,7 +1310,12 @@ describe.skipIf(!integrationEnabled)(
 
         if (cleanupFailed) {
           throw cleanupError;
-              /*
+        }
+      },
+      testTimeoutMs
+    );
+
+    /*
      * This destructive service-restart probe is restricted to the disposable
      * Redis container owned by the GitHub Actions job.
      */
@@ -1622,7 +1625,5 @@ describe.skipIf(!integrationEnabled)(
     );
   }
 );
-        }
-      },
-      testTimeoutMs
-    );
+
+            CONSTRAINT schema_migrations_checksum_check
