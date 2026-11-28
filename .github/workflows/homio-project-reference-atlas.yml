@@ -4,18 +4,34 @@ on:
   push:
     branches:
       - reos-development
+
+  pull_request:
+    branches:
+      - reos-development
+
+  workflow_run:
+    workflows:
+      - HOMIO Backend and ACRL Runtime CI
+      - HOMIO Frontend CI
+      - HOMIO Guarded B4 Recovery Reopen
+    types:
+      - completed
+
   workflow_dispatch:
+
   repository_dispatch:
     types:
       - homio_reference_atlas_refresh
+
   schedule:
     - cron: "17 2 * * *"
 
 permissions:
+  actions: read
   contents: write
 
 concurrency:
-  group: homio-project-reference-atlas-${{ github.repository }}
+  group: homio-project-reference-atlas-${{ github.repository }}-${{ github.event.pull_request.number || github.event.workflow_run.id || github.ref }}
   cancel-in-progress: false
 
 env:
@@ -23,10 +39,66 @@ env:
   PYTHONPATH: ${{ github.workspace }}/REOS_CONTROL_CENTER
 
 jobs:
+  validate-pull-request:
+    name: Validate Atlas contract for pull request
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout pull request source without write credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: "3.12"
+
+      - name: Verify Atlas and EntryPoint updater regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python -m unittest discover \
+            -s REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/project_reference_atlas \
+            -p "test_*.py" \
+            -v
+
+      - name: Verify generator and updater compile
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python -m py_compile \
+            REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/project_reference_atlas/project_reference_atlas.py \
+            REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/project_reference_atlas/update_entrypoint_atlas_reference.py
+
   generate-and-publish:
-    name: Generate source-bound Atlas and full EntryPoint replacement
+    name: Generate source-bound Atlas and EntryPoint replacement
+    if: >-
+      ${{
+        github.event_name != 'pull_request' &&
+        (
+          github.event_name != 'workflow_run' ||
+          (
+            github.event.workflow_run.head_branch == 'reos-development' &&
+            github.event.workflow_run.head_repository.full_name == github.repository
+          )
+        )
+      }}
+
     runs-on: ubuntu-24.04
     timeout-minutes: 25
+
+    permissions:
+      actions: read
+      contents: write
 
     steps:
       - name: Checkout the canonical source branch
@@ -41,6 +113,16 @@ jobs:
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
         with:
           python-version: "3.12"
+
+      - name: Confirm canonical repository and source branch
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test "${GITHUB_REPOSITORY}" = "prajaktaranjane80-sketch/Homio"
+          test "$(git branch --show-current)" = "reos-development"
+          test "$(git config --get remote.origin.url)" = \
+            "https://github.com/prajaktaranjane80-sketch/Homio.git"
 
       - name: Run Atlas and EntryPoint updater contract tests
         shell: bash
@@ -75,31 +157,30 @@ jobs:
           print("ACRL_T16_CANONICAL_IMPORT=PASS")
           PY
 
-      - name: Generate a complete source-bound Atlas from one T16 snapshot
+      - name: Generate complete source-bound Atlas
         shell: bash
         run: |
           set -euo pipefail
 
-          test "$(git branch --show-current)" = "reos-development"
-
-          test -d "$GITHUB_WORKSPACE/REOS_CONTROL_CENTER/AUTONOMY_ENGINE"
-
-          python REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/project_reference_atlas/project_reference_atlas.py \
+          python \
+            REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/project_reference_atlas/project_reference_atlas.py \
             --repo-root "$GITHUB_WORKSPACE" \
             --output "$RUNNER_TEMP/HOMIO_PROJECT_REFERENCE_ATLAS.json" \
             --expected-branch reos-development \
             --require-live-tip
 
-      - name: Produce complete lossless EntryPoint replacement from live source
+      - name: Generate complete lossless EntryPoint replacement
         shell: bash
         run: |
           set -euo pipefail
 
-          python REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/project_reference_atlas/update_entrypoint_atlas_reference.py \
+          python \
+            REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/project_reference_atlas/update_entrypoint_atlas_reference.py \
             --source REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py \
             --output "$RUNNER_TEMP/AI_AGENT_ENTRYPOINT.py"
 
-          python -m py_compile "$RUNNER_TEMP/AI_AGENT_ENTRYPOINT.py"
+          python -m py_compile \
+            "$RUNNER_TEMP/AI_AGENT_ENTRYPOINT.py"
 
           python - \
             "$GITHUB_WORKSPACE/REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py" \
@@ -116,7 +197,9 @@ jobs:
 
           original = original_path.read_text(encoding="utf-8-sig")
           candidate = candidate_path.read_text(encoding="utf-8")
-          atlas = json.loads(atlas_path.read_text(encoding="utf-8"))
+          atlas = json.loads(
+              atlas_path.read_text(encoding="utf-8")
+          )
 
           ast.parse(candidate)
 
@@ -143,11 +226,13 @@ jobs:
           if len(candidate.splitlines()) < len(original.splitlines()):
               raise SystemExit(
                   "Generated EntryPoint is unexpectedly shorter "
-                  "than its original source."
+                  "than the original source."
               )
 
           if not atlas["source_baseline"]["source_commit_sha"]:
-              raise SystemExit("Atlas source commit identity is missing.")
+              raise SystemExit(
+                  "Atlas source commit identity is missing."
+              )
 
           manifest = pathlib.Path(
               candidate_path.parent
@@ -174,7 +259,7 @@ jobs:
           print("ENTRYPOINT_REPLACEMENT_VALID=PASS")
           PY
 
-      - name: Verify live source branch is still the exact generated baseline
+      - name: Verify source branch is still the exact generated baseline
         id: source-guard
         shell: bash
         run: |
@@ -196,7 +281,7 @@ jobs:
 
           echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
 
-      - name: Prepare isolated reference branch without changing source branch
+      - name: Prepare isolated reference branch
         shell: bash
         env:
           ATLAS_BRANCH: reos-project-reference
@@ -252,7 +337,7 @@ jobs:
           test -n "$live_sha"
           test "$live_sha" = "${{ steps.source-guard.outputs.source_sha }}"
 
-      - name: Publish reference branch with fast-forward-only push
+      - name: Publish reference branch
         if: env.ATLAS_NO_CHANGE == 'false'
         shell: bash
         run: |
@@ -274,7 +359,7 @@ jobs:
           test -n "$live_sha"
           test "$live_sha" = "${{ steps.source-guard.outputs.source_sha }}"
 
-      - name: Upload generated Atlas and complete EntryPoint replacement
+      - name: Upload generated Atlas and EntryPoint replacement
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: homio-reference-generated-${{ steps.source-guard.outputs.source_sha }}
