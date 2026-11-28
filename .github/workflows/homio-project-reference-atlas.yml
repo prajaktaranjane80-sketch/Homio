@@ -121,8 +121,20 @@ jobs:
 
           test "${GITHUB_REPOSITORY}" = "prajaktaranjane80-sketch/Homio"
           test "$(git branch --show-current)" = "reos-development"
-          test "$(git config --get remote.origin.url)" = \
-            "https://github.com/prajaktaranjane80-sketch/Homio.git"
+
+          origin_url="$(git config --get remote.origin.url)"
+
+          case "$origin_url" in
+            "https://github.com/prajaktaranjane80-sketch/Homio" | \
+            "https://github.com/prajaktaranjane80-sketch/Homio.git" | \
+            "git@github.com:prajaktaranjane80-sketch/Homio.git" | \
+            "ssh://git@github.com:prajaktaranjane80-sketch/Homio.git")
+              ;;
+            *)
+              echo "Unexpected canonical repository remote: $origin_url" >&2
+              exit 1
+              ;;
+          esac
 
       - name: Run Atlas and EntryPoint updater contract tests
         shell: bash
