@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Install the generated HOMIO Project Reference Atlas contract in EntryPoint.
+"""Losslessly integrate the generated HOMIO Atlas contract into EntryPoint.
 
-The updater is deliberately lossless: it preserves the complete existing
-EntryPoint and adds one validated, idempotent managed block plus two ordered
-startup instructions. It never contacts GitHub and never changes project state.
+This is a file transformer only. It performs no network access, Git mutation,
+state transition, or source-code execution. It preserves existing EntryPoint
+owners and places the managed block before the CLI entry point so both imports
+and direct startup observe the Atlas integration.
 """
 from __future__ import annotations
 
@@ -18,6 +19,7 @@ from typing import Any
 
 BEGIN = "# BEGIN HOMIO PROJECT REFERENCE ATLAS (managed)"
 END = "# END HOMIO PROJECT REFERENCE ATLAS (managed)"
+CLI_MARKER = "# 24. CLI"
 
 ENTRYPOINT_RELATIVE_PATH = "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py"
 ATLAS_RELATIVE_PATH = "REOS_CONTROL_CENTER/HOMIO_PROJECT_REFERENCE_ATLAS.json"
@@ -38,54 +40,175 @@ READ_ORDER_INSERTION = (
     "EntryPoint blob SHA against live reos-development. Treat any mismatch "
     "as stale and use the existing T14/T16 targeted or full-audit boundary."
 )
+
 WORKFLOW_INSERTION = (
     "Validate the derived project reference Atlas against live repository "
     "identity and source SHAs before using it; use it only as a technical "
     "navigation/index aid, never as task state, authorization or evidence."
 )
 
+MANAGED_BLOCK = r'''# BEGIN HOMIO PROJECT REFERENCE ATLAS (managed)
+# Generated navigation metadata only. state.json and live GitHub source remain authoritative.
+PROJECT_REFERENCE_ATLAS_REFERENCE: dict[str, str] = {
+    "repository": "prajaktaranjane80-sketch/Homio",
+    "source_branch": "reos-development",
+    "reference_branch": "reos-project-reference",
+    "path": "REOS_CONTROL_CENTER/HOMIO_PROJECT_REFERENCE_ATLAS.json",
+    "schema_path": "REOS_CONTROL_CENTER/contracts/project_reference_atlas.schema.json",
+    "generator_path": "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/project_reference_atlas/project_reference_atlas.py",
+    "workflow_path": ".github/workflows/homio-project-reference-atlas.yml",
+    "authority": "DERIVED_TECHNICAL_REFERENCE_ONLY",
+}
 
-def _top_level_bindings(tree: ast.Module) -> dict[str, ast.AST]:
-    bindings: dict[str, ast.AST] = {}
+PROJECT_REFERENCE_ATLAS_RULES: tuple[str, ...] = (
+    "The Atlas is a technical navigation index, never task state, approval, evidence, or execution authority.",
+    "Fetch the Atlas from reos-project-reference using the GitHub repository connector; this EntryPoint has no network runtime.",
+    "Validate repository identity, source branch, source commit SHA, source tree SHA, state.json blob SHA, and EntryPoint blob SHA before relying on it.",
+    "If any identity or SHA differs, treat the Atlas as stale and consult existing T14/T16 targeted or full-audit decisions.",
+    "Use Git-tracked inventory and exact blob SHAs to avoid repeated broad reads; fetch only task-relevant files whose current SHA requires verification.",
+    "Use existing ACRL owners: T07 bootstrap, T14 resume/freshness, T16 repository discovery, T17 impact, T19 test selection/diagnosis, T20 repair verification, T23 evidence resolution, and T30 completion proof.",
+    "Do not create duplicate scanners, dependency engines, evidence registries, failure engines, task managers, or orchestration layers.",
+    "Distinguish complete Git inventory from partial semantic analysis; unresolved owners, unsupported formats, and parser failures must remain explicit.",
+    "Never copy secret values, credentials, environment values, or full repository source into the Atlas.",
+    "The Atlas generator and this updater do not mutate state.json, grant authorization, or mark a task complete.",
+)
+
+
+def project_reference_atlas_rules() -> list[str]:
+    """Return stable Atlas-consumption rules for the engineering agent."""
+    return list(PROJECT_REFERENCE_ATLAS_RULES)
+
+
+def project_reference_atlas_generation() -> dict[str, Any]:
+    """Return the existing-owner generation and validation boundaries."""
+    return {
+        "generator_owner": "acrl_t16",
+        "freshness_owner": "acrl_t14",
+        "impact_owner": "acrl_t17",
+        "test_selection_and_failure_diagnosis_owner": "acrl_t19",
+        "evidence_resolution_owner": "acrl_t23",
+        "new_chat_bootstrap_owner": "acrl_t07",
+        "source_branch": "reos-development",
+        "publication_branch": "reos-project-reference",
+        "atlas_path": PROJECT_REFERENCE_ATLAS_REFERENCE["path"],
+        "schema_path": PROJECT_REFERENCE_ATLAS_REFERENCE["schema_path"],
+        "workflow_path": PROJECT_REFERENCE_ATLAS_REFERENCE["workflow_path"],
+        "generation_mode": "AUTOMATED_FROM_EXACT_LIVE_SOURCE_COMMIT",
+        "entrypoint_update_mode": "COMPLETE_GENERATED_REPLACEMENT_WITH_OWNER_READBACK",
+        "writes_to_source_branch": False,
+        "updates_state_json": False,
+    }
+
+
+if 'project_reference_atlas' in DOCUMENT_REGISTRY:
+    raise ValueError("DOCUMENT_REGISTRY already contains project_reference_atlas")
+
+DOCUMENT_REGISTRY['project_reference_atlas'] = {
+    "path": PROJECT_REFERENCE_ATLAS_REFERENCE["path"],
+    "role": "Generated, source-commit-bound technical inventory and navigation index.",
+    "authority": "DERIVED_TECHNICAL_REFERENCE_ONLY",
+}
+
+if 'project_reference_atlas' in SOURCE_OF_TRUTH:
+    raise ValueError("SOURCE_OF_TRUTH already contains project_reference_atlas")
+
+SOURCE_OF_TRUTH['project_reference_atlas'] = (
+    "Derived technical index on reos-project-reference; never execution state or authorization."
+)
+
+if 'project_reference_atlas' in ACRL_OWNER_ROUTING:
+    raise ValueError("ACRL_OWNER_ROUTING already contains project_reference_atlas")
+
+ACRL_OWNER_ROUTING['project_reference_atlas'] = "acrl_t16"
+ACRL_OWNER_ROUTING['project_reference_atlas_resume_and_freshness'] = "acrl_t14"
+ACRL_OWNER_ROUTING['project_reference_atlas_change_impact'] = "acrl_t17"
+ACRL_OWNER_ROUTING['project_reference_atlas_failure_diagnosis'] = "acrl_t19"
+ACRL_OWNER_ROUTING['project_reference_atlas_evidence_resolution'] = "acrl_t23"
+ACRL_OWNER_ROUTING['project_reference_atlas_new_chat_bootstrap'] = "acrl_t07"
+
+_PROJECT_REFERENCE_ATLAS_BASE_REPOSITORY_PATHS = repository_paths
+
+
+def repository_paths() -> dict[str, str]:
+    """Return existing paths plus the generated Atlas references."""
+    paths = dict(_PROJECT_REFERENCE_ATLAS_BASE_REPOSITORY_PATHS())
+    paths['project_reference_atlas'] = PROJECT_REFERENCE_ATLAS_REFERENCE["path"]
+    paths['project_reference_atlas_schema'] = PROJECT_REFERENCE_ATLAS_REFERENCE["schema_path"]
+    paths['project_reference_atlas_generator'] = PROJECT_REFERENCE_ATLAS_REFERENCE["generator_path"]
+    paths['project_reference_atlas_workflow'] = PROJECT_REFERENCE_ATLAS_REFERENCE["workflow_path"]
+    return paths
+
+
+_PROJECT_REFERENCE_ATLAS_BASE_STARTUP_INSTRUCTIONS = startup_instructions
+
+
+def startup_instructions() -> dict[str, Any]:
+    """Expose Atlas instructions while preserving the original startup payload."""
+    instructions = dict(_PROJECT_REFERENCE_ATLAS_BASE_STARTUP_INSTRUCTIONS())
+    return {
+        **instructions,
+        "project_reference_atlas": dict(PROJECT_REFERENCE_ATLAS_REFERENCE),
+        'project_reference_atlas_rules': list(PROJECT_REFERENCE_ATLAS_RULES),
+        'project_reference_atlas_generation': project_reference_atlas_generation(),
+    }
+# END HOMIO PROJECT REFERENCE ATLAS (managed)
+'''
+
+
+def _top_level_bindings(tree: ast.Module) -> dict[str, ast.AST | None]:
+    result: dict[str, ast.AST | None] = {}
+
     for node in tree.body:
         if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
-            bindings[node.target.id] = node.value
+            result[node.target.id] = node.value
+
         elif isinstance(node, ast.Assign):
             for target in node.targets:
                 if isinstance(target, ast.Name):
-                    bindings[target.id] = node.value
-    return bindings
+                    result[target.id] = node.value
+
+    return result
 
 
 def _top_level_functions(tree: ast.Module) -> set[str]:
     return {
-        node.name for node in tree.body
+        node.name
+        for node in tree.body
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
     }
 
 
-def _dictionary_has_key(node: ast.AST | None, key: str) -> bool:
+def _literal_dictionary_has_key(
+    node: ast.AST | None,
+    key: str,
+) -> bool:
     if not isinstance(node, ast.Dict):
-        raise ValueError("EntryPoint registry must be a literal dictionary")
+        raise ValueError(
+            "EntryPoint registry must be a literal dictionary"
+        )
+
     for key_node in node.keys:
         try:
             if ast.literal_eval(key_node) == key:
                 return True
         except (ValueError, TypeError):
             continue
+
     return False
 
 
 def _validate_base_entrypoint(source: str) -> ast.Module:
     try:
-        tree = ast.parse(source, filename=ENTRYPOINT_RELATIVE_PATH)
+        tree = ast.parse(
+            source,
+            filename=ENTRYPOINT_RELATIVE_PATH,
+        )
     except SyntaxError as exc:
         raise ValueError(
             f"Existing EntryPoint has invalid Python syntax: {exc}"
         ) from exc
 
     bindings = _top_level_bindings(tree)
-    functions = _top_level_functions(tree)
 
     required_bindings = {
         "ENTRYPOINT_RELATIVE_PATH",
@@ -113,14 +236,18 @@ def _validate_base_entrypoint(source: str) -> ast.Module:
                 f"EntryPoint {name} must remain a literal dictionary"
             )
 
-    for name in ("NEW_SESSION_READ_ORDER", "NEW_SESSION_WORKFLOW"):
+    for name in (
+        "NEW_SESSION_READ_ORDER",
+        "NEW_SESSION_WORKFLOW",
+    ):
         if not isinstance(bindings[name], (ast.Tuple, ast.List)):
             raise ValueError(
                 f"EntryPoint {name} must remain a tuple/list"
             )
 
     missing_functions = sorted(
-        {"repository_paths", "startup_instructions"} - functions
+        {"repository_paths", "startup_instructions"}
+        - _top_level_functions(tree)
     )
     if missing_functions:
         raise ValueError(
@@ -128,27 +255,19 @@ def _validate_base_entrypoint(source: str) -> ast.Module:
             + ", ".join(missing_functions)
         )
 
-    if _dictionary_has_key(
-        bindings["DOCUMENT_REGISTRY"], "project_reference_atlas"
+    for name in (
+        "DOCUMENT_REGISTRY",
+        "SOURCE_OF_TRUTH",
+        "ACRL_OWNER_ROUTING",
     ):
-        raise ValueError(
-            "DOCUMENT_REGISTRY already contains project_reference_atlas; "
-            "refusing to create a duplicate or silently overwrite an owner entry"
-        )
-
-    if _dictionary_has_key(
-        bindings["SOURCE_OF_TRUTH"], "project_reference_atlas"
-    ):
-        raise ValueError(
-            "SOURCE_OF_TRUTH already contains project_reference_atlas"
-        )
-
-    if _dictionary_has_key(
-        bindings["ACRL_OWNER_ROUTING"], "project_reference_atlas"
-    ):
-        raise ValueError(
-            "ACRL_OWNER_ROUTING already contains project_reference_atlas"
-        )
+        if _literal_dictionary_has_key(
+            bindings[name],
+            "project_reference_atlas",
+        ):
+            raise ValueError(
+                f"{name} already contains project_reference_atlas; "
+                "refusing duplicate ownership"
+            )
 
     return tree
 
@@ -158,15 +277,16 @@ def _tuple_item_line(
     variable: str,
     marker: str,
 ) -> int:
-    bindings = _top_level_bindings(tree)
-    tuple_node = bindings.get(variable)
+    node = _top_level_bindings(tree).get(variable)
 
-    if not isinstance(tuple_node, (ast.Tuple, ast.List)):
-        raise ValueError(f"Cannot locate {variable} tuple")
+    if not isinstance(node, (ast.Tuple, ast.List)):
+        raise ValueError(
+            f"Cannot locate {variable} tuple"
+        )
 
     matches = [
         item
-        for item in tuple_node.elts
+        for item in node.elts
         if (
             isinstance(item, ast.Constant)
             and isinstance(item.value, str)
@@ -189,130 +309,67 @@ def _insert_tuple_instruction(
     marker: str,
     insertion: str,
 ) -> str:
-    tree = ast.parse(source, filename=ENTRYPOINT_RELATIVE_PATH)
+    tree = ast.parse(
+        source,
+        filename=ENTRYPOINT_RELATIVE_PATH,
+    )
     lines = source.splitlines(keepends=True)
 
-    line_number = _tuple_item_line(tree, variable, marker)
-    target_line = lines[line_number - 1]
+    line_number = _tuple_item_line(
+        tree,
+        variable,
+        marker,
+    )
+    target = lines[line_number - 1]
 
-    indent = target_line[
-        : len(target_line) - len(target_line.lstrip())
+    indent = target[
+        : len(target) - len(target.lstrip())
     ]
     newline = (
-        "\r\n" if target_line.endswith("\r\n") else "\n"
+        "\r\n"
+        if target.endswith("\r\n")
+        else "\n"
     )
 
     lines.insert(
         line_number - 1,
-        f"{indent}{insertion!r},{newline}",
+        f"{insertion!r},{newline}",
     )
 
     return "".join(lines)
 
 
-MANAGED_BLOCK = r'''# BEGIN HOMIO PROJECT REFERENCE ATLAS (managed)
-# Derived navigation metadata only. The live state.json and source branch remain authoritative.
-PROJECT_REFERENCE_ATLAS_REFERENCE: dict[str, str] = {
-    "repository": "prajaktaranjane80-sketch/Homio",
-    "source_branch": "reos-development",
-    "reference_branch": "reos-project-reference",
-    "path": "REOS_CONTROL_CENTER/HOMIO_PROJECT_REFERENCE_ATLAS.json",
-    "schema_path": "REOS_CONTROL_CENTER/contracts/project_reference_atlas.schema.json",
-    "generator_path": "REOS_CONTROL_CENTER/AUTONOMY_ENGINE/continuity/acrl/T16_Repository_Intelligence_File_Discovery/project_reference_atlas/project_reference_atlas.py",
-    "workflow_path": ".github/workflows/homio-project-reference-atlas.yml",
-    "authority": "DERIVED_TECHNICAL_REFERENCE_ONLY",
-}
-
-PROJECT_REFERENCE_ATLAS_RULES: tuple[str, ...] = (
-    "Fetch the Atlas from reos-project-reference only after confirming the repository and branch identity.",
-    "Compare source_commit_sha and source_tree_sha with the live reos-development branch before relying on any Atlas section.",
-    "Compare state_json_blob_sha and entrypoint_blob_sha with the current tracked files; reject the Atlas if either differs.",
-    "Use exact tracked paths and blob SHAs as navigation evidence; verify each target file from live GitHub before editing it.",
-    "Treat owner, parser and dependency classifications as evidence-labelled metadata, not proof of runtime behavior.",
-    "Use existing ACRL T16 for repository inventory and static discovery, T14 for resume/freshness decisions, and T17 for change impact.",
-    "Never treat the Atlas as state.json, task authorization, approval, completion evidence, or a replacement for an owner reference.",
-    "If the Atlas is absent, invalid, stale or partially parsed, use the existing T14/T16 targeted or full-audit route and state the limitation.",
-    "The EntryPoint performs no network access, Git mutation, task transition or hidden command execution.",
-)
-
-
-def project_reference_atlas_rules() -> list[str]:
-    """Return the Atlas consumption rules for a new engineering session."""
-    return list(PROJECT_REFERENCE_ATLAS_RULES)
-
-
-def project_reference_atlas_generation() -> dict[str, Any]:
-    """Describe the existing T16-owned, source-commit-bound generation path."""
-    return {
-        "generator_owner": "acrl_t16",
-        "freshness_owner": "acrl_t14",
-        "impact_owner": "acrl_t17",
-        "source_branch": "reos-development",
-        "publication_branch": "reos-project-reference",
-        "atlas_path": PROJECT_REFERENCE_ATLAS_REFERENCE["path"],
-        "schema_path": PROJECT_REFERENCE_ATLAS_REFERENCE["schema_path"],
-        "workflow_path": PROJECT_REFERENCE_ATLAS_REFERENCE["workflow_path"],
-        "generation_mode": "AUTOMATED_FROM_EXACT_LIVE_SOURCE_COMMIT",
-        "entrypoint_update_mode": "GENERATED_COMPLETE_REPLACEMENT_REQUIRES_OWNER_READBACK",
-        "writes_to_source_branch": False,
-        "updates_state_json": False,
-    }
-
-
-if 'project_reference_atlas' in DOCUMENT_REGISTRY:
-    raise ValueError("DOCUMENT_REGISTRY already contains project_reference_atlas")
-
-DOCUMENT_REGISTRY['project_reference_atlas'] = {
-    "path": PROJECT_REFERENCE_ATLAS_REFERENCE["path"],
-    "role": "Generated, source-commit-bound technical inventory and navigation index.",
-    "authority": "DERIVED_TECHNICAL_REFERENCE_ONLY",
-}
-
-SOURCE_OF_TRUTH['project_reference_atlas'] = (
-    "Derived technical index on reos-project-reference; never execution state or authorization."
-)
-
-ACRL_OWNER_ROUTING['project_reference_atlas'] = "acrl_t16"
-ACRL_OWNER_ROUTING['project_reference_atlas_resume_and_freshness'] = "acrl_t14"
-ACRL_OWNER_ROUTING['project_reference_atlas_change_impact'] = "acrl_t17"
-
-_PROJECT_REFERENCE_ATLAS_BASE_REPOSITORY_PATHS = repository_paths
-
-
-def repository_paths() -> dict[str, str]:
-    """Return the existing path map plus the generated Atlas pointer."""
-    paths = dict(_PROJECT_REFERENCE_ATLAS_BASE_REPOSITORY_PATHS())
-    paths['project_reference_atlas'] = PROJECT_REFERENCE_ATLAS_REFERENCE["path"]
-    paths['project_reference_atlas_schema'] = PROJECT_REFERENCE_ATLAS_REFERENCE["schema_path"]
-    paths['project_reference_atlas_generator'] = PROJECT_REFERENCE_ATLAS_REFERENCE["generator_path"]
-    return paths
-
-
-_PROJECT_REFERENCE_ATLAS_BASE_STARTUP_INSTRUCTIONS = startup_instructions
-
-
-def startup_instructions() -> dict[str, Any]:
-    """Return existing startup data enriched with source-bound Atlas rules."""
-    instructions = dict(_PROJECT_REFERENCE_ATLAS_BASE_STARTUP_INSTRUCTIONS())
-    return {
-        **instructions,
-        'project_reference_atlas': dict(PROJECT_REFERENCE_ATLAS_REFERENCE),
-        'project_reference_atlas_rules': list(PROJECT_REFERENCE_ATLAS_RULES),
-        'project_reference_atlas_generation': project_reference_atlas_generation(),
-    }
-# END HOMIO PROJECT REFERENCE ATLAS (managed)
-'''
-
-
-def _validate_managed_block(source: str) -> None:
+def _managed_block_position(source: str) -> tuple[int, int]:
     if source.count(BEGIN) != 1 or source.count(END) != 1:
         raise ValueError(
             "Managed Atlas block is incomplete or duplicated"
         )
 
-    if source.index(BEGIN) >= source.index(END):
+    start = source.index(BEGIN)
+    end = source.index(END, start) + len(END)
+
+    if start >= end:
         raise ValueError(
             "Managed Atlas block markers are out of order"
+        )
+
+    return start, end
+
+
+def _validate_managed_block(source: str) -> None:
+    start, end = _managed_block_position(source)
+
+    cli_count = source.count(CLI_MARKER)
+    cli = source.find(CLI_MARKER)
+
+    if cli_count > 1:
+        raise ValueError(
+            "EntryPoint contains duplicate CLI section markers"
+        )
+
+    if cli_count == 1 and start > cli:
+        raise ValueError(
+            "Managed Atlas block must appear before the EntryPoint CLI startup block"
         )
 
     required = (
@@ -330,7 +387,8 @@ def _validate_managed_block(source: str) -> None:
     )
 
     missing = [
-        item for item in required if item not in source
+        item for item in required
+        if item not in source
     ]
 
     if missing:
@@ -339,16 +397,49 @@ def _validate_managed_block(source: str) -> None:
             + ", ".join(missing)
         )
 
+    if not (0 <= start < end <= len(source)):
+        raise ValueError(
+            "Managed Atlas block range is invalid"
+        )
+
     try:
-        ast.parse(source, filename=ENTRYPOINT_RELATIVE_PATH)
+        ast.parse(
+            source,
+            filename=ENTRYPOINT_RELATIVE_PATH,
+        )
     except SyntaxError as exc:
         raise ValueError(
             f"Managed EntryPoint replacement has invalid Python syntax: {exc}"
         ) from exc
 
 
+def _insert_managed_block_before_cli(source: str) -> str:
+    marker_count = source.count(CLI_MARKER)
+
+    if marker_count > 1:
+        raise ValueError(
+            "EntryPoint contains duplicate CLI section markers"
+        )
+
+    insertion = MANAGED_BLOCK.rstrip() + "\n\n"
+
+    if marker_count == 0:
+        # Small contract-test fixtures may omit the real CLI section.
+        # The production EntryPoint has the canonical CLI marker.
+        return source.rstrip() + "\n\n" + insertion
+
+    marker = source.index(CLI_MARKER)
+    line_start = source.rfind("\n", 0, marker) + 1
+
+    return (
+        source[:line_start]
+        + insertion
+        + source[line_start:]
+    )
+
+
 def update_entrypoint(source: str) -> str:
-    """Return a complete lossless EntryPoint replacement with Atlas integration."""
+    """Return a complete, lossless, idempotent EntryPoint replacement."""
     if not isinstance(source, str) or not source.strip():
         raise ValueError(
             "EntryPoint source must be a non-empty string"
@@ -360,8 +451,36 @@ def update_entrypoint(source: str) -> str:
     if has_begin or has_end:
         if not (has_begin and has_end):
             raise ValueError(
-                "Partial managed Atlas block detected; refusing an unsafe repair"
+                "Partial managed Atlas block detected; refusing unsafe repair"
             )
+
+        start, end = _managed_block_position(source)
+        cli = source.find(CLI_MARKER)
+
+        if cli >= 0 and start > cli:
+            # Repair an older generated layout that appended the block
+            # after the CLI. Preserve all source outside the managed block.
+            block = source[start:end]
+            remainder = source[:start] + source[end:]
+
+            if remainder.count(CLI_MARKER) != 1:
+                raise ValueError(
+                    "Cannot safely relocate the managed block: "
+                    "CLI marker is not unique"
+                )
+
+            marker = remainder.index(CLI_MARKER)
+            line_start = remainder.rfind("\n", 0, marker) + 1
+
+            updated = (
+                remainder[:line_start]
+                + block
+                + "\n\n"
+                + remainder[line_start:]
+            )
+
+            _validate_managed_block(updated)
+            return updated
 
         _validate_managed_block(source)
         return source
@@ -374,20 +493,7 @@ def update_entrypoint(source: str) -> str:
             "Atlas startup instruction exists without the complete managed block"
         )
 
-    tree = _validate_base_entrypoint(source)
-    bindings = _top_level_bindings(tree)
-
-    for mapping_name in (
-        "DOCUMENT_REGISTRY",
-        "SOURCE_OF_TRUTH",
-        "ACRL_OWNER_ROUTING",
-    ):
-        if _dictionary_has_key(
-            bindings[mapping_name], "project_reference_atlas"
-        ):
-            raise ValueError(
-                f"{mapping_name} already contains project_reference_atlas"
-            )
+    _validate_base_entrypoint(source)
 
     updated = _insert_tuple_instruction(
         source,
@@ -403,14 +509,17 @@ def update_entrypoint(source: str) -> str:
         WORKFLOW_INSERTION,
     )
 
-    updated = updated.rstrip() + "\n\n" + MANAGED_BLOCK + "\n"
+    updated = _insert_managed_block_before_cli(updated)
 
     _validate_managed_block(updated)
     return updated
 
 
 def _write_atomic(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+    path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
     fd, temporary_name = tempfile.mkstemp(
         prefix=f".{path.name}.",
@@ -429,7 +538,10 @@ def _write_atomic(path: Path, content: str) -> None:
             handle.flush()
             os.fsync(handle.fileno())
 
-        os.replace(temporary_name, path)
+        os.replace(
+            temporary_name,
+            path,
+        )
 
     except Exception:
         try:
@@ -440,10 +552,20 @@ def _write_atomic(path: Path, content: str) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__
+    )
 
-    parser.add_argument("--source", type=Path, required=True)
-    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--source",
+        type=Path,
+        required=True,
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        required=True,
+    )
 
     args = parser.parse_args(argv)
 
@@ -456,11 +578,22 @@ def main(argv: list[str] | None = None) -> int:
             "the source EntryPoint is never overwritten"
         )
 
-    original = source_path.read_text(encoding="utf-8-sig")
+    original = source_path.read_text(
+        encoding="utf-8-sig"
+    )
+
     replacement = update_entrypoint(original)
 
-    compile(replacement, str(source_path), "exec")
-    _write_atomic(output_path, replacement)
+    compile(
+        replacement,
+        str(source_path),
+        "exec",
+    )
+
+    _write_atomic(
+        output_path,
+        replacement,
+    )
 
     print(json.dumps({
         "status": "GENERATED_COMPLETE_REPLACEMENT",
@@ -474,7 +607,13 @@ def main(argv: list[str] | None = None) -> int:
         ).hexdigest(),
         "source_lines": len(original.splitlines()),
         "replacement_lines": len(replacement.splitlines()),
-        "idempotent": update_entrypoint(replacement) == replacement,
+        "managed_block_before_cli": (
+            CLI_MARKER not in replacement
+            or replacement.index(BEGIN) < replacement.index(CLI_MARKER)
+        ),
+        "idempotent": (
+            update_entrypoint(replacement) == replacement
+        ),
     }, indent=2))
 
     return 0
