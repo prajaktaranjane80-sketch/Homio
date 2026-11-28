@@ -1628,12 +1628,4 @@ describe.skipIf(!integrationEnabled)(
   }
 );
 
-        expect(
-          Number(remainingApplicationSessions.rows[0]?.count)
-        ).toBe(0);
-      },
-      60_000
-    );
-  }
-);
-
+        
