@@ -346,7 +346,9 @@ describe.skipIf(!integrationEnabled)(
               CHECK (
                 migration_name ~ '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'
               ),
-                            CHECK (checksum ~ '^[a-f0-9]{64}$')
+
+            CONSTRAINT schema_migrations_checksum_check
+              CHECK (checksum ~ '^[a-f0-9]{64}$')
           )
         `);
       } finally {
@@ -1626,4 +1628,12 @@ describe.skipIf(!integrationEnabled)(
   }
 );
 
-            CONSTRAINT schema_migrations_checksum_check
+        expect(
+          Number(remainingApplicationSessions.rows[0]?.count)
+        ).toBe(0);
+      },
+      60_000
+    );
+  }
+);
+
