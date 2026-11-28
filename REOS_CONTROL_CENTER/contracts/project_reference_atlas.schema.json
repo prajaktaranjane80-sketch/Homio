@@ -1,0 +1,255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/prajaktaranjane80-sketch/Homio/blob/reos-project-reference/REOS_CONTROL_CENTER/contracts/project_reference_atlas.schema.json",
+  "title": "HOMIO / REOS Project Reference Atlas",
+  "description": "Source-commit-bound derived technical index. Never authoritative for execution state or task authorization.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "atlas_schema_version",
+    "status",
+    "repository",
+    "source_baseline",
+    "authority_model",
+    "coverage",
+    "inventory",
+    "architecture",
+    "relationships",
+    "provenance",
+    "known_limitations",
+    "integrity"
+  ],
+  "properties": {
+    "atlas_schema_version": {
+      "const": "1.0.0"
+    },
+    "status": {
+      "enum": [
+        "CURRENT",
+        "INVENTORY_CURRENT_SEMANTICS_PARTIAL"
+      ]
+    },
+    "repository": {
+      "const": "prajaktaranjane80-sketch/Homio"
+    },
+    "source_baseline": {
+      "type": "object",
+      "required": [
+        "repository",
+        "source_branch",
+        "source_commit_sha",
+        "source_tree_sha",
+        "state_json_path",
+        "state_json_blob_sha",
+        "entrypoint_path",
+        "entrypoint_blob_sha",
+        "reference_branch",
+        "reference_path"
+      ],
+      "properties": {
+        "repository": {
+          "const": "prajaktaranjane80-sketch/Homio"
+        },
+        "source_branch": {
+          "const": "reos-development"
+        },
+        "source_commit_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "source_tree_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "state_json_path": {
+          "const": "REOS_CONTROL_CENTER/data/state.json"
+        },
+        "state_json_blob_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "entrypoint_path": {
+          "const": "REOS_CONTROL_CENTER/AI_AGENT_ENTRYPOINT.py"
+        },
+        "entrypoint_blob_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "reference_branch": {
+          "const": "reos-project-reference"
+        },
+        "reference_path": {
+          "const": "REOS_CONTROL_CENTER/HOMIO_PROJECT_REFERENCE_ATLAS.json"
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "required": [
+        "tracked_entry_count",
+        "inventory_entry_count",
+        "inventory_complete",
+        "t16_classified_entry_count",
+        "semantic_coverage",
+        "runtime_relationships_proven",
+        "all_repository_code_semantics_proven"
+      ],
+      "properties": {
+        "tracked_entry_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "inventory_entry_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "inventory_complete": {
+          "const": true
+        },
+        "t16_classified_entry_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "t16_coverage_is_not_used_as_git_inventory_coverage": {
+          "const": true
+        },
+        "semantic_coverage": {
+          "const": "PARTIAL_BY_DESIGN"
+        },
+        "runtime_relationships_proven": {
+          "const": false
+        },
+        "all_repository_code_semantics_proven": {
+          "const": false
+        }
+      }
+    },
+    "inventory": {
+      "type": "object",
+      "required": [
+        "source",
+        "entries",
+        "indexes"
+      ],
+      "properties": {
+        "source": {
+          "const": "git ls-tree -r -z --full-tree HEAD"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "mode",
+              "object_type",
+              "object_sha",
+              "is_symlink",
+              "is_submodule",
+              "category",
+              "source_kind",
+              "authority_classification",
+              "risk_classification",
+              "classification_evidence",
+              "owner",
+              "domains"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "mode": {
+                "type": "string"
+              },
+              "object_type": {
+                "enum": [
+                  "blob",
+                  "commit"
+                ]
+              },
+              "object_sha": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{40}$"
+              },
+              "byte_size": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "is_symlink": {
+                "type": "boolean"
+              },
+              "is_submodule": {
+                "type": "boolean"
+              },
+              "category": {
+                "type": "string"
+              },
+              "source_kind": {
+                "type": "string"
+              },
+              "authority_classification": {
+                "type": "string"
+              },
+              "risk_classification": {
+                "type": "string"
+              },
+              "classification_evidence": {
+                "type": "string"
+              },
+              "owner": {
+                "type": "object"
+              },
+              "domains": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "indexes": {
+          "type": "object"
+        }
+      }
+    },
+    "architecture": {
+      "type": "object"
+    },
+    "relationships": {
+      "type": "object"
+    },
+    "provenance": {
+      "type": "object"
+    },
+    "known_limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "sha256"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "sha256"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "authority_model": {
+      "type": "object"
+    }
+  }
+}
